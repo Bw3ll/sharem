@@ -1,0 +1,9 @@
+
+work2.bin
+__pycache__/assemblyx86.cpython-38.pyc
+__pycache__/sharem.cpython-38.pyc
+__pycache__/sorting.cpython-38.pyc
+__pycache__/testing8.cpython-38.pyc
+out.txt
+outputs/shellcode-disassembly.txt
+outputs/shellcode.bin
