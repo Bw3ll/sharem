@@ -1,3 +1,6 @@
 
 *.pyc
 work2.bin
+out.txt
+outputs/shellcode-disassembly.txt
+outputs/shellcode.bin
