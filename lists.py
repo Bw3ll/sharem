@@ -8,7 +8,6 @@ import copy
 global MyBytes
 global objs
 
-
 #MOV <REG>, [FS:0x30]
 PEB_WALK_MOV = {
 	'EAX_OFFSET_NONE': b"\x64\xA1\x30\x00\x00\x00",
@@ -370,34 +369,6 @@ PEB_WALK_XCHG = {
 	'EBP_OFFSET_EBP':  b"\x64\x87\x6D\x30"
 }
 
-
-PEB_WALK_PUSH = {
-	'EAX': b"\x64\xFF\x30",
-	'EBX': b"\x64\xFF\x33",
-	'ECX': b"\x64\xFF\x31",
-	'EDX': b"\x64\xFF\x32",
-	'EDI': b"\x64\xFF\x37",
-	'ESI': b"\x64\xFF\x36",
-	'EBP': b"\x64\xFF\x75\x00"
-}
-
-PEB_WALK_PUSH64 = {
-	'RAX': b"\x65\xFF\x30",
-	'RBX': b"\x65\xFF\x33",
-	'RCX': b"\x65\xFF\x31",
-	'RDX': b"\x65\xFF\x32",
-	'RDI': b"\x65\xFF\x37",
-	'RSI': b"\x65\xFF\x36",
-	'RBP': b"\x65\xFF\x75\x00",
-	'R9':  b"\x65\x41\xFF\x31",
-	'R10': b"\x65\x41\xFF\x32",
-	'R11': b"\x65\x41\xFF\x33",
-	'R12': b"\x65\x41\xFF\x34\x24",
-	'R13': b"\x65\x41\xFF\x75\x00",
-	'R14': b"\x65\x41\xFF\x36",
-	'R15': b"\x65\x41\xFF\x37"
-}
-
 #################### 64 BIT PEB WALK ###########################################
 
 PEB_WALK_MOV_64 = {
@@ -615,11 +586,8 @@ PEB_WALK_MOV_64 = {
 
 
 
+
 ################### AUSTIN ###############################
-FSTENV_GET_BASE = "\x9B\xD9\x74\x24\xF4"
-
-
-
 PUSH_RET = {
 
 
@@ -666,8 +634,8 @@ OP_JMP_ESI = b"\xff\xe6"
 OP_JMP_EDI = b"\xff\xe7"
 OP_JMP_ESP = b"\xff\xe4"
 OP_JMP_EBP = b"\xff\xe5"
-OP_JMP_R8  = b"\x41\xff\xe0"
-OP_JMP_R9  = b"\x41\xff\xe1"
+OP_JMP_R8 = b"\x41\xff\xe0"
+OP_JMP_R9 = b"\x41\xff\xe1"
 OP_JMP_R10 = b"\x41\xff\xe2"
 OP_JMP_R11 = b"\x41\xff\xe3"
 OP_JMP_R12 = b"\x41\xff\xe4"
@@ -736,3 +704,40 @@ listOP_BaseDG_NumOps = []
 listOP_BaseDG_Module = []
 
 
+
+
+push_DWORD_PTR_eax= b"\xff\x30" 
+push_DWORD_PTR_ecx= b"\xff\x31" 
+push_DWORD_PTR_edx = b"\xff\x32" 
+push_DWORD_PTR_ebx= b"\xff\x33" 
+push_DWORD_PTR_esp= b"\xff\x34" 
+push_DWORD_PTR_esi= b"\xff\x36" 
+push_DWORD_PTR_edi= b"\xff\x37"
+
+inc_ecx = b"\xff\xc1"
+inc_edx = b"\xff\xc2"
+inc_ebx = b"\xff\xc3"
+inc_esp = b"\xff\xc4"
+inc_ebp = b"\xff\xc5"
+inc_esi = b"\xff\xc6"
+inc_edi = b"\xff\xc7"
+dec_eax = b"\xff\xc8"
+dec_ecx = b"\xff\xc9"
+dec_edx = b"\xff\xca"
+dec_ebx = b"\xff\xcb"
+dec_esp = b"\xff\xcc"
+dec_ebp = b"\xff\xcd"
+dec_esi = b"\xff\xce"
+dec_edi = b"\xff\xcf"
+
+push_eax = b"\xff\xf0" 
+push_ecx = b"\xff\xf1" 
+push_edx = b"\xff\xf2" 
+push_ebx = b"\xff\xf3" 
+push_esp = b"\xff\xf4"
+push_ebp = b"\xff\xf5"
+push_esi = b"\xff\xf6" 
+push_edi = b"\xff\xf7"
+
+
+FFInstructions= [push_DWORD_PTR_eax, push_DWORD_PTR_ecx, push_DWORD_PTR_edx, push_DWORD_PTR_ebx, push_DWORD_PTR_esp, push_DWORD_PTR_esi, push_DWORD_PTR_edi, inc_ecx,  inc_edx,  inc_ebx,  inc_esp,  inc_ebp,  inc_esi,  inc_edi,  dec_eax,  dec_ecx,  dec_edx,  dec_ebx,  dec_esp,  dec_ebp,  dec_esi,  dec_edi,  push_eax,  push_ecx,  push_edx,  push_ebx,  push_esp,  push_ebp,  push_esi,  push_edi,  OP_JMP_PTR_EAX,  OP_JMP_PTR_EBX,  OP_JMP_PTR_ECX,  OP_JMP_PTR_EDX, OP_JMP_PTR_EDI,  OP_JMP_PTR_ESI,  OP_JMP_PTR_EBP,  OP_JMP_PTR_ESP,  OP_CALL_EAX,  OP_CALL_EBX,  OP_CALL_ECX,  OP_CALL_EDX,  OP_CALL_EDI,  OP_CALL_ESI,  OP_CALL_EBP,  OP_CALL_ESP,  OP_CALL_PTR_EAX,  OP_CALL_PTR_EBX,  OP_CALL_PTR_ECX,  OP_CALL_PTR_EDX,  OP_CALL_PTR_EDI,  OP_CALL_PTR_ESI, OP_CALL_PTR_EBP,  OP_CALL_PTR_ESP, OP_CALL_FAR_EAX,  OP_CALL_FAR_EBX,  OP_CALL_FAR_ECX,  OP_CALL_FAR_EDX,  OP_CALL_FAR_EDI,  OP_CALL_FAR_ESI,  OP_CALL_FAR_EBP,  OP_CALL_FAR_ESP,  OP_JMP_EAX,  OP_JMP_EBX, OP_JMP_ECX,  OP_JMP_EDX,  OP_JMP_ESI,  OP_JMP_EDI, OP_JMP_ESP, OP_JMP_EBP]
