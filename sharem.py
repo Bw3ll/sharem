@@ -18,6 +18,7 @@ from ctypes import wintypes
 import win32file
 from sorting import *
 import timeit
+from testing8 import *
 
 sections = []
 numArgs = len(sys.argv)
@@ -36,6 +37,7 @@ VP = 0
 VA=""
 MA=""
 GPA=""
+pe=""
 MemCpyAddress=""
 VPl = []
 VAl=[]
@@ -71,7 +73,7 @@ new=[]
 new2=[]
 deeperLevel=[]
 asciiMode="ascii"
-
+stringsTemp=[]
 if numArgs > 1:			# to get full functionality, need to put file location for binary that is installed (may need to find some DLLs in that directory)
 	peName= sys.argv[1] 
 	matchObj = re.match( r'^[a-z]+:[\\|/]+', peName, re.M|re.I)
@@ -129,17 +131,20 @@ if(rawHex):
 	pe = peName
 
 else:
-	if win32file.GetBinaryType(PEtemp) == 6:
-		bit32 = False
-	else:
-		bit32 = True
-
-
-	if skipPath == True:
-		pe = pefile.PE(PEtemp)
-	if skipPath == False:
-		pe = pefile.PE(peName)
-
+	try:
+		if win32file.GetBinaryType(PEtemp) == 6:
+			bit32 = False
+		else:
+			bit32 = True
+	except:
+		pass
+	try:
+		if skipPath == True:
+			pe = pefile.PE(PEtemp)
+		if skipPath == False:
+			pe = pefile.PE(peName)
+	except:
+		pass
 if(bit32):
 	cs = Cs(CS_ARCH_X86, CS_MODE_32)
 else:
@@ -2210,17 +2215,20 @@ def findAndPrintSuspicious():  ################## AUSTIN #######################
 	
 
 def findStrings(binary,Num):#,t):
+	print ("findingStrings")
 	global t
 	global o
+	global stringsTemp
 	newop=" 0x00\t"
 	newAscii=""
 	# newUnicode=""
 	old=0
 	offset=0
+	word=""
+	wordSize=0
 	try:
 		x=0
 		y=1
-		word=""
 		inProgress=False
 		for v in binary:
 			i = ord2(v) 
@@ -2234,32 +2242,28 @@ def findStrings(binary,Num):#,t):
 				if inProgress:
 					if (len(word) >= Num):
 						# print "t: " + str(t)
-						s[t].Strings.append(tuple((word, offset)))
+						wordSize=len(word)
+						try:
+							s[t].Strings.append(tuple((word, offset, wordSize)))
+						except:
+							stringsTemp.append(tuple((word, offset, wordSize)))
 					inProgress=False
 					word=""
 					offset=0
-				# newAscii += "."
-			#unicode
-			# if (y % 2 ==0):
-			# 	newUnicode = int(str(old) + str(i))
-			# 	print hex(newUnicode)
-			# 	print unichr(hex(newUnicode))
 			x+=1
 			y+=1
-			# if x ==15:
-			# 	# newop +=  "\n " + str(hex(y)) + "\t"
-			# 	newop += "  "+  newAscii + "\n " + str(hex(y)) + "\t"
-			# 	y+=1
-			# 	x=0
-			# 	newAscii=""
-			# old = i
-	# 	print "finished"
-	# 	for x, y  in s[t].Strings:
-	# 		print x + "\t" + str(hex(y))
-	# 	print "Total: "  + str(len(s[t].Strings))
+			if x == len(binary):   #last byte, final end
+ 				# dprint ("reached")
+ 				wordSize=len(word)
+ 				# dprint2 (word, hex(offset), wordSize)
+ 				try:
+ 					s[t].Strings.append(tuple((word, offset, wordSize)))
+ 				except: 
+ 					stringsTemp.append(tuple((word, offset, wordSize)))
 	except Exception as e:
 		print ("*String finding error1!!!")
 		print (e)
+
 
 def findStringsWide(binary,Num):#,t):
 	global t
@@ -3442,16 +3446,23 @@ def getStringsOnSections(x):
 
 def printStrings():
 	t=0
-	for sec in pe.sections:
-		print (s[t].sectionName)
-		for x,y  in s[t].Strings:
-			print ("\t"+ str(x) + "\t" + str(hex(y)))
-		for x,y in s[t].wideStrings:
-			print ("\t"+ str(x) + "\t" + str(hex(y)))
-		for x, y in s[t].pushStrings:
-			print ("\t"+ str(x) + "\t" + str(hex(y)))
-		print ("\n")
-		t+=1
+	try:
+		for sec in pe.sections:
+			print (s[t].sectionName)
+			for x,y,z  in s[t].Strings:
+				print ("\t"+ str(x) + "\t" + str(hex(y)) + "\t" + str(hex(z))) 
+			for x,y in s[t].wideStrings:
+				print ("\t"+ str(x) + "\t" + str(hex(y)))
+			# for x, y in s[t].pushStrings:
+			# 	print ("\t"+ str(x) + "\t" + str(hex(y)))
+			print ("\n")
+			t+=1
+	except:
+		pass
+	for x,y,z  in stringsTemp:
+		print ("\t"+ str(x) + "\t" + str(hex(y)) + "\t" + str(hex(z))) 
+
+
 	t=0
 
 def runIt():
@@ -3525,32 +3536,50 @@ def bramwellStart():
 	# findStrings(op_test, 5)
 
 
-	# findStrings(s[0].data2,5)
+	findStrings(s[0].data2,5)
 
 	# print "start getstrings"
 
-	# getStringsOnSections(7)
+	getStringsOnSections(7)
 
-	#getPushStrings(5)
-	# showAllRegs()
+	getPushStrings(5)
+	showAllRegs()
 	# op_test2 = b"\x00\x40\x00\x41\x00\x42\x00\x43\x00\x44\x00\x45\x00\x00"
 	# findStringsWide(s[0].data2, 6)
-	# printStrings()
+	printStrings()
 	# findEvilImports()
 	# print(showImports())
 
-	getDLLs()
-	digDeeper(PE_DLLS)
-	digDeeper2()
+	# getDLLs()
+	# digDeeper(PE_DLLS)
+	# digDeeper2()
 
 
-	InMem2()
+	# InMem2()
 
 ##### START
 
-#Extraction()
+
+# Extraction()
+
 # starting()
 AustinStart()
 AustinTesting()
 
-#bramwellStart()
+
+# bramwellStart()
+# testing8Start()
+
+
+testing="shellcodes\\testing.txt"
+shellcode4='shellcode4.txt'
+def fromTesting(shellArg):
+
+	testme()
+	testing8Start(shellArg)
+
+
+
+if __name__ == "__main__":
+	fromTesting(shellcode4)
+
