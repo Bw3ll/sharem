@@ -614,17 +614,11 @@ PEB_WALK_MOV_64 = {
 }
 
 
-
-<<<<<<< lists.py
 ################### AUSTIN ###############################
 FSTENV_GET_BASE = "\x9B\xD9\x74\x24\xF4"
 
-
-
-=======
-
 ################### AUSTIN ###############################
->>>>>>> lists2.py
+
 PUSH_RET = {
 
 
@@ -740,11 +734,6 @@ listOP_BaseDG_CNT = []
 listOP_BaseDG_NumOps = []
 listOP_BaseDG_Module = []
 
-
-<<<<<<< lists.py
-=======
-
-
 push_DWORD_PTR_eax= b"\xff\x30" 
 push_DWORD_PTR_ecx= b"\xff\x31" 
 push_DWORD_PTR_edx = b"\xff\x32" 
@@ -780,4 +769,4 @@ push_edi = b"\xff\xf7"
 
 
 FFInstructions= [push_DWORD_PTR_eax, push_DWORD_PTR_ecx, push_DWORD_PTR_edx, push_DWORD_PTR_ebx, push_DWORD_PTR_esp, push_DWORD_PTR_esi, push_DWORD_PTR_edi, inc_ecx,  inc_edx,  inc_ebx,  inc_esp,  inc_ebp,  inc_esi,  inc_edi,  dec_eax,  dec_ecx,  dec_edx,  dec_ebx,  dec_esp,  dec_ebp,  dec_esi,  dec_edi,  push_eax,  push_ecx,  push_edx,  push_ebx,  push_esp,  push_ebp,  push_esi,  push_edi,  OP_JMP_PTR_EAX,  OP_JMP_PTR_EBX,  OP_JMP_PTR_ECX,  OP_JMP_PTR_EDX, OP_JMP_PTR_EDI,  OP_JMP_PTR_ESI,  OP_JMP_PTR_EBP,  OP_JMP_PTR_ESP,  OP_CALL_EAX,  OP_CALL_EBX,  OP_CALL_ECX,  OP_CALL_EDX,  OP_CALL_EDI,  OP_CALL_ESI,  OP_CALL_EBP,  OP_CALL_ESP,  OP_CALL_PTR_EAX,  OP_CALL_PTR_EBX,  OP_CALL_PTR_ECX,  OP_CALL_PTR_EDX,  OP_CALL_PTR_EDI,  OP_CALL_PTR_ESI, OP_CALL_PTR_EBP,  OP_CALL_PTR_ESP, OP_CALL_FAR_EAX,  OP_CALL_FAR_EBX,  OP_CALL_FAR_ECX,  OP_CALL_FAR_EDX,  OP_CALL_FAR_EDI,  OP_CALL_FAR_ESI,  OP_CALL_FAR_EBP,  OP_CALL_FAR_ESP,  OP_JMP_EAX,  OP_JMP_EBX, OP_JMP_ECX,  OP_JMP_EDX,  OP_JMP_ESI,  OP_JMP_EDI, OP_JMP_ESP, OP_JMP_EBP]
->>>>>>> lists2.py
+
