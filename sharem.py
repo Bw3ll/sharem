@@ -8,8 +8,6 @@ import os
 from collections import OrderedDict
 from lists import *
 from assemblyx86 import *
-# from ui import *
-#import pywin32
 import win32api
 import win32con
 import ctypes
@@ -18,7 +16,8 @@ from ctypes import wintypes
 import win32file
 from sorting import *
 import timeit
-from testing8 import *
+import shDis
+import string
 
 sections = []
 numArgs = len(sys.argv)
@@ -74,77 +73,110 @@ new2=[]
 deeperLevel=[]
 asciiMode="ascii"
 stringsTemp=[]
-if numArgs > 1:			# to get full functionality, need to put file location for binary that is installed (may need to find some DLLs in that directory)
-	peName= sys.argv[1] 
-	matchObj = re.match( r'^[a-z]+:[\\|/]+', peName, re.M|re.I)
-	if matchObj:
-		head, tail = os.path.split(peName)
-		peName = tail
-		PE_path = head
-		skipPath = True
-	if not matchObj:
-		skipPath = False
-	matchObj = re.match( r'^[a-z0-9]+.txt', peName, re.M|re.I)
-	if matchObj:
-		head, tail = os.path.split(peName)
-		with open(tail, "r") as ins:
-			for line in ins:
-				line2 = line.rstrip('\n')
-				PEsList.append(line2)
-		peName = PEsList[0]
-		# print "name"
-		print (peName)
-		head, tail = os.path.split(peName)
-		peName = tail
-		PE_path = head
-		numPE = len(PEsList)
-		skipPath = True
-		# print PEsList
-PEtemp = PE_path + "/"+ peName
+stringsTempWide=[]
+pushStringsTemp=[]
 
-
-
-############### AUSTIN ####################
+filename=""
+skipExtraction=False
 rawHex = False
-if(numArgs > 2):
-	if(sys.argv[2] == "raw"):
-		rawHex = True
-		# print("set raw")
-		try:
-			f = open(peName, "rb")
-			global rawData2
-			rawData2 = f.read()
-			f.close()
-		except Exception as e:
-			print("Invalid path to hex file.")
-			#print(e)
-			quit()
-############### AUSTIN ####################
+rawData2 = b''
+numArgs = len(sys.argv)
 
-if skipPath == False:
-	PEtemp = peName
-if skipPath == True:
+
+
+
+FindStringsStatus=True
+
+GoodStrings=["cmd",  "net","add", "Win", "http", "dll", "sub"]
+
+
+#####SAME AS FROM SHAREM
+filename=""
+if numArgs > 1:			# to get full functionality, need to put file location for binary that is installed (may need to find some DLLs in that directory)
+	txtDoc= re.search( r'\.txt', sys.argv[1], re.M|re.I)
+	if txtDoc:
+		filename= sys.argv[1]
+		skipExtraction=True
+		rawHex=True
+
+if len(filename) > 1:
+	testing=filename
+
+if numArgs==1:
+	skipExtraction=True
+	rawHex=True
+if not skipExtraction:
+	if numArgs > 1:			# to get full functionality, need to put file location for binary that is installed (may need to find some DLLs in that directory)
+		peName= sys.argv[1] 
+		matchObj = re.match( r'^[a-z]+:[\\|/]+', peName, re.M|re.I)
+		if matchObj:
+			head, tail = os.path.split(peName)
+			peName = tail
+			PE_path = head
+			skipPath = True
+		if not matchObj:
+			skipPath = False
+		matchObj = re.match( r'^[a-z0-9]+.txt', peName, re.M|re.I)
+		if matchObj:
+			head, tail = os.path.split(peName)
+			with open(tail, "r") as ins:
+				for line in ins:
+					line2 = line.rstrip('\n')
+					PEsList.append(line2)
+			peName = PEsList[0]
+			# print "name"
+			print (peName)
+			head, tail = os.path.split(peName)
+			peName = tail
+			PE_path = head
+			numPE = len(PEsList)
+			skipPath = True
+			# print PEsList
 	PEtemp = PE_path + "/"+ peName
 
-if(rawHex):
-	bit32 = True #### ADD UI SELECTION LATER #####
-	pe = peName
 
-else:
-	try:
-		if win32file.GetBinaryType(PEtemp) == 6:
-			bit32 = False
-		else:
-			bit32 = True
-	except:
-		pass
-	try:
-		if skipPath == True:
-			pe = pefile.PE(PEtemp)
-		if skipPath == False:
-			pe = pefile.PE(peName)
-	except:
-		pass
+
+	############### AUSTIN ####################
+	rawHex = False
+	if(numArgs > 2):
+		if(sys.argv[2] == "raw"):
+			rawHex = True
+			# print("set raw")
+			try:
+				f = open(peName, "rb")
+				# global rawData2
+				rawData2 = f.read()
+				f.close()
+			except Exception as e:
+				print("Invalid path to hex file.")
+				#print(e)
+				quit()
+	############### AUSTIN ####################
+
+	if skipPath == False:
+		PEtemp = peName
+	if skipPath == True:
+		PEtemp = PE_path + "/"+ peName
+
+	if(rawHex):
+		bit32 = True #### ADD UI SELECTION LATER #####
+		pe = peName
+
+	else:
+		try:
+			if win32file.GetBinaryType(PEtemp) == 6:
+				bit32 = False
+			else:
+				bit32 = True
+		except:
+			pass
+		try:
+			if skipPath == True:
+				pe = pefile.PE(PEtemp)
+			if skipPath == False:
+				pe = pefile.PE(peName)
+		except:
+			pass
 if(bit32):
 	cs = Cs(CS_ARCH_X86, CS_MODE_32)
 else:
@@ -180,6 +212,7 @@ class MyBytes:
 		self.wideStrings = []    # tuple - strings, starting offset
 		self.save_PEB_info = []
 		self.save_PushRet_info = []
+		# self.sectionStart =0 ### image base + virtual address
 # end classs 
 
 class IATS:
@@ -222,6 +255,27 @@ def newIAT():
 
 IATs = FoundIATs()
 IATs._init_()
+
+class DisassByt:
+	def _init_(self): #, name):
+		"""Initializes the data."""
+		self.offsets = []   # starting offsets of bytes - may not always be 0 or 1
+		self.values = [] # the hex value
+		self.instructions =[]  # t/f - is it instructions--intinialized as instructions first
+		self.data =[] # t/f is data bytes
+		self.ranges=[] # does it identify ranges?
+		self.bytesType=[]
+		self.strings=[] # TRUE if strings, false if not
+		self.stringsStart=[] #offset the strings starts @
+		self.stringsValue=[]
+		self.pushStringEnd=[]
+		self.pushStringValue=[]
+		self.boolPushString=[]
+
+
+
+shBy=DisassByt()
+shBy._init_()
 
 def stripWhite(str1):
 
@@ -401,6 +455,7 @@ def Extraction():
 	m[o].CFGstatus =  str(CFG())
 	m[o].protect = m[o].protect + m[o].depStatus + m[o].aslrStatus + m[o].sehSTATUS + m[o].CFGstatus
 	DLL_Protect.append(m[o].protect)
+
 
 def findEvilImports():
 	global FoundApisAddress
@@ -1169,6 +1224,7 @@ def showBasicInfo():
 	return cat
 
 def showBasicInfoSections():
+	print("showBasicInfoSections")
 	cat=""
 	t=0
 	print ("# s: " + str(len(s)))
@@ -1181,7 +1237,8 @@ def showBasicInfoSections():
 		cat+="ImageBase: " + str(hex(s[t].ImageBase))+"\n"
 		cat+="VirtualSize: " + str(hex(s[t].vSize))+"\n"
 		cat +="SizeOfRawData: " + str(hex(s[t].SizeOfRawData)) +"\n"
-
+		cat +="VirtualAddress: " + str(hex(s[t].VirtualAdd)) +"\n"
+		cat +="ImageBase + sec. virtual address: " + str(hex(s[t].startLoc)) +"\n"
 		cat+="Actual size of section: " + str(hex(len(s[t].data2)))+"\n"
 		cat+= "DEP: " + str(s[t].depStatus)+"\n"
 		cat+="ASLR: " + str(s[t].aslrStatus)+"\n"
@@ -1201,7 +1258,7 @@ def show1(int):
 		return show
 
 def binaryToStr(binary):
-	OP_SPECIAL = b"\x8d\x4c\xff\xe2\x01\xd8\x81\xc6\x34\x12\x00\x00"
+	# OP_SPECIAL = b"\x8d\x4c\xff\xe2\x01\xd8\x81\xc6\x34\x12\x00\x00"
 	newop=""
 	# newAscii=""
 	try:
@@ -1216,7 +1273,32 @@ def binaryToStr(binary):
 		print ("*Not valid format")
 		print(e)
 
-		
+
+def binaryToText(binary):
+	strLit=""
+	rawH=""
+	arrayLit=""
+	returnVal=""
+	try:
+		for v in binary:
+			i = ord2(v) 
+			strLit += "\\x"+show1(i)
+			rawH+=show1(i)
+			arrayLit+="0x"+show1(i)+", "
+
+		rawH="\nRaw Hex:\n\""+rawH+"\"\n"
+		strLit = "\nString Literal:\n\""+strLit+"\"\n"
+		arrayLit=arrayLit[:-2]
+		arrayLit ="\nArray Literal:\n{ "+arrayLit+" }\n"
+		print (strLit)
+		print (rawH)
+		print (arrayLit)
+		returnVal=rawH+strLit+arrayLit
+	except Exception as e:
+		print ("*Not valid format")
+		print(e)
+	return returnVal
+
 def binaryToStrSp(binary):
 	
 	newop="\t 00 01 02 03 04 06 07 08 09 0a 0b 0c 0d 0e 0f\n"
@@ -2154,6 +2236,8 @@ def printSavedPushRet(): ############################## AUSTIN #################
 
 
 def findAllPebSequences(): ################## AUSTIN ######################
+	# global rawHex
+
 	if(rawHex):
 		for match in PEB_WALK_MOV.values(): #iterate through all opcodes representing combinations of registers
 			get_PEB_walk_start(19, match, "False", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
@@ -2215,7 +2299,7 @@ def findAndPrintSuspicious():  ################## AUSTIN #######################
 	
 
 def findStrings(binary,Num):#,t):
-	print ("findingStrings")
+	print ("findingStrings sharem")
 	global t
 	global o
 	global stringsTemp
@@ -2226,6 +2310,7 @@ def findStrings(binary,Num):#,t):
 	offset=0
 	word=""
 	wordSize=0
+	skip=False
 	try:
 		x=0
 		y=1
@@ -2233,11 +2318,24 @@ def findStrings(binary,Num):#,t):
 		for v in binary:
 			i = ord2(v) 
 			newop += " "+show1(i)
-			if (i > 31) & (i < 127):
+			if inProgress==False:
+				print ("before")
+				test=chr(i)
+				print ("after")
+				if test.isalpha()==False:
+					print ("falsity")
+					skip =True
+
+				if test.isalpha()==True:
+					print ("truth")
+					skip =False
+			print (skip)
+			if (i > 31) & (i < 127) & (skip==False):
 				if inProgress==False:
 					offset=x
 				inProgress=True
 				word += ""+chr(i)
+				print (word)
 			else:
 				if inProgress:
 					if (len(word) >= Num):
@@ -2246,6 +2344,7 @@ def findStrings(binary,Num):#,t):
 						try:
 							s[t].Strings.append(tuple((word, offset, wordSize)))
 						except:
+							print ("saving string", word.encode("utf-8"))
 							stringsTemp.append(tuple((word, offset, wordSize)))
 					inProgress=False
 					word=""
@@ -2259,15 +2358,20 @@ def findStrings(binary,Num):#,t):
  				try:
  					s[t].Strings.append(tuple((word, offset, wordSize)))
  				except: 
+ 					print ("saving string", word.encode("utf-8"))
  					stringsTemp.append(tuple((word, offset, wordSize)))
 	except Exception as e:
 		print ("*String finding error1!!!")
 		print (e)
 
+	# print (stringsTemp)
 
 def findStringsWide(binary,Num):#,t):
+	print ("findStringsWide")
 	global t
 	global o
+	global s
+	global stringsTempWide
 	newop=" 0x00\t"
 	newAscii=""
 	old=0
@@ -2280,7 +2384,7 @@ def findStringsWide(binary,Num):#,t):
 		inProgress=False
 		PossibleWide=False
 		WideCnt=0
-
+		maxBinary=len(binary)
 		for v in binary:
 			i = ord2(v) 
 			newop += " "+show1(i)
@@ -2290,8 +2394,16 @@ def findStringsWide(binary,Num):#,t):
 					offset=x
 				inProgress=True
 				word += ""+chr(i)
-				# print word
 				limit=0
+				if ((x==maxBinary-1)):
+					if (len(word) >= (Num*2)):
+						if ((word[1]==".") and (word[3]==".") and (word[5]==".") and (word[7]==".") and (word[9]==".") and (word[2]!=".") and (word[4]!=".") and (word[6]!=".") and (word[8]!=".") and (word[10]!=".")):
+							wordSize=len(word)
+							# print ("ws - got one1\n")
+							try:
+								s[t].wideStrings.append(tuple((word, offset,wordSize)))
+							except:
+								stringsTempWide.append(tuple((word, offset,wordSize)))
 			else:
 				if inProgress:
 					if (i==0):
@@ -2306,11 +2418,19 @@ def findStringsWide(binary,Num):#,t):
 						try:
 							length=len(word)
 							if ((word[length-2]==" ") and (word[length-3]==".") and (WideCnt >= Num)):
+							# if ((word[length-2]=="\x00") and (word[length-3]=="\x00") and (WideCnt >= Num)):
 								inProgress=False
 								if (len(word) >= (Num*2)):
-									if ((word[1]==".") and (word[3]==".")):
+									if ((word[1]==".") and (word[3]==".") and (word[5]==".") and (word[7]==".") and (word[9]==".") and (word[2]!=".") and (word[4]!=".") and (word[6]!=".") and (word[8]!=".") and (word[10]!=".")):
 										if ((ord(word[0])>0x40 ) and (ord(word[0])<0x5b ) or (ord(word[0])>0x60 ) and (ord(word[0])<0x7b )):
-											s[t].wideStrings.append(tuple((word, offset)))
+											wordSize=len(word)
+											# print ("ws - got one2", "t", hex(t), word, hex(offset), wordSize)
+
+											try:
+												s[t].wideStrings.append(tuple((word, offset,wordSize)))
+												# print ("success")
+											except:
+												stringsTempWide.append(tuple((word, offset,wordSize)))
 								word=""
 								offset=0
 								WideCnt=0
@@ -2319,27 +2439,30 @@ def findStringsWide(binary,Num):#,t):
 				if (i!=0):
 					PossibleWide=False
 					limit=0
-				if (inProgress==True) & (PossibleWide == False):# & (WideCnt >= Num):
+				if ((inProgress==True) & (PossibleWide == False)) or ((x==maxBinary) and (inProgress==True)):# & (WideCnt >= Num):
 					if (len(word) >= (Num*2)):
-					
-						if ((word[1]==".") and (word[3]==".")):
+						if ((word[1]==".") and (word[3]==".") and (word[5]==".") and (word[7]==".") and (word[9]==".") and (word[2]!=".") and (word[4]!=".") and (word[6]!=".") and (word[8]!=".") and (word[10]!=".")):
 							if (((ord(word[0]))>0x40 ) and (ord(word[0])<0x5b ) or (ord(word[0])>0x60 ) and (ord(word[0])<0x7b )):
-							 # and (word[2]==".")):
-								s[t].wideStrings.append(tuple((word, offset)))
+								wordSize=len(word)
+								try:
+									s[t].wideStrings.append(tuple((word, offset,wordSize)))
+								except:
+									stringsTempWide.append(tuple((word, offset,wordSize)))
 					inProgress=False
 					word=""
 					offset=0
 					WideCnt=0
 			x+=1
 			y+=1
-# 	print "finished"
-# 	for x, y  in s[t].wideStrings:
-# 		print x + "\t" + str(hex(y))
-# 	print "Total: "  + str(len(s[t].wideStrings))
 	except Exception as e:
 		print ("*String finding error2!!!")
 		print(e)
+	print("Strings Wide")
+	t=1
 
+	# for x, y, z  in s[t].wideStrings:
+	# 	print (x + "\t" + str(hex(y)))
+	# print ("Total: "  + str(len(s[t].wideStrings)))
 
 def findPushAscii(binary,Num):
 	global t
@@ -2435,7 +2558,10 @@ def findPushAscii(binary,Num):
 							wordLength=len(word)
 
 							instructionsLength=0
-							s[t].pushStrings.append(tuple((word, offset, offsetVA,offsetPlusImagebase, wordLength, instructionsLength)))  # decoded string, raw offset, raw offset + virtual address (VA may not be possible in raw binary shellcode)
+							try:
+								s[t].pushStrings.append(tuple((word, offset, offsetVA,offsetPlusImagebase, wordLength, instructionsLength)))  # decoded string, raw offset, raw offset + virtual address (VA may not be possible in raw binary shellcode)
+							except:
+								pushStringsTemp.append(tuple((word4, offset, offsetVA,offsetPlusImagebase, wordLength,instructionsLength)))  
 						inProgress=False
 						word=""
 						offset=0
@@ -2569,8 +2695,10 @@ def findPushAsciiSmall(binary,Num):
 
 #push
 def findPushAsciiMixed(binary,Num):
+	print ("findPushAsciiMixed")
 	global t
 	global o
+	global pushStringsTemp
 
 	chMode=True
 	newop=" 0x00\t"
@@ -2589,17 +2717,19 @@ def findPushAsciiMixed(binary,Num):
 		old1=0x0
 		old2=0x0
 		old3=0x0
+		offsetVA = 0
+		offsetPlusImagebase=0
 
 		for v in binary:
 			
 			i = ord2(v) 
 			v = chr(v)
+			# try:
+			# 	print ("v", v, "i", hex(i), "x", hex(x), "progCount", hex(progCount))
+			# except:
+			# 	print ( "i", hex(i), "x", hex(x), "progCount", hex(progCount))
 			newop += " "+show1(i)
-			# print("got here")
 			if ((v=="\x6a") or (startPush==True) or (v=="\x68")):
-				# print("inside if")
-				# print ("offset1: " + str(hex(offset+0x1000)) + "  v: " + v + " i: " + str(hex(i))+ " old1: " + old1 + " old2: " + old2)
-				# input("enter")
 				startPush=True
 				if ((i > 31) & (i < 127)):
 					progCount+=1
@@ -2632,6 +2762,10 @@ def findPushAsciiMixed(binary,Num):
 							except:
 								zz = chr(zz)
 							word2 += zz # stripWhite(zz)#chr(zz)
+							try:
+								print ("word", word2)
+							except:
+								print ("word2 error")
 						end=""
 						t3=0
 						#alternative - off by one :-)
@@ -2667,6 +2801,10 @@ def findPushAsciiMixed(binary,Num):
 							valid, word4temp, checkedString = checkedString1(word2, chMode)
 							if valid:
 								word4=word4temp
+								# try:
+								# 	print ("word4 1", word4)
+								# except:
+								# 	print ("word4 1", word4.encode("utf-8"))
 						done = True
 						# print "word4: " +  word4
 						if (checkedString==False) and (len(word2)>2):
@@ -2684,9 +2822,13 @@ def findPushAsciiMixed(binary,Num):
 						UsesPushByte=False
 						if len(word4) > 6:
 							# print "w4: " + word4
-							sample = binary[z-progCount-5:z-progCount]
-							# print binaryToStr(sample)
-							if sample[0]=="h":
+							# print (z-progCount-5,z-progCount, z, progCount)
+							if ((z-progCount-5) >0):
+								sample = binary[z-progCount-5:z-progCount]
+							else:
+								sample="\x00"
+							# print (binaryToStr(sample))
+							if (sample[0]=="h"):
 								sample=sample[1 :  :]
 								sample = stripWhite(sample)
 								word4+=sample+"!"
@@ -2695,7 +2837,10 @@ def findPushAsciiMixed(binary,Num):
 								# print "h "+ word4 + " "+ sample
 							else:
 								# print "else"
-								sample = binary[z-progCount-8:z-progCount]
+								if ((z-progCount-8) >0):
+									sample = binary[z-progCount-8:z-progCount]
+								else:
+									sample="\x00"
 								if sample[0]=="j":
 									# print binaryToStr(sample)
 									# print sample
@@ -2723,6 +2868,7 @@ def findPushAsciiMixed(binary,Num):
 								offset=offset-8
 								instructionsLength=instructionsLength+8
 						except:
+							print (e)
 							pass
 						if UsesPushByte:
 							finalWord=stripWhite(finalWord)
@@ -2734,13 +2880,30 @@ def findPushAsciiMixed(binary,Num):
 						if (len(word4) >= Num):
 							offset +=1 # correcting erroroneous calculation
 							if len(end) > 0:
-								offsetVA = offset + s[t].VirtualAdd -2 #- 6
-								offsetPlusImagebase=offsetVA + s[t].ImageBase
+								
+								try:
+									offsetVA = offset + s[t].VirtualAdd -2 #- 6
+									offsetPlusImagebase=offsetVA + s[t].ImageBase
+								except:
+									# print (e)
+									pass
 							else:
-								offsetVA = offset + s[t].VirtualAdd -2
-								offsetPlusImagebase=offsetVA + s[t].ImageBase
+								try:
+									offsetVA = offset + s[t].VirtualAdd -2
+									offsetPlusImagebase=offsetVA + s[t].ImageBase
+								except:
+									# print (e)
+									pass
 							wordLength=len(word4)
-							s[t].pushStrings.append(tuple((word4, offset, offsetVA,offsetPlusImagebase, wordLength,instructionsLength)))  # decoded string, raw offset, raw offset + virtual address (VA may not be possible in raw binary shellcode)
+							try:
+								# print ("other saving", word4)
+								s[t].pushStrings.append(tuple((word4, offset, offsetVA,offsetPlusImagebase, wordLength,instructionsLength)))  # decoded string, raw offset, raw offset + virtual address (VA may not be possible in raw binary shellcode)
+							except:
+								try:
+									print("saving pushMixed", word4)
+								except:
+									pass
+								pushStringsTemp.append(tuple((word4, offset, offsetVA,offsetPlusImagebase, wordLength,instructionsLength)))  # 
 						inProgress=False
 						word4=""
 						offset=0
@@ -2756,6 +2919,9 @@ def findPushAsciiMixed(binary,Num):
 	except Exception as e:
 		print ("*String finding error!!!")
 		print(e)
+		exc_type, exc_obj, exc_tb = sys.exc_info()
+		fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+		print(exc_type, fname, exc_tb.tb_lineno)
 	t=0
 
 def disHereStrings(address, NumOpsDis, secNum, mode): #
@@ -3185,6 +3351,12 @@ def hexStrtoAscii(word):
 	for i in range(0, len(word), 2):
 		word2+=chr(int(word[i:i+2],16))
 	word2=word2[ :  :-1]
+
+	if word2.isascii():
+		print("isAscii")
+		print (word2)
+	else:
+		print("isNotAscii", len(word2))
 	return word2
 
 def checkedString1(altWord, mode):
@@ -3232,7 +3404,7 @@ def checkedString1(altWord, mode):
 			t2=0
 			tem=""
 		elif ((t2==1) and (letter =="S") and  (done==False)):
-			# print "push EBX"
+			print ("push EBX")
 			tem="^^^^"
 			if (mode):
 				tem=retR32("ebx","n")
@@ -3278,15 +3450,36 @@ def checkedString1(altWord, mode):
 			spec.append((tem))
 			t2=0
 			tem=""
+			# investigate esp
 		elif ((t2==1) and (letter =="T") and  (done==False)):
 			# print "push ESP"
-			tem="^^^^"
-			if (mode):
-				tem=retR32("esp","n")
-				tem = hexStrtoAscii(tem)
-			spec.append((tem))
-			t2=0
-			tem=""
+			# tem="^^^^"
+			# if (mode):
+			# 	tem=retR32("esp","n")
+			# 	tem = hexStrtoAscii(tem)
+			# spec.append((tem))
+			# t2=0
+			# tem=""
+
+
+			
+			if checkedString:
+				word4=""
+				spec.reverse()
+				word4 = ''.join(spec)
+				Valid=False
+				cnt=0
+				for char in word4:
+					if char.isalpha():
+						cnt+=1
+				if cnt <4:
+					word4=""
+				# print word4
+				# print "end checkedString1"
+				if len(word4)>2:
+					Valid=True
+				return Valid, word4, checkedString
+
 		elif ((t2==1) and (letter =="U") and  (done==False)):
 			# print "push EBP"
 			tem="^^^^"
@@ -3424,6 +3617,9 @@ def getPushStrings(Num):
 
 		# print "final: "
 		print (ans+'\n*************************\n')
+
+	for word, offset, offsetVA,offsetPlusImagebase, wordLength,instructionsLength in s[0].pushStrings:
+		print ("word", word, "starting offset:", hex(offset), "; ending offset:", hex(offset+instructionsLength))
 	print ("\n")
 def getStringsOnSections(x):
 	global t
@@ -3451,10 +3647,14 @@ def printStrings():
 			print (s[t].sectionName)
 			for x,y,z  in s[t].Strings:
 				print ("\t"+ str(x) + "\t" + str(hex(y)) + "\t" + str(hex(z))) 
+			print ("wideStrings res")
 			for x,y in s[t].wideStrings:
 				print ("\t"+ str(x) + "\t" + str(hex(y)))
-			# for x, y in s[t].pushStrings:
-			# 	print ("\t"+ str(x) + "\t" + str(hex(y)))
+			for x,y, z in s[1].wideStrings:
+				print ("\t"+ str(x) + "\t" + str(hex(y)))
+				
+			for x, y in s[t].pushStrings:
+				print ("\t"+ str(x) + "\t" + str(hex(y)))
 			print ("\n")
 			t+=1
 	except:
@@ -3484,6 +3684,1919 @@ def runIt():
 				print ("PE: " + str(peName))
 			modName = peName
 			o = 0
+
+
+
+def goodString(data,word, size):
+	print("goodstring ", word, size)
+	numbers = sum(c.isdigit() for c in word)
+	letters = sum(c.isalpha() for c in word)
+	spaces  = sum(c.isspace() for c in word)
+	others  = len(word) - numbers - letters - spaces
+	print (numbers,letters,spaces,others)
+	
+	wordSize=len(word)
+	if wordSize==0:
+		wordSize=0.0001
+	# print (wordSize, "size")
+	# print ((letters+numbers+spaces)/wordSize, "num")
+
+	# print ("size", len(data), len(word))
+	# if len(data) == len(word):
+	if len(word) >= 0.95*len(data):
+		# print ("badsize")
+		return False
+	print (letters, (letters+numbers+spaces)/wordSize, len(word), size)
+	if (letters >= 2) and ((letters+numbers+spaces)/wordSize > .65) and (len(word) >=size):
+		print ("yes, goodString")
+		return True
+
+	if word.lower() in GoodStrings:
+		return True
+ 
+	for each in GoodStrings:    ### maybe too computationally expensive if long list??
+		if each.lower() in word.lower():
+			return True
+	return False
+
+
+def goodStringWide(data,word, size):
+	print("goodStringWide ", word, size)
+	numbers = sum(c.isdigit() for c in word)
+	letters = sum(c.isalpha() for c in word)
+	spaces  = sum(c.isspace() for c in word)
+	others  = len(word) - numbers - letters - spaces
+	print (numbers,letters,spaces,others)
+	size=size*2
+	
+	wordSize=len(word)*2
+	if wordSize==0:
+		wordSize=0.0001
+	# print (wordSize, "size")
+	# print ((letters+numbers+spaces)/wordSize, "num")
+
+	# print ("size", len(data), len(word))
+	# if len(data) == len(word):
+	if len(word) >= 0.95*len(data):
+		return False
+	print (letters, len(word), size)
+	if (letters >= 5)  and (len(word) >=size):
+		print ("yes, goodStringWide")
+		return True
+
+	if word.lower() in GoodStrings:
+		return True
+ 
+	for each in GoodStrings:    ### maybe too computationally expensive if long list??
+		if each.lower() in word.lower():
+			return True
+	return False
+
+
+def removeLastLine(strLine):  #removes last line of disasembly that starts with \n0x
+	array = strLine.split("\n0x")
+	new = ""
+	array.pop()
+	for word in array:
+		new +=  word+"\n"
+	return new
+
+def findStrings22(binary,Num):#,t):
+	dprint2("findstrings Testing ", Num)
+	global t
+	global o
+	global stringsTemp
+	newop=" 0x00\t"
+	newAscii=""
+	# newUnicode=""
+	old=0
+	offset=0
+	word=""
+	wordSize=0
+	try:
+		x=0
+		y=1
+		inProgress=False
+		for v in binary:
+			i = ord2(v) 
+			newop += " "+show1(i)
+			if (i > 31) & (i < 127):
+				if inProgress==False:
+					offset=x
+				inProgress=True
+				word += ""+chr(i)
+			else:
+				if inProgress:
+					if (len(word) >= Num):
+						# print "t: " + str(t)
+						wordSize=len(word)
+						try:
+							s[t].Strings.append(tuple((word, offset, wordSize)))
+						except:
+							stringsTemp.append(tuple((word, offset, wordSize)))
+					inProgress=False
+					word=""
+					offset=0
+			x+=1
+			y+=1
+			if x == len(binary):   #last byte, final end
+ 				# dprint ("reached")
+ 				wordSize=len(word)
+ 				# dprint2 (word, hex(offset), wordSize)
+ 				try:
+ 					s[t].Strings.append(tuple((word, offset, wordSize)))
+ 				except: 
+ 					stringsTemp.append(tuple((word, offset, wordSize)))
+	except Exception as e:
+		print ("*String finding error1!!!")
+		print (e)
+
+#########################################
+
+
+cs = Cs(CS_ARCH_X86, CS_MODE_32)
+stringLiteral="\x31\xC9\xB9\xAD\xDE\x65\x64\xC1\xE9\x10\x51\x68\x77\x6F\x72\x6B\x68\x6F\x69\x74\x20\x68\x45\x78\x70\x6C\x89\xE2\xB9\xCA\xAD\xDE\x29\xC1\xE9\x18\x51\x68\x6E\x73\x20\x3A\x68\x75\x74\x74\x6F\x68\x73\x65\x20\x62\x68\x20\x6D\x6F\x75\x68\x70\x69\x6E\x67\x68\x53\x77\x61\x70\x89\xE3\x31\xC9\x51\x52\x53\x51\xFF\xD0"
+# stringLiteral=test2
+ArrayLiteral="0x31, 0xC9, 0xB9, 0xAD, 0xDE, 0x65, 0x64, 0xC1, 0xE9, 0x10, 0x51, 0x68, 0x77, 0x6F, 0x72, 0x6B, 0x68, 0x6F, 0x69, 0x74, 0x20, 0x68, 0x45, 0x78, 0x70, 0x6C, 0x89, 0xE2, 0xB9, 0xCA, 0xAD, 0xDE, 0x29, 0xC1, 0xE9, 0x18, 0x51, 0x68, 0x6E, 0x73, 0x20, 0x3A, 0x68, 0x75, 0x74, 0x74, 0x6F, 0x68, 0x73, 0x65, 0x20, 0x62, 0x68, 0x20, 0x6D, 0x6F, 0x75, 0x68, 0x70, 0x69, 0x6E, 0x67, 0x68, 0x53, 0x77, 0x61, 0x70, 0x89, 0xE3, 0x31, 0xC9, 0x51, 0x52, 0x53, 0x51, 0xFF, 0xD0"
+rawHex ="31C9B9ADDE6564C1E9105168776F726B686F697420684578706C89E2B9CAADDE29C1E91851686E73203A687574746F687365206268206D6F756870696E67685377617089E331C951525351FFD0"
+shellcode='shellcode.txt'
+shellcode2='shellcode2.txt'
+shellcode3='shellcode3.txt'
+shellcode4='shellcode4.txt'
+shellcode5='shellcode5.txt'
+shellcode6='shellcode6.txt'
+shellcode7='shellcode7.txt'
+shellcode8="shellcode8.txt"
+labels=[]
+labelOffsets=[]
+offsets=[]
+possibleBadLabelOffsets=[]
+def show1(int):
+		show = "{0:02x}".format(int) #
+		return show
+def binaryToStr(binary):
+	newop=""
+	try:
+		for v in binary:
+			i = ord2(v) 
+			newop += "\\x"+show1(i)
+			# newAscii += "\\x"+chr(i)
+		# print newop
+		# print newAscii
+		return newop
+	except Exception as e:
+		print ("*Not valid format")
+		print(e)
+def ord2(x):
+	return x
+
+def splitArrLit(word):
+	array = word.split(" 0x")
+	res=""
+	for each in array:
+		res+=each
+	return res
+
+def splitBackslashx(word):
+	array = word.split("\\x")
+	res=""
+	for each in array:
+		res+=each
+	return res
+def split0x(word):
+	array = word.split("0x")
+	res=""
+	for each in array:
+		res+=each
+	return res
+
+
+def readShellcode(shellcode):
+	file1 = open(shellcode, 'r') 
+	shells = file1.read() 
+	# print("\nshells\n")
+	shells = re.sub(rf"[{string.punctuation}]", "", shells)
+	print (shells)
+	shells=splitBackslashx(shells)
+	shells=splitArrLit(shells)
+	shells=split0x(shells)
+	# print("\nshells2\n")
+	print(shells)
+	shells=fromhexToBytes(shells)
+	# printBytes(shells)
+	print ("\n\n\nend\n")
+	return shells
+
+def reduceShellToStrHex(shellcode):
+	shells=splitBackslashx(shellcode)
+	shells=splitArrLit(shells)
+	shells=split0x(shells)
+	# print("\nshells2\n")
+	dprint(shells)
+	shells=fromhexToBytes(shells)
+	return shells
+def printBytes(mybtes):
+	print (type(mybtes))
+	for val in mybtes:
+		print(hex(val),' ', end='')
+	print("\n")
+def printFromhexToBytes(hexadecimal_string):
+	print ("fromhexToBytes\n")
+	byte_array = bytearray.fromhex(hexadecimal_string)
+	bytesStr = bytes(byte_array)
+	printBytes(bytesStr)
+	
+def printFromStringLiteralToBytes(stringLiteral):
+	print("printfromStringLiteralToBytes")
+	b=bytes(stringLiteral.encode('raw_unicode_escape'))
+	printBytes(b)
+
+def printFromArrayLiteralToHex(lit):
+	print ("fromArrayLiteralToHex\n")
+	clean_string = re.sub(rf"[{string.punctuation}]", "", lit)
+	retArrayLit=splitArrLit(clean_string)
+	retArrayLit=retArrayLit[2:]
+	printFromhexToBytes(retArrayLit)
+
+def fromhexToBytes(hexadecimal_string):
+	# print ("fromhexToBytes\n\n\n")
+	byte_array = bytearray.fromhex(hexadecimal_string)
+	bytesStr = bytes(byte_array)
+	# print ("bytes\n\n")
+	# print (type(bytesStr))
+	# for val in bytesStr:
+	# 	print(hex(val),' ', end='')
+	return bytesStr
+	
+def fromStringLiteralToBytes(stringLiteral):
+	# print("fromStringLiteralToBytes")
+	b=bytes(stringLiteral.encode('raw_unicode_escape'))
+	dprint (type(b))
+	# for val in b:
+	# 	print(hex(val),' ', end='')
+	return b
+def fromArrayLiteralToHex(lit):
+	# print ("fromArrayLiteralToHex\n")
+	clean_string = re.sub(rf"[{string.punctuation}]", "", lit)
+	retArrayLit=splitArrLit(clean_string)
+	retArrayLit=retArrayLit[2:]
+	returnVal=fromhexToBytes(retArrayLit)
+	return returnVal
+
+def checkForLabel(addb, labels):
+	dprint ("checkForLabel " + addb)
+	for label in labels:
+		if label==addb:
+			val="     label_"+addb+":\n"
+			dprint (val)
+			return True, val
+	return False,0
+
+
+
+def signedNegHexTo(signedVal):
+	strSigned=str(hex(signedVal))
+	ba = binascii.a2b_hex(strSigned[2:])
+	new = (int.from_bytes(ba, byteorder='big', signed=True))
+	return new
+
+def checkForValidAddress(val_a,val_b1, val_b2, sizeShell):
+	val_b=val_b1+ " " +  val_b2 
+	# print ("comparing: " + val_b2 + " > " + str(hex(sizeShell)) )
+	try:
+		controlFlow= re.match( r'\bcall\b|\bjmp\b|\bje\b|\bjne\b|\bjg\b|\bjge\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bja\b|\bloop\b|\bloopcc\b|\bloope\b|\bloopne\b|\bloopnz\b|\bloopz\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', val_b1, re.M|re.I)
+
+		if controlFlow:
+			if int(val_b2,16) > int(sizeShell):
+				# print("it is bigger")
+				return val_b+ " (??)"    ## ?? because goes to offset that doesn't exit! Probably db or something else
+	except:
+		pass
+	return val_b
+
+def checkForValidAddress2(val_a,val_b1, val_b2, sizeShell, possibleBadLabelOffsets,data, num_bytes):
+	# val_b=checkForValidAddress(val_a,val_b1, val_b2, sizeShell, possibleBadLabelOffsets)
+	val_b=val_b1+ " " +  val_b2 
+	try:
+		if str(val_b2) in possibleBadLabelOffsets:
+			dprint ("oh noes "  + val_b2)
+			print(val_a, val_b1, val_b2)
+			# res=specialDisDB(data, int(val_a,16))
+			# val_b=res
+			addy=int(val_a,16)
+			modifyShByRange(data, addy,addy+num_bytes,"d")
+			# val_b =  val_b+ " (??)"
+			
+			print ("check2: valb: "  + val_b + " " + str(num_bytes) )
+			
+			num_bytes=num_bytes-1
+			
+			
+			return val_b, num_bytes
+	except:
+		pass
+	return val_b,0
+
+
+
+def testcb(buffer, size, offset, userdata):
+    # always skip 2 bytes of data
+    return 8
+
+def specialDisDB2(data):
+	dprint("special2")
+	out=binaryToStr(data[:1])
+	out=out[1:]
+	val="db 0"
+	return val+out+" (?)"
+def specialDisDB(data,addy):  #//takes bytes
+	cs.skipdata = True
+	cs.skipdata_setup = ("db", None, None)
+	dprint (binaryToStr(data[addy:addy+1]))
+	address=0
+	val_b=""
+	for i in cs.disasm(data[addy:addy+1], address):
+		val_b=i.mnemonic + " " + i.op_str 
+		dprint ("hi2")
+		try:
+			dprint (val_b)
+			return val_b
+		except:
+			pass
+	return val_b
+
+def makeDBforUnknownBytes(num_bytes, val_c,addb):
+	# dprint ("makeDBforUnknownBytes(num_bytes, val_c)")
+	dprint (num_bytes)
+	dprint (val_c)
+	bVal_c = reduceShellToStrHex(val_c)
+	# dprint("ans:")
+	reducedVal_c=(binaryToStr(bVal_c))
+	dprint (reducedVal_c)
+	# dprint(type(bVal_c))
+	new=specialDisDB2(bVal_c)
+	newVal_c=val_c[:4]
+	dprint ("new")
+	dprint (newVal_c)
+	res=makeAsciiforDB(newVal_c)
+	num_bytes=int(len(val_c)/4)
+	address=0x0
+	val =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(addb, new, newVal_c, res))
+	dprint (val)
+	dprint (num_bytes)
+	dprint ("bval")
+	dprint (type(bVal_c))
+	reducedVal_c=reducedVal_c[4:]
+	num_bytes=int(len(reducedVal_c)/4)
+
+	return val, num_bytes, reducedVal_c
+
+def disHereMakeDB(data,offset, end, mode, CheckingForDB):
+	global labels
+
+	dprint ("dishereMakeDB "  + str(offset) + " end: " + str(end))
+
+	try:
+		address=offset
+	except:
+		address=0
+	cs.skipdata = True
+	cs.skipdata_setup = ("db", None, None)
+	if offset==False:
+		offset=0
+	if end==False:
+		end=len(data)-1
+	CODED2=data[offset:end]
+	# print binaryToStr(CODED2)
+	val =""
+	val2 = []
+	val3 = []
+	val5 =[]
+	startAdd=[]
+	nextAdd=[]
+	bytesPerLine=[]
+	cntLines=0
+	bytesEachLine=[]
+	asciiPerLine=[]
+	CODED3 = CODED2
+
+	for i in cs.disasm(CODED3, address):
+		cntLines+=1
+		val=i.mnemonic + " " + i.op_str 
+	current=0
+	for i in cs.disasm(CODED3, address):
+		if current>0:
+			nextAd=sadd1
+			nextAdd.append(nextAd)
+		sadd1=int(i.address )
+		startAdd.append(int(sadd1))
+		current+=1
+	t=0
+	ans=0
+	total=0
+	for each in startAdd:
+		try:
+			ans=int(startAdd[t+1]) - int(each)
+			bytesPerLine.append(ans)
+			total+=ans
+		except:
+			ans2= hex(len(data)-total)
+			bytesPerLine.append(int(ans2,16))
+		t+=1
+	cnt=0
+	t=0
+
+	for i in cs.disasm(CODED3, address): 
+		ans= binaryToStr(CODED3[cnt:cnt+bytesPerLine[t]]) #+ " " + str(t) + "\n"
+		res=""
+		for y in CODED3[cnt:cnt+bytesPerLine[t]]:
+			yy=ord2(y) 
+			zz=show1(yy) 
+			old="nope"
+			if ((yy > 31) & (yy < 127)):
+				try: 
+					zz=int(zz,16)
+					zz = chr(zz)
+				except:
+					zz = chr(zz)
+			else:
+				zz="."
+			old=zz
+			res += zz # stripWhite(zz)#chr(zz)
+		asciiPerLine.append(res)
+		bytesEachLine.append(ans)
+		cnt+=bytesPerLine[t]
+		t+=1	
+	t=0
+	add = hex(int(i.address))
+	sizeShell=len(CODED2)
+	for i in cs.disasm(CODED2, address):
+		CantSkip=True
+		add = hex(int(i.address))
+		addb = hex(int(i.address))
+		add2 = str(add)
+		# add3 = hex (int(i.address + section.startLoc	))
+		add3=0
+		add4 = str(add3)
+		val_a=addb#"\t"#\t"
+		val_b=i.mnemonic + " " + i.op_str 
+		val_b1=i.mnemonic
+		val_b2=i.op_str
+		num_bytes=0
+		try:
+			val_c= bytesEachLine[t] 
+			val_d=asciiPerLine[t] 
+		except:
+			val_c=""
+			val_d=""
+		try:
+			num_bytes=int(len(val_c)/4)
+		except:
+			num_bytes=1
+		val_b, num_bytes =checkForValidAddress2(val_a,val_b1, val_b2, sizeShell, possibleBadLabelOffsets,data,num_bytes)
+		if mode=="ascii":
+			val =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(val_a, val_b, val_c, val_d))
+		else:
+			val = addb + ":\t" + i.mnemonic + " " + i.op_str+"\n"
+			val=('{:<10s} {:<35s}\n'.format(val_a, val_b))
+		truth,res=checkForLabel(addb,labels)
+		if truth:
+			val=res+val
+		valCheck=i.mnemonic + " " + i.op_str 
+		val, num_bytes,val_c =makeDBforUnknownBytes(num_bytes, val_c, addb)
+		dprint ("truth check " + addb)
+		truth,res=checkForLabel(addb,labels)
+		if truth:
+			val=res+val
+		valCheck=i.mnemonic + " " + i.op_str 
+		addb=str(hex(int(addb,16)+1))
+		dprint("final val_c")
+		dprint(type(val_c))
+		val2.append(val)
+		val3.append(add2)
+		val5.append(val+"(!)")
+		t+=1
+	returnString=""
+	dprint ("dishereMakeDB2 "  + str(offset) + " end: " + str(end))
+	for y in val5:
+		returnString+=y
+	return returnString
+
+def makeAsciiforDB(data):
+	res=""
+	zz=""
+	# dprint(type(data))
+	CODED3=reduceShellToStrHex(data)
+	# dprint(type(CODED3))
+	for y in CODED3:
+		yy=ord2(y) 
+		zz=show1(yy) 
+		if ((yy > 31) & (yy < 127)):
+			try: 
+				zz=int(zz,16)
+				zz = chr(zz)
+			except:
+				zz = chr(zz)
+		else:
+			zz="."
+	res += zz # stripWhite(zz)#chr(zz)
+	# dprint (res)
+	return res
+
+def makeAsciiforDB2(data):
+	res=""
+	print ("makeAsciiforDB2")
+	dprint(type(data))
+	CODED3=reduceShellToStrHex(data)
+
+	dprint(type(CODED3))
+	for y in CODED3:
+		yy=ord2(y) 
+		zz=show1(yy) 
+		if ((yy > 31) & (yy < 127)):
+			try: 
+				zz=int(zz,16)
+				zz = chr(zz)
+			except:
+				zz = chr(zz)
+		else:
+			zz="."
+	res += zz # stripWhite(zz)#chr(zz)
+	dprint (res)
+	return res
+
+
+def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
+	print("dis: disHereMakeDB2 - range " + str(hex(offset)) + " " + str(hex(end)) )
+	num_bytes=end-offset
+	print (num_bytes)
+	printAllShByRange(offset,offset+num_bytes)
+
+	global labels
+	Ascii="B"
+	stop=offset+1
+	val=""
+	stringVal=""
+	db=0
+	dbOut=""
+	t=offset
+	w=0
+	length=end-offset
+	dbFlag=False
+	skip=True
+	startAddString=""
+	stringVala=""
+	stringStart=0
+	stringInProgress=False
+	sVal=""
+	beforeS=""
+	for x in range (length):
+		bytesRes= (binaryToStr(data[offset:stop]))
+		instr="db 0"+bytesRes[1:]+" (!)"
+		Ascii2=makeAsciiforDB(bytesRes)
+		val +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
+		# sVal +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
+		if shBy.strings[offset]==True:
+			dbFlag=True
+			stringInProgress=True
+			stringval=val
+			truth,res=checkForLabel(str(hex(offset)),labels)
+			if truth:
+				val=res + val
+				stringVal=res + stringVal
+			stringStart, stringDistance=shBy.stringsStart[offset]
+			print("FoundSTRING", hex(stringStart), hex(offset),"off")
+			if stringStart==offset:
+				dbOut=""
+				before=""
+				beforeS=sVal 
+				# beforeS=removeLastLine(sVal)
+				print (sVal, "\n", beforeS)
+				print ("beforeS", sVal, beforeS)
+				sVal=""
+				startAddString=str(hex(offset))
+				stringVala=shBy.stringsValue[offset]+" ; string"
+				dbOut+=(binaryToStr(data[t:t+1]))
+				print (stringVala)
+				
+			if offset>stringStart:
+				print (stringVala)
+				print ("dbout ", hex(t))
+				dbOut+=(binaryToStr(data[t:t+1]))
+		if (shBy.strings[offset]==False):
+			print("FoundNOTSTRING", hex(stringStart), hex(offset),"off")
+
+			stringInProgress=False
+			if dbFlag==False:
+				print ("dbflag=False")
+				truth,res=checkForLabel(str(hex(offset)),labels)
+				if truth:
+					val=val+res
+					stringVal=stringVal+res
+				stringVal +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
+				print ("y offset", hex(t))
+		
+				# stringVal= beforeS + stringVal
+				skip=True
+			if dbFlag==True:
+
+				print ("sV, offset: ", hex(offset), "value ", shBy.stringsValue[offset])
+				nada=""
+				truth,res=checkForLabel(str(hex(offset)),labels)
+				if truth:
+					val=val+res
+					stringVal=stringVal+res
+				stringVal+=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(startAddString, stringVala,dbOut,nada ))
+				stringVal +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
+				if len(beforeS) > 0:
+					stringVal= beforeS +"\n"+ stringVal
+				print ("stringVal", stringVal)
+				dbOut=""
+				print (stringVal)
+				dbFlag=False
+				skip=True
+			if not skip:
+				stringVal+=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
+			skip=False
+		offset +=1
+		stop += 1
+		t+=1
+		w+=1
+		# print ("t-eof", hex(w), hex(length))
+		if w==(length):
+			if dbFlag==True:
+				nada=""
+				# stringVal +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
+				stringVal+=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(startAddString, stringVala,dbOut,nada ))
+				# stringVal= beforeS + stringVal
+				dbOut=""
+				dbFlag=False
+				if len(dbOut)>0:
+					stringVal+=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
+			w=0
+	# print("ending: disHereMakeDB2 - range " + str(hex(offset)) + " " + str(hex(end)) )
+	print("returnDB2\n", val)
+	print("stringval\n")
+	print(stringVal)
+	print ("")
+	val=stringVal
+	return val
+
+debuging=True
+# debuging=False
+def dprint(info):
+	global debuging
+	# print("Debug")
+	if debuging==True:
+		print(info)
+
+def dprint2(*args):
+	global debuging
+	# print("Debug")
+	out=""
+	if debuging==True:
+		for each in args:
+			try:
+				each=str(each)
+			except:
+				pass
+			out+=(each) +"\t"
+	print (out)
+
+def removeBadOffsets(notBad):
+	print("remove offset ", notBad)
+	global possibleBadLabelOffsets
+	for x in possibleBadLabelOffsets:
+		# print (x, type(x))
+		if x == notBad:
+			print ("it gone")
+			possibleBadLabelOffsets.remove (x)
+	print (possibleBadLabelOffsets)
+
+
+def removeLabels(notLabel, val):
+	print("remove labels ", notLabel)
+	# labels.append(str(hex(destination)))
+	# labelOffsets.append(int(i.op_str, 16))
+	global labels
+	t=0
+	for x in labels:
+		# print (x, type(x))
+		if x == val:
+			print ("labels it gone")
+			labels.remove (x)
+			del labelOffsets[t]
+			print ("labels it gone2")
+		t+=1
+
+
+def analysisFindHiddenCalls(data, startingAddress):
+	dprint("analysisFindHiddenCalls " + str(startingAddress))
+	current=0
+	start=startingAddress
+	max=len(shBy.bytesType)-1
+	finalPrint=""
+	# dprint (start, "start")
+	start, current, distance, typeBytes = findRange2(current)
+	# dprint2 (start, "AFTER FIRST")
+	reset = False
+	while current < max:
+		# dprint (start, "end2")
+		print ("1ana",  "start", hex(start), "current", hex(current),  hex(distance))
+		if max==current:
+			current+=1
+		print(binaryToStr(data[start:current]))
+		if not typeBytes:
+			dprint ("AN: above is data")
+			anaFindCalls(data,start, start+distance)
+			anaFindShortJumps(data,start, start+distance)
+		start, current, distance, typeBytes = findRange2(current)
+		if current==max:
+			# print ("gotme")
+			pass
+		#reset once done - do analysis again to catch any changes 
+		if (current) == max and reset != True:
+			reset=True
+			# dprint ("reset")
+			current=0
+
+def analysisConvertBytes(data, startingAddress):
+	print("analysisConvertBytes", startingAddress)
+	current=0
+	start=startingAddress
+	max=len(shBy.bytesType)-1
+	finalPrint=""
+	start0, current0, distance0, typeBytes = findRange2(current)
+	reset = False
+	distance=0
+	dataRangeStart=[]
+	dataRangeEnd=[]
+	while current < max:
+		finalPrint0=""
+		if max==current:
+			current+=1
+		print(binaryToStr(data[start:current]))
+		finalPrint+=finalPrint0
+		if not typeBytes:
+			dataRangeStart.append(start)
+			dataRangeEnd.append(current)
+		start, current, distance, typeBytes = findRange2(current)
+	t=0
+	print ("final ranges")
+	for x in dataRangeStart:
+		try:
+			distance=dataRangeStart[t]-dataRangeEnd[t-1]
+		except:
+			distance=0
+		try:
+			print (hex(dataRangeEnd[t-1]), hex(dataRangeStart[t]) )
+			if str(hex(dataRangeEnd[t-1])) not in labels:
+				# print (str(hex(dataRangeEnd[t-1])),"not in label0")
+				# s2=dataRangeEnd[ t-1]
+				# s1=dataRangeStart[t-1]
+				# print (s1, s2)
+				# ans, valb_1, valb_2, num_bytes=disHereTiny(data[s1:s2])
+				# print(ans, "ans convertbyes")
+				if distance <=5:
+					print ("make data?")
+					modifyShByRange(data, dataRangeEnd[t-1],dataRangeEnd[t-1]+distance, "d")
+			else: 
+				print (str(hex(dataRangeEnd[t-1])),"****in labels")
+		except:
+			pass
+		print (hex(distance))
+		print ("*************************\n")
+		t+=1
+
+def anaFindCalls(data, start, current):
+	global offsets
+	print ("anna: " + " "  + str(hex(start)) + " " + str(hex(current)) )
+	OP_CALL =  b"\xe8"
+	OP_ff =  b"\xff"
+	print (binaryToStr(data[start:current]))
+	t=0
+	destination=99999999
+	searchFor=[]
+	for opcode in data[start:current]:
+		test=int(data[start+t])
+		# print (hex(test), hex(ord(OP_CALL)))
+		if test==ord(OP_CALL):
+			dprint("FOUND 0xe8!")
+			ans, valb_1, valb_2, num_bytes= disHereTiny(data[start+t:start+t+5])
+			dprint2 (ans, valb_1, valb_2)
+			if valb_1=="call":
+				modifyShByRange(data, start+t,start+t+5,"i")
+				###check to see if = FF FF FF  - negative - otherwise, positive!
+				dprint ("checking ff")
+				dprint2 (int(data[start+t+4]), ord(OP_ff))
+				if (int(data[start+t+4]))==ord(OP_ff):
+					if (int(data[start+t+3]))==ord(OP_ff):
+						signedNeg=signedNegHexTo(int(valb_2,16))
+						destination=(start+t) +signedNeg
+						ans, valb_1, valb_2, num_bytes= disHereTiny(data[start+t:start+t+5])
+						dprint (valb_2)
+						dprint("ff destination: " + str(hex(destination)))
+						if str(hex(destination)) not in labels:
+							print  ("1 appending label " + str(hex(destination)))
+							labels.append(str(hex(destination)))
+				#ok, it is positive
+				elif (int(data[start+t+4]))==0:
+					# if (int(data[start+t+3]))==0:
+					ans, valb_1, valb_2,num_bytes= disHereTiny(data[start+t:start+t+5])
+					destination = (start+t) + int(valb_2,16)
+					# print ((hex(start+t)))
+					# print(hex(signedNeg))
+					dprint("00 destination: " + str(hex(destination)))
+					if str(hex(destination)) not in labels:
+						print  ("2 appending label " + str(hex(destination)))
+						labels.append(str(hex(destination)))
+				if str(hex(destination)) not in searchFor:
+					searchFor.append(str(hex(destination)))
+		t+=1
+	for addy in searchFor:
+		if addy in offsets:
+			dprint("In offsets")
+		else:
+			if int(addy,16) not in offsets:
+				offsets.append(int(addy,16))
+			dprint("Not in offsets")
+			removeBadOffsets(addy)
+			modifyShByRange(data, int(addy,16)-2, int(addy,16),"d")
+
+def anaFindShortJumps(data, start, current):
+	global offsets
+	global labels
+	dprint ("anna2: " + " "  + str(hex(start)) + " " + str(hex(current)) )
+	OP_SHORT_JUMP =  b"\xeb"
+	OP_SHORT_JUMP_NEG =  b"\xe9"
+	OP_ff =  b"\xff"
+	dprint (binaryToStr(data[start:current]))
+	t=0
+	destination=99999999
+	searchFor=[]
+	for opcode in data[start:current]:
+		test=int(data[start+t])
+		# print ("sj", hex(start+t), ": ", hex(test), hex(ord(OP_SHORT_JUMP)))
+		# IT IS A POSITIVE JUMP
+		if test==ord(OP_SHORT_JUMP):
+			dprint2("FOUND 0xeb!", hex(start+t))
+			ans, valb_1, valb_2,num_bytes= disHereTiny(data[start+t:start+t+5])
+			dprint2 (ans, valb_1, valb_2)
+			dprint2 ("ans:",ans)
+			if valb_1=="jmp":
+				dprint ("checking short jump")
+				modifyShByRange(data, start+t,start+t+num_bytes,"i")
+				destination = (start+t) + int(valb_2,16)
+				dprint("eb destination: " + str(hex(destination)))
+				if str(hex(destination)) not in labels:
+					labels.append(str(hex(destination)))
+					print  ("3 appending label " + str(hex(destination)))
+
+				
+				if str(hex(destination)) not in searchFor:
+					searchFor.append(str(hex(destination)))
+		# FINE, IT IS NEGATIVE
+		if test==ord(OP_SHORT_JUMP_NEG):
+			dprint("FOUND 0xe9!")
+			ans, valb_1, valb_2,num_bytes= disHereTiny(data[start+t:start+t+5])
+			dprint2 (ans, valb_1, valb_2)
+			dprint2 ("ans:",ans)
+			if valb_1=="jmp":
+				modifyShByRange(data, start+t,start+t+num_bytes,"i")
+				dprint ("checking short jump negative")
+				destination = (start+t) + int(valb_2,16)
+				dprint("neg e9 destination: " + str(hex(destination)))
+				if str(hex(destination)) not in labels:
+					labels.append(str(hex(destination)))
+					print  ("4 appending label " + str(hex(destination)))
+
+				if str(hex(destination)) not in searchFor:
+					searchFor.append(str(hex(destination)))
+
+
+
+
+		t+=1
+	for addy in searchFor:
+		if int(addy,16) in offsets:
+			dprint("In offsets")
+		else:
+			dprint("Not in offsets")
+			dprint2 ("addy", addy)
+			offsets.append(int(addy, 16))
+			removeBadOffsets(addy)
+			# print (type(each))
+			modifyShByRange(data, int(addy,16)-1, int(addy,16),"d")
+def disHereAnalysis(data,offset, end, mode, CheckingForDB): #
+	global labels
+	global offsets
+	global labelOffsets
+	global possibleBadLabelOffsets
+	dprint ("disHereAnalysis - range  "  + str(offset) + " " + str(end))
+	global o
+	w=0
+
+	try:
+		address=offset
+	except:
+		address=0
+	i=0
+	# CheckingForDB=True   ### turns on or off special converting to DB of invalid instructions
+
+	cs.skipdata = True
+	cs.skipdata_setup = ("db", None, None)
+
+	if offset==False:
+		offset=0
+	if end==False:
+		end=len(data)-1
+	CODED2=data[offset:end]
+	val =""
+	val2 = []
+	val3 = []
+	val5 =[]
+	startAdd=[]
+	nextAdd=[]
+	bytesPerLine=[]
+	cntLines=0
+	bytesEachLine=[]
+	asciiPerLine=[]
+	CODED3 = CODED2
+
+	t=0
+	for i in cs.disasm(CODED3, address):
+		cntLines+=1
+		val=i.mnemonic + " " + i.op_str 
+		offsets.append((int(i.address)))
+		controlFlow= re.match( r'\bcall\b|\bjmp\b|\bje\b|\bjne\b|\bja\b|\bjg\b|\bjge\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bloop\b|\bloopcc\b|\bloope\b|\bloopne\b|\bloopnz\b|\bloopz\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', val, re.M|re.I)
+		if controlFlow:
+			val=i.op_str
+			isHex= re.match( "^[0-9][x]*[A-Fa-f0-9 -]*",val, re.M|re.I)
+			if isHex:
+				print("addlabel:  " + val)
+				is0x=re.match("0x*",val, re.M|re.I)
+				if not is0x:
+					# print ("isnotx")
+					val="0x"+val
+					# print (val)
+
+				# labels.append(val)
+				# print  ("5 appending label ", val, hex(t))
+				# print (i.mnemonic, i.op_str)
+				# labelOffsets.append(int(i.op_str, 16))
+		t+=1
+
+	current=0
+	for i in cs.disasm(CODED3, address):
+		if current>0:
+			nextAd=sadd1
+			nextAdd.append(nextAd)
+		sadd1=int(i.address )
+
+		startAdd.append(int(sadd1))
+		current+=1
+
+	for labOff in labelOffsets:
+		if labOff not in offsets:
+			# print ("bad " + str(hex(labOff)))
+			if str(hex(labOff)) not in possibleBadLabelOffsets:
+				possibleBadLabelOffsets.append((str(hex(labOff))))
+				# modifyShByRange(data, labOff,labOff+1,"d")
+	dprint (possibleBadLabelOffsets)
+	t=0
+	ans=0
+	total=0
+	for each in startAdd:
+		try:
+			ans=int(startAdd[t+1]) - int(each)
+			bytesPerLine.append(ans)
+			total+=ans
+		except:
+			ans2= hex(len(data)-total)
+			bytesPerLine.append(int(ans2,16))
+		t+=1
+	cnt=0
+	t=0
+	for i in cs.disasm(CODED3, address): 
+		ans= binaryToStr(CODED3[cnt:cnt+bytesPerLine[t]]) #+ " " + str(t) + "\n"
+		res=""
+		for y in CODED3[cnt:cnt+bytesPerLine[t]]:
+			yy=ord2(y) 
+			zz=show1(yy) 
+			old="nope"
+			if ((yy > 31) & (yy < 127)):
+				try: 
+					zz=int(zz,16)
+					zz = chr(zz)
+				except:
+					zz = chr(zz)
+			else:
+				zz="."
+			old=zz
+			res += zz # stripWhite(zz)#chr(zz)
+		asciiPerLine.append(res)
+		bytesEachLine.append(ans)
+		cnt+=bytesPerLine[t]
+		t+=1	
+	t=0
+	try:
+		add = hex(int(i.address))
+	except:
+		pass
+	cs.skipdata = True
+	sizeShell=len(CODED2)
+	for i in cs.disasm(CODED2, address):
+		CantSkip=True
+		add = hex(int(i.address))
+		addb = hex(int(i.address))
+		add2 = str(add)
+		# add3 = hex (int(i.address + section.startLoc	))
+		add3=0
+		add4 = str(add3)
+		#  testing=('{:20s} {:20s} {:20s}'.format(a,b,c))
+		val_a=addb#"\t"#\t"
+		val_b=i.mnemonic + " " + i.op_str 
+		val_b1=i.mnemonic
+		val_b2=i.op_str
+		num_bytes=0
+		try:
+			val_c= bytesEachLine[t] 
+			val_d=asciiPerLine[t] 
+		except:
+			val_c=""
+			val_d=""
+		if CheckingForDB:
+			try:
+				num_bytes=int(len(val_c)/4)
+			except:
+				num_bytes=1
+			val_b, num_bytes =checkForValidAddress2(val_a,val_b1, val_b2, sizeShell, possibleBadLabelOffsets,data,num_bytes)
+		if mode=="ascii":
+			val =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(val_a, val_b, val_c, val_d))
+		else:
+			val = addb + ":\t" + i.mnemonic + " " + i.op_str+"\n"
+			val=('{:<10s} {:<35s}\n'.format(val_a, val_b))
+		truth,res=checkForLabel(addb,labels)
+		if truth:
+			val=res+val
+		valCheck=i.mnemonic + " " + i.op_str 
+		controlFlow= re.match( r'\bjmp\b|\bje\b|\bjne\b|\bjg\b|\bjge\b|\bja\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bret\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', valCheck, re.M|re.I)
+		if controlFlow:
+			val=val+"\n"
+		while (num_bytes>0):	
+			if num_bytes>0:
+				val, num_bytes,val_c =makeDBforUnknownBytes(num_bytes, val_c, addb)
+				dprint ("truth check " + addb)
+				truth,res=checkForLabel(addb,labels)
+				if truth:
+					val=res+val
+				valCheck=i.mnemonic + " " + i.op_str 
+				addb=str(hex(int(addb,16)+1))
+				dprint("final val_c")
+				dprint(type(val_c))
+				val2.append(val)
+				val3.append(add2)
+				val5.append(val)
+				CantSkip=False
+		if CantSkip:
+			val2.append(val)
+			val3.append(add2)
+			val5.append(val)
+		t+=1
+	returnString=""
+	for y in val5:
+		returnString+=y
+	return returnString
+
+
+def disHereShell(data,offset, end, mode, CheckingForDB): #
+	global labels
+	global offsets
+	global labelOffsets
+	global possibleBadLabelOffsets
+	printAllShByRange(offset,end)
+	dprint ("dis: dishereshell - range  "  + str(hex(offset)) + " " + str(hex(end)))
+	dprint(binaryToStr(data[offset:end]))
+	dprint(binaryToStr(data))
+	
+	global o
+	w=0
+
+	try:
+		address=offset
+	except:
+		address=0
+	i=0
+	cs.skipdata = True
+	cs.skipdata_setup = ("db", None, None)
+	if offset==False:
+		offset=0
+	if end==False:
+		end=len(data)-1
+	CODED2=data[offset:end]
+	val =""
+	val2 = []
+	val3 = []
+	val5 =[]
+	startAdd=[]
+	nextAdd=[]
+	bytesPerLine=[]
+	cntLines=0
+	bytesEachLine=[]
+	asciiPerLine=[]
+	CODED3 = CODED2
+	for i in cs.disasm(CODED3, address):
+		cntLines+=1
+		val=i.mnemonic + " " + i.op_str 
+		offsets.append((int(i.address)))
+		controlFlow= re.match( r'\bcall\b|\bjmp\b|\bje\b|\bjne\b|\bja\b|\bjg\b|\bjge\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bloop\b|\bloopcc\b|\bloope\b|\bloopne\b|\bloopnz\b|\bloopz\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', val, re.M|re.I)
+		if controlFlow:
+			val=i.op_str
+			isHex= re.match( "^[0-9][x]*[A-Fa-f0-9 -]*",val, re.M|re.I)
+			if isHex:
+				print("addlabel: shell call " + val)
+				is0x=re.match("0x*",val, re.M|re.I)
+				if not is0x:
+					val="0x"+val
+				print  ("6 appending label " + val)
+
+				labels.append(val)
+				labelOffsets.append(int(i.op_str, 16))
+	current=0
+	for i in cs.disasm(CODED3, address):
+		if current>0:
+			nextAd=sadd1
+			nextAdd.append(nextAd)
+		sadd1=int(i.address )
+		startAdd.append(int(sadd1))
+		current+=1
+	for labOff in labelOffsets:
+		if labOff not in offsets:
+			# print ("bad " + str(hex(labOff)))
+			if str(hex(labOff)) not in possibleBadLabelOffsets:
+				possibleBadLabelOffsets.append((str(hex(labOff))))
+				# modifyShByRange(data, labOff,labOff+1,"d")
+	dprint (possibleBadLabelOffsets)
+	t=0
+	ans=0
+	total=0
+	for each in startAdd:
+		try:
+			ans=int(startAdd[t+1]) - int(each)
+			bytesPerLine.append(ans)
+			total+=ans
+		except:
+			ans2= hex(len(data)-total)
+			bytesPerLine.append(int(ans2,16))
+		t+=1
+	cnt=0
+	t=0
+	for i in cs.disasm(CODED3, address): 
+		ans= binaryToStr(CODED3[cnt:cnt+bytesPerLine[t]]) #+ " " + str(t) + "\n"
+		res=""
+		for y in CODED3[cnt:cnt+bytesPerLine[t]]:
+			yy=ord2(y) 
+			zz=show1(yy) 
+			old="nope"
+			if ((yy > 31) & (yy < 127)):
+				try: 
+					zz=int(zz,16)
+					zz = chr(zz)
+				except:
+					zz = chr(zz)
+			else:
+				zz="."
+			old=zz
+			res += zz # stripWhite(zz)#chr(zz)
+		asciiPerLine.append(res)
+		bytesEachLine.append(ans)
+		cnt+=bytesPerLine[t]
+		t+=1	
+	t=0
+	try:
+		add = hex(int(i.address))
+	except:
+		print ("weird error - investigate")
+		pass
+	cs.skipdata = True
+	sizeShell=len(CODED2)
+	for i in cs.disasm(CODED2, address):
+		CantSkip=True
+		add = hex(int(i.address))
+		addb = hex(int(i.address))
+		add2 = str(add)
+		# add3 = hex (int(i.address + section.startLoc	))
+		add3=0
+		add4 = str(add3)
+		#  testing=('{:20s} {:20s} {:20s}'.format(a,b,c))
+		val_a=addb#"\t"#\t"
+		val_b=i.mnemonic + " " + i.op_str 
+		val_b1=i.mnemonic
+		val_b2=i.op_str
+		num_bytes=0
+		try:
+			val_c= bytesEachLine[t] 
+			val_d=asciiPerLine[t] 
+		except:
+			val_c=""
+			val_d=""
+		# CheckingForDB=False
+		if CheckingForDB:
+			try:
+				num_bytes=int(len(val_c)/4)
+			except:
+				num_bytes=1
+			val_b, num_bytes =checkForValidAddress2(val_a,val_b1, val_b2, sizeShell, possibleBadLabelOffsets,data,num_bytes)
+		if mode=="ascii":
+			val =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(val_a, val_b, val_c, val_d))
+		else:
+			val = addb + ":\t" + i.mnemonic + " " + i.op_str+"\n"
+			val=('{:<10s} {:<35s}\n'.format(val_a, val_b))
+		truth,res=checkForLabel(addb,labels)
+		if truth:
+			val=res+val
+		valCheck=i.mnemonic + " " + i.op_str 
+		controlFlow= re.match( r'\bjmp\b|\bje\b|\bjne\b|\bjg\b|\bjge\b|\bja\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bret\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', valCheck, re.M|re.I)
+
+		if controlFlow:
+			val=val+"\n"
+		# while (num_bytes>0):	
+		# 	if num_bytes>0:
+		# 		val, num_bytes,val_c =makeDBforUnknownBytes(num_bytes, val_c, addb)
+		# 		dprint ("truth check " + addb)
+		# 		truth,res=checkForLabel(addb,labels)
+		# 		if truth:
+		# 			val=res+val
+		# 		valCheck=i.mnemonic + " " + i.op_str 
+		# 		addb=str(hex(int(addb,16)+1))
+		# 		dprint("final val_c")
+		# 		dprint(type(val_c))
+		# 		val2.append(val)
+		# 		val3.append(add2)
+		# 		val5.append(val)
+		# 		CantSkip=False
+
+		############Stack strings begin
+		try:
+			cur=int(add,16)
+			print (hex(shBy.pushStringEnd[cur]), add, "pushending")
+			if (shBy.pushStringEnd[cur]-2) == cur:
+				print ("push match", shBy.pushStringValue[cur])
+				nada=""
+				msg="; "+shBy.pushStringValue[cur] + " - Stack string"
+				newVal =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(nada, msg, nada, nada))
+				val= newVal+val
+				print (val)
+		except Exception as e:
+			# print ("weird error", e)
+			pass
+		##### Stack Strings End
+		if CantSkip:
+			val2.append(val)
+			val3.append(add2)
+			val5.append(val)
+
+		# if shBy.pushStringEnd[t]==:
+		# 	print ("this is the end, of the end")
+		t+=1
+	returnString=""
+	for y in val5:
+		returnString+=y
+
+
+	print ("possibleBadLabelOffsets")
+	print (possibleBadLabelOffsets)
+	return returnString
+
+def disHereTiny(data): #
+	address=0
+	i=0
+	CODED2=data
+	val =""
+	val2 = []
+	val3 = []
+	val5 =[]
+	print ("disheretiny")
+	binStr=(binaryToStr(data))
+	print(binStr)
+	first_val_b=""
+	first_val_b1=""
+	first_val_b2=""
+	first=True
+	second=0
+	num_bytesLine1=0
+	nop="90"
+	nop1=fromhexToBytes(nop)
+	print (binaryToStr(nop1))
+	for i in cs.disasm(CODED2 + nop1, address):
+		add = hex(int(i.address))
+		addb = hex(int(i.address))
+		add2 = str(add)
+		add3=0
+		add4 = str(add3)
+		val_a=addb#"\t"#\t"
+		val_b=i.mnemonic + " " + i.op_str 
+		val_b1=i.mnemonic
+		val_b2=i.op_str
+		num_bytes=0
+		val2.append(val)
+		val3.append(add2)
+		val5.append(val_b)
+		if first:
+			first=False
+			first_val_b=val_b
+			first_val_b1=val_b1
+			first_val_b2=val_b2
+		second+=1
+		if second == 2:
+			num_bytesLine1=int(i.address)
+			print ("num_bytes", num_bytesLine1)
+	if num_bytesLine1==0:
+		pass
+	returnString=""
+	for y in val5:
+		returnString+=y+"\n"
+	print ("\n")
+	print (returnString + "rs\n")
+	return first_val_b, first_val_b1, first_val_b2, num_bytesLine1
+
+
+def disHereCheck(data): #
+	address=0
+	i=0
+	CODED2=data
+	val =""
+	val2 = []
+	val3 = []
+	val5 =[]
+	dprint ("disHereCheck")
+	binStr=(binaryToStr(data))
+	dprint(binStr)
+	first_val_b=""
+	first_val_b1=""
+	first_val_b2=""
+	first=True
+	second=0
+	num_bytesLine1=0
+	nop="90"
+	nop1=fromhexToBytes(nop)
+	dprint (binaryToStr(nop1))
+	for i in cs.disasm(CODED2 + nop1, address):
+		add = hex(int(i.address))
+		addb = hex(int(i.address))
+		add2 = str(add)
+		add3=0
+		add4 = str(add3)
+		val_a=addb#"\t"#\t"
+		val_b=i.mnemonic + " " + i.op_str 
+
+		controlFlow= re.match( r'\bcall\b|\bjmp\b|\bje\b|\bjne\b|\bja\b|\bjg\b|\bjge\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bloop\b|\bloopcc\b|\bloope\b|\bloopne\b|\bloopnz\b|\bloopz\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', val_b, re.M|re.I)
+		if controlFlow:
+			val=i.op_str
+			isHex= re.match( "^[0-9][x]*[A-Fa-f0-9 -]*",val, re.M|re.I)
+			if isHex:
+				print("removLab:  " + val)
+				
+				removeLabels(val_b, val)
+				print("done")
+
+		val_b1=i.mnemonic
+		val_b2=i.op_str
+		num_bytes=0
+		val2.append(val)
+		val3.append(add2)
+		val5.append(val_b)
+
+	returnString=""
+	for y in val5:
+		returnString+=y+"\n"
+	print ("\n")
+	print (returnString + "rs\n")
+	# return returnString
+
+
+def modifyShByRangeUser():
+	print ("Type x to exit")
+	global shBy
+	valInput=""	
+	typeBy=""
+	start=0
+	end=0
+	while (valInput !="x"):
+		skip=False
+		print ("Range of offsets to modify?")
+		rangeOff=input()
+		valInput=rangeOff
+		valInput.lower()
+		array = rangeOff.split("-")
+		try:
+			start=int(array[0],16)
+			end=int(array[1],16)
+		except:
+			start=99999999
+			end=99999999
+		if (start > end):
+			print ("Invalid range!")
+			skip=True
+		
+		if not skip:
+			if (valInput!="x"):
+				print ("Type? Data (d) or instructions (i)?")
+				typeBy=input()
+				valInput=typeBy
+				valInput.lower()	
+
+			print (start, end, typeBy)
+			typeBy.lower()
+			BytesBool=False
+			t=0
+		
+			if typeBy=="d":
+				BytesBool=False
+			if typeBy=="i":
+				BytesBool=True
+			for x in shBy.bytesType:
+				if (t>=start) and (t < end):
+					shBy.bytesType[t]=BytesBool
+					# print("changing value @ " + str(t))
+				t+=1
+
+		print (shBy.bytesType)
+
+
+def modifyShByRange(data, start,end, dataType):
+	print ("modRange ", hex(start),hex(end),dataType)
+	global shBy
+	BytesBool=False
+	t=0
+	if dataType=="d":
+		BytesBool=False
+	if dataType=="i":
+		BytesBool=True
+
+	if dataType=="d":
+		print ("magic")
+		out=disHereCheck(data[start:end])
+		print(out)
+	for x in shBy.bytesType:
+		if (t>=start) and (t < end):
+			print ("before", shBy.bytesType[t])
+			shBy.bytesType[t]=BytesBool
+			
+			print("changing value @ " + str(hex(t)))
+			print (shBy.bytesType[t], " value: ", hex(shBy.values[t]))
+		t+=1
+
+
+	# print (shBy.bytesType)
+def modifyStringsRange(start,end, dataType, word):
+	print ("modStrings " )
+	print (hex(start),hex(end),dataType)
+	global shBy
+	BytesBool=False
+	t=0
+	if dataType=="ns":
+		BytesBool=False
+	if dataType=="s":
+		BytesBool=True
+	for x in shBy.bytesType:
+		if (t>=start) and (t < end):
+			# print (shBy.strings[t])
+			shBy.strings[t]=BytesBool
+			shBy.stringsStart[t]=(tuple((start, end-start)))
+			shBy.stringsValue[t]=word
+			print("changing Strings value @ " + str(hex(t)))
+			print (shBy.strings[t], " value: ", hex(shBy.values[t]))
+			print (hex(t))
+			# print (shBy.stringsValue[t])
+
+			# print (hex(shBy.stringsStart[t]), " value: ", hex(shBy.values[t]))
+			x,y=shBy.stringsStart[t]
+			print (x,y)
+		t+=1
+	# print (shBy.bytesType)
+
+def modifyPushStringsRange(start,end, dataType, word):
+	print ("modStringPush " )
+	print (hex(start),hex(end),dataType)
+	global shBy
+	BytesBool=False
+	t=0
+	if dataType=="ns":
+		BytesBool=False
+	if dataType=="s":
+		BytesBool=True
+	for x in shBy.bytesType:
+		if (t>=start) and (t < end):
+			# print (shBy.strings[t])
+			shBy.strings[t]=False
+			shBy.stringsStart[t]=(tuple((0, 0)))
+			shBy.stringsValue[t]=""
+			shBy.pushStringEnd[t]= end
+			shBy.pushStringValue[t]=word
+			shBy.boolPushString[t]=BytesBool
+			print("changing StringsPush value @ " + str(hex(t)))
+
+			print (shBy.boolPushString[t], " value: ", hex(shBy.values[t]))
+			print ("end", shBy.pushStringEnd[t])
+			print (hex(t))
+			# print (shBy.stringsValue[t])
+
+			# print (hex(shBy.stringsStart[t]), " value: ", hex(shBy.values[t]))
+			x,y=shBy.stringsStart[t]
+			print (x,y)
+		t+=1
+	# print (shBy.bytesType)
+def printAllShBy():
+	print("printAllShBy")
+	t=0
+	out=""
+	d=0
+	for off in shBy.offsets:
+		out+= (str(hex(off )) + ": " + str(shBy.bytesType[t])) + " ("+str(hex(shBy.values[t])) +")\t"
+		t+=1
+		d+=1
+		if d==5:
+			out+="\n"
+			d=0
+	print (out)
+
+
+def printAllShByStrings():
+	print("printAllShByStrings")
+	t=0
+	out=""
+	d=0
+	for off in shBy.offsets:
+		sVal=""
+		if shBy.strings[t]:
+			sVal="ST"
+		else:
+			sVal="NO"
+		out+= str(hex(off )) + ": " + sVal + " ("+str(hex(shBy.values[t])) +")\t"
+		t+=1
+		d+=1
+		if d==5:
+			out+="\n"
+			d=0
+	print (out)
+
+def printAllShByRange(start,end):
+	print("printAllShBy " + str(hex(start)) + " "  + str(hex(end) ))
+	t=0
+	out=""
+	d=0
+	t=0
+	for off in shBy.offsets:
+		if (t >= start) and (t<end):
+			out+= (str(hex(off )) + ": " + str(shBy.bytesType[t])) + " ("+str(hex(shBy.values[t])) +")\t"
+			d+=1
+			if d==5:
+				out+="\n"
+				d=0
+		t+=1
+	print (out)
+
+def takeBytes(shellBytes,startingAddress):
+	global shBy
+	global FindStringsStatus
+	print ("take bytes")
+
+	# FindStringsStatus=False
+	i=startingAddress
+	for x in shellBytes:
+		shBy.offsets.append(i)
+		shBy.values.append(x)
+		shBy.instructions.append(True)
+		shBy.data.append(False)
+		shBy.bytesType.append(True) # True = instructions
+		shBy.strings.append(False)
+		shBy.stringsStart.append(0xffffffff)
+		shBy.stringsValue.append("")
+		shBy.pushStringEnd.append(-1)
+		shBy.pushStringValue.append("")
+		shBy.boolPushString.append(False)
+
+		i+=1
+
+	# modifyShByRange(data, 0x14, 0x19, "d")
+	print ("FindStringsStatus", FindStringsStatus)
+	if FindStringsStatus:
+		# import sharem
+		findStrings(shellBytes,3)
+		findStringsWide(shellBytes,3)
+		findPushAsciiMixed(shellBytes,3)
+	anaFindFF(shellBytes)
+
+	out=findRange(shellBytes, startingAddress)  #1st time helps do corrections
+	out=findRange(shellBytes, startingAddress) # makes sure all corrections fully implemented
+	# printAllShBy()
+
+	assembly=binaryToText(shellBytes)
+	return out+assembly
+def findRange(data, startingAddress):
+	global FindStringsStatus
+	current=0
+	start=startingAddress
+	max=len(shBy.bytesType)-1
+	finalPrint=""
+	analysis= disHereAnalysis(data, False, False, "ascii", True)
+	analysisFindHiddenCalls(data, startingAddress)
+	analysisConvertBytes(data, startingAddress)
+	analysisFindHiddenCalls(data, startingAddress)
+	if FindStringsStatus:
+		anaFindStrings(data,startingAddress)
+	while current < max:
+		start, current, distance, typeBytes = findRange2(current)
+		finalPrint0=""
+		print ("max: " + str(hex(max)) + " "+str(hex(current)))
+		if max==current:
+			current+=1
+		print(binaryToStr(data[start:current]))
+		if typeBytes:
+			print ("above is instructions")
+			finalPrint0+= (disHereShell(data, start, current, "ascii", True))
+		if not typeBytes:
+			print ("above is data")
+			finalPrint0+= (disHereMakeDB2(data, start, current, "ascii", True))
+		print (finalPrint0)
+		finalPrint+=finalPrint0
+		# analysisFindHiddenCalls(data, startingAddress)
+	print ("\n* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n"+finalPrint)
+	print ("\n\n")
+	print (binaryToStr(data))
+	return finalPrint
+def findRange2(current):
+	dprint2("findrange2 ", hex(current))
+	t=0
+	typeBytes=True
+	old=""
+	start = current
+	first=True
+	done=False
+	dataWatcher=False
+	instWatcher=False
+	inProgress=False
+	typeData=""
+	begin=current
+	# print ("size", len(shBy.bytesType))
+	if shBy.bytesType[begin]==False:
+		typeData="data"
+		# print ("*********making data" )
+	else:
+		typeData="inst"
+		# print ("********making inst")
+	if typeData=="data":
+		for x in shBy.bytesType:
+			if t > current:
+				if x == False: # until no longer false (i.e. NOT DATA)
+					if first:
+						start=current
+					first=False
+					typeBytes=False
+					current=t 
+				if x==True:
+					current+=1
+					dprint ("FIN: data done!")
+					distance=current-start
+					print ("r d-:",hex(start), hex(current), hex(distance), typeBytes)
+					return start, current, distance, typeBytes
+			t+=1
+	t=0
+	if typeData=="inst":
+		# dprint ("ins")
+		for x in shBy.bytesType:
+			if t > current:	
+				if x == True:  # until no longer true (i.e. IS NOT INSTRUCTIONS)
+					if first:
+						start=current
+					first=False
+					typeBytes=True
+					current=t 
+				if x==False: # & inProgress:
+					current+=1
+					dprint ("FIN: instructions done!")
+					distance=current-start
+					print ("r: i-",hex(start), hex(current), hex(distance), typeBytes)
+					return start, current, distance, typeBytes
+			t+=1
+	distance=current-start
+	print ("r: -end", hex(start), hex(current), hex(distance), (typeBytes))
+	return start, current, distance, typeBytes
+
+FindStrings=True
+
+def anaFindStrings(data, startingAddress):
+	# global FFInstructions
+	global stringsTemp
+	global stringsTempWide
+	global pushStringsTemp
+	print("anaFindStrings")
+	# print (sharem.stringsTemp)
+	OP_FF=b"\xff"
+
+	for word,offset,distance  in stringsTemp:# and stringsTemp:
+		print ("\t"+ str(word) + "\t" + str(hex(offset)) + "\t" + str(hex(distance))) 
+		if goodString(data,word,6):
+			modifyShByRange(data, offset, offset+distance, "d")
+			modifyStringsRange(offset, offset+distance, "s", word)
+			total=0			
+			v=1
+			w=0
+			test=b"\xff"
+			while (test == OP_FF):
+				print(word, "2binaryToStrCheck", binaryToStr(data[offset+distance:offset+distance+v]))
+				test=(data[offset+distance+w:offset+distance+v])
+				test2=(data[offset+distance+w:offset+distance+v+1])
+				print ("test2", len(test2), hex(offset+distance+w), hex(offset+distance+v+1))
+				if test==(OP_FF) and (test2 not in FFInstructions):
+					print("gots one") # this just counts how many FF's there are that are not part of a more import instruciton'
+					total+=1
+				v+=1
+				w+=1
+			print ("fftotal",total)
+			if total > 1:
+				modifyShByRange(data, offset, offset+distance+total, "d")
+				# modifyStringsRange(offset, offset+distance+total, "s", word)
+
+	##WIDE			
+	print ("wideStringsStart")	
+	try:
+		for word,offset,distance  in stringsTempWide:# and stringsTemp:
+			print ("ok")
+			print ("\t"+ str(word) + "\t" + str(hex(offset)) + "\t" + str(hex(distance))) 
+			# print (word, offset, distance, "before modify range")
+			# modifyStringsRange(offset, offset+distance, "s", word)
+			# print (goodString(data,word,6),"goodstring", word)
+			# if goodString(data,word,5):
+			if goodStringWide(data,word,5):
+				modifyShByRange(data, offset, offset+distance, "d")
+				modifyStringsRange(offset, offset+distance, "s", word)
+				total=0			
+				v=1
+				w=0
+			### start
+				test=b"\xff"
+				while (test == OP_FF):
+					print(word, "2binaryToStrCheck", binaryToStr(data[offset+distance:offset+distance+v]))
+					test=(data[offset+distance+w:offset+distance+v])
+					test2=(data[offset+distance+w:offset+distance+v+1])
+					# if test==(OP_FF) and (test2 != inc_esi):
+					print ("test2", len(test2), hex(offset+distance+w), hex(offset+distance+v+1))
+					if test==(OP_FF) and (test2 not in FFInstructions):
+						print("gots one") # this just counts how many FF's there are that are not part of a more import instruciton'
+						total+=1
+					v+=1
+					w+=1
+				print ("fftotal",total)
+				if total > 1:
+					modifyShByRange(data, offset, offset+distance+total, "d")
+					# modifyStringsRange(offset, offset+distance+total, "s", word)
+	except:
+		print ("Exception")
+		print (e)
+		pass
+	###   end
+	print ("end wideStrings")
+	# pushStringsTemp.append(tuple((word4, offset, offsetVA,offsetPlusImagebase, wordLength,instructionsLength)))
+	print("pushmixed")
+	for word, offset, offsetVA,offsetPlusImagebase, wordLength,instructionsLength in pushStringsTemp:
+		try:
+			print ("word", word, "starting offset:", hex(offset), "; ending offset:", hex(offset+instructionsLength))
+		except:
+			word="error"
+			print ("word", word, "starting offset:", hex(offset), "; ending offset:", hex(offset+instructionsLength))
+			print ("pushmixed error")
+	distance=0
+	for word, offset, offsetVA,offsetPlusImagebase, wordLength,instructionsLength in pushStringsTemp:
+		# offset=ofset-2
+		try:
+			print ("word", word, "starting offset", hex(offset), "ending offset", hex(offset+instructionsLength))
+		except:
+			word="error"
+			print ("pushmixed error2")
+		distance=instructionsLength
+		print ("instructionsLength", instructionsLength, type(instructionsLength))
+		if goodString(data,word,4):
+			print ("push mixed change", word, hex(offset), hex(offset+distance), hex(len(data)))
+			modifyShByRange(data, offset-2, offset+distance, "i") # -2 is a correction
+			modifyPushStringsRange(offset, offset+distance, "s", word)
+			total=0			
+			v=1
+			w=0
+			test=b"\xff"
+			while (test == OP_FF):
+				print(word, "pushstrings", binaryToStr(data[offset+distance:offset+distance+v]))
+				test=(data[offset+distance+w:offset+distance+v])
+				test2=(data[offset+distance+w:offset+distance+v+1])
+				print ("test2", len(test2), hex(offset+distance+w), hex(offset+distance+v+1))
+				if test==(OP_FF) and (test2 not in FFInstructions):
+					print("gots one PS") # this just counts how many FF's there are that are not part of a more import instruciton'
+					total+=1
+				v+=1
+				w+=1
+			print ("PS fftotal",total)
+			if total > 1:
+				modifyShByRange(data, offset, offset+distance+total, "d")
+				# modifyStringsRange(offset, offset+distance+total, "s", word)
+
+
+	###$$$$$$$$$$$$$$$$$$4 END STUFF
+
+	current=0
+	start=startingAddress
+	max=len(shBy.bytesType)-1
+	start, current, distance, typeBytes = findRange2(current)
+	reset = False
+	while current < max:
+		if max==current:
+			current+=1
+		print(binaryToStr(data[start:current]))
+		if not typeBytes:
+			print ("AFS: above is data", hex(start))
+			if shBy.strings[start]==True:
+				xStart, ydis=shBy.stringsStart[start]
+				print (hex(start))
+				print ("AFS: strings ", hex(xStart), hex(ydis), shBy.stringsValue[start])
+		start, current, distance, typeBytes = findRange2(current)
+		##reset once done - do analysis again to catch any changes 
+		if (current) == max and reset != True:
+			reset=True
+			print ("reset")
+			current=0
+	print (shBy.stringsValue)
+
+def anaFindFF(data):
+	# global FFInstructions
+	print("anaFindFF")
+	OP_FF=b"\xff"
+	offset=0
+	maxV=len(data)
+	escape=False
+	while offset < maxV:
+	# for datum in data:
+		# print ("ff:\t"+ str(binaryToStr(data[offset:offset+1])) + "\t" + str(hex(offset)))
+		escape=False
+		total=0			
+		v=1
+		w=0
+		distance=0
+		# print ("total", total)
+		# test=b"\xff"
+		test=(data[offset+distance+w:offset+distance+v])
+		while (test == OP_FF):
+			# print ("w", hex(w), "v", hex(v), "offset", hex(offset))
+			# print( "2binaryToStrCheck", binaryToStr(data[offset+distance:offset+distance+v]))
+			test=(data[offset+distance+w:offset+distance+v])
+			test2=(data[offset+distance+w:offset+distance+v+1])
+			# if test==(OP_FF) and (test2 != inc_esi):
+			if test==(OP_FF) and (test2 not in FFInstructions):
+				# print("gots one") # this just counts how many FF's there are that are not part of a more import instruciton'
+				total+=1
+			v+=1
+			w+=1
+			escape=True
+		# print ("ffcount",total)
+		if total > 3:
+			print (total, "ffTotal2")
+			modifyShByRange(data, offset, offset+distance+total, "d")
+			# modifyStringsRange(offset, offset+distance+total, "s", word)
+		if escape:
+			# print ("inc offset", escape, hex(offset))
+			if total >1:
+				offset+=total
+			else:
+				offset+=1
+		if not escape:
+			# print ("inc offset, not", escape, hex(offset))
+			offset+=1
+######
+# printFromArrayLiteralToHex(ArrayLiteral)
+
+# printFromhexToBytes(rawHex)
+# printFromStringLiteralToBytes(stringLiteral)
+
+
+# ans=fromArrayLiteralToHex(ArrayLiteral)
+
+# ans2=fromhexToBytes(rawHex)
+
+def splitDirectory(filename):
+	# print("filenamesplit", filename)
+
+	array = filename.split("\\")
+	new = ""
+	if len(array) >1:
+		relFilename=array[len(array)-1]
+		array.pop()
+		for word in array:
+			new +=  word
+		return new+"\\", relFilename
+	else:
+		filename="shellcode.txt"
+		return "", filename
+
+
 
 def AustinTesting():
 
@@ -3524,7 +5637,8 @@ def bramwellStart():
 	readRegs()
 	showBasicInfo()
 	ObtainAndExtractSections()
-	# print showBasicInfoSections()
+	print ("basic info")
+	print (showBasicInfoSections())
 
 
 	OP_SPECIAL = b"\x8d\x4c\xff\xe2\x01\xd8\x81\xc6\x34\x12\x00\x00"
@@ -3535,6 +5649,8 @@ def bramwellStart():
 	# op_test =b"\x00\x44\x44\x44\x44\x44\x44\x00\x00\x42\x42\x42\x42\x42\x42\x43\x00\x00\x00\x00\x00\x00\x42\x42\x42\x43\x43\x00"
 	# findStrings(op_test, 5)
 
+	newBin = open(directory+"outputs\\currentBinary.bin", "wb")
+	newBin.write(s[0].data2)
 
 	findStrings(s[0].data2,5)
 
@@ -3563,23 +5679,93 @@ def bramwellStart():
 # Extraction()
 
 # starting()
-AustinStart()
-AustinTesting()
+# AustinStart()
+# AustinTesting()
 
 
 # bramwellStart()
 # testing8Start()
+def shellDisassemblyStart(shellArg):
+	global filename
+	global rawData2
+	filename=shellArg
+	rawBytes=readShellcode(shellArg) 
 
+	rawData2=rawBytes
+	# printBytes(rawBytes)
+	print (disHereShell(rawBytes, False, False, "ascii", True))
+	print ("SizeRawdata2", len(rawData2))
+	rawBytes=rawData2
+	print ("rawbytes class", type(rawBytes))
+	disassembly=takeBytes(rawBytes,0)
+	printAllShBy()
+	printAllShByStrings()
+
+	### Saving disassembly and .bin
+	print (filename)
+	print ("before split")
+	directory, filename= (splitDirectory(filename))
+	directory = ""
+	print (directory)
+	print (filename)
+	directory=""
+
+	if not os.path.exists(directory+'outputs'):
+		os.makedirs(directory+'outputs')
+	print (directory+"outputs\\"+filename[:-4]+".bin")
+	newBin = open(directory+"outputs\\"+filename[:-4]+".bin", "wb")
+	newBin.write(rawBytes)
+	newBin.close()
+	newDis = open(directory+"outputs\\"+filename[:-4]+"-disassembly.txt", "w")
+	newDis.write(disassembly)
+	newDis.close()
+	binaryToText(rawBytes)
+
+
+# fromShellTxt= readShellcode()
+# print(fromShellTxt)
+# printFromStringLiteralToBytes(fromShellTxt)
+# rawBytes=fromStringLiteralToBytes(fromShellTxt)
+# printBytes(fromShellTxt)
 
 testing="shellcodes\\testing.txt"
-shellcode4='shellcode4.txt'
-def fromTesting(shellArg):
-
-	testme()
-	testing8Start(shellArg)
+testing2="shellcodes\Add Admin User Shellcode (194 bytes) - Any Windows Version.txt"
 
 
+def bramwellDisassembly():
+	global shellcode4
+	global filename
+	testing="shellcodes\\testing.txt"
+	print ("numargs" , numArgs)
+	if numArgs==1:
+		shellcode4='shellcode4.txt'
+		filename=shellcode4
+	shellDisassemblyStart(filename)
+	# shellDisassemblyStart(shellcode4)
 
 if __name__ == "__main__":
-	fromTesting(shellcode4)
+
+
+	# EXTRACTION - if dealing with PE files, uncomment this:
+	try:
+		Extraction()
+	except:
+		pass
+	###################################################################
+	##Bramwell's work - may comment out if need be
+	# bramwellDisassembly()
+	# findAllPebSequences()
+	# printSavedPEB()
+	# findAllPushRet()
+	# printSavedPushRet()
+
+	# bramwellStart()
+	bramwellDisassembly()
+
+	###################################################################
+	#Austin's work -- place here - may comment out as need be
+	
+	# starting()
+	# AustinStart()
+	# AustinTesting()
 

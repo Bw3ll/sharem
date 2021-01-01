@@ -9,6 +9,8 @@ global MyBytes
 global objs
 
 
+
+
 #MOV <REG>, [FS:0x30]
 PEB_WALK_MOV = {
 	'EAX_OFFSET_NONE': b"\x64\xA1\x30\x00\x00\x00",

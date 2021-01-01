@@ -4,20 +4,17 @@ import re, string
 import binascii
 from lists import *
 import os
-from sharem import findStrings
+import sharem
 # from sharem import *
 
 # end classs 
 
 FindStringsStatus=True
-GoodStrings=["cmd", "CMD", "NET", "net","add","ADD", "Win", "WIN", "http"]
+GoodStrings=["cmd", "CMD", "NET", "net","add","ADD", "Win", "WIN", "http", "HTTP"]
 
 #####SAME AS FROM SHAREM
 filename=""
 
-
-def testme():
-	print("it works")
 
 numArgs = len(sys.argv)
 if numArgs > 1:			# to get full functionality, need to put file location for binary that is installed (may need to find some DLLs in that directory)
@@ -45,7 +42,7 @@ def goodString(data,word, size):
 
 	print ("size", len(data), len(word))
 	# if len(data) == len(word):
-	if len(word) >= 0.85*len(data):
+	if len(word) >= 0.95*len(data):
 		print ("badsize")
 		return False
 	print (letters, (letters+numbers+spaces)/wordSize, len(word), size)
@@ -66,8 +63,8 @@ def removeLastLine(strLine):  #removes last line of disasembly that starts with 
 		new +=  word+"\n"
 	return new
 
-def findStrings(binary,Num):#,t):
-	dprint2("findstrings ", Num)
+def findStrings22(binary,Num):#,t):
+	dprint2("findstrings Testing ", Num)
 	global t
 	global o
 	global stringsTemp
@@ -598,7 +595,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 				if truth:
 					val=val+res
 					stringVal=stringVal+res
-				stringVal +=('a {:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
+				stringVal +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
 				print ("y offset", hex(t))
 		
 				# stringVal= beforeS + stringVal
@@ -621,7 +618,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 				dbFlag=False
 				skip=True
 			if not skip:
-				stringVal+=('3 {:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
+				stringVal+=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
 			skip=False
 		offset +=1
 		stop += 1
@@ -637,7 +634,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 				dbOut=""
 				dbFlag=False
 				if len(dbOut)>0:
-					stringVal+=('c {:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
+					stringVal+=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
 			w=0
 	# print("ending: disHereMakeDB2 - range " + str(hex(offset)) + " " + str(hex(end)) )
 	print("returnDB2\n", val)
@@ -1546,7 +1543,8 @@ def takeBytes(shellBytes,startingAddress):
 	# modifyShByRange(data, 0x14, 0x19, "d")
 	print ("FindStringsStatus", FindStringsStatus)
 	if FindStringsStatus:
-		findStrings(shellBytes,3)
+		# import sharem
+		sharem.findStrings(shellBytes,3)
 	anaFindFF(shellBytes)
 
 	out=findRange(shellBytes, startingAddress)  #1st time helps do corrections
@@ -1650,7 +1648,7 @@ def anaFindStrings(data, startingAddress):
 	print (stringsTemp)
 	OP_FF=b"\xff"
 
-	for word,offset,distance  in stringsTemp:
+	for word,offset,distance  in sharem.stringsTemp:
 		print ("\t"+ str(word) + "\t" + str(hex(offset)) + "\t" + str(hex(distance))) 
 		# print (word, offset, distance, "before modify range")
 		# modifyStringsRange(offset, offset+distance, "s", word)
@@ -1759,7 +1757,8 @@ def anaFindFF(data):
 # ans2=fromhexToBytes(rawHex)
 
 def splitDirectory(filename):
-	
+	# print("filenamesplit", filename)
+
 	array = filename.split("\\")
 	new = ""
 	if len(array) >1:
@@ -1772,8 +1771,9 @@ def splitDirectory(filename):
 		filename="shellcode.txt"
 		return "", filename
 
-def testing8Start(shellArg):
+def shellDisassemblyStart(shellArg):
 	global filename
+	filename=shellArg
 	ans3=fromStringLiteralToBytes(stringLiteral)
 	# printBytes(ans)
 	# printBytes(ans2)
@@ -1803,7 +1803,10 @@ def testing8Start(shellArg):
 	### Saving disassembly and .bin
 
 	# print (filename)
+	print ("before split")
 	directory, filename= (splitDirectory(filename))
+	directory = ""
+
 	print (directory)
 	print (filename)
 	directory=""
@@ -1836,5 +1839,7 @@ testing="shellcodes\\testing.txt"
 testing2="shellcodes\Add Admin User Shellcode (194 bytes) - Any Windows Version.txt"
 
 
-# testing8Start(testing)
-testing8Start(shellcode4)
+
+if __name__ == "__main__":
+	# shellDisassemblyStart(testing)
+	shellDisassemblyStart(shellcode4)
