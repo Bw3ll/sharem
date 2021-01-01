@@ -21,3 +21,6 @@ testing8.py
 *.id2
 *.nam
 *.til
+fstenv.txt
+fstenv2.txt
+*.pyc

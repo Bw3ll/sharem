@@ -16,7 +16,6 @@ from ctypes import wintypes
 import win32file
 from sorting import *
 import timeit
-import shDis
 import string
 
 sections = []
@@ -98,6 +97,7 @@ if numArgs > 1:			# to get full functionality, need to put file location for bin
 		filename= sys.argv[1]
 		skipExtraction=True
 		rawHex=True
+		print("set rawHEx")
 
 if len(filename) > 1:
 	testing=filename
@@ -105,7 +105,9 @@ if len(filename) > 1:
 if numArgs==1:
 	skipExtraction=True
 	rawHex=True
+	print("numargs")
 if not skipExtraction:
+	print("if not skipext")
 	if numArgs > 1:			# to get full functionality, need to put file location for binary that is installed (may need to find some DLLs in that directory)
 		peName= sys.argv[1] 
 		matchObj = re.match( r'^[a-z]+:[\\|/]+', peName, re.M|re.I)
@@ -213,6 +215,7 @@ class MyBytes:
 		self.save_PEB_info = []
 		self.save_PushRet_info = []
 		# self.sectionStart =0 ### image base + virtual address
+		self.save_FSTENV_info = [] #tuple - addr, NumOps, modSecName, secNum
 # end classs 
 
 class IATS:
@@ -1466,6 +1469,9 @@ def disHerePEB(address, NumOpsDis, secNum, data): ############ AUSTIN ##########
 	global total1
 	global total2
 	w=0
+
+
+	foundAdv = False
 	## Capstone does not seem to allow me to start disassemblying at a given point, so I copy out a chunk to  disassemble. I append a 0x00 because it does not always disassemble correctly (or at all) if just two bytes. I cause it not to be displayed through other means. It simply take the starting address of the jmp [reg], disassembles backwards, and copies it to a variable that I examine more closely.
 	#lGoBack = linesGoBackFindOP
 
@@ -1530,6 +1536,11 @@ def disHerePEB(address, NumOpsDis, secNum, data): ############ AUSTIN ##########
 	points = 0
 	disString = val5
 
+	loadTIB_offset = -1
+	loadLDR_offset = -1
+	loadModList_offset = -1
+	advanceDLL_Offset = -1
+
 	for line in disString:
 
 		##############################################
@@ -1540,9 +1551,11 @@ def disHerePEB(address, NumOpsDis, secNum, data): ############ AUSTIN ##########
 		xorLoadPEB = re.match("^(xor) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
 		orLoadPEB = re.match("^(or) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
 		xchgLoadPEB = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
-		pushLoadPEB = re.match("^(push) (d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))))\]", line, re.IGNORECASE)
+		pushLoadPEB = re.match("^(push) (d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))))) ?(\+ ?0x30)?\]", line, re.IGNORECASE)
 
 		if(movLoadPEB or addLoadPEB or adcLoadPEB or xorLoadPEB or orLoadPEB or xchgLoadPEB or pushLoadPEB):
+			loadTIB_offset = line.split()[-1]
+			loadTIB_offset = loadTIB_offset[:-1]
 			points += 1
 
 
@@ -1556,6 +1569,8 @@ def disHerePEB(address, NumOpsDis, secNum, data): ############ AUSTIN ##########
 		xchgLoadLDR = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", line, re.IGNORECASE)
 		
 		if(movLoadLDR or addLoadLDR or adcLoadLDR or xorLoadLDR or orLoadLDR or xchgLoadLDR):
+			loadLDR_offset = line.split()[-1]
+			loadLDR_offset = loadLDR_offset[:-1]
 			points += 1
 
 
@@ -1569,6 +1584,8 @@ def disHerePEB(address, NumOpsDis, secNum, data): ############ AUSTIN ##########
 		xchgLoadInMemOrder = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", line, re.IGNORECASE)
 
 		if(movLoadInMemOrder or addLoadInMemOrder or adcLoadInMemOrder or xorLoadInMemOrder or orLoadInMemOrder or xchgLoadInMemOrder):
+			loadModList_offset = line.split()[-1]
+			loadModList_offset = loadModList_offset[:-1]
 			points += 1
 
 
@@ -1582,6 +1599,8 @@ def disHerePEB(address, NumOpsDis, secNum, data): ############ AUSTIN ##########
 		xchgLoadInInitOrder = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", line, re.IGNORECASE)
 
 		if(movLoadInInitOrder or addLoadInInitOrder or adcLoadInInitOrder or xorLoadInInitOrder or orLoadInInitOrder or xchgLoadInInitOrder):
+			loadModList_offset = line.split()[-1]
+			loadModList_offset = loadModList_offset[:-1]
 			points += 1
 
 		###############################################
@@ -1594,7 +1613,11 @@ def disHerePEB(address, NumOpsDis, secNum, data): ############ AUSTIN ##########
 		xchgDereference = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
 
 		if(movDereference or addDereference or adcDereference or orDereference or xorDereference or xchgDereference):
-			points += 1
+			advanceDLL_Offset = line.split()[-1]
+			advanceDLL_Offset = advanceDLL_Offset[:-1]
+			if(not foundAdv):
+				foundAdv = True
+				points += 1
 
 		############## AUSTIN ####################
 		lodsd = re.match("^(lodsd)", line, re.IGNORECASE) 
@@ -1612,7 +1635,7 @@ def disHerePEB(address, NumOpsDis, secNum, data): ############ AUSTIN ##########
 
 		#print("Adding item #" + str(len(m[o].save_PEB_info)))
 		# print("saving at sec num = " + str(secNum))
-		saveBasePEBWalk(address, NumOpsDis, modSecName, secNum, points)
+		saveBasePEBWalk(address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, loadModList_offset, advanceDLL_Offset)
 
 def disHerePEB_64(address, NumOpsDis, secNum, data): ############## AUSTIN ####################
 
@@ -1687,7 +1710,7 @@ def disHerePEB_64(address, NumOpsDis, secNum, data): ############## AUSTIN #####
 		xorLoadPEB = re.match("^(xor) ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15)))), ?((q|d)?word ptr gs:\[(((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15)))) ?\+ ?)?0x60)\]", line, re.IGNORECASE)
 		orLoadPEB = re.match("^(or) ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15)))), ?((q|d)?word ptr gs:\[(((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15)))) ?\+ ?)?0x60)\]", line, re.IGNORECASE)
 		xchgLoadPEB = re.match("^(xchg) ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15)))), ?((q|d)?word ptr gs:\[(((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15)))) ?\+ ?)?0x60)\]", line, re.IGNORECASE)
-		pushLoadPEB = re.match("^(push) ((q|d)?word ptr gs:\[(((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15))))))\]", line, re.IGNORECASE)
+		pushLoadPEB = re.match("^(push) ((q|d)?word ptr gs:\[(((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15)))))) ?(\+ ?0x60)?\]", line, re.IGNORECASE)
 
 
 		if(movLoadPEB or addLoadPEB or adcLoadPEB or xorLoadPEB or orLoadPEB or xchgLoadPEB or pushLoadPEB):
@@ -1856,6 +1879,13 @@ def printSavedPEB(): ######################## AUSTIN ###########################
 			# print("PRINTING SECTION " + str(h))
 			for item in section.save_PEB_info:
 				CODED2 = ""
+
+
+				print("OFFSETS: ")
+				print("TIB = " + str(item[5]))
+				print("LDR = " + str(item[6]))
+				print("MODS = " + str(item[7]))
+				print("Adv = " + str(item[8]))
 
 				address = item[0]
 				NumOpsDis = item[1]
@@ -2233,6 +2263,283 @@ def printSavedPushRet(): ############################## AUSTIN #################
 				j += 1
 				# print str(type(m[o].data2))
 				# trash = raw_input("enter...")
+
+def get_FSTENV(NumOpsDis, NumOpsBack, bytesToMatch, secNum, data2): 
+	#change to work off of data2 - add param - get rid of secNum
+
+	global o
+	foundCount = 0
+	numOps = NumOpsDis
+
+
+	t=0
+	len_data2 = len(data2)
+	len_bytesToMatch = len(bytesToMatch)
+	for v in data2:
+		found = True #reset flag
+		#replace with bytesToMatch list if desired
+		#for i in range(len(bytesToMatch)): #can break out on no match for efficiency, left as is for simplicity
+		i = 0
+		for x in bytesToMatch:
+			if(found == False):
+				break
+			# elif ((i+t) >= len_data2 or i >= len_bytesToMatch):
+			# 	found = False # out of range
+			try:
+				#print(data2[t+i])
+				#input("enter..")
+				if ((data2[t+i]) != (bytesToMatch[i])):
+					found = False #no match
+			except Exception as e:
+				# input(e)
+				pass
+			i += 1
+
+		if(found):
+			# input("enter..")
+			disHereFSTENV(t, numOps, NumOpsBack, secNum, data2)
+
+			
+
+		t=t+1
+
+
+fcount = 0
+def disHereFSTENV(address, NumOpsDis, NumOpsBack, secNum, data): ############ AUSTIN ##############
+
+	global o
+	global total1
+	global total2
+	global fcount
+	w=0
+
+	## Capstone does not seem to allow me to start disassemblying at a given point, so I copy out a chunk to  disassemble. I append a 0x00 because it does not always disassemble correctly (or at all) if just two bytes. I cause it not to be displayed through other means. It simply take the starting address of the jmp [reg], disassembles backwards, and copies it to a variable that I examine more closely.
+	#lGoBack = linesGoBackFindOP
+
+	# print("disHere")
+	# print(hex(address))
+	# print(secNum)
+	#input("addy")
+
+	CODED2 = ""
+	x = NumOpsDis
+	# start = timeit.default_timer()
+	if(secNum != "False"):
+		section = s[secNum]
+
+
+	# print("------------------------------------")
+	for back in range(NumOpsBack):
+		# print("back = " + str(back))
+		CODED2 = data[(address-(NumOpsBack-back)):(address+x)]
+			#print("########################")
+		#	print(type(CODED2))
+		#	print("########################")
+		#
+		# stop = timeit.default_timer()
+		# total1 += (stop - start)
+		# print("Time 1 PEB: " + str(stop - start))
+
+		# I create the individual lines of code that will appear>
+		# print(len(CODED2))
+		val =""
+		val2 = []
+		val3 = []
+		#address2 = address + section.ImageBase + section.VirtualAdd
+		val5 =[]
+
+		# start = timeit.default_timer()
+		#CODED3 = CODED2.encode()
+		CODED3 = CODED2
+		# print("BINARY2STR")
+		# print(binaryToStr(CODED3))
+		# print("******************************************")
+		for i in cs.disasm(CODED3, address):
+			#print('address in for = ' + str(address))
+			if(secNum == "False"):
+
+			#	print("i = " + str(i) + " i.mnemonic = " + str(i.mnemonic))
+				# add = hex(int(i.address))
+				add4 = hex(int(i.address))
+				addb = hex(int(i.address))
+			else:
+				add = hex(int(i.address))
+				addb = hex(int(i.address +  section.VirtualAdd))
+				add2 = str(add)
+				add3 = hex (int(i.address + section.startLoc	))
+				add4 = str(add3)
+			val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+			# val2.append(val)
+			# val3.append(add2)
+			val5.append(val)
+			# print(val)
+
+			disString = val5
+
+			#we save when the fpu instr is the first one 
+			# match instructions beginning with "f" but is not fstenv or fnstenv
+			FPU_instr = re.match("^f((?!n?stenv).)*$", disString[0], re.IGNORECASE)
+			fstenv = False
+			if(FPU_instr):
+				for line in disString:
+					FSTENV_instr = re.match("^fn?stenv", line, re.IGNORECASE)
+
+					if(FSTENV_instr):
+						fcount += 1
+						# print("CONFIRMED FSTENV -- NUMBER " + str(fcount))
+						# print("SAVING THIS ONE")
+						if(rawHex):
+							modSecName = peName
+						else:
+							modSecName = section.sectionName
+							saveBaseFSTENV(address, NumOpsDis, (NumOpsBack - back), modSecName, secNum)
+						return
+
+
+
+def saveBaseFSTENV(address, NumOpsDis, NumOpsBack, modSecName, secNum):
+	if(secNum != "False"):
+		s[secNum].save_FSTENV_info.append(tuple((address,NumOpsDis,NumOpsBack,modSecName,secNum)))
+	else:
+		secNum = -1
+		modSecName = "rawHex"
+		m[o].save_FSTENV_info.append(tuple((address,NumOpsDis,NumOpsBack,modSecName,secNum)))
+
+def printSavedFSTENV(): ######################## AUSTIN ###############################3
+	#formatting
+	j = 0
+	if(rawHex):
+		for item in m[o].save_FSTENV_info:
+			CODED2 = b""
+
+			address = item[0]
+			NumOpsDis = item[1]
+			NumOpsBack = item[2]
+			modSecName = item[3]
+			secNum = item[4]
+
+			CODED2 = rawData2[(address-NumOpsBack):(address+NumOpsDis)]
+
+			outString = "\n\nItem : " + str(j)
+			if(secNum != -1):
+
+				outString += " | Section number: " + str(secNum) + " | Section name: " + str(modSecName)
+				# if(secNum != 0):
+				# 	trash = raw_input("enter...")
+				
+			else:
+				outString += " | Module: " + modSecName
+
+			print ("\n********************************************************")
+			print (outString)
+			print ("\n")
+			val =""
+			val2 = []
+			val3 = []
+			#address2 = address + section.ImageBase + section.VirtualAdd
+			val5 =[]
+
+			for i in cs.disasm(CODED2, address):
+				if(rawHex):
+					add4 = hex(int(i.address))
+					addb = hex(int(i.address))
+				else:
+					add = hex(int(i.address))
+					addb = hex(int(i.address +  section.VirtualAdd))
+					add2 = str(add)
+					add3 = hex (int(i.address + section.startLoc	))
+					add4 = str(add3)
+				val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+				print (val)
+	#return val5
+			print ("\n")
+			j += 1
+	else:
+		h = 0
+		for section in s:
+			h += 1
+			# print("PRINTING SECTION " + str(h))
+			for item in section.save_FSTENV_info:
+				CODED2 = ""
+
+
+				address = item[0]
+				NumOpsDis = item[1]
+				NumOpsBack = item[2]
+				modSecName = item[3]
+				secNum = item[4]
+
+				# print("NUMBACK = " + str(NumOpsBack))
+
+				section = s[secNum]
+
+				outString = "\n\nItem : " + str(j)
+				if(secNum != -1):
+
+					outString += " | Section number: " + str(secNum) + " | Section name: " + str(modSecName)
+					# if(secNum != 0):
+					# 	trash = raw_input("enter...")
+					
+				else:
+					outString += " | Module: " + modSecName
+
+				print ("\n********************************************************")
+				print (outString)
+				print ("\n")
+				val =""
+				val2 = []
+				val3 = []
+				address2 = address + section.ImageBase + section.VirtualAdd
+				val5 =[]
+
+				CODED2 = section.data2[(address-NumOpsBack):(address+NumOpsDis)]
+
+				CODED3 = CODED2
+				for i in cs.disasm(CODED3, address):
+					add = hex(int(i.address))
+					addb = hex(int(i.address +  section.VirtualAdd - NumOpsBack))
+					add2 = str(add)
+					add3 = hex (int(i.address + section.startLoc	- NumOpsBack))
+					add4 = str(add3)
+					val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+					val2.append(val)
+					val3.append(add2)
+					val5.append(val)
+					print (val)
+				print ("\n")
+				j += 1
+				# print str(type(m[o].data2))
+				# trash = raw_input("enter...")
+
+		
+def saveBasePEBWalk(address, NumOpsDis,modSecName,secNum, points, loadTIB_offset, loadLDR_offset, loadModList_offset, advanceDLL_Offset): 
+	# print("saving")
+	#save virtaul address as well
+	if(secNum != "False"):
+		s[secNum].save_PEB_info.append(tuple((address,NumOpsDis,modSecName,secNum,points,loadTIB_offset,loadLDR_offset,loadModList_offset,advanceDLL_Offset)))
+	else:
+		secNum = -1
+		modSecName = "rawHex"
+		m[o].save_PEB_info.append(tuple((address,NumOpsDis,modSecName,secNum,points,loadTIB_offset,loadLDR_offset,loadModList_offset,advanceDLL_Offset)))
+
+
+
+def findAllFSTENV(): ################## AUSTIN ######################
+
+	if(rawHex):
+		print("in here - rawhex")
+		for match in FSTENV_GET_BASE.values(): #iterate through all opcodes representing combinations of registers
+			get_FSTENV(10, 15, match, "False", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+
+
+	elif(bit32):
+		for secNum in range(len(s)):
+			# print("Trying section: " + str(secNum))
+			data2 = s[secNum].data2
+			# print("before mov"
+			for match in FSTENV_GET_BASE.values(): #iterate through all opcodes representing combinations of registers
+				get_FSTENV(10, 15, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
+
 
 
 def findAllPebSequences(): ################## AUSTIN ######################
@@ -3685,6 +3992,39 @@ def runIt():
 			modName = peName
 			o = 0
 
+def AustinTesting():
+
+	# start = timeit.default_timer()
+	print("AUSTINHERE")
+	print(rawHex)
+	findAllFSTENV()
+	printSavedFSTENV()
+	# findAllPebSequences()
+	# printSavedPEB()
+	# stop = timeit.default_timer()
+	# print("PEB TIME PY3 = " + str(stop - start))
+	# findAllPushRet()
+
+	#print("Total 1 = " + str(total1))
+	#print("Total 2 = " + str(total2))
+	# printSavedPEB()
+	#printSavedPEB_64()
+	# printSavedPushRet()
+
+
+
+
+def AustinStart():
+
+	# ObtainAndExtractDlls()
+	# runIt()
+	# showBasicInfo()
+	# start = timeit.default_timer()
+	if(not rawHex):
+		ObtainAndExtractSections()
+		print (showBasicInfoSections())
+	# stop = timeit.default_timer()
+	# print("START TIME = " + str(stop - start))
 
 
 def goodString(data,word, size):
@@ -3818,7 +4158,7 @@ cs = Cs(CS_ARCH_X86, CS_MODE_32)
 stringLiteral="\x31\xC9\xB9\xAD\xDE\x65\x64\xC1\xE9\x10\x51\x68\x77\x6F\x72\x6B\x68\x6F\x69\x74\x20\x68\x45\x78\x70\x6C\x89\xE2\xB9\xCA\xAD\xDE\x29\xC1\xE9\x18\x51\x68\x6E\x73\x20\x3A\x68\x75\x74\x74\x6F\x68\x73\x65\x20\x62\x68\x20\x6D\x6F\x75\x68\x70\x69\x6E\x67\x68\x53\x77\x61\x70\x89\xE3\x31\xC9\x51\x52\x53\x51\xFF\xD0"
 # stringLiteral=test2
 ArrayLiteral="0x31, 0xC9, 0xB9, 0xAD, 0xDE, 0x65, 0x64, 0xC1, 0xE9, 0x10, 0x51, 0x68, 0x77, 0x6F, 0x72, 0x6B, 0x68, 0x6F, 0x69, 0x74, 0x20, 0x68, 0x45, 0x78, 0x70, 0x6C, 0x89, 0xE2, 0xB9, 0xCA, 0xAD, 0xDE, 0x29, 0xC1, 0xE9, 0x18, 0x51, 0x68, 0x6E, 0x73, 0x20, 0x3A, 0x68, 0x75, 0x74, 0x74, 0x6F, 0x68, 0x73, 0x65, 0x20, 0x62, 0x68, 0x20, 0x6D, 0x6F, 0x75, 0x68, 0x70, 0x69, 0x6E, 0x67, 0x68, 0x53, 0x77, 0x61, 0x70, 0x89, 0xE3, 0x31, 0xC9, 0x51, 0x52, 0x53, 0x51, 0xFF, 0xD0"
-rawHex ="31C9B9ADDE6564C1E9105168776F726B686F697420684578706C89E2B9CAADDE29C1E91851686E73203A687574746F687365206268206D6F756870696E67685377617089E331C951525351FFD0"
+rawHex2 ="31C9B9ADDE6564C1E9105168776F726B686F697420684578706C89E2B9CAADDE29C1E91851686E73203A687574746F687365206268206D6F756870696E67685377617089E331C951525351FFD0"
 shellcode='shellcode.txt'
 shellcode2='shellcode2.txt'
 shellcode3='shellcode3.txt'
@@ -5598,35 +5938,6 @@ def splitDirectory(filename):
 
 
 
-def AustinTesting():
-
-	# start = timeit.default_timer()
-	findAllPebSequences()
-	# stop = timeit.default_timer()
-	# print("PEB TIME PY3 = " + str(stop - start))
-	# findAllPushRet()
-
-	#print("Total 1 = " + str(total1))
-	#print("Total 2 = " + str(total2))
-	printSavedPEB()
-	#printSavedPEB_64()
-	# printSavedPushRet()
-
-
-
-
-def AustinStart():
-
-	# ObtainAndExtractDlls()
-	# runIt()
-	# showBasicInfo()
-	# start = timeit.default_timer()
-	if(not rawHex):
-		ObtainAndExtractSections()
-		print (showBasicInfoSections())
-	# stop = timeit.default_timer()
-	# print("START TIME = " + str(stop - start))
-
 
 def bramwellStart():
 	global realEAX2
@@ -5760,12 +6071,14 @@ if __name__ == "__main__":
 	# printSavedPushRet()
 
 	# bramwellStart()
-	bramwellDisassembly()
+	#bramwellDisassembly()
 
 	###################################################################
 	#Austin's work -- place here - may comment out as need be
 	
 	# starting()
-	# AustinStart()
-	# AustinTesting()
+	AustinStart()
+	AustinTesting()
+# if __name__ == "__main__":
+# 	fromTesting(shellcode4)
 

@@ -374,13 +374,21 @@ PEB_WALK_XCHG = {
 
 
 PEB_WALK_PUSH = {
+	'NONE': b"\x64\xFF\x35\x30\x00\x00\x00",
 	'EAX': b"\x64\xFF\x30",
 	'EBX': b"\x64\xFF\x33",
 	'ECX': b"\x64\xFF\x31",
 	'EDX': b"\x64\xFF\x32",
 	'EDI': b"\x64\xFF\x37",
 	'ESI': b"\x64\xFF\x36",
-	'EBP': b"\x64\xFF\x75\x00"
+	'EBP': b"\x64\xFF\x75\x00",
+	'EAX_30': b"\x64\xFF\x70\x30",
+	'EBX_30': b"\x64\xFF\x73\x30",
+	'ECX_30': b"\x64\xFF\x71\x30",
+	'EDX_30': b"\x64\xFF\x72\x30",
+	'EDI_30': b"\x64\xFF\x77\x30",
+	'ESI_30': b"\x64\xFF\x76\x30",
+	'EBP_30': b"\x64\xFF\x75\x30"
 }
 
 PEB_WALK_PUSH64 = {
@@ -397,7 +405,21 @@ PEB_WALK_PUSH64 = {
 	'R12': b"\x65\x41\xFF\x34\x24",
 	'R13': b"\x65\x41\xFF\x75\x00",
 	'R14': b"\x65\x41\xFF\x36",
-	'R15': b"\x65\x41\xFF\x37"
+	'R15': b"\x65\x41\xFF\x37",
+	'RAX_60': b"\x65\xFF\x70\x60",
+	'RBX_60': b"\x65\xFF\x73\x60",
+	'RCX_60': b"\x65\xFF\x71\x60",
+	'RDX_60': b"\x65\xFF\x72\x60",
+	'RDI_60': b"\x65\xFF\x77\x60",
+	'RSI_60': b"\x65\xFF\x76\x60",
+	'RBP_60': b"\x65\xFF\x75\x60",
+	'R9_60':  b"\x65\x41\xFF\x71\x60",
+	'R10_60': b"\x65\x41\xFF\x72\x60",
+	'R11_60': b"\x65\x41\xFF\x73\x60",
+	'R12_60': b"\x65\x41\xFF\x74\x24\x60",
+	'R13_60': b"\x65\x41\xFF\x75\x60",
+	'R14_60': b"\x65\x41\xFF\x76\x60",
+	'R15_60': b"\x65\x41\xFF\x77\x60"
 }
 
 #################### 64 BIT PEB WALK ###########################################
@@ -617,7 +639,33 @@ PEB_WALK_MOV_64 = {
 
 
 ################### AUSTIN ###############################
-FSTENV_GET_BASE = "\x9B\xD9\x74\x24\xF4"
+FSTENV_GET_BASE = {
+	'EAX': b"\xD9\x30",
+	'EBX': b"\xD9\x33",
+	'ECX': b"\xD9\x31",
+	'EDX': b"\xD9\x32",
+	'EDI': b"\xD9\x37",
+	'ESI': b"\xD9\x36",
+	'EBP': b"\xD9\x75",
+	'ESP': b"\xD9\x34\x24",
+	'EAX_OFFSET_NUM': b"\xD9\x70",
+	'EBX_OFFSET_NUM': b"\xD9\x73",
+	'ECX_OFFSET_NUM': b"\xD9\x71",
+	'EDX_OFFSET_NUM': b"\xD9\x72",
+	'EDI_OFFSET_NUM': b"\xD9\x77",
+	'ESI_OFFSET_NUM': b"\xD9\x76",
+	'EBP_OFFSET_NUM': b"\xD9\x75",
+	'ESP_OFFSET_NUM': b"\xD9\x74\x24",
+	'EAX_PTR': b"\xD9\xB0",
+	'EBX_PTR': b"\xD9\xB3",
+	'ECX_PTR': b"\xD9\xB1",
+	'EDX_PTR': b"\xD9\xB2",
+	'EDI_PTR': b"\xD9\xB7",
+	'ESI_PTR': b"\xD9\xB6",
+	'EBP_PTR': b"\xD9\xB5",
+	'ESP_PTR': b"\xD9\xB4\x24"
+
+}
 
 ################### AUSTIN ###############################
 
