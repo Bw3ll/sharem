@@ -18,6 +18,8 @@ from sorting import *
 import timeit
 import string
 
+tempDisassembly=[]
+tempAddresses=[]
 sections = []
 numArgs = len(sys.argv)
 peName = ''
@@ -74,7 +76,6 @@ asciiMode="ascii"
 stringsTemp=[]
 stringsTempWide=[]
 pushStringsTemp=[]
-
 filename=""
 skipExtraction=False
 rawHex = False
@@ -105,6 +106,7 @@ if len(filename) > 1:
 if numArgs==1:
 	skipExtraction=True
 	rawHex=True
+	filename= sys.argv[1]
 	print("numargs")
 if not skipExtraction:
 	if numArgs > 1:			# to get full functionality, need to put file location for binary that is installed (may need to find some DLLs in that directory)
@@ -138,19 +140,22 @@ if not skipExtraction:
 
 
 	############### AUSTIN ####################
+	print ("entering Austin")
 	rawHex = False
-	if(numArgs > 2):
+	# global rawData2
+	if(numArgs > 1):
 		if(sys.argv[2] == "raw"):
 			rawHex = True
-			# print("set raw")
+			print("set raw", (sys.argv[2]), (sys.argv[1]), peName)
 			try:
 				f = open(peName, "rb")
 				# global rawData2
 				rawData2 = f.read()
 				f.close()
+				# print ("rawData2", len(rawData2))
 			except Exception as e:
 				print("Invalid path to hex file.")
-				#print(e)
+				print(e)
 				quit()
 	############### AUSTIN ####################
 
@@ -263,8 +268,8 @@ class DisassByt:
 		"""Initializes the data."""
 		self.offsets = []   # starting offsets of bytes - may not always be 0 or 1
 		self.values = [] # the hex value
-		self.instructions =[]  # t/f - is it instructions--intinialized as instructions first
-		self.data =[] # t/f is data bytes
+		# self.instructions =[]  # t/f - is it instructions--intinialized as instructions first
+		# self.data =[] # t/f is data bytes
 		self.ranges=[] # does it identify ranges?
 		self.bytesType=[]
 		self.strings=[] # TRUE if strings, false if not
@@ -273,6 +278,13 @@ class DisassByt:
 		self.pushStringEnd=[]
 		self.pushStringValue=[]
 		self.boolPushString=[]
+		self.specialVal=[] # align, FF
+		self.boolspecial=[]
+		# self.specialType=[]
+		self.specialStart=[]
+		self.specialEnd=[]
+		self.comments=[]
+			
 
 
 
@@ -1541,6 +1553,7 @@ def disHerePEB(address, NumOpsDis, secNum, data): ############ AUSTIN ##########
 	advanceDLL_Offset = [-1]
 
 	for line in disString:
+		print (line)
 
 		##############################################
 
@@ -1551,6 +1564,7 @@ def disHerePEB(address, NumOpsDis, secNum, data): ############ AUSTIN ##########
 		orLoadPEB = re.match("^(or) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
 		xchgLoadPEB = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
 		pushLoadPEB = re.match("^(push) (d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))))) ?(\+ ?0x30)?\]", line, re.IGNORECASE)
+
 
 		if(movLoadPEB or addLoadPEB or adcLoadPEB or xorLoadPEB or orLoadPEB or xchgLoadPEB or pushLoadPEB and foundPEB):
 			loadTIB_offset = line.split()[-1]
@@ -1634,7 +1648,7 @@ def disHerePEB(address, NumOpsDis, secNum, data): ############ AUSTIN ##########
 	############## AUSTIN ####################
 
 
-	if(points >= 3):
+	if(points >= 2):
 		if(rawHex):
 			modSecName = peName
 		else:
@@ -1832,9 +1846,22 @@ print ("########################################################################
 
 def printSavedPEB(): ######################## AUSTIN ###############################3
 	#formatting
+
+	print ("printSavedPEB", len(rawData2))
+	print ("m[o].save_PEB_info", len(m[o].save_PEB_info))
+	print ("rawhex", rawHex)
 	j = 0
+
 	if(rawHex):
 		for item in m[o].save_PEB_info:
+
+
+			print("OFFSETS: ")
+			print("TIB = " + str(item[5]))
+			print("LDR = " + str(item[6]))
+			print("MODS = " + str(item[7]))
+			print("Adv = " + str(item[8]))
+
 			CODED2 = b""
 
 			address = item[0]
@@ -2555,7 +2582,10 @@ def findAllFSTENV(): ################## AUSTIN ######################
 def findAllPebSequences(): ################## AUSTIN ######################
 	# global rawHex
 
+	print ("findAllPebSequences", binaryToStr(rawData2))
 	if(rawHex):
+
+
 		for match in PEB_WALK.values(): #iterate through all opcodes representing combinations of registers
 			get_PEB_walk_start(19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
 		# for match in PEB_WALK_ADD.values(): #iterate through all opcodes representing combinations of registers
@@ -2638,23 +2668,23 @@ def findStrings(binary,Num):#,t):
 			i = ord2(v) 
 			newop += " "+show1(i)
 			if inProgress==False:
-				print ("before")
+				# print ("before")
 				test=chr(i)
-				print ("after")
+				# print ("after")
 				if test.isalpha()==False:
-					print ("falsity")
+					# print ("falsity")
 					skip =True
 
 				if test.isalpha()==True:
-					print ("truth")
+					# print ("truth")
 					skip =False
-			print (skip)
+			# print (skip)
 			if (i > 31) & (i < 127) & (skip==False):
 				if inProgress==False:
 					offset=x
 				inProgress=True
 				word += ""+chr(i)
-				print (word)
+				# print (word)
 			else:
 				if inProgress:
 					if (len(word) >= Num):
@@ -2663,7 +2693,7 @@ def findStrings(binary,Num):#,t):
 						try:
 							s[t].Strings.append(tuple((word, offset, wordSize)))
 						except:
-							print ("saving string", word.encode("utf-8"))
+							# print ("saving string", word.encode("utf-8"))
 							stringsTemp.append(tuple((word, offset, wordSize)))
 					inProgress=False
 					word=""
@@ -2677,7 +2707,7 @@ def findStrings(binary,Num):#,t):
  				try:
  					s[t].Strings.append(tuple((word, offset, wordSize)))
  				except: 
- 					print ("saving string", word.encode("utf-8"))
+ 					# print ("saving string", word.encode("utf-8"))
  					stringsTemp.append(tuple((word, offset, wordSize)))
 	except Exception as e:
 		print ("*String finding error1!!!")
@@ -3413,7 +3443,7 @@ def disCheckStrings(address, NumOpsDis, secNum, mode): #
 	global o
 	w=0
 	CODED2 = ""
-	section = s[0]
+	section = s[secNum]
 	x = NumOpsDis
 	address=address-section.VirtualAdd
 	for i in range (x):
@@ -3666,19 +3696,21 @@ def reverseListLittleEndian(val):
 
 
 def hexStrtoAscii(word):
+	# print ("hexStrtoAscii")
 	word2=""
 	for i in range(0, len(word), 2):
 		word2+=chr(int(word[i:i+2],16))
 	word2=word2[ :  :-1]
-
 	if word2.isascii():
 		print("isAscii")
 		print (word2)
+		return word2
 	else:
 		print("isNotAscii", len(word2))
-	return word2
+		return "^^^^"
 
 def checkedString1(altWord, mode):
+	print ("checkedString1", altWord)
 	# print altWord
 	t2=1
 	tem=""
@@ -3723,12 +3755,11 @@ def checkedString1(altWord, mode):
 			t2=0
 			tem=""
 		elif ((t2==1) and (letter =="S") and  (done==False)):
-			print ("push EBX")
+			print ("push EBX2")
 			tem="^^^^"
 			if (mode):
 				tem=retR32("ebx","n")
 				tem = hexStrtoAscii(tem)
-			
 			spec.append((tem))
 			t2=0
 			tem=""
@@ -3932,10 +3963,10 @@ def getPushStrings(Num):
 			print (disHereStrings(y, instructionsLength, 0, mode))
 		t+=1
 
+
 		ans= disCheckStrings(y, instructionsLength, 0, "basic")
 
-		# print "final: "
-		print (ans+'\n*************************\n')
+		print ("checkstrings", ans+'\n*************************\n')
 
 	for word, offset, offsetVA,offsetPlusImagebase, wordLength,instructionsLength in s[0].pushStrings:
 		print ("word", word, "starting offset:", hex(offset), "; ending offset:", hex(offset+instructionsLength))
@@ -4009,8 +4040,9 @@ def AustinTesting():
 	# start = timeit.default_timer()
 	# print("AUSTINHERE")
 	# print(rawHex)
-	# findAllFSTENV()
-	# printSavedFSTENV()
+
+	findAllFSTENV()
+	printSavedFSTENV()
 	findAllPebSequences()
 	printSavedPEB()
 	# stop = timeit.default_timer()
@@ -4274,10 +4306,6 @@ def fromhexToBytes(hexadecimal_string):
 	# print ("fromhexToBytes\n\n\n")
 	byte_array = bytearray.fromhex(hexadecimal_string)
 	bytesStr = bytes(byte_array)
-	# print ("bytes\n\n")
-	# print (type(bytesStr))
-	# for val in bytesStr:
-	# 	print(hex(val),' ', end='')
 	return bytesStr
 	
 def fromStringLiteralToBytes(stringLiteral):
@@ -4296,11 +4324,11 @@ def fromArrayLiteralToHex(lit):
 	return returnVal
 
 def checkForLabel(addb, labels):
-	dprint ("checkForLabel " + addb)
+	# dprint ("checkForLabel " + addb)
 	for label in labels:
 		if label==addb:
 			val="     label_"+addb+":\n"
-			dprint (val)
+			# dprint (val)
 			return True, val
 	return False,0
 
@@ -4578,6 +4606,73 @@ def makeAsciiforDB2(data):
 	return res
 
 
+def addDis(address, line,):
+	global tempDisassembly
+	global tempAddresses
+	tempDisassembly.append(line[:-2])
+
+	try:
+		tempAddresses.append(str(hex(address)))
+	except:
+		tempAddresses.append(address)
+
+
+def printTempDis():
+	global labelOffsets
+	global labels
+	global tempDisassembly
+	global tempAddresses
+	t=0
+	out=""
+	for each in tempDisassembly:
+		truth,res=checkForLabel((tempAddresses[t]),labels)
+		if truth:
+			each="\t"+res+each
+		controlFlow= re.search( r'\bjmp\b|\bje\b|\bjne\b|\bjg\b|\bjge\b|\bja\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bret\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', each, re.M|re.I)
+		if controlFlow:
+			print ("cfi")
+			each=each+"\n"
+		out+=each+"\n"
+
+		t+=1
+	print (out)
+def clearTempDis():
+	global tempDisassembly
+	global tempAddresses
+	tempDisassembly.clear()
+	tempAddresses.clear()
+
+def checkForBad00(data, offset, end):
+	print("checkForBad00")
+	global tempAddresses
+	global tempDisassembly
+	print (len(tempAddresses), len(tempDisassembly))
+	sample="add byte ptr \[eax], al"
+	ans=[]
+	for x in range(4):
+		if str(hex(offset)) in tempAddresses:
+			print("FOUND candidate", str(hex(offset)))
+			index=tempAddresses.index(str(hex(offset)))
+
+
+			print (index, tempDisassembly[index], tempAddresses[index])
+			findBad00= re.search(sample, tempDisassembly[index], re.M|re.I)
+			if findBad00:
+				print ("    ", tempAddresses[index], "gots it")
+				ans.append(int(tempAddresses[index],16))
+				ans.append(int(tempAddresses[index],16) +1)
+		offset+=1
+	print (ans)
+	if len(ans)>0:
+		size=len(ans)-1
+		distance = ans[size]-ans[0]
+		print(distance)
+		print (ans[0], ans[distance])
+		modifyShBySpecial(data, ans[0], end, "al")
+		modifyShByRange(data, ans[0], end,  "d")
+
+
+
 def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 	print("dis: disHereMakeDB2 - range " + str(hex(offset)) + " " + str(hex(end)) )
 	num_bytes=end-offset
@@ -4585,6 +4680,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 	printAllShByRange(offset,offset+num_bytes)
 
 	global labels
+	nada=""
 	Ascii="B"
 	stop=offset+1
 	val=""
@@ -4602,16 +4698,27 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 	stringInProgress=False
 	sVal=""
 	beforeS=""
-	for x in range (length):
+	curDisassembly=""
+	# for x in range (length):
+		# if offset >= length:
+		# 	break
+
+	maxSize=offset+length
+	while offset < maxSize:
+		stop=offset+1
 		bytesRes= (binaryToStr(data[offset:stop]))
 		instr="db 0"+bytesRes[1:]+" (!)"
 		Ascii2=makeAsciiforDB(bytesRes)
 		val +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
 		# sVal +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-		if shBy.strings[offset]==True:
+		print ("checkingDis", hex(offset), hex(length))
+	
+
+		if shBy.strings[offset]==True: # and shBy.boolspecial[offset]==False:
 			dbFlag=True
 			stringInProgress=True
 			stringval=val
+			# addDis(offset,stringVal)
 			truth,res=checkForLabel(str(hex(offset)),labels)
 			if truth:
 				val=res + val
@@ -4624,7 +4731,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 				beforeS=sVal 
 				# beforeS=removeLastLine(sVal)
 				print (sVal, "\n", beforeS)
-				print ("beforeS", sVal, beforeS)
+				# print ("beforeS", sVal, beforeS)
 				sVal=""
 				startAddString=str(hex(offset))
 				stringVala=shBy.stringsValue[offset]+" ; string"
@@ -4635,41 +4742,76 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 				print (stringVala)
 				print ("dbout ", hex(t))
 				dbOut+=(binaryToStr(data[t:t+1]))
-		if (shBy.strings[offset]==False):
+		if (shBy.strings[offset]==False):#  and shBy.boolspecial[offset]==False:
 			print("FoundNOTSTRING", hex(stringStart), hex(offset),"off")
 
 			stringInProgress=False
-			if dbFlag==False:
-				print ("dbflag=False")
+			if dbFlag==False  and shBy.boolspecial[offset]==False:
+				# print ("dbflag=False")
 				truth,res=checkForLabel(str(hex(offset)),labels)
 				if truth:
 					val=val+res
 					stringVal=stringVal+res
-				stringVal +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-				print ("y offset", hex(t))
+				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
+				stringVal+=curDisassembly
+
+				addDis(offset,"A."+curDisassembly)
+				# print ("y offset", hex(t))
 		
 				# stringVal= beforeS + stringVal
 				skip=True
 			if dbFlag==True:
 
-				print ("sV, offset: ", hex(offset), "value ", shBy.stringsValue[offset])
+				# print ("sV, offset: ", hex(offset), "value ", shBy.stringsValue[offset])
 				nada=""
 				truth,res=checkForLabel(str(hex(offset)),labels)
 				if truth:
 					val=val+res
 					stringVal=stringVal+res
-				stringVal+=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(startAddString, stringVala,dbOut,nada ))
-				stringVal +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
+				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(startAddString, stringVala,dbOut,nada ))
+				stringVal+=curDisassembly
+				addDis(int(startAddString, 16),"B."+curDisassembly)
+				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
+				if  shBy.boolspecial[offset]==False:
+					stringVal+="*C"+curDisassembly
+					addDis(offset,"**C"+curDisassembly)
 				if len(beforeS) > 0:
-					stringVal= beforeS +"\n"+ stringVal
+					stringVal= beforeS +"\n"+ "C."+curDisassembly
 				print ("stringVal", stringVal)
 				dbOut=""
 				print (stringVal)
 				dbFlag=False
 				skip=True
 			if not skip:
-				stringVal+=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
+				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
+				stringVal+="*B"+curDisassembly
+				addDis(offset,"D."+stringVal)
 			skip=False
+		if shBy.boolspecial[offset]==True:
+			mes=shBy.specialVal[offset]
+			offset=shBy.specialEnd[offset]-1
+			t=offset
+			w=offset
+			distanceStr =str(hex(shBy.specialEnd[offset]-shBy.specialStart[offset] ))
+			if shBy.specialVal[t] == "al":
+				stringValSp="align " +distanceStr
+			elif shBy.specialVal[t] == "ff":
+				stringValSp="db 0xff x "  + distanceStr 
+			else:
+				stringValSp="align " +distanceStr
+			nada=""
+			dbOutSp=(binaryToStr(data[shBy.specialStart[offset]:shBy.specialEnd[offset]]))
+			curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(shBy.specialStart[offset])), stringValSp,dbOutSp,nada ))
+			stringVal+="*A"+curDisassembly
+			addDis(shBy.specialStart[offset],"D."+curDisassembly)
+			# print ("got it align", hex(offset))
+			print (hex(len(shBy.boolspecial)))
+
+			# shBy.specialVal[t]=dataType
+			# shBy.specialStart[t]=start
+			# shBy.specialEnd[t]=end
+			# shBy.boolspecial[t]=True
+			# print("changing value align @	
 		offset +=1
 		stop += 1
 		t+=1
@@ -4679,12 +4821,16 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 			if dbFlag==True:
 				nada=""
 				# stringVal +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-				stringVal+=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(startAddString, stringVala,dbOut,nada ))
+				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(startAddString, stringVala,dbOut,nada ))
+				stringVal+=curDisassembly
+				addDis(startAddString,"E."+curDisassembly)
 				# stringVal= beforeS + stringVal
 				dbOut=""
 				dbFlag=False
 				if len(dbOut)>0:
-					stringVal+=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
+					curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
+					stringVal+=curDisassembly
+					addDis(offset,"F."+curDisassembly)
 			w=0
 	# print("ending: disHereMakeDB2 - range " + str(hex(offset)) + " " + str(hex(end)) )
 	print("returnDB2\n", val)
@@ -4771,6 +4917,60 @@ def analysisFindHiddenCalls(data, startingAddress):
 			reset=True
 			# dprint ("reset")
 			current=0
+
+
+def anaFindAlign2(data):
+	# global FFInstructions
+	print("anaFindF2")
+	OP_FF=b"\x00"
+	offset=0
+	maxV=len(data)
+	escape=False
+	# modifyShByRange(data, 0x170, 0x175, "d")
+	while offset < maxV:
+	# for datum in data:
+		# print ("ff:\t"+ str(binaryToStr(data[offset:offset+1])) + "\t" + str(hex(offset)))
+		escape=False
+		total=0			
+		v=1
+		w=0
+		distance=0
+		# print ("total", total)
+		# test=b"\xff"
+		test=(data[offset+distance+w:offset+distance+v])
+		print ("checking", hex(offset))
+
+
+		while (test == OP_FF) and (shBy.bytesType[offset]==False):
+			print ("enter", hex(offset))
+			# print ("w", hex(w), "v", hex(v), "offset", hex(offset))
+			# print( "2binaryToStrCheck", binaryToStr(data[offset+distance:offset+distance+v]))
+			test=(data[offset+distance+w:offset+distance+v])
+			test2=(data[offset+distance+w:offset+distance+v+1])
+			# if test==(OP_FF) and (test2 != inc_esi):
+			if test==(OP_FF) and (test2 not in FFInstructions):
+				# print("gots one") # this just counts how many FF's there are that are not part of a more import instruciton'
+				total+=1
+			v+=1
+			w+=1
+			escape=True
+		# print ("ffcount",total)
+		if total > 3:
+			print (total, "newAlignTotal")
+			# modifyShByRange(data, offset, offset+distance+total, "d")
+			# modifyStringsRange(offset, offset+distance+total, "s", word)
+			if total > 6:
+				modifyShByRange(data, offset+3, offset+distance+total, "d")
+
+		if escape:
+			# print ("inc offset", escape, hex(offset))
+			if total >1:
+				offset+=total
+			else:
+				offset+=1
+		if not escape:
+			# print ("inc offset, not", escape, hex(offset))
+			offset+=1
 
 def analysisConvertBytes(data, startingAddress):
 	print("analysisConvertBytes", startingAddress)
@@ -4872,7 +5072,7 @@ def anaFindCalls(data, start, current):
 			if int(addy,16) not in offsets:
 				offsets.append(int(addy,16))
 			dprint("Not in offsets")
-			removeBadOffsets(addy)
+			# removeBadOffsets(addy)
 			modifyShByRange(data, int(addy,16)-2, int(addy,16),"d")
 
 def anaFindShortJumps(data, start, current):
@@ -5130,6 +5330,7 @@ def disHereShell(data,offset, end, mode, CheckingForDB): #
 	dprint ("dis: dishereshell - range  "  + str(hex(offset)) + " " + str(hex(end)))
 	dprint(binaryToStr(data[offset:end]))
 	dprint(binaryToStr(data))
+	nada=""
 	
 	global o
 	w=0
@@ -5259,11 +5460,20 @@ def disHereShell(data,offset, end, mode, CheckingForDB): #
 			except:
 				num_bytes=1
 			val_b, num_bytes =checkForValidAddress2(val_a,val_b1, val_b2, sizeShell, possibleBadLabelOffsets,data,num_bytes)
+
 		if mode=="ascii":
 			val =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(val_a, val_b, val_c, val_d))
+			addDis(int(val_a, 16), "*"+val)
 		else:
 			val = addb + ":\t" + i.mnemonic + " " + i.op_str+"\n"
 			val=('{:<10s} {:<35s}\n'.format(val_a, val_b))
+
+		####ADD COMMENTS
+		if shBy.comments[int(addb,16)] !="":
+			val_b=shBy.comments[int(addb,16)]
+			val_comment =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(nada, val_b, nada, nada))
+			val+=val_comment
+		#### ADD COMENTS END
 		truth,res=checkForLabel(addb,labels)
 		if truth:
 			val=res+val
@@ -5291,7 +5501,7 @@ def disHereShell(data,offset, end, mode, CheckingForDB): #
 		############Stack strings begin
 		try:
 			cur=int(add,16)
-			print (hex(shBy.pushStringEnd[cur]), add, "pushending")
+			# print (hex(shBy.pushStringEnd[cur]), add, "pushending")
 			if (shBy.pushStringEnd[cur]-2) == cur:
 				print ("push match", shBy.pushStringValue[cur])
 				nada=""
@@ -5303,13 +5513,18 @@ def disHereShell(data,offset, end, mode, CheckingForDB): #
 			# print ("weird error", e)
 			pass
 		##### Stack Strings End
+
+		####ADD COMMENTS
+		# if shBy.comments[int(addb,16)] !="":
+		# 	val=val+shBy.comments[int(addb,16)]
+		#### ADD COMENTS END
 		if CantSkip:
 			val2.append(val)
 			val3.append(add2)
 			val5.append(val)
 
+
 		# if shBy.pushStringEnd[t]==:
-		# 	print ("this is the end, of the end")
 		t+=1
 	returnString=""
 	for y in val5:
@@ -5497,8 +5712,34 @@ def modifyShByRange(data, start,end, dataType):
 			
 			print("changing value @ " + str(hex(t)))
 			print (shBy.bytesType[t], " value: ", hex(shBy.values[t]))
+			if BytesBool:
+				shBy.boolspecial[t]=False
 		t+=1
 
+
+
+def modifyShBySpecial(data, start,end, dataType):
+	print ("modRangeSpecial ", hex(start),hex(end),dataType)
+	global shBy
+	BytesBool=False
+	t=0
+	spec=""
+	if dataType=="al":
+		spec="align"
+	if dataType=="ff":
+		spec="ff"
+
+	for x in shBy.bytesType:
+		if (t>=start) and (t < end):
+			print ("before", shBy.specialVal[t])
+			shBy.specialVal[t]=spec
+			shBy.specialStart[t]=start
+			shBy.specialEnd[t]=end
+			shBy.boolspecial[t]=True
+			print("changing value align @ " + str(hex(t)))
+			print (shBy.specialVal[t], " value: ", hex(shBy.values[t]))
+			print(shBy.boolspecial[t], hex(shBy.specialStart[t]), hex(shBy.specialEnd[t]) )
+		t+=1
 
 	# print (shBy.bytesType)
 def modifyStringsRange(start,end, dataType, word):
@@ -5619,8 +5860,8 @@ def takeBytes(shellBytes,startingAddress):
 	for x in shellBytes:
 		shBy.offsets.append(i)
 		shBy.values.append(x)
-		shBy.instructions.append(True)
-		shBy.data.append(False)
+		# shBy.instructions.append(True)
+		# shBy.data.append(False)
 		shBy.bytesType.append(True) # True = instructions
 		shBy.strings.append(False)
 		shBy.stringsStart.append(0xffffffff)
@@ -5628,7 +5869,12 @@ def takeBytes(shellBytes,startingAddress):
 		shBy.pushStringEnd.append(-1)
 		shBy.pushStringValue.append("")
 		shBy.boolPushString.append(False)
-
+		shBy.specialVal.append("")
+		shBy.boolspecial.append(False)
+		shBy.specialStart.append(0)
+		shBy.specialEnd.append(0)
+		shBy.comments.append("")
+			
 		i+=1
 
 	# modifyShByRange(data, 0x14, 0x19, "d")
@@ -5639,13 +5885,39 @@ def takeBytes(shellBytes,startingAddress):
 		findStringsWide(shellBytes,3)
 		findPushAsciiMixed(shellBytes,3)
 	anaFindFF(shellBytes)
+	addComments()
 
 	out=findRange(shellBytes, startingAddress)  #1st time helps do corrections
+	
+	anaFindFF(shellBytes)
+	clearTempDis()
 	out=findRange(shellBytes, startingAddress) # makes sure all corrections fully implemented
 	# printAllShBy()
 
 	assembly=binaryToText(shellBytes)
 	return out+assembly
+
+def addComments():
+	for item in m[o].save_PEB_info:
+		tib=item[5]
+		shBy.comments[int(tib,16)] = "; load TIB"
+		ldr=item[6]
+		shBy.comments[int(ldr,16)] = "; load LDR"
+		mods=item[7]
+		shBy.comments[int(mods,16)] = "; load ModuleList"
+		# print ("index of tib is", tib)
+		# print ("index of ldr is", ldr)
+		# print ("index of mods is", mods)
+
+def findInList(listPeb, address):
+	t=0
+	for x in listPeb:
+		if listPeb[t]==address:
+			# print ("found", t)
+			return t, True
+		t+=1
+	return 0, False
+
 def findRange(data, startingAddress):
 	global FindStringsStatus
 	current=0
@@ -5656,6 +5928,7 @@ def findRange(data, startingAddress):
 	analysisFindHiddenCalls(data, startingAddress)
 	analysisConvertBytes(data, startingAddress)
 	analysisFindHiddenCalls(data, startingAddress)
+	# anaFindAlign2(data)#, startingAddress)
 	if FindStringsStatus:
 		anaFindStrings(data,startingAddress)
 	while current < max:
@@ -5691,7 +5964,7 @@ def findRange2(current):
 	inProgress=False
 	typeData=""
 	begin=current
-	# print ("size", len(shBy.bytesType))
+	print ("size", len(shBy.bytesType))
 	if shBy.bytesType[begin]==False:
 		typeData="data"
 		# print ("*********making data" )
@@ -5878,10 +6151,15 @@ def anaFindStrings(data, startingAddress):
 			current=0
 	print (shBy.stringsValue)
 
+
+
+
 def anaFindFF(data):
 	# global FFInstructions
 	print("anaFindFF")
 	OP_FF=b"\xff"
+	OP_00=b"\x00"
+
 	offset=0
 	maxV=len(data)
 	escape=False
@@ -5890,8 +6168,11 @@ def anaFindFF(data):
 		# print ("ff:\t"+ str(binaryToStr(data[offset:offset+1])) + "\t" + str(hex(offset)))
 		escape=False
 		total=0			
+		total2=0
 		v=1
 		w=0
+		vv=1
+		ww=0
 		distance=0
 		# print ("total", total)
 		# test=b"\xff"
@@ -5903,25 +6184,163 @@ def anaFindFF(data):
 			test2=(data[offset+distance+w:offset+distance+v+1])
 			# if test==(OP_FF) and (test2 != inc_esi):
 			if test==(OP_FF) and (test2 not in FFInstructions):
-				# print("gots one") # this just counts how many FF's there are that are not part of a more import instruciton'
 				total+=1
+				print(" OP_FF, total, gots one", total, hex(offset)) # this just counts how many FF's there are that are not part of a more import instruciton'
+				
 			v+=1
 			w+=1
+			escape=True
+
+		test=(data[offset+distance+ww:offset+distance+vv])
+		while (test == OP_00):
+
+			print ("op_00", "ww", hex(w), "vv", hex(v), "offset", hex(offset+distance+ww))
+			print( "2binaryToStrCheck", binaryToStr(data[offset+distance+ww:offset+distance+vv]))
+			test=(data[offset+distance+ww:offset+distance+vv])
+			# if test==(OP_FF) and (test2 != inc_esi):
+			if test==(OP_00): #and (test2 not in FFInstructions):
+				# print("gots one") # this just counts how many FF's there are that are not part of a more import instruciton'
+				total2+=1
+				print ("total2", total2)
+				print (hex(offset), hex(offset+distance+ww))
+			vv+=1
+			ww+=1
 			escape=True
 		# print ("ffcount",total)
 		if total > 3:
 			print (total, "ffTotal2")
 			modifyShByRange(data, offset, offset+distance+total, "d")
+			modifyShBySpecial(data, offset, offset+distance+total, "ff")
+			# modifyStringsRange(offset, offset+distance+total, "s", word)
+		if total2 > 4:
+			print (total2, "00Total2")
+			modifyShByRange(data, offset+4, offset+distance+total2, "d")
+			modifyShBySpecial(data, offset+4, offset+distance+total2, "al")
+
+			checkForBad00(data, offset, offset+distance+total2)
 			# modifyStringsRange(offset, offset+distance+total, "s", word)
 		if escape:
 			# print ("inc offset", escape, hex(offset))
-			if total >1:
+			if total >1 or total2> 1:
 				offset+=total
+				offset +=total2
 			else:
 				offset+=1
+
 		if not escape:
 			# print ("inc offset, not", escape, hex(offset))
 			offset+=1
+
+
+
+
+# >>> bin(0b1111 ^ 0b1111)
+# '0b0'
+# >>> bin(0b1111 ^ 0b0000)
+# '0b1111'
+# >>> bin(0b0000 ^ 0b1111)
+# '0b1111'
+# >>> bin(0b1010 ^ 0b1111)
+# '0b101'
+
+def encodeShellcode(data):
+	print ("encodeShellcode")
+	global rawData2
+	print (binaryToStr(rawData2))
+	shells=""
+	for each in rawData2:
+		new=each^0x55
+		new+=1
+		new= new ^ 0x11
+		# shells+=str(hex(new)) +" "
+
+		if len(str(hex(new))) % 2 !=0:
+			print ("got one")
+			new2=str(hex(new))
+			new2="0x0"+new2[2:]
+			shells+=new2 + " "
+		else:
+			shells+=str(hex(new)) + " "
+	shells=split0x(shells)
+	print(shells)
+	shells=fromhexToBytes(shells)
+	print (binaryToStr(shells))
+	return shells
+
+def decodeShellcode(data):
+	shells=""
+	for each in data:
+		new=each^0x11
+		new=new-1
+		new=new^0x55
+		# shells+=str(hex(new)) + " "
+
+		if len(str(hex(new))) % 2 !=0:
+			print ("got one")
+			new2=str(hex(new))
+			new2="0x0"+new2[2:]
+			shells+=new2 + " "
+		else:
+			shells+=str(hex(new)) + " "
+	shells=split0x(shells)
+	print(shells)
+	shells=fromhexToBytes(shells)
+	print (binaryToStr(shells))
+
+
+def encodeShellcodeProto(target,XORval, addVAl, XORval2):
+	print ("encodeShellcode ", XORval, addVAl, XORval2)
+	print (binaryToStr(target))
+	shells=""
+	for each in target:
+		##XOR operation
+		new=each^XORval
+		new+=addVAl
+		new= new ^ XORval2
+
+
+
+		#FINAL PORTION
+
+		if len(str(hex(new))) % 2 !=0:
+			print ("got one")
+			new2=str(hex(new))
+			new2="0x0"+new2[2:]
+			shells+=new2 + " "
+		else:
+			shells+=str(hex(new)) + " "
+	shells=split0x(shells)
+	print(shells)
+	shells=fromhexToBytes(shells)
+	print (binaryToStr(shells))
+	return shells
+
+
+def decodeShellcodeProto(target,XORval, addVAl, XORval2):
+	print ("decodeShellcode ", XORval, addVAl, XORval2)
+	print (binaryToStr(target))
+	shells=""
+	for each in target:
+		##XOR operation
+		new=each^XORval2
+		new-=addVAl
+		new=new^XORval
+
+		#FINAL PORTION
+
+		if len(str(hex(new))) % 2 !=0:
+			print ("got one")
+			new2=str(hex(new))
+			new2="0x0"+new2[2:]
+			shells+=new2 + " "
+		else:
+			shells+=str(hex(new)) + " "
+	shells=split0x(shells)
+	print(shells)
+	shells=fromhexToBytes(shells)
+	print (binaryToStr(shells))
+	return shells
+
 ######
 # printFromArrayLiteralToHex(ArrayLiteral)
 
@@ -5935,10 +6354,15 @@ def anaFindFF(data):
 
 def splitDirectory(filename):
 	# print("filenamesplit", filename)
-
-	array = filename.split("\\")
+	array=[]
+	try:
+		array = filename.split("\\")
+	except:
+		# filename=filename.decode()
+		# array = filename.split("\\")
+		filename="shellcode.txt"
 	new = ""
-	if len(array) >1:
+	if len(array) ==1:
 		relFilename=array[len(array)-1]
 		array.pop()
 		for word in array:
@@ -5996,6 +6420,10 @@ def bramwellStart():
 
 	# InMem2()
 
+
+def bramwellStart2():
+	findAllPebSequences()
+	printSavedPEB()
 ##### START
 
 
@@ -6008,6 +6436,44 @@ def bramwellStart():
 
 # bramwellStart()
 # testing8Start()
+
+
+# testing8Start()
+def bramwellEncodeDecodeWork(shellArg):
+	global filename
+	global rawData2
+	filename=shellArg
+	rawBytes=readShellcode(shellArg) 
+
+	rawData2=rawBytes
+	# printBytes(rawBytes)
+	# print (disHereShell(rawBytes, False, False, "ascii", True))
+	print ("SizeRawdata2", len(rawData2))
+	rawBytes=rawData2
+	print ("rawbytes class", type(rawBytes))
+	encoded=encodeShellcode(rawData2)
+
+	decoded=decodeShellcode(encoded)
+
+	# for x in range (1000):
+	# 	encoded=encodeShellcodeProto(rawData2, x)
+
+	print ("new\n\n\n\n")
+	r=encodeShellcodeProto(rawData2, 32,2,55)
+	r=decodeShellcodeProto(r, 32,2,55)
+	rawData2=r
+	
+	findAllPebSequences()
+	printSavedPEB()
+	# disassembly=takeBytes(rawBytes,0)
+	# printAllShBy()
+	# printAllShByStrings()
+
+	# ### Saving disassembly and .bin
+	# print (filename)
+	# print ("before split")
+	# directory, filename= (splitDirectory(filename))
+
 def shellDisassemblyStart(shellArg):
 	global filename
 	global rawData2
@@ -6042,8 +6508,49 @@ def shellDisassemblyStart(shellArg):
 	newDis = open(directory+"outputs\\"+filename[:-4]+"-disassembly.txt", "w")
 	newDis.write(disassembly)
 	newDis.close()
-	binaryToText(rawBytes)
+	# binaryToText(rawBytes)
+def shellDisassemblyStart2(shellArg):
+	global filename
+	global rawData2
+	filename=shellArg
+	# rawBytes=readShellcode(shellArg) 
 
+	# rawData2=rawBytes
+	# # # printBytes(rawBytes)
+	# print (disHereShell(rawBytes, False, False, "ascii", True))
+	# print ("SizeRawdata2", len(rawData2))
+	# rawBytes=rawData2
+	# print ("rawbytes class", type(rawBytes))
+	print ("size shellArg", len(shellArg) )
+	print ("find peb")
+	findAllPebSequences()
+	print ("find peb res")
+	printSavedPEB()
+	disassembly=takeBytes(shellArg,0)
+	
+	printAllShBy()
+	printAllShByStrings()
+	### Saving disassembly and .bin
+	print (filename)
+	print ("before split")
+	directory, filename= (splitDirectory(filename))
+	directory = ""
+	print (directory)
+	print (filename)
+	directory=""
+
+
+
+	if not os.path.exists(directory+'outputs'):
+		os.makedirs(directory+'outputs')
+	print (directory+"outputs\\"+filename[:-4]+".bin")
+	# newBin = open(directory+"outputs\\"+filename[:-4]+".bin", "wb")
+	# newBin.write(rawBytes)
+	# newBin.close()
+	newDis = open(directory+"outputs\\"+filename[:-4]+"-disassembly.txt", "w")
+	newDis.write(disassembly)
+	newDis.close()
+	# binaryToText(rawBytes)
 
 # fromShellTxt= readShellcode()
 # print(fromShellTxt)
@@ -6066,6 +6573,18 @@ def bramwellDisassembly():
 	shellDisassemblyStart(filename)
 	# shellDisassemblyStart(shellcode4)
 
+def bramwellDisassembly2():
+	global shellcode4
+	global filename
+	global rawData2
+	# testing="shellcodes\\testing.txt"
+	# print ("numargs" , numArgs)
+	# if numArgs==1:
+	# 	shellcode4='shellcode4.txt'
+	# 	filename=shellcode4
+	# shellDisassemblyStart(filename)
+	print ("rawData2 a", len(rawData2))
+	shellDisassemblyStart2(rawData2)
 if __name__ == "__main__":
 
 
@@ -6083,14 +6602,20 @@ if __name__ == "__main__":
 	# printSavedPushRet()
 
 	# bramwellStart()
-	#bramwellDisassembly()
+	# bramwellDisassembly()
+	# bramwellStart2()
+	# bramwellDisassembly2()
+	# addComments()
+
+	bramwellEncodeDecodeWork(filename)
+	# print ("final DIS")
+	# printTempDis()
+
+	# print (labels)
 
 	###################################################################
 	#Austin's work -- place here - may comment out as need be
 	
 	# starting()
-	AustinStart()
-	AustinTesting()
-# if __name__ == "__main__":
-# 	fromTesting(shellcode4)
-
+	# AustinStart()
+	# AustinTesting()
