@@ -107,7 +107,6 @@ if numArgs==1:
 	rawHex=True
 	print("numargs")
 if not skipExtraction:
-	print("if not skipext")
 	if numArgs > 1:			# to get full functionality, need to put file location for binary that is installed (may need to find some DLLs in that directory)
 		peName= sys.argv[1] 
 		matchObj = re.match( r'^[a-z]+:[\\|/]+', peName, re.M|re.I)
@@ -1370,7 +1369,6 @@ def get_PEB_walk_start(NumOpsDis ,bytesToMatch, secNum, data2):
 				if ((data2[t+i]) != (bytesToMatch[i])):
 					found = False #no match
 			except Exception as e:
-				# input(e)
 				pass
 			i += 1
 
@@ -1472,6 +1470,7 @@ def disHerePEB(address, NumOpsDis, secNum, data): ############ AUSTIN ##########
 
 
 	foundAdv = False
+	foundPEB = False
 	## Capstone does not seem to allow me to start disassemblying at a given point, so I copy out a chunk to  disassemble. I append a 0x00 because it does not always disassemble correctly (or at all) if just two bytes. I cause it not to be displayed through other means. It simply take the starting address of the jmp [reg], disassembles backwards, and copies it to a variable that I examine more closely.
 	#lGoBack = linesGoBackFindOP
 
@@ -1483,7 +1482,7 @@ def disHerePEB(address, NumOpsDis, secNum, data): ############ AUSTIN ##########
 	CODED2 = ""
 	x = NumOpsDis
 	# start = timeit.default_timer()
-	if(secNum != "False"):
+	if(secNum != "noSec"):
 		section = s[secNum]
 
 	CODED2 = data[address:(address+NumOpsDis)]
@@ -1510,7 +1509,7 @@ def disHerePEB(address, NumOpsDis, secNum, data): ############ AUSTIN ##########
 	# print(binaryToStr(CODED3))
 	for i in cs.disasm(CODED3, address):
 		#print('address in for = ' + str(address))
-		if(secNum == "False"):
+		if(secNum == "noSec"):
 
 		#	print("i = " + str(i) + " i.mnemonic = " + str(i.mnemonic))
 			# add = hex(int(i.address))
@@ -1539,7 +1538,7 @@ def disHerePEB(address, NumOpsDis, secNum, data): ############ AUSTIN ##########
 	loadTIB_offset = -1
 	loadLDR_offset = -1
 	loadModList_offset = -1
-	advanceDLL_Offset = -1
+	advanceDLL_Offset = [-1]
 
 	for line in disString:
 
@@ -1553,10 +1552,13 @@ def disHerePEB(address, NumOpsDis, secNum, data): ############ AUSTIN ##########
 		xchgLoadPEB = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
 		pushLoadPEB = re.match("^(push) (d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))))) ?(\+ ?0x30)?\]", line, re.IGNORECASE)
 
-		if(movLoadPEB or addLoadPEB or adcLoadPEB or xorLoadPEB or orLoadPEB or xchgLoadPEB or pushLoadPEB):
+		if(movLoadPEB or addLoadPEB or adcLoadPEB or xorLoadPEB or orLoadPEB or xchgLoadPEB or pushLoadPEB and foundPEB):
 			loadTIB_offset = line.split()[-1]
 			loadTIB_offset = loadTIB_offset[:-1]
 			points += 1
+			foundPEB = True
+		elif(not foundPEB):
+			return
 
 
 		##############################################
@@ -1613,11 +1615,16 @@ def disHerePEB(address, NumOpsDis, secNum, data): ############ AUSTIN ##########
 		xchgDereference = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
 
 		if(movDereference or addDereference or adcDereference or orDereference or xorDereference or xchgDereference):
-			advanceDLL_Offset = line.split()[-1]
-			advanceDLL_Offset = advanceDLL_Offset[:-1]
+			advanceDLL_Offset_temp = line.split()[-1]
+			advanceDLL_Offset_temp = advanceDLL_Offset_temp[:-1]
 			if(not foundAdv):
+				advanceDLL_Offset[0] = advanceDLL_Offset_temp
 				foundAdv = True
 				points += 1
+			else:
+				advanceDLL_Offset.append(advanceDLL_Offset_temp)
+
+
 
 		############## AUSTIN ####################
 		lodsd = re.match("^(lodsd)", line, re.IGNORECASE) 
@@ -1649,7 +1656,7 @@ def disHerePEB_64(address, NumOpsDis, secNum, data): ############## AUSTIN #####
 	CODED2 = ""
 	x = NumOpsDis
 	# start = timeit.default_timer()
-	if(secNum != "False"):
+	if(secNum != "noSec"):
 		section = s[secNum]
 
 	CODED2 = data[address:(address+NumOpsDis)]
@@ -1674,7 +1681,7 @@ def disHerePEB_64(address, NumOpsDis, secNum, data): ############## AUSTIN #####
 	CODED3 = CODED2
 	for i in cs.disasm(CODED3, address):
 
-		if(secNum == "False"):
+		if(secNum == "noSec"):
 
 			print("i = " + str(i) + " i.mnemonic = " + str(i.mnemonic))
 			# add = hex(int(i.address))
@@ -1804,7 +1811,7 @@ def disHerePEB_64(address, NumOpsDis, secNum, data): ############## AUSTIN #####
 def saveBasePEBWalk(address, NumOpsDis,modSecName,secNum, points): 
 	# print("saving")
 	#save virtaul address as well
-	if(secNum != "False"):
+	if(secNum != "noSec"):
 		s[secNum].save_PEB_info.append(tuple((address,NumOpsDis,modSecName,secNum,points)))
 	else:
 		secNum = -1
@@ -1814,7 +1821,7 @@ def saveBasePEBWalk(address, NumOpsDis,modSecName,secNum, points):
 def saveBasePEBWalk_64(address, NumOpsDis,modSecName,secNum, points): ############## AUSTIN ####################
 	#print "saving"
 	#save virtaul address as well
-	if(secNum != "False"):
+	if(secNum != "noSec"):
 		s[secNum].save_PEB_info.append(tuple((address,NumOpsDis,modSecName,secNum,points)))
 	else:
 		secNum = -1
@@ -1885,7 +1892,8 @@ def printSavedPEB(): ######################## AUSTIN ###########################
 				print("TIB = " + str(item[5]))
 				print("LDR = " + str(item[6]))
 				print("MODS = " + str(item[7]))
-				print("Adv = " + str(item[8]))
+				for adv in item[8]:
+					print("Adv = " + str(adv))
 
 				address = item[0]
 				NumOpsDis = item[1]
@@ -2090,7 +2098,7 @@ def disHerePushRet(address, NumOpsDis, secNum, data): ##########################
 	CODED2 = ""
 	x = NumOpsDis
 
-	if(secNum != "False"):
+	if(secNum != "noSec"):
 		section = s[secNum]
 		# start = timeit.default_timer()
 	CODED2 = data[address:(address+NumOpsDis)]
@@ -2106,7 +2114,7 @@ def disHerePushRet(address, NumOpsDis, secNum, data): ##########################
 	# start = timeit.default_timer()
 	CODED3 = CODED2
 	for i in cs.disasm(CODED3, address):
-		if(secNum == "False"):
+		if(secNum == "noSec"):
 			# add = hex(int(i.address))
 			add4 = hex(int(i.address))
 			addb = hex(int(i.address))
@@ -2155,7 +2163,7 @@ def disHerePushRet(address, NumOpsDis, secNum, data): ##########################
 def saveBasePushRet(address, NumOpsDis,modSecName,secNum, points): ################## AUSTIN ##############################
 	#print "saving"
 	#save virtaul address as well
-	if(secNum != "False"):
+	if(secNum != "noSec"):
 		s[secNum].save_PushRet_info.append(tuple((address,NumOpsDis,modSecName,secNum,points)))
 	else:
 		secNum = -1
@@ -2313,6 +2321,7 @@ def disHereFSTENV(address, NumOpsDis, NumOpsBack, secNum, data): ############ AU
 	global fcount
 	w=0
 
+	print("in dishere")
 	## Capstone does not seem to allow me to start disassemblying at a given point, so I copy out a chunk to  disassemble. I append a 0x00 because it does not always disassemble correctly (or at all) if just two bytes. I cause it not to be displayed through other means. It simply take the starting address of the jmp [reg], disassembles backwards, and copies it to a variable that I examine more closely.
 	#lGoBack = linesGoBackFindOP
 
@@ -2324,7 +2333,7 @@ def disHereFSTENV(address, NumOpsDis, NumOpsBack, secNum, data): ############ AU
 	CODED2 = ""
 	x = NumOpsDis
 	# start = timeit.default_timer()
-	if(secNum != "False"):
+	if(secNum != "noSec"):
 		section = s[secNum]
 
 
@@ -2356,7 +2365,7 @@ def disHereFSTENV(address, NumOpsDis, NumOpsBack, secNum, data): ############ AU
 		# print("******************************************")
 		for i in cs.disasm(CODED3, address):
 			#print('address in for = ' + str(address))
-			if(secNum == "False"):
+			if(secNum == "noSec"):
 
 			#	print("i = " + str(i) + " i.mnemonic = " + str(i.mnemonic))
 				# add = hex(int(i.address))
@@ -2392,15 +2401,17 @@ def disHereFSTENV(address, NumOpsDis, NumOpsBack, secNum, data): ############ AU
 							modSecName = peName
 						else:
 							modSecName = section.sectionName
-							saveBaseFSTENV(address, NumOpsDis, (NumOpsBack - back), modSecName, secNum)
+						saveBaseFSTENV(address, NumOpsDis, (NumOpsBack - back), modSecName, secNum)
 						return
 
 
 
+
 def saveBaseFSTENV(address, NumOpsDis, NumOpsBack, modSecName, secNum):
-	if(secNum != "False"):
+	if(secNum != "noSec"):
 		s[secNum].save_FSTENV_info.append(tuple((address,NumOpsDis,NumOpsBack,modSecName,secNum)))
 	else:
+		print("Saving one raw")
 		secNum = -1
 		modSecName = "rawHex"
 		m[o].save_FSTENV_info.append(tuple((address,NumOpsDis,NumOpsBack,modSecName,secNum)))
@@ -2515,7 +2526,7 @@ def printSavedFSTENV(): ######################## AUSTIN ########################
 def saveBasePEBWalk(address, NumOpsDis,modSecName,secNum, points, loadTIB_offset, loadLDR_offset, loadModList_offset, advanceDLL_Offset): 
 	# print("saving")
 	#save virtaul address as well
-	if(secNum != "False"):
+	if(secNum != "noSec"):
 		s[secNum].save_PEB_info.append(tuple((address,NumOpsDis,modSecName,secNum,points,loadTIB_offset,loadLDR_offset,loadModList_offset,advanceDLL_Offset)))
 	else:
 		secNum = -1
@@ -2527,9 +2538,8 @@ def saveBasePEBWalk(address, NumOpsDis,modSecName,secNum, points, loadTIB_offset
 def findAllFSTENV(): ################## AUSTIN ######################
 
 	if(rawHex):
-		print("in here - rawhex")
 		for match in FSTENV_GET_BASE.values(): #iterate through all opcodes representing combinations of registers
-			get_FSTENV(10, 15, match, "False", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+			get_FSTENV(10, 15, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
 
 
 	elif(bit32):
@@ -2541,23 +2551,23 @@ def findAllFSTENV(): ################## AUSTIN ######################
 				get_FSTENV(10, 15, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
 
 
-
+#add bytes param
 def findAllPebSequences(): ################## AUSTIN ######################
 	# global rawHex
 
 	if(rawHex):
-		for match in PEB_WALK_MOV.values(): #iterate through all opcodes representing combinations of registers
-			get_PEB_walk_start(19, match, "False", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
-		for match in PEB_WALK_ADD.values(): #iterate through all opcodes representing combinations of registers
-			get_PEB_walk_start(19, match, "False", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
-		for match in PEB_WALK_ADC.values(): #iterate through all opcodes representing combinations of registers
-			get_PEB_walk_start(19, match, "False", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
-		for match in PEB_WALK_OR.values(): #iterate through all opcodes representing combinations of registers
-			get_PEB_walk_start(19, match, "False", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
-		for match in PEB_WALK_XOR.values(): #iterate through all opcodes representing combinations of registers
-			get_PEB_walk_start(19, match, "False", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
-		for match in PEB_WALK_XCHG.values(): #iterate through all opcodes representing combinations of registers
-			get_PEB_walk_start(19, match, "False", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+		for match in PEB_WALK.values(): #iterate through all opcodes representing combinations of registers
+			get_PEB_walk_start(19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+		# for match in PEB_WALK_ADD.values(): #iterate through all opcodes representing combinations of registers
+		# 	get_PEB_walk_start(19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+		# for match in PEB_WALK_ADC.values(): #iterate through all opcodes representing combinations of registers
+		# 	get_PEB_walk_start(19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+		# for match in PEB_WALK_OR.values(): #iterate through all opcodes representing combinations of registers
+		# 	get_PEB_walk_start(19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+		# for match in PEB_WALK_XOR.values(): #iterate through all opcodes representing combinations of registers
+		# 	get_PEB_walk_start(19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+		# for match in PEB_WALK_XCHG.values(): #iterate through all opcodes representing combinations of registers
+		# 	get_PEB_walk_start(19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
 
 
 	elif(bit32):
@@ -2565,19 +2575,21 @@ def findAllPebSequences(): ################## AUSTIN ######################
 			# print("Trying section: " + str(secNum))
 			data2 = s[secNum].data2
 			# print("before mov")
-			for match in PEB_WALK_MOV.values(): #iterate through all opcodes representing combinations of registers
+			for match in PEB_WALK.values(): #iterate through all opcodes representing combinations of registers
 				get_PEB_walk_start(19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
-			# print("after mov")
-			for match in PEB_WALK_ADD.values(): #iterate through all opcodes representing combinations of registers
-				get_PEB_walk_start(19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
-			for match in PEB_WALK_ADC.values(): #iterate through all opcodes representing combinations of registers
-				get_PEB_walk_start(19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
-			for match in PEB_WALK_OR.values(): #iterate through all opcodes representing combinations of registers
-				get_PEB_walk_start(19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
-			for match in PEB_WALK_XOR.values(): #iterate through all opcodes representing combinations of registers
-				get_PEB_walk_start(19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
-			for match in PEB_WALK_XCHG.values(): #iterate through all opcodes representing combinations of registers
-				get_PEB_walk_start(19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
+			# # # print("after mov")
+			# for match in PEB_WALK_MOV_OLD.values(): #iterate through all opcodes representing combinations of registers
+			# 	get_PEB_walk_start(19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
+			# for match in PEB_WALK_ADD_OLD.values(): #iterate through all opcodes representing combinations of registers
+			# 	get_PEB_walk_start(19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
+			# for match in PEB_WALK_ADC_OLD.values(): #iterate through all opcodes representing combinations of registers
+			# 	get_PEB_walk_start(19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
+			# for match in PEB_WALK_OR_OLD.values(): #iterate through all opcodes representing combinations of registers
+			# 	get_PEB_walk_start(19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
+			# for match in PEB_WALK_XOR_OLD.values(): #iterate through all opcodes representing combinations of registers
+			# 	get_PEB_walk_start(19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
+			# for match in PEB_WALK_XCHG_OLD.values(): #iterate through all opcodes representing combinations of registers
+			# 	get_PEB_walk_start(19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
 
 	else:
 		for secNum in range(len(s)):
@@ -2589,7 +2601,7 @@ def findAllPebSequences(): ################## AUSTIN ######################
 def findAllPushRet(): ################## AUSTIN #########################
 	if(rawHex):
 		for match in PUSH_RET.values(): 
-			get_PushRet_start(4, match, "False", rawData2)
+			get_PushRet_start(4, match, "noSec", rawData2)
 
 	elif(bit32):
 		for secNum in range(len(s)):
@@ -3995,12 +4007,12 @@ def runIt():
 def AustinTesting():
 
 	# start = timeit.default_timer()
-	print("AUSTINHERE")
-	print(rawHex)
-	findAllFSTENV()
-	printSavedFSTENV()
-	# findAllPebSequences()
-	# printSavedPEB()
+	# print("AUSTINHERE")
+	# print(rawHex)
+	# findAllFSTENV()
+	# printSavedFSTENV()
+	findAllPebSequences()
+	printSavedPEB()
 	# stop = timeit.default_timer()
 	# print("PEB TIME PY3 = " + str(stop - start))
 	# findAllPushRet()
