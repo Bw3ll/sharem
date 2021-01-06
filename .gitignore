@@ -26,3 +26,6 @@ fstenv2.txt
 *.pyc
 sharem_ancestor.py
 sharem_austin.py
+*.pyc
+test2.txt
+work.asm
