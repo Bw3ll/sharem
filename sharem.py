@@ -87,6 +87,9 @@ numArgs = len(sys.argv)
 
 FindStringsStatus=True
 
+FindStringsStatus=False
+
+
 GoodStrings=["cmd",  "net","add", "Win", "http", "dll", "sub"]
 
 
@@ -6482,8 +6485,8 @@ def shellDisassemblyStart(shellArg):
 
 	rawData2=rawBytes
 	# printBytes(rawBytes)
-	print (disHereShell(rawBytes, False, False, "ascii", True))
-	print ("SizeRawdata2", len(rawData2))
+	# print (disHereShell(rawBytes, False, False, "ascii", True))
+	# print ("SizeRawdata2", len(rawData2)) 
 	rawBytes=rawData2
 	print ("rawbytes class", type(rawBytes))
 	disassembly=takeBytes(rawBytes,0)
@@ -6569,7 +6572,7 @@ def bramwellDisassembly():
 	print ("numargs" , numArgs)
 	if numArgs==1:
 		shellcode4='shellcode4.txt'
-		filename=shellcode4
+		# filename=shellcode4
 	shellDisassemblyStart(filename)
 	# shellDisassemblyStart(shellcode4)
 
@@ -6602,12 +6605,12 @@ if __name__ == "__main__":
 	# printSavedPushRet()
 
 	# bramwellStart()
-	# bramwellDisassembly()
+	bramwellDisassembly()
 	# bramwellStart2()
 	# bramwellDisassembly2()
 	# addComments()
 
-	bramwellEncodeDecodeWork(filename)
+	# bramwellEncodeDecodeWork(filename)
 	# print ("final DIS")
 	# printTempDis()
 
