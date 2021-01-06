@@ -12,7 +12,7 @@ global objs
 
 
 #MOV <REG>, [FS:0x30]
-PEB_WALK_MOV = {
+PEB_WALK_MOV_OLD = {
 	'EAX_OFFSET_NONE': b"\x64\xA1\x30\x00\x00\x00",
 	'EAX_OFFSET_EAX':  b"\x64\x8B\x40\x30",
 	'EAX_OFFSET_EBX':  b"\x64\x8B\x43\x30",
@@ -71,9 +71,20 @@ PEB_WALK_MOV = {
 	'EBP_OFFSET_EBP':  b"\x64\x8B\x6D\x30"
 }
 
+#MOV <REG>, [FS:0x30]
+PEB_WALK = {
+	'MOV_OFFSET_NONE': b"\x64\xA1",
+	'MOV_OFFSET':  b"\x64\x8B",
+	'ADD_ALL':		b"\x64\x03",
+	'ADC_ALL':		b"\x64\x13",
+	'XOR_ALL':		b"\x64\x33",
+	'OR_ALL':		b"\x64\x0B",
+	'XCHG_ALL':		b"\x64\x87",
+	'PUSH_ALL':		b"\x64\xFF"
+}
 
 #ADD <REG>,[FS:0x30]
-PEB_WALK_ADD = {
+PEB_WALK_ADD_OLD = {
 	'EAX_OFFSET_NONE': b"\x64\x03\x05\x30\x00\x00\x00",
 	'EAX_OFFSET_EAX':  b"\x64\x03\x40\x30",
 	'EAX_OFFSET_EBX':  b"\x64\x03\x43\x30",
@@ -133,7 +144,7 @@ PEB_WALK_ADD = {
 }
 
 #ADC <REG>,[FS:0x30]
-PEB_WALK_ADC = {
+PEB_WALK_ADC_OLD = {
 	'EAX_OFFSET_NONE': b"\x64\x13\x05\x30\x00\x00\x00",
 	'EAX_OFFSET_EAX':  b"\x64\x13\x40\x30",
 	'EAX_OFFSET_EBX':  b"\x64\x13\x43\x30",
@@ -193,7 +204,7 @@ PEB_WALK_ADC = {
 }
 
 #XOR <REG>,[FS:0x30]
-PEB_WALK_XOR = {
+PEB_WALK_XOR_OLD = {
 	'EAX_OFFSET_NONE': b"\x64\x33\x05\x30\x00\x00\x00",
 	'EAX_OFFSET_EAX':  b"\x64\x33\x40\x30",
 	'EAX_OFFSET_EBX':  b"\x64\x33\x43\x30",
@@ -253,7 +264,7 @@ PEB_WALK_XOR = {
 }
 
 #OR <REG>,[FS:0x30]
-PEB_WALK_OR = {
+PEB_WALK_OR_OLD = {
 	'EAX_OFFSET_NONE': b"\x64\x0B\x05\x30\x00\x00\x00",
 	'EAX_OFFSET_EAX':  b"\x64\x0B\x40\x30",
 	'EAX_OFFSET_EBX':  b"\x64\x0B\x43\x30",
@@ -313,7 +324,7 @@ PEB_WALK_OR = {
 }
 
 #XCHG <REG>,[FS:0x30]
-PEB_WALK_XCHG = {
+PEB_WALK_XCHG_OLD = {
 	'EAX_OFFSET_NONE': b"\x64\x87\x05\x30\x00\x00\x00",
 	'EAX_OFFSET_EAX':  b"\x64\x87\x40\x30",
 	'EAX_OFFSET_EBX':  b"\x64\x87\x43\x30",
