@@ -146,7 +146,7 @@ if not skipExtraction:
 	print ("entering Austin")
 	rawHex = False
 	# global rawData2
-	if(numArgs > 1):
+	if(numArgs > 2):
 		if(sys.argv[2] == "raw"):
 			rawHex = True
 			print("set raw", (sys.argv[2]), (sys.argv[1]), peName)
@@ -223,6 +223,8 @@ class MyBytes:
 		self.save_PushRet_info = []
 		# self.sectionStart =0 ### image base + virtual address
 		self.save_FSTENV_info = [] #tuple - addr, NumOps, modSecName, secNum
+		self.save_Egg_info = [] #tuple - addr, NumOps, modSecName, secNum
+		self.save_Callpop_info = [] #tuple - addr, NumOps, modSecName, secNum
 # end classs 
 
 class IATS:
@@ -1556,7 +1558,7 @@ def disHerePEB(address, NumOpsDis, secNum, data): ############ AUSTIN ##########
 	advanceDLL_Offset = [-1]
 
 	for line in disString:
-		print (line)
+		#print (line)
 
 		##############################################
 
@@ -2343,6 +2345,8 @@ def get_FSTENV(NumOpsDis, NumOpsBack, bytesToMatch, secNum, data2):
 
 
 fcount = 0
+
+#NumOpsBack: how many opcodes to search back when looking for fpu instruction
 def disHereFSTENV(address, NumOpsDis, NumOpsBack, secNum, data): ############ AUSTIN ##############
 
 	global o
@@ -2351,7 +2355,6 @@ def disHereFSTENV(address, NumOpsDis, NumOpsBack, secNum, data): ############ AU
 	global fcount
 	w=0
 
-	print("in dishere")
 	## Capstone does not seem to allow me to start disassemblying at a given point, so I copy out a chunk to  disassemble. I append a 0x00 because it does not always disassemble correctly (or at all) if just two bytes. I cause it not to be displayed through other means. It simply take the starting address of the jmp [reg], disassembles backwards, and copies it to a variable that I examine more closely.
 	#lGoBack = linesGoBackFindOP
 
@@ -2403,9 +2406,9 @@ def disHereFSTENV(address, NumOpsDis, NumOpsBack, secNum, data): ############ AU
 				addb = hex(int(i.address))
 			else:
 				add = hex(int(i.address))
-				addb = hex(int(i.address +  section.VirtualAdd))
+				addb = hex(int(i.address +  section.VirtualAdd  - (NumOpsBack - back) ))
 				add2 = str(add)
-				add3 = hex (int(i.address + section.startLoc	))
+				add3 = hex (int(i.address + section.startLoc	- (NumOpsBack - back) ))
 				add4 = str(add3)
 			val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 			# val2.append(val)
@@ -2420,10 +2423,18 @@ def disHereFSTENV(address, NumOpsDis, NumOpsBack, secNum, data): ############ AU
 			FPU_instr = re.match("^f((?!n?stenv).)*$", disString[0], re.IGNORECASE)
 			fstenv = False
 			if(FPU_instr):
+				FPU_offset = disString[0].split()[-1]
+				# print("FPU OFF1 = " + str(FPU_offset))
+				FPU_offset = FPU_offset[:-1]
+				# print("FPU OFF2 = " + str(FPU_offset))
+				# input("fpu2")
+
 				for line in disString:
 					FSTENV_instr = re.match("^fn?stenv", line, re.IGNORECASE)
 
 					if(FSTENV_instr):
+						FSTENV_offset = line.split()[-1]
+						FSTENV_offset = FSTENV_offset[:-1]
 						fcount += 1
 						# print("CONFIRMED FSTENV -- NUMBER " + str(fcount))
 						# print("SAVING THIS ONE")
@@ -2431,20 +2442,26 @@ def disHereFSTENV(address, NumOpsDis, NumOpsBack, secNum, data): ############ AU
 							modSecName = peName
 						else:
 							modSecName = section.sectionName
-						saveBaseFSTENV(address, NumOpsDis, (NumOpsBack - back), modSecName, secNum)
+
+						saveBaseFSTENV(address, NumOpsDis, (NumOpsBack - back), modSecName, secNum, FPU_offset, FSTENV_offset)
 						return
 
 
 
 
-def saveBaseFSTENV(address, NumOpsDis, NumOpsBack, modSecName, secNum):
+def saveBaseFSTENV(address, NumOpsDis, NumOpsBack, modSecName, secNum, FPU_offset, FSTENV_offset):
 	if(secNum != "noSec"):
-		s[secNum].save_FSTENV_info.append(tuple((address,NumOpsDis,NumOpsBack,modSecName,secNum)))
+		print("FPU OFF1 = " + str(FPU_offset))
+		print("FPU OFF2 = " + str(FPU_offset))
+		print("Fstenv OFF1 = " + str(FSTENV_offset))
+		print("Fstenv OFF2 = " + str(FSTENV_offset))
+		input("fpu2")
+		s[secNum].save_FSTENV_info.append(tuple((address,NumOpsDis,NumOpsBack,modSecName,secNum,FPU_offset,FSTENV_offset)))
 	else:
 		print("Saving one raw")
 		secNum = -1
 		modSecName = "rawHex"
-		m[o].save_FSTENV_info.append(tuple((address,NumOpsDis,NumOpsBack,modSecName,secNum)))
+		m[o].save_FSTENV_info.append(tuple((address,NumOpsDis,NumOpsBack,modSecName,secNum,FPU_offset,FSTENV_offset)))
 
 def printSavedFSTENV(): ######################## AUSTIN ###############################3
 	#formatting
@@ -2452,13 +2469,17 @@ def printSavedFSTENV(): ######################## AUSTIN ########################
 	if(rawHex):
 		for item in m[o].save_FSTENV_info:
 			CODED2 = b""
-
+			
 			address = item[0]
 			NumOpsDis = item[1]
 			NumOpsBack = item[2]
 			modSecName = item[3]
 			secNum = item[4]
-
+			FPU_offset  = item[5]
+			FSTENV_offset = item[6]
+			print("OFFSETS: ")
+			print("FPU = " + str(FPU_offset))
+			print("FSTENV = " + str(FSTENV_offset))
 			CODED2 = rawData2[(address-NumOpsBack):(address+NumOpsDis)]
 
 			outString = "\n\nItem : " + str(j)
@@ -2509,7 +2530,11 @@ def printSavedFSTENV(): ######################## AUSTIN ########################
 				NumOpsBack = item[2]
 				modSecName = item[3]
 				secNum = item[4]
-
+				FPU_offset  = item[5]
+				FSTENV_offset = item[6]
+				print("OFFSETS: ")
+				print("FPU = " + FPU_offset)
+				print("FSTENV = " + FSTENV_offset)
 				# print("NUMBACK = " + str(NumOpsBack))
 
 				section = s[secNum]
@@ -2552,7 +2577,1493 @@ def printSavedFSTENV(): ######################## AUSTIN ########################
 				# print str(type(m[o].data2))
 				# trash = raw_input("enter...")
 
-		
+
+def get_Callpop(NumOpsDis, bytesToMatch, secNum, data2, distance): 
+	#change to work off of data2 - add param - get rid of secNum
+
+	# print('in get')
+
+	global o
+	foundCount = 0
+	numOps = NumOpsDis
+
+
+	t=0
+	len_data2 = len(data2)
+	len_bytesToMatch = len(bytesToMatch)
+	for v in data2:
+		found = True #reset flag
+		#replace with bytesToMatch list if desired
+		#for i in range(len(bytesToMatch)): #can break out on no match for efficiency, left as is for simplicity
+		i = 0
+		for x in bytesToMatch:
+			if(found == False):
+				break
+			# elif ((i+t) >= len_data2 or i >= len_bytesToMatch):
+			# 	found = False # out of range
+			try:
+				#print(data2[t+i])
+				#input("enter..")
+				if ((data2[t+i]) != (bytesToMatch[i])):
+					found = False #no match
+			except Exception as e:
+				# input(e)
+				pass
+			i += 1
+
+		if(found):
+			# input("enter..")
+			disHereCallpop(t, numOps, secNum, data2, distance)
+
+		t=t+1
+
+def disHereCallpop(address, NumOpsDis, secNum, data, distance):
+	# print("in dishere")
+	pop = False
+	CODED2 = ""
+	x = NumOpsDis
+
+	origAddr = address
+	address = address + distance
+	if(secNum != "noSec"):
+		section = s[secNum]
+	CODED2 = data[(address):(address+NumOpsDis)]
+
+	# I create the individual lines of code that will appear>
+	val =""
+	val2 = []
+	val3 = []
+	#address2 = address + section.ImageBase + section.VirtualAdd
+	val5 =[]
+	
+
+	# start = timeit.default_timer()
+	CODED3 = CODED2
+	for i in cs.disasm(CODED3, address):
+		if(secNum == "noSec"):
+			# add = hex(int(i.address))
+			add4 = hex(int(i.address))
+			addb = hex(int(i.address))
+		else:
+			add = hex(int(i.address))
+			addb = hex(int(i.address +  section.VirtualAdd))
+			add2 = str(add)
+			add3 = hex (int(i.address + section.startLoc	))
+			add4 = str(add3)
+		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+		val5.append(val)
+		# print(val)
+
+
+	disString = val5
+
+
+
+	for line in disString:
+
+		##############################################
+
+		pop = re.match("^pop (e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
+		if(pop):
+			pop_offset = line.split()[-1]
+			pop_offset = pop_offset[:-1]
+		# print("POP OFFSET")
+		print(pop_offset)
+		if(pop):
+
+			if(rawHex):
+				modSecName = peName
+			else:
+				modSecName = section.sectionName
+			# print("saving one")
+			saveBaseCallpop(address, NumOpsDis, modSecName, secNum, distance)
+			return
+
+
+def saveBaseCallpop(address, NumOpsDis,modSecName,secNum,distance): 
+	# print("saving")
+	#save virtaul address as well
+	if(secNum != "noSec"):
+		s[secNum].save_Callpop_info.append(tuple((address,NumOpsDis,modSecName,secNum,distance)))
+	else:
+		secNum = -1
+		modSecName = "rawHex"
+		m[o].save_Callpop_info.append(tuple((address,NumOpsDis,modSecName,secNum,distance)))
+
+def printSavedCallPop(): ######################## AUSTIN ###############################3
+	# print("in print")
+	#formatting
+	j = 0
+	if(rawHex):
+		for item in m[o].save_Callpop_info:
+			CODED2 = b""
+
+			address = item[0]
+			NumOpsDis = item[1]
+			modSecName = item[2]
+			secNum = item[3]
+			distance = item[4]
+
+			CODED2 = rawData2[(address):(address+NumOpsDis)]
+
+			outString = "\n\nItem : " + str(j)
+			if(secNum != -1):
+
+				outString += " | Section number: " + str(secNum) + " | Section name: " + str(modSecName)
+				# if(secNum != 0):
+				# 	trash = raw_input("enter...")
+				
+			else:
+				outString += " | Module: " + modSecName
+
+			print ("\n********************************************************")
+			print (outString)
+			print ("\n")
+			val =""
+			val2 = []
+			val3 = []
+			#address2 = address + section.ImageBase + section.VirtualAdd
+			val5 =[]
+
+			for i in cs.disasm(CODED2, address):
+				if(rawHex):
+					add4 = hex(int(i.address))
+					addb = hex(int(i.address))
+				else:
+					add = hex(int(i.address))
+					addb = hex(int(i.address +  section.VirtualAdd))
+					add2 = str(add)
+					add3 = hex (int(i.address + section.startLoc	))
+					add4 = str(add3)
+				val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+				print (val)
+	#return val5
+			print ("\n")
+			j += 1
+			# print("dist:")
+			# print(distance)
+	else:
+		h = 0
+		for section in s:
+			h += 1
+			# print("PRINTING SECTION " + str(h))
+			for item in section.save_Callpop_info:
+				CODED2 = ""
+
+
+				address = item[0]
+				NumOpsDis = item[1]
+				modSecName = item[2]
+				secNum = item[3]
+				distance = item[4]
+
+				# print("NUMBACK = " + str(NumOpsBack))
+
+				section = s[secNum]
+
+				outString = "\n\nItem : " + str(j)
+				if(secNum != -1):
+
+					outString += " | Section number: " + str(secNum) + " | Section name: " + str(modSecName)
+					# if(secNum != 0):
+					# 	trash = raw_input("enter...")
+					
+				else:
+					outString += " | Module: " + modSecName
+
+				print ("\n********************************************************")
+				print (outString)
+				print ("\n")
+				val =""
+				val2 = []
+				val3 = []
+				address2 = address + section.ImageBase + section.VirtualAdd
+				val5 =[]
+
+				CODED2 = section.data2[(address):(address+NumOpsDis)]
+
+				CODED3 = CODED2
+				for i in cs.disasm(CODED3, address):
+					add = hex(int(i.address))
+					addb = hex(int(i.address +  section.VirtualAdd))
+					add2 = str(add)
+					add3 = hex (int(i.address + section.startLoc))
+					add4 = str(add3)
+					val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+					val2.append(val)
+					val3.append(add2)
+					val5.append(val)
+					print (val)
+				print ("\n")
+				j += 1
+				# print str(type(m[o].data2))
+				# trash = raw_input("enter...")
+
+
+
+
+def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startStates: tuple containing starting values of each register | stack: list of items on the stack
+
+	eax = startStates[0]
+	ebx = startStates[1]
+	ecx = startStates[2]
+	edx = startStates[3]
+	edi = startStates[4]
+	esi = startStates[5]
+	ebp = startStates[6]
+	esp = startStates[7]
+
+	eaxOffset = 0
+	ebxOffset = 0
+	ecxOffset = 0
+	edxOffset = 0
+	ediOffset = 0
+	esiOffset = 0
+	ebpOffset = 0
+	espOffset = 0
+
+
+
+
+
+
+	# print("&&&&&&&&&&&&&&&&&&&&&&&&\n\n")
+	for line in disAsm:
+		line = line.rsplit('	', 1)[0]
+		# print("____________-")
+		# print(line)
+		mov = re.match("^(mov) (e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
+		add = re.match("^(add) (e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
+		sub = re.match("^(sub) (e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
+		xor = re.match("^(xor) (e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
+		xchg = re.match("^(xchg) (e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
+		push = re.match("^(push)", line, re.IGNORECASE)
+		pop = re.match("^(pop)", line, re.IGNORECASE)
+
+		if(mov):
+			reg = mov.group().split(' ')[1].replace(',','').lower()
+
+			if(reg == 'eax'):
+				eaxOffset = 0
+			elif(reg == 'ebx'):
+				ebxOffset = 0
+			elif(reg == 'ecx'):
+				ecxOffset = 0
+			elif(reg == 'edx'):
+				edxOffset = 0
+			elif(reg == 'edi'):
+				ediOffset = 0
+			elif(reg == 'esi'):
+				esiOffset = 0
+			elif(reg == 'ebp'):
+				ebpOffset = 0
+			elif(reg == 'esp'):
+				espOffset = 0
+
+			line = line.split(',',1)[-1]
+			line = line.replace(' ', '')
+
+			
+			variable = re.search(" ?(e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
+			numeric = re.search(" ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
+			ptr = re.search(" ?(ptr)", line, re.IGNORECASE)
+
+			if(ptr):
+				found = "unknown"
+				if(reg == 'eax'):
+					eax = found
+				elif(reg == 'ebx'):
+					ebx = found
+				elif(reg == 'ecx'):
+					ecx = found
+				elif(reg == 'edx'):
+					edx = found
+				elif(reg == 'edi'):
+					edi = found
+				elif(reg == 'esi'):
+					esi = found
+				elif(reg == 'ebp'):
+					ebp = found
+				elif(reg == 'esp'):
+					esp = found
+
+
+			elif(variable):
+				found = str(variable.group())
+				# print("here is what i found:")
+				# print(found)
+
+				if(found == 'eax'):
+					found = eax
+				elif(found == 'ebx'):
+					found = ebx
+				elif(found == 'ecx'):
+					found = ecx
+				elif(found == 'edx'):
+					found = edx
+				elif(found == 'edi'):
+					found = edi
+				elif(found == 'esi'):
+					found = esi
+				elif(found == 'ebp'):
+					found = ebp
+				elif(found == 'esp'):
+					found = esp
+				else:
+					found = "unknown"
+
+			elif(numeric):
+				found = int(numeric.group(), 16)
+				# print("here is what i found:")
+				# print(found)
+
+				found = hex(found)
+
+			else:
+				found = "unknown"
+
+			if(reg == 'eax'):
+				eax = found
+			elif(reg == 'ebx'):
+				ebx = found
+			elif(reg == 'ecx'):
+				ecx = found
+			elif(reg == 'edx'):
+				edx = found
+			elif(reg == 'edi'):
+				edi = found
+			elif(reg == 'esi'):
+				esi = found
+			elif(reg == 'ebp'):
+				ebp = found
+			elif(reg == 'esp'):
+				esp = found
+
+		elif(add):
+			reg = add.group().split(' ')[1].replace(',','').lower()
+
+			line = line.split(',',1)[-1]
+			line = line.replace(' ', '')
+
+			variable = re.search(" ?(e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
+			numeric = re.search(" ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
+
+			ptr = re.search(" ?(ptr)", line, re.IGNORECASE)
+			
+			if(ptr):
+				found = "unknown"
+				if(reg == 'eax'):
+					eax = found
+				elif(reg == 'ebx'):
+					ebx = found
+				elif(reg == 'ecx'):
+					ecx = found
+				elif(reg == 'edx'):
+					edx = found
+				elif(reg == 'edi'):
+					edi = found
+				elif(reg == 'esi'):
+					esi = found
+				elif(reg == 'ebp'):
+					ebp = found
+				elif(reg == 'esp'):
+					esp = found
+
+			elif(variable):
+				found = str(variable.group())
+				# print("here is what i found:")
+				# print(found)
+
+				if(found == 'eax'):
+					found = eax
+				elif(found == 'ebx'):
+					found = ebx
+				elif(found == 'ecx'):
+					found = ecx
+				elif(found == 'edx'):
+					found = edx
+				elif(found == 'edi'):
+					found = edi
+				elif(found == 'esi'):
+					found = esi
+				elif(found == 'ebp'):
+					found = ebp
+				elif(found == 'esp'):
+					found = esp
+				else:
+					found = "unknown"
+
+				found = str(found)
+
+			elif(numeric):
+				found = int(numeric.group(), 0)
+				# print("here is what i found:")
+				# print(found)
+
+				found = hex(found)
+
+			else:
+				found = "unknown"
+
+			curOffset = found
+
+			if(reg == 'eax'):
+				if(eax == 'unknown'):
+					if(curOffset == "unknown"):
+						eaxOffset = 0
+					else:	
+						eaxOffset += int(curOffset, 0)
+
+				elif(found == "unknown"):
+					eax = "unknown"
+				else:
+					eax = int(str(eax),0) + int(str(found), 0)
+			elif(reg == 'ebx'):
+				if(ebx == 'unknown'):
+					if(curOffset == "unknown"):
+						ebxOffset = 0
+					else:	
+						ebxOffset += int(curOffset, 0)
+
+				elif(found == "unknown"):
+					ebx = "unknown"
+				else:
+					ebx = int(str(ebx),0) + int(str(found), 0)
+			elif(reg == 'ecx'):
+				if(ecx == 'unknown'):
+					if(curOffset == "unknown"):
+						ecxOffset = 0
+					else:	
+						ecxOffset += int(curOffset, 0)
+
+				elif(found == "unknown"):
+					ecx = "unknown"
+				else:
+					ecx = int(str(ecx),0) + int(str(found), 0)
+			elif(reg == 'edx'):
+				if(edx == 'unknown'):
+					if(curOffset == "unknown"):
+						edxOffset = 0
+					else:	
+						edxOffset += int(curOffset, 0)
+
+				elif(found == "unknown"):
+					edx = "unknown"
+				else:
+					edx = int(str(edx),0) + int(str(found), 0)
+			elif(reg == 'edi'):
+				if(edi == 'unknown'):
+					if(curOffset == "unknown"):
+						ediOffset = 0
+					else:	
+						ediOffset += int(curOffset, 0)
+
+				elif(found == "unknown"):
+					edi = "unknown"
+				else:
+					edi = int(str(edi),0) + int(str(found), 0)
+			elif(reg == 'esi'):
+				if(esi == 'unknown'):
+					if(curOffset == "unknown"):
+						esiOffset = 0
+					else:	
+						esiOffset += int(curOffset, 0)
+
+				elif(found == "unknown"):
+					esi = "unknown"
+				else:
+					esi = int(str(esi),0) + int(str(found), 0)
+			elif(reg == 'ebp'):
+				if(ebp == 'unknown'):
+					if(curOffset == "unknown"):
+						ebpOffset = 0
+					else:	
+						ebpOffset += int(curOffset, 0)
+
+				elif(found == "unknown"):
+					ebp = "unknown"
+				else:
+					ebp = int(str(ebp),0) + int(str(found), 0)
+			elif(reg == 'esp'):
+				if(esp == 'unknown'):
+					if(curOffset == "unknown"):
+						espOffset = 0
+					else:	
+						espOffset += int(curOffset, 0)
+
+				elif(found == "unknown"):
+					esp = "unknown"
+				else:
+					esp = int(str(esp),0) + int(str(found),0)
+
+		elif(sub):
+			reg = sub.group().split(' ')[1].replace(',','').lower()
+
+			line = line.split(',',1)[-1]
+			line = line.replace(' ', '')
+
+			variable = re.search(" ?(e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
+			numeric = re.search(" ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
+
+			ptr = re.search(" ?(ptr)", line, re.IGNORECASE)
+			
+			if(ptr):
+				found = "unknown"
+				if(reg == 'eax'):
+					eax = found
+				elif(reg == 'ebx'):
+					ebx = found
+				elif(reg == 'ecx'):
+					ecx = found
+				elif(reg == 'edx'):
+					edx = found
+				elif(reg == 'edi'):
+					edi = found
+				elif(reg == 'esi'):
+					esi = found
+				elif(reg == 'ebp'):
+					ebp = found
+				elif(reg == 'esp'):
+					esp = found
+
+			elif(variable):
+				found = str(variable.group())
+				# print("here is what i found:")
+				# print(found)
+
+				if(found == 'eax'):
+					found = eax
+				elif(found == 'ebx'):
+					found = ebx
+				elif(found == 'ecx'):
+					found = ecx
+				elif(found == 'edx'):
+					found = edx
+				elif(found == 'edi'):
+					found = edi
+				elif(found == 'esi'):
+					found = esi
+				elif(found == 'ebp'):
+					found = ebp
+				elif(found == 'esp'):
+					found = esp
+				else:
+					found = "unknown"
+
+				found = str(found)
+
+			elif(numeric):
+				found = int(numeric.group(), 0)
+				# print("here is what i found:")
+				# print(found)
+
+				found = hex(found)
+
+			else:
+				found = "unknown"
+
+
+			curOffset = found
+
+			if(reg == 'eax'):
+				if(eax == 'unknown'):
+					if(curOffset == "unknown"):
+						eaxOffset = 0
+					else:	
+						eaxOffset -= int(curOffset, 0)
+
+				elif(found == "unknown"):
+					eax = "unknown"
+				else:
+					eax = int(str(eax),0) - int(str(found), 0)
+			elif(reg == 'ebx'):
+				if(ebx == 'unknown'):
+					if(curOffset == "unknown"):
+						ebxOffset = 0
+					else:	
+						ebxOffset -= int(curOffset, 0)
+
+				elif(found == "unknown"):
+					ebx = "unknown"
+				else:
+					ebx = int(str(ebx),0) - int(str(found), 0)
+			elif(reg == 'ecx'):
+				if(ecx == 'unknown'):
+					if(curOffset == "unknown"):
+						ecxOffset = 0
+					else:	
+						ecxOffset -= int(curOffset, 0)
+
+				elif(found == "unknown"):
+					ecx = "unknown"
+				else:
+					ecx = int(str(ecx),0) - int(str(found), 0)
+			elif(reg == 'edx'):
+				if(edx == 'unknown'):
+					if(curOffset == "unknown"):
+						edxOffset = 0
+					else:	
+						edxOffset -= int(curOffset, 0)
+
+				elif(found == "unknown"):
+					edx = "unknown"
+				else:
+					edx = int(str(edx),0) - int(str(found), 0)
+			elif(reg == 'edi'):
+				if(edi == 'unknown'):
+					if(curOffset == "unknown"):
+						ediOffset = 0
+					else:	
+						ediOffset -= int(curOffset, 0)
+
+				elif(found == "unknown"):
+					edi = "unknown"
+				else:
+					edi = int(str(edi),0) - int(str(found), 0)
+			elif(reg == 'esi'):
+				if(esi == 'unknown'):
+					if(curOffset == "unknown"):
+						esiOffset = 0
+					else:	
+						esiOffset -= int(curOffset, 0)
+
+				elif(found == "unknown"):
+					esi = "unknown"
+				else:
+					esi = int(str(esi),0) - int(str(found), 0)
+			elif(reg == 'ebp'):
+				if(ebp == 'unknown'):
+					if(curOffset == "unknown"):
+						ebpOffset = 0
+					else:	
+						ebpOffset -= int(curOffset, 0)
+
+				elif(found == "unknown"):
+					ebp = "unknown"
+				else:
+					ebp = int(str(ebp),0) - int(str(found), 0)
+			elif(reg == 'esp'):
+				if(esp == 'unknown'):
+					if(curOffset == "unknown"):
+						espOffset = 0
+					else:	
+						espOffset -= int(curOffset, 0)
+
+				elif(found == "unknown"):
+					esp = "unknown"
+				else:
+					esp = int(str(esp),0) - int(str(found),0)
+
+		elif(xor):
+			# print("in xor")
+			nullify = False
+			reg = xor.group().split(' ')[1].replace(',','').lower()
+
+			if(reg == 'eax'):
+				eaxOffset = 0
+			elif(reg == 'ebx'):
+				ebxOffset = 0
+			elif(reg == 'ecx'):
+				ecxOffset = 0
+			elif(reg == 'edx'):
+				edxOffset = 0
+			elif(reg == 'edi'):
+				ediOffset = 0
+			elif(reg == 'esi'):
+				esiOffset = 0
+			elif(reg == 'ebp'):
+				ebpOffset = 0
+			elif(reg == 'esp'):
+				espOffset = 0
+
+
+			line = line.split(',',1)[-1]
+			line = line.replace(' ', '')
+
+			variable = re.search(" ?(e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
+			numeric = re.search(" ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
+			ptr = re.search(" ?(ptr)", line, re.IGNORECASE)
+			
+			if(ptr):
+				found = "unknown"
+				if(reg == 'eax'):
+					eax = found
+				elif(reg == 'ebx'):
+					ebx = found
+				elif(reg == 'ecx'):
+					ecx = found
+				elif(reg == 'edx'):
+					edx = found
+				elif(reg == 'edi'):
+					edi = found
+				elif(reg == 'esi'):
+					esi = found
+				elif(reg == 'ebp'):
+					ebp = found
+				elif(reg == 'esp'):
+					esp = found
+
+			elif(variable):
+				found = str(variable.group())
+				if(found == reg):
+					nullify = True
+
+				# print("here is what i found:")
+				# print(found)
+
+				elif(found == 'eax'):
+					found = eax
+				elif(found == 'ebx'):
+					found = ebx
+				elif(found == 'ecx'):
+					found = ecx
+				elif(found == 'edx'):
+					found = edx
+				elif(found == 'edi'):
+					found = edi
+				elif(found == 'esi'):
+					found = esi
+				elif(found == 'ebp'):
+					found = ebp
+				elif(found == 'esp'):
+					found = esp
+				else:
+					found = "unknown"
+
+				found = str(found)
+
+			elif(numeric):
+				found = int(numeric.group(), 0)
+				# print("here is what i found:")
+				# print(found)
+
+				found = hex(found)
+
+			else:
+				found = "unknown"
+
+			if(reg == 'eax'):
+				if(nullify):
+					eax = '0'
+				elif((eax == "unknown") or (found == "unknown")):
+					eax = "unknown"
+				else:
+					eax = int(str(eax), 0)^int(str(found), 0)
+			elif(reg == 'ebx'):
+				if(nullify):
+					ebx = '0'
+				elif((ebx == "unknown") or (found == "unknown")):
+					ebx = "unknown"
+				else:
+					ebx = int(str(ebx), 0)^int(str(found), 0)
+			elif(reg == 'ecx'):
+				if(nullify):
+					ecx = '0'
+				elif((ecx == "unknown") or (found == "unknown")):
+					ecx = "unknown"
+				else:
+					ecx = int(str(ecx), 0)^int(str(found), 0)
+			elif(reg == 'edx'):
+				if(nullify):
+					edx = '0'
+				elif((edx == "unknown") or (found == "unknown")):
+					edx = "unknown"
+				else:
+					edx = int(str(edx), 0)^int(str(found), 0)
+			elif(reg == 'edi'):
+				if(nullify):
+					edi = '0'
+				elif((edi == "unknown") or (found == "unknown")):
+					edi = "unknown"
+				else:
+					edi = int(str(edi), 0)^int(str(found), 0)
+			elif(reg == 'esi'):
+				if(nullify):
+					esi = '0'
+				elif((esi == "unknown") or (found == "unknown")):
+					esi = "unknown"
+				else:
+					esi = int(str(esi), 0)^int(str(found), 0)
+			elif(reg == 'ebp'):
+				if(nullify):
+					ebp = '0'
+				elif((ebp == "unknown") or (found == "unknown")):
+					ebp = "unknown"
+				else:
+					ebp = int(str(ebp), 0)^int(str(found), 0)
+			elif(reg == 'esp'):
+				if(nullify):
+					esp = '0'
+				elif((esp == "unknown") or (found == "unknown")):
+					esp = "unknown"
+				else:
+					esp = int(str(esp), 0)^int(str(found), 0)
+
+		elif(xchg):
+			reg = xchg.group().split(' ')[1].replace(',','').lower()
+
+			if(reg == 'eax'):
+				eaxOffset = 0
+			elif(reg == 'ebx'):
+				ebxOffset = 0
+			elif(reg == 'ecx'):
+				ecxOffset = 0
+			elif(reg == 'edx'):
+				edxOffset = 0
+			elif(reg == 'edi'):
+				ediOffset = 0
+			elif(reg == 'esi'):
+				esiOffset = 0
+			elif(reg == 'ebp'):
+				ebpOffset = 0
+			elif(reg == 'esp'):
+				espOffset = 0
+
+			line = line.split(',',1)[-1]
+			line = line.replace(' ', '')
+
+			variable = re.search(" ?(e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
+			if(variable):
+				found = str(variable.group())
+				# print("here is what i found:")
+				# print(found)
+
+				if(found == 'eax'):
+					found = eax
+					if(reg == 'ebx'):
+						eax = ebx
+						ebx = found
+					elif(reg == 'ecx'):
+						eax = ecx
+						ecx = found
+					elif(reg == 'edx'):
+						eax = edx
+						edx = found
+					elif(reg == 'edi'):
+						eax = edi
+						edi = found
+					elif(reg == 'esi'):
+						eax = ebx
+						ebx = found
+					elif(reg == 'ebp'):
+						eax = ebp
+						ebp = found
+					elif(reg == 'esp'):
+						eax = esp
+						esp = found
+				elif(found == 'ebx'):
+					found = ebx
+					if(reg == 'eax'):
+						ebx = eax
+						eax = found
+					elif(reg == 'ecx'):
+						ebx = ecx
+						ecx = found
+					elif(reg == 'edx'):
+						ebx = edx
+						edx = found
+					elif(reg == 'edi'):
+						ebx = edi
+						edi = found
+					elif(reg == 'esi'):
+						ebx = esi
+						esi = found
+					elif(reg == 'ebp'):
+						ebx = ebp
+						ebp = found
+					elif(reg == 'esp'):
+						ebx = esp
+						esp = found
+				elif(found == 'ecx'):
+					found = ecx
+					if(reg == 'eax'):
+						ecx = eax
+						eax = found
+					elif(reg == 'ebx'):
+						ecx = ebx
+						ebx = found
+					elif(reg == 'edx'):
+						ecx = edx
+						edx = found
+					elif(reg == 'edi'):
+						ecx = edi
+						edi = found
+					elif(reg == 'esi'):
+						ecx = esi
+						esi = found
+					elif(reg == 'ebp'):
+						ecx = ebp
+						ebp = found
+					elif(reg == 'esp'):
+						ecx = esp
+						esp = found
+				elif(found == 'edx'):
+					found = edx
+					if(reg == 'eax'):
+						edx = eax
+						eax = found
+					elif(reg == 'ebx'):
+						edx = ebx
+						ebx = found
+					elif(reg == 'ecx'):
+						edx = ecx
+						ecx = found
+					elif(reg == 'edi'):
+						edx = edi
+						edi = found
+					elif(reg == 'esi'):
+						edx = esi
+						esi = found
+					elif(reg == 'ebp'):
+						edx = ebp
+						ebp = found
+					elif(reg == 'esp'):
+						edx = esp
+						esp = found
+				elif(found == 'edi'):
+					found = edi
+					if(reg == 'eax'):
+						edi = eax
+						eax = found
+					elif(reg == 'ebx'):
+						edi = ebx
+						ebx = found
+					elif(reg == 'ecx'):
+						edi = ecx
+						ecx = found
+					elif(reg == 'edx'):
+						edi = edx
+						edx = found
+					elif(reg == 'esi'):
+						edi = esi
+						esi = found
+					elif(reg == 'ebp'):
+						edi = ebp
+						ebp = found
+					elif(reg == 'esp'):
+						edi = esp
+						esp = found
+				elif(found == 'esi'):
+					found = esi
+					if(reg == 'eax'):
+						esi = eax
+						eax = found
+					elif(reg == 'ebx'):
+						esi = ebx
+						ebx = found
+					elif(reg == 'ecx'):
+						esi = ecx
+						ecx = found
+					elif(reg == 'edx'):
+						esi = edx
+						edx = found
+					elif(reg == 'edi'):
+						esi = edi
+						edi = found
+					elif(reg == 'ebp'):
+						esi = ebp
+						ebp = found
+					elif(reg == 'esp'):
+						esi = esp
+						esp = found
+				elif(found == 'ebp'):
+					found = ebp
+					if(reg == 'eax'):
+						ebp = eax
+						eax = found
+					elif(reg == 'ebx'):
+						ebp = ebx
+						ebx = found
+					elif(reg == 'ecx'):
+						ebp = ecx
+						ecx = found
+					elif(reg == 'edx'):
+						ebp = edx
+						edx = found
+					elif(reg == 'edi'):
+						ebp = edi
+						edi = found
+					elif(reg == 'esi'):
+						ebp = esi
+						esi = found
+					elif(reg == 'esp'):
+						ebp = esp
+						esp = found
+				elif(found == 'esp'):
+					found = esp
+					if(reg == 'eax'):
+						esp = eax
+						eax = found
+					elif(reg == 'ebx'):
+						esp = ebx
+						ebx = found
+					elif(reg == 'ecx'):
+						esp = ecx
+						ecx = found
+					elif(reg == 'edx'):
+						esp = edx
+						edx = found
+					elif(reg == 'edi'):
+						esp = edi
+						edi = found
+					elif(reg == 'esi'):
+						esp = esi
+						esi = found
+					elif(reg == 'ebp'):
+						esp = ebp
+						ebp = found
+				else:
+					found = "unknown"
+
+				found = str(found)
+
+			else:
+				found = "unknown"
+
+			
+
+		elif(push):
+
+			line = line.split(' ',1)[-1]
+			line = line.replace(' ', '')
+
+			# print("PUSH LINE IS")
+			# print(line)
+			variable = re.search(" ?(e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
+			numeric = re.search(" ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
+			ptr = re.search(" ?(ptr)", line, re.IGNORECASE)
+			
+			if(ptr):
+				found = "unknown"
+
+			elif(variable):
+				found = str(variable.group())
+
+				# print("here is what i found:")
+				# print(found)
+
+				if(found == 'eax'):
+					found = eax
+				elif(found == 'ebx'):
+					found = ebx
+				elif(found == 'ecx'):
+					found = ecx
+				elif(found == 'edx'):
+					found = edx
+				elif(found == 'edi'):
+					found = edi
+				elif(found == 'esi'):
+					found = esi
+				elif(found == 'ebp'):
+					found = ebp
+				elif(found == 'esp'):
+					found = esp
+				else:
+					found = "unknown"
+
+				found = str(found)
+
+			elif(numeric):
+				found = int(numeric.group(), 0)
+				# print("here is what i found:")
+				# print(found)
+
+				found = hex(found)
+
+			else:
+				found = "unknown"
+
+			stack.append(found)
+
+			if(esp != "unknown"):
+				esp = int(esp, 0) - 4
+			else:
+				espOffset -= 4
+
+
+		elif(pop):	
+
+			line = line.split(' ',1)[-1]
+			line = line.replace(' ', '')
+
+			# print("PUSH LINE IS")
+			# print(line)
+			variable = re.search(" ?(e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
+			numeric = re.search(" ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
+
+
+			ptr = re.search(" ?(ptr)", line, re.IGNORECASE)
+
+			if(variable and (not ptr)):
+				found = str(variable.group())
+
+				# print("here is what i found:")
+				# print(found)
+
+				if(stack):
+					val = str(stack.pop())
+				else:
+					val = "unknown"
+
+				if(found == 'eax'):
+					eax = val
+					eaxOffset = 0
+				elif(found == 'ebx'):
+					ebx = val
+					ebxOffset = 0
+				elif(found == 'ecx'):
+					ecx = val
+					ecxOffset = 0
+				elif(found == 'edx'):
+					edx = val
+					edxOffset = 0
+				elif(found == 'edi'):
+					edi = val
+					ediOffset = 0
+				elif(found == 'esi'):
+					esi = val
+					esiOffset = 0
+				elif(found == 'ebp'):
+					ebp = val
+					ebpOffset = 0
+				elif(found == 'esp'):
+					esp = val
+					espOffset = 0
+				else:
+					found = "unknown"
+
+			if(esp != "unknown"):
+				esp = int(esp, 0) + 4
+			else:
+				espOffset += 4
+
+	# if(eaxOffset == 0):
+	# 	print("EAX = " + str(eax))
+	# else:
+	# 	print("EAX = " + str(eax) + ' + ' + str(hex(eaxOffset)))
+	# if(ebxOffset == 0):
+	# 	print("EBX = " + str(ebx))
+	# else:
+	# 	print("EBX = " + str(ebx) + ' + ' + str(hex(ebxOffset)))
+	# if(ecxOffset == 0):
+	# 	print("ECX = " + str(ecx))
+	# else:
+	# 	print("ECX = " + str(ecx) + ' + ' + str(hex(ecxOffset)))
+	# if(edxOffset == 0):
+	# 	print("EDX = " + str(edx))
+	# else:
+	# 	print("EDX = " + str(edx) + ' + ' + str(hex(edxOffset)))
+	# if(ediOffset == 0):
+	# 	print("EDI = " + str(edi))
+	# else:
+	# 	print("EDI = " + str(edi) + ' + ' + str(hex(ediOffset)))
+	# if(esiOffset == 0):
+	# 	print("ESI = " + str(esi))
+	# else:
+	# 	print("ESI = " + str(esi) + ' + ' + str(hex(esiOffset)))
+	# if(ebpOffset == 0):
+	# 	print("EBP = " + str(ebp))
+	# else:
+	# 	print("EBP = " + str(ebp) + ' + ' + str(hex(ebpOffset)))
+	# if(espOffset == 0):
+	# 	print("ESP = " + str(esp))
+	# else:
+	# 	print("ESP = " + str(esp) + ' + ' + str(hex(espOffset)))
+
+	# for item in stack:
+	# 	print("STACK ITEM: " + str(item))
+
+
+	regsResult = [eax, ebx, ecx, edx, edi, esi, ebp, ebp]
+	for x in range(len(regsResult)):
+		try:
+			regsResult[x] = hex(regsResult[x])
+		except Exception as e:
+			# print(e)
+			pass
+
+	return(regsResult, stack)
+
+
+
+def get_Egghunters(NumOpsDis, NumOpsBack, bytesToMatch, secNum, data2): 
+	#change to work off of data2 - add param - get rid of secNum
+
+	# print('in get')
+
+	global o
+	foundCount = 0
+	numOps = NumOpsDis
+
+
+	t=0
+	len_data2 = len(data2)
+	len_bytesToMatch = len(bytesToMatch)
+	for v in data2:
+		found = True #reset flag
+		#replace with bytesToMatch list if desired
+		#for i in range(len(bytesToMatch)): #can break out on no match for efficiency, left as is for simplicity
+		i = 0
+		for x in bytesToMatch:
+			if(found == False):
+				break
+			# elif ((i+t) >= len_data2 or i >= len_bytesToMatch):
+			# 	found = False # out of range
+			try:
+				#print(data2[t+i])
+				#input("enter..")
+				if ((data2[t+i]) != (bytesToMatch[i])):
+					found = False #no match
+			except Exception as e:
+				# input(e)
+				pass
+			i += 1
+
+		if(found):
+			# input("enter..")
+			disHereEgg(t, numOps, NumOpsBack, secNum, data2)
+
+			
+
+		t=t+1
+
+def disHereEgg(address, NumOpsDis, NumOpsBack, secNum, data): ############ AUSTIN ##############
+
+	global o
+	global total1
+	global total2
+	global fcount
+	w=0
+
+	op_const = 16
+	line_const = 8
+	NumOpsBack = NumOpsBack + op_const
+
+	## Capstone does not seem to allow me to start disassemblying at a given point, so I copy out a chunk to  disassemble. I append a 0x00 because it does not always disassemble correctly (or at all) if just two bytes. I cause it not to be displayed through other means. It simply take the starting address of the jmp [reg], disassembles backwards, and copies it to a variable that I examine more closely.
+	#lGoBack = linesGoBackFindOP
+
+	# print("disHere")
+	# print(hex(address))
+	# print(secNum)
+	#input("addy")
+
+	CODED2 = ""
+	x = NumOpsDis
+	# start = timeit.default_timer()
+	if(secNum != "noSec"):
+		section = s[secNum]
+
+
+	# print("------------------------------------")
+	for back in range(NumOpsBack):
+		unlikely = 0
+		# print("back = " + str(back))
+		CODED2 = data[(address-(NumOpsBack-back)):(address+x)]
+			#print("########################")
+		#	print(type(CODED2))
+		#	print("########################")
+		#
+		# stop = timeit.default_timer()
+		# total1 += (stop - start)
+		# print("Time 1 PEB: " + str(stop - start))
+
+		# I create the individual lines of code that will appear>
+		# print(len(CODED2))
+		val =""
+		val2 = []
+		val3 = []
+		#address2 = address + section.ImageBase + section.VirtualAdd
+		val5 =[]
+
+		# start = timeit.default_timer()
+		#CODED3 = CODED2.encode()
+		CODED3 = CODED2
+		# print("BINARY2STR")
+		# print(binaryToStr(CODED3))
+		# print("******************************************")
+		for i in cs.disasm(CODED3, address):
+			#print('address in for = ' + str(address))
+			if(secNum == "noSec"):
+
+			#	print("i = " + str(i) + " i.mnemonic = " + str(i.mnemonic))
+				# add = hex(int(i.address))
+				add4 = hex(int(i.address))
+				addb = hex(int(i.address))
+			else:
+				add = hex(int(i.address))
+				addb = hex(int(i.address +  section.VirtualAdd  - (NumOpsBack - back) ))
+				add2 = str(add)
+				add3 = hex (int(i.address + section.startLoc	- (NumOpsBack - back) ))
+				add4 = str(add3)
+			val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+			# val2.append(val)
+			# val3.append(add2)
+			val5.append(val)
+			# print(val)
+
+			disString = val5
+			# print("before")
+			# print(disString)
+			# disString = disString[2:]
+			# print("after")
+			# print(disString)
+			c0_match = False
+			#check for dword ptr fs:[reg] and verify value of register
+
+
+		for line in disString:
+			if(re.match("^((jmp)|(call)) ?dword ptr fs: ?\[0xc0\]", line, re.IGNORECASE)):
+				c0_match = True
+
+			byte = re.search("byte ptr", line, re.IGNORECASE)
+			insd = re.search("insd", line, re.IGNORECASE)
+			longNum = re.search("(0x)([0-9a-f]){6,}", line, re.IGNORECASE)
+
+			if(byte or insd or longNum):
+				unlikely = unlikely + 1
+
+
+			if(c0_match and (unlikely < 3)):
+				# print("c0 match")
+				# print("SAVING THIS ONE")
+				# input()
+				if(rawHex):
+					modSecName = peName
+				else:
+					modSecName = section.sectionName
+
+				startStates = ("unknown","unknown","unknown","unknown","unknown","unknown","unknown","unknown")
+				eax = trackRegs(disString, startStates, [])[0][0]
+				if(eax == "0x26"):
+					# print("TrackRegs found eax = " + str(eax))
+					saveBaseEgg(address, NumOpsDis, (NumOpsBack - back), modSecName, secNum, eax)
+				return
+
+
+def saveBaseEgg(address, NumOpsDis, NumOpsBack, modSecName, secNum, eax):
+	if(secNum != "noSec"):
+		s[secNum].save_Egg_info.append(tuple((address,NumOpsDis,NumOpsBack,modSecName,secNum,eax)))
+	else:
+		print("Saving one raw")
+		secNum = -1
+		modSecName = "rawHex"
+		m[o].save_Egg_info.append(tuple((address,NumOpsDis,NumOpsBack,modSecName,secNum, eax)))
+
+
+def printSavedEgg(): ######################## AUSTIN ###############################3
+	#formatting
+	j = 0
+	if(rawHex):
+		for item in m[o].save_Egg_info:
+			CODED2 = b""
+
+			address = item[0]
+			NumOpsDis = item[1]
+			NumOpsBack = item[2]
+			modSecName = item[3]
+			secNum = item[4]
+			eax = item[5]
+
+			CODED2 = rawData2[(address-NumOpsBack):(address+NumOpsDis)]
+
+			outString = "\n\nEGG Item : " + str(j)
+			if(secNum != -1):
+
+				outString += " | Section number: " + str(secNum) + " | Section name: " + str(modSecName)
+				# if(secNum != 0):
+				# 	trash = raw_input("enter...")
+				
+			else:
+				outString += " | Module: " + modSecName
+
+			outString += " | EAX: " + eax
+
+			print ("\n********************************************************")
+			print (outString)
+			print ("\n")
+			val =""
+			val2 = []
+			val3 = []
+			#address2 = address + section.ImageBase + section.VirtualAdd
+			val5 =[]
+
+			for i in cs.disasm(CODED2, address):
+				if(rawHex):
+					add4 = hex(int(i.address))
+					addb = hex(int(i.address))
+				else:
+					add = hex(int(i.address))
+					addb = hex(int(i.address +  section.VirtualAdd))
+					add2 = str(add)
+					add3 = hex (int(i.address + section.startLoc	))
+					add4 = str(add3)
+				val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+				print (val)
+	#return val5
+			print ("\n")
+			j += 1
+	else:
+		h = 0
+		for section in s:
+			h += 1
+			# print("PRINTING SECTION " + str(h))
+			for item in section.save_Egg_info:
+				CODED2 = ""
+
+
+				address = item[0]
+				NumOpsDis = item[1]
+				NumOpsBack = item[2]
+				modSecName = item[3]
+				secNum = item[4]
+				eax = item[5]
+
+				# print("NUMBACK = " + str(NumOpsBack))
+
+				section = s[secNum]
+
+				outString = "\n\nItem : " + str(j)
+				if(secNum != -1):
+
+					outString += " | Section number: " + str(secNum) + " | Section name: " + str(modSecName)
+					# if(secNum != 0):
+					# 	trash = raw_input("enter...")
+					
+				else:
+					outString += " | Module: " + modSecName
+
+				outString += " | EAX: " + eax
+
+				print ("\n********************************************************")
+				print (outString)
+				print ("\n")
+				val =""
+				val2 = []
+				val3 = []
+				address2 = address + section.ImageBase + section.VirtualAdd
+				val5 =[]
+
+				CODED2 = section.data2[(address-NumOpsBack):(address+NumOpsDis)]
+
+				CODED3 = CODED2
+				for i in cs.disasm(CODED3, address):
+					add = hex(int(i.address))
+					addb = hex(int(i.address +  section.VirtualAdd - NumOpsBack))
+					add2 = str(add)
+					add3 = hex (int(i.address + section.startLoc	- NumOpsBack))
+					add4 = str(add3)
+					val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+					val2.append(val)
+					val3.append(add2)
+					val5.append(val)
+					print (val)
+				print ("\n")
+				j += 1
+				# print str(type(m[o].data2))
+				# trash = raw_input("enter...")
+
+
+
 def saveBasePEBWalk(address, NumOpsDis,modSecName,secNum, points, loadTIB_offset, loadLDR_offset, loadModList_offset, advanceDLL_Offset): 
 	# print("saving")
 	#save virtaul address as well
@@ -2564,12 +4075,17 @@ def saveBasePEBWalk(address, NumOpsDis,modSecName,secNum, points, loadTIB_offset
 		m[o].save_PEB_info.append(tuple((address,NumOpsDis,modSecName,secNum,points,loadTIB_offset,loadLDR_offset,loadModList_offset,advanceDLL_Offset)))
 
 
+def findAllFSTENV(data2, secNum): ################## AUSTIN ######################
 
-def findAllFSTENV(): ################## AUSTIN ######################
+	for match in FSTENV_GET_BASE.values(): #iterate through all opcodes representing combinations of registers
+		get_FSTENV(10, 15, match, secNum, data2) 
+
+
+def findAllFSTENV_old(): ################## AUSTIN ######################
 
 	if(rawHex):
 		for match in FSTENV_GET_BASE.values(): #iterate through all opcodes representing combinations of registers
-			get_FSTENV(10, 15, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+			get_FSTENV(10, 15, match, "noSec", rawData2) 
 
 
 	elif(bit32):
@@ -2578,11 +4094,27 @@ def findAllFSTENV(): ################## AUSTIN ######################
 			data2 = s[secNum].data2
 			# print("before mov"
 			for match in FSTENV_GET_BASE.values(): #iterate through all opcodes representing combinations of registers
-				get_FSTENV(10, 15, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
+				get_FSTENV(10, 15, match, secNum, data2) 
+
+def findAllCallpop(data2, secNum): ################## AUSTIN ######################
+
+	for match in CALLPOP_START.values(): #iterate through all opcodes representing combinations of registers
+		get_Callpop(10, match[0], secNum, data2, match[1]) 
+
+
+def findAllPebSequences(data2, secNum): ################## AUSTIN ######################
+	# global rawHex
+
+	for match in PEB_WALK.values(): #iterate through all opcodes representing combinations of registers
+		get_PEB_walk_start(19, match, secNum, data2) 
+	
+
+
+	
 
 
 #add bytes param
-def findAllPebSequences(): ################## AUSTIN ######################
+def findAllPebSequences_old(): ################## AUSTIN ######################
 	# global rawHex
 
 	print ("findAllPebSequences", binaryToStr(rawData2))
@@ -2591,16 +4123,7 @@ def findAllPebSequences(): ################## AUSTIN ######################
 
 		for match in PEB_WALK.values(): #iterate through all opcodes representing combinations of registers
 			get_PEB_walk_start(19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
-		# for match in PEB_WALK_ADD.values(): #iterate through all opcodes representing combinations of registers
-		# 	get_PEB_walk_start(19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
-		# for match in PEB_WALK_ADC.values(): #iterate through all opcodes representing combinations of registers
-		# 	get_PEB_walk_start(19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
-		# for match in PEB_WALK_OR.values(): #iterate through all opcodes representing combinations of registers
-		# 	get_PEB_walk_start(19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
-		# for match in PEB_WALK_XOR.values(): #iterate through all opcodes representing combinations of registers
-		# 	get_PEB_walk_start(19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
-		# for match in PEB_WALK_XCHG.values(): #iterate through all opcodes representing combinations of registers
-		# 	get_PEB_walk_start(19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+	
 
 
 	elif(bit32):
@@ -2631,7 +4154,13 @@ def findAllPebSequences(): ################## AUSTIN ######################
 				get_PEB_walk_start_64(28, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
 
 
-def findAllPushRet(): ################## AUSTIN #########################
+def findAllPushRet(data2, secNum): ################## AUSTIN #########################
+	for match in PUSH_RET.values(): 
+		get_PushRet_start(4, match, secNum, data2)
+
+
+
+def findAllPushRet_old(): ################## AUSTIN #########################
 	if(rawHex):
 		for match in PUSH_RET.values(): 
 			get_PushRet_start(4, match, "noSec", rawData2)
@@ -2640,7 +4169,7 @@ def findAllPushRet(): ################## AUSTIN #########################
 		for secNum in range(len(s)):
 			data2 = s[secNum].data2
 			for match in PUSH_RET.values(): #iterate through all opcodes representing combinations of registers
-				get_PushRet_start(4, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
+				get_PushRet_start(4, match, secNum, data2) 
 
 def findAndPrintSuspicious():  ################## AUSTIN #########################
 	findAllPebSequences()
@@ -4038,16 +5567,39 @@ def runIt():
 			modName = peName
 			o = 0
 
+
+
 def AustinTesting():
 
 	# start = timeit.default_timer()
 	# print("AUSTINHERE")
 	# print(rawHex)
 
-	findAllFSTENV()
-	printSavedFSTENV()
-	findAllPebSequences()
-	printSavedPEB()
+	# findAllFSTENV_old()
+	# printSavedFSTENV()
+
+	if(rawHex):
+		findAllCallpop(rawData2, 'noSec')
+
+	printSavedCallPop()
+
+	# elif(bit32):
+	# 	for secNum in range(len(s)):
+	# 		# print("Trying section: " + str(secNum))
+	# 		data2 = s[secNum].data2
+	# 		# print("before mov"
+	# 		for match in FSTENV_GET_BASE.values(): #iterate through all opcodes representing combinations of registers
+	# 			get_FSTENV(10, 15, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
+
+	for secNum in range(len(s)):
+			# print("Trying section: " + str(secNum))
+			data2 = s[secNum].data2
+			# findAllPebSequences(data2, secNum)
+			for match in EGGHUNT.values(): #iterate through all opcodes representing combinations of registers
+				get_Egghunters(20, 20, match, secNum, data2)
+
+	printSavedEgg()
+	# printSavedPEB()
 	# stop = timeit.default_timer()
 	# print("PEB TIME PY3 = " + str(stop - start))
 	# findAllPushRet()
@@ -4059,6 +5611,32 @@ def AustinTesting():
 	# printSavedPushRet()
 
 
+def AustinTesting2():
+	data2 = s[0].data2
+	disHereTiny(data2)
+	filename=data2
+	# rawBytes=readShellcode(shellArg) 
+
+	# rawData2=rawBytes
+	# # # printBytes(rawBytes)
+	# print (disHereShell(rawBytes, False, False, "ascii", True))
+	# print ("SizeRawdata2", len(rawData2))
+	# rawBytes=rawData2
+	# print ("rawbytes class", type(rawBytes))
+
+	# disassembly=takeBytes(data2,(len(data2)-10))
+	# directory, filename= (splitDirectory(filename))
+	# directory=""
+
+	# if not os.path.exists(directory+'outputs'):
+	# 	os.makedirs(directory+'outputs')
+	# print (directory+"outputs\\"+filename[:-4]+".bin")
+	# # newBin = open(directory+"outputs\\"+filename[:-4]+".bin", "wb")
+	# # newBin.write(rawBytes)
+	# # newBin.close()
+	# newDis = open(directory+"outputs\\"+filename[:-4]+"-disassembly.txt", "w")
+	# newDis.write(disassembly)
+	# newDis.close()
 
 
 def AustinStart():
@@ -6425,7 +8003,7 @@ def bramwellStart():
 
 
 def bramwellStart2():
-	findAllPebSequences()
+	findAllPebSequences_old()
 	printSavedPEB()
 ##### START
 
@@ -6526,7 +8104,7 @@ def shellDisassemblyStart2(shellArg):
 	# print ("rawbytes class", type(rawBytes))
 	print ("size shellArg", len(shellArg) )
 	print ("find peb")
-	findAllPebSequences()
+	findAllPebSequences_old()
 	print ("find peb res")
 	printSavedPEB()
 	disassembly=takeBytes(shellArg,0)
@@ -6605,9 +8183,9 @@ if __name__ == "__main__":
 	# printSavedPushRet()
 
 	# bramwellStart()
-	bramwellDisassembly()
-	# bramwellStart2()
-	# bramwellDisassembly2()
+	#bramwellDisassembly()
+	#bramwellStart2()
+	#bramwellDisassembly2()
 	# addComments()
 
 	# bramwellEncodeDecodeWork(filename)
@@ -6620,5 +8198,5 @@ if __name__ == "__main__":
 	#Austin's work -- place here - may comment out as need be
 	
 	# starting()
-	# AustinStart()
-	# AustinTesting()
+	AustinStart()
+	AustinTesting()

@@ -72,9 +72,10 @@ PEB_WALK_MOV_OLD = {
 }
 
 #MOV <REG>, [FS:0x30]
+#check esp for each
 PEB_WALK = {
 	'MOV_OFFSET_NONE': b"\x64\xA1",
-	'MOV_OFFSET':  b"\x64\x8B",
+	'MOV_OFFSET':   b"\x64\x8B",
 	'ADD_ALL':		b"\x64\x03",
 	'ADC_ALL':		b"\x64\x13",
 	'XOR_ALL':		b"\x64\x33",
@@ -82,6 +83,8 @@ PEB_WALK = {
 	'XCHG_ALL':		b"\x64\x87",
 	'PUSH_ALL':		b"\x64\xFF"
 }
+
+
 
 #ADD <REG>,[FS:0x30]
 PEB_WALK_ADD_OLD = {
@@ -677,6 +680,46 @@ FSTENV_GET_BASE = {
 	'ESP_PTR': b"\xD9\xB4\x24"
 
 }
+
+EGGHUNT = {
+	'NONE_CALL': b"\x64\xFF\x15",
+	'EAX': b"\x64\xFF\x10",
+	'EBX': b"\x64\xFF\x13",
+	'ECX': b"\x64\xFF\x11",
+	'EDX': b"\x64\xFF\x12",
+	'EDI': b"\x64\xFF\x17",
+	'ESI': b"\x64\xFF\x16",
+	'EBP': b"\x64\xFF\x55\x00",
+	'ESP': b"\x64\xFF\x14\x24",
+	'EAX_JMP': b"\x64\xFF\x20",
+	'EBX_JMP': b"\x64\xFF\x23",
+	'ECX_JMP': b"\x64\xFF\x21",
+	'EDX_JMP': b"\x64\xFF\x22",
+	'EDI_JMP': b"\x64\xFF\x27",
+	'ESI_JMP': b"\x64\xFF\x26",
+	'EBP_JMP': b"\x64\xFF\x65\x00",
+	'ESP_JMP': b"\x64\xFF\x24\x24",
+	'NONE_JMP': b"\x64\xFF\x25"
+
+
+}
+
+CALLPOP_START = {
+	'0': (b"\xE8\x00\x00\x00\x00", 5),
+	'1': (b"\xE8\x01\x00\x00\x00", 6),
+	'2': (b"\xE8\x02\x00\x00\x00", 7),
+	'3': (b"\xE8\x03\x00\x00\x00", 8),
+	'4': (b"\xE8\x04\x00\x00\x00", 9),
+	'5': (b"\xE8\x05\x00\x00\x00", 10),
+	'6': (b"\xE8\x06\x00\x00\x00", 11),
+	'7': (b"\xE8\x07\x00\x00\x00", 12),
+	'8': (b"\xE8\x08\x00\x00\x00", 13),
+	'9': (b"\xE8\x09\x00\x00\x00", 14),
+	'10': (b"\xE8\x0A\x00\x00\x00", 15)
+}
+
+
+
 
 ################### AUSTIN ###############################
 
