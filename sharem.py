@@ -7536,8 +7536,35 @@ def printAllShByRange(start,end):
 		t+=1
 	print (out)
 
+def findTargetAddressReturnPrior(targetAddress, linesGoBack, l1, l2):
+	tl1=[]
+	tl2=[]
+	linesGoBack=linesGoBack-1
+	# targetAddress=0x0
+	try:
+		index = l1.index(targetAddress)
+	except ValueError:
+		dprint ("Target Index not found")
+		return False, tl1, tl2
+	print ("my own index", index)
+	print (index - linesGoBack)
+	if (index - linesGoBack) < 0:
+		print ("ok")
+		linesGoBack= index-0
+		print ("linesGoBack", linesGoBack)
 
-def preSyscalDiscovery(startingAddress):
+	tl1=l1[index-linesGoBack:index+1]
+	tl2=l2[index-linesGoBack:index+1]
+	t=0
+	print ("size", len(tl1))
+	# for each in tl1:
+	# 	print (hex(each), tl2[t]) 
+	# 	t+=1
+	# print ("\n\n\n")
+	return True,tl1, tl2
+
+
+def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack):
 	global filename
 	global rawData2
 	global shBy
@@ -7576,7 +7603,10 @@ def preSyscalDiscovery(startingAddress):
 	l1, l2=printTempDisAustin()
 	# saveDB()
 	clearDisassBytClass()
-	return l1,l2
+	truth, tl1, tl2= findTargetAddressReturnPrior(targetAddress, linesGoBack, l1, l2)
+
+	print ("sizetl1", len(tl1))
+	return truth, tl1, tl2, l1,l2
 
 def takeBytes(shellBytes,startingAddress):
 	global shBy
@@ -8673,10 +8703,27 @@ if __name__ == "__main__":
 
 	## AUSTIN --> get list of disassmebly from from shellcode and list of of offsets
 
-	listOffset,listDisassembly = preSyscalDiscovery(0)  # arg: starting offset
-	for e in listDisassembly:
-		print (str(hex(listOffset[t])) + "\t" + e)
-		t+=1
+	#sample input -- if nothing found, it will return as false
+	targetAddress=0x2
+	linesGoBack=10
+	truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, targetAddress, linesGoBack)  # arg: starting offset/entry point - leave 0 generally
+	if truth:
+		####the FULL disassembly of the shellcode
+		print ("Full disassembly of shellcode")
+		for e in orgListDisassembly:
+			print (str(hex(orgListOffset[t])) + "\t" + e)
+			t+=1
+		print ("\n\n\n")
+		t=0
+
+		##### JUST the found list  = target address - linesGoBack
+		print ("Found Target Address")
+		for each in tl1:
+			print (hex(each), tl2[t]) 
+			t+=1	
+	else:
+		print ("Target address not found")
+
 
 	# bramwellDisassembly2()   #.bin file? maybe? not sure
 	# addComments()
@@ -8691,5 +8738,5 @@ if __name__ == "__main__":
 	#Austin's work -- place here - may comment out as need be
 	
 	# starting()
-	AustinStart()
-	AustinTesting()
+	# AustinStart()
+	# AustinTesting()
