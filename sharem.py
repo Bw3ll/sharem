@@ -17,6 +17,7 @@ import win32file
 from sorting import *
 import timeit
 import string
+import csv
 
 tempDisassembly=[]
 tempAddresses=[]
@@ -2658,6 +2659,53 @@ def disHereCallpop(address, NumOpsDis, secNum, data, distance):
 
 	origAddr = address
 	address = address + distance
+
+
+
+		####### PRINT CALL LINE
+
+	CODED2 = data[(origAddr):(address+5)]
+
+	# I create the individual lines of code that will appear>
+	val =""
+	val2 = []
+	val3 = []
+	#address2 = address + section.ImageBase + section.VirtualAdd
+	val5 =[]
+	
+	# print("HERE IS THE CALL LINE")
+	# start = timeit.default_timer()
+	CODED3 = CODED2
+	for i in cs.disasm(CODED3, address):
+		if(secNum == "noSec"):
+			# add = hex(int(i.address))
+			add4 = hex(int(i.address))
+			addb = hex(int(i.address))
+		else:
+			add = hex(int(i.address))
+			addb = hex(int(i.address +  section.VirtualAdd))
+			add2 = str(add)
+			add3 = hex (int(i.address + section.startLoc	))
+			add4 = str(add3)
+		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+		val5.append(val)
+		# print(val)
+
+
+	disString = val5
+
+	for line in disString:
+
+		##############################################
+
+		call = re.match("^call", line, re.IGNORECASE)
+		if(call):
+			pop_addr = line.split()[1]
+			# pop_addr = pop_addr[:-1]
+			# print("POP ADDR = " + str(pop_addr))
+		# print("POP OFFSET")
+
+
 	if(secNum != "noSec"):
 		section = s[secNum]
 	CODED2 = data[(address):(address+NumOpsDis)]
@@ -2701,7 +2749,7 @@ def disHereCallpop(address, NumOpsDis, secNum, data, distance):
 			pop_offset = line.split()[-1]
 			pop_offset = pop_offset[:-1]
 		# print("POP OFFSET")
-		print(pop_offset)
+		# print(pop_offset)
 		if(pop):
 
 			if(rawHex):
@@ -2709,7 +2757,7 @@ def disHereCallpop(address, NumOpsDis, secNum, data, distance):
 			else:
 				modSecName = section.sectionName
 			# print("saving one")
-			saveBaseCallpop(address, NumOpsDis, modSecName, secNum, distance)
+			saveBaseCallpop(origAddr, NumOpsDis, modSecName, secNum, distance)
 			return
 
 
@@ -2731,11 +2779,12 @@ def printSavedCallPop(): ######################## AUSTIN #######################
 		for item in m[o].save_Callpop_info:
 			CODED2 = b""
 
-			address = item[0]
+			origAddr = item[0]
 			NumOpsDis = item[1]
 			modSecName = item[2]
 			secNum = item[3]
 			distance = item[4]
+			address = origAddr + distance
 
 			CODED2 = rawData2[(address):(address+NumOpsDis)]
 
@@ -2748,6 +2797,8 @@ def printSavedCallPop(): ######################## AUSTIN #######################
 				
 			else:
 				outString += " | Module: " + modSecName
+
+			outString += " | Call address: " + str(hex(origAddr)) + " | Distance from call: " + str(hex(distance))
 
 			print ("\n********************************************************")
 			print (outString)
@@ -2833,6 +2884,112 @@ def printSavedCallPop(): ######################## AUSTIN #######################
 				# trash = raw_input("enter...")
 
 
+def identifySyscall(callNum): # returns two lists containing lists of the format [syscall name 1, version 1, version 2.... ]. First list is results for x86 OSes, second is for x86-64
+
+	result = []
+	result64 = []
+	result32 = []
+
+	callNum = format(callNum, '#06x')
+	with open('nt64.csv', 'r') as file:
+		nt64Csv = csv.reader(file)
+		# print(format(callNum, '#06x'))
+		nt64Header = next(nt64Csv)
+		# print(ntHeader)
+		for row in nt64Csv:
+			if(callNum in row):
+				newEntry = []
+				newEntry.append(row[0])
+				# print(row[0])
+				while(callNum in row):
+					newEntry.append(nt64Header[row.index(callNum)])
+					# print(ntHeader[row.index(callNum)])
+					row[row.index(callNum)] = ""
+				result64.append(newEntry)
+
+
+	# print("################### WIN32K #########################")
+
+	with open('win32k64.csv', 'r') as file:
+		w3264Csv = csv.reader(file)
+		# print(format(callNum, '#06x'))
+		w3264header = next(w3264Csv)
+		# print(w32header)
+		for row in w3264Csv:
+			if(callNum in row):
+				newEntry = []
+				newEntry.append(row[0])
+				# print("\n")
+				# print(row[0])
+				while(callNum in row):
+					newEntry.append(w3264header[row.index(callNum)])
+					row[row.index(callNum)] = ""
+				result64.append(newEntry)
+
+
+	with open('nt.csv', 'r') as file:
+		ntCsv = csv.reader(file)
+		# print(format(callNum, '#06x'))
+		ntHeader = next(ntCsv)
+		# print(ntHeader)
+		for row in ntCsv:
+			if(callNum in row):
+				newEntry = []
+				newEntry.append(row[0])
+				# print(row[0])
+				while(callNum in row):
+					newEntry.append(ntHeader[row.index(callNum)])
+					# print(ntHeader[row.index(callNum)])
+					row[row.index(callNum)] = ""
+				result32.append(newEntry)
+
+
+	# print("################### WIN32K #########################")
+
+	with open('win32k.csv', 'r') as file:
+		w32Csv = csv.reader(file)
+		# print(format(callNum, '#06x'))
+		w32header = next(w32Csv)
+		# print(w32header)
+		for row in w32Csv:
+			if(callNum in row):
+				newEntry = []
+				newEntry.append(row[0])
+				# print("\n")
+				# print(row[0])
+				while(callNum in row):
+					newEntry.append(w32header[row.index(callNum)])
+					row[row.index(callNum)] = ""
+				result32.append(newEntry)
+
+	result.append(result32)
+	result.append(result64)
+
+	return result
+
+
+def printSyscallResult(syscalls):
+	syscalls32 = syscalls[0]
+	syscalls64 = syscalls[1]
+
+
+	print("---------------------- x86 INFO -------------------------")
+
+	for item in syscalls[0]:
+		name = item[0]
+		print("\nAPI Name: \t" + str(name))
+		print("Versions:")
+		for opSys in item[1:]:
+			print(str(opSys))
+
+	print("\n\n\n---------------------- x86-64 INFO -------------------------")
+
+	for item in syscalls[1]:
+		name = item[0]
+		print("\nAPI Name: \t" + str(name))
+		print("Versions:")
+		for opSys in item[1:]:
+			print(str(opSys))
 
 
 def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startStates: tuple containing starting values of each register | stack: list of items on the stack
@@ -5643,6 +5800,9 @@ def AustinTesting():
 				get_Egghunters(20, 20, match, secNum, data2)
 
 	printSavedEgg()
+
+	stuff = identifySyscall(int(0x26))
+	printSyscallResult(stuff)
 	# printSavedPEB()
 
 	# mode=""
@@ -5891,7 +6051,7 @@ def readShellcode(shellcode):
 	shells = file1.read() 
 	# print("\nshells\n")
 	shells = re.sub(rf"[{string.punctuation}]", "", shells)
-	print (shells)
+	print(shells)
 	shells=splitBackslashx(shells)
 	shells=splitArrLit(shells)
 	shells=split0x(shells)
@@ -8703,6 +8863,7 @@ if __name__ == "__main__":
 
 	## AUSTIN --> get list of disassmebly from from shellcode and list of of offsets
 
+
 	#sample input -- if nothing found, it will return as false
 	targetAddress=0x2
 	linesGoBack=10
@@ -8724,6 +8885,11 @@ if __name__ == "__main__":
 	else:
 		print ("Target address not found")
 
+
+	# listOffset,listDisassembly = preSyscalDiscovery(0)  # arg: starting offset
+	# for e in listDisassembly:
+	# 	print (str(hex(listOffset[t])) + "\t" + e)
+	# 	t+=1
 
 	# bramwellDisassembly2()   #.bin file? maybe? not sure
 	# addComments()
