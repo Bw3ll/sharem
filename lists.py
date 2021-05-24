@@ -651,6 +651,10 @@ PEB_WALK_MOV_64 = {
 	'R15_OFFSET_R15':  b"\x65\x4D\x8B\x7F\x60"
 }
 
+HEAVEN = {
+	'JMPCALL': b"\x33\x00"
+}
+
 
 ################### AUSTIN ###############################
 FSTENV_GET_BASE = {

@@ -148,10 +148,10 @@ if not skipExtraction:
 	print ("entering Austin")
 	rawHex = False
 	# global rawData2
-	print ("0", sys.argv[0])
-	print ("1", sys.argv[1])
-	print ("2", sys.argv[2])
-	if(numArgs > 1):
+	# print ("0", sys.argv[0])
+	# print ("1", sys.argv[1])
+	# print ("2", sys.argv[2])
+	if(numArgs > 2):
 		if(sys.argv[2] == "raw"):
 			rawHex = True
 			rawBin=True  # only if .bin, not .txt
@@ -230,7 +230,8 @@ class MyBytes:
 		# self.sectionStart =0 ### image base + virtual address
 		self.save_FSTENV_info = [] #tuple - addr, NumOps, modSecName, secNum
 		self.save_Egg_info = [] #tuple - addr, NumOps, modSecName, secNum
-		self.save_Callpop_info = [] #tuple - addr, NumOps, modSecName, secNum
+		self.save_Callpop_info = [] #tuple - addr, NumOps, modSecName, secNum, pop_offset
+		self.save_Heaven_info = []
 # end classs 
 
 class IATS:
@@ -2465,6 +2466,8 @@ def disHereFSTENV(address, NumOpsDis, NumOpsBack, secNum, data): ############ AU
 
 				for line in disString:
 					FSTENV_instr = re.match("^fn?stenv", line, re.IGNORECASE)
+					#SGN_POP_instr = re.match("^pop (e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
+					#SGN_KEY_instr = re.match("^mov (e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp))), ?0x[0-9a-f]{1,8}")
 
 					if(FSTENV_instr):
 						FSTENV_offset = line.split()[-1]
@@ -2485,11 +2488,11 @@ def disHereFSTENV(address, NumOpsDis, NumOpsBack, secNum, data): ############ AU
 
 def saveBaseFSTENV(address, NumOpsDis, NumOpsBack, modSecName, secNum, FPU_offset, FSTENV_offset):
 	if(secNum != "noSec"):
-		print("FPU OFF1 = " + str(FPU_offset))
-		print("FPU OFF2 = " + str(FPU_offset))
-		print("Fstenv OFF1 = " + str(FSTENV_offset))
-		print("Fstenv OFF2 = " + str(FSTENV_offset))
-		input("fpu2")
+		# print("FPU OFF1 = " + str(FPU_offset))
+		# print("FPU OFF2 = " + str(FPU_offset))
+		# print("Fstenv OFF1 = " + str(FSTENV_offset))
+		# print("Fstenv OFF2 = " + str(FSTENV_offset))
+		# input("fpu2")
 		s[secNum].save_FSTENV_info.append(tuple((address,NumOpsDis,NumOpsBack,modSecName,secNum,FPU_offset,FSTENV_offset)))
 	else:
 		print("Saving one raw")
@@ -2511,15 +2514,15 @@ def printSavedFSTENV(): ######################## AUSTIN ########################
 			secNum = item[4]
 			FPU_offset  = item[5]
 			FSTENV_offset = item[6]
-			print("OFFSETS: ")
-			print("FPU = " + str(FPU_offset))
-			print("FSTENV = " + str(FSTENV_offset))
+			# print("OFFSETS: ")
+			# print("FPU = " + str(FPU_offset))
+			# print("FSTENV = " + str(FSTENV_offset))
 			CODED2 = rawData2[(address-NumOpsBack):(address+NumOpsDis)]
 
 			outString = "\n\nItem : " + str(j)
 			if(secNum != -1):
 
-				outString += " | Section number: " + str(secNum) + " | Section name: " + str(modSecName)
+				outString += " | Section number: " + str(secNum) + " | Section name: " + str(modSecName) + " | FPU Offset: " + str(FPU_offset) + " | FSTENV Offset: " + str(FSTENV_offset)
 				# if(secNum != 0):
 				# 	trash = raw_input("enter...")
 				
@@ -2566,9 +2569,9 @@ def printSavedFSTENV(): ######################## AUSTIN ########################
 				secNum = item[4]
 				FPU_offset  = item[5]
 				FSTENV_offset = item[6]
-				print("OFFSETS: ")
-				print("FPU = " + FPU_offset)
-				print("FSTENV = " + FSTENV_offset)
+				# print("OFFSETS: ")
+				# print("FPU = " + FPU_offset)
+				# print("FSTENV = " + FSTENV_offset)
 				# print("NUMBACK = " + str(NumOpsBack))
 
 				section = s[secNum]
@@ -2576,7 +2579,7 @@ def printSavedFSTENV(): ######################## AUSTIN ########################
 				outString = "\n\nItem : " + str(j)
 				if(secNum != -1):
 
-					outString += " | Section number: " + str(secNum) + " | Section name: " + str(modSecName)
+					outString += " | Section number: " + str(secNum) + " | Section name: " + str(modSecName) + " | FPU Offset: " + str(FPU_offset) + " | FSTENV Offset: " + str(FSTENV_offset)
 					# if(secNum != 0):
 					# 	trash = raw_input("enter...")
 					
@@ -2661,9 +2664,6 @@ def disHereCallpop(address, NumOpsDis, secNum, data, distance):
 	address = address + distance
 
 
-
-		####### PRINT CALL LINE
-
 	CODED2 = data[(origAddr):(address+5)]
 
 	# I create the individual lines of code that will appear>
@@ -2701,8 +2701,8 @@ def disHereCallpop(address, NumOpsDis, secNum, data, distance):
 		call = re.match("^call", line, re.IGNORECASE)
 		if(call):
 			pop_addr = line.split()[1]
-			# pop_addr = pop_addr[:-1]
-			# print("POP ADDR = " + str(pop_addr))
+			pop_addr = pop_addr[:-1]
+			print("POP ADDR = " + str(pop_addr))
 		# print("POP OFFSET")
 
 
@@ -2718,6 +2718,7 @@ def disHereCallpop(address, NumOpsDis, secNum, data, distance):
 	val5 =[]
 	
 
+	# print("2ND CHUNK")
 	# start = timeit.default_timer()
 	CODED3 = CODED2
 	for i in cs.disasm(CODED3, address):
@@ -2757,19 +2758,19 @@ def disHereCallpop(address, NumOpsDis, secNum, data, distance):
 			else:
 				modSecName = section.sectionName
 			# print("saving one")
-			saveBaseCallpop(origAddr, NumOpsDis, modSecName, secNum, distance)
+			saveBaseCallpop(origAddr, NumOpsDis, modSecName, secNum, distance, pop_offset)
 			return
 
 
-def saveBaseCallpop(address, NumOpsDis,modSecName,secNum,distance): 
+def saveBaseCallpop(address, NumOpsDis,modSecName,secNum,distance,pop_offset): 
 	# print("saving")
 	#save virtaul address as well
 	if(secNum != "noSec"):
-		s[secNum].save_Callpop_info.append(tuple((address,NumOpsDis,modSecName,secNum,distance)))
+		s[secNum].save_Callpop_info.append(tuple((address,NumOpsDis,modSecName,secNum,distance, pop_offset)))
 	else:
 		secNum = -1
 		modSecName = "rawHex"
-		m[o].save_Callpop_info.append(tuple((address,NumOpsDis,modSecName,secNum,distance)))
+		m[o].save_Callpop_info.append(tuple((address,NumOpsDis,modSecName,secNum,distance,pop_offset)))
 
 def printSavedCallPop(): ######################## AUSTIN ###############################3
 	# print("in print")
@@ -2784,6 +2785,7 @@ def printSavedCallPop(): ######################## AUSTIN #######################
 			modSecName = item[2]
 			secNum = item[3]
 			distance = item[4]
+			pop_offset = item[5]
 			address = origAddr + distance
 
 			CODED2 = rawData2[(address):(address+NumOpsDis)]
@@ -2798,7 +2800,7 @@ def printSavedCallPop(): ######################## AUSTIN #######################
 			else:
 				outString += " | Module: " + modSecName
 
-			outString += " | Call address: " + str(hex(origAddr)) + " | Distance from call: " + str(hex(distance))
+			outString += " | Call address: " + str(hex(origAddr)) + " | Distance from call: " + str(hex(distance)) + " | Pop offset: " + str(pop_offset)
 
 			print ("\n********************************************************")
 			print (outString)
@@ -2884,6 +2886,8 @@ def printSavedCallPop(): ######################## AUSTIN #######################
 				# trash = raw_input("enter...")
 
 
+
+
 def identifySyscall(callNum): # returns two lists containing lists of the format [syscall name 1, version 1, version 2.... ]. First list is results for x86 OSes, second is for x86-64
 
 	result = []
@@ -2966,6 +2970,129 @@ def identifySyscall(callNum): # returns two lists containing lists of the format
 	result.append(result64)
 
 	return result
+
+#enter callNum as hex code of syscall, bit and wanted version are optional and will return most recent 64bit OS by default
+def getSyscall(callNum, bit = 64, version = "default"):
+
+
+
+	apiList = identifySyscall(callNum)
+	if(bit == 64):
+		apiList = apiList[1]
+	else:
+		apiList = apiList[0]
+
+	# print("inAPI")
+	if(version == "default"):
+
+		if(bit == 64):
+			with open('nt64.csv', 'r') as file:
+				nt64Csv = csv.reader(file)
+				# print(format(callNum, '#06x'))
+				nt64Header = next(nt64Csv)
+				version = nt64Header[-1]
+
+		else:
+			with open('nt32.csv', 'r') as file:
+				nt32Csv = csv.reader(file)
+				# print(format(callNum, '#06x'))
+				nt32Header = next(nt32Csv)
+				version = nt64Header[-1]
+
+	#some user friendliness -- handle upper/lower and differences in spaces
+	version = version.lower()
+	version = version.replace(" ", "")
+
+
+	for item in apiList:
+		name = item[0]
+		osList = item[1:]
+
+		print("OSLIST IS")
+		print(osList)
+		for osItem in osList:
+
+			if(osItem.lower().replace(" ", "") == version):
+				result = name
+				return result
+
+
+
+def getSyscallRecent(callNum, bit = 64):
+
+
+
+	apiList = identifySyscall(callNum)
+	if(bit == 64):
+		apiList = apiList[1]
+	else:
+		apiList = apiList[0]
+
+	# print("inAPI")
+
+	if(bit == 64):
+		with open('nt64.csv', 'r') as file:
+				nt64Csv = csv.reader(file)
+				# print(format(callNum, '#06x'))
+				versions = next(nt64Csv)
+				versions = versions[1:]
+
+	else:
+		with open('nt32.csv', 'r') as file:
+				nt32Csv = csv.reader(file)
+				# print(format(callNum, '#06x'))
+				versions = next(nt32Csv)
+				versions = versions[1:]
+
+
+
+	categories = []
+	for version in versions:
+		version = version.rsplit('(',1)[0]
+		if(version not in categories):
+			categories.append(version)
+
+	# print(categories)
+	finalCat = [[] for _ in range(len(categories))]
+	finalList = ["" for _ in range(len(versions))]
+	# print(finalCat)
+
+
+	for item in apiList:
+		name = item[0]
+		osList = item[1:]
+
+		# print("OSLIST IS")
+		# print(osList)
+		for osItem in osList:
+			# osCategory = osItem.rsplit('(',1)[0]
+			for i in range(len(versions)):
+				if(osItem == versions[i]):
+					addAPI = (name, osItem)
+					finalList[i] = name
+
+
+
+	for i in range(len(categories)):
+		newest = "N\A"
+		newestVersion = "N\A"
+		for j in range(len(finalList)):
+			category = versions[j].rsplit('(',1)[0]
+			if((category == categories[i]) and (finalList[j] != "")):
+				newest = finalList[j]
+				newestVersion = versions[j]
+		print("\n\nCategory: " + categories[i])
+		print("Syscall name: " + newest)
+		print("Version: " + newestVersion)
+	# print(versions)
+	# print(finalList)
+					
+		# result = name
+		# print("finalcat")
+		# print(finalCat)
+		# return result
+
+
 
 
 def printSyscallResult(syscalls):
@@ -4010,8 +4137,51 @@ def get_Egghunters(NumOpsDis, NumOpsBack, bytesToMatch, secNum, data2):
 			i += 1
 
 		if(found):
+			# print("here's one")
 			# input("enter..")
 			disHereEgg(t, numOps, NumOpsBack, secNum, data2)
+
+			
+
+		t=t+1
+
+def get_Heaven(NumOpsDis, NumOpsBack, bytesToMatch, secNum, data2): 
+	#change to work off of data2 - add param - get rid of secNum
+
+	# print('in get')
+
+	global o
+	foundCount = 0
+	numOps = NumOpsDis
+
+
+	t=0
+	len_data2 = len(data2)
+	len_bytesToMatch = len(bytesToMatch)
+	for v in data2:
+		found = True #reset flag
+		#replace with bytesToMatch list if desired
+		#for i in range(len(bytesToMatch)): #can break out on no match for efficiency, left as is for simplicity
+		i = 0
+		for x in bytesToMatch:
+			if(found == False):
+				break
+			# elif ((i+t) >= len_data2 or i >= len_bytesToMatch):
+			# 	found = False # out of range
+			try:
+				#print(data2[t+i])
+				#input("enter..")
+				if ((data2[t+i]) != (bytesToMatch[i])):
+					found = False #no match
+			except Exception as e:
+				# input(e)
+				pass
+			i += 1
+
+		if(found):
+			# print("here's one")
+			# input("enter..")
+			disHereHeaven(t, numOps, NumOpsBack, secNum, data2)
 
 			
 
@@ -4104,12 +4274,19 @@ def disHereEgg(address, NumOpsDis, NumOpsBack, secNum, data): ############ AUSTI
 		for line in disString:
 			if(re.match("^((jmp)|(call)) ?dword ptr fs: ?\[0xc0\]", line, re.IGNORECASE)):
 				c0_match = True
+				c0_offset = line.split()[-1]
+				c0_offset = c0_offset[:-1]
 
 			byte = re.search("byte ptr", line, re.IGNORECASE)
 			insd = re.search("insd", line, re.IGNORECASE)
-			longNum = re.search("(0x)([0-9a-f]){6,}", line, re.IGNORECASE)
+			outsd = re.search("outsd", line, re.IGNORECASE)
+			# longNum = re.search("(0x)([0-9a-f]){6,}", line, re.IGNORECASE)
+			longNum = re.search("\[?(0x)([0-9a-f]){6,}\]", line, re.IGNORECASE)
 
-			if(byte or insd or longNum):
+			#adc eax, dword[0xe0ff42]
+			#dword ptr [eax + 0xe0ff4212]
+			#dword ptr [0xe0ff4212]
+			if(byte or insd or longNum or outsd):
 				unlikely = unlikely + 1
 
 
@@ -4126,18 +4303,400 @@ def disHereEgg(address, NumOpsDis, NumOpsBack, secNum, data): ############ AUSTI
 				eax = trackRegs(disString, startStates, [])[0][0]
 				if(eax == "0x26"):
 					# print("TrackRegs found eax = " + str(eax))
-					saveBaseEgg(address, NumOpsDis, (NumOpsBack - back), modSecName, secNum, eax)
+					saveBaseEgg(address, NumOpsDis, (NumOpsBack - back), modSecName, secNum, eax, c0_offset)
+				return
+
+def disHereEgg2(address, linesBack, secNum, data):
+		print("DISEGG2")
+		address = hex(address)
+		linesGoBack = 10
+		t = 0
+		truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, 0x0, linesGoBack)  # arg: starting offset/entry point - leave 0 generally
+
+		if truth:
+		####the FULL disassembly of the shellcode
+			# print ("Full disassembly of shellcode EGG")
+			for e in orgListDisassembly:
+				# print (str(hex(orgListOffset[t])) + "\t" + e)
+				
+
+				isEgg = re.search("fs:\[0xc0\]", e, re.IGNORECASE)
+				if(isEgg):
+					c0_offset = hex(orgListOffset[t])
+					address = int(orgListOffset[t])
+					# print("EGGHUNT HERE")
+					t_temp = 0
+					chunk = orgListDisassembly[t-linesBack:t+1]
+					chunkOffsets = orgListOffset[t-linesBack:t+1]
+					# print("\n\n\n CHUNK HERE")
+					for item in chunk:
+						print (str(hex(chunkOffsets[t_temp])) + "\t" + item)
+						t_temp += 1 
+					# print("\n\n\n")
+
+					converted = convertStringToTrack(chunk, chunkOffsets)
+					# print("CONVERTED")
+					# for item in converted:
+						# print( item)
+
+					startStates = ("unknown","unknown","unknown","unknown","unknown","unknown","unknown","unknown")
+					eax = trackRegs(converted, startStates, [])[0][0]
+					# print("eax = " + str(eax) + "\n\n\n")
+					if(eax == "0x26"):
+						# print("TrackRegs found eax = " + str(eax))
+						modSecName = peName
+						saveBaseEgg(address, -1, (linesBack), modSecName, secNum, eax, c0_offset, converted)
+
+
+				t+=1
+
+			clearTempDis()
+			# print ("\n\n\n")
+
+def disHereHeaven(address, NumOpsDis, NumOpsBack, secNum, data): ############ AUSTIN ##############
+
+	global o
+	global total1
+	global total2
+	global fcount
+	w=0
+
+	op_const = 16
+	line_const = 8
+	NumOpsBack = NumOpsBack + op_const
+
+	## Capstone does not seem to allow me to start disassemblying at a given point, so I copy out a chunk to  disassemble. I append a 0x00 because it does not always disassemble correctly (or at all) if just two bytes. I cause it not to be displayed through other means. It simply take the starting address of the jmp [reg], disassembles backwards, and copies it to a variable that I examine more closely.
+	#lGoBack = linesGoBackFindOP
+
+	# print("disHere")
+	# print(hex(address))
+	# print(secNum)
+	#input("addy")
+
+	CODED2 = ""
+	x = NumOpsDis
+	# start = timeit.default_timer()
+	if(secNum != "noSec"):
+		section = s[secNum]
+
+
+	# print("------------------------------------")
+	for back in range(NumOpsBack):
+		unlikely = 0
+		# print("back = " + str(back))
+		CODED2 = data[(address-(NumOpsBack-back)):(address+x)]
+			#print("########################")
+		#	print(type(CODED2))
+		#	print("########################")
+		#
+		# stop = timeit.default_timer()
+		# total1 += (stop - start)
+		# print("Time 1 PEB: " + str(stop - start))
+
+		# I create the individual lines of code that will appear>
+		# print(len(CODED2))
+		val =""
+		val2 = []
+		val3 = []
+		#address2 = address + section.ImageBase + section.VirtualAdd
+		val5 =[]
+
+		# start = timeit.default_timer()
+		#CODED3 = CODED2.encode()
+		CODED3 = CODED2
+		# print("BINARY2STR")
+		# print(binaryToStr(CODED3))
+		# print("******************************************")
+		for i in cs.disasm(CODED3, address):
+			#print('address in for = ' + str(address))
+			if(secNum == "noSec"):
+
+			#	print("i = " + str(i) + " i.mnemonic = " + str(i.mnemonic))
+				# add = hex(int(i.address))
+				add4 = hex(int(i.address))
+				addb = hex(int(i.address))
+			else:
+				add = hex(int(i.address))
+				addb = hex(int(i.address +  section.VirtualAdd  - (NumOpsBack - back) ))
+				add2 = str(add)
+				add3 = hex (int(i.address + section.startLoc	- (NumOpsBack - back) ))
+				add4 = str(add3)
+			val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+			# val2.append(val)
+			# val3.append(add2)
+			val5.append(val)
+			# print(val)
+
+			disString = val5
+			# print("before")
+			# print(disString)
+			# disString = disString[2:]
+			# print("after")
+			# print(disString)
+			heav_match = False
+			#check for dword ptr fs:[reg] and verify value of register
+			retf = False
+
+		for line in disString:
+			if(re.match("^((ljmp)|(lcall)) 0x33:", line, re.IGNORECASE)):
+				heav_match = True
+				offset = line.split()[-1]
+				offset = offset[:-1]
+			if(re.search("retf", line, re.IGNORECASE)):
+				retf = True
+				heav_match = True
+				offset = line.split()[-1]
+				offset = offset[:-1]
+
+			byte = re.search("byte ptr", line, re.IGNORECASE)
+			insd = re.search("insd", line, re.IGNORECASE)
+			outsd = re.search("outsd", line, re.IGNORECASE)
+			# longNum = re.search("(0x)([0-9a-f]){6,}", line, re.IGNORECASE)
+			longNum = re.search("\[?(0x)([0-9a-f]){6,}\]", line, re.IGNORECASE)
+
+			#adc eax, dword[0xe0ff42]
+			#dword ptr [eax + 0xe0ff4212]
+			#dword ptr [0xe0ff4212]
+			if(byte or insd or longNum or outsd):
+				unlikely = unlikely + 1
+
+
+			if(heav_match and (unlikely < 3)):
+				print("heavenhere")
+				print(line)
+
+				modSecName = peName
+				saveBaseHeaven(address, NumOpsDis, (NumOpsBack - back), modSecName, secNum, offset)
+				return
+
+			elif(retf and (unlikely < 3)):
+				print("heavenhere")
+				print(line)
+
+				startStates = ("unknown","unknown","unknown","unknown","unknown","unknown","unknown","unknown")
+				stack = trackRegs(disString, startStates, [])[1]
+				# print("STACK IS HERE")
+				# print(stack)
+				if(hex(0x33) in stack):
+					modSecName = peName
+					saveBaseHeaven(address, NumOpsDis, (NumOpsBack - back), modSecName, secNum, offset)
 				return
 
 
-def saveBaseEgg(address, NumOpsDis, NumOpsBack, modSecName, secNum, eax):
+
+			# if(c0_match and (unlikely < 3)):
+			# 	# print("c0 match")
+			# 	# print("SAVING THIS ONE")
+			# 	# input()
+			# 	if(rawHex):
+			# 		modSecName = peName
+			# 	else:
+			# 		modSecName = section.sectionName
+
+			# 	startStates = ("unknown","unknown","unknown","unknown","unknown","unknown","unknown","unknown")
+			# 	eax = trackRegs(disString, startStates, [])[0][0]
+			# 	if(eax == "0x26"):
+			# 		# print("TrackRegs found eax = " + str(eax))
+			# 		saveBaseEgg(address, NumOpsDis, (NumOpsBack - back), modSecName, secNum, eax, c0_offset)
+			# 	return
+
+def disHereHeaven2(address, linesBack, secNum, data):
+		address = hex(address)
+		linesGoBack = 10
+		t = 0
+		truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, 0x0, linesGoBack)  # arg: starting offset/entry point - leave 0 generally
+
+		if truth:
+		####the FULL disassembly of the shellcode
+			# print ("Full disassembly of shellcode EGG")
+			for e in orgListDisassembly:
+				print (str(hex(orgListOffset[t])) + "\t" + e)
+				
+
+				isRETF = re.search("retf", e, re.IGNORECASE)
+				isJMP = re.search("ljmp 0x33:", e, re.IGNORECASE)
+				isCALL = re.search("lcall 0x33:", e, re.IGNORECASE)
+				if(isCALL or isJMP):
+					offset = hex(orgListOffset[t])
+					address = int(orgListOffset[t])
+					t_temp = 0
+					chunk = orgListDisassembly[t-linesBack:t+1]
+					chunkOffsets = orgListOffset[t-linesBack:t+1]
+					# print("\n\n\n CHUNK HERE")
+					# for item in chunk:
+						# print (str(hex(chunkOffsets[t_temp])) + "\t" + item)
+						# t_temp += 1 
+					# print("\n\n\n")
+
+					converted = convertStringToTrack(chunk, chunkOffsets)
+					modSecName = peName
+					saveBaseHeaven(address, -1, (linesBack), modSecName, secNum, offset, converted)
+					# print("CONVERTED")
+					# for item in converted:
+						# print( item)
+
+				elif(isRETF):
+					offset = hex(orgListOffset[t])
+					address = int(orgListOffset[t])
+					t_temp = 0
+					chunk = orgListDisassembly[t-linesBack:t+1]
+					chunkOffsets = orgListOffset[t-linesBack:t+1]
+					# print("\n\n\n CHUNK HERE")
+					# for item in chunk:
+						# print (str(hex(chunkOffsets[t_temp])) + "\t" + item)
+						# t_temp += 1 
+					# print("\n\n\n")
+
+					converted = convertStringToTrack(chunk, chunkOffsets)
+					startStates = ("unknown","unknown","unknown","unknown","unknown","unknown","unknown","unknown")
+					stack = trackRegs(converted, startStates, [])[1]
+					# print("STACK IS HERE")
+					# print(stack)
+					if(hex(0x33) in stack):
+						modSecName = peName
+						saveBaseHeaven(address, -1, (linesBack), modSecName, secNum, offset, converted)
+					# # print("eax = " + str(eax) + "\n\n\n")
+					# if(eax == "0x26"):
+					# 	# print("TrackRegs found eax = " + str(eax))
+					
+
+
+				t+=1
+
+			clearTempDis()
+			# print ("\n\n\n")
+
+def saveBaseHeaven(address, NumOpsDis, linesBack, modSecName, secNum, offset, converted = ""):
 	if(secNum != "noSec"):
-		s[secNum].save_Egg_info.append(tuple((address,NumOpsDis,NumOpsBack,modSecName,secNum,eax)))
+		print("heavensave")
+		s[secNum].save_Heaven_info.append(tuple((address,NumOpsDis,linesBack,modSecName,secNum, offset)))
 	else:
 		print("Saving one raw")
 		secNum = -1
 		modSecName = "rawHex"
-		m[o].save_Egg_info.append(tuple((address,NumOpsDis,NumOpsBack,modSecName,secNum, eax)))
+		m[o].save_Heaven_info.append(tuple((address,NumOpsDis,linesBack,modSecName,secNum, offset,  converted)))
+
+def printSavedHeaven(): ######################## AUSTIN ###############################3
+	#formatting
+	j = 0
+	if(rawHex):
+		for item in m[o].save_Heaven_info:
+
+			address = item[0]
+			NumOpsDis = item[1]
+			NumOpsBack = item[2]
+			modSecName = item[3]
+			secNum = item[4]
+			offset = item[5]
+			converted = item[6]
+
+			
+
+			outString = "\n\nHeaven Item : " + str(j)
+			if(secNum != -1):
+
+				outString += " | Section number: " + str(secNum) + " | Section name: " + str(modSecName) + " | Heaven's Gate offset: " + str(offset)
+				# if(secNum != 0):
+				# 	trash = raw_input("enter...")
+				
+			else:
+				outString += " | Module: " + modSecName + " | Heaven's Gate offset: " + str(offset)
+
+			print ("\n********************************************************")
+			print (outString)
+			print ("\n")
+			for line in converted:
+				print(line)
+	#return val5
+			print ("\n")
+			j += 1
+
+	else:
+		h = 0
+		for section in s:
+			h += 1
+			# print("PRINTING SECTION " + str(h))
+			for item in section.save_Heaven_info:
+				CODED2 = ""
+
+
+				address = item[0]
+				NumOpsDis = item[1]
+				NumOpsBack = item[2]
+				modSecName = item[3]
+				secNum = item[4]
+				offset = item[5]
+
+
+				# print("NUMBACK = " + str(NumOpsBack))
+
+				section = s[secNum]
+
+				outString = "\n\nHeaven Item : " + str(j)
+				if(secNum != -1):
+
+					outString += " | Section number: " + str(secNum) + " | Section name: " + str(modSecName) + " | Heaven's Gate offset: " + str(offset)
+					# if(secNum != 0):
+					# 	trash = raw_input("enter...")
+					
+				else:
+					outString += " | Module: " + modSecName + " | Heaven's Gate offset: " + str(offset)
+
+
+				print ("\n********************************************************")
+				print (outString)
+				print ("\n")
+				val =""
+				val2 = []
+				val3 = []
+				address2 = address + section.ImageBase + section.VirtualAdd
+				val5 =[]
+
+				CODED2 = section.data2[(address-NumOpsBack):(address+NumOpsDis)]
+
+				CODED3 = CODED2
+				for i in cs.disasm(CODED3, address):
+					add = hex(int(i.address))
+					addb = hex(int(i.address +  section.VirtualAdd - NumOpsBack))
+					add2 = str(add)
+					add3 = hex (int(i.address + section.startLoc	- NumOpsBack))
+					add4 = str(add3)
+					val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+					val2.append(val)
+					val3.append(add2)
+					val5.append(val)
+					print (val)
+				print ("\n")
+				j += 1
+				# print str(type(m[o].data2))
+				# trash = raw_input("enter...")
+
+	
+
+def convertStringToTrack(dis, offsets):
+
+	print("convertcall")
+	print(dis)
+	print(offsets)
+	t = 0
+	result = [""]
+	for item in dis:
+		outstr = item + "\t\t\t\t" + hex(offsets[t]) + " (offset " + hex(offsets[t]) + ")"
+		result.append(outstr)
+		t += 1
+
+	return result
+
+
+
+def saveBaseEgg(address, NumOpsDis, linesBack, modSecName, secNum, eax, c0_offset, converted = ""):
+	if(secNum != "noSec"):
+		s[secNum].save_Egg_info.append(tuple((address,NumOpsDis,linesBack,modSecName,secNum,eax, c0_offset)))
+	else:
+		print("Saving one raw")
+		secNum = -1
+		modSecName = "rawHex"
+		m[o].save_Egg_info.append(tuple((address,NumOpsDis,linesBack,modSecName,secNum, eax, c0_offset, converted)))
 
 
 def printSavedEgg(): ######################## AUSTIN ###############################3
@@ -4145,7 +4704,6 @@ def printSavedEgg(): ######################## AUSTIN ###########################
 	j = 0
 	if(rawHex):
 		for item in m[o].save_Egg_info:
-			CODED2 = b""
 
 			address = item[0]
 			NumOpsDis = item[1]
@@ -4153,8 +4711,10 @@ def printSavedEgg(): ######################## AUSTIN ###########################
 			modSecName = item[3]
 			secNum = item[4]
 			eax = item[5]
+			c0_offset = item[6]
+			converted = item[7]
 
-			CODED2 = rawData2[(address-NumOpsBack):(address+NumOpsDis)]
+			
 
 			outString = "\n\nEGG Item : " + str(j)
 			if(secNum != -1):
@@ -4166,29 +4726,13 @@ def printSavedEgg(): ######################## AUSTIN ###########################
 			else:
 				outString += " | Module: " + modSecName
 
-			outString += " | EAX: " + eax
+			outString += " | EAX: " + eax + " | 0xc0 Offset: " + c0_offset
 
 			print ("\n********************************************************")
 			print (outString)
 			print ("\n")
-			val =""
-			val2 = []
-			val3 = []
-			#address2 = address + section.ImageBase + section.VirtualAdd
-			val5 =[]
-
-			for i in cs.disasm(CODED2, address):
-				if(rawHex):
-					add4 = hex(int(i.address))
-					addb = hex(int(i.address))
-				else:
-					add = hex(int(i.address))
-					addb = hex(int(i.address +  section.VirtualAdd))
-					add2 = str(add)
-					add3 = hex (int(i.address + section.startLoc	))
-					add4 = str(add3)
-				val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
-				print (val)
+			for line in converted:
+				print(line)
 	#return val5
 			print ("\n")
 			j += 1
@@ -4207,6 +4751,7 @@ def printSavedEgg(): ######################## AUSTIN ###########################
 				modSecName = item[3]
 				secNum = item[4]
 				eax = item[5]
+				c0_offset = item[6]
 
 				# print("NUMBACK = " + str(NumOpsBack))
 
@@ -4222,7 +4767,7 @@ def printSavedEgg(): ######################## AUSTIN ###########################
 				else:
 					outString += " | Module: " + modSecName
 
-				outString += " | EAX: " + eax
+				outString += " | EAX: " + eax + " | 0xc0 Offset: " + c0_offset
 
 				print ("\n********************************************************")
 				print (outString)
@@ -5779,30 +6324,52 @@ def AustinTesting():
 	# findAllFSTENV_old()
 	# printSavedFSTENV()
 
+
 	if(rawHex):
 		findAllCallpop(rawData2, 'noSec')
 
 	printSavedCallPop()
 
-	# elif(bit32):
-	# 	for secNum in range(len(s)):
-	# 		# print("Trying section: " + str(secNum))
-	# 		data2 = s[secNum].data2
-	# 		# print("before mov"
-	# 		for match in FSTENV_GET_BASE.values(): #iterate through all opcodes representing combinations of registers
-	# 			get_FSTENV(10, 15, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
-
-	for secNum in range(len(s)):
+	if(bit32):
+		for secNum in range(len(s)):
 			# print("Trying section: " + str(secNum))
 			data2 = s[secNum].data2
-			# findAllPebSequences(data2, secNum)
-			for match in EGGHUNT.values(): #iterate through all opcodes representing combinations of registers
-				get_Egghunters(20, 20, match, secNum, data2)
+			# print("before mov"
+			for match in FSTENV_GET_BASE.values(): #iterate through all opcodes representing combinations of registers
+				get_FSTENV(10, 15, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
+
+		printSavedFSTENV()
+
+
+		# print(s)
+		for secNum in range(len(s)):
+				# print("Trying section: " + str(secNum))
+				data2 = s[secNum].data2
+				# findAllPebSequences(data2, secNum)
+				for match in EGGHUNT.values(): #iterate through all opcodes representing combinations of registers
+					get_Egghunters(20, 20, match, secNum, data2)
+
+		for secNum in range(len(s)):
+				# print("Trying section: " + str(secNum))
+				data2 = s[secNum].data2
+				# findAllPebSequences(data2, secNum)
+				for match in HEAVEN.values(): #iterate through all opcodes representing combinations of registers
+					get_Heaven(4, 20, match, secNum, data2)
+
+	# if(rawHex):
+	# 	for match in EGGHUNT.values(): #iterate through all opcodes representing combinations of registers
+	# 		get_Egghunters(20, 20, match, 'noSec', rawData2) 
+
+	if(rawHex):
+		disHereEgg2(0, 8, 'noSec', rawData2)
+		disHereHeaven2(0, 8, 'noSec', rawData2)
 
 	printSavedEgg()
+	printSavedHeaven()
 
-	stuff = identifySyscall(int(0x26))
-	printSyscallResult(stuff)
+	# stuff = identifySyscall(int(0x26))
+	# printSyscallResult(stuff)
+	getSyscallRecent(0x61)
 	# printSavedPEB()
 
 	# mode=""
@@ -6497,7 +7064,7 @@ def checkForBad00(data, offset, end):
 	ans=[]
 	for x in range(4):
 		if str(hex(offset)) in tempAddresses:
-			print("FOUND candidate", str(hex(offset)))
+			# print("FOUND candidate", str(hex(offset)))
 			index=tempAddresses.index(str(hex(offset)))
 
 
@@ -6648,7 +7215,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 			nada=""
 			dbOutSp=(binaryToStr(data[shBy.specialStart[offset]:shBy.specialEnd[offset]]))
 			curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(shBy.specialStart[offset])), stringValSp,dbOutSp,nada ))
-			stringVal+="*A"+curDisassembly
+			stringVal+=""+curDisassembly
 			addDis(shBy.specialStart[offset],"D."+curDisassembly)
 			# print ("got it align", hex(offset))
 			print (hex(len(shBy.boolspecial)))
@@ -7556,7 +8123,7 @@ def modifyShByRange(data, start,end, dataType):
 			print ("before", shBy.bytesType[t])
 			shBy.bytesType[t]=BytesBool
 			
-			print("changing value @ " + str(hex(t)))
+			# print("changing value @ " + str(hex(t)))
 			print (shBy.bytesType[t], " value: ", hex(shBy.values[t]))
 			if BytesBool:
 				shBy.boolspecial[t]=False
@@ -7730,6 +8297,7 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack):
 	global shBy
 	global FindStringsStatus
 
+	# clearTempDis()
 	if rawBin:
 		shellBytes=rawData2
 	if not rawBin:
@@ -8845,6 +9413,7 @@ if __name__ == "__main__":
 		Extraction()
 	except:
 		pass
+
 	###################################################################
 	##Bramwell's work - may comment out if need be
 	mode=""
@@ -8864,27 +9433,31 @@ if __name__ == "__main__":
 	## AUSTIN --> get list of disassmebly from from shellcode and list of of offsets
 
 
-	#sample input -- if nothing found, it will return as false
-	targetAddress=0x2
-	linesGoBack=10
-	truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, targetAddress, linesGoBack)  # arg: starting offset/entry point - leave 0 generally
-	if truth:
-		####the FULL disassembly of the shellcode
-		print ("Full disassembly of shellcode")
-		for e in orgListDisassembly:
-			print (str(hex(orgListOffset[t])) + "\t" + e)
-			t+=1
-		print ("\n\n\n")
-		t=0
+	####sample input -- if nothing found, it will return as false
+	# targetAddress=0x0
+	# linesGoBack=10
+	# truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, targetAddress, linesGoBack)  # arg: starting offset/entry point - leave 0 generally
+	# if truth:
+	# 	####the FULL disassembly of the shellcode
+	# 	print ("Full disassembly of shellcode")
+	# 	for e in orgListDisassembly:
+	# 		print (str(hex(orgListOffset[t])) + "\t" + e)
+	# 		t+=1
+	# 	print ("\n\n\n")
+	# 	t=0
 
-		##### JUST the found list  = target address - linesGoBack
-		print ("Found Target Address")
-		for each in tl1:
-			print (hex(each), tl2[t]) 
-			t+=1	
-	else:
-		print ("Target address not found")
+	# 	##### JUST the found list  = target address - linesGoBack
+	# 	print ("Found Target Address")
+	# 	for each in tl1:
+	# 		print (hex(each), tl2[t]) 
+	# 		t+=1	
+	# else:
+	# 	print ("Target address not found")
 
+
+	# 	t = 0
+
+	# clearTempDis()
 
 	# listOffset,listDisassembly = preSyscalDiscovery(0)  # arg: starting offset
 	# for e in listDisassembly:
@@ -8904,5 +9477,5 @@ if __name__ == "__main__":
 	#Austin's work -- place here - may comment out as need be
 	#test
 	# starting()
-	# AustinStart()
-	# AustinTesting()
+	AustinStart()
+	AustinTesting()
