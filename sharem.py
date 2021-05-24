@@ -6648,7 +6648,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 			nada=""
 			dbOutSp=(binaryToStr(data[shBy.specialStart[offset]:shBy.specialEnd[offset]]))
 			curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(shBy.specialStart[offset])), stringValSp,dbOutSp,nada ))
-			stringVal+="*A"+curDisassembly
+			stringVal+=""+curDisassembly
 			addDis(shBy.specialStart[offset],"D."+curDisassembly)
 			# print ("got it align", hex(offset))
 			print (hex(len(shBy.boolspecial)))
