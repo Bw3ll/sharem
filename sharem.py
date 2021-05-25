@@ -148,9 +148,9 @@ if not skipExtraction:
 	print ("entering Austin")
 	rawHex = False
 	# global rawData2
-	# print ("0", sys.argv[0])
-	# print ("1", sys.argv[1])
-	# print ("2", sys.argv[2])
+	print ("0", sys.argv[0])
+	print ("1", sys.argv[1])
+	print ("2", sys.argv[2])
 	if(numArgs > 2):
 		if(sys.argv[2] == "raw"):
 			rawHex = True
@@ -9223,7 +9223,7 @@ def bramwellEncodeDecodeWork(shellArg):
 		ans =findAllPebSequences(mode)
 	
 		if ans is not None:
-			print ("\nDID IT", hex(x), ans)
+			print ("\nDID IT! XOR Key:", hex(x), ans)
 			xorKey=x
 			break
 			print (ans)
@@ -9251,8 +9251,8 @@ def bramwellEncodeDecodeWork(shellArg):
 
 
 	### example of shellcode from ML - combining decoder + decoded
-	yes="yes"
-	if yes=="yes":
+	yes=3
+	if yes==2:
 		disassembly=takeBytes(old,0)
 		print ("old disassembly")
 		print (disassembly)
@@ -9267,8 +9267,8 @@ def bramwellEncodeDecodeWork(shellArg):
 	##### end example
 
 
-	yes="yes1"
-	if yes=="yes1 ":
+	yes=5
+	if yes==3:
 
 		encoded=encodeShellcode3(old)
 		print ("encoding done")
@@ -9291,9 +9291,11 @@ def shellDisassemblyStart(shellArg):
 	global filename
 	global rawData2
 	filename=shellArg
-	rawBytes=readShellcode(shellArg) 
+	if not rawBin:
+		rawBytes=readShellcode(shellArg) 
+		rawData2=rawBytes
 	mode=""
-	rawData2=rawBytes
+	
 	# printBytes(rawBytes)
 	# print (disHereShell(rawBytes, False, False, "ascii", True))
 	# print ("SizeRawdata2", len(rawData2)) 
@@ -9414,19 +9416,49 @@ if __name__ == "__main__":
 	except:
 		pass
 
-	###################################################################
-	##Bramwell's work - may comment out if need be
-	mode=""
-	# bramwellDisassembly()
-	# findAllPebSequences(mode)
-	# printSavedPEB()
-	# findAllPushRet()
-	# printSavedPushRet()
+	bramwell=False
+	austin=False
+	andy=False
+	BramwellID=0
+	AustinID=1
+	AndyID=2
+	user=AndyID
+	# user=AustinID        #comment out, so only one user shows, or is the last one shown.
+	user=BramwellID
+	
+	if user==AustinID:
+		austin=True
+		bramwell=False
+		andy = False
+	elif user==BramwellID:
+		bramwell=True
+		austin=False
+		andy=False
+	elif user==AndyID:
+		bramwell=False
+		austin=False
+		andy=True
+	
+	# bramwell=True
+	if bramwell:
 
-	# bramwellStart()
+		mode=""
+		# findAllPebSequences(mode)
+		# printSavedPEB()
+		# findAllPushRet()
+		# printSavedPushRet()
 
-	# bramwellDisassembly()   # .txt file
-	# bramwellStart2()
+		# bramwellStart()   # PE file ?
+
+		yes = 3
+		if yes == 2:
+			bramwellDisassembly()   # Takes as input .txt file of shellcode    - also takes .bin (py sharem.py shellcode.bin raw) - note the raw keyword at the end!!!
+			bramwellStart2()
+
+
+		if yes == 3:
+			bramwellEncodeDecodeWork(filename)
+			print ("final DIS")
 
 
 
@@ -9477,5 +9509,15 @@ if __name__ == "__main__":
 	#Austin's work -- place here - may comment out as need be
 	#test
 	# starting()
-	AustinStart()
-	AustinTesting()
+	# Austin=False
+	################################ AUSTIN'S WORK AREA
+	if austin:
+		AustinStart()
+		AustinTesting()
+
+
+
+
+	################################ ANDY'S WORK AREA
+	if andy:
+		print ("Hello, Andy")
