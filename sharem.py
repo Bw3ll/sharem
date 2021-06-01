@@ -18,6 +18,7 @@ from sorting import *
 import timeit
 import string
 import csv
+from selfModify import *
 
 tempDisassembly=[]
 tempAddresses=[]
@@ -150,7 +151,7 @@ if not skipExtraction:
 	# global rawData2
 	print ("0", sys.argv[0])
 	print ("1", sys.argv[1])
-	print ("2", sys.argv[2])
+	# print ("2", sys.argv[2])
 	if(numArgs > 2):
 		if(sys.argv[2] == "raw"):
 			rawHex = True
@@ -1416,6 +1417,7 @@ def get_PEB_walk_start(mode, NumOpsDis ,bytesToMatch, secNum, data2):
 			i += 1
 
 		if(found):
+			# print("hit a found")
 			# input("enter..")
 			ans = disHerePEB(mode, t, numOps, secNum, data2)
 			if mode=="decrypt" and ans is not None:
@@ -1512,11 +1514,9 @@ total2 = 0
 def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ##############
 	print ("disHerePEB", mode)
 	global o
-	global total1
-	global total2
 	w=0
 
-
+	start = timeit.default_timer()
 	foundAdv = False
 	foundPEB = False
 	## Capstone does not seem to allow me to start disassemblying at a given point, so I copy out a chunk to  disassemble. I append a 0x00 because it does not always disassemble correctly (or at all) if just two bytes. I cause it not to be displayed through other means. It simply take the starting address of the jmp [reg], disassembles backwards, and copies it to a variable that I examine more closely.
@@ -1533,7 +1533,7 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 	if(secNum != "noSec"):
 		section = s[secNum]
 
-	CODED2 = data[address:(address+NumOpsDis)]
+	CODED3 = data[address:(address+NumOpsDis)]
 		#print("########################")
 	#	print(type(CODED2))
 	#	print("########################")
@@ -1550,9 +1550,13 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 	#address2 = address + section.ImageBase + section.VirtualAdd
 	val5 =[]
 
+	loadTIB_offset = -1
+	loadLDR_offset = -1
+	loadModList_offset = -1
+	advanceDLL_Offset = [-1]
+	points = 0
 	# start = timeit.default_timer()
 	#CODED3 = CODED2.encode()
-	CODED3 = CODED2
 	# print("BINARY2STR")
 	# print(binaryToStr(CODED3))
 	for i in cs.disasm(CODED3, address):
@@ -1572,101 +1576,54 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 		# val2.append(val)
 		# val3.append(add2)
-		val5.append(val)
-		# print (val)
-	#return val5
-	# stop = timeit.default_timer()
-	# total2 += (stop - start)
-	# print("Time 2 PEB: " + str(stop - start))
 
 
-	points = 0
-	disString = val5
+		loadPEB = re.match("^((mov)|(add)|(xor)|(or)|(adc)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?d?word ptr fs:\[((((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)|(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))))\]", val, re.IGNORECASE)
 
-	loadTIB_offset = -1
-	loadLDR_offset = -1
-	loadModList_offset = -1
-	advanceDLL_Offset = [-1]
-
-	for line in disString:
-		#print (line)
-
-		##############################################
-
-		movLoadPEB = re.match("^(mov) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
-		addLoadPEB = re.match("^(add) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
-		adcLoadPEB = re.match("^(adc) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
-		xorLoadPEB = re.match("^(xor) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
-		orLoadPEB = re.match("^(or) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
-		xchgLoadPEB = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
-		pushLoadPEB = re.match("^(push) (d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))))) ?(\+ ?0x30)?\]", line, re.IGNORECASE)
-
-
-		if(movLoadPEB or addLoadPEB or adcLoadPEB or xorLoadPEB or orLoadPEB or xchgLoadPEB or pushLoadPEB and foundPEB):
-			loadTIB_offset = line.split()[-1]
-			loadTIB_offset = loadTIB_offset[:-1]
+		# if(movLoadPEB or addLoadPEB or adcLoadPEB or xorLoadPEB or orLoadPEB or xchgLoadPEB or pushLoadPEB and foundPEB):
+		if(loadPEB):
+			loadTIB_offset = addb
 			points += 1
 			foundPEB = True
 		elif(not foundPEB):
 			return
 
 
-		##############################################
 
-		movLoadLDR = re.match("^(mov) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", line, re.IGNORECASE)
-		addLoadLDR = re.match("^(add) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", line, re.IGNORECASE)
-		adcLoadLDR = re.match("^(adc) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", line, re.IGNORECASE)
-		xorLoadLDR = re.match("^(xor) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", line, re.IGNORECASE)
-		orLoadLDR = re.match("^(or) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", line, re.IGNORECASE)
-		xchgLoadLDR = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", line, re.IGNORECASE)
-		
-		if(movLoadLDR or addLoadLDR or adcLoadLDR or xorLoadLDR or orLoadLDR or xchgLoadLDR):
-			loadLDR_offset = line.split()[-1]
-			loadLDR_offset = loadLDR_offset[:-1]
+		loadLDR = re.match("^((mov)|(add)|(xor)|(or)|(adc)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", val, re.IGNORECASE)
+
+		# if(movLoadLDR or addLoadLDR or adcLoadLDR or xorLoadLDR or orLoadLDR or xchgLoadLDR):
+		if(loadLDR):
+			loadLDR_offset = addb
 			points += 1
 
 
-		###############################################
 
-		movLoadInMemOrder = re.match("^(mov) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", line, re.IGNORECASE)
-		addLoadInMemOrder = re.match("^(add) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", line, re.IGNORECASE)
-		adcLoadInMemOrder = re.match("^(adc) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", line, re.IGNORECASE)
-		xorLoadInMemOrder = re.match("^(xor) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", line, re.IGNORECASE)
-		orLoadInMemOrder = re.match("^(or) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", line, re.IGNORECASE)
-		xchgLoadInMemOrder = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", line, re.IGNORECASE)
+		loadInMemOrder = re.match("^((mov)|(add)|(adc)|(xor)|(or)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", val, re.IGNORECASE)
 
-		if(movLoadInMemOrder or addLoadInMemOrder or adcLoadInMemOrder or xorLoadInMemOrder or orLoadInMemOrder or xchgLoadInMemOrder):
-			loadModList_offset = line.split()[-1]
-			loadModList_offset = loadModList_offset[:-1]
+		# if(movLoadInMemOrder or addLoadInMemOrder or adcLoadInMemOrder or xorLoadInMemOrder or orLoadInMemOrder or xchgLoadInMemOrder):
+		if(loadInMemOrder):
+			loadModList_offset = addb
 			points += 1
 
 
-		###############################################
 
-		movLoadInInitOrder = re.match("^(mov) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", line, re.IGNORECASE)
-		addLoadInInitOrder = re.match("^(add) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", line, re.IGNORECASE)
-		adcLoadInInitOrder = re.match("^(adc) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", line, re.IGNORECASE)
-		xorLoadInInitOrder = re.match("^(xor) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", line, re.IGNORECASE)
-		orLoadInInitOrder = re.match("^(or) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", line, re.IGNORECASE)
-		xchgLoadInInitOrder = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", line, re.IGNORECASE)
 
-		if(movLoadInInitOrder or addLoadInInitOrder or adcLoadInInitOrder or xorLoadInInitOrder or orLoadInInitOrder or xchgLoadInInitOrder):
-			loadModList_offset = line.split()[-1]
-			loadModList_offset = loadModList_offset[:-1]
+		loadInInitOrder = re.match("^((mov)|(add)|(adc)|(xor)|(or)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", val, re.IGNORECASE)
+
+		if(loadInInitOrder):
+		# if(movLoadInInitOrder or addLoadInInitOrder or adcLoadInInitOrder or xorLoadInInitOrder or orLoadInInitOrder or xchgLoadInInitOrder):
+			loadModList_offset = addb
 			points += 1
 
-		###############################################
 
-		movDereference = re.match("^(mov) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
-		addDereference = re.match("^(add) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
-		adcDereference = re.match("^(adc) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
-		orDereference = re.match("^(or) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
-		xorDereference = re.match("^(xor) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
-		xchgDereference = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
 
-		if(movDereference or addDereference or adcDereference or orDereference or xorDereference or xchgDereference):
-			advanceDLL_Offset_temp = line.split()[-1]
-			advanceDLL_Offset_temp = advanceDLL_Offset_temp[:-1]
+
+		dereference = re.match("^((mov)|(add)|(adc)|(xor)|(or)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", val, re.IGNORECASE)
+
+		# if(movDereference or addDereference or adcDereference or orDereference or xorDereference or xchgDereference):
+		if(dereference):
+			advanceDLL_Offset_temp = addb
 			if(not foundAdv):
 				advanceDLL_Offset[0] = advanceDLL_Offset_temp
 				foundAdv = True
@@ -1676,13 +1633,139 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 
 
 
-		############## AUSTIN ####################
-		lodsd = re.match("^(lodsd)", line, re.IGNORECASE) 
+		lodsd = re.match("^(lodsd)", val, re.IGNORECASE) 
 
 		if(lodsd):
 			points += 1
+
+		val5.append(val)
+		print (val)
+	#return val5
+	# stop = timeit.default_timer()
+	# total2 += (stop - start)
+	# print("Time 2 PEB: " + str(stop - start))
+
+
+	
+	disString = val5
+
+
+
+	# for line in disString:
+	# 	#print (line)
+
+	# 	##############################################
+
+	# 	# movLoadPEB = re.match("^(mov) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
+	# 	# addLoadPEB = re.match("^(add) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
+	# 	# adcLoadPEB = re.match("^(adc) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
+	# 	# xorLoadPEB = re.match("^(xor) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
+	# 	# orLoadPEB = re.match("^(or) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
+	# 	# xchgLoadPEB = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
+	# 	# pushLoadPEB = re.match("^(push) (d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))))) ?(\+ ?0x30)?\]", line, re.IGNORECASE)
+
+	# 	loadPEB = re.match("^((mov)|(add)|(xor)|(or)|(adc)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?d?word ptr fs:\[((((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)|(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))))\]", line, re.IGNORECASE)
+
+
+
+	# 	# if(movLoadPEB or addLoadPEB or adcLoadPEB or xorLoadPEB or orLoadPEB or xchgLoadPEB or pushLoadPEB and foundPEB):
+	# 	if(loadPEB):
+	# 		loadTIB_offset = line.split()[-1]
+	# 		loadTIB_offset = loadTIB_offset[:-1]
+	# 		points += 1
+	# 		foundPEB = True
+	# 	elif(not foundPEB):
+	# 		return
+
+
+	# 	##############################################
+
+	# 	# movLoadLDR = re.match("^(mov) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", line, re.IGNORECASE)
+	# 	# addLoadLDR = re.match("^(add) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", line, re.IGNORECASE)
+	# 	# adcLoadLDR = re.match("^(adc) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", line, re.IGNORECASE)
+	# 	# xorLoadLDR = re.match("^(xor) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", line, re.IGNORECASE)
+	# 	# orLoadLDR = re.match("^(or) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", line, re.IGNORECASE)
+	# 	# xchgLoadLDR = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", line, re.IGNORECASE)
+		
+	# 	loadLDR = re.match("^((mov)|(add)|(xor)|(or)|(adc)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", line, re.IGNORECASE)
+
+
+	# 	# if(movLoadLDR or addLoadLDR or adcLoadLDR or xorLoadLDR or orLoadLDR or xchgLoadLDR):
+	# 	if(loadLDR):
+	# 		loadLDR_offset = line.split()[-1]
+	# 		loadLDR_offset = loadLDR_offset[:-1]
+	# 		points += 1
+
+
+	# 	###############################################
+
+	# 	# movLoadInMemOrder = re.match("^(mov) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", line, re.IGNORECASE)
+	# 	# addLoadInMemOrder = re.match("^(add) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", line, re.IGNORECASE)
+	# 	# adcLoadInMemOrder = re.match("^(adc) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", line, re.IGNORECASE)
+	# 	# xorLoadInMemOrder = re.match("^(xor) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", line, re.IGNORECASE)
+	# 	# orLoadInMemOrder = re.match("^(or) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", line, re.IGNORECASE)
+	# 	# xchgLoadInMemOrder = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", line, re.IGNORECASE)
+
+	# 	loadInMemOrder = re.match("^((mov)|(add)|(adc)|(xor)|(or)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", line, re.IGNORECASE)
+
+	# 	# if(movLoadInMemOrder or addLoadInMemOrder or adcLoadInMemOrder or xorLoadInMemOrder or orLoadInMemOrder or xchgLoadInMemOrder):
+	# 	if(loadInMemOrder):
+	# 		loadModList_offset = line.split()[-1]
+	# 		loadModList_offset = loadModList_offset[:-1]
+	# 		points += 1
+
+
+	# 	###############################################
+
+	# 	# movLoadInInitOrder = re.match("^(mov) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", line, re.IGNORECASE)
+	# 	# addLoadInInitOrder = re.match("^(add) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", line, re.IGNORECASE)
+	# 	# adcLoadInInitOrder = re.match("^(adc) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", line, re.IGNORECASE)
+	# 	# xorLoadInInitOrder = re.match("^(xor) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", line, re.IGNORECASE)
+	# 	# orLoadInInitOrder = re.match("^(or) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", line, re.IGNORECASE)
+	# 	# xchgLoadInInitOrder = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", line, re.IGNORECASE)
+
+	# 	loadInInitOrder = re.match("^((mov)|(add)|(adc)|(xor)|(or)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", line, re.IGNORECASE)
+
+	# 	if(loadInInitOrder):
+	# 	# if(movLoadInInitOrder or addLoadInInitOrder or adcLoadInInitOrder or xorLoadInInitOrder or orLoadInInitOrder or xchgLoadInInitOrder):
+	# 		loadModList_offset = line.split()[-1]
+	# 		loadModList_offset = loadModList_offset[:-1]
+	# 		points += 1
+
+	# 	###############################################
+
+	# 	# movDereference = re.match("^(mov) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
+	# 	# addDereference = re.match("^(add) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
+	# 	# adcDereference = re.match("^(adc) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
+	# 	# orDereference = re.match("^(or) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
+	# 	# xorDereference = re.match("^(xor) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
+	# 	# xchgDereference = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
+
+
+	# 	dereference = re.match("^((mov)|(add)|(adc)|(xor)|(or)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
+
+	# 	# if(movDereference or addDereference or adcDereference or orDereference or xorDereference or xchgDereference):
+	# 	if(dereference):
+	# 		advanceDLL_Offset_temp = line.split()[-1]
+	# 		advanceDLL_Offset_temp = advanceDLL_Offset_temp[:-1]
+	# 		if(not foundAdv):
+	# 			advanceDLL_Offset[0] = advanceDLL_Offset_temp
+	# 			foundAdv = True
+	# 			points += 1
+	# 		else:
+	# 			advanceDLL_Offset.append(advanceDLL_Offset_temp)
+
+
+
+	# 	############## AUSTIN ####################
+	# 	lodsd = re.match("^(lodsd)", line, re.IGNORECASE) 
+
+	# 	if(lodsd):
+	# 		points += 1
 	############## AUSTIN ####################
 
+	stop = timeit.default_timer()
+	print("Time PEB: " + str(stop - start))
 
 	if(points >= 2):
 		if(rawHex):
@@ -4849,9 +4932,9 @@ def findAllPebSequences(data2, secNum): ################## AUSTIN ##############
 
 def findAllPebSequences(mode): ################## AUSTIN ######################
 	# global rawHex
-	print ("findAllPebSequences", mode, binaryToStr(rawData2),)
+	# print ("findAllPebSequences", mode, binaryToStr(rawData2),)
 	if(rawHex):
-
+		# print("in check")
 
 		for match in PEB_WALK.values(): #iterate through all opcodes representing combinations of registers
 			ans=get_PEB_walk_start(mode, 19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
@@ -6389,9 +6472,11 @@ def AustinTesting():
 
 
 def AustinTesting2():
-	data2 = s[0].data2
-	disHereTiny(data2)
-	filename=data2
+
+	start = timeit.default_timer()
+	austinEncodeDecodeWork("daltonShell2.txt")
+	stop = timeit.default_timer()
+	print("Total time AUSTIN: " + str(stop - start))
 	# rawBytes=readShellcode(shellArg) 
 
 	# rawData2=rawBytes
@@ -8734,24 +8819,25 @@ def anaFindFF(data):
 def encodeShellcode(data):
 	print ("encodeShellcode")
 	global rawData2
-	print (binaryToStr(rawData2))
+	# print (binaryToStr(rawData2))
 	shells=""
 	for each in rawData2:
-		new=each^0x55
-		new+=1
-		new= new ^ 0x11
+		new=each^0x3&255
+		new = (new + 4)&255
+		new= new ^ 0x8&255
 		# shells+=str(hex(new)) +" "
 
 		if len(str(hex(new))) % 2 !=0:
-			print ("got one")
+			# print ("got one")
 			new2=str(hex(new))
 			new2="0x0"+new2[2:]
 			shells+=new2 + " "
 		else:
 			shells+=str(hex(new)) + " "
 	shells=split0x(shells)
-	print(shells)
+	# print(shells)
 	shells=fromhexToBytes(shells)
+	print("ENCODE BYTES")
 	print (binaryToStr(shells))
 	return shells
 
@@ -9287,6 +9373,178 @@ def bramwellEncodeDecodeWork(shellArg):
 	# print ("before split")
 	# directory, filename= (splitDirectory(filename))
 
+def austinEncodeDecodeWork(shellArg):
+	global filename
+	global rawData2
+		
+	if rawBin == False:
+		filename=shellArg
+		rawBytes=readShellcode(shellArg) 
+
+		rawData2=rawBytes
+		# printBytes(rawBytes)
+		# print (disHereShell(rawBytes, False, False, "ascii", True))
+
+
+
+
+	print ("SizeRawdata2", len(rawData2))
+	rawBytes=rawData2
+	print("NORMAL BYTES")
+	print(binaryToStr(rawBytes))
+	print ("rawbytes class", type(rawBytes))
+	encoded=encodeShellcode(rawData2)
+
+	strAdd="new=(new +VALUE) & 255\n" 
+	strSub="new=(new -VALUE) & 255\n"
+	strXor="new=(new ^ VALUE) & 255\n"
+	strNot="new=~(new) & 255\n"
+	strRol="new=rol(new,VALUE,8)\n"
+	strRor="new=ror(new,VALUE,8)\n"
+	strShRight="new=(new << VALUE) & 255\n"
+
+	outputs =austinDecode(strXor, strSub, strXor, encoded)
+	print("outputs here")
+	print(len(outputs))
+
+	print("DECODED HERE")
+	for item in outputs:
+
+		if(binaryToStr(item[0]) == binaryToStr(rawBytes)):
+			print("\n\ngot a match")
+			print(item[1])
+			print(binaryToStr(item[0]))
+
+
+		# print ("checking decoded")
+		new=item[0]
+		rawData2=new
+		# print (binaryToStr(new))
+		mode="decrypt"
+		ans =findAllPebSequences(mode)
+
+		if ans is not None:
+			print ("\n\n**************DID IT!*******************")
+			print(item[1])
+
+
+	# for x in range (len(decoded)):
+	# 	if(decoded[x] == encoded):
+	# 		print("\n\ngot a match")
+	# 		print(decodedInfo[x])
+
+
+		# print ("checking decoded")
+		# new=decoded[x]
+		# rawData2=new
+		# print (binaryToStr(new))
+		# mode="decrypt"
+		# ans =findAllPebSequences(mode)
+	
+		# if ans is not None:
+		# 	print ("\nDID IT!")
+		# 	xorKey=x
+		# 	break
+		# 	print (ans)
+
+
+	# t=0
+	# # for x in range (1000):
+	# # 	encoded=encodeShellcodeProto(rawData2, 32, t, 55)
+	# # 	t+=1
+	# print ("new\n\n\n\n")
+	# r=encodeShellcodeProto(rawData2, 32,2,55)
+	# r=decodeShellcodeProto(r, 32,2,55)
+	# rawData2=r
+	# mode=""
+	# # findAllPebSequences(mode)
+	# # printSavedPEB()
+
+	# encoded=encodeShellcode2(old)
+	# decodeShellcode2(encoded)
+	# # print ("encoding done")
+	# # testing4=0xff ^ 0x2445
+	# # testing4=truncateTobyte(testing4)
+	# # print ("final", hex(testing4))
+
+	# new="\b"
+	# ans=[]
+	# xorKey=0
+	# for x in range (0x100):
+	# 	print ("checking XOR")
+	# 	new=decodeShellcodeXOR(old, x) # 0x73
+	# 	rawData2=new
+	# 	print (binaryToStr(new))
+	# 	mode="decrypt"
+	# 	ans =findAllPebSequences(mode)
+	
+	# 	if ans is not None:
+	# 		print ("\nDID IT! XOR Key:", hex(x), ans)
+	# 		xorKey=x
+	# 		break
+	# 		print (ans)
+
+
+	# print ("old-saved", hex(xorKey))
+	# new=decodeShellcodeXOR(old, xorKey) # 0x73
+	# print ("rawbytes class", type(new))
+	# rawData2=new
+	# mode=""
+	# findAllPebSequences(mode)
+	# disassembly=takeBytes(new,0)
+	# print ("decrypted disassembly")
+	# print (disassembly)
+	# if not os.path.exists(directory+'outputs'):
+	# 	os.makedirs(directory+'outputs')
+	# print (directory+"outputs\\"+filename[:-4]+".bin")
+	# newBin = open(directory+"outputs\\decrypted-"+filename[:-4]+".bin", "wb")
+	# newBin.write(rawBytes)
+	# newBin.close()
+	# newDis = open(directory+"outputs\\decrypted-"+filename[:-4]+"-disassembly.txt", "w")
+	# newDis.write(disassembly)
+	# newDis.close()
+
+
+
+	# ### example of shellcode from ML - combining decoder + decoded
+	# yes=3
+	# if yes==2:
+	# 	disassembly=takeBytes(old,0)
+	# 	print ("old disassembly")
+	# 	print (disassembly)
+	# 	final=old[:0x23] +new[0x23:]
+	# 	clearDisassBytClass()
+	# 	disassembly=takeBytes(final,0)
+
+	# 	print ("combined")
+	# 	print (disassembly)
+
+
+	# ##### end example
+
+
+	# yes=5
+	# if yes==3:
+
+	# 	encoded=encodeShellcode3(old)
+	# 	print ("encoding done")
+	# 	decoded=decodeShellcode3(encoded,old)
+	# 	print ("decoding done")
+	# 	clearDisassBytClass()
+	# 	disassembly=takeBytes(decoded,0)
+	# 	print ("old disassembly")
+	# 	print (disassembly)
+
+	# # disassembly=takeBytes(rawBytes,0)
+
+
+	# # ### Saving disassembly and .bin
+	# # print (filename)
+	# # print ("before split")
+	# # directory, filename= (splitDirectory(filename))
+
+
+
 def shellDisassemblyStart(shellArg):
 	global filename
 	global rawData2
@@ -9422,9 +9680,9 @@ if __name__ == "__main__":
 	BramwellID=0
 	AustinID=1
 	AndyID=2
-	user=AndyID
-	# user=AustinID        #comment out, so only one user shows, or is the last one shown.
-	user=BramwellID
+	# user=AndyID
+	user=AustinID        #comment out, so only one user shows, or is the last one shown.
+	# user=BramwellID
 	
 	if user==AustinID:
 		austin=True
@@ -9513,7 +9771,7 @@ if __name__ == "__main__":
 	################################ AUSTIN'S WORK AREA
 	if austin:
 		AustinStart()
-		AustinTesting()
+		AustinTesting2()
 
 
 
