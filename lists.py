@@ -658,6 +658,13 @@ HEAVEN = {
 
 ################### AUSTIN ###############################
 FSTENV_GET_BASE = {
+	# add 9b for fstenv rather than fnstenv
+	# add 67 before d9 but after 9b for 64 bit
+	# The above haven't been added due to redundancy
+	#Standard is fnstenv [eax]
+	#PTR is fnstenv ptr[eax]
+	#OffsetNum is fnstenv [eax+1]
+
 	'EAX': b"\xD9\x30",
 	'EBX': b"\xD9\x33",
 	'ECX': b"\xD9\x31",
@@ -666,6 +673,14 @@ FSTENV_GET_BASE = {
 	'ESI': b"\xD9\x36",
 	'EBP': b"\xD9\x75",
 	'ESP': b"\xD9\x34\x24",
+	'EAX_PTR': b"\xD9\xB0",
+	'EBX_PTR': b"\xD9\xB3",
+	'ECX_PTR': b"\xD9\xB1",
+	'EDX_PTR': b"\xD9\xB2",
+	'EDI_PTR': b"\xD9\xB7",
+	'ESI_PTR': b"\xD9\xB6",
+	'EBP_PTR': b"\xD9\xB5",
+	'ESP_PTR': b"\xD9\xB4\x24",
 	'EAX_OFFSET_NUM': b"\xD9\x70",
 	'EBX_OFFSET_NUM': b"\xD9\x73",
 	'ECX_OFFSET_NUM': b"\xD9\x71",
@@ -674,14 +689,32 @@ FSTENV_GET_BASE = {
 	'ESI_OFFSET_NUM': b"\xD9\x76",
 	'EBP_OFFSET_NUM': b"\xD9\x75",
 	'ESP_OFFSET_NUM': b"\xD9\x74\x24",
-	'EAX_PTR': b"\xD9\xB0",
-	'EBX_PTR': b"\xD9\xB3",
-	'ECX_PTR': b"\xD9\xB1",
-	'EDX_PTR': b"\xD9\xB2",
-	'EDI_PTR': b"\xD9\xB7",
-	'ESI_PTR': b"\xD9\xB6",
-	'EBP_PTR': b"\xD9\xB5",
-	'ESP_PTR': b"\xD9\xB4\x24"
+
+	'R8': b"\x41\xd9\x30",
+	'R9': b"\x41\xd9\x31",
+	'R10': b"\x41\xd9\x32",
+	'R11': b"\x41\xd9\x33",
+	'R12': b"\x41\xd9\x34\x24",
+	'R13': b"\x41\xd9\x75",
+	'R14': b"\x41\xd9\x36",
+	'R15': b"\x41\xd9\x37",
+	'R8_PTR': b"\x41\xd9\xB0",
+	'R9_PTR': b"\x41\xd9\xB1",
+	'R10_PTR': b"\x41\xd9\xB2",
+	'R11_PTR': b"\x41\xd9\xB3",
+	'R12_PTR': b"\x41\xd9\xB4",
+	'R13_PTR': b"\x41\xd9\xB5",
+	'R14_PTR': b"\x41\xd9\xB6",
+	'R15_PTR': b"\x41\xd9\xB7",
+	'R8_OFFSET_NUM': b"\x41\xd9\x70",
+	'R9_OFFSET_NUM': b"\x41\xd9\x71",
+	'R10_OFFSET_NUM': b"\x41\xd9\x72",
+	'R11_OFFSET_NUM': b"\x41\xd9\x73",
+	'R12_OFFSET_NUM': b"\x41\xd9\x74\x24",
+	'R13_OFFSET_NUM': b"\x41\xd9\x75",
+	'R14_OFFSET_NUM': b"\x41\xd9\x76",
+	'R15_OFFSET_NUM': b"\x41\xd9\x77",
+	
 
 }
 
@@ -721,7 +754,6 @@ CALLPOP_START = {
 	'9': (b"\xE8\x09\x00\x00\x00", 14),
 	'10': (b"\xE8\x0A\x00\x00\x00", 15)
 }
-
 
 
 

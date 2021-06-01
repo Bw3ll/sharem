@@ -84,7 +84,7 @@ rawHex = False
 rawData2 = b''
 numArgs = len(sys.argv)
 rawBin=False  # only if .bin, not .txt
-
+isPe=False
 
 
 FindStringsStatus=True
@@ -108,6 +108,9 @@ if numArgs > 1:			# to get full functionality, need to put file location for bin
 if len(filename) > 1:
 	testing=filename
 
+# print("NUMARGS")
+# print(numArgs)
+
 if numArgs==1:
 	skipExtraction=True
 	rawHex=True
@@ -118,6 +121,7 @@ if not skipExtraction:
 		peName= sys.argv[1] 
 		matchObj = re.match( r'^[a-z]+:[\\|/]+', peName, re.M|re.I)
 		if matchObj:
+			isPe=True
 			head, tail = os.path.split(peName)
 			peName = tail
 			PE_path = head
@@ -149,8 +153,10 @@ if not skipExtraction:
 	print ("entering Austin")
 	rawHex = False
 	# global rawData2
-	print ("0", sys.argv[0])
-	print ("1", sys.argv[1])
+
+	# print ("0", sys.argv[0])
+	# print ("1", sys.argv[1])
+
 	# print ("2", sys.argv[2])
 	if(numArgs > 2):
 		if(sys.argv[2] == "raw"):
@@ -2570,12 +2576,17 @@ def disHereFSTENV(address, NumOpsDis, NumOpsBack, secNum, data): ############ AU
 
 
 def saveBaseFSTENV(address, NumOpsDis, NumOpsBack, modSecName, secNum, FPU_offset, FSTENV_offset):
+	# print("Saving FS")
 	if(secNum != "noSec"):
 		# print("FPU OFF1 = " + str(FPU_offset))
 		# print("FPU OFF2 = " + str(FPU_offset))
 		# print("Fstenv OFF1 = " + str(FSTENV_offset))
 		# print("Fstenv OFF2 = " + str(FSTENV_offset))
 		# input("fpu2")
+		for each in s[secNum].save_FSTENV_info:
+			if FSTENV_offset == each[6]:
+				return
+
 		s[secNum].save_FSTENV_info.append(tuple((address,NumOpsDis,NumOpsBack,modSecName,secNum,FPU_offset,FSTENV_offset)))
 	else:
 		print("Saving one raw")
@@ -2737,6 +2748,46 @@ def get_Callpop(NumOpsDis, bytesToMatch, secNum, data2, distance):
 
 		t=t+1
 
+def get_Callpop64(NumOpsDis, bytesToMatch, secNum, data2, distance): 
+	#change to work off of data2 - add param - get rid of secNum
+	# print ("get_Callpop64")
+
+	global o
+	foundCount = 0
+	numOps = NumOpsDis
+
+
+	t=0
+	len_data2 = len(data2)
+	len_bytesToMatch = len(bytesToMatch)
+	for v in data2:
+		found = True #reset flag
+		#replace with bytesToMatch list if desired
+		#for i in range(len(bytesToMatch)): #can break out on no match for efficiency, left as is for simplicity
+		i = 0
+		for x in bytesToMatch:
+			if(found == False):
+				break
+			# elif ((i+t) >= len_data2 or i >= len_bytesToMatch):
+			# 	found = False # out of range
+			try:
+				#print(data2[t+i])
+				#input("enter..")
+				if ((data2[t+i]) != (bytesToMatch[i])):
+					found = False #no match
+			except Exception as e:
+				# input(e)
+				pass
+			i += 1
+
+		if(found):
+			# input("enter..")
+			disHereCallpop64(t, numOps, secNum, data2, distance)
+
+		t=t+1
+
+
+
 def disHereCallpop(address, NumOpsDis, secNum, data, distance):
 	# print("in dishere")
 	pop = False
@@ -2756,6 +2807,8 @@ def disHereCallpop(address, NumOpsDis, secNum, data, distance):
 	#address2 = address + section.ImageBase + section.VirtualAdd
 	val5 =[]
 	
+	if(secNum != "noSec"):
+		section = s[secNum]
 	# print("HERE IS THE CALL LINE")
 	# start = timeit.default_timer()
 	CODED3 = CODED2
@@ -2781,7 +2834,7 @@ def disHereCallpop(address, NumOpsDis, secNum, data, distance):
 
 		##############################################
 
-		call = re.match("^call", line, re.IGNORECASE)
+		call = re.match("^call ", line, re.IGNORECASE)
 		if(call):
 			pop_addr = line.split()[1]
 			pop_addr = pop_addr[:-1]
@@ -2828,11 +2881,162 @@ def disHereCallpop(address, NumOpsDis, secNum, data, distance):
 
 		##############################################
 
+		jmp = re.match("^jmp", line, re.IGNORECASE)
+		call = re.match("^call", line, re.IGNORECASE)
+		bad = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(int)|(retf)|(db)|(hlt)|(loop)|(ret)|(leave)|(int3)|(insd)|(enter)|(jns))", line, re.M|re.I)
+		if(jmp or call or bad):
+			return
+
+
 		pop = re.match("^pop (e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
 		if(pop):
 			pop_offset = line.split()[-1]
 			pop_offset = pop_offset[:-1]
 		# print("POP OFFSET")
+		# print(pop_offset)
+		if(pop):
+
+			if(rawHex):
+				modSecName = peName
+			else:
+				modSecName = section.sectionName
+			# print("saving one")
+			# print(binarytostr(line))
+			print("Tweedle Dee")
+			print(line)
+			saveBaseCallpop(origAddr, NumOpsDis, modSecName, secNum, distance, pop_offset)
+			return
+
+
+def disHereCallpop64(address, NumOpsDis, secNum, data, distance):
+	# print ("disHereCallpop64")
+	pop = False
+	CODED2 = ""
+	x = NumOpsDis
+
+	origAddr = address
+	address = address + distance
+
+
+	CODED2 = data[(origAddr):(address+20)]
+
+	# I create the individual lines of code that will appear>
+	val =""
+	val2 = []
+	val3 = []
+	#address2 = address + section.ImageBase + section.VirtualAdd
+	val5 =[]
+	valOpstr =[]
+	if(secNum != "noSec"):
+		section = s[secNum]
+	# print("HERE IS THE CALL LINE")
+	# start = timeit.default_timer()
+	CODED3 = CODED2
+
+	# print ("test1")
+	for i in cs64.disasm(CODED3, address):
+		if(secNum == "noSec"):
+			# add = hex(int(i.address))
+			add4 = hex(int(i.address))
+			addb = hex(int(i.address))
+		else:
+			add = hex(int(i.address))
+			addb = hex(int(i.address +  section.VirtualAdd))
+			add2 = str(add)
+			add3 = hex (int(i.address + section.startLoc	))
+			add4 = str(add3)
+		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+		valOpstr.append(i.op_str)
+		val5.append(val)
+		print(val)
+
+
+	print (len(val5), "lenght val5")
+	disString = val5
+	t = 0
+	for line in disString:
+		##############################################
+		print(line)
+		call = re.match("^call [0x]*[0-9a-f]{1,2}", disString[0], re.IGNORECASE)
+		if(call):
+			# pop_addr = line.split()[1]
+			# pop_addr = pop_addr[:-1]
+			# print ("found call")
+			pop_addr = valOpstr[t]
+			print("POP ADDR = " + str(pop_addr))
+			# print(binaryToStr(CODED3))
+		# print("POP OFFSET")
+		t += 1
+
+	if(secNum != "noSec"):
+		section = s[secNum]
+	CODED2 = data[(address):(address+NumOpsDis)]
+
+	# I create the individual lines of code that will appear>
+	val =""
+	val2 = []
+	val3 = []
+	#address2 = address + section.ImageBase + section.VirtualAdd
+	val5 =[]
+	
+
+	# print("2ND CHUNK")
+	# start = timeit.default_timer()
+	CODED3 = CODED2
+	for i in cs64.disasm(CODED3, address):
+		if(secNum == "noSec"):
+			# add = hex(int(i.address))
+			add4 = hex(int(i.address))
+			addb = hex(int(i.address))
+		else:
+			add = hex(int(i.address))
+			addb = hex(int(i.address +  section.VirtualAdd))
+			add2 = str(add)
+			add3 = hex (int(i.address + section.startLoc	))
+			add4 = str(add3)
+		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+		val5.append(val)
+		print(val)
+
+
+	disString2 = val5
+
+	t=0
+	print (disString)
+	for line in disString:
+
+		##############################################
+		#Note that push/pop are invalid for e registers in x64. r registers are correct.
+		# pop = re.match("^pop (((r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp))) | (r((8)|(9)|(1(0-5)))d?)", line, re.IGNORECASE)
+		print ("t", t, "line", line)
+
+		bad = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(int)|(retf)|(db)|(hlt)|(loop)|(ret)|(leave)|(int3)|(insd)|(enter)|(jns)|(call))", line, re.M|re.I)   # addd call
+		if bad:
+			print ("got bad")
+		if(bad) and (t > 0):
+			return
+		t+=1
+
+
+
+	for line in disString2:
+
+		##############################################
+		#Note that push/pop are invalid for e registers in x64. r registers are correct.
+		# pop = re.match("^pop (((r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp))) | (r((8)|(9)|(1(0-5)))d?)", line, re.IGNORECASE)
+
+		# jmp = re.match("^jmp", line, re.IGNORECASE)
+		call = re.match("^call", line, re.IGNORECASE)
+		# bad = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(int)|(retf)|(db)|(hlt)|(loop)|(ret)|(leave)|(int3)|(insd)|(enter)|(jns))", line, re.M|re.I)
+		# if(jmp or call or bad):
+			# return
+
+		pop = re.match("^pop ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)|(8)|(9)|(1[0-5])))", line, re.IGNORECASE)
+		if(pop):
+			pop_offset = line.split()[-1]
+			pop_offset = pop_offset[:-1]
+			# print("POP OFFSET")
+			# print(line)
 		# print(pop_offset)
 		if(pop):
 
@@ -2855,10 +3059,19 @@ def saveBaseCallpop(address, NumOpsDis,modSecName,secNum,distance,pop_offset):
 		modSecName = "rawHex"
 		m[o].save_Callpop_info.append(tuple((address,NumOpsDis,modSecName,secNum,distance,pop_offset)))
 
-def printSavedCallPop(): ######################## AUSTIN ###############################3
+
+
+
+
+
+def printSavedCallPop(bit = 32): ######################## AUSTIN ###############################3
 	# print("in print")
 	#formatting
 	j = 0
+	if(bit == 64):
+		callCS = cs64
+	else:
+		callCS = cs
 	if(rawHex):
 		for item in m[o].save_Callpop_info:
 			CODED2 = b""
@@ -2881,9 +3094,7 @@ def printSavedCallPop(): ######################## AUSTIN #######################
 				# 	trash = raw_input("enter...")
 				
 			else:
-				outString += " | Module: " + modSecName
-
-			outString += " | Call address: " + str(hex(origAddr)) + " | Distance from call: " + str(hex(distance)) + " | Pop offset: " + str(pop_offset)
+				outString += " | Call address: " + str(hex(origAddr)) + " | Distance from call: " + str(hex(distance)) + " | Pop offset: " + str(pop_offset)
 
 			print ("\n********************************************************")
 			print (outString)
@@ -2894,7 +3105,7 @@ def printSavedCallPop(): ######################## AUSTIN #######################
 			#address2 = address + section.ImageBase + section.VirtualAdd
 			val5 =[]
 
-			for i in cs.disasm(CODED2, address):
+			for i in callCS.disasm(CODED2, address):
 				if(rawHex):
 					add4 = hex(int(i.address))
 					addb = hex(int(i.address))
@@ -2920,20 +3131,22 @@ def printSavedCallPop(): ######################## AUSTIN #######################
 				CODED2 = ""
 
 
-				address = item[0]
+				origAddr = item[0]
 				NumOpsDis = item[1]
 				modSecName = item[2]
 				secNum = item[3]
 				distance = item[4]
-
+				pop_offset = item[5]
+				address = origAddr + distance
 				# print("NUMBACK = " + str(NumOpsBack))
 
 				section = s[secNum]
 
+				printAddress = origAddr + section.VirtualAdd
 				outString = "\n\nItem : " + str(j)
 				if(secNum != -1):
+					outString += " | Call address: " + str(hex(printAddress)) + " | Distance from call: " + str(hex(distance)) + " | Pop offset: " + str(pop_offset)
 
-					outString += " | Section number: " + str(secNum) + " | Section name: " + str(modSecName)
 					# if(secNum != 0):
 					# 	trash = raw_input("enter...")
 					
@@ -2952,7 +3165,7 @@ def printSavedCallPop(): ######################## AUSTIN #######################
 				CODED2 = section.data2[(address):(address+NumOpsDis)]
 
 				CODED3 = CODED2
-				for i in cs.disasm(CODED3, address):
+				for i in callCS.disasm(CODED3, address):
 					add = hex(int(i.address))
 					addb = hex(int(i.address +  section.VirtualAdd))
 					add2 = str(add)
@@ -4918,6 +5131,11 @@ def findAllCallpop(data2, secNum): ################## AUSTIN ###################
 
 	for match in CALLPOP_START.values(): #iterate through all opcodes representing combinations of registers
 		get_Callpop(10, match[0], secNum, data2, match[1]) 
+
+def findAllCallpop64(data2, secNum): ################## AUSTIN ######################
+
+	for match in CALLPOP_START.values(): #iterate through all opcodes representing combinations of registers
+		get_Callpop64(10, match[0], secNum, data2, match[1])
 
 
 def findAllPebSequences(data2, secNum): ################## AUSTIN ######################
@@ -9242,7 +9460,16 @@ def bramwellStart2():
 
 	printSavedPEB()
 ##### START
+def init1():
+	global rawData2
+	if(not rawHex):
+		ObtainAndExtractSections()
+		# print (showBasicInfoSections())
 
+	if (rawHex):#(rawBin == False) and not isPe: 
+		rawBytes=readShellcode(filename) 
+
+		rawData2=rawBytes
 
 # Extraction()
 
@@ -9680,8 +9907,9 @@ if __name__ == "__main__":
 	BramwellID=0
 	AustinID=1
 	AndyID=2
-	# user=AndyID
+
 	user=AustinID        #comment out, so only one user shows, or is the last one shown.
+	# user=AndyID
 	# user=BramwellID
 	
 	if user==AustinID:
@@ -9708,7 +9936,7 @@ if __name__ == "__main__":
 
 		# bramwellStart()   # PE file ?
 
-		yes = 3
+		yes = 1
 		if yes == 2:
 			bramwellDisassembly()   # Takes as input .txt file of shellcode    - also takes .bin (py sharem.py shellcode.bin raw) - note the raw keyword at the end!!!
 			bramwellStart2()
@@ -9778,4 +10006,17 @@ if __name__ == "__main__":
 
 	################################ ANDY'S WORK AREA
 	if andy:
-		print ("Hello, Andy")
+
+		init1()
+
+		if (rawHex):#(rawBin == False) and not isPe: 
+			findAllFSTENV(rawData2, 'noSec')
+
+		else:
+			for secNum in range(len(s)):
+				data2 = s[secNum].data2
+				findAllFSTENV(data2, secNum)
+		print("Testing starts here: **********************************")
+		
+		printSavedFSTENV()
+		print ("subarashiki kono sekai")
