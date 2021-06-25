@@ -2362,14 +2362,14 @@ def disHerePushRet(address, NumOpsDis, secNum, data): ##########################
 
 	# 	##############################################
 
-		push = re.match("^push ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)|(8|9|(1[0-5]))))", line, re.IGNORECASE)
-		ret = re.match("^ret", line, re.IGNORECASE)
+		# push = re.match("^push ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)|(8|9|(1[0-5]))))", line, re.IGNORECASE)
+		# ret = re.match("^ret", line, re.IGNORECASE)
 
-		if(push):
-			points += 1
+		# if(push):
+		# 	points += 1
 
-		if(ret):
-			points += 1
+		# if(ret):
+		# 	points += 1
 
 
 	if(points >= 2):
@@ -2377,7 +2377,7 @@ def disHerePushRet(address, NumOpsDis, secNum, data): ##########################
 			modSecName = peName
 		else:
 			modSecName = section.sectionName
-		saveBasePushRet(address, NumOpsDis, modSecName, secNum, points)
+		saveBasePushRet(address, NumOpsDis, modSecName, secNum, points, pushOffset, retOffset)
 
 def disHerePushRet64(address, NumOpsDis, secNum, data): ############################# AUSTIN ############################
 
@@ -3034,14 +3034,14 @@ def printSavedFSTENV(bit = 32): ######################## AUSTIN ################
 				address2 = address + section.ImageBase + section.VirtualAdd
 				val5 =[]
 
-				CODED2 = rawData2[int(FPU_offset, 16):(int(printEnd, 16))]
-
+				CODED2 = section.data2[(address - NumOpsBack):(address+NumOpsDis)]
+		
 				CODED3 = CODED2
 				for i in callCS.disasm(CODED3, address):
 					add = hex(int(i.address))
-					addb = hex(int(i.address +  section.VirtualAdd))
+					addb = hex(int(i.address +  section.VirtualAdd - NumOpsBack))
 					add2 = str(add)
-					add3 = hex (int(i.address + section.startLoc))
+					add3 = hex (int(i.address + section.startLoc - NumOpsBack))
 					add4 = str(add3)
 					val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 					val2.append(val)
@@ -3188,7 +3188,7 @@ def disHereCallpop(address, NumOpsDis, secNum, data, distance):
 		if(call):
 			pop_addr = valOffsets[t]
 			print("POP ADDR = " + str(pop_addr))
-		# print("POP OFFSET")
+		print("POP OFFSET")
 		t+=1
 
 
@@ -3222,6 +3222,7 @@ def disHereCallpop(address, NumOpsDis, secNum, data, distance):
 		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 		val5.append(val)
 		valOffsets.append(addb)
+		# print("cpprint")
 		# print(val)
 
 
@@ -3254,7 +3255,7 @@ def disHereCallpop(address, NumOpsDis, secNum, data, distance):
 			# print(binarytostr(line))
 			saveBaseCallpop(origAddr, NumOpsDis, modSecName, secNum, distance, pop_offset)
 			return
-			t+=1
+		t+=1
 
 
 def disHereCallpop64(address, NumOpsDis, secNum, data, distance):
@@ -10700,7 +10701,7 @@ if __name__ == "__main__":
 	AustinID=1
 	AndyID=2
 
-	user=AndyID        #comment out, so only one user shows, or is the last one shown.
+	user=AustinID        #comment out, so only one user shows, or is the last one shown.
 	# user=AndyID
 	# user=BramwellID
 	
@@ -10790,7 +10791,7 @@ if __name__ == "__main__":
 	# Austin=False
 	################################ AUSTIN'S WORK AREA
 	if austin:
-		AustinTesting2()
+		AustinTesting3()
 
 
 
