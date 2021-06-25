@@ -784,7 +784,7 @@ PUSH_RET = {
 	'EDX_RETF': b"\x52\xCB",
 	'EDI_RETF': b"\x57\xCB",
 	'ESI_RETF': b"\x56\xCB",
-	'EBX_RETF': b"\x55\xCB",
+	'EBP_RETF': b"\x55\xCB",
 	'ESP_RETF': b"\x54\xCB",
 	'EAX_RETF_PAD': b"\x50\xCA",
 	'EBX_RETF_PAD': b"\x53\xCA",

@@ -6,6 +6,9 @@ import numpy as np
 import multiprocessing 
 import time
 import math
+import dispy
+import traceback
+import distrFunc
 
 def show1(int):
 		show = "{0:02x}".format(int) #
@@ -30,6 +33,7 @@ def binaryToStr(binary):
 
 
 def nPr(n, r):
+    from math import factorial
     return int(factorial(n)/factorial(n-r))
 
 
@@ -1194,8 +1198,1104 @@ def block_size(id, p, n):
 
 
 
+def austinDecode(decodeOps, sample, mode = "default", starts = [], order = []):
+# def austinDecode(*args):
+	global aLimit
+	global bLimit
+	global cLimit
+	global dLimit
+	global eLimit
+	global fLimit
+	global gLimit
+	global hLimit
+	global iLimit
+	global aValue
+	global bValue
+	global cValue
+	global dValue
+	global eValue
+	global fValue
+	global gValue
+	global hValue
+	global iValue
 
-def austinDecode(*args):
+
+	print("austinDecode")
+	u=0
+	t=0
+
+	# starts = []
+	single = False
+	# args = list(args)
+	# sample = args.pop()
+	
+	# if(mode == "continue"):
+		# starts = args.pop()
+		# sample = args.pop()
+	if(mode == "single"):
+		# order = args.pop()
+		# starts = args.pop()
+		# sample = args.pop()
+		single = True
+	# starts = args.pop()
+
+	# else:
+	# 	for val in args:
+	# 		starts.append(0)
+	alphaList=[]
+	alpha = 'a'
+	for i in range(0, 26): 
+		alphaList.append(alpha) 
+		alpha = chr(ord(alpha) + 1)  
+
+	args = list(decodeOps)
+	for val in args:
+		lim, res=findObfusMethod(val)
+		if t==0:
+			aLimit, aValue=lim, res
+		elif t==1:
+			bLimit, bValue=lim, res
+		elif t==2:
+			cLimit, cValue=lim, res
+		elif t==3:
+			dLimit, dValue=lim, res
+		elif t==4:
+			eLimit, eValue=lim, res
+		elif t==5:
+			fLimit, fValue=lim, res
+		elif t==6:
+			gLimit, gValue=lim, res
+		elif t==7:
+			hLimit, hValue=lim, res
+		elif t==8:
+			iLimit, iValue=lim, res
+		t+=1
+
+	tempMax(10, 10,10, 3)
+
+	print ("aLimit", aLimit, aValue)
+	print ("bLimit", bLimit, bValue)
+	print ("cLimit", cLimit, cValue)
+	maxTrue=3
+	Max=maxTrue
+	maxValuU=Max#20
+	maxValuW=Max#4
+	maxValuT=Max#2
+	maxValuR=Max#4
+
+
+	mylist2=[]
+	# for x in args:
+	# 	mylist2.append(x)
+	z=0
+
+	#### TODO --build it out so it only populates with natural max--
+	###populate the maxes for the range func as well with regular expressions. :-)
+	t=0
+
+	for each in args:
+		x = each.replace("VALUE", alphaList[t] )
+		mylist2.append(x)
+		t+=1
+		# print (x)
+
+
+		
+
+		
+
+	sample2=b"\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76"
+
+	# sample=b"\x31\xc9"
+	numItems=len(mylist2)
+	totalPerm=aLimit*bLimit*cLimit * (nPr(numItems,numItems-1))
+	if len(mylist2)==4:
+		totalPerm=aLimit*bLimit*cLimit * dLimit *(nPr(numItems,numItems-1))
+	if len(mylist2)==5:
+		totalPerm=aLimit*bLimit*cLimit * dLimit * eLimit*(nPr(numItems,numItems-1))
+
+	print ("total permutations: ", totalPerm)
+	permPercent=0.1*totalPerm
+	start = timeit.default_timer()
+	encodeBytes=bytearray()
+	
+	# encodeBytes4=bytearray()
+
+	# print("mylist2")
+	# print(mylist2)
+	# print("sample")
+	# print(sample)
+	# input("break")
+
+	# 1-6, 0-3, 0-3, 0-3
+	permutations = list(itertools.permutations(mylist2))
+	# print("PERMS")
+	# print(len(permutations))
+	# doStuff(permutations[1] ,22, 35, 1)
+
+	# for each in (list(itertools.permutations(mylist2))):
+
+
+	tupleStart = timeit.default_timer()
+	### LIST COMPREHENSION ###
+	# 6000 perm time = 0.0019388999999999934
+	# encodeBytes4 = [ (a,b,c,each)
+	# 				for a in range (aLimit)
+	# 				for b in range (bLimit)
+	# 				for c in range (cLimit)
+	# 				for each in (list(itertools.permutations(mylist2)))
+	# 				]
+	### WHILE LOOPS ###
+	# 6000 perm time = 0.001719499999999985
+	encodeBytes4 = []
+	eachLen = len(permutations)
+
+	# print("STARTS HERE")
+	# print(starts)
+	a=0
+	b=0
+	c=0
+	d=0
+	e=0
+	if(len(starts) >= 3):
+			a = starts[0]
+			b = starts[1]
+			c = starts[2]
+	if(len(starts) >= 4):
+		d = starts[3]
+	if(len(starts) >= 5):
+		e = starts[4]
+	eachInd = 0
+
+	curPerm = 0
+	listLimit = 1000000
+	totalRuns = 0
+	# print("CPU COUNT")
+	# print(multiprocessing.cpu_count())
+	numThreads = multiprocessing.cpu_count()
+	out = []
+	startVals = []
+	early = False
+
+	if(single):
+		version = len(mylist2)
+		if(version == 3):
+			encodeBytes4.append((a,b,c,order))
+		elif(version == 4):
+			encodeBytes4.append((a,b,c,d,order))
+		elif(version == 5):
+			encodeBytes4.append((a,b,c,d,e,order))
+		out = runProcs(encodeBytes4, sample, numThreads,version)
+		return out,early,startVals
+	
+	if(len(mylist2) == 3):
+		while(a < aLimit):
+			while(b < bLimit):
+				while(c < cLimit):
+					while(eachInd < eachLen):
+						encodeBytes4.append((a,b,c,permutations[eachInd]))
+						eachInd += 1
+						curPerm += 1
+						if(curPerm > listLimit):
+							early = True
+							print("RUNNING PROCS")
+							out = out + runProcs(encodeBytes4, sample, numThreads)
+							totalRuns += numThreads
+							curPerm = 0
+							encodeBytes4 = []
+							hitLimit = True
+							startVals.append(a)
+							startVals.append(b)
+							startVals.append(c)
+							return out,early,startVals
+					c += 1
+					eachInd = 0
+				b += 1
+				c = 0
+			a += 1
+			b = 0
+
+		if(totalRuns != totalPerm):
+			out = out + runProcs(encodeBytes4, sample, numThreads)
+	
+	elif(len(mylist2) == 4):
+		print("in loop a=", a, "b=", b, "c=", c, "d=", d, "eachInd=", eachInd, "eachLen=", eachLen)
+		while(a < aLimit):
+			while(b < bLimit):
+				while(c < cLimit):
+					while(d < dLimit):
+						while(eachInd < eachLen):
+							encodeBytes4.append((a,b,c,d,permutations[eachInd]))
+							eachInd += 1
+							curPerm += 1
+							if(curPerm > listLimit):
+								print("RUNNING PROCS")
+								out = out + runProcs(encodeBytes4, sample, numThreads, 4)
+								totalRuns += numThreads
+								curPerm = 0
+								encodeBytes4 = []
+								hitLimit = True
+								startVals.append(a)
+								startVals.append(b)
+								startVals.append(c)
+								startVals.append(d)
+								return out,early,startVals
+						d += 1
+						eachInd = 0
+					c += 1
+					d = 0
+				b += 1
+				c = 0
+			a += 1
+			b = 0
+		if(totalRuns != totalPerm):
+			out = out + runProcs(encodeBytes4, sample, numThreads, 4)
+
+	elif(len(mylist2) == 5):
+		while(a < aLimit):
+			while(b < bLimit):
+				while(c < cLimit):
+					while(d < dLimit):
+						while(e < eLimit):
+							while(eachInd < eachLen):
+								encodeBytes4.append((a,b,c,d,e,permutations[eachInd]))
+								eachInd += 1
+								curPerm += 1
+								if(curPerm > listLimit):
+									print("RUNNING PROCS")
+									out = out + runProcs(encodeBytes4, sample, numThreads, 5)
+									totalRuns += numThreads
+									curPerm = 0
+									encodeBytes4 = []
+									hitLimit = True
+									startVals.append(a)
+									startVals.append(b)
+									startVals.append(c)
+									startVals.append(d)
+									startVals.append(e)
+									return out,early,startVals
+							e += 1
+							eachInd = 0
+						d += 1
+						e = 0
+					c += 1
+					d = 0
+				b += 1
+				c = 0
+			a += 1
+			b = 0
+		if(totalRuns != totalPerm):
+			out = out + runProcs(encodeBytes4, sample, numThreads, 5)
+
+	tupleStop = timeit.default_timer()
+	print("Tuple time: " + str(tupleStop - tupleStart))
+
+	print("LISTDONE")
+	# print(encodeBytes4)
+	print(len(encodeBytes4))
+	sortOut = sorted(out)
+	print("LEN SORT PAR", str(len(sortOut)))
+
+	
+	stop = timeit.default_timer()
+	print("Total time PAR: " + str(stop - start))
+
+
+	# print ("Total number of iterations:", len(encodeBytes4))
+	# for xx in encodeBytes4:
+		
+	# 	print (xx)
+	# 	print ("\n\n")
+	
+
+
+	finTime=stop-start
+	cores=240
+	print (totalPerm, "Perm")
+	numSeconds=0.00001
+
+	print ("end time: ", z/finTime )
+	print ("finTime", finTime)
+	return out, early, startVals
+
+
+def doDistr(decodeOps, sample, nodes, mode = "default", starts = [], order = []):
+    final = []
+    finalOutput = []
+    print("in distr")
+    cluster = dispy.JobCluster(austinDecodeDistributed_new, nodes = ['172.25.14.87', '172.25.14.208'], depends = [nPr, findObfusMethod,tempMax,runProcsDistr,block_low,block_high,distrFunc], loglevel = dispy.logger.DEBUG)
+    jobs = []
+    for i in range(2):
+        print('starting jobs')
+        # schedule execution of 'compute' on a node (running 'dispynode')
+        # with a parameter (random number in this case)
+        job = cluster.submit(decodeOps, sample, nodes, i, mode, starts, order)
+        jobs.append(job)
+    # cluster.wait() # wait for all scheduled jobs to finish
+    for job in jobs:
+        print("waiting for jobs")
+        outputs = job() # waits for job to finish and returns results
+        print("outputs here")
+        # print(outputs)
+        final.append(outputs)
+        finalOutput.append(outputs[0])
+        print('(%s) executed job %s at %s' % (job.ip_addr, job.id,
+                                                         job.start_time))
+        # other fields of 'job' that may be useful:
+        # print(job.stdout, job.stderr, job.exception, job.ip_addr, job.start_time, job.end_time)
+    cluster.print_status()
+
+    for item in finalOutput:
+    	print("FINAL RETURNED2")
+    	for x in item:
+    		try:
+	    		for y in x:
+	    			print( y)
+    		except:
+	    		print(x)
+    		print("\n\n")
+
+
+    	print("\n\n")
+
+
+#operations, sample, numNodes, <startValues, "continue"> OR <startValues, order, "single"> 
+
+
+def austinDecodeDistributed_old(*args):
+	global aLimit
+	global bLimit
+	global cLimit
+	global dLimit
+	global eLimit
+	global fLimit
+	global gLimit
+	global hLimit
+	global iLimit
+	global aValue
+	global bValue
+	global cValue
+	global dValue
+	global eValue
+	global fValue
+	global gValue
+	global hValue
+	global iValue
+
+
+	print("austinDecode")
+	u=0
+	t=0
+
+	starts = []
+	single = False
+	args = list(args)
+	nodes = args.pop()
+	sample = args.pop()
+	
+	if(sample == "continue"):
+		starts = args.pop()
+		nodes = args.pop()
+		sample = args.pop()
+	elif(sample == "single"):
+		order = args.pop()
+		starts = args.pop()
+		nodes = args.pop()
+		sample = args.pop()
+		single = True
+	# starts = args.pop()
+
+	else:
+		for val in args:
+			starts.append(0)
+	alphaList=[]
+	alpha = 'a'
+
+	
+	for i in range(0, 26): 
+		alphaList.append(alpha) 
+		alpha = chr(ord(alpha) + 1)  
+	
+	for val in args:
+		lim, res=findObfusMethod(val)
+		if t==0:
+			aLimit, aValue=lim, res
+		elif t==1:
+			bLimit, bValue=lim, res
+		elif t==2:
+			cLimit, cValue=lim, res
+		elif t==3:
+			dLimit, dValue=lim, res
+		elif t==4:
+			eLimit, eValue=lim, res
+		elif t==5:
+			fLimit, fValue=lim, res
+		elif t==6:
+			gLimit, gValue=lim, res
+		elif t==7:
+			hLimit, hValue=lim, res
+		elif t==8:
+			iLimit, iValue=lim, res
+		t+=1
+
+	tempMax(3, 3,3, 3)
+
+	print ("aLimit", aLimit, aValue)
+	print ("bLimit", bLimit, bValue)
+	print ("cLimit", cLimit, cValue)
+	maxTrue=3
+	Max=maxTrue
+	maxValuU=Max#20
+	maxValuW=Max#4
+	maxValuT=Max#2
+	maxValuR=Max#4
+
+
+	mylist2=[]
+	# for x in args:
+	# 	mylist2.append(x)
+	z=0
+
+	#### TODO --build it out so it only populates with natural max--
+	###populate the maxes for the range func as well with regular expressions. :-)
+	t=0
+
+	for each in args:
+		x = each.replace("VALUE", alphaList[t] )
+		mylist2.append(x)
+		t+=1
+		# print (x)
+
+		
+
+		
+
+	sample2=b"\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76"
+
+	# sample=b"\x31\xc9"
+	numItems=len(mylist2)
+	totalPerm=aLimit*bLimit*cLimit * (nPr(numItems,numItems-1))
+	if len(mylist2)==4:
+		totalPerm=aLimit*bLimit*cLimit * dLimit *(nPr(numItems,numItems-1))
+	if len(mylist2)==5:
+		totalPerm=aLimit*bLimit*cLimit * dLimit * eLimit*(nPr(numItems,numItems-1))
+
+	print ("total permutations: ", totalPerm)
+	permPercent=0.1*totalPerm
+	start = timeit.default_timer()
+	encodeBytes=bytearray()
+	
+	# encodeBytes4=bytearray()
+
+	# print("mylist2")
+	# print(mylist2)
+	# print("sample")
+	# print(sample)
+	# input("break")
+
+	# 1-6, 0-3, 0-3, 0-3
+	permutations = list(itertools.permutations(mylist2))
+	# print("PERMS")
+	# print(len(permutations))
+	# doStuff(permutations[1] ,22, 35, 1)
+
+	# for each in (list(itertools.permutations(mylist2))):
+
+
+	tupleStart = timeit.default_timer()
+	### LIST COMPREHENSION ###
+	# 6000 perm time = 0.0019388999999999934
+	# encodeBytes4 = [ (a,b,c,each)
+	# 				for a in range (aLimit)
+	# 				for b in range (bLimit)
+	# 				for c in range (cLimit)
+	# 				for each in (list(itertools.permutations(mylist2)))
+	# 				]
+	### WHILE LOOPS ###
+	# 6000 perm time = 0.001719499999999985
+	encodeBytes4 = []
+	eachLen = len(permutations)
+
+	# print("STARTS HERE")
+	# print(starts)
+	a = starts[0]
+	b = starts[1]
+	c = starts[2]
+	if(len(starts) >= 4):
+		d = starts[3]
+	if(len(starts) >= 5):
+		e = starts[4]
+	eachInd = 0
+
+	curPerm = 0
+	listLimit = 1000000
+	totalRuns = 0
+	# print("CPU COUNT")
+	# print(multiprocessing.cpu_count())
+	numThreads = multiprocessing.cpu_count()
+	out = []
+	startVals = []
+	early = False	
+	if(single):
+		version = len(mylist2)
+		if(version == 3):
+			encodeBytes4.append((a,b,c,order))
+		elif(version == 4):
+			encodeBytes4.append((a,b,c,d,order))
+		elif(version == 5):
+			encodeBytes4.append((a,b,c,d,e,order))
+		out = runProcs(encodeBytes4, sample, numThreads,version)
+		return (out,early,startVals)
+	# return("got here")
+	
+	if(len(mylist2) == 3):
+		while(a < aLimit):
+			while(b < bLimit):
+				while(c < cLimit):
+					while(eachInd < eachLen):
+						encodeBytes4.append((a,b,c,permutations[eachInd]))
+						eachInd += 1
+						curPerm += 1
+						if(curPerm > listLimit):
+							early = True
+							print("RUNNING PROCS")
+							out = out + runProcs(encodeBytes4, sample, numThreads)
+							totalRuns += numThreads
+							curPerm = 0
+							encodeBytes4 = []
+							hitLimit = True
+							startVals.append(a)
+							startVals.append(b)
+							startVals.append(c)
+							return (out,early,startVals)
+					c += 1
+					eachInd = 0
+				b += 1
+				c = 0
+			a += 1
+			b = 0
+
+		if(totalRuns != totalPerm):
+			for nodeID in range(nodes):
+								print("BOTTOM RUNNING PROCS")
+								print("BOTTOM ENCODEBYTES LEN = " + str(len(encodeBytes4)))
+								print("BOTTOM NODE ID = " + str(nodeID))
+								print("BOTTOM BLOCK LOW = " + str(block_low(nodeID, nodes, len(encodeBytes4))))
+								print("BOTTOM BLOCK HIGH = " + str(block_high(nodeID, nodes, len(encodeBytes4))))
+								out = out + runProcs(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads)
+			# out = out + runProcs(encodeBytes4, sample, numThreads)
+	
+	elif(len(mylist2) == 4):
+		print("in loop a=", a, "b=", b, "c=", c, "d=", d, "eachInd=", eachInd, "eachLen=", eachLen)
+		while(a < aLimit):
+			while(b < bLimit):
+				while(c < cLimit):
+					while(d < dLimit):
+						while(eachInd < eachLen):
+							encodeBytes4.append((a,b,c,d,permutations[eachInd]))
+							eachInd += 1
+							curPerm += 1
+							if(curPerm > listLimit):
+								print("RUNNING PROCS")
+								out = out + runProcs(encodeBytes4, sample, numThreads, 4)
+								totalRuns += numThreads
+								curPerm = 0
+								encodeBytes4 = []
+								hitLimit = True
+								startVals.append(a)
+								startVals.append(b)
+								startVals.append(c)
+								startVals.append(d)
+								return (out,early,startVals)
+						d += 1
+						eachInd = 0
+					c += 1
+					d = 0
+				b += 1
+				c = 0
+			a += 1
+			b = 0
+		if(totalRuns != totalPerm):
+			for nodeID in range(nodes):
+								print("BOTTOM RUNNING PROCS")
+								print("BOTTOM ENCODEBYTES LEN = " + str(len(encodeBytes4)))
+								print("BOTTOM NODE ID = " + str(nodeID))
+								print("BOTTOM BLOCK LOW = " + str(block_low(nodeID, nodes, len(encodeBytes4))))
+								print("BOTTOM BLOCK HIGH = " + str(block_high(nodeID, nodes, len(encodeBytes4))))
+								out = out + runProcs(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, 4)
+			# out = out + runProcs(encodeBytes4, sample, numThreads, 4)
+
+	elif(len(mylist2) == 5):
+		while(a < aLimit):
+			while(b < bLimit):
+				while(c < cLimit):
+					while(d < dLimit):
+						while(e < eLimit):
+							while(eachInd < eachLen):
+								encodeBytes4.append((a,b,c,d,e,permutations[eachInd]))
+								eachInd += 1
+								curPerm += 1
+								if(curPerm > listLimit):
+									print("RUNNING PROCS")
+									out = out + runProcs(encodeBytes4, sample, numThreads, 5)
+									totalRuns += numThreads
+									curPerm = 0
+									encodeBytes4 = []
+									hitLimit = True
+									startVals.append(a)
+									startVals.append(b)
+									startVals.append(c)
+									startVals.append(d)
+									startVals.append(e)
+									return (out,early,startVals)
+							e += 1
+							eachInd = 0
+						d += 1
+						e = 0
+					c += 1
+					d = 0
+				b += 1
+				c = 0
+			a += 1
+			b = 0
+		if(totalRuns != totalPerm):
+			for nodeID in range(nodes):
+								print("BOTTOM RUNNING PROCS")
+								print("BOTTOM ENCODEBYTES LEN = " + str(len(encodeBytes4)))
+								print("BOTTOM NODE ID = " + str(nodeID))
+								print("BOTTOM BLOCK LOW = " + str(block_low(nodeID, nodes, len(encodeBytes4))))
+								print("BOTTOM BLOCK HIGH = " + str(block_high(nodeID, nodes, len(encodeBytes4))))
+								out = out + runProcs(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, 5)
+			# out = out + runProcs(encodeBytes4, sample, numThreads, 5)
+
+	tupleStop = timeit.default_timer()
+	print("Tuple time: " + str(tupleStop - tupleStart))
+
+	print("LISTDONE")
+	# print(encodeBytes4)
+	print(len(encodeBytes4))
+	sortOut = sorted(out)
+	print("LEN SORT PAR", str(len(sortOut)))
+
+	
+	stop = timeit.default_timer()
+	print("Total time PAR: " + str(stop - start))
+
+
+	# print ("Total number of iterations:", len(encodeBytes4))
+	# for xx in encodeBytes4:
+		
+	# 	print (xx)
+	# 	print ("\n\n")
+	
+
+
+	finTime=stop-start
+	cores=240
+	print (totalPerm, "Perm")
+	numSeconds=0.00001
+
+	print ("end time: ", z/finTime )
+	print ("finTime", finTime)
+	return (out, early, startVals)
+
+
+#def austinDecodeDistributed_new(list operations, 
+def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "default", starts = [], order = []):
+	try:
+			import re
+			import itertools
+			from math import factorial
+			import timeit
+			import numpy as np
+			import multiprocessing 
+			import time
+			import math
+			import dispy
+			import traceback
+
+			global aLimit
+			global bLimit
+			global cLimit
+			global dLimit
+			global eLimit
+			global fLimit
+			global gLimit
+			global hLimit
+			global iLimit
+			global aValue
+			global bValue
+			global cValue
+			global dValue
+			global eValue
+			global fValue
+			global gValue
+			global hValue
+			global iValue
+
+			# aLimit = 0
+			# bLimit = 0
+			# cLimit = 0
+			# dLimit = 0
+			# eLimit = 0
+			# fLimit = 0
+			# gLimit = 0
+			# hLimit = 0
+			# iLimit = 0
+			# aValue = 0
+			# bValue = 0
+			# cValue = 0
+			# dValue = 0
+			# eValue = 0
+			# fValue = 0
+			# gValue = 0
+			# hValue = 0
+			# iValue = 0
+
+
+
+			# return("limits done")
+			# import re
+			# import itertools
+			# from math import factorial
+			# import timeit
+			# import numpy as np
+			# import multiprocessing 
+			# import time
+			# import math
+			# import dispy
+
+			# return("entered")
+			print("austinDecode")
+			u=0
+			t=0
+
+			# starts = []
+			single = False
+			# args = list(args)
+			# sample = args.pop()
+			
+			# if(mode == "continue"):
+				# starts = args.pop()
+				# sample = args.pop()
+			if(mode == "single"):
+				# order = args.pop()
+				# starts = args.pop()
+				# sample = args.pop()
+				single = True
+			# starts = args.pop()
+
+			# else:
+			# 	for val in args:
+			# 		starts.append(0)
+			alphaList=[]
+			alpha = 'a'
+			for i in range(0, 26): 
+				alphaList.append(alpha) 
+				alpha = chr(ord(alpha) + 1)  
+
+			args = list(decodeOps)
+
+			for val in args:
+				lim, res=findObfusMethod(val)
+				if t==0:
+					aLimit, aValue=lim, res
+				elif t==1:
+					bLimit, bValue=lim, res
+				elif t==2:
+					cLimit, cValue=lim, res
+				elif t==3:
+					dLimit, dValue=lim, res
+				elif t==4:
+					eLimit, eValue=lim, res
+				elif t==5:
+					fLimit, fValue=lim, res
+				elif t==6:
+					gLimit, gValue=lim, res
+				elif t==7:
+					hLimit, hValue=lim, res
+				elif t==8:
+					iLimit, iValue=lim, res
+				t+=1
+
+			tempMax(3, 3,3, 3)
+
+			print ("aLimit", aLimit, aValue)
+			print ("bLimit", bLimit, bValue)
+			print ("cLimit", cLimit, cValue)
+			maxTrue=3
+			Max=maxTrue
+			maxValuU=Max#20
+			maxValuW=Max#4
+			maxValuT=Max#2
+			maxValuR=Max#4
+
+
+			mylist2=[]
+			# for x in args:
+			# 	mylist2.append(x)
+			z=0
+
+			#### TODO --build it out so it only populates with natural max--
+			###populate the maxes for the range func as well with regular expressions. :-)
+			t=0
+
+			for each in args:
+				x = each.replace("VALUE", alphaList[t] )
+				mylist2.append(x)
+				t+=1
+				# print (x)
+
+
+				
+
+				
+
+			sample2=b"\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76"
+
+			# sample=b"\x31\xc9"	
+
+
+			numItems=len(mylist2)
+
+			totalPerm=aLimit*bLimit*cLimit * (nPr(numItems,numItems-1))
+			if len(mylist2)==4:
+				totalPerm=aLimit*bLimit*cLimit * dLimit *(nPr(numItems,numItems-1))
+			if len(mylist2)==5:
+				totalPerm=aLimit*bLimit*cLimit * dLimit * eLimit*(nPr(numItems,numItems-1))
+
+			# return("got here")
+
+			print ("total permutations: ", totalPerm)
+			permPercent=0.1*totalPerm
+			start = timeit.default_timer()
+			encodeBytes=bytearray()
+			
+			# encodeBytes4=bytearray()
+
+			# print("mylist2")
+			# print(mylist2)
+			# print("sample")
+			# print(sample)
+			# input("break")
+
+			# 1-6, 0-3, 0-3, 0-3
+			permutations = list(itertools.permutations(mylist2))
+			# print("PERMS")
+			# print(len(permutations))
+			# doStuff(permutations[1] ,22, 35, 1)
+
+			# for each in (list(itertools.permutations(mylist2))):
+
+
+			tupleStart = timeit.default_timer()
+			### LIST COMPREHENSION ###
+			# 6000 perm time = 0.0019388999999999934
+			# encodeBytes4 = [ (a,b,c,each)
+			# 				for a in range (aLimit)
+			# 				for b in range (bLimit)
+			# 				for c in range (cLimit)
+			# 				for each in (list(itertools.permutations(mylist2)))
+			# 				]
+			### WHILE LOOPS ###
+			# 6000 perm time = 0.001719499999999985
+			encodeBytes4 = []
+			eachLen = len(permutations)
+
+			# print("STARTS HERE")
+			# print(starts)
+			a=0
+			b=0
+			c=0
+			d=0
+			e=0
+			if(len(starts) >= 3):
+				a = starts[0]
+				b = starts[1]
+				c = starts[2]
+			if(len(starts) >= 4):
+				d = starts[3]
+			if(len(starts) >= 5):
+				e = starts[4]
+			eachInd = 0
+
+			curPerm = 0
+			listLimit = 1000000
+			totalRuns = 0
+			# print("CPU COUNT")
+			# print(multiprocessing.cpu_count())
+			numThreads = multiprocessing.cpu_count()
+			out = []
+			startVals = []
+			early = False
+
+			
+			if(single):
+				version = len(mylist2)
+				if(version == 3):
+					encodeBytes4.append((a,b,c,order))
+				elif(version == 4):
+					encodeBytes4.append((a,b,c,d,order))
+				elif(version == 5):
+					encodeBytes4.append((a,b,c,d,e,order))
+				out = runProcsDistr(encodeBytes4, sample, numThreads,version)
+				return (out,early,startVals)
+			
+			if(len(mylist2) == 3):
+				while(a < aLimit):
+					while(b < bLimit):
+						while(c < cLimit):
+							while(eachInd < eachLen):
+								encodeBytes4.append((a,b,c,permutations[eachInd]))
+								eachInd += 1
+								curPerm += 1
+								if(curPerm > listLimit):
+									early = True
+									print("RUNNING PROCS")
+									out = out + runProcsDistr(encodeBytes4, sample, numThreads)
+									totalRuns += numThreads
+									curPerm = 0
+									encodeBytes4 = []
+									hitLimit = True
+									startVals.append(a)
+									startVals.append(b)
+									startVals.append(c)
+									return (out,early,startVals)
+							c += 1
+							eachInd = 0
+						b += 1
+						c = 0
+					a += 1
+					b = 0
+
+				if(totalRuns != totalPerm):
+					for nodeID in range(nodes):
+										print("BOTTOM RUNNING PROCS")
+										print("BOTTOM ENCODEBYTES LEN = " + str(len(encodeBytes4)))
+										print("BOTTOM NODE ID = " + str(nodeID))
+										print("BOTTOM BLOCK LOW = " + str(block_low(nodeID, nodes, len(encodeBytes4))))
+										print("BOTTOM BLOCK HIGH = " + str(block_high(nodeID, nodes, len(encodeBytes4))))
+										out = out + runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads)
+					# out = out + runProcs(encodeBytes4, sample, numThreads)
+			
+			elif(len(mylist2) == 4):
+				print("in loop a=", a, "b=", b, "c=", c, "d=", d, "eachInd=", eachInd, "eachLen=", eachLen)
+				while(a < aLimit):
+					while(b < bLimit):
+						while(c < cLimit):
+							while(d < dLimit):
+								while(eachInd < eachLen):
+									encodeBytes4.append((a,b,c,d,permutations[eachInd]))
+									eachInd += 1
+									curPerm += 1
+									if(curPerm > listLimit):
+										print("RUNNING PROCS")
+										out = out + runProcsDistr(encodeBytes4, sample, numThreads, 4)
+										totalRuns += numThreads
+										curPerm = 0
+										encodeBytes4 = []
+										hitLimit = True
+										startVals.append(a)
+										startVals.append(b)
+										startVals.append(c)
+										startVals.append(d)
+										return (out,early,startVals)
+								d += 1
+								eachInd = 0
+							c += 1
+							d = 0
+						b += 1
+						c = 0
+					a += 1
+					b = 0
+				if(totalRuns != totalPerm):
+					for nodeID in range(nodes):
+										print("BOTTOM RUNNING PROCS")
+										print("BOTTOM ENCODEBYTES LEN = " + str(len(encodeBytes4)))
+										print("BOTTOM NODE ID = " + str(nodeID))
+										print("BOTTOM BLOCK LOW = " + str(block_low(nodeID, nodes, len(encodeBytes4))))
+										print("BOTTOM BLOCK HIGH = " + str(block_high(nodeID, nodes, len(encodeBytes4))))
+										out = out + runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, 4)
+					# out = out + runProcs(encodeBytes4, sample, numThreads, 4)
+
+			elif(len(mylist2) == 5):
+				while(a < aLimit):
+					while(b < bLimit):
+						while(c < cLimit):
+							while(d < dLimit):
+								while(e < eLimit):
+									while(eachInd < eachLen):
+										encodeBytes4.append((a,b,c,d,e,permutations[eachInd]))
+										eachInd += 1
+										curPerm += 1
+										if(curPerm > listLimit):
+											print("RUNNING PROCS")
+											out = out + runProcsDistr(encodeBytes4, sample, numThreads, 5)
+											totalRuns += numThreads
+											curPerm = 0
+											encodeBytes4 = []
+											hitLimit = True
+											startVals.append(a)
+											startVals.append(b)
+											startVals.append(c)
+											startVals.append(d)
+											startVals.append(e)
+											return (out,early,startVals)
+									e += 1
+									eachInd = 0
+								d += 1
+								e = 0
+							c += 1
+							d = 0
+						b += 1
+						c = 0
+					a += 1
+					b = 0
+				if(totalRuns != totalPerm):
+					for nodeID in range(nodes):
+										print("BOTTOM RUNNING PROCS")
+										print("BOTTOM ENCODEBYTES LEN = " + str(len(encodeBytes4)))
+										print("BOTTOM NODE ID = " + str(nodeID))
+										print("BOTTOM BLOCK LOW = " + str(block_low(nodeID, nodes, len(encodeBytes4))))
+										print("BOTTOM BLOCK HIGH = " + str(block_high(nodeID, nodes, len(encodeBytes4))))
+										out = out + runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, 5)
+					# out = out + runProcs(encodeBytes4, sample, numThreads, 5)
+
+			tupleStop = timeit.default_timer()
+			print("Tuple time: " + str(tupleStop - tupleStart))
+
+			print("LISTDONE")
+			# print(encodeBytes4)
+			print(len(encodeBytes4))
+			sortOut = sorted(out)
+			print("LEN SORT PAR", str(len(sortOut)))
+
+			
+			stop = timeit.default_timer()
+			print("Total time PAR: " + str(stop - start))
+
+
+			# print ("Total number of iterations:", len(encodeBytes4))
+			# for xx in encodeBytes4:
+				
+			# 	print (xx)
+			# 	print ("\n\n")
+			
+
+
+			finTime=stop-start
+			cores=240
+			print (totalPerm, "Perm")
+			numSeconds=0.00001
+
+			print ("end time: ", z/finTime )
+			print ("finTime", finTime)
+			return (out, early, startVals)
+	except Exception as e:
+		return(traceback.format_exc())
+		# return(e)
+
+def austinDecodeDistributed(*args):
 	global aLimit
 	global bLimit
 	global cLimit
@@ -1220,6 +2320,8 @@ def austinDecode(*args):
 	t=0
 
 	args = list(args)
+	nodes = args[-1]
+	args = args [:-1]
 	sample = args.pop()
 
 	alphaList=[]
@@ -1350,9 +2452,14 @@ def austinDecode(*args):
 						encodeBytes4.append((a,b,c,permutations[eachInd]))
 						eachInd += 1
 						curPerm += 1
-						if(curPerm > listLimit):
-							print("RUNNING PROCS")
-							out = out + runProcs(encodeBytes4, sample, numThreads)
+						if(curPerm > (listLimit // nodes)):
+							for nodeID in range(nodes):
+								print("RUNNING PROCS")
+								print("ENCODEBYTES LEN = " + str(len(encodeBytes4)))
+								print("NODE ID = " + str(nodeID))
+								print("BLOCK LOW = " + str(block_low(nodeID, nodes, len(encodeBytes4))))
+								print("BLOCK HIGH = " + str(block_high(nodeID, nodes, len(encodeBytes4))))
+								out = out + runProcs(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads)
 							totalRuns += numThreads
 							curPerm = 0
 							encodeBytes4 = []
@@ -1365,6 +2472,13 @@ def austinDecode(*args):
 			b = 0
 
 		if(totalRuns != totalPerm):
+			for nodeID in range(nodes):
+								print("BOTTOM RUNNING PROCS")
+								print("BOTTOM ENCODEBYTES LEN = " + str(len(encodeBytes4)))
+								print("BOTTOM NODE ID = " + str(nodeID))
+								print("BOTTOM BLOCK LOW = " + str(block_low(nodeID, nodes, len(encodeBytes4))))
+								print("BOTTOM BLOCK HIGH = " + str(block_high(nodeID, nodes, len(encodeBytes4))))
+								out = out + runProcs(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads)
 			out = out + runProcs(encodeBytes4, sample, numThreads)
 	
 	elif(len(mylist2) == 4):
@@ -1454,6 +2568,7 @@ def austinDecode(*args):
 	print ("end time: ", z/finTime )
 	print ("finTime", finTime)
 	return out
+
 
 def specialEncoderP2(*args):
 	global aLimit
@@ -1731,10 +2846,55 @@ def runProcs(encodeBytes4, sample, numThreads, version = 3):
 			for rank in range(numThreads):
 				# print("adding new process = " + str(rank))
 				# print("LOW BLOCK")
-				print(block_low(rank, numThreads, argsLen))
+				# print(block_low(rank, numThreads, argsLen))
 				# print("HIGH BLOCK")
-				print(block_high(rank, numThreads, argsLen))
+				# print(block_high(rank, numThreads, argsLen))
 				processList.append(multiprocessing.Process(target=p2Encode, args = (block_low(rank, numThreads, argsLen), block_high(rank, numThreads, argsLen), encodeBytes4, sample, rank, queue, version)))
+
+
+			for proc in processList:
+				proc.start()
+
+			for proc in processList:
+				ret = queue.get()
+				rets = rets + ret
+
+			for proc in processList:
+				proc.join()
+
+			for proc in processList:
+				proc.terminate()
+
+			# print("rets here")
+			# print(rets)
+			return rets
+
+def runProcsDistr(encodeBytes4, sample, numThreads, version = 3):
+			from distrFunc import p2EncodeDistr, doStuffP2Distr, doStuffP24Distr, doStuffP25Distr
+	# if __name__ == '__main__':
+			# print("in runprocs")
+			# print(encodeBytes4)
+			# print(sample)
+			# print(numThreads)
+			# print(perms)
+			# numThreads = 4
+			argsLen = len(encodeBytes4)
+			# r = len(encodeBytes4) % numThreads
+			# startChunk = 0
+			# rSize = math.ceil(len(encodeBytes4)/numThreads)
+			# p_rSize = len(encodeBytes4)//numThreads
+
+			processList= []
+			rets = []
+			queue = multiprocessing.Queue()
+
+			for rank in range(numThreads):
+				# print("adding new process = " + str(rank))
+				# print("LOW BLOCK")
+				# print(block_low(rank, numThreads, argsLen))
+				# print("HIGH BLOCK")
+				# print(block_high(rank, numThreads, argsLen))
+				processList.append(multiprocessing.Process(target=p2EncodeDistr, args = (block_low(rank, numThreads, argsLen), block_high(rank, numThreads, argsLen), encodeBytes4, sample, rank, queue, version)))
 
 
 			for proc in processList:
@@ -1768,7 +2928,6 @@ def p2Encode(low, high, encodeBytes4, sample, rank, queue, version):
 			outs.append(doStuffP25(encodeBytes4[i], sample, rank))
 
 	queue.put(outs)
-
 def doStuffP2(inputs, sample, rank):
 	# print("IN dostuffp2")
 	a=inputs[0]
@@ -1792,12 +2951,12 @@ def doStuffP2(inputs, sample, rank):
 		eval(newcode) 
 		
 					# encode="encodeBytes.append(new)"
-	print (newString, "\n", "a",a, "b",b, "c",c ,"")
+	# print (newString, "\n", "a",a, "b",b, "c",c ,"")
 	bytesStr = bytes(encodeBytes)
 	out = newString + "\n" + "a" + str(a) + "b" + str(b) + "c" + str(c)
-	print ("\nencoder5 new", binaryToStr(bytesStr),"\n\n\n")
+	# print ("\nencoder5 new", binaryToStr(bytesStr),"\n\n\n")
 	# return out
-	return (bytesStr, out)
+	return (bytesStr, out, list((a,b,c)), each)
 	# return "ok"
 
 def doStuffP24(inputs, sample, rank):
@@ -1827,7 +2986,7 @@ def doStuffP24(inputs, sample, rank):
 	bytesStr = bytes(encodeBytes)
 	out = newString + "\n" + "a" + str(a) + "b" + str(b) + "c" + str(c) + "d" + str(d)
 	print ("\nencoder5 new", binaryToStr(bytesStr),"\n\n\n")
-	return (bytesStr, out)
+	return (bytesStr, out, list((a,b,c,d)), each)
 	# return out
 	# return "ok"
 
@@ -1859,9 +3018,11 @@ def doStuffP25(inputs, sample, rank):
 	bytesStr = bytes(encodeBytes)
 	out = newString + "\n" + "a" + str(a) + "b" + str(b) + "c" + str(c) + "d" + str(d) + "e" + str(e)
 	print ("\nencoder5 new", binaryToStr(bytesStr),"\n\n\n")
-	return (bytesStr, out)
+	return (bytesStr, out, list((a,b,c,d,e)), each)
 	# return out
 	# return "ok"
+
+
 
 
 
