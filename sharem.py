@@ -86,6 +86,7 @@ rawData2 = b''
 numArgs = len(sys.argv)
 rawBin=False  # only if .bin, not .txt
 isPe=False
+pointsLimit = 3
 
 fastMode=False
 
@@ -1401,6 +1402,7 @@ def get_PEB_walk_start(mode, NumOpsDis ,bytesToMatch, secNum, data2):
 	#change to work off of data2 - add param - get rid of secNum
 
 	global o
+	global pointsLimit
 	foundCount = 0
 	numOps = NumOpsDis
 
@@ -1525,6 +1527,7 @@ total2 = 0
 def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ##############
 	print ("disHerePEB", mode)
 	global o
+	global pointsLimit
 	w=0
 
 	start = timeit.default_timer()
@@ -1600,7 +1603,7 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 			return
 
 
-
+		# mov eax, dword ptr [eax + 0xc]
 		loadLDR = re.match("^((mov)|(add)|(xor)|(or)|(adc)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", val, re.IGNORECASE)
 
 		# if(movLoadLDR or addLoadLDR or adcLoadLDR or xorLoadLDR or orLoadLDR or xchgLoadLDR):
@@ -1629,7 +1632,7 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 
 
 
-
+		#mov eax, dword ptr[eax]
 		dereference = re.match("^((mov)|(add)|(adc)|(xor)|(or)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", val, re.IGNORECASE)
 
 		# if(movDereference or addDereference or adcDereference or orDereference or xorDereference or xchgDereference):
@@ -1778,7 +1781,7 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 	stop = timeit.default_timer()
 	print("Time PEB: " + str(stop - start))
 
-	if(points >= 2):
+	if(points >= pointsLimit):
 		if(rawHex):
 			modSecName = peName
 		else:
@@ -2480,18 +2483,20 @@ def PushRetrawhex(address, linesForward, secNum, data):
 			isPUSH = re.search("push", e, re.IGNORECASE)
 			if isPUSH:
 				# print("ispush")
-				c0_offset = hex(orgListOffset[t])
+				push_offset = hex(orgListOffset[t])
 				address = int(orgListOffset[t])
-				t_temp = 0
+				index = 0
 				chunk = orgListDisassembly[t+1:t+linesForward]
 				chunkOffsets = orgListOffset[t+1:t+linesForward]
 				for item in chunk:
 					# print("item: ",item)
 					isRET = re.search("ret", item, re.IGNORECASE)
 					if isRET:
+						ret_offset = hex(orgListOffset[index + t + 1])
 						# print("isret")
-						saveBasePushRet(address, linesForward, 'noSec', secNum, 2)
+						saveBasePushRet(address, linesForward, 'noSec', secNum, 2, push_offset, ret_offset)
 						break
+					index = index + 1
 
 
 			t+=1	 
@@ -2870,7 +2875,7 @@ def FSTENVrawhex(address, linesBack, secNum, data):
 			get_FSTENV(10, 15, match, secNum, data)
 
 def get_FPUInstruction(orgListDisassembly, orgListOffset, linesGoBack, listOffset):
-	temp_t = 0
+	fpuIndex = 0
 	isFPU = False
 	if((t-linesGoBack)<0):
 		chunk = orgListDisassembly[0:listOffset]
@@ -2883,10 +2888,10 @@ def get_FPUInstruction(orgListDisassembly, orgListOffset, linesGoBack, listOffse
 		isFPU = re.search("^f((?!n?stenv).)*$", i, re.IGNORECASE)
 		if isFPU:
 			break
-		t_temp +=1
+		fpuIndex +=1
 
 	
-	return isFPU, temp_t
+	return isFPU, fpuIndex
 
 
 
@@ -3424,10 +3429,13 @@ def callPopRawHex(address, linesForward, secNum, data):
 			# for match2 in CALLPOP_START.values():
 			# 	print("lel")
 			# 	# if(match2[1] == )
-			isCall = re.match("^call [0x]?[0-9,a-f]{1,2}", e, re.IGNORECASE)
-			if(isCall):
+			isCall = re.match("^call (0x)?[0-9,a-f]{1,2}$", e, re.IGNORECASE)
+			# isCall2 = re.match("^call ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)|(8)|(9)|(1[0-5])))", e, re.IGNORECASE)
+			if(isCall and not isCall2):
 				distance = orgListDisassembly[t]
+				print("disthere", distance)
 				distance = distance[5:]
+				print("disthere2", distance)
 				distance = int(distance, 16)
 				print("distance is: ", hex(distance))
 				# print("checking call at: ", orgListOffset[t])
@@ -3713,7 +3721,7 @@ def getSyscall(callNum, bit = 64, version = "default"):
 				nt64Csv = csv.reader(file)
 				# print(format(callNum, '#06x'))
 				nt64Header = next(nt64Csv)
-				version = nt64Header[-1]
+				version = nt64Header[-1] #last item
 
 		else:
 			with open('nt32.csv', 'r') as file:
@@ -3867,6 +3875,7 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 
 
 
+
 	# print("&&&&&&&&&&&&&&&&&&&&&&&&\n\n")
 	for line in disAsm:
 		line = line.rsplit('	', 1)[0]
@@ -3933,6 +3942,8 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 				# print("here is what i found:")
 				# print(found)
 
+
+
 				if(found == 'eax'):
 					found = eax
 				elif(found == 'ebx'):
@@ -3952,6 +3963,7 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 				else:
 					found = "unknown"
 
+			#add eax, 8
 			elif(numeric):
 				found = int(numeric.group(), 16)
 				# print("here is what i found:")
@@ -4678,6 +4690,7 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 
 			elif(variable):
 				found = str(variable.group())
+				# push eax
 
 				# print("here is what i found:")
 				# print(found)
@@ -5147,6 +5160,7 @@ def disHereHeaven(address, NumOpsDis, NumOpsBack, secNum, data): ############ AU
 		# print("BINARY2STR")
 		# print(binaryToStr(CODED3))
 		# print("******************************************")
+		disString = []
 		for i in cs.disasm(CODED3, address):
 			#print('address in for = ' + str(address))
 			if(secNum == "noSec"):
@@ -5263,6 +5277,9 @@ def disHereHeaven2(address, linesBack, secNum, data):
 				print (str(hex(orgListOffset[t])) + "\t" + e)
 				
 
+				# for retf -- needs 2 pushes beforehand:
+				# one is the 0x33 segment required to specify heaven's gate
+				# other is the address to jump to
 				isRETF = re.search("retf", e, re.IGNORECASE)
 				isJMP = re.search("ljmp 0x33:", e, re.IGNORECASE)
 				isCALL = re.search("lcall 0x33:", e, re.IGNORECASE)
@@ -5599,12 +5616,12 @@ def findAllFSTENV_old(): ################## AUSTIN ######################
 			for match in FSTENV_GET_BASE.values(): #iterate through all opcodes representing combinations of registers
 				get_FSTENV(10, 15, match, secNum, data2) 
 
-def findAllCallpop(data2, secNum): ################## AUSTIN ######################
+def findAllCallpop(data2, secNum, numOps = 10): ################## AUSTIN ######################
 	if(secNum == 'noSec'):
 		callPopRawHex(0, 15, secNum, data2)
 	else:
 		for match in CALLPOP_START.values(): #iterate through all opcodes representing combinations of registers
-			get_Callpop(10, match[0], secNum, data2, match[1]) 
+			get_Callpop(numOps, match[0], secNum, data2, match[1]) 
 
 def findAllCallpop64(data2, secNum): ################## AUSTIN ######################
 	if(secNum == 'noSec'):
@@ -7180,6 +7197,7 @@ def AustinTesting3():
 	global peName
 	global rawData2
 	global filename
+	global pointsLimit
 	print("HERE PENAME")
 	print(peName)
 	# start = timeit.default_timer()
@@ -7204,7 +7222,6 @@ def AustinTesting3():
 	doFstenv = True
 	doSyscall = True
 	doHeaven = True
-
 
 
 	if(rawHex):
