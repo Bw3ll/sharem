@@ -211,6 +211,7 @@ else:
 	cs = Cs(CS_ARCH_X86, CS_MODE_64)
 
 cs64 = Cs(CS_ARCH_X86, CS_MODE_64)
+
 class MyBytes:
 
 	def _init_(self): #, name):
@@ -2495,6 +2496,7 @@ def PushRetrawhex(address, linesForward, secNum, data):
 						ret_offset = hex(orgListOffset[index + t + 1])
 						# print("isret")
 						saveBasePushRet(address, linesForward, 'noSec', secNum, 2, push_offset, ret_offset)
+
 						break
 					index = index + 1
 
@@ -10689,15 +10691,131 @@ def bramwellDisassembly2():
 	# shellDisassemblyStart2(filename)
 
 def ui():
-	# sp()
+	bit32 = True
+	bPushRet = False
+	bFstenv = False
+	bEgg = False
+	bEm = False
+	bCallPop = False
+	shellBit = 32
+
+	
 	x = ""
 	while x != "e":
-		# sp()
+		print("\n======Main Menu=======\n")
+		print("BitMode: ", shellBit, "\n")
+		showOptions()
+		
 		try:
-			showOptions()
-			r = raw_input()
-			if r[0:1] == "x":
+			userIN = input()
+			if(bit32):
+				shellBit = 32
+			elif(bit32 == False):
+				shellBit = 64
+			if userIN[0:1] == "x":
 				break
+			
+			elif userIN[0:1] == "h":
+				showOptions()
+				
+
+
+			elif userIN[0:1] == "s":
+				print("\n======Instruction Printing Menu=======\n")
+				instructionsMenu()
+				listIN = input()
+				t = 0
+				w = 0
+				for vboo in listIN:
+					if listIN[t] == "T":
+						if w == 0:
+							bPushRet = True
+						elif w == 1:
+							bFstenv = True
+						elif w == 2:
+							bCallPop = True
+						w+=1
+					elif listIN[t] == "F":
+						if w == 0:
+							bPushRet = False
+						elif w == 1:
+							bFstenv = False
+						elif w == 2:
+							bCallPop = False
+						w+=1
+					t+=1
+				print("\n======Output=======\n")
+				if bFstenv:
+					if (rawHex):#(rawBin == False) and not isPe: 
+						findAllFSTENV(rawData2, 'noSec')
+					else:
+						for secNum in range(len(s)):
+							data2 = s[secNum].data2
+							findAllFSTENV(data2, secNum)
+					print("#############FSTENV##############\n")
+					printSavedFSTENV(shellBit)
+				if bPushRet:
+					print("\nhere\n")
+					if (rawHex):#(rawBin == False) and not isPe:
+						if bit32:
+							findAllPushRet(rawData2, 'noSec')
+						else: 
+							findAllPushRet64(rawData2, 'noSec')
+
+					else:
+						for secNum in range(len(s)):
+							data2 = s[secNum].data2
+							if bit32:
+								findAllPushRet(data2, secNum)
+							else:
+								findAllPushRet64(data2, secNum)
+								# print("")
+								# findAllPushRet64(data2, 'noSec')
+								# disHerePushRet64rawhex(0, 10, 'noSec', data2)
+					print("#############PUSHRET##############\n")
+					printSavedPushRet(shellBit)
+					print("\njfj\n")
+
+				if bCallPop:
+					if (rawHex):#(rawBin == False) and not isPe:
+						if bit32:
+							findAllCallpop(rawData2, 'noSec')
+						else: 
+							findAllCallpop64(rawData2, 'noSec')
+
+					else:
+						for secNum in range(len(s)):
+							data2 = s[secNum].data2
+							if bit32:
+								findAllCallpop(data2, secNum)
+							else:
+								findAllCallpop64(data2, secNum)
+								# print("")
+								# findAllPushRet64(data2, 'noSec')
+								# disHerePushRet64rawhex(0, 10, 'noSec', data2)
+					print("#############CALLPOP##############\n")
+					printSavedCallPop(shellBit)	
+
+
+			elif userIN[0:1] == "b":
+				print("\n======Bit Mode=======\n")
+				bitMode()
+				y = ""
+				while y != "e":
+					bitIN = input()
+					if bitIN == "32":
+						bit32 = True
+						print("Bit Mode Set to 32\n")
+						break
+					elif bitIN == "64":
+						bit32 = False
+						print("Bit Mode Set to 64\n")
+						break
+					else:
+						print("Invalid input...\n")
+			else:
+				print("\nInvalid input.\n")
+
 		except:
 			pass
 
@@ -10824,13 +10942,13 @@ if __name__ == "__main__":
 		bEgg = False
 		bEm = False
 		bCallPop = False
-		bFstenv = True
-		bPushRet = True
-		bEgg = True
-		bCallPop = True
-		bEm = True
+		# bFstenv = True
+		# bPushRet = True
+		# bEgg = True
+		# bCallPop = True
+		# bEm = True
 		bit32=False
-		ignoreDisDiscovery = True
+		# ignoreDisDiscovery = True
 		bUI= True
 
 
@@ -10911,4 +11029,4 @@ if __name__ == "__main__":
 		
 
 			print("\n")
-		print ("subarashiki kono sekai")
+		# print ("subarashiki kono sekai")
