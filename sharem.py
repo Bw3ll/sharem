@@ -2850,7 +2850,9 @@ def FSTENVrawhex(address, linesBack, secNum, data):
 
 
 				if isFPU:
-					# print("hello", t_temp)
+					print("t - linesGoBack = ", hex((t-linesGoBack)), "t = ", hex(t), "linesGoBack = ", hex(linesGoBack))
+					print("ORGLIST VALUES t - linesGoBack = ", hex(orgListOffset[(t-linesGoBack)]), "t = ", hex(orgListOffset[t]), "linesGoBack = ", hex(linesGoBack))
+					# print("hello", hex(t_temp))
 					FPU_addr = hex(orgListOffset[t_temp])
 					# print("instruction at: ", hex(orgListOffset[m]))
 					try:
@@ -5095,7 +5097,7 @@ def disHereEgg2(address, linesBack, secNum, data):
 
 					startStates = ("unknown","unknown","unknown","unknown","unknown","unknown","unknown","unknown")
 					eax = trackRegs(converted, startStates, [])[0][0]
-					print("THURS eax = " + str(eax) + "\n\n\n")
+	
 					# if(eax == "0x26"):
 						# print("TrackRegs found eax = " + str(eax))
 					modSecName = peName
@@ -5340,7 +5342,7 @@ def saveBaseHeaven(address, NumOpsDis, linesBack, modSecName, secNum, offset, co
 		print("heavensave")
 		s[secNum].save_Heaven_info.append(tuple((address,NumOpsDis,linesBack,modSecName,secNum, offset)))
 	else:
-		print("Saving one raw")
+		# print("Saving one raw")
 		secNum = -1
 		modSecName = "rawHex"
 		m[o].save_Heaven_info.append(tuple((address,NumOpsDis,linesBack,modSecName,secNum, offset,  converted)))
@@ -5463,7 +5465,7 @@ def saveBaseEgg(address, NumOpsDis, linesBack, modSecName, secNum, eax, c0_offse
 	if(secNum != "noSec"):
 		s[secNum].save_Egg_info.append(tuple((address,NumOpsDis,linesBack,modSecName,secNum,eax, c0_offset)))
 	else:
-		print("Saving one raw")
+		# print("Saving one raw")
 		secNum = -1
 		modSecName = "rawHex"
 		m[o].save_Egg_info.append(tuple((address,NumOpsDis,linesBack,modSecName,secNum, eax, c0_offset, converted)))
@@ -5597,7 +5599,7 @@ def findAllFSTENV(data2, secNum): ################## AUSTIN ####################
 
 def findAllSyscall(data2, secNum):
 	for match in EGGHUNT.values():
-		get_Egghunters(20, 20, match, secNum, data2)
+		get_Egghunters(10, 20, match, secNum, data2)
 
 def findAllHeaven(data2, secNum):
 	for match in HEAVEN.values():
