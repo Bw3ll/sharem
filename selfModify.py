@@ -9,6 +9,220 @@ import math
 import dispy
 import traceback
 import distrFunc
+from lists import PEB_WALK
+import lists
+from capstone import *
+import capstone
+def get_PEB_walk_start_decode(mode, NumOpsDis ,bytesToMatch, secNum, data2): 
+	#change to work off of data2 - add param - get rid of secNum
+
+	global o
+	foundCount = 0
+	numOps = NumOpsDis
+
+
+	t=0
+	len_data2 = len(data2)
+	len_bytesToMatch = len(bytesToMatch)
+	for v in data2:
+		found = True #reset flag
+		#replace with bytesToMatch list if desired
+		#for i in range(len(bytesToMatch)): #can break out on no match for efficiency, left as is for simplicity
+		i = 0
+		for x in bytesToMatch:
+			if(found == False):
+				break
+			# elif ((i+t) >= len_data2 or i >= len_bytesToMatch):
+			# 	found = False # out of range
+			try:
+				#print(data2[t+i])
+				#input("enter..")
+				if ((data2[t+i]) != (bytesToMatch[i])):
+					found = False #no match
+			except Exception as e:
+				pass
+			i += 1
+
+		if(found):
+			# print("hit a found")
+			# input("enter..")
+			ans = disHerePEB_decode(mode, t, numOps, secNum, data2)
+			if mode=="decrypt" and ans is not None:
+				print ("got disherepeb", ans)
+				return ans
+
+			
+
+		t=t+1
+
+def disHerePEB_decode(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ##############
+	print ("disHerePEB", mode)
+	global o
+	w=0
+
+	start = timeit.default_timer()
+	foundAdv = False
+	foundPEB = False
+	## Capstone does not seem to allow me to start disassemblying at a given point, so I copy out a chunk to  disassemble. I append a 0x00 because it does not always disassemble correctly (or at all) if just two bytes. I cause it not to be displayed through other means. It simply take the starting address of the jmp [reg], disassembles backwards, and copies it to a variable that I examine more closely.
+	#lGoBack = linesGoBackFindOP
+
+	# print("disHere")
+	# print(hex(address))
+	# print(secNum)
+	#input("addy")
+
+	CODED2 = ""
+	x = NumOpsDis
+	# start = timeit.default_timer()
+	if(secNum != "noSec"):
+		section = s[secNum]
+
+	CODED3 = data[address:(address+NumOpsDis)]
+		#print("########################")
+	#	print(type(CODED2))
+	#	print("########################")
+	#
+	# stop = timeit.default_timer()
+	# total1 += (stop - start)
+	# print("Time 1 PEB: " + str(stop - start))
+
+	# I create the individual lines of code that will appear>
+	# print(len(CODED2))
+	val =""
+	val2 = []
+	val3 = []
+	#address2 = address + section.ImageBase + section.VirtualAdd
+	val5 =[]
+
+	loadTIB_offset = -1
+	loadLDR_offset = -1
+	loadModList_offset = -1
+	advanceDLL_Offset = [-1]
+	points = 0
+	# start = timeit.default_timer()
+	#CODED3 = CODED2.encode()
+	# print("BINARY2STR")
+	# print(binaryToStr(CODED3))
+	cs = Cs(CS_ARCH_X86, CS_MODE_32)
+	for i in cs.disasm(CODED3, address):
+		#print('address in for = ' + str(address))
+		if(secNum == "noSec"):
+
+		#	print("i = " + str(i) + " i.mnemonic = " + str(i.mnemonic))
+			# add = hex(int(i.address))
+			add4 = hex(int(i.address))
+			addb = hex(int(i.address))
+		else:
+			add = hex(int(i.address))
+			addb = hex(int(i.address +  section.VirtualAdd))
+			add2 = str(add)
+			add3 = hex (int(i.address + section.startLoc	))
+			add4 = str(add3)
+		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+		# val2.append(val)
+		# val3.append(add2)
+
+
+		loadPEB = re.match("^((mov)|(add)|(xor)|(or)|(adc)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?d?word ptr fs:\[((((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)|(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))))\]", val, re.IGNORECASE)
+
+		# if(movLoadPEB or addLoadPEB or adcLoadPEB or xorLoadPEB or orLoadPEB or xchgLoadPEB or pushLoadPEB and foundPEB):
+		if(loadPEB):
+			loadTIB_offset = addb
+			points += 1
+			foundPEB = True
+		elif(not foundPEB):
+			return
+
+
+
+		loadLDR = re.match("^((mov)|(add)|(xor)|(or)|(adc)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", val, re.IGNORECASE)
+
+		# if(movLoadLDR or addLoadLDR or adcLoadLDR or xorLoadLDR or orLoadLDR or xchgLoadLDR):
+		if(loadLDR):
+			loadLDR_offset = addb
+			points += 1
+
+
+
+		loadInMemOrder = re.match("^((mov)|(add)|(adc)|(xor)|(or)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", val, re.IGNORECASE)
+
+		# if(movLoadInMemOrder or addLoadInMemOrder or adcLoadInMemOrder or xorLoadInMemOrder or orLoadInMemOrder or xchgLoadInMemOrder):
+		if(loadInMemOrder):
+			loadModList_offset = addb
+			points += 1
+
+
+
+
+		loadInInitOrder = re.match("^((mov)|(add)|(adc)|(xor)|(or)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", val, re.IGNORECASE)
+
+		if(loadInInitOrder):
+		# if(movLoadInInitOrder or addLoadInInitOrder or adcLoadInInitOrder or xorLoadInInitOrder or orLoadInInitOrder or xchgLoadInInitOrder):
+			loadModList_offset = addb
+			points += 1
+
+
+
+
+		dereference = re.match("^((mov)|(add)|(adc)|(xor)|(or)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", val, re.IGNORECASE)
+
+		# if(movDereference or addDereference or adcDereference or orDereference or xorDereference or xchgDereference):
+		if(dereference):
+			advanceDLL_Offset_temp = addb
+			if(not foundAdv):
+				advanceDLL_Offset[0] = advanceDLL_Offset_temp
+				foundAdv = True
+				points += 1
+			else:
+				advanceDLL_Offset.append(advanceDLL_Offset_temp)
+
+
+
+		lodsd = re.match("^(lodsd)", val, re.IGNORECASE) 
+
+		if(lodsd):
+			points += 1
+
+		val5.append(val)
+		# print (val)
+	#return val5
+	# stop = timeit.default_timer()
+	# total2 += (stop - start)
+	# print("Time 2 PEB: " + str(stop - start))
+
+
+	
+	disString = val5
+
+
+	stop = timeit.default_timer()
+	print("Time PEB: " + str(stop - start))
+
+	if(points >= 2):
+
+		modSecName = "shellcode"
+
+
+		if mode=="decrypt":
+			print ("decrypt returning")
+			print (address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, loadModList_offset, advanceDLL_Offset)
+			return address , NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, loadModList_offset, advanceDLL_Offset
+
+
+
+def findAllPebSequences_decode(mode, inputBytes): ################## AUSTIN ######################
+
+	# global rawHex
+	# print ("findAllPebSequences", mode, binaryToStr(rawData2),)
+	mode = "decrypt"
+	for match in PEB_WALK.values(): #iterate through all opcodes representing combinations of registers
+		ans=get_PEB_walk_start_decode(mode, 19, match, "noSec", inputBytes) #19 hardcoded for now, seems like good value for peb walking sequence
+		# print ("ans", ans)
+		if mode=="decrypt" and ans is not None:
+			print ("good, get pet walk")
+			print (ans)
+			return (ans)
+
 
 def show1(int):
 		show = "{0:02x}".format(int) #
@@ -1197,8 +1411,11 @@ def block_size(id, p, n):
 	return int(block_high(id, p, n) - block_low(id, p, n) + 1)
 
 
+#TODO: get rid of amThread
+#findAll: True if you want to find all valid permutations that result in decoded shellcode Eg. 32 ways to decode it with 3 operations
+#		  False if you only want to find one
 
-def austinDecode(decodeOps, sample, mode = "default", starts = [], order = []):
+def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], findAll = False):
 # def austinDecode(*args):
 	global aLimit
 	global bLimit
@@ -1271,7 +1488,7 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = []):
 			iLimit, iValue=lim, res
 		t+=1
 
-	tempMax(10, 10,10, 3)
+	tempMax(4, 4,4, 3)
 
 	print ("aLimit", aLimit, aValue)
 	print ("bLimit", bLimit, bValue)
@@ -1357,26 +1574,29 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = []):
 	c=0
 	d=0
 	e=0
+	foundMatch = 0
 	if(len(starts) >= 3):
-			a = starts[0]
-			b = starts[1]
-			c = starts[2]
+			print("startshere")
+			print(starts)
+			a = int(starts[0])
+			b = int(starts[1])
+			c = int(starts[2])
 	if(len(starts) >= 4):
-		d = starts[3]
+		d = int(starts[3])
 	if(len(starts) >= 5):
-		e = starts[4]
+		e = int(starts[4])
 	eachInd = 0
 
+	totalRuns = 0
 	curPerm = 0
 	listLimit = 1000000
-	totalRuns = 0
 	# print("CPU COUNT")
 	# print(multiprocessing.cpu_count())
 	numThreads = multiprocessing.cpu_count()
 	out = []
 	startVals = []
 	early = False
-
+	matched = 0
 	if(single):
 		version = len(mylist2)
 		if(version == 3):
@@ -1385,29 +1605,39 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = []):
 			encodeBytes4.append((a,b,c,d,order))
 		elif(version == 5):
 			encodeBytes4.append((a,b,c,d,e,order))
-		out = runProcs(encodeBytes4, sample, numThreads,version)
+		out = runProcs(encodeBytes4, sample, numThreads,version, findAll = findAll)
 		return out,early,startVals
 	
 	if(len(mylist2) == 3):
 		while(a < aLimit):
 			while(b < bLimit):
 				while(c < cLimit):
-					while(eachInd < eachLen):
+					while(eachInd < eachLen ):
+						if(matched == 1):
+							print("MATCHED FLAG")
+							return out,early,startVals
 						encodeBytes4.append((a,b,c,permutations[eachInd]))
 						eachInd += 1
 						curPerm += 1
 						if(curPerm > listLimit):
 							early = True
-							print("RUNNING PROCS")
-							out = out + runProcs(encodeBytes4, sample, numThreads)
-							totalRuns += numThreads
+							print("RUNNING PROCS EARLY, TOTALRUNS = ",totalRuns)
+							rpOut = runProcs(encodeBytes4, sample, numThreads, findAll = findAll)
+							out = out + rpOut[0]
+							matched = rpOut[1]
+							print("CAME BACK FROM RUNPROCS, rpOut = ", rpOut)
+							totalRuns += curPerm
 							curPerm = 0
 							encodeBytes4 = []
 							hitLimit = True
 							startVals.append(a)
 							startVals.append(b)
 							startVals.append(c)
-							return out,early,startVals
+							#if we don't want to find them all and we found one of them, we are done
+							if(matched == 1 and findAll == False):
+								early = False
+							# print("returning an early with early = ", early)
+								return out,early,startVals
 					c += 1
 					eachInd = 0
 				b += 1
@@ -1415,8 +1645,18 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = []):
 			a += 1
 			b = 0
 
-		if(totalRuns != totalPerm):
-			out = out + runProcs(encodeBytes4, sample, numThreads)
+		if(totalRuns < totalPerm):
+			rpOut = runProcs(encodeBytes4, sample, numThreads, findAll = findAll)
+			# print("HERE RPOUT ",rpOut)
+			# print("HERE EB4", encodeBytes4)
+			# print("HERE TOTALRUNS", totalRuns)
+			# for item in rpOut:
+			# 	print("\n\nRP ITEM:\n------------------------------- ")
+			# 	print(item)
+
+			if(len(rpOut) > 0):
+					out = out + rpOut[0]
+					matched = rpOut[1]
 	
 	elif(len(mylist2) == 4):
 		print("in loop a=", a, "b=", b, "c=", c, "d=", d, "eachInd=", eachInd, "eachLen=", eachLen)
@@ -1425,13 +1665,20 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = []):
 				while(c < cLimit):
 					while(d < dLimit):
 						while(eachInd < eachLen):
+							if(matched == 1):
+								print("MATCHED FLAG")
+								return out,early,startVals
 							encodeBytes4.append((a,b,c,d,permutations[eachInd]))
 							eachInd += 1
 							curPerm += 1
 							if(curPerm > listLimit):
-								print("RUNNING PROCS")
-								out = out + runProcs(encodeBytes4, sample, numThreads, 4)
-								totalRuns += numThreads
+								early = True
+								print("RUNNING PROCS EARLY, TOTALRUNS = ",totalRuns)
+								rpOut = runProcs(encodeBytes4, sample, numThreads, 4, findAll = findAll)
+								out = out + rpOut[0]
+								matched = rpOut[1]
+								print("CAME BACK FROM RUNPROCS, rpOut = ", rpOut)
+								totalRuns += curPerm
 								curPerm = 0
 								encodeBytes4 = []
 								hitLimit = True
@@ -1439,7 +1686,11 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = []):
 								startVals.append(b)
 								startVals.append(c)
 								startVals.append(d)
-								return out,early,startVals
+								#if we don't want to find them all and we found one of them, we are done
+								if(matched == 1 and findAll == False):
+									early = False
+									print("returning an early with early = ", early)
+									return out,early,startVals
 						d += 1
 						eachInd = 0
 					c += 1
@@ -1448,8 +1699,18 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = []):
 				c = 0
 			a += 1
 			b = 0
-		if(totalRuns != totalPerm):
-			out = out + runProcs(encodeBytes4, sample, numThreads, 4)
+		if(totalRuns < totalPerm):
+			rpOut = runProcs(encodeBytes4, sample, numThreads, 4, findAll = findAll)
+			# print("HERE RPOUT ",rpOut)
+			# print("HERE EB4", encodeBytes4)
+			# print("HERE TOTALRUNS", totalRuns)
+			# for item in rpOut:
+			# 	print("\n\nRP ITEM:\n------------------------------- ")
+			# 	print(item)
+
+			if(len(rpOut) > 0):
+					out = out + rpOut[0]
+					matched = rpOut[1]
 
 	elif(len(mylist2) == 5):
 		while(a < aLimit):
@@ -1458,13 +1719,20 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = []):
 					while(d < dLimit):
 						while(e < eLimit):
 							while(eachInd < eachLen):
+								if(matched == 1):
+									print("MATCHED FLAG")
+									return out,early,startVals
 								encodeBytes4.append((a,b,c,d,e,permutations[eachInd]))
 								eachInd += 1
 								curPerm += 1
 								if(curPerm > listLimit):
-									print("RUNNING PROCS")
-									out = out + runProcs(encodeBytes4, sample, numThreads, 5)
-									totalRuns += numThreads
+									early = True
+									print("RUNNING PROCS EARLY, TOTALRUNS = ",totalRuns)
+									rpOut = runProcs(encodeBytes4, sample, numThreads, 5, findAll = findAll)
+									out = out + rpOut[0]
+									matched = rpOut[1]
+									print("CAME BACK FROM RUNPROCS, rpOut = ", rpOut)
+									totalRuns += curPerm
 									curPerm = 0
 									encodeBytes4 = []
 									hitLimit = True
@@ -1473,7 +1741,11 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = []):
 									startVals.append(c)
 									startVals.append(d)
 									startVals.append(e)
-									return out,early,startVals
+									#if we don't want to find them all and we found one of them, we are done
+									if(matched == 1 and findAll == False):
+										early = False
+										print("returning an early with early = ", early)
+										return out,early,startVals
 							e += 1
 							eachInd = 0
 						d += 1
@@ -1485,7 +1757,17 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = []):
 			a += 1
 			b = 0
 		if(totalRuns != totalPerm):
-			out = out + runProcs(encodeBytes4, sample, numThreads, 5)
+			rpOut = runProcs(encodeBytes4, sample, numThreads, 5, findAll = findAll)
+			# print("HERE RPOUT ",rpOut)
+			# print("HERE EB4", encodeBytes4)
+			# print("HERE TOTALRUNS", totalRuns)
+			# for item in rpOut:
+			# 	print("\n\nRP ITEM:\n------------------------------- ")
+			# 	print(item)
+
+			if(len(rpOut) > 0):
+					out = out + rpOut[0]
+					matched = rpOut[1]
 
 	tupleStop = timeit.default_timer()
 	print("Tuple time: " + str(tupleStop - tupleStart))
@@ -1519,44 +1801,89 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = []):
 	return out, early, startVals
 
 
-def doDistr(decodeOps, sample, nodes, mode = "default", starts = [], order = []):
+def doDistr(decodeOps, sample, nodes, mode = "default", starts = [], order = [], findAll = False):
     final = []
     finalOutput = []
     print("in distr")
-    cluster = dispy.JobCluster(austinDecodeDistributed_new, nodes = ['172.25.14.87', '172.25.14.208'], depends = [nPr, findObfusMethod,tempMax,runProcsDistr,block_low,block_high,distrFunc], loglevel = dispy.logger.DEBUG)
+    cluster = dispy.JobCluster(austinDecodeDistributed_new, nodes = ['172.25.14.87', '172.25.14.208'], depends = [findAllPebSequences_decode, nPr, findObfusMethod,tempMax,runProcsDistr,block_low,block_high,distrFunc, lists], loglevel = dispy.logger.DEBUG)
     jobs = []
+    time.sleep(10)
     for i in range(2):
         print('starting jobs')
         # schedule execution of 'compute' on a node (running 'dispynode')
         # with a parameter (random number in this case)
-        job = cluster.submit(decodeOps, sample, nodes, i, mode, starts, order)
+        job = cluster.submit(decodeOps, sample, nodes, i, mode, starts, order, findAll)
         jobs.append(job)
     # cluster.wait() # wait for all scheduled jobs to finish
-    for job in jobs:
-        print("waiting for jobs")
-        outputs = job() # waits for job to finish and returns results
-        print("outputs here")
-        # print(outputs)
-        final.append(outputs)
-        finalOutput.append(outputs[0])
-        print('(%s) executed job %s at %s' % (job.ip_addr, job.id,
-                                                         job.start_time))
-        # other fields of 'job' that may be useful:
-        # print(job.stdout, job.stderr, job.exception, job.ip_addr, job.start_time, job.end_time)
-    cluster.print_status()
+    
 
-    for item in finalOutput:
-    	print("FINAL RETURNED2")
-    	for x in item:
-    		try:
-	    		for y in x:
-	    			print( y)
-    		except:
-	    		print(x)
-    		print("\n\n")
+    if(findAll):
+        for job in jobs:
+            print("waiting for jobs")
+            outputs = job() # waits for job to finish and returns results
+            print("outputs here")
+            print(outputs)
+            final.append(outputs)
+            finalOutput.append(outputs[0])
+            print('(%s) executed job %s at %s' % (job.ip_addr, job.id,
+                                                             job.start_time))
+            # other fields of 'job' that may be useful:
+            # print(job.stdout, job.stderr, job.exception, job.ip_addr, job.start_time, job.end_time)
+
+    else:
+        jobDone = False
+        while(jobDone == False):
+            for job in jobs:
+                # print("waiting for jobs")
+                outputs = job.result
+                if(job.result != None):
+                    jobDone = True
+                    # outputs = job() # waits for job to finish and returns results
+                    print("outputs here")
+                    print(outputs)
+                    final.append(outputs)
+                    if(outputs is not None):
+                  	    finalOutput.append(outputs[0])
+                    print('(%s) executed job %s at %s' % (job.ip_addr, job.id,
+                                                                     job.start_time))
+                    # j = 0
+                    # for job in jobs:
+                    # 	j += 1
+                    # 	jobout = job.result 
+                    # 	print("JOB ", j, " RESULT: ", jobout)
+        cluster.print_status()
+        cluster.close(terminate = True, timeout = 0)    
 
 
-    	print("\n\n")
+    debugPrint = False
+    if(debugPrint):
+    	for item in final:
+    		print("AN ITEM IN FINAL")
+    		print(item)
+
+    	return
+
+
+    # for item in finalOutput:
+    # 	print("FINAL RETURNED2")
+    # 	for x in item:
+    # 		try:
+    # 			# x[0] = binaryToStr(x[0])
+    # 			print("y here")
+	   #  		for i in range(len(x)):
+	   #  			if(i == 0):
+	   #  				print(binaryToStr(x[i]))
+	   #  			else:
+	   #  				print(x[i])
+    # 		except Exception as e:
+    # 			print("Error: " + str(e))
+	   #  		print(x)
+    # 		print("\n\n")
+
+
+    # 	print("\n\n")
+
+    return finalOutput
 
 
 #operations, sample, numNodes, <startValues, "continue"> OR <startValues, order, "single"> 
@@ -1901,7 +2228,7 @@ def austinDecodeDistributed_old(*args):
 
 
 #def austinDecodeDistributed_new(list operations, 
-def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "default", starts = [], order = []):
+def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "default", starts = [], order = [], findAll = False):
 	try:
 			import re
 			import itertools
@@ -1966,6 +2293,7 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 			# import dispy
 
 			# return("entered")
+			printOut = ""
 			print("austinDecode")
 			u=0
 			t=0
@@ -2018,7 +2346,7 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 					iLimit, iValue=lim, res
 				t+=1
 
-			tempMax(3, 3,3, 3)
+			tempMax(4, 4,4, 3)
 
 			print ("aLimit", aLimit, aValue)
 			print ("bLimit", bLimit, bValue)
@@ -2120,7 +2448,7 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 			eachInd = 0
 
 			curPerm = 0
-			listLimit = 1000000
+			listLimit = 100
 			totalRuns = 0
 			# print("CPU COUNT")
 			# print(multiprocessing.cpu_count())
@@ -2152,15 +2480,21 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 								if(curPerm > listLimit):
 									early = True
 									print("RUNNING PROCS")
-									out = out + runProcsDistr(encodeBytes4, sample, numThreads)
-									totalRuns += numThreads
+									rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, findAll = findAll)
+									
+									if(len(rpOut) > 0):
+										out = out + rpOut[0]
+										matched = rpOut[1]
+									totalRuns += curPerm
 									curPerm = 0
 									encodeBytes4 = []
 									hitLimit = True
 									startVals.append(a)
 									startVals.append(b)
 									startVals.append(c)
-									return (out,early,startVals)
+									if(matched == 1 and findAll == False):
+										early = False
+										return (out,early,startVals)
 							c += 1
 							eachInd = 0
 						b += 1
@@ -2168,16 +2502,19 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 					a += 1
 					b = 0
 
-				if(totalRuns != totalPerm):
-					for nodeID in range(nodes):
-										print("BOTTOM RUNNING PROCS")
-										print("BOTTOM ENCODEBYTES LEN = " + str(len(encodeBytes4)))
-										print("BOTTOM NODE ID = " + str(nodeID))
-										print("BOTTOM BLOCK LOW = " + str(block_low(nodeID, nodes, len(encodeBytes4))))
-										print("BOTTOM BLOCK HIGH = " + str(block_high(nodeID, nodes, len(encodeBytes4))))
-										out = out + runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads)
-					# out = out + runProcs(encodeBytes4, sample, numThreads)
-			
+				if(totalRuns < totalPerm):
+					# for nodeID in range(nodes):
+					printOut += ("BOTTOM RUNNING PROCS\n")
+					printOut += ("BOTTOM ENCODEBYTES LEN = " + str(len(encodeBytes4))) + "\n"
+					printOut += ("BOTTOM NODE ID = " + str(nodeID)) + "\n"
+					printOut += ("BOTTOM BLOCK LOW = " + str(block_low(nodeID, nodes, len(encodeBytes4)))) + "\n"
+					printOut += ("BOTTOM BLOCK HIGH = " + str(block_high(nodeID, nodes, len(encodeBytes4)))) + "\n"
+					rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, findAll = findAll)
+					
+					if(len(rpOut) > 0):
+						out = out + rpOut[0]
+						matched = rpOut[1]
+
 			elif(len(mylist2) == 4):
 				print("in loop a=", a, "b=", b, "c=", c, "d=", d, "eachInd=", eachInd, "eachLen=", eachLen)
 				while(a < aLimit):
@@ -2189,9 +2526,14 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 									eachInd += 1
 									curPerm += 1
 									if(curPerm > listLimit):
+										early = True
 										print("RUNNING PROCS")
-										out = out + runProcsDistr(encodeBytes4, sample, numThreads, 4)
-										totalRuns += numThreads
+										rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, findAll = findAll, version = 4)
+										
+										if(len(rpOut) > 0):
+											out = out + rpOut[0]
+											matched = rpOut[1]
+										totalRuns += curPerm
 										curPerm = 0
 										encodeBytes4 = []
 										hitLimit = True
@@ -2199,7 +2541,9 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 										startVals.append(b)
 										startVals.append(c)
 										startVals.append(d)
-										return (out,early,startVals)
+										if(matched == 1 and findAll == False):
+											early = False
+											return (out,early,startVals)
 								d += 1
 								eachInd = 0
 							c += 1
@@ -2210,13 +2554,17 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 					b = 0
 				if(totalRuns != totalPerm):
 					for nodeID in range(nodes):
-										print("BOTTOM RUNNING PROCS")
-										print("BOTTOM ENCODEBYTES LEN = " + str(len(encodeBytes4)))
-										print("BOTTOM NODE ID = " + str(nodeID))
-										print("BOTTOM BLOCK LOW = " + str(block_low(nodeID, nodes, len(encodeBytes4))))
-										print("BOTTOM BLOCK HIGH = " + str(block_high(nodeID, nodes, len(encodeBytes4))))
-										out = out + runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, 4)
-					# out = out + runProcs(encodeBytes4, sample, numThreads, 4)
+										# for nodeID in range(nodes):
+						printOut += ("BOTTOM RUNNING PROCS\n")
+						printOut += ("BOTTOM ENCODEBYTES LEN = " + str(len(encodeBytes4))) + "\n"
+						printOut += ("BOTTOM NODE ID = " + str(nodeID)) + "\n"
+						printOut += ("BOTTOM BLOCK LOW = " + str(block_low(nodeID, nodes, len(encodeBytes4)))) + "\n"
+						printOut += ("BOTTOM BLOCK HIGH = " + str(block_high(nodeID, nodes, len(encodeBytes4)))) + "\n"
+						rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, findAll = findAll, version = 4)
+						
+						if(len(rpOut) > 0):
+							out = out + rpOut[0]
+							matched = rpOut[1]
 
 			elif(len(mylist2) == 5):
 				while(a < aLimit):
@@ -2229,9 +2577,14 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 										eachInd += 1
 										curPerm += 1
 										if(curPerm > listLimit):
+											early = True
 											print("RUNNING PROCS")
-											out = out + runProcsDistr(encodeBytes4, sample, numThreads, 5)
-											totalRuns += numThreads
+											rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, findAll = findAll, version = 5)
+											
+											if(len(rpOut) > 0):
+												out = out + rpOut[0]
+												matched = rpOut[1]
+											totalRuns += curPerm
 											curPerm = 0
 											encodeBytes4 = []
 											hitLimit = True
@@ -2240,7 +2593,9 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 											startVals.append(c)
 											startVals.append(d)
 											startVals.append(e)
-											return (out,early,startVals)
+											if(matched == 1 and findAll == False):
+												early = False
+												return (out,early,startVals)
 									e += 1
 									eachInd = 0
 								d += 1
@@ -2253,13 +2608,17 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 					b = 0
 				if(totalRuns != totalPerm):
 					for nodeID in range(nodes):
-										print("BOTTOM RUNNING PROCS")
-										print("BOTTOM ENCODEBYTES LEN = " + str(len(encodeBytes4)))
-										print("BOTTOM NODE ID = " + str(nodeID))
-										print("BOTTOM BLOCK LOW = " + str(block_low(nodeID, nodes, len(encodeBytes4))))
-										print("BOTTOM BLOCK HIGH = " + str(block_high(nodeID, nodes, len(encodeBytes4))))
-										out = out + runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, 5)
-					# out = out + runProcs(encodeBytes4, sample, numThreads, 5)
+										# for nodeID in range(nodes):
+						printOut += ("BOTTOM RUNNING PROCS\n")
+						printOut += ("BOTTOM ENCODEBYTES LEN = " + str(len(encodeBytes4))) + "\n"
+						printOut += ("BOTTOM NODE ID = " + str(nodeID)) + "\n"
+						printOut += ("BOTTOM BLOCK LOW = " + str(block_low(nodeID, nodes, len(encodeBytes4)))) + "\n"
+						printOut += ("BOTTOM BLOCK HIGH = " + str(block_high(nodeID, nodes, len(encodeBytes4)))) + "\n"
+						rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, findAll = findAll, version = 5)
+						
+						if(len(rpOut) > 0):
+							out = out + rpOut[0]
+							matched = rpOut[1]
 
 			tupleStop = timeit.default_timer()
 			print("Tuple time: " + str(tupleStop - tupleStart))
@@ -2292,6 +2651,7 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 			print ("finTime", finTime)
 			return (out, early, startVals)
 	except Exception as e:
+		print("broked")
 		return(traceback.format_exc())
 		# return(e)
 
@@ -2594,6 +2954,8 @@ def specialEncoderP2(*args):
 	u=0
 	t=0
 
+	foundMatch = 0
+
 	alphaList=[]
 	alpha = 'a'
 	for i in range(0, 26): 
@@ -2716,13 +3078,15 @@ def specialEncoderP2(*args):
 		while(a < aLimit):
 			while(b < bLimit):
 				while(c < cLimit):
-					while(eachInd < eachLen):
+					while(eachInd < eachLen and (foundMatch == 0)):
 						encodeBytes4.append((a,b,c,permutations[eachInd]))
 						eachInd += 1
 						curPerm += 1
 						if(curPerm > listLimit):
 							print("RUNNING PROCS")
-							out = out + runProcs(encodeBytes4, sample, numThreads)
+							rpOut = runProcs(encodeBytes4, sample, numThreads)
+							out = out + rpOut[0]
+							foundMatch = rpOut[1]
 							totalRuns += numThreads
 							curPerm = 0
 							encodeBytes4 = []
@@ -2735,7 +3099,9 @@ def specialEncoderP2(*args):
 			b = 0
 
 		if(totalRuns != totalPerm):
-			out = out + runProcs(encodeBytes4, sample, numThreads)
+			rpOut = runProcs(encodeBytes4, sample, numThreads)
+			out = out + rpOut[0]
+			foundMatch = rpOut[1]
 	
 	elif(len(mylist2) == 4):
 		while(a < aLimit):
@@ -2825,7 +3191,7 @@ def specialEncoderP2(*args):
 	print ("finTime", finTime)
 	return sortOut
 
-def runProcs(encodeBytes4, sample, numThreads, version = 3):
+def runProcs(encodeBytes4, sample, numThreads, version = 3, findAll = False):
 	# if __name__ == '__main__':
 			# print("in runprocs")
 			# print(encodeBytes4)
@@ -2843,13 +3209,14 @@ def runProcs(encodeBytes4, sample, numThreads, version = 3):
 			rets = []
 			queue = multiprocessing.Queue()
 
+			endFlag = multiprocessing.Value('i', 0)
 			for rank in range(numThreads):
 				# print("adding new process = " + str(rank))
 				# print("LOW BLOCK")
 				# print(block_low(rank, numThreads, argsLen))
 				# print("HIGH BLOCK")
 				# print(block_high(rank, numThreads, argsLen))
-				processList.append(multiprocessing.Process(target=p2Encode, args = (block_low(rank, numThreads, argsLen), block_high(rank, numThreads, argsLen), encodeBytes4, sample, rank, queue, version)))
+				processList.append(multiprocessing.Process(target=p2Encode, args = (block_low(rank, numThreads, argsLen), block_high(rank, numThreads, argsLen), encodeBytes4, sample, rank, queue, version, endFlag, findAll)))
 
 
 			for proc in processList:
@@ -2867,10 +3234,11 @@ def runProcs(encodeBytes4, sample, numThreads, version = 3):
 
 			# print("rets here")
 			# print(rets)
-			return rets
+			return rets, endFlag.value
 
-def runProcsDistr(encodeBytes4, sample, numThreads, version = 3):
+def runProcsDistr(encodeBytes4, sample, numThreads, version = 3, findAll = False):
 			from distrFunc import p2EncodeDistr, doStuffP2Distr, doStuffP24Distr, doStuffP25Distr
+			endFlag = multiprocessing.Value('i', 0)
 	# if __name__ == '__main__':
 			# print("in runprocs")
 			# print(encodeBytes4)
@@ -2894,7 +3262,7 @@ def runProcsDistr(encodeBytes4, sample, numThreads, version = 3):
 				# print(block_low(rank, numThreads, argsLen))
 				# print("HIGH BLOCK")
 				# print(block_high(rank, numThreads, argsLen))
-				processList.append(multiprocessing.Process(target=p2EncodeDistr, args = (block_low(rank, numThreads, argsLen), block_high(rank, numThreads, argsLen), encodeBytes4, sample, rank, queue, version)))
+				processList.append(multiprocessing.Process(target=p2EncodeDistr, args = (block_low(rank, numThreads, argsLen), block_high(rank, numThreads, argsLen), encodeBytes4, sample, rank, queue, version, endFlag, findAll)))
 
 
 			for proc in processList:
@@ -2912,20 +3280,43 @@ def runProcsDistr(encodeBytes4, sample, numThreads, version = 3):
 
 			# print("rets here")
 			# print(rets)
-			return rets
+			return rets, endFlag.value
 
-def p2Encode(low, high, encodeBytes4, sample, rank, queue, version):
+def p2Encode(low, high, encodeBytes4, sample, rank, queue, version, endFlag, findAll = False):
 
 	outs = []
-	if(version == 3):
-		for i in range(low,high):
-			outs.append(doStuffP2(encodeBytes4[i], sample, rank))
-	elif(version == 4):
-		for i in range(low,high):
-			outs.append(doStuffP24(encodeBytes4[i], sample, rank))
-	elif(version == 5):
-		for i in range(low,high):
-			outs.append(doStuffP25(encodeBytes4[i], sample, rank))
+	# if(version == 3):
+	for i in range(low,high):
+		if(endFlag.value >= 1):
+			print("ending early, someone found a match")
+			queue.put(outs)
+			return
+		# outs.append(doStuffP2(encodeBytes4[i], sample, rank))
+		if(version == 3):
+			output = doStuffP2(encodeBytes4[i], sample, rank)
+		elif(version == 4):
+			output = doStuffP24(encodeBytes4[i], sample, rank)
+		elif(version == 5):
+			output = doStuffP25(encodeBytes4[i], sample, rank)
+		# if(findAll):
+		# 	outs.append(output)
+		print("checking bytes, endFlag = ", endFlag.value, "rank = ", rank, " findall = ", findAll)
+
+		ans = findAllPebSequences_decode("decrypt", output[0])
+
+		if ans is not None:
+			if(not findAll):
+				endFlag.value = 1
+			outs.append(output)
+			print("FOUND IN P2ENCODE BY RANK = ", rank)
+			#print(output)
+			
+	# elif(version == 4):
+	# 	for i in range(low,high):
+	# 		outs.append(doStuffP24(encodeBytes4[i], sample, rank))
+	# elif(version == 5):
+	# 	for i in range(low,high):
+	# 		outs.append(doStuffP25(encodeBytes4[i], sample, rank))
 
 	queue.put(outs)
 def doStuffP2(inputs, sample, rank):
@@ -2951,10 +3342,10 @@ def doStuffP2(inputs, sample, rank):
 		eval(newcode) 
 		
 					# encode="encodeBytes.append(new)"
-	# print (newString, "\n", "a",a, "b",b, "c",c ,"")
+	print (newString, "\n", "a",a, "b",b, "c",c ,"")
 	bytesStr = bytes(encodeBytes)
 	out = newString + "\n" + "a" + str(a) + "b" + str(b) + "c" + str(c)
-	# print ("\nencoder5 new", binaryToStr(bytesStr),"\n\n\n")
+	print ("\nencoder5 new", binaryToStr(bytesStr),"\n\n\n")
 	# return out
 	return (bytesStr, out, list((a,b,c)), each)
 	# return "ok"
