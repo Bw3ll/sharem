@@ -652,7 +652,8 @@ PEB_WALK_MOV_64 = {
 }
 
 HEAVEN = {
-	'JMPCALL': b"\x33\x00"
+	'JMPCALL': b"\x33\x00",
+	'RETF': b"\xCB"
 }
 
 
