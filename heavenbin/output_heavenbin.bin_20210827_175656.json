@@ -1,0 +1,561 @@
+{
+   "dateAnalyzed": "2021-08-27 17:56:56",
+   "secondsSinceEpoch": 1630105016.467592,
+   "fileType": "rawHex",
+   "bits": 32,
+   "modules": [],
+   "imports": [],
+   "entryPoint": "0x0",
+   "pushret": [
+      {
+         "address": "0x1b0",
+         "pushOffset": "0x1b0",
+         "retOffset": "0x1b1",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "push   ebx                              0x1b0    (offset 0x1b0)",
+            "ret                                     0x1b1    (offset 0x1b1)",
+            "db     0xea                             0x1b2    (offset 0x1b2)",
+            "db     0x78                             0x1b3    (offset 0x1b3)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      },
+      {
+         "address": "0x1e7",
+         "pushOffset": "0x1e7",
+         "retOffset": "0x1e8",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "push   ebx                              0x1e7    (offset 0x1e7)",
+            "ret                                     0x1e8    (offset 0x1e8)",
+            "push   0x33                             0x1e9    (offset 0x1e9)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      },
+      {
+         "address": "0x241",
+         "pushOffset": "0x241",
+         "retOffset": "0x242",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "push   ebx                              0x241    (offset 0x241)",
+            "ret                                     0x242    (offset 0x242)",
+            "pop    esi                              0x243    (offset 0x243)",
+            "db     0x83                             0x244    (offset 0x244)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      },
+      {
+         "address": "0x1a4",
+         "pushOffset": "0x1a4",
+         "retOffset": "0x1a5",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "push   edx                              0x1a4    (offset 0x1a4)",
+            "ret                                     0x1a5    (offset 0x1a5)",
+            "push   0x33                             0x1a6    (offset 0x1a6)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      },
+      {
+         "address": "0x1ae",
+         "pushOffset": "0x1b0",
+         "retOffset": "0x1b1",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "push   edx                              0x1ae    (offset 0x1ae)",
+            "ret                                     0x1af    (offset 0x1af)",
+            "push   ebx                              0x1b0    (offset 0x1b0)",
+            "ret                                     0x1b1    (offset 0x1b1)",
+            "db     0xea                             0x1b2    (offset 0x1b2)",
+            "db     0x78                             0x1b3    (offset 0x1b3)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      },
+      {
+         "address": "0x1f1",
+         "pushOffset": "0x1f1",
+         "retOffset": "0x1f2",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "push   edx                              0x1f1    (offset 0x1f1)",
+            "ret                                     0x1f2    (offset 0x1f2)",
+            "db     0xea                             0x1f3    (offset 0x1f3)",
+            "out    dx, eax                          0x1f4    (offset 0x1f4)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      }
+   ],
+   "callpop": [
+      {
+         "address": "0x3c",
+         "modSecName": "rawHex",
+         "pop_offset": "0x41",
+         "distance": 5,
+         "disassembly": [
+            "call   0x41                             0x3c     (offset 0x3c)",
+            "pop    edx                              0x41     (offset 0x41)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7
+         }
+      },
+      {
+         "address": "0x1ca",
+         "modSecName": "rawHex",
+         "pop_offset": "0x1cf",
+         "distance": 5,
+         "disassembly": [
+            "call   0x1cf                            0x1ca    (offset 0x1ca)",
+            "pop    eax                              0x1cf    (offset 0x1cf)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7
+         }
+      }
+   ],
+   "PEB": [
+      {
+         "address": "0x119",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "mov    edi, dword ptr fs:[0x30]         0x119    (offset 0x119)",
+            "mov    edi, dword ptr [edi + 0xc]       0x120    (offset 0x120)",
+            "jmp    0x12d                            0x123    (offset 0x123)",
+            "mov    edi, dword ptr [edi + 0x14]      0x125    (offset 0x125)",
+            "mov    esi, dword ptr [edi + 0x28]      0x128    (offset 0x128)",
+            "db     0x31                             0x12b    (offset 0x12b)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 19,
+            "points": 3
+         }
+      },
+      {
+         "address": "0x1dc",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "mov    ebp, dword ptr fs:[eax + 0x30]   0x1dc    (offset 0x1dc)",
+            "mov    edi, dword ptr [edi + 0xc]       0x1e0    (offset 0x1e0)",
+            "mov    edi, dword ptr [edi + 0x14]      0x1e3    (offset 0x1e3)",
+            "lodsd  eax, dword ptr [esi]             0x1e6    (offset 0x1e6)",
+            "push   ebx                              0x1e7    (offset 0x1e7)",
+            "ret                                     0x1e8    (offset 0x1e8)",
+            "push   0x33                             0x1e9    (offset 0x1e9)",
+            "db     0x68                             0x1eb    (offset 0x1eb)",
+            "adc    dword ptr [ecx], edx             0x1ec    (offset 0x1ec)",
+            "db     0x11                             0x1ee    (offset 0x1ee)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 19,
+            "points": 4
+         }
+      }
+   ],
+   "fstenv": [
+      {
+         "address": "0x114",
+         "modSecName": "rawHex",
+         "FPU_offset": "0x109",
+         "FSTENV_offset": "0x114",
+         "disassembly": [
+            "fldpi                                   0x109    (offset 0x109)",
+            "mov    eax, 0x42                        0x10b    (offset 0x10b)",
+            "add    eax, 0x20                        0x110    (offset 0x110)",
+            "wait                                    0x113    (offset 0x113)",
+            "fnstenv [eax]                            0x114    (offset 0x114)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 10,
+            "NumOpsBack": 11,
+            "printEnd": "0x116"
+         }
+      },
+      {
+         "address": "0x8a",
+         "modSecName": "rawHex",
+         "FPU_offset": "0x86",
+         "FSTENV_offset": "0x8a",
+         "disassembly": [
+            "fsqrt                                   0x86     (offset 0x86)",
+            "nop                                     0x88     (offset 0x88)",
+            "nop                                     0x89     (offset 0x89)",
+            "fnstenv [esp + 4]                        0x8a     (offset 0x8a)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 10,
+            "NumOpsBack": 4,
+            "printEnd": "0x8e"
+         }
+      },
+      {
+         "address": "0xd4",
+         "modSecName": "rawHex",
+         "FPU_offset": "0xcd",
+         "FSTENV_offset": "0xd4",
+         "disassembly": [
+            "fsqrt                                   0xcd     (offset 0xcd)",
+            "nop                                     0xcf     (offset 0xcf)",
+            "nop                                     0xd0     (offset 0xd0)",
+            "nop                                     0xd1     (offset 0xd1)",
+            "nop                                     0xd2     (offset 0xd2)",
+            "wait                                    0xd3     (offset 0xd3)",
+            "fnstenv [esp + 4]                        0xd4     (offset 0xd4)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 10,
+            "NumOpsBack": 7,
+            "printEnd": "0xd8"
+         }
+      }
+   ],
+   "heavensGate": [
+      {
+         "address": "0x1ad",
+         "modSecName": "rawHex",
+         "pushOffset": -1,
+         "heaven_offset": "0x1ad",
+         "destLocation": "unknown",
+         "disassembly": [
+            "push edx     0x1a4 (offset 0x1a4)",
+            "ret     0x1a5 (offset 0x1a5)",
+            "push 0x33     0x1a6 (offset 0x1a6)",
+            "push 0xdeafbeef     0x1a8 (offset 0x1a8)",
+            "retf     0x1ad (offset 0x1ad)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": -1,
+            "NumOpsBack": 8,
+            "pivottype": "retf"
+         }
+      },
+      {
+         "address": "0x1b2",
+         "modSecName": "rawHex",
+         "pushOffset": -1,
+         "heaven_offset": "0x1b2",
+         "destLocation": "0x12345678 ",
+         "disassembly": [
+            "ljmp 0x33:0x12345678     0x1b2 (offset 0x1b2)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": -1,
+            "NumOpsBack": 8,
+            "pivottype": "ljmp/lcall"
+         }
+      },
+      {
+         "address": "0x1d0",
+         "modSecName": "rawHex",
+         "pushOffset": -1,
+         "heaven_offset": "0x1d0",
+         "destLocation": "0x12310000 ",
+         "disassembly": [
+            "lcall 0x33:0x12310000     0x1d0 (offset 0x1d0)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": -1,
+            "NumOpsBack": 8,
+            "pivottype": "ljmp/lcall"
+         }
+      },
+      {
+         "address": "0x1f0",
+         "modSecName": "rawHex",
+         "pushOffset": -1,
+         "heaven_offset": "0x1f0",
+         "destLocation": "unknown",
+         "disassembly": [
+            "push ebx     0x1e7 (offset 0x1e7)",
+            "ret     0x1e8 (offset 0x1e8)",
+            "push 0x33     0x1e9 (offset 0x1e9)",
+            "push 0x11111111     0x1eb (offset 0x1eb)",
+            "retf     0x1f0 (offset 0x1f0)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": -1,
+            "NumOpsBack": 8,
+            "pivottype": "retf"
+         }
+      },
+      {
+         "address": "0x1f3",
+         "modSecName": "rawHex",
+         "pushOffset": -1,
+         "heaven_offset": "0x1f3",
+         "destLocation": "0xdeadbeef ",
+         "disassembly": [
+            "ljmp 0x33:0xdeadbeef     0x1f3 (offset 0x1f3)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": -1,
+            "NumOpsBack": 8,
+            "pivottype": "ljmp/lcall"
+         }
+      },
+      {
+         "address": "0x216",
+         "modSecName": "rawHex",
+         "pushOffset": -1,
+         "heaven_offset": "0x216",
+         "destLocation": "0x1337c0de ",
+         "disassembly": [
+            "lcall 0x33:0x1337c0de     0x216 (offset 0x216)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": -1,
+            "NumOpsBack": 8,
+            "pivottype": "ljmp/lcall"
+         }
+      },
+      {
+         "address": "0x23e",
+         "modSecName": "rawHex",
+         "pushOffset": -1,
+         "heaven_offset": "0x23e",
+         "destLocation": -1,
+         "disassembly": [
+            "call 0x23f     0x22f (offset 0x22f)",
+            "add eax, 3     0x234 (offset 0x234)",
+            "push 0x33     0x237 (offset 0x237)",
+            "push 0x401000     0x239 (offset 0x239)",
+            "retf     0x23e (offset 0x23e)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": -1,
+            "NumOpsBack": 8,
+            "pivottype": "retf"
+         }
+      }
+   ],
+   "syscall": [
+      {
+         "address": "0x155",
+         "modSecName": "rawHex",
+         "eax": "0x26",
+         "c0_offset": "0x155",
+         "disassembly": [
+            "",
+            "mov eax, dword ptr [edi + 0x10]\t\t\t\t0x146 (offset 0x146)",
+            "mov edi, dword ptr [edi] \t\t\t\t0x149 (offset 0x149)",
+            "xor ebx, ebx \t\t\t\t0x14b (offset 0x14b)",
+            "xor ebx, eax \t\t\t\t0x14d (offset 0x14d)",
+            "push 0x26 \t\t\t\t0x14f (offset 0x14f)",
+            "pop eax \t\t\t\t0x151 (offset 0x151)",
+            "xor ecx, ecx \t\t\t\t0x152 (offset 0x152)",
+            "push ebx \t\t\t\t0x154 (offset 0x154)",
+            "call dword ptr fs:[0xc0] \t\t\t\t0x155 (offset 0x155)"
+         ],
+         "syscalls": [
+            "Windows XP (SP1): NtAccessCheckAndAuditAlarm",
+            "Windows XP (SP2): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2003 (SP0): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2003 (SP2): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2003 (R2): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2003 (R2 SP2): NtAccessCheckAndAuditAlarm",
+            "Windows Vista (SP0): NtAccessCheckAndAuditAlarm",
+            "Windows Vista (SP1): NtAccessCheckAndAuditAlarm",
+            "Windows Vista (SP2): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2008 (SP0): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2008 (SP2): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2008 (R2): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2008 (R2 SP1): NtAccessCheckAndAuditAlarm",
+            "Windows 7 (SP0): NtAccessCheckAndAuditAlarm",
+            "Windows 7 (SP1): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2012 (SP0): NtMapViewOfSection",
+            "Windows Server 2012 (R2): NtSetInformationFile",
+            "Windows 8 (8.0): NtMapViewOfSection",
+            "Windows 8 (8.1): NtSetInformationFile",
+            "Windows 10 (1507): NtOpenProcess",
+            "Windows 10 (1511): NtOpenProcess",
+            "Windows 10 (1607): NtOpenProcess",
+            "Windows 10 (1703): NtOpenProcess",
+            "Windows 10 (1709): NtOpenProcess",
+            "Windows 10 (1803): NtOpenProcess",
+            "Windows 10 (1809): NtOpenProcess",
+            "Windows 10 (1903): NtOpenProcess",
+            "Windows 10 (1909): NtOpenProcess",
+            "Windows 10 (2004): NtOpenProcess",
+            "Windows 10 (20H2): NtOpenProcess"
+         ],
+         "internalData": {
+            "NumOpsDis": -1,
+            "NumOpsBack": 8,
+            "secNum": -1
+         }
+      },
+      {
+         "address": "0x162",
+         "modSecName": "rawHex",
+         "eax": "0x26",
+         "c0_offset": "0x162",
+         "disassembly": [
+            "",
+            "push 0x26 \t\t\t\t0x14f (offset 0x14f)",
+            "pop eax \t\t\t\t0x151 (offset 0x151)",
+            "xor ecx, ecx \t\t\t\t0x152 (offset 0x152)",
+            "push ebx \t\t\t\t0x154 (offset 0x154)",
+            "call dword ptr fs:[0xc0] \t\t\t\t0x155 (offset 0x155)",
+            "mov ecx, eax \t\t\t\t0x15c (offset 0x15c)",
+            "sub ecx, 0xb \t\t\t\t0x15e (offset 0x15e)",
+            "push ecx \t\t\t\t0x161 (offset 0x161)",
+            "call dword ptr fs:[0xc0] \t\t\t\t0x162 (offset 0x162)"
+         ],
+         "syscalls": [
+            "Windows XP (SP1): NtAccessCheckAndAuditAlarm",
+            "Windows XP (SP2): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2003 (SP0): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2003 (SP2): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2003 (R2): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2003 (R2 SP2): NtAccessCheckAndAuditAlarm",
+            "Windows Vista (SP0): NtAccessCheckAndAuditAlarm",
+            "Windows Vista (SP1): NtAccessCheckAndAuditAlarm",
+            "Windows Vista (SP2): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2008 (SP0): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2008 (SP2): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2008 (R2): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2008 (R2 SP1): NtAccessCheckAndAuditAlarm",
+            "Windows 7 (SP0): NtAccessCheckAndAuditAlarm",
+            "Windows 7 (SP1): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2012 (SP0): NtMapViewOfSection",
+            "Windows Server 2012 (R2): NtSetInformationFile",
+            "Windows 8 (8.0): NtMapViewOfSection",
+            "Windows 8 (8.1): NtSetInformationFile",
+            "Windows 10 (1507): NtOpenProcess",
+            "Windows 10 (1511): NtOpenProcess",
+            "Windows 10 (1607): NtOpenProcess",
+            "Windows 10 (1703): NtOpenProcess",
+            "Windows 10 (1709): NtOpenProcess",
+            "Windows 10 (1803): NtOpenProcess",
+            "Windows 10 (1809): NtOpenProcess",
+            "Windows 10 (1903): NtOpenProcess",
+            "Windows 10 (1909): NtOpenProcess",
+            "Windows 10 (2004): NtOpenProcess",
+            "Windows 10 (20H2): NtOpenProcess"
+         ],
+         "internalData": {
+            "NumOpsDis": -1,
+            "NumOpsBack": 8,
+            "secNum": -1
+         }
+      },
+      {
+         "address": "0x183",
+         "modSecName": "rawHex",
+         "eax": "0x26",
+         "c0_offset": "0x183",
+         "disassembly": [
+            "",
+            "add edx, dword ptr [edx + 0x3c]\t\t\t\t0x16e (offset 0x16e)",
+            "mov edx, dword ptr [edx + 0x78]\t\t\t\t0x171 (offset 0x171)",
+            "add edx, ebp \t\t\t\t0x174 (offset 0x174)",
+            "mov ebx, dword ptr [edx + 0x20]\t\t\t\t0x176 (offset 0x176)",
+            "push 0x13 \t\t\t\t0x179 (offset 0x179)",
+            "pop ecx \t\t\t\t0x17b (offset 0x17b)",
+            "mov eax, 0x13 \t\t\t\t0x17c (offset 0x17c)",
+            "add eax, ecx \t\t\t\t0x181 (offset 0x181)",
+            "call dword ptr fs:[0xc0] \t\t\t\t0x183 (offset 0x183)"
+         ],
+         "syscalls": [
+            "Windows XP (SP1): NtAccessCheckAndAuditAlarm",
+            "Windows XP (SP2): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2003 (SP0): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2003 (SP2): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2003 (R2): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2003 (R2 SP2): NtAccessCheckAndAuditAlarm",
+            "Windows Vista (SP0): NtAccessCheckAndAuditAlarm",
+            "Windows Vista (SP1): NtAccessCheckAndAuditAlarm",
+            "Windows Vista (SP2): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2008 (SP0): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2008 (SP2): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2008 (R2): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2008 (R2 SP1): NtAccessCheckAndAuditAlarm",
+            "Windows 7 (SP0): NtAccessCheckAndAuditAlarm",
+            "Windows 7 (SP1): NtAccessCheckAndAuditAlarm",
+            "Windows Server 2012 (SP0): NtMapViewOfSection",
+            "Windows Server 2012 (R2): NtSetInformationFile",
+            "Windows 8 (8.0): NtMapViewOfSection",
+            "Windows 8 (8.1): NtSetInformationFile",
+            "Windows 10 (1507): NtOpenProcess",
+            "Windows 10 (1511): NtOpenProcess",
+            "Windows 10 (1607): NtOpenProcess",
+            "Windows 10 (1703): NtOpenProcess",
+            "Windows 10 (1709): NtOpenProcess",
+            "Windows 10 (1803): NtOpenProcess",
+            "Windows 10 (1809): NtOpenProcess",
+            "Windows 10 (1903): NtOpenProcess",
+            "Windows 10 (1909): NtOpenProcess",
+            "Windows 10 (2004): NtOpenProcess",
+            "Windows 10 (20H2): NtOpenProcess"
+         ],
+         "internalData": {
+            "NumOpsDis": -1,
+            "NumOpsBack": 8,
+            "secNum": -1
+         }
+      },
+      {
+         "address": "0x21d",
+         "modSecName": "rawHex",
+         "eax": "unknown",
+         "c0_offset": "0x21d",
+         "disassembly": [
+            "",
+            "pop eax \t\t\t\t0x209 (offset 0x209)",
+            "add eax, 0x14 \t\t\t\t0x20a (offset 0x20a)",
+            "xor ebx, ebx \t\t\t\t0x20d (offset 0x20d)",
+            "add ebx, eax \t\t\t\t0x20f (offset 0x20f)",
+            "mov edx, ebx \t\t\t\t0x211 (offset 0x211)",
+            "sub edx, eax \t\t\t\t0x213 (offset 0x213)",
+            "push edx \t\t\t\t0x215 (offset 0x215)",
+            "lcall 0x33:0x1337c0de \t\t\t\t0x216 (offset 0x216)",
+            "call dword ptr fs:[0xc0] \t\t\t\t0x21d (offset 0x21d)"
+         ],
+         "syscalls": "not found",
+         "internalData": {
+            "NumOpsDis": -1,
+            "NumOpsBack": 8,
+            "secNum": -1
+         }
+      }
+   ],
+   "strings": {}
+}

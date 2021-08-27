@@ -1,4 +1,4 @@
-from capstone import *
+# from capstone import *
 import re
 import pefile
 import sys
@@ -666,31 +666,6 @@ FSTENV_GET_BASE = {
 	#PTR is fnstenv ptr[eax]
 	#OffsetNum is fnstenv [eax+1]
 
-	'R8': b"\x41\xd9\x30",
-	'R9': b"\x41\xd9\x31",
-	'R10': b"\x41\xd9\x32",
-	'R11': b"\x41\xd9\x33",
-	'R12': b"\x41\xd9\x34\x24",
-	'R13': b"\x41\xd9\x75",
-	'R14': b"\x41\xd9\x36",
-	'R15': b"\x41\xd9\x37",
-	'R8_PTR': b"\x41\xd9\xB0",
-	'R9_PTR': b"\x41\xd9\xB1",
-	'R10_PTR': b"\x41\xd9\xB2",
-	'R11_PTR': b"\x41\xd9\xB3",
-	'R12_PTR': b"\x41\xd9\xB4",
-	'R13_PTR': b"\x41\xd9\xB5",
-	'R14_PTR': b"\x41\xd9\xB6",
-	'R15_PTR': b"\x41\xd9\xB7",
-	'R8_OFFSET_NUM': b"\x41\xd9\x70",
-	'R9_OFFSET_NUM': b"\x41\xd9\x71",
-	'R10_OFFSET_NUM': b"\x41\xd9\x72",
-	'R11_OFFSET_NUM': b"\x41\xd9\x73",
-	'R12_OFFSET_NUM': b"\x41\xd9\x74\x24",
-	'R13_OFFSET_NUM': b"\x41\xd9\x75",
-	'R14_OFFSET_NUM': b"\x41\xd9\x76",
-	'R15_OFFSET_NUM': b"\x41\xd9\x77",
-
 	'EAX': b"\xD9\x30",
 	'EBX': b"\xD9\x33",
 	'ECX': b"\xD9\x31",
@@ -715,6 +690,31 @@ FSTENV_GET_BASE = {
 	'ESI_OFFSET_NUM': b"\xD9\x76",
 	'EBP_OFFSET_NUM': b"\xD9\x75",
 	'ESP_OFFSET_NUM': b"\xD9\x74\x24",
+
+	'R8': b"\x41\xd9\x30",
+	'R9': b"\x41\xd9\x31",
+	'R10': b"\x41\xd9\x32",
+	'R11': b"\x41\xd9\x33",
+	'R12': b"\x41\xd9\x34\x24",
+	'R13': b"\x41\xd9\x75",
+	'R14': b"\x41\xd9\x36",
+	'R15': b"\x41\xd9\x37",
+	'R8_PTR': b"\x41\xd9\xB0",
+	'R9_PTR': b"\x41\xd9\xB1",
+	'R10_PTR': b"\x41\xd9\xB2",
+	'R11_PTR': b"\x41\xd9\xB3",
+	'R12_PTR': b"\x41\xd9\xB4",
+	'R13_PTR': b"\x41\xd9\xB5",
+	'R14_PTR': b"\x41\xd9\xB6",
+	'R15_PTR': b"\x41\xd9\xB7",
+	'R8_OFFSET_NUM': b"\x41\xd9\x70",
+	'R9_OFFSET_NUM': b"\x41\xd9\x71",
+	'R10_OFFSET_NUM': b"\x41\xd9\x72",
+	'R11_OFFSET_NUM': b"\x41\xd9\x73",
+	'R12_OFFSET_NUM': b"\x41\xd9\x74\x24",
+	'R13_OFFSET_NUM': b"\x41\xd9\x75",
+	'R14_OFFSET_NUM': b"\x41\xd9\x76",
+	'R15_OFFSET_NUM': b"\x41\xd9\x77",
 	
 
 }
@@ -762,38 +762,6 @@ CALLPOP_START = {
 
 PUSH_RET = {
 
-	'R8': b"\x41\x50\xC3",
-	'R9': b"\x41\x51\xC3",
-	'R10': b"\x41\x52\xC3",
-	'R11': b"\x41\x53\xC3",
-	'R12': b"\x41\x54\xC3",
-	'R13': b"\x41\x55\xC3",
-	'R14': b"\x41\x56\xC3",
-	'R15': b"\x41\x57\xC3",
-	'R8_PAD': b"\x41\x50\xC2",
-	'R9_PAD': b"\x41\x51\xC2",
-	'R10_PAD': b"\x41\x52\xC2",
-	'R11_PAD': b"\x41\x53\xC2",
-	'R12_PAD': b"\x41\x54\xC2",
-	'R13_PAD': b"\x41\x55\xC2",
-	'R14_PAD': b"\x41\x56\xC2",
-	'R15_PAD': b"\x41\x57\xC2",
-	'R8_RETF': b"\x41\x50\xCB",
-	'R9_RETF': b"\x41\x51\xCB",
-	'R10_RETF': b"\x41\x52\xCB",
-	'R11_RETF': b"\x41\x53\xCB",
-	'R12_RETF': b"\x41\x54\xCB",
-	'R13_RETF': b"\x41\x55\xCB",
-	'R14_RETF': b"\x41\x56\xCB",
-	'R15_RETF': b"\x41\x57\xCB",
-	'R8_RETF_PAD': b"\x41\x50\xCA",
-	'R9_RETF_PAD': b"\x41\x51\xCA",
-	'R10_RETF_PAD': b"\x41\x52\xCA",
-	'R11_RETF_PAD': b"\x41\x53\xCA",
-	'R12_RETF_PAD': b"\x41\x54\xCA",
-	'R13_RETF_PAD': b"\x41\x55\xCA",
-	'R14_RETF_PAD': b"\x41\x56\xCA",
-	'R15_RETF_PAD': b"\x41\x57\xCA",
 
 	'EAX': b"\x50\xC3",
 	'EBX': b"\x53\xC3",
@@ -826,7 +794,7 @@ PUSH_RET = {
 	'EDI_RETF_PAD': b"\x57\xCA",
 	'ESI_RETF_PAD': b"\x56\xCA",
 	'EBP_RETF_PAD': b"\x55\xCA",
-	'ESP_RETF_PAD': b"\x54\xCA",
+	'ESP_RETF_PAD': b"\x54\xCA"
 
 }
 

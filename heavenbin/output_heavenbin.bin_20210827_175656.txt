@@ -1,0 +1,317 @@
+Filename: heavenbin.bin
+File Type: rawHex
+Bits: 32
+Date Analyzed: 2021-08-27 17:56:56
+Seconds since last epoch: 1630105016.529992
+
+Section info
+
+modName
+Entry point: 0x0
+Virtual Address: 0x0
+ImageBase: 0x0
+VirtualSize: 0x0
+Size of section: 0x0
+DEP: 
+ASLR: 
+SEH: 
+CFG: 
+
+
+No strings found.
+
+
+***********
+Push ret
+***********
+
+********************************************************************************************************
+Push ret Item: 0 | Section: -1 | Section name: rawHex | PUSH Offset: 0x1b0 | RET Offset: 0x1b1
+push   ebx                              0x1b0    (offset 0x1b0)
+ret                                     0x1b1    (offset 0x1b1)
+db     0xea                             0x1b2    (offset 0x1b2)
+db     0x78                             0x1b3    (offset 0x1b3)
+********************************************************************************************************
+Push ret Item: 1 | Section: -1 | Section name: rawHex | PUSH Offset: 0x1e7 | RET Offset: 0x1e8
+push   ebx                              0x1e7    (offset 0x1e7)
+ret                                     0x1e8    (offset 0x1e8)
+push   0x33                             0x1e9    (offset 0x1e9)
+********************************************************************************************************
+Push ret Item: 2 | Section: -1 | Section name: rawHex | PUSH Offset: 0x241 | RET Offset: 0x242
+push   ebx                              0x241    (offset 0x241)
+ret                                     0x242    (offset 0x242)
+pop    esi                              0x243    (offset 0x243)
+db     0x83                             0x244    (offset 0x244)
+********************************************************************************************************
+Push ret Item: 3 | Section: -1 | Section name: rawHex | PUSH Offset: 0x1a4 | RET Offset: 0x1a5
+push   edx                              0x1a4    (offset 0x1a4)
+ret                                     0x1a5    (offset 0x1a5)
+push   0x33                             0x1a6    (offset 0x1a6)
+********************************************************************************************************
+Push ret Item: 4 | Section: -1 | Section name: rawHex | PUSH Offset: 0x1b0 | RET Offset: 0x1b1
+push   edx                              0x1ae    (offset 0x1ae)
+ret                                     0x1af    (offset 0x1af)
+push   ebx                              0x1b0    (offset 0x1b0)
+ret                                     0x1b1    (offset 0x1b1)
+db     0xea                             0x1b2    (offset 0x1b2)
+db     0x78                             0x1b3    (offset 0x1b3)
+********************************************************************************************************
+Push ret Item: 5 | Section: -1 | Section name: rawHex | PUSH Offset: 0x1f1 | RET Offset: 0x1f2
+push   edx                              0x1f1    (offset 0x1f1)
+ret                                     0x1f2    (offset 0x1f2)
+db     0xea                             0x1f3    (offset 0x1f3)
+out    dx, eax                          0x1f4    (offset 0x1f4)
+
+
+***********
+Fstenv
+***********
+
+********************************************************************************************************
+Fstenv Item: 0 | Section: -1 | Section name: rawHex | FPU Offset: 0x109 | FSTENV Offset: 0x114
+fldpi                                   0x109    (offset 0x109)
+mov    eax, 0x42                        0x10b    (offset 0x10b)
+add    eax, 0x20                        0x110    (offset 0x110)
+wait                                    0x113    (offset 0x113)
+fnstenv [eax]                            0x114    (offset 0x114)
+********************************************************************************************************
+Fstenv Item: 1 | Section: -1 | Section name: rawHex | FPU Offset: 0x86 | FSTENV Offset: 0x8a
+fsqrt                                   0x86     (offset 0x86)
+nop                                     0x88     (offset 0x88)
+nop                                     0x89     (offset 0x89)
+fnstenv [esp + 4]                        0x8a     (offset 0x8a)
+********************************************************************************************************
+Fstenv Item: 2 | Section: -1 | Section name: rawHex | FPU Offset: 0xcd | FSTENV Offset: 0xd4
+fsqrt                                   0xcd     (offset 0xcd)
+nop                                     0xcf     (offset 0xcf)
+nop                                     0xd0     (offset 0xd0)
+nop                                     0xd1     (offset 0xd1)
+nop                                     0xd2     (offset 0xd2)
+wait                                    0xd3     (offset 0xd3)
+fnstenv [esp + 4]                        0xd4     (offset 0xd4)
+
+
+***********
+Call Pop
+***********
+
+********************************************************************************************************
+Call pop Item: 0 | Section: -1 | Section name: rawHex
+call   0x41                             0x3c     (offset 0x3c)
+pop    edx                              0x41     (offset 0x41)
+********************************************************************************************************
+Call pop Item: 1 | Section: -1 | Section name: rawHex
+call   0x1cf                            0x1ca    (offset 0x1ca)
+pop    eax                              0x1cf    (offset 0x1cf)
+
+
+***************
+Windows syscall
+***************
+
+********************************************************************************************************
+Syscall Item: 0 | Section name: rawHex | EAX: 0x26 | 0xc0 Offset: 0x155
+
+mov eax, dword ptr [edi + 0x10]				0x146 (offset 0x146)
+mov edi, dword ptr [edi] 				0x149 (offset 0x149)
+xor ebx, ebx 				0x14b (offset 0x14b)
+xor ebx, eax 				0x14d (offset 0x14d)
+push 0x26 				0x14f (offset 0x14f)
+pop eax 				0x151 (offset 0x151)
+xor ecx, ecx 				0x152 (offset 0x152)
+push ebx 				0x154 (offset 0x154)
+call dword ptr fs:[0xc0] 				0x155 (offset 0x155)
+
+Windows XP (SP1): NtAccessCheckAndAuditAlarm
+Windows XP (SP2): NtAccessCheckAndAuditAlarm
+Windows Server 2003 (SP0): NtAccessCheckAndAuditAlarm
+Windows Server 2003 (SP2): NtAccessCheckAndAuditAlarm
+Windows Server 2003 (R2): NtAccessCheckAndAuditAlarm
+Windows Server 2003 (R2 SP2): NtAccessCheckAndAuditAlarm
+Windows Vista (SP0): NtAccessCheckAndAuditAlarm
+Windows Vista (SP1): NtAccessCheckAndAuditAlarm
+Windows Vista (SP2): NtAccessCheckAndAuditAlarm
+Windows Server 2008 (SP0): NtAccessCheckAndAuditAlarm
+Windows Server 2008 (SP2): NtAccessCheckAndAuditAlarm
+Windows Server 2008 (R2): NtAccessCheckAndAuditAlarm
+Windows Server 2008 (R2 SP1): NtAccessCheckAndAuditAlarm
+Windows 7 (SP0): NtAccessCheckAndAuditAlarm
+Windows 7 (SP1): NtAccessCheckAndAuditAlarm
+Windows Server 2012 (SP0): NtMapViewOfSection
+Windows Server 2012 (R2): NtSetInformationFile
+Windows 8 (8.0): NtMapViewOfSection
+Windows 8 (8.1): NtSetInformationFile
+Windows 10 (1507): NtOpenProcess
+Windows 10 (1511): NtOpenProcess
+Windows 10 (1607): NtOpenProcess
+Windows 10 (1703): NtOpenProcess
+Windows 10 (1709): NtOpenProcess
+Windows 10 (1803): NtOpenProcess
+Windows 10 (1809): NtOpenProcess
+Windows 10 (1903): NtOpenProcess
+Windows 10 (1909): NtOpenProcess
+Windows 10 (2004): NtOpenProcess
+Windows 10 (20H2): NtOpenProcess
+********************************************************************************************************
+Syscall Item: 1 | Section name: rawHex | EAX: 0x26 | 0xc0 Offset: 0x162
+
+push 0x26 				0x14f (offset 0x14f)
+pop eax 				0x151 (offset 0x151)
+xor ecx, ecx 				0x152 (offset 0x152)
+push ebx 				0x154 (offset 0x154)
+call dword ptr fs:[0xc0] 				0x155 (offset 0x155)
+mov ecx, eax 				0x15c (offset 0x15c)
+sub ecx, 0xb 				0x15e (offset 0x15e)
+push ecx 				0x161 (offset 0x161)
+call dword ptr fs:[0xc0] 				0x162 (offset 0x162)
+
+Windows XP (SP1): NtAccessCheckAndAuditAlarm
+Windows XP (SP2): NtAccessCheckAndAuditAlarm
+Windows Server 2003 (SP0): NtAccessCheckAndAuditAlarm
+Windows Server 2003 (SP2): NtAccessCheckAndAuditAlarm
+Windows Server 2003 (R2): NtAccessCheckAndAuditAlarm
+Windows Server 2003 (R2 SP2): NtAccessCheckAndAuditAlarm
+Windows Vista (SP0): NtAccessCheckAndAuditAlarm
+Windows Vista (SP1): NtAccessCheckAndAuditAlarm
+Windows Vista (SP2): NtAccessCheckAndAuditAlarm
+Windows Server 2008 (SP0): NtAccessCheckAndAuditAlarm
+Windows Server 2008 (SP2): NtAccessCheckAndAuditAlarm
+Windows Server 2008 (R2): NtAccessCheckAndAuditAlarm
+Windows Server 2008 (R2 SP1): NtAccessCheckAndAuditAlarm
+Windows 7 (SP0): NtAccessCheckAndAuditAlarm
+Windows 7 (SP1): NtAccessCheckAndAuditAlarm
+Windows Server 2012 (SP0): NtMapViewOfSection
+Windows Server 2012 (R2): NtSetInformationFile
+Windows 8 (8.0): NtMapViewOfSection
+Windows 8 (8.1): NtSetInformationFile
+Windows 10 (1507): NtOpenProcess
+Windows 10 (1511): NtOpenProcess
+Windows 10 (1607): NtOpenProcess
+Windows 10 (1703): NtOpenProcess
+Windows 10 (1709): NtOpenProcess
+Windows 10 (1803): NtOpenProcess
+Windows 10 (1809): NtOpenProcess
+Windows 10 (1903): NtOpenProcess
+Windows 10 (1909): NtOpenProcess
+Windows 10 (2004): NtOpenProcess
+Windows 10 (20H2): NtOpenProcess
+********************************************************************************************************
+Syscall Item: 2 | Section name: rawHex | EAX: 0x26 | 0xc0 Offset: 0x183
+
+add edx, dword ptr [edx + 0x3c]				0x16e (offset 0x16e)
+mov edx, dword ptr [edx + 0x78]				0x171 (offset 0x171)
+add edx, ebp 				0x174 (offset 0x174)
+mov ebx, dword ptr [edx + 0x20]				0x176 (offset 0x176)
+push 0x13 				0x179 (offset 0x179)
+pop ecx 				0x17b (offset 0x17b)
+mov eax, 0x13 				0x17c (offset 0x17c)
+add eax, ecx 				0x181 (offset 0x181)
+call dword ptr fs:[0xc0] 				0x183 (offset 0x183)
+
+Windows XP (SP1): NtAccessCheckAndAuditAlarm
+Windows XP (SP2): NtAccessCheckAndAuditAlarm
+Windows Server 2003 (SP0): NtAccessCheckAndAuditAlarm
+Windows Server 2003 (SP2): NtAccessCheckAndAuditAlarm
+Windows Server 2003 (R2): NtAccessCheckAndAuditAlarm
+Windows Server 2003 (R2 SP2): NtAccessCheckAndAuditAlarm
+Windows Vista (SP0): NtAccessCheckAndAuditAlarm
+Windows Vista (SP1): NtAccessCheckAndAuditAlarm
+Windows Vista (SP2): NtAccessCheckAndAuditAlarm
+Windows Server 2008 (SP0): NtAccessCheckAndAuditAlarm
+Windows Server 2008 (SP2): NtAccessCheckAndAuditAlarm
+Windows Server 2008 (R2): NtAccessCheckAndAuditAlarm
+Windows Server 2008 (R2 SP1): NtAccessCheckAndAuditAlarm
+Windows 7 (SP0): NtAccessCheckAndAuditAlarm
+Windows 7 (SP1): NtAccessCheckAndAuditAlarm
+Windows Server 2012 (SP0): NtMapViewOfSection
+Windows Server 2012 (R2): NtSetInformationFile
+Windows 8 (8.0): NtMapViewOfSection
+Windows 8 (8.1): NtSetInformationFile
+Windows 10 (1507): NtOpenProcess
+Windows 10 (1511): NtOpenProcess
+Windows 10 (1607): NtOpenProcess
+Windows 10 (1703): NtOpenProcess
+Windows 10 (1709): NtOpenProcess
+Windows 10 (1803): NtOpenProcess
+Windows 10 (1809): NtOpenProcess
+Windows 10 (1903): NtOpenProcess
+Windows 10 (1909): NtOpenProcess
+Windows 10 (2004): NtOpenProcess
+Windows 10 (20H2): NtOpenProcess
+********************************************************************************************************
+Syscall Item: 3 | Section name: rawHex | EAX: unknown | 0xc0 Offset: 0x21d
+
+pop eax 				0x209 (offset 0x209)
+add eax, 0x14 				0x20a (offset 0x20a)
+xor ebx, ebx 				0x20d (offset 0x20d)
+add ebx, eax 				0x20f (offset 0x20f)
+mov edx, ebx 				0x211 (offset 0x211)
+sub edx, eax 				0x213 (offset 0x213)
+push edx 				0x215 (offset 0x215)
+lcall 0x33:0x1337c0de 				0x216 (offset 0x216)
+call dword ptr fs:[0xc0] 				0x21d (offset 0x21d)
+
+
+***************
+Walking the PEB
+***************
+
+********************************************************************************************************
+PEB Item: 0 | Points: 3 | Section: -1 | Section name: rawHex
+mov    edi, dword ptr fs:[0x30]         0x119    (offset 0x119)
+mov    edi, dword ptr [edi + 0xc]       0x120    (offset 0x120)
+jmp    0x12d                            0x123    (offset 0x123)
+mov    edi, dword ptr [edi + 0x14]      0x125    (offset 0x125)
+mov    esi, dword ptr [edi + 0x28]      0x128    (offset 0x128)
+db     0x31                             0x12b    (offset 0x12b)
+********************************************************************************************************
+PEB Item: 1 | Points: 4 | Section: -1 | Section name: rawHex
+mov    ebp, dword ptr fs:[eax + 0x30]   0x1dc    (offset 0x1dc)
+mov    edi, dword ptr [edi + 0xc]       0x1e0    (offset 0x1e0)
+mov    edi, dword ptr [edi + 0x14]      0x1e3    (offset 0x1e3)
+lodsd  eax, dword ptr [esi]             0x1e6    (offset 0x1e6)
+push   ebx                              0x1e7    (offset 0x1e7)
+ret                                     0x1e8    (offset 0x1e8)
+push   0x33                             0x1e9    (offset 0x1e9)
+db     0x68                             0x1eb    (offset 0x1eb)
+adc    dword ptr [ecx], edx             0x1ec    (offset 0x1ec)
+db     0x11                             0x1ee    (offset 0x1ee)
+
+
+***************
+Heaven's Gate
+***************
+
+********************************************************************************************************
+Heaven Item: 0 | Section: -1 | Section name: rawHex | Heaven's Gate offset: 0x1ad
+push edx     0x1a4 (offset 0x1a4)
+ret     0x1a5 (offset 0x1a5)
+push 0x33     0x1a6 (offset 0x1a6)
+push 0xdeafbeef     0x1a8 (offset 0x1a8)
+retf     0x1ad (offset 0x1ad)
+********************************************************************************************************
+Heaven Item: 1 | Section: -1 | Section name: rawHex | Heaven's Gate offset: 0x1b2
+ljmp 0x33:0x12345678     0x1b2 (offset 0x1b2)
+********************************************************************************************************
+Heaven Item: 2 | Section: -1 | Section name: rawHex | Heaven's Gate offset: 0x1d0
+lcall 0x33:0x12310000     0x1d0 (offset 0x1d0)
+********************************************************************************************************
+Heaven Item: 3 | Section: -1 | Section name: rawHex | Heaven's Gate offset: 0x1f0
+push ebx     0x1e7 (offset 0x1e7)
+ret     0x1e8 (offset 0x1e8)
+push 0x33     0x1e9 (offset 0x1e9)
+push 0x11111111     0x1eb (offset 0x1eb)
+retf     0x1f0 (offset 0x1f0)
+********************************************************************************************************
+Heaven Item: 4 | Section: -1 | Section name: rawHex | Heaven's Gate offset: 0x1f3
+ljmp 0x33:0xdeadbeef     0x1f3 (offset 0x1f3)
+********************************************************************************************************
+Heaven Item: 5 | Section: -1 | Section name: rawHex | Heaven's Gate offset: 0x216
+lcall 0x33:0x1337c0de     0x216 (offset 0x216)
+********************************************************************************************************
+Heaven Item: 6 | Section: -1 | Section name: rawHex | Heaven's Gate offset: 0x23e
+call 0x23f     0x22f (offset 0x22f)
+add eax, 3     0x234 (offset 0x234)
+push 0x33     0x237 (offset 0x237)
+push 0x401000     0x239 (offset 0x239)
+retf     0x23e (offset 0x23e)
