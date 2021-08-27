@@ -1233,7 +1233,7 @@ def extractDLLNew(dllName):
 	return ans
 
 def extractDLL_MinNew(dll):
-	print ("NEW: extracting enter")
+	print ("NEW: extracting enter ", dll)
 	global pe
 	global modName
 	global o
@@ -10062,6 +10062,44 @@ def bramwellStart2():
 	findAllPebSequences(mode)
 
 	printSavedPEB()
+
+def bramwellStart3():
+
+	showBasicInfo()
+	ObtainAndExtractSections()
+	print ("basic info")
+	print (showBasicInfoSections())
+
+
+
+	# findStrings(s[0].data2,5)
+
+	getStringsOnSections(7)
+
+	print ("start pushStrings")
+	# getPushStrings(5)
+	# op_test2 = b"\x00\x40\x00\x41\x00\x42\x00\x43\x00\x44\x00\x45\x00\x00"
+	# findStringsWide(s[0].data2, 6)
+	printStrings()
+
+
+	print ("start findEvilImports")
+	
+
+	print ("start InMemoryOrderModuleList getDLLs")
+	getDLLs()
+	digDeeper(PE_DLLS)
+	print ("start digDeeper2")
+	digDeeper2()
+
+	print ("start InMem2")
+	InMem2()
+	print ("end InMem2")
+
+
+	findEvilImports()
+	print(showImports())
+
 ##### START
 def init1():
 	global rawData2
@@ -10838,7 +10876,7 @@ if __name__ == "__main__":
 
 	user=AustinID        #comment out, so only one user shows, or is the last one shown.
 	# user=AndyID
-	# user=BramwellID
+	user=BramwellID
 	
 	if user==AustinID:
 		austin=True
@@ -10863,8 +10901,11 @@ if __name__ == "__main__":
 		# printSavedPushRet()
 
 		# bramwellStart()   # PE file ?
+		
+		# yes = 1
 
-		yes = 1
+		yes = 5
+
 		if yes == 2:
 			bramwellDisassembly()   # Takes as input .txt file of shellcode    - also takes .bin (py sharem.py shellcode.bin raw) - note the raw keyword at the end!!!
 			bramwellStart2()
@@ -10875,7 +10916,19 @@ if __name__ == "__main__":
 			print ("final DIS")
 
 
+		if yes == 4:
+			#bz
+			myTest="89 c3"
+			shells=fromhexToBytes(myTest)
+			address=0
+			for i in cs.disasm(shells, address):
+				val =  i.mnemonic + " " + i.op_str 
+				print(val)
+		# val2.append(val)
+		# val3.append(add2)
 
+		if yes ==5:
+			bramwellStart3()
 	## AUSTIN --> get list of disassmebly from from shellcode and list of of offsets
 
 
