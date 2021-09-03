@@ -1677,120 +1677,6 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 	disString = val5
 
 
-
-	# for line in disString:
-	# 	#print (line)
-
-	# 	##############################################
-
-	# 	# movLoadPEB = re.match("^(mov) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
-	# 	# addLoadPEB = re.match("^(add) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
-	# 	# adcLoadPEB = re.match("^(adc) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
-	# 	# xorLoadPEB = re.match("^(xor) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
-	# 	# orLoadPEB = re.match("^(or) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
-	# 	# xchgLoadPEB = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)\]", line, re.IGNORECASE)
-	# 	# pushLoadPEB = re.match("^(push) (d?word ptr fs:\[((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))))) ?(\+ ?0x30)?\]", line, re.IGNORECASE)
-
-	# 	loadPEB = re.match("^((mov)|(add)|(xor)|(or)|(adc)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?d?word ptr fs:\[((((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?)?0x30)|(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))))\]", line, re.IGNORECASE)
-
-
-
-	# 	# if(movLoadPEB or addLoadPEB or adcLoadPEB or xorLoadPEB or orLoadPEB or xchgLoadPEB or pushLoadPEB and foundPEB):
-	# 	if(loadPEB):
-	# 		loadTIB_offset = line.split()[-1]
-	# 		loadTIB_offset = loadTIB_offset[:-1]
-	# 		points += 1
-	# 		foundPEB = True
-	# 	elif(not foundPEB):
-	# 		return
-
-
-	# 	##############################################
-
-	# 	# movLoadLDR = re.match("^(mov) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", line, re.IGNORECASE)
-	# 	# addLoadLDR = re.match("^(add) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", line, re.IGNORECASE)
-	# 	# adcLoadLDR = re.match("^(adc) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", line, re.IGNORECASE)
-	# 	# xorLoadLDR = re.match("^(xor) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", line, re.IGNORECASE)
-	# 	# orLoadLDR = re.match("^(or) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", line, re.IGNORECASE)
-	# 	# xchgLoadLDR = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", line, re.IGNORECASE)
-		
-	# 	loadLDR = re.match("^((mov)|(add)|(xor)|(or)|(adc)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", line, re.IGNORECASE)
-
-
-	# 	# if(movLoadLDR or addLoadLDR or adcLoadLDR or xorLoadLDR or orLoadLDR or xchgLoadLDR):
-	# 	if(loadLDR):
-	# 		loadLDR_offset = line.split()[-1]
-	# 		loadLDR_offset = loadLDR_offset[:-1]
-	# 		points += 1
-
-
-	# 	###############################################
-
-	# 	# movLoadInMemOrder = re.match("^(mov) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", line, re.IGNORECASE)
-	# 	# addLoadInMemOrder = re.match("^(add) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", line, re.IGNORECASE)
-	# 	# adcLoadInMemOrder = re.match("^(adc) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", line, re.IGNORECASE)
-	# 	# xorLoadInMemOrder = re.match("^(xor) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", line, re.IGNORECASE)
-	# 	# orLoadInMemOrder = re.match("^(or) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", line, re.IGNORECASE)
-	# 	# xchgLoadInMemOrder = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", line, re.IGNORECASE)
-
-	# 	loadInMemOrder = re.match("^((mov)|(add)|(adc)|(xor)|(or)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", line, re.IGNORECASE)
-
-	# 	# if(movLoadInMemOrder or addLoadInMemOrder or adcLoadInMemOrder or xorLoadInMemOrder or orLoadInMemOrder or xchgLoadInMemOrder):
-	# 	if(loadInMemOrder):
-	# 		loadModList_offset = line.split()[-1]
-	# 		loadModList_offset = loadModList_offset[:-1]
-	# 		points += 1
-
-
-	# 	###############################################
-
-	# 	# movLoadInInitOrder = re.match("^(mov) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", line, re.IGNORECASE)
-	# 	# addLoadInInitOrder = re.match("^(add) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", line, re.IGNORECASE)
-	# 	# adcLoadInInitOrder = re.match("^(adc) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", line, re.IGNORECASE)
-	# 	# xorLoadInInitOrder = re.match("^(xor) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", line, re.IGNORECASE)
-	# 	# orLoadInInitOrder = re.match("^(or) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", line, re.IGNORECASE)
-	# 	# xchgLoadInInitOrder = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", line, re.IGNORECASE)
-
-	# 	loadInInitOrder = re.match("^((mov)|(add)|(adc)|(xor)|(or)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x1c))\])", line, re.IGNORECASE)
-
-	# 	if(loadInInitOrder):
-	# 	# if(movLoadInInitOrder or addLoadInInitOrder or adcLoadInInitOrder or xorLoadInInitOrder or orLoadInInitOrder or xchgLoadInInitOrder):
-	# 		loadModList_offset = line.split()[-1]
-	# 		loadModList_offset = loadModList_offset[:-1]
-	# 		points += 1
-
-	# 	###############################################
-
-	# 	# movDereference = re.match("^(mov) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
-	# 	# addDereference = re.match("^(add) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
-	# 	# adcDereference = re.match("^(adc) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
-	# 	# orDereference = re.match("^(or) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
-	# 	# xorDereference = re.match("^(xor) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
-	# 	# xchgDereference = re.match("^(xchg) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
-
-
-	# 	dereference = re.match("^((mov)|(add)|(adc)|(xor)|(or)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))\])", line, re.IGNORECASE)
-
-	# 	# if(movDereference or addDereference or adcDereference or orDereference or xorDereference or xchgDereference):
-	# 	if(dereference):
-	# 		advanceDLL_Offset_temp = line.split()[-1]
-	# 		advanceDLL_Offset_temp = advanceDLL_Offset_temp[:-1]
-	# 		if(not foundAdv):
-	# 			advanceDLL_Offset[0] = advanceDLL_Offset_temp
-	# 			foundAdv = True
-	# 			points += 1
-	# 		else:
-	# 			advanceDLL_Offset.append(advanceDLL_Offset_temp)
-
-
-
-	# 	############## AUSTIN ####################
-	# 	lodsd = re.match("^(lodsd)", line, re.IGNORECASE) 
-
-	# 	if(lodsd):
-	# 		points += 1
-	############## AUSTIN ####################
-
 	stop = timeit.default_timer()
 	dprint2("Time PEB: " + str(stop - start))
 
@@ -5073,7 +4959,7 @@ def getSyscallRawHex(address, linesBack, secNum, data):
 
 				# dprint2("TESTING HERE")
 				# dprint2(e, hex(orgListOffset[t]))
-				isEgg = re.search("fs:\[0xc0\]", e, re.IGNORECASE)
+				isEgg = re.search("fs:(\[0xc0\])?", e, re.IGNORECASE)
 				if(isEgg):
 					c0_offset = hex(orgListOffset[t])
 					address = int(orgListOffset[t])
@@ -7896,9 +7782,31 @@ def AustinTesting2():
 
 	start = timeit.default_timer()
 	print("before austinEncode")
-	austinEncodeDecodeWork("daltonShell2.txt", ["^", "^", "-", "+", "^"])
+
+
+	if rawBin == False:
+		# filename=shellArg
+		rawBytes=readShellcode("daltonShell2.txt") 
+
+		rawData2=rawBytes
+		# printBytes(rawBytes)
+		# print (disHereShell(rawBytes, False, False, "ascii", True))
+
+
+	
+
+
+	print ("SizeRawdata2", len(rawData2))
+	rawBytes=rawData2
+	print("NORMAL BYTES")
+	print(binaryToStr(rawBytes))
+	print ("rawbytes class", type(rawBytes))
+	encoded=encodeShellcode(rawData2)
+	# austinEncodeDecodeWork("daltonShell2.txt", ["^", "^", "-", "+", "^"])
 	# austinEncodeDecodeWork("daltonShell2.txt", ["^", "^", "-", "+"])
 	# austinEncodeDecodeWork("daltonShell2.txt", ["^", "^", "-"])
+
+	decryptShellcode(encoded, ["^", "^", "-"], distributed = True )
 	stop = timeit.default_timer()
 	print("Total time AUSTIN: " + str(stop - start))
 	# rawBytes=readShellcode(shellArg) 
@@ -10943,6 +10851,91 @@ def bramwellEncodeDecodeWork(shellArg):
 
 
 
+#operations: enter as a list of characters EX: ["^", "+", "~"]
+#findAll: whether or not to stop once a set of values works -- false stops after the first match
+#distributed: toggle on distributed computing
+#nodesFiles: txt file containing IPs for each node to be used for distributed computing
+#cpuCount: auto to use max available, otherwise it can be limited
+#outputFile: will spit out a file containing results
+def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = False, distributed = False, cpuCount = "auto", nodesFile = "nodes.txt", outputFile = False):
+
+	strAdd="new=(new +VALUE) & 255\n" 
+	strSub="new=(new -VALUE) & 255\n"
+	strXor="new=(new ^ VALUE) & 255\n"
+	strNot="new=~(new) & 255\n"
+	strRol="new=rol(new,VALUE,8)\n"
+	strRor="new=ror(new,VALUE,8)\n"
+	strShRight="new=(new << VALUE) & 255\n"
+
+	decodeOps = []
+	print("OPERATIONS:")
+	print(operations)
+	for symbol in operations:
+		if(symbol == "+"):
+			decodeOps.append(strAdd)
+		elif(symbol == "-"):
+			decodeOps.append(strSub)
+		elif(symbol == "^"):
+			decodeOps.append(strXor)
+		elif(symbol == "~"):
+			decodeOps.append(strNot)
+		elif(symbol == "rl"):
+			decodeOps.append(strRol)
+		elif(symbol == "rr"):
+			decodeOps.append(strRor)
+		elif(symbol == "<"):
+			decodeOps.append(strShRight)
+		else:
+			print("Operation \"" + symbol + "\" not recognized. Returning.")
+			return
+	opsLen = len(decodeOps)
+
+	if(fastMode):
+		originalEncoded = encodedShell
+		encodedShell = encodedShell[:40] #option for distance
+
+	if(distributed):
+			# decodeOps_aus = [strXor, strAdd, strSub]
+			# decodeOps = [strXor, strXor, strSub]
+			decodeInfo = doDistr(decodeOps, encodedShell,2, findAll = findAll)
+			for item in decodeInfo:
+				print("############# DECODED ################")
+				for x in item:
+					try:
+						# x[0] = binaryToStr(x[0])
+						# print("Decoded item info:")
+						for i in range(len(x)):
+							if(i == 0):
+								print(binaryToStr(x[i]))
+							else:
+								print(x[i])
+					except Exception as e:
+						print("Error: " + str(e))
+						print(x)
+					print("\n\n")
+
+
+				print("\n\n")
+			return
+
+	else:
+		if(opsLen == 3 or opsLen == 4 or opsLen == 5):
+			outputs,earlyFinish,startVals = austinDecode(decodeOps, encodedShell, findAll = findAll)
+			decodeInfo = outputs
+
+			for item in decodeInfo:
+				print("############# DECODED ################")
+				try:
+					print(binaryToStr(item[0]))
+				except:
+					print(item[0])
+				for x in item[1:]:
+					print(x)
+				print("\n\n")
+			return
+
+
+
 
 def austinEncodeDecodeWork(shellArg, operations = []):
 	#DONE: 	4&5 ops support for everything
@@ -12911,9 +12904,9 @@ def syscallSelectionsSubMenu(): #Select osversions for syscalls
 	while x != 'e':
 		sysSelectIN = input()
 		print("...")
-		print(type(syscallSelection[1]))
+		# print(type(syscallSelection[1]))
 		v = "asdf"
-		print(type(v))
+		# print(type(v))
 		#Recursively loop through to check each OS
 		for os in syscallSelection:
 			#If we make changes, our multiselects no longer apply
@@ -13921,7 +13914,7 @@ if __name__ == "__main__":
 	AndyID=2
 
 
-	user=AndyID        #comment out, so only one user shows, or is the last one shown.
+	user=AndyID       #comment out, so only one user shows, or is the last one shown.
 
 	# user=AndyID
 	# user=BramwellID
