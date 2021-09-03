@@ -125,6 +125,24 @@ if numArgs > 1:			# to get full functionality, need to put file location for bin
 			print(e)
 			quit()
 		print("bits", bit32)
+	# if binFile:
+	# 	rawBin=True
+
+
+	# if binFile:
+	# 	rawHex = True
+	# 	rawBin=True  # only if .bin, not .txt
+	# 	print("set raw2", (sys.argv[2]), (sys.argv[1]), peName)
+	# 	try:
+	# 		f = open(peName, "rb")
+	# 		# global rawData2
+	# 		rawData2 = f.read()
+	# 		f.close()
+	# 		# print ("rawData2", len(rawData2))
+	# 	except Exception as e:
+	# 		print("Invalid path to hex file.")
+	# 		print(e)
+	# 		quit()
 print("bits", bit32)
 
 if len(filename) > 1:
@@ -180,7 +198,13 @@ if not skipExtraction:
 
 	# print ("2", sys.argv[2])
 	if(numArgs > 2):
-		if(sys.argv[2] == "raw"):
+		if binFile and (re.match( "^r", sys.argv[2], re.M|re.I)):
+			if(re.match( "(r32)|(raw32)|(raw)|(r)", sys.argv[2], re.M|re.I)):
+				bit32 = True
+			if(re.match( "(r64)|(raw64)", sys.argv[2], re.M|re.I)):
+				bit32= False
+
+			# if(sys.argv[2] == "raw"):
 			rawHex = True
 			rawBin=True  # only if .bin, not .txt
 			print("set raw", (sys.argv[2]), (sys.argv[1]), peName)
@@ -13945,7 +13969,10 @@ if __name__ == "__main__":
 		
 		# yes = 1
 
-		yes = 5
+		yes = 53
+
+		if yes == 53:
+			init2()
 
 		if yes == 2:
 			bramwellDisassembly()   # Takes as input .txt file of shellcode	- also takes .bin (py sharem.py shellcode.bin raw) - note the raw keyword at the end!!!
