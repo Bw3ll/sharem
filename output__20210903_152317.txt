@@ -1,0 +1,33 @@
+Filename: 
+File Type: rawHex
+Bits: 32
+Date Analyzed: 2021-09-03 15:23:17
+Seconds since last epoch: 1630700597.604492
+
+Section info
+
+modName
+Entry point: 0x0
+Virtual Address: 0x0
+ImageBase: 0x0
+VirtualSize: 0x0
+Size of section: 0x0
+DEP: 
+ASLR: 
+SEH: 
+CFG: 
+
+
+No strings found.
+
+No push ret instructions found.
+
+No fstenv instructions found.
+
+No call pop instructions found.
+
+No syscall instructions found.
+
+No peb walking instructions found.
+
+No heaven's gate instructions found.

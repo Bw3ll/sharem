@@ -1,0 +1,31 @@
+{
+   "dateAnalyzed": "2021-09-03 14:56:53",
+   "secondsSinceEpoch": 1630699013.006835,
+   "fileType": "rawHex",
+   "bits": 32,
+   "modules": [],
+   "imports": [],
+   "entryPoint": "0x0",
+   "pushret": [],
+   "callpop": [
+      {
+         "address": "0x0",
+         "modSecName": "rawHex",
+         "pop_offset": "0x5",
+         "distance": 5,
+         "disassembly": [
+            "call   5                                0x0      (offset 0x0)",
+            "pop    edx                              0x5      (offset 0x5)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7
+         }
+      }
+   ],
+   "PEB": [],
+   "fstenv": [],
+   "heavensGate": [],
+   "syscall": [],
+   "strings": {}
+}
