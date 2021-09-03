@@ -30,3 +30,4 @@ sharem_austin.py
 test2.txt
 work.asm
 __pycache__/lists.cpython-38.pyc
+*.pyc
