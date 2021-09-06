@@ -82,6 +82,7 @@ stringsTemp=[]
 stringsTempWide=[]
 pushStringsTemp=[]
 filename=""
+filenameRaw=""
 skipExtraction=False
 rawHex = False
 rawData2 = b''
@@ -108,9 +109,12 @@ filename=""
 if numArgs > 1:			# to get full functionality, need to put file location for binary that is installed (may need to find some DLLs in that directory)
 	txtDoc= re.search( r'\.txt', sys.argv[1], re.M|re.I)
 	binFile= re.search( r'\.bin', sys.argv[1], re.M|re.I)
-
+	if binFile:
+		# filenameRaw=sys.argv[1]
+		filename=sys.argv[1]
 	if txtDoc:
 		filename= sys.argv[1]
+		# filenameRaw=sys.argv[1]
 		skipExtraction=True
 		rawHex=True
 		# print("set rawHEx")
@@ -124,7 +128,7 @@ if numArgs > 1:			# to get full functionality, need to put file location for bin
 			print("Invalid path to hex file.")
 			print(e)
 			quit()
-		print("bits", bit32)
+		# print("bits", bit32)
 	# if binFile:
 	# 	rawBin=True
 
@@ -189,7 +193,7 @@ if not skipExtraction:
 
 
 	############### AUSTIN ####################
-	print ("entering Austin")
+	# print ("entering Austin")
 	rawHex = False
 	# global rawData2
 
@@ -207,7 +211,7 @@ if not skipExtraction:
 			# if(sys.argv[2] == "raw"):
 			rawHex = True
 			rawBin=True  # only if .bin, not .txt
-			print("set raw", (sys.argv[2]), (sys.argv[1]), peName)
+			# dprint("set raw", (sys.argv[2]), (sys.argv[1]), peName)
 			try:
 				f = open(peName, "rb")
 				# global rawData2
@@ -8065,9 +8069,24 @@ def split0x(word):
 	return res
 
 
-def readShellcode(shellcode):
-
-	# dprint2("Shellcode : ", shellcode)
+def splitNewline(word):
+	array = word.split("\n")
+	array2=[]
+	for word in array:
+		word2=splitRemoveAssemblyComments(word)
+		array2.append(word2)
+	res=""
+	for each in array2:
+		res+=each
+	return res
+def splitRemoveAssemblyComments(word):
+	array = word.split(";")[0]
+	res=""
+	for each in array:
+		res+=each
+	return res
+def readShellcodeOLD(shellcode):
+	dprint2("Shellcode : ", shellcode)
 	file1 = open(shellcode, 'r') 
 	shells = file1.read() 
 	# shells = shells.replace('"', '')
@@ -8091,6 +8110,29 @@ def readShellcode(shellcode):
 	#printBytes(shells)
 	#print(type(shells))
 	print(shells)
+	dprint2 ("\n\n\nend\n")
+	return shells
+
+def readShellcode(shellcode):  #  ADDED: get rid of newline (0d0a) - get rid of assembly comments   ---   ; comments -- added SplitNewline and the .join
+	dprint2 ("readShellcodeTest")
+	dprint2 ("Shellcode : ", shellcode)
+	file1 = open(shellcode, 'r') 
+	shells = file1.read() 
+	# print("\nshells\n")
+	# shells=splitRemoveAssemblyComments(shells)
+	shells=splitNewline(shells)
+	shells = re.sub(rf"[{string.punctuation}]", "", shells)
+	dprint2(shells)
+	shells=splitBackslashx(shells)
+	shells=splitArrLit(shells)
+	shells=split0x(shells)
+
+	shells = ''.join(shells.split())
+	shells=shells.upper()
+	# print("\nshells2\n")
+	print(shells)
+	shells=fromhexToBytes(shells)
+	# printBytes(shells)
 	dprint2 ("\n\n\nend\n")
 	return shells
 
@@ -10731,30 +10773,23 @@ def init1():
 	if(not rawHex):
 		ObtainAndExtractSections()
 		# print (showBasicInfoSections())
-
 	if (rawHex):#(rawBin == False) and not isPe: 
 		rawBytes=readShellcode(filename) 
-
 		rawData2=rawBytes
 
 
-
 def init2(filename):
-	print("init2")
+	# print("init2")
 	global rawData2
 	if(not rawHex):
 		ObtainAndExtractSections()
 		# print (showBasicInfoSections())
-
 	if (rawHex):#(rawBin == False) and not isPe: 
-		print("in rawhex part")
-		print(filename)
-		print(filename[-4:])
+		# print("in rawhex part")
+		# print(filename)
+		# print(filename[-4:])
 		if(filename[-4:] == ".txt"): #don't need to call readShellcode if it is a binary file
-			print("RAWBYTES HERE")
-			rawBytes=readShellcode(filename) 
-			print(rawBytes)
-			rawData2=rawBytes
+			rawData2=readShellcode(filename) 
 # Extraction()
 
 # starting()
@@ -10767,6 +10802,24 @@ def init2(filename):
 
 
 # testing8Start()
+
+def saveBinAscii():
+
+
+	init2(filename)
+	# print (binaryToStr(rawData2))
+	if not os.path.exists(directory+'bins'):
+		os.makedirs(directory+'bins')
+	assembly=binaryToText(rawData2)
+	newBin = open(directory+"bins\\"+filename[:-4]+".bin", "wb")
+	newBin.write(rawData2)
+	newBin.close()
+	newDis = open(directory+"bins\\ascii-"+filename[:-4]+".txt", "w")
+	print (directory+"bins\\ascii-"+filename[:-4]+".txt")
+	print (directory+"bins\\"+filename[:-4]+".bin")
+	newDis.write(assembly)
+	newDis.close()
+
 def bramwellEncodeDecodeWork(shellArg):
 	global filename
 	global rawData2
@@ -11844,7 +11897,8 @@ def ui(): #UI menu loop
 				uiFindImports()
 			elif userIN[0:1] == "q":
 				findAll()
-
+			elif userIN[0:1] == "o":
+				saveBinAscii()
 			elif userIN[0:1] == "m":	
 				uiModulesSubMenu()
 				print("\nReturning to main menu.\n")
@@ -13945,6 +13999,8 @@ if __name__ == "__main__":
 	bramwell=False
 	austin=False
 	andy=False
+	tarek=False
+	jacob=False
 	BramwellID=0
 	AustinID=1
 	AndyID=2
@@ -13953,7 +14009,7 @@ if __name__ == "__main__":
 	user=AndyID       #comment out, so only one user shows, or is the last one shown.
 
 	# user=AndyID
-	# user=BramwellID
+	user=BramwellID
 	
 	if user==AustinID:
 		austin=True
@@ -13967,6 +14023,10 @@ if __name__ == "__main__":
 		bramwell=False
 		austin=False
 		andy=True
+	elif user==JacobID:
+		jacob=True
+	elif user==TarekID:
+		tarek=True
 	
 	# bramwell=True
 	if bramwell:
@@ -13983,8 +14043,35 @@ if __name__ == "__main__":
 
 		yes = 53
 
+
 		if yes == 53:
-			init2()
+			# init2(filename)
+			# init2(filename)
+			# # print (binaryToStr(rawData2))
+			# if not os.path.exists(directory+'bins'):
+			# 	os.makedirs(directory+'bins')
+			# assembly=binaryToText(rawData2)
+			# newBin = open(directory+"bins\\"+filename[:-4]+".bin", "wb")
+			# newBin.write(rawData2)
+			# newBin.close()
+			# newDis = open(directory+"bins\\ascii-"+filename[:-4]+".txt", "w")
+			# print (directory+"bins\\ascii-"+filename[:-4]+".txt")
+			# print (directory+"bins\\"+filename[:-4]+".bin")
+			# newDis.write(assembly)
+			# newDis.close()
+
+
+
+			# print ("checking")
+			# if not rawBin:
+			# 	print ("checking2")
+
+			# 	rawBytes=readShellcodeTest(filename) 
+
+
+
+			saveBinAscii()
+
 
 		if yes == 2:
 			bramwellDisassembly()   # Takes as input .txt file of shellcode	- also takes .bin (py sharem.py shellcode.bin raw) - note the raw keyword at the end!!!
