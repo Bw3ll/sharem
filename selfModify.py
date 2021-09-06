@@ -1805,7 +1805,7 @@ def doDistr(decodeOps, sample, nodes, mode = "default", starts = [], order = [],
     final = []
     finalOutput = []
     print("in distr")
-    cluster = dispy.JobCluster(austinDecodeDistributed_new, nodes = ['172.25.14.87', '172.25.14.208'], depends = [findAllPebSequences_decode, nPr, findObfusMethod,tempMax,runProcsDistr,block_low,block_high,distrFunc, lists], loglevel = dispy.logger.DEBUG)
+    cluster = dispy.JobCluster(austinDecodeDistributed_new, nodes = ['172.25.14.89', '172.25.14.214'], depends = [findAllPebSequences_decode, nPr, findObfusMethod,tempMax,runProcsDistr,block_low,block_high,distrFunc, lists], loglevel = dispy.logger.DEBUG)
     jobs = []
     time.sleep(10)
     for i in range(2):
