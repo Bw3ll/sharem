@@ -8066,9 +8066,19 @@ def split0x(word):
 
 
 def readShellcode(shellcode):
-	dprint2("Shellcode : ", shellcode)
+
+	# dprint2("Shellcode : ", shellcode)
 	file1 = open(shellcode, 'r') 
 	shells = file1.read() 
+	# shells = shells.replace('"', '')
+	# #print(repr(shells))
+	# if "0x" in shells:
+	# 	shells = shells.replace("0x", "").replace(" ", "")
+	# else:
+	# 	shells = shells.replace(" ", "").replace('\n', '').replace('\\x', '')
+	# print("Tarek: ", repr(shells))
+	# shells = fromhexToBytes(shells)
+	# return shells
 	# print("\nshells\n")
 	shells = re.sub(rf"[{string.punctuation}]", "", shells)
 	dprint2(shells)
@@ -8078,7 +8088,9 @@ def readShellcode(shellcode):
 	# print("\nshells2\n")
 	dprint2(shells)
 	shells=fromhexToBytes(shells)
-	# printBytes(shells)
+	#printBytes(shells)
+	#print(type(shells))
+	print(shells)
 	dprint2 ("\n\n\nend\n")
 	return shells
 
