@@ -7814,11 +7814,9 @@ def AustinTesting2():
 
 	if rawBin == False:
 		# filename=shellArg
-
 		rawBytes=readShellcode("daltonShell2.txt") 
 
 		rawData2=rawBytes
-		# print("read dalton, data here: ", rawData2)
 		# printBytes(rawBytes)
 		# print (disHereShell(rawBytes, False, False, "ascii", True))
 
@@ -7826,23 +7824,17 @@ def AustinTesting2():
 	
 
 
-	# print ("SizeRawdata2", len(rawData2))
+	print ("SizeRawdata2", len(rawData2))
 	rawBytes=rawData2
-	# print("NORMAL BYTES")
-	# print(binaryToStr(rawBytes))
-	# print ("rawbytes class", type(rawBytes))
-	# print("RAWDATA2 BEFORE ENCODE IN TEST FUNC: ", rawData2)
+	print("NORMAL BYTES")
+	print(binaryToStr(rawBytes))
+	print ("rawbytes class", type(rawBytes))
 	encoded=encodeShellcode(rawData2)
-	# print("encoded dalton, data here: ", encoded)
-
-
-
-
 	# austinEncodeDecodeWork("daltonShell2.txt", ["^", "^", "-", "+", "^"])
 	# austinEncodeDecodeWork("daltonShell2.txt", ["^", "^", "-", "+"])
 	# austinEncodeDecodeWork("daltonShell2.txt", ["^", "^", "-"])
 
-	decryptShellcode(encoded, ["^", "^", "-"], distributed = True, findAll = False, cpuCount = 32, fastMode = False )
+	decryptShellcode(encoded, ["^", "^", "-"], distributed = True )
 	stop = timeit.default_timer()
 	print("Total time AUSTIN: " + str(stop - start))
 	# rawBytes=readShellcode(shellArg) 
@@ -8076,7 +8068,6 @@ def split0x(word):
 		res+=each
 	return res
 
-
 def splitNewline(word):
 	array = word.split("\n")
 	array2=[]
@@ -8097,15 +8088,6 @@ def readShellcodeOLD(shellcode):
 	dprint2("Shellcode : ", shellcode)
 	file1 = open(shellcode, 'r') 
 	shells = file1.read() 
-	# shells = shells.replace('"', '')
-	# #print(repr(shells))
-	# if "0x" in shells:
-	# 	shells = shells.replace("0x", "").replace(" ", "")
-	# else:
-	# 	shells = shells.replace(" ", "").replace('\n', '').replace('\\x', '')
-	# print("Tarek: ", repr(shells))
-	# shells = fromhexToBytes(shells)
-	# return shells
 	# print("\nshells\n")
 	shells = re.sub(rf"[{string.punctuation}]", "", shells)
 	dprint2(shells)
@@ -8115,9 +8097,7 @@ def readShellcodeOLD(shellcode):
 	# print("\nshells2\n")
 	dprint2(shells)
 	shells=fromhexToBytes(shells)
-	#printBytes(shells)
-	#print(type(shells))
-	print(shells)
+	# printBytes(shells)
 	dprint2 ("\n\n\nend\n")
 	return shells
 
@@ -10328,7 +10308,7 @@ def encodeShellcode(data):
 	global rawData2
 	# print (binaryToStr(rawData2))
 	shells=""
-	for each in data:
+	for each in rawData2:
 		new=each^0x3&255 #3
 		new = (new + 2)&255 #4
 		new= new ^ 0x1&255 #8
@@ -10344,7 +10324,7 @@ def encodeShellcode(data):
 	shells=split0x(shells)
 	# print(shells)
 	shells=fromhexToBytes(shells)
-	# print("ENCODE BYTES")
+	print("ENCODE BYTES")
 	print (binaryToStr(shells))
 	return shells
 
@@ -10965,20 +10945,7 @@ def bramwellEncodeDecodeWork(shellArg):
 #nodesFiles: txt file containing IPs for each node to be used for distributed computing
 #cpuCount: auto to use max available, otherwise it can be limited
 #outputFile: will spit out a file containing results
-#fastMode: only check small portion of the shellcode for peb walking for efficiency. findAll disabled automatically for this one
-
-
-# TODO:
-	# Find unicorn instr and send them to github
-	# label stuff in selfmodify as testing if not being used -- func_test()
-	# ENABLE OUTPUTFILE FUNCTIONALITY
-	# MAKE OUTPUT PRETTY -- inprog
-	# RENAME FUNCS IN SELFMODIFY/DISTRFUNC
 def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = False, distributed = False, cpuCount = "auto", nodesFile = "nodes.txt", outputFile = False):
-
-
-
-	# print("ENCODED HERE: \n", encodedShell)
 
 	strAdd="new=(new +VALUE) & 255\n" 
 	strSub="new=(new -VALUE) & 255\n"
@@ -10989,7 +10956,7 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 	strShRight="new=(new << VALUE) & 255\n"
 
 	decodeOps = []
-	# print("OPERATIONS:")
+	print("OPERATIONS:")
 	print(operations)
 	for symbol in operations:
 		if(symbol == "+"):
@@ -11011,88 +10978,29 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 			return
 	opsLen = len(decodeOps)
 
-	# print("DECODEOPS : ", decodeOps)
-
 	if(fastMode):
 		originalEncoded = encodedShell
-		encodedShell = encodedShell[:40] #opt ion for distance
+		encodedShell = encodedShell[:40] #option for distance
 
 	if(distributed):
-			nodeIPs = []
-			with open(nodesFile, 'r') as f:
-			    for row in f:
-			        nodeIPs.append(row.rstrip('\n'))
-			# print("NODES HERE", nodeIPs)
-			
 			# decodeOps_aus = [strXor, strAdd, strSub]
 			# decodeOps = [strXor, strXor, strSub]
-			decodeInfo = doDistr(decodeOps, encodedShell,2, nodeIPs, findAll = findAll)
-
-			if(fastMode):
-				decodeInfo = decodeInfo[0][0]
-				# print("TESTD IS =", testd)
-				# print("DECODEINFO IS = ", decodeInfo)
-				singleVals = decodeInfo[2]
-				order = decodeInfo[3]
-				# print("GOT SINGLEVALS = ", singleVals)
-				# print("GOT ORDER = ", order)
-
-				outputs,earlyFinish,startVals = austinDecode(decodeOps, originalEncoded	, findAll = findAll, mode = "single", starts = singleVals, order = order)
-				decodeInfo = outputs
-				#parse returned data structure
-				
-
-				for item in decodeInfo:
-					print("############# DECODED ################")
-					try:
-						print("Decoded Bytes: ")
-						print(binaryToStr(item[0]))
-						print("\n")
-					except:
-						print(item[0])
-					i = 1
-
-					# decodeValues = re.match("^a[0-9]+b[0-9]+c[0-9]+(d[0-9]+)?(e[0-9]+)?", item[1], re.IGNORECASE)
-					# if(decodeValues):
-						# decodeValues = decodeValues.group()
-						# print("DECODE VALUES: ", decodeValues)
-					decodeValues = item[1].splitlines()
-					decodeValues = decodeValues[-1]
-					print("Decoding Values: ", decodeValues)
-					operationOrder = item[3]
-					print("Operations: ", operationOrder)
-					# for x in item[1:]:
-					# 	print("item[",i,"]")
-					# 	print(x)
-					# 	i +=1
-					print("\n\n")
-				return
-
+			decodeInfo = doDistr(decodeOps, encodedShell,2, findAll = findAll)
 			for item in decodeInfo:
-				c = 0
 				print("############# DECODED ################")
 				for x in item:
 					try:
 						# x[0] = binaryToStr(x[0])
 						# print("Decoded item info:")
-						# for i in range(len(x)):
-							# print("PRINTING I = ", i, " C = ", c)
-							# if(i == 0):
-						print("Decoded Bytes: ")
-						print(binaryToStr(x[0]))
-						print("\n")
-							# else:
-						# print("X1 HERE")
-						decodeValues = x[1].splitlines()
-						decodeValues = decodeValues[-1]
-						operationOrder = x[3]
-						print("Decoding Values: ", decodeValues)
-						print("Operations: ", operationOrder)
+						for i in range(len(x)):
+							if(i == 0):
+								print(binaryToStr(x[i]))
+							else:
+								print(x[i])
 					except Exception as e:
 						print("Error: " + str(e))
 						print(x)
 					print("\n\n")
-					c += 1
 
 
 				print("\n\n")
@@ -11100,73 +11008,19 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 
 	else:
 		if(opsLen == 3 or opsLen == 4 or opsLen == 5):
-			outputs,earlyFinish,startVals = austinDecode(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount)
+			outputs,earlyFinish,startVals = austinDecode(decodeOps, encodedShell, findAll = findAll)
 			decodeInfo = outputs
 
-			# print("DECODEINFO MANUAL ATTEMPT")
-			# print("STARTVALS: ",decodeInfo[0][2])
-			# print("ORDER: ", decodeInfo[0][3])
-
-
-
-			if(fastMode):
-
-				if(len(decodeInfo) > 0):
-					decodeInfo = decodeInfo[0]
-
-				singleVals = decodeInfo[2]
-				order = decodeInfo[3]
-				# singleVals = []
-				# order = item[3]
-				# # print("ORDERHERE")
-				# # print(order)
-				# for val in item[2]:
-				# 	singleVals.append(val)
-				#only save the first output of decode -- it won't end early and startvals doesn't matter either
-				outputs,earlyFinish,startVals = austinDecode(decodeOps, originalEncoded	, findAll = findAll, mode = "single", starts = singleVals, order = order)
-				#parse returned data structure
-				decodeInfo = outputs	
-
 			for item in decodeInfo:
-					print("############# DECODED ################")
-					try:
-						print("Decoded Bytes: ")
-						print(binaryToStr(item[0]))
-						print("\n")
-					except:
-						print(item[0])
-					i = 1
-
-					# decodeValues = re.match("^a[0-9]+b[0-9]+c[0-9]+(d[0-9]+)?(e[0-9]+)?", item[1], re.IGNORECASE)
-					# if(decodeValues):
-						# decodeValues = decodeValues.group()
-						# print("DECODE VALUES: ", decodeValues)
-					decodeValues = item[1].splitlines()
-					decodeValues = decodeValues[-1]
-					print("Decoding Values: ", decodeValues)
-					operationOrder = item[3]
-					print("Operations: ", operationOrder)
-					# for x in item[1:]:
-					# 	print("item[",i,"]")
-					# 	print(x)
-					# 	i +=1
-					print("\n\n")
-			return			
-
-			# for item in decodeInfo:
-			# 	print("############# DECODED ################")
-			# 	try:
-			# 		print("item[0]")
-			# 		print(binaryToStr(item[0]))
-			# 	except:
-			# 		print(item[0])
-			# 	i = 1
-			# 	for x in item[1:]:
-			# 		print("item[",i,"]")
-			# 		print(x)
-			# 		i +=1
-			# 	print("\n\n")
-			# return
+				print("############# DECODED ################")
+				try:
+					print(binaryToStr(item[0]))
+				except:
+					print(item[0])
+				for x in item[1:]:
+					print(x)
+				print("\n\n")
+			return
 
 
 
@@ -11208,10 +11062,7 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 		print("NORMAL BYTES")
 		print(binaryToStr(rawBytes))
 		print ("rawbytes class", type(rawBytes))
-		print("RAWDATA2 BEFORE ENCODE IN WORKING FUNC: ", rawData2)
 		encoded=encodeShellcode(rawData2)
-
-		print("ENCODED HERE: \n", encoded)
 
 		strAdd="new=(new +VALUE) & 255\n" 
 		strSub="new=(new -VALUE) & 255\n"
@@ -14156,7 +14007,7 @@ if __name__ == "__main__":
 	AndyID=2
 
 
-	user=AustinID       #comment out, so only one user shows, or is the last one shown.
+	user=AndyID       #comment out, so only one user shows, or is the last one shown.
 
 	# user=AndyID
 	user=BramwellID
@@ -14300,7 +14151,6 @@ if __name__ == "__main__":
 	################################ AUSTIN'S WORK AREA
 	if austin:
 		AustinTesting2()
-		# AustinTesting3()
 
 
 

@@ -12,6 +12,7 @@ def showOptions():
 	options +="j: Find shellcode strings.\n"
 	options +="m: Find InMemoryOrderModuleList.\n"
 	options +="e: Find imports\n"
+	options +="o: Output bins and ASCII text.\n"
 	options +="b: Change bits.\n"
 	options +="x: Exit\n"
 	print(options)
