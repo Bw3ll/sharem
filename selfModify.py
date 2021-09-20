@@ -1415,7 +1415,7 @@ def block_size(id, p, n):
 #findAll: True if you want to find all valid permutations that result in decoded shellcode Eg. 32 ways to decode it with 3 operations
 #		  False if you only want to find one
 
-def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], findAll = False):
+def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], findAll = False, cpuCount = "auto"):
 # def austinDecode(*args):
 	global aLimit
 	global bLimit
@@ -1590,9 +1590,13 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], f
 	totalRuns = 0
 	curPerm = 0
 	listLimit = 1000000
-	# print("CPU COUNT")
+	
 	# print(multiprocessing.cpu_count())
-	numThreads = multiprocessing.cpu_count()
+	if(cpuCount == "auto"):
+		numThreads = multiprocessing.cpu_count()
+	else:
+		numThreads = cpuCount
+	print("CPU COUNT: ", numThreads)
 	out = []
 	startVals = []
 	early = False
@@ -1605,7 +1609,7 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], f
 			encodeBytes4.append((a,b,c,d,order))
 		elif(version == 5):
 			encodeBytes4.append((a,b,c,d,e,order))
-		out = runProcs(encodeBytes4, sample, numThreads,version, findAll = findAll)
+		out = runProcs(encodeBytes4, sample, numThreads,version, findAll = findAll)[0] #the first element returned is the actual output, do not need to worry about the flag
 		return out,early,startVals
 	
 	if(len(mylist2) == 3):
@@ -1801,18 +1805,18 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], f
 	return out, early, startVals
 
 
-def doDistr(decodeOps, sample, nodes, mode = "default", starts = [], order = [], findAll = False):
+def doDistr(decodeOps, sample, numNodes, nodeIPs, mode = "default", starts = [], order = [], findAll = False):
     final = []
     finalOutput = []
     print("in distr")
-    cluster = dispy.JobCluster(austinDecodeDistributed_new, nodes = ['172.25.14.89', '172.25.14.214'], depends = [findAllPebSequences_decode, nPr, findObfusMethod,tempMax,runProcsDistr,block_low,block_high,distrFunc, lists], loglevel = dispy.logger.DEBUG)
+    cluster = dispy.JobCluster(austinDecodeDistributed_new, nodes = nodeIPs, depends = [findAllPebSequences_decode, nPr, findObfusMethod,tempMax,runProcsDistr,block_low,block_high,distrFunc, lists], loglevel = dispy.logger.DEBUG)
     jobs = []
     time.sleep(10)
-    for i in range(2):
+    for i in range(numNodes):
         print('starting jobs')
         # schedule execution of 'compute' on a node (running 'dispynode')
         # with a parameter (random number in this case)
-        job = cluster.submit(decodeOps, sample, nodes, i, mode, starts, order, findAll)
+        job = cluster.submit(decodeOps, sample, numNodes, i, mode, starts, order, findAll)
         jobs.append(job)
     # cluster.wait() # wait for all scheduled jobs to finish
     
@@ -3308,6 +3312,7 @@ def p2Encode(low, high, encodeBytes4, sample, rank, queue, version, endFlag, fin
 			if(not findAll):
 				endFlag.value = 1
 			outs.append(output)
+			print("P2ENCODE APPENDING OUTPUT: ", output)
 			print("FOUND IN P2ENCODE BY RANK = ", rank)
 			#print(output)
 			

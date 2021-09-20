@@ -1,0 +1,14 @@
+UNICORN SETUP:
+
+pip install unicorn
+
+google unicorn-engine 1.0.2 and find github releases page for 1.0.2 and download that .zip (probably works downloading the master for 1.0.3 as well)
+	https://github.com/unicorn-engine/unicorn/releases/tag/1.0.2
+
+open admin developer command prompt
+
+cd .../bindings/python
+
+py setup.py install
+
+test with sample files
