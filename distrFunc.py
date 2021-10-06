@@ -266,6 +266,7 @@ def p2EncodeDistr(low, high, encodeBytes4, sample, rank, queue, version, endFlag
 
 	queue.put(outs)
 def doStuffP2Distr(inputs, sample, rank):
+	newString = ""
 	# print("IN dostuffp2")
 	a=inputs[0]
 	b=inputs[1]
@@ -297,6 +298,7 @@ def doStuffP2Distr(inputs, sample, rank):
 	# return "ok"
 
 def doStuffP24Distr(inputs, sample, rank):
+	newString = ""
 	a=inputs[0]
 	b=inputs[1]
 	c=inputs[2]
@@ -327,6 +329,7 @@ def doStuffP24Distr(inputs, sample, rank):
 	# return "ok"
 
 def doStuffP25Distr(inputs, sample, rank):
+	newString = ""
 	a=inputs[0]
 	b=inputs[1]
 	c=inputs[2]
