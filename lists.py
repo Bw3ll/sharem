@@ -743,6 +743,7 @@ EGGHUNT = {
 }
 
 CALLPOP_START = {
+	#add small amounts of backwards calls
 	'0': (b"\xE8\x00\x00\x00\x00", 5),
 	'1': (b"\xE8\x01\x00\x00\x00", 6),
 	'2': (b"\xE8\x02\x00\x00\x00", 7),

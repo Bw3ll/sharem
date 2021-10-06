@@ -46,7 +46,7 @@ def get_PEB_walk_start_decode(mode, NumOpsDis ,bytesToMatch, secNum, data2):
 		if(found):
 			# print("hit a found")
 			# input("enter..")
-			ans = disHerePEB_decode(mode, t, numOps, secNum, data2)
+			ans = disherePEB_decode_old(mode, t, numOps, secNum, data2)
 			if mode=="decrypt" and ans is not None:
 				print ("got disherepeb", ans)
 				return ans
@@ -55,7 +55,7 @@ def get_PEB_walk_start_decode(mode, NumOpsDis ,bytesToMatch, secNum, data2):
 
 		t=t+1
 
-def disHerePEB_decode(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ##############
+def disherePEB_decode_old(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ##############
 	print ("disHerePEB", mode)
 	global o
 	w=0
@@ -328,7 +328,7 @@ if __name__ == '__main__':
 
 
 
-def specialEncoder(*args):   #args = variable # of inputs
+def specialEncoder_old(*args):   #args = variable # of inputs
 	print("specialEncoder")
 	u=0
 	t=0
@@ -389,7 +389,7 @@ def specialEncoder(*args):   #args = variable # of inputs
 	print ("spread across " + str(cores) + " cores: ", ((((totalPerm*numSeconds)/60)/60)/24)/cores, "days")
 
 
-def specialEncoder3(*args):
+def specialEncoder3_old(*args):
 	print("specialEncoder3")
 	u=0
 	t=0
@@ -465,7 +465,7 @@ def specialEncoder3(*args):
 
 
 
-def specialEncoder4(*args):
+def specialEncoder4_old(*args):
 	print("specialEncoder4")
 	u=0
 	t=0
@@ -549,7 +549,7 @@ def specialEncoder4(*args):
 
 
 
-def specialEncoder44(*args):
+def specialEncoder44_old(*args):
 	print("specialEncoder44")
 	u=0
 	t=0
@@ -3325,6 +3325,7 @@ def p2Encode(low, high, encodeBytes4, sample, rank, queue, version, endFlag, fin
 
 	queue.put(outs)
 def doStuffP2(inputs, sample, rank):
+	# newString = ""
 	# print("IN dostuffp2")
 	a=inputs[0]
 	b=inputs[1]
@@ -3347,7 +3348,11 @@ def doStuffP2(inputs, sample, rank):
 		eval(newcode) 
 		
 					# encode="encodeBytes.append(new)"
-	print (newString, "\n", "a",a, "b",b, "c",c ,"")
+	try:
+		print (newString, "\n", "a",a, "b",b, "c",c ,"")
+	except:
+		print("ERROR HERE SAMPLE BELOW")
+		print(sample)
 	bytesStr = bytes(encodeBytes)
 	out = newString + "\n" + "a" + str(a) + "b" + str(b) + "c" + str(c)
 	print ("\nencoder5 new", binaryToStr(bytesStr),"\n\n\n")
@@ -4431,8 +4436,8 @@ if __name__ == '__main__':
 	boolDoTest=True
 
 	if boolDo:
-		specialEncoder(XORstr, ADDstr, ROTstr)
-	# specialEncoder() is simple - just takes txt and shows that it can create designated # of distinct results.
+		specialEncoder_old(XORstr, ADDstr, ROTstr)
+	# specialEncoder_old() is simple - just takes txt and shows that it can create designated # of distinct results.
 
 	if boolDo2:
 		specialEncoder2(20, XORstr, ADDstr, ROTstr)
@@ -4443,17 +4448,17 @@ if __name__ == '__main__':
 	strXor="new=tohex((new - (w)),8)\n"
 
 	if boolDo3:
-		specialEncoder3(strSub, strAdd, strXor)
+		specialEncoder3_old(strSub, strAdd, strXor)
 	#Doing real work now. outter: 2 for loops, inner 2 while loops, then final for loop for each byte in sample - not good!
 	# Max=5, 750 total, Total time: 9.0848923
 
 	if boolDo4:
-		specialEncoder4(strSub, strAdd, strXor)
+		specialEncoder4_old(strSub, strAdd, strXor)
 	#Doing real work now. outter: 2 for loops, inner 2 while loops
 	# Max=5, 750 total, Total time: 11.468003800000002
 
 	if boolDo44:
-		specialEncoder44(strSub, strAdd, strXor)
+		specialEncoder44_old(strSub, strAdd, strXor)
 	# just another variation, slower
 	# Max=5, 750 total, Total time: 12.0538737
 
@@ -4562,8 +4567,8 @@ if __name__ == '__main__':
 # LSHstr="LSH(v)\n"
 
 
-# specialEncoder3(40, XORstr, ADDstr, ROTstr)
-# specialEncoder(XORstr, ADDstr, ROTstr)
+# specialEncoder3_old(40, XORstr, ADDstr, ROTstr)
+# specialEncoder_old(XORstr, ADDstr, ROTstr)
 
 
 
