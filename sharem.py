@@ -25,6 +25,8 @@ from ui import *
 
 tempDisassembly=[]
 tempAddresses=[]
+tempMnemonic=[]
+tempOp_str=[]
 sections = []
 numArgs = len(sys.argv)
 peName = ''
@@ -38,6 +40,8 @@ skipPath = False
 FoundApisAddress = []
 FoundApisName = []
 saveAPI=0x00
+shellEntry=0
+decodedBytes=b''
 VP = 0
 VA=""
 MA=""
@@ -91,6 +95,31 @@ rawBin=False  # only if .bin, not .txt
 isPe=False
 pointsLimit = 3
 
+gDisassemblyText=""
+linesForward = 40
+bUI = True
+bPushRet = True
+bFstenv = True
+bSyscall = True
+bHeaven = True
+bEm = True
+bCallPop = True
+bPushRet = True
+bHeaven = True
+bUI= True
+bCheck = True
+bDisassembly = True
+bEvilImportsFound = False
+bPushRetFound = False
+bDisassemblyFound = False
+bFstenvFound = False
+bSyscallFound = False
+bHeavenFound = False
+bPEBFound = False
+bCallPopFound = False
+bModulesFound = False
+bStringsFound = False
+bPushStringsFound = False
 fastMode=False
 
 ignoreDisDiscovery=False
@@ -1886,7 +1915,7 @@ def disHerePEB_64(address, NumOpsDis, secNum, data): ############## AUSTIN #####
 
 
 
-def saveBasePEBWalk(address, NumOpsDis,modSecName,secNum, points): 
+def saveBasePEBWalkOld(address, NumOpsDis,modSecName,secNum, points): 
 	# print("saving")
 	#save virtaul address as well
 	if(secNum != "noSec"):
@@ -8471,9 +8500,13 @@ def makeAsciiforDB2(data):
 	return res
 
 
-def addDis(address, line,):
+
+def addDis(address, line, mnemonic=None, op_str=None):
 	global tempDisassembly
 	global tempAddresses
+	global tempMnemonic
+	global tempOp_str
+
 	tempDisassembly.append(line[:-2])
 
 	try:
@@ -8481,6 +8514,8 @@ def addDis(address, line,):
 	except:
 		tempAddresses.append(address)
 
+	tempMnemonic.append(mnemonic)
+	tempOp_str.append(op_str)
 
 def printTempDis():
 	global labelOffsets
@@ -8559,8 +8594,14 @@ def createDisassemblyLists():
 def clearTempDis():
 	global tempDisassembly
 	global tempAddresses
+	global tempMnemonic
+	global tempOp_str
 	tempDisassembly.clear()
 	tempAddresses.clear()
+	tempMnemonic.clear()
+	tempOp_str.clear()
+
+
 
 def checkForBad00(data, offset, end):
 	dprint2("checkForBad00")
@@ -8677,7 +8718,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
 				stringVal+=curDisassembly
 
-				addDis(offset,"A."+curDisassembly)
+				addDis(offset,"A."+curDisassembly, "db", "0x"+bytesRes[2:])
 				# print ("y offset", hex(t))
 		
 				# stringVal= beforeS + stringVal
@@ -8692,11 +8733,11 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 					stringVal=stringVal+res
 				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(startAddString, stringVala,dbOut,nada ))
 				stringVal+=curDisassembly
-				addDis(int(startAddString, 16),"B."+curDisassembly)
+				addDis(int(startAddString, 16),"B."+curDisassembly, "string","")
 				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
 				if  shBy.boolspecial[offset]==False:
 					stringVal+="*C"+curDisassembly
-					addDis(offset,""+curDisassembly)
+					addDis(offset,""+curDisassembly, "db", "0x"+bytesRes[2:])
 				if len(beforeS) > 0:
 					stringVal= beforeS +"\n"+ "C."+curDisassembly
 				dprint2 ("stringVal", stringVal)
@@ -8707,7 +8748,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 			if not skip:
 				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
 				stringVal+="*B"+curDisassembly
-				addDis(offset,"D."+stringVal)
+				addDis(offset,"d."+stringVal, "db", "0x"+bytesRes[2:])
 			skip=False
 		if shBy.boolspecial[offset]==True:
 			mes=shBy.specialVal[offset]
@@ -8725,7 +8766,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 			dbOutSp=(binaryToStr(data[shBy.specialStart[offset]:shBy.specialEnd[offset]]))
 			curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(shBy.specialStart[offset])), stringValSp,dbOutSp,nada ))
 			stringVal+=""+curDisassembly
-			addDis(shBy.specialStart[offset],"D."+curDisassembly)
+			addDis(shBy.specialStart[offset],"D."+curDisassembly, "db 0xff\n"*int(len(dbOutSp)/4), "")
 			# print ("got it align", hex(offset))
 			dprint2(hex(len(shBy.boolspecial)))
 
@@ -8745,7 +8786,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 				# stringVal +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
 				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(startAddString, stringVala,dbOut,nada ))
 				stringVal+=curDisassembly
-				addDis(startAddString,"E."+curDisassembly)
+				addDis(startAddString,"E."+curDisassembly, "string", "")
 				# stringVal= beforeS + stringVal
 				dbOut=""
 				dbFlag=False
@@ -9418,7 +9459,7 @@ def disHereShell(data,offset, end, mode, CheckingForDB, bit): #
 
 		if mode=="ascii":
 			val =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(val_a, val_b, val_c, val_d))
-			addDis(int(val_a, 16), "*"+val)
+			addDis(int(val_a, 16), "*"+val, i.mnemonic, i.op_str)
 		else:
 			val = addb + ":\t" + i.mnemonic + " " + i.op_str+"\n"
 			val=('{:<10s} {:<35s}\n'.format(val_a, val_b))
@@ -9725,7 +9766,7 @@ def modifyStringsRange(start,end, dataType, word):
 
 def modifyPushStringsRange(start,end, dataType, word):
 	dprint2 ("modStringPush " )
-	dprint2 (hex(start),hex(end),dataType)
+	dprint2 (hex(start),hex(end),datfaType)
 	global shBy
 	BytesBool=False
 	t=0
@@ -9929,6 +9970,15 @@ def takeBytes(shellBytes,startingAddress):
 		print (str(hex(each)) + "\t"+ l2[t])
 		t+=1
 	# print (l1, l2)
+
+	# i.mnemonic + " " + i.op_str
+
+	# for x,y, mnemonic, op_str in zip(l1, l2, tempMnemonic, tempOp_str):
+
+	for x,y, mnemonic, op_str in zip(tempAddresses, tempDisassembly, tempMnemonic, tempOp_str):
+		# print (hex(x), y ," [",mnemonic,"] [", op_str ,"]")
+		print ((x), y ," [",mnemonic,"] [", op_str ,"]")
+	
 	assembly=binaryToText(shellBytes)   # this creates the string literal, raw hex, etc.
 	return out+assembly
 
@@ -9939,7 +9989,48 @@ def addComments():
 		ldr=item[6]
 		shBy.comments[int(ldr,16)] = "; load PEB_LDR_DATA LoaderData"
 		mods=item[7]
-		shBy.comments[int(mods,16)] = "; LIST_ENTRY InMemoryOrderModuleList"
+		modAdd=mods[0]
+		modText=mods[1]
+		# shBy.comments[int(mods,16)] = "; LIST_ENTRY InMemoryOrderModuleList"
+		shBy.comments[int(modAdd,16)] = "; "+ modText
+
+		adv[8]=item[8]
+		for each in adv:
+			shBy.comments[int(each,16)] = "; advancing DLL flink"
+
+	for item in m[o].save_PushRet_info:
+		push=item[5]
+		pushOffset=push[0]
+		pushReg=push[1]
+		retOffset=item[6]
+		shBy.comments[int(pushOffset,16)] = "; pushing return address "
+		shBy.comments[int(retOffset,16)] = "; returning to " + pushReg
+
+	for item in m[o].save_Callpop_info:
+		call_offset = item[0]
+		pop_offset=item[5]
+		shBy.comments[int(call_offset,16)] = " ; using call for GetPC"
+		shBy.comments[int(pop_offset,16)] = " ; GetPC"
+
+	for item in m[o].save_FSTENV_info:
+		FPU_offset = item[5]
+		FSTENV_offset = item[6]
+		shBy.comments[int(FPU_offset,16)] = " ; floating point to set up GetPC"
+		shBy.comments[int(FSTENV_offset,16)] = " ; GetPC"
+
+	for item in m[o].save_Heaven_info:
+		heaven_offset = item[5]
+		pushOffset=item[6]
+		destLocation=item[7]
+		shBy.comments[int(heaven_offset,16)]= " ; invoking Heaven's Gate technique"
+		shBy.comments[int(pushOffset,16)]= " ; Heaven's gate destination address: " + str(destLocation)
+	for item in m[o].save_Egg_info:
+		eax = item[5]
+		c0_offset = item[6]
+		shBy.comments[int(eax,16)] = " ; Windows syscall value"
+		shBy.comments[int(c0_offset	,16)] = " ; Calling Windows syscall"
+
+
 		# print ("index of tib is", tib)
 		# print ("index of ldr is", ldr)
 		# print ("index of mods is", mods)
@@ -9956,7 +10047,7 @@ def findInList(listPeb, address):
 
 def findRangeUpdate(data, startingAddress):
 	# TODO update, without calling the analysis functions
-
+	pass
 
 def findRange(data, startingAddress):
 	global bit32
@@ -10687,6 +10778,11 @@ def splitDirectory(filename):
 		return "", filename
 
 
+def bramwellstart4():
+	readRegs()
+	ObtainAndExtractSections()
+	getPushStrings(5)
+	printStrings()
 
 
 def bramwellStart():
@@ -11498,31 +11594,22 @@ def shellDisassemblyStart(shellArg):
 def shellDisassemblyInit(shellArg, startAddress):
 	global filename
 	global rawData2
+	global gDisassemblyText
 	filename=shellArg
-	# rawBytes=readShellcode(shellArg) 
-
-	# rawData2=rawBytes
-	# # # printBytes(rawBytes)
-	# print (disHereShell(rawBytes, False, False, "ascii", True))
-	# print ("SizeRawdata2", len(rawData2))
-	# rawBytes=rawData2
-	# print ("rawbytes class", type(rawBytes))
 	print ("size shellArg", len(shellArg) )
-	print ("find peb")
-
 	mode=""
 	findAllPebSequences(mode)
 
-	print ("find peb res")
+	print ("find peb results:")
 	printSavedPEB()
-	#parameterize
-	disassembly=takeBytes(shellArg,0)   # main one
-	
+	disassembly=takeBytes(shellArg,startAddress)   # main one
+	gDisassemblyText=disassembly
 	printAllShBy()
 	printAllShByStrings()
 	### Saving disassembly and .bin
+
 	print (filename)
-	print ("before split")
+	# print ("before split")
 	directory, filename= (splitDirectory(filename))
 	directory = ""
 	print (directory)
@@ -11542,11 +11629,6 @@ def shellDisassemblyInit(shellArg, startAddress):
 	newDis.close()
 	# binaryToText(rawBytes)
 
-# fromShellTxt= readShellcode()
-# print(fromShellTxt)
-# printFromStringLiteralToBytes(fromShellTxt)
-# rawBytes=fromStringLiteralToBytes(fromShellTxt)
-# printBytes(fromShellTxt)
 
 
 def bramwellDisassembly():
@@ -11565,8 +11647,9 @@ def bramwellDisassembly2():
 	# global shellcode4
 	# global filename
 	global rawData2
+	global shellEntry
 	# print ("rawData2 a", len(rawData2))
-	shellDisassemblyInit(rawData2, 0)  #shellcode data, start address
+	shellDisassemblyInit(rawData2, shellEntry)  #shellcode data, start address
 
 def initSysCallSelect(): #Initialize our list of syscalls to print
 	global syscallSelection
@@ -11790,6 +11873,7 @@ def ui(): #UI menu loop
 	global showDisassembly  #Show dis on syscall submenu
 	#Booleans to determine if instructions already found
 	global bPushRetFound
+	global bDisassemblyFound
 	global bFstenvFound
 	global bSyscallFound
 	global bHeavenFound
@@ -11956,6 +12040,7 @@ def uiDiscover(): 	#Discover shellcode instructions
 	global bCallPop
 	global bShellcodeAll
 	global bPushRetFound
+	global bDisassemblyFound
 	global bFstenvFound
 	global bSyscallFound
 	global bHeavenFound
@@ -12258,6 +12343,7 @@ def uiPrint(): 	#Print instructions
 	global bpModules
 	global bpEvilImports
 	global bPushRetFound
+	global bDisassemblyFound
 	global bFstenvFound
 	global bSyscallFound
 	global bHeavenFound
@@ -12815,6 +12901,7 @@ def findAll():  #Find everything
 	global peName
 	global bEvilImportsFound
 	global bPushRetFound
+	global bDisassemblyFound
 	global bFstenvFound
 	global bSyscallFound
 	global bHeavenFound
@@ -13108,6 +13195,7 @@ def clearMods():			#Clears our module list
 
 def clearFoundBooleans(): 	#Clears bools saying we've found data
 	global bPushRetFound
+	global bDisassemblyFound
 	global bFstenvFound
 	global bSyscallFound
 	global bHeavenFound
@@ -13165,6 +13253,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 	global bpEvilImports
 	global bpStrings
 	global bPushRetFound
+	global bDisassemblyFound
 	global bFstenvFound
 	global bSyscallFound
 	global bHeavenFound
@@ -13214,6 +13303,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 
 def generateOutputData(): #Generate the dictionary for json out
 	global bPushRetFound
+	global bDisassemblyFound
 	global bFstenvFound
 	global bSyscallFound
 	global bHeavenFound
@@ -13708,6 +13798,7 @@ def generateOutputData(): #Generate the dictionary for json out
 def printToText(outputData):	#Output data to text doc
 	#output data from generateoutputdata
 	global bPushRetFound
+	global bDisassemblyFound
 	global bFstenvFound
 	global bSyscallFound
 	global bHeavenFound
@@ -14082,15 +14173,15 @@ if __name__ == "__main__":
 			# 	rawBytes=readShellcodeTest(filename) 
 
 
-
-			saveBinAscii()
+			bramwellstart4()
+			# saveBinAscii()
 
 
 		if yes == 2:
 			init2(filename)
 			# bramwellDisassembly2()   # Takes as input .txt file of shellcode	- also takes .bin (py sharem.py shellcode.bin raw) - note the raw keyword at the end!!!
 
-			shellDisassemblyInit(rawData2, 0)
+			shellDisassemblyInit(rawData2, shellEntry)
 			bramwellStart2()
 
 
@@ -14172,7 +14263,7 @@ if __name__ == "__main__":
 
 		init2(filename)
 		# global bit32
-		global linesForward
+		# global linesForward
 		global regsVals
 		linesForward = 40
 		bUI = False
