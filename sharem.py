@@ -2184,7 +2184,8 @@ def printSavedPEB_64(): ############## AUSTIN ####################
 
 
 def get_PushRet_start(NumOpsDis ,bytesToMatch, secNum, data2): ######################### AUSTIN #############################
-
+	# print ("get_PushRet_start", (NumOpsDis ,bytesToMatch, secNum))
+	# print (binaryToStr(data2))
 	global o
 	foundCount = 0
 	numOps = NumOpsDis
@@ -2210,10 +2211,13 @@ def get_PushRet_start(NumOpsDis ,bytesToMatch, secNum, data2): #################
 					found = False #no match
 			except Exception as e:
 				# input(e)
+				# print ("ERROR")
+				# print (e)
 				pass
 			i += 1
 
 		if(found):
+			# print ("FFOUND")
 			disHerePushRet(t, numOps, secNum, data2)
 
 
@@ -2226,6 +2230,8 @@ def get_PushRet_start(NumOpsDis ,bytesToMatch, secNum, data2): #################
 def disHerePushRet(address, NumOpsDis, secNum, data): ############################# AUSTIN ############################
 
 	# print("inDisherePush")
+	# print (binaryToStr(data))
+	
 	CODED2 = ""
 	x = NumOpsDis
 
@@ -3375,7 +3381,7 @@ def callPopRawHex(address, linesForward2, secNum, data):
 	# debuging = True
 	address = int(address)
 	linesGoBack = 10
-	truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, 0x0, linesGoBack)
+	truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(address, 0x0, linesGoBack)
 
 	if(ignoreDisDiscovery):
 		truth = False
@@ -5031,7 +5037,8 @@ def getSyscallRawHex(address, linesBack, secNum, data):
 		address = hex(address)
 		linesGoBack = 10
 		t = 0
-		truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, 0x0, linesGoBack)  # arg: starting offset/entry point - leave 0 generally
+		addressInt = int(address,16)
+		truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(addressInt, 0x0, linesGoBack)  # arg: starting offset/entry point - leave 0 generally
 
 		if truth:
 		####the FULL disassembly of the shellcode
@@ -6048,6 +6055,10 @@ def convertStringToTrack(dis, offsets):
 
 def saveBaseEgg(address, NumOpsDis, linesBack, modSecName, secNum, eax, c0_offset, converted = ""):
 	if(secNum != "noSec"):
+
+		print ("before")
+		print (secNum)
+		print(type(secNum))
 		s[secNum].save_Egg_info.append(tuple((address,NumOpsDis,linesBack,modSecName,secNum,eax, c0_offset)))
 	else:
 		dprint2("Saving one raw")
@@ -8598,7 +8609,16 @@ def createDisassemblyLists():
 		if (offset[1] == "."):
 			remove +=1
 		offset = offset[remove:]
-		offset=int(offset,16)
+		try:
+			offset=int(offset,16)
+		except:
+			offset = offset[1:]
+			try:
+				offset=int(offset,16)
+			except:
+				offset = offset[1:]
+				offset=int(offset,16)
+
 		each1 = array[1]
 		each2 = array[2]
 		each3 = array[3]
@@ -9915,6 +9935,7 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack):
 	if rawBin:
 		shellBytes=rawData2
 	if not rawBin:
+		print ("ffffilename", filename)
 		rawBytes=readShellcode(filename) 
 		rawData2=rawBytes
 		shellBytes=rawData2
@@ -10026,17 +10047,25 @@ def addComments():
 		# shBy.comments[int(mods,16)] = "; LIST_ENTRY InMemoryOrderModuleList"
 		shBy.comments[int(modAdd,16)] = "; "+ modText
 
-		adv[8]=item[8]
+		adv=item[8]
 		for each in adv:
-			shBy.comments[int(each,16)] = "; advancing DLL flink"
+			try:
+				if each != -1:
+					shBy.comments[int(each,16)] = "; advancing DLL flink"
+			except:
 
+				print (type(each))
+				print (each)
 	for item in m[o].save_PushRet_info:
+
+		#(495, 4, 'rawHex', -1, 0, ('0x1ef', 'ebx'), '0x1f0')
 		push=item[5]
 		pushOffset=push[0]
 		pushReg=push[1]
 		retOffset=item[6]
-		shBy.comments[int(pushOffset,16)] = "; pushing return address "
-		shBy.comments[int(retOffset,16)] = "; returning to " + pushReg
+		shBy.comments[int(pushOffset,0)] = "; pushing return address "
+		shBy.comments[int(retOffset,0)] = "; returning to " + pushReg
+
 
 	for item in m[o].save_Callpop_info:
 		call_offset = item[0]
@@ -10055,14 +10084,17 @@ def addComments():
 		pushOffset=item[6]
 		destLocation=item[7]
 		shBy.comments[int(heaven_offset,16)]= " ; invoking Heaven's Gate technique"
-		shBy.comments[int(pushOffset,16)]= " ; Heaven's gate destination address: " + str(destLocation)
+		try:
+			shBy.comments[(pushOffset)]= " ; Heaven's gate destination address: " + str(destLocation)
+		except:
+			shBy.comments[int(pushOffset,16)]= " ; Heaven's gate destination address: " + str(destLocation)
 	for item in m[o].save_Egg_info:
 		eax = item[5]
 		c0_offset = item[6]
-		shBy.comments[int(eax,16)] = " ; Windows syscall value"
-		shBy.comments[int(c0_offset	,16)] = " ; Calling Windows syscall"
+		
+		shBy.comments[int(c0_offset	,16)] = " ; Calling Windows syscall - value: " + eax 
 
-
+	
 		# print ("index of tib is", tib)
 		# print ("index of ldr is", ldr)
 		# print ("index of mods is", mods)
@@ -12116,10 +12148,15 @@ def shellDisassemblyInit(shellArg, startAddress):
 	global filename
 	global rawData2
 	global gDisassemblyText
-	filename=shellArg
-	print ("size shellArg", len(shellArg) )
+	# filename=shellArg
+	# print ("size shellArg", len(shellArg) )
 	mode=""
 	findAllPebSequences(mode)
+	findAllCallpop(shellArg, "noSec")
+	findAllPushRet(shellArg, "noSec")
+	findAllFSTENV(shellArg, "noSec")
+	getSyscallRawHex(startAddress, 8, "noSec", shellArg)
+	getHeavenRawHex(startAddress, 8, "noSec", shellArg)
 
 	print ("find peb results:")
 	printSavedPEB()
@@ -12170,6 +12207,7 @@ def bramwellDisassembly2():
 	global rawData2
 	global shellEntry
 	# print ("rawData2 a", len(rawData2))
+	# print (shellEntry)
 	shellDisassemblyInit(rawData2, shellEntry)  #shellcode data, start address
 
 def initSysCallSelect(): #Initialize our list of syscalls to print
@@ -14634,7 +14672,7 @@ if __name__ == "__main__":
 	user=AustinID       #comment out, so only one user shows, or is the last one shown.
 
 	# user=AndyID
-	# user=BramwellID
+	user=BramwellID
 	
 	if user==AustinID:
 		austin=True
