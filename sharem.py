@@ -1733,7 +1733,13 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 		lodsd = re.match("^(lodsd)", val, re.IGNORECASE) 
 
 		if(lodsd):
-			points += 1
+			advanceDLL_Offset_temp = addb
+			if(not foundAdv):
+				advanceDLL_Offset[0] = advanceDLL_Offset_temp
+				foundAdv = True
+				points += 1
+			else:
+				advanceDLL_Offset.append(advanceDLL_Offset_temp)
 
 		val5.append(val)
 		# print (val)
@@ -3087,7 +3093,7 @@ def get_Callpop64(NumOpsDis, bytesToMatch, secNum, data2, distance):
 
 
 def disHereCallpop(address, NumOpsDis, secNum, data, distance):
-	print("ENTERED DISHERECALLPOP")
+	# print("ENTERED DISHERECALLPOP")
 	# dprint2("in dishere")
 	pop = False
 	CODED2 = ""
@@ -5025,13 +5031,14 @@ def disHereSyscall(address, NumOpsDis, NumOpsBack, secNum, data): ############ A
 				saveBaseEgg(address, NumOpsDis, (NumOpsBack - back), modSecName, secNum, eax, c0_offset)
 				return
 
+#generates entire disassembley and finds all instances of syscalls
 def getSyscallRawHex(address, linesBack, secNum, data):
 		global regsVals
 		dprint2("DISEGG2")
 		address = hex(address)
 		linesGoBack = 10
 		t = 0
-		truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, 0x0, linesGoBack)  # arg: starting offset/entry point - leave 0 generally
+		truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(address, 0x0, linesGoBack)  # arg: starting offset/entry point - leave 0 generally
 
 		if truth:
 		####the FULL disassembly of the shellcode
