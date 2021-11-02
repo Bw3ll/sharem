@@ -237,7 +237,12 @@ def p2EncodeDistr(low, high, encodeBytes4, sample, rank, queue, version, endFlag
 			print("ending early, someone found a match")
 			queue.put(outs)
 			return
-		if(version == 3):
+
+		elif(version == 1):
+			output = doStuffP21Distr(encodeBytes4[i], sample, rank)
+		elif(version == 2):
+			output = doStuffP22Distr(encodeBytes4[i], sample, rank)
+		elif(version == 3):
 			output = doStuffP2Distr(encodeBytes4[i], sample, rank)
 		elif(version == 4):
 			output = doStuffP24Distr(encodeBytes4[i], sample, rank)
@@ -265,6 +270,69 @@ def p2EncodeDistr(low, high, encodeBytes4, sample, rank, queue, version, endFlag
 	# 		outs.append(doStuffP25Distr(encodeBytes4[i], sample, rank))
 
 	queue.put(outs)
+
+
+
+def doStuffP21Distr(inputs, sample, rank):
+	newString = ""
+	a=inputs[0]
+	each=inputs[1]
+	# print("PROCESS " + str(rank) + " REPORTING")
+	# print("len sample:" )
+	# print(len(sample))
+	# print("index:")
+	# print((len(sample)//2))
+	# print("type each")
+	# print(type(each))
+	# print(each)
+	encodeBytes=bytearray()
+	for each2 in sample:
+		new=each2
+		newString="".join(each)
+		newString+="encodeBytes.append(new)"
+		newcode=compile(newString,"",'exec')
+		eval(newcode) 
+					# encode="encodeBytes.append(new)"
+	print (newString, "\n", "a",a, "")
+	bytesStr = bytes(encodeBytes)
+	out = newString + "\n" + "a" + str(a)
+	print ("\nencoder5 new", binaryToStrDistr(bytesStr),"\n\n\n")
+	return (bytesStr, out, list((a,)), each)
+	# return out
+	# return "ok"
+
+
+def doStuffP22Distr(inputs, sample, rank):
+	newString = ""
+	a=inputs[0]
+	b=inputs[1]
+	each=inputs[2]
+	# print("PROCESS " + str(rank) + " REPORTING")
+	# print("len sample:" )
+	# print(len(sample))
+	# print("index:")
+	# print((len(sample)//2))
+	# print("type each")
+	# print(type(each))
+	# print(each)
+	encodeBytes=bytearray()
+	for each2 in sample:
+		new=each2
+		newString="".join(each)
+		newString+="encodeBytes.append(new)"
+		newcode=compile(newString,"",'exec')
+		eval(newcode) 
+					# encode="encodeBytes.append(new)"
+	print (newString, "\n", "a",a, "b",b, "")
+	bytesStr = bytes(encodeBytes)
+	out = newString + "\n" + "a" + str(a) + "b" + str(b)
+	print ("\nencoder5 new", binaryToStrDistr(bytesStr),"\n\n\n")
+	return (bytesStr, out, list((a,b)), each)
+	# return out
+	# return "ok"
+
+
+
 def doStuffP2Distr(inputs, sample, rank):
 	newString = ""
 	# print("IN dostuffp2")
