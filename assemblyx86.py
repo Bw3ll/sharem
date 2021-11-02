@@ -1,4 +1,5 @@
 regsFile='regs.txt'
+
 import re
 realEAX =[] # tuple 
 realEAX2=0
@@ -38,6 +39,12 @@ def splitWords2(strInput):
 	regValueStr=array[1].strip()
 	return reg, regValueStr
 
+
+def changeRegFile():
+	# todo
+	# regsFile = newNAme
+	redregs()
+
 def readRegs():
 
 	global regsTemp
@@ -46,6 +53,7 @@ def readRegs():
 	# if tmpFile != None:
 	# 	regsFile = tmpFile
 	# print("File name ------> ", regsFile)
+
 	file1 = open(regsFile, 'r') 
 	Lines = file1.readlines() 
 	for line in Lines: 
@@ -54,6 +62,7 @@ def readRegs():
 
 	# for each in regsTemp:
 	# 	print(each)
+
 	setAll()
 
 
@@ -555,3 +564,13 @@ readRegs()
 setAll()
 # print ("show")
 showAllRegs()
+
+print ("my test")
+# setReg("0x0044", False, "eax")
+showAllRegs()
+
+
+res1=12
+res2=23
+ans="0x{0:08x}".format(res1)
+print (ans)

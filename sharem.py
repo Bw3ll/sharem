@@ -44,6 +44,8 @@ chMode = False
 shellEntry = 0
 tempDisassembly=[]
 tempAddresses=[]
+tempMnemonic=[]
+tempOp_str=[]
 sections = []
 numArgs = len(sys.argv)
 peName = ''
@@ -57,6 +59,8 @@ skipPath = False
 FoundApisAddress = []
 FoundApisName = []
 saveAPI=0x00
+shellEntry=0
+decodedBytes=b''
 VP = 0
 VA=""
 MA=""
@@ -119,6 +123,7 @@ mECX = ''
 mEBP = ''
 mESP = ''
 
+gDisassemblyText=""
 # Moved from Andy's work area
 linesForward = 40
 bUI = True
@@ -143,7 +148,8 @@ bCallPopFound = False
 bEvilImportsFound = False
 bModulesFound = False
 deobfShell = True
-fastMode=True
+fastMode=False
+
 
 
 ignoreDisDiscovery=False
@@ -1714,6 +1720,8 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 	start = timeit.default_timer()
 	foundAdv = False
 	foundPEB = False
+	foundLDR = False
+	listEntryText = ""
 	## Capstone does not seem to allow me to start disassemblying at a given point, so I copy out a chunk to  disassemble. I append a 0x00 because it does not always disassemble correctly (or at all) if just two bytes. I cause it not to be displayed through other means. It simply take the starting address of the jmp [reg], disassembles backwards, and copies it to a variable that I examine more closely.
 	#lGoBack = linesGoBackFindOP
 
@@ -1784,14 +1792,23 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 			return
 
 
-
-		loadLDR = re.match("^((mov)|(add)|(xor)|(or)|(adc)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0xc)\])", val, re.IGNORECASE)
+		loadLDR = re.match("^((mov)|(add)|(xor)|(or)|(adc)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0x0?c)\])", val, re.IGNORECASE)
 
 		# if(movLoadLDR or addLoadLDR or adcLoadLDR or xorLoadLDR or orLoadLDR or xchgLoadLDR):
+
+		if(foundLDR):
+			loadInLoadOrder = re.match("^((mov)|(add)|(xor)|(or)|(adc)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?(0x0?c)\])", val, re.IGNORECASE)
+
+			# if(movLoadLDR or addLoadLDR or adcLoadLDR or xorLoadLDR or orLoadLDR or xchgLoadLDR):
+			if(loadInLoadOrder):
+				loadModList_offset = addb
+				points += 1
+				listEntryText = "LIST_ENTRY InLoadOrderModuleList"
+
 		if(loadLDR):
 			loadLDR_offset = addb
 			points += 1
-
+			foundLDR = True
 
 
 		loadInMemOrder = re.match("^((mov)|(add)|(adc)|(xor)|(or)|(xchg)) (e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))), ?(d?word ptr ?(ds:)?\[(e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l))) ?\+ ?((0x14))\])", val, re.IGNORECASE)
@@ -1800,6 +1817,7 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 		if(loadInMemOrder):
 			loadModList_offset = addb
 			points += 1
+			listEntryText = "LIST_ENTRY InMemoryOrderModuleList"	
 
 
 
@@ -1810,6 +1828,7 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 		# if(movLoadInInitOrder or addLoadInInitOrder or adcLoadInInitOrder or xorLoadInInitOrder or orLoadInInitOrder or xchgLoadInInitOrder):
 			loadModList_offset = addb
 			points += 1
+			listEntryText = "LIST_ENTRY InInitializationOrderModuleList"
 
 
 
@@ -1860,7 +1879,7 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 			return address , NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, loadModList_offset, advanceDLL_Offset
 		#print("Adding item #" + str(len(m[o].save_PEB_info)))
 		# print("saving at sec num = " + str(secNum))
-		saveBasePEBWalk(address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, loadModList_offset, advanceDLL_Offset)
+		saveBasePEBWalk(address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, (loadModList_offset, listEntryText	), advanceDLL_Offset)
 
 def disHerePEB_64(address, NumOpsDis, secNum, data): ############## AUSTIN ####################
 
@@ -2025,7 +2044,8 @@ def disHerePEB_64(address, NumOpsDis, secNum, data): ############## AUSTIN #####
 
 
 
-def saveBasePEBWalk(address, NumOpsDis,modSecName,secNum, points): 
+
+def saveBasePEBWalk_old(address, NumOpsDis,modSecName,secNum, points): 
 	# print("saving")
 	#save virtaul address as well
 	if(secNum != "noSec"):
@@ -2280,7 +2300,8 @@ def printSavedPEB_64(): ############## AUSTIN ####################
 
 
 def get_PushRet_start(NumOpsDis ,bytesToMatch, secNum, data2): ######################### AUSTIN #############################
-
+	# print ("get_PushRet_start", (NumOpsDis ,bytesToMatch, secNum))
+	# print (binaryToStr(data2))
 	global o
 	foundCount = 0
 	numOps = NumOpsDis
@@ -2306,6 +2327,8 @@ def get_PushRet_start(NumOpsDis ,bytesToMatch, secNum, data2): #################
 					found = False #no match
 			except Exception as e:
 				# input(e)
+				# print ("ERROR")
+				# print (e)
 				pass
 			i += 1
 
@@ -2323,6 +2346,8 @@ def get_PushRet_start(NumOpsDis ,bytesToMatch, secNum, data2): #################
 def disHerePushRet(address, NumOpsDis, secNum, data): ############################# AUSTIN ############################
 
 	# print("inDisherePush")
+	# print (binaryToStr(data))
+	
 	CODED2 = ""
 	x = NumOpsDis
 
@@ -2340,7 +2365,7 @@ def disHerePushRet(address, NumOpsDis, secNum, data): ##########################
 	points = 0	
 	foundPush = False
 	foundRet = False
-
+	pushReg = ""
 	# start = timeit.default_timer()
 	CODED3 = CODED2
 	for i in cs.disasm(CODED3, address):
@@ -2359,6 +2384,7 @@ def disHerePushRet(address, NumOpsDis, secNum, data): ##########################
 
 		push = re.match("^push (e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", val, re.IGNORECASE)
 		if(push):
+			pushReg = i.op_str
 			foundPush = True
 			# points += 1
 			pushOffset = addb
@@ -2405,7 +2431,7 @@ def disHerePushRet(address, NumOpsDis, secNum, data): ##########################
 			modSecName = peName
 		else:
 			modSecName = section.sectionName
-		saveBasePushRet(address, NumOpsDis, modSecName, secNum, points, pushOffset, retOffset)
+		saveBasePushRet(address, NumOpsDis, modSecName, secNum, points, (pushOffset, pushReg), retOffset)
 
 def disHerePushRet64(address, NumOpsDis, secNum, data): ############################# AUSTIN ############################
 
@@ -2428,7 +2454,7 @@ def disHerePushRet64(address, NumOpsDis, secNum, data): ########################
 	points = 0
 	foundPush = False
 	foundRet = False
-
+	pushReg = ""
 	# start = timeit.default_timer()
 	CODED3 = CODED2
 	for i in cs64.disasm(CODED3, address):
@@ -2448,6 +2474,7 @@ def disHerePushRet64(address, NumOpsDis, secNum, data): ########################
 		# if not push:
 		push = re.match("^push ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)|(8|9|(1([0-5])))))", val, re.IGNORECASE)
 		if(push):
+			pushReg = i.op_str
 			# points += 1
 			foundPush = True
 			pushOffset = addb
@@ -2496,7 +2523,7 @@ def disHerePushRet64(address, NumOpsDis, secNum, data): ########################
 			modSecName = peName
 		else:
 			modSecName = section.sectionName
-		saveBasePushRet(address, NumOpsDis, modSecName, secNum, points, pushOffset, retOffset)
+		saveBasePushRet(address, NumOpsDis, modSecName, secNum, points, (pushOffset, pushReg), retOffset)
 
 
 
@@ -2514,9 +2541,11 @@ def PushRetrawhex(address, linesForward2, secNum, data):
 
 	if (truth):
 		for e in orgListDisassembly:
+			pushReg = ""
 			isPUSH = re.search("push", e, re.IGNORECASE)
 			if isPUSH:
 				# print("ispush")
+				pushReg = orgListDiassembly.split()[1]
 				push_offset = hex(orgListOffset[t])
 				address = int(orgListOffset[t])
 				index = 0
@@ -2531,7 +2560,7 @@ def PushRetrawhex(address, linesForward2, secNum, data):
 					if isRET:
 						ret_offset = hex(orgListOffset[index + t + 1])
 						# print("isret")
-						saveBasePushRet(address, linesForward, 'noSec', secNum, 2, push_offset, ret_offset)
+						saveBasePushRet(address, linesForward, 'noSec', secNum, 2, (push_offset,pushReg), ret_offset)
 
 						break
 					index += 1
@@ -3292,6 +3321,7 @@ def get_Callpop64(NumOpsDis, bytesToMatch, secNum, data2, distance):
 
 
 def disHereCallpop(address, NumOpsDis, secNum, data, distance):
+	print("ENTERED DISHERECALLPOP")
 	# dprint2("in dishere")
 	pop = False
 	CODED2 = ""
@@ -3573,9 +3603,13 @@ def callPopRawHex(address, linesForward2, secNum, data):
 	global ignoreDisDiscovery
 	global maxDistance
 	global linesForward
+
+	global debuging
+
+	# debuging = True
 	address = int(address)
 	linesGoBack = 10
-	truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, 0x0, linesGoBack)
+	truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(address, 0x0, linesGoBack)
 
 	if(ignoreDisDiscovery):
 		truth = False
@@ -3593,8 +3627,11 @@ def callPopRawHex(address, linesForward2, secNum, data):
 				try:
 					distance = int(distance[5:], 16)
 					dprint2("disthere", distance)
+					dprint2("dist before sub: ", distance)
 					distance = distance - orgListOffset[t]
+					dprint2("dist after sub: ", distance)
 					if distance <= maxDistance:
+						dprint2("made it into cond")
 						# dprint2("The thing is: ", e)
 						# fz = input("> ")
 						dprint2("disthere", distance)
@@ -3646,6 +3683,7 @@ def callPopRawHex(address, linesForward2, secNum, data):
 	else:
 		for match in CALLPOP_START.values(): #iterate through all opcodes representing combinations of registers
 			get_Callpop(10, match[0], secNum, data, match[1])
+
 
 
 
@@ -5201,7 +5239,8 @@ def disHereSyscall(address, NumOpsDis, NumOpsBack, secNum, data): ############ A
 
 
 		for line in disString:
-			if(re.match("^((jmp)|(call)) ?dword ptr fs: ?\[0xc0\]", line, re.IGNORECASE)):
+			# if(re.match("(fs:\[0xc0\])|(fs:\[(((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))))( ?\+ ?(0x)?[0-9a-f]+)?\])", line, re.IGNORECASE)):
+			if(re.match("^((call)|(jump)) dword ptr fs:\[((((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))))( ?\+ ?(0x)?[0-9a-f]+)?|(0xc0))\]", line, re.IGNORECASE)):
 				c0_match = True
 				c0_offset = line.split()[-1]
 				c0_offset = c0_offset[:-1]
@@ -5237,7 +5276,6 @@ def disHereSyscall(address, NumOpsDis, NumOpsBack, secNum, data): ############ A
 
 				# if(eax != "unknown"):
 				# 	dprint2("TrackRegs found eax = " + str(eax))
-
 				saveBaseEgg(address, NumOpsDis, (NumOpsBack - back), modSecName, secNum, eax, c0_offset)
 				return
 
@@ -5247,7 +5285,8 @@ def getSyscallRawHex(address, linesBack, secNum, data):
 		address = hex(address)
 		linesGoBack = 10
 		t = 0
-		truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, 0x0, linesGoBack)  # arg: starting offset/entry point - leave 0 generally
+		addressInt = int(address,16)
+		truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(addressInt, 0x0, linesGoBack)  # arg: starting offset/entry point - leave 0 generally
 
 		if truth:
 		####the FULL disassembly of the shellcode
@@ -5259,7 +5298,8 @@ def getSyscallRawHex(address, linesBack, secNum, data):
 
 				# dprint2("TESTING HERE")
 				# dprint2(e, hex(orgListOffset[t]))
-				isEgg = re.search("fs:(\[0xc0\])?", e, re.IGNORECASE)
+				# isEgg = re.search("fs:(\[0xc0\])?", e, re.IGNORECASE)
+				isEgg = re.search("^((call)|(jump)) dword ptr fs:\[((((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))))( ?\+ ?(0x)?[0-9a-f]+)?|(0xc0))\]", e, re.IGNORECASE)
 				if(isEgg):
 					c0_offset = hex(orgListOffset[t])
 					address = int(orgListOffset[t])
@@ -6263,6 +6303,10 @@ def convertStringToTrack(dis, offsets):
 
 def saveBaseEgg(address, NumOpsDis, linesBack, modSecName, secNum, eax, c0_offset, converted = ""):
 	if(secNum != "noSec"):
+
+		print ("before")
+		print (secNum)
+		print(type(secNum))
 		s[secNum].save_Egg_info.append(tuple((address,NumOpsDis,linesBack,modSecName,secNum,eax, c0_offset)))
 	else:
 		dprint2("Saving one raw")
@@ -8142,6 +8186,9 @@ def AustinTesting():
 	# printSavedPushRet()
 
 
+def AustinTesting4():
+	decryptUI()
+
 def AustinTesting3():
 
 	global peName
@@ -8231,9 +8278,11 @@ def AustinTesting2():
 
 	if rawBin == False:
 		# filename=shellArg
+
 		rawBytes=readShellcode("daltonShell2.txt") 
 
 		rawData2=rawBytes
+		# print("read dalton, data here: ", rawData2)
 		# printBytes(rawBytes)
 		# print (disHereShell(rawBytes, False, False, "ascii", True))
 
@@ -8241,17 +8290,23 @@ def AustinTesting2():
 	
 
 
-	print ("SizeRawdata2", len(rawData2))
+	# print ("SizeRawdata2", len(rawData2))
 	rawBytes=rawData2
-	print("NORMAL BYTES")
-	print(binaryToStr(rawBytes))
-	print ("rawbytes class", type(rawBytes))
+	# print("NORMAL BYTES")
+	# print(binaryToStr(rawBytes))
+	# print ("rawbytes class", type(rawBytes))
+	# print("RAWDATA2 BEFORE ENCODE IN TEST FUNC: ", rawData2)
 	encoded=encodeShellcode(rawData2)
+	# print("encoded dalton, data here: ", encoded)
+
+
+
+
 	# austinEncodeDecodeWork("daltonShell2.txt", ["^", "^", "-", "+", "^"])
 	# austinEncodeDecodeWork("daltonShell2.txt", ["^", "^", "-", "+"])
 	# austinEncodeDecodeWork("daltonShell2.txt", ["^", "^", "-"])
 
-	decryptShellcode(encoded, ["^", "^", "-"], distributed = True )
+	decryptShellcode(encoded, ["^", "^", "-"], distributed = False, findAll = False, cpuCount = 32, fastMode = False, outputFile = True )
 	stop = timeit.default_timer()
 	print("Total time AUSTIN: " + str(stop - start))
 	# rawBytes=readShellcode(shellArg) 
@@ -8889,9 +8944,13 @@ def makeAsciiforDB2(data):
 	return res
 
 
-def addDis(address, line,):
+
+def addDis(address, line, mnemonic=None, op_str=None):
 	global tempDisassembly
 	global tempAddresses
+	global tempMnemonic
+	global tempOp_str
+
 	tempDisassembly.append(line[:-2])
 
 	try:
@@ -8899,6 +8958,8 @@ def addDis(address, line,):
 	except:
 		tempAddresses.append(address)
 
+	tempMnemonic.append(mnemonic)
+	tempOp_str.append(op_str)
 
 def printTempDis():
 	global labelOffsets
@@ -8942,7 +9003,16 @@ def createDisassemblyLists():
 		if (offset[1] == "."):
 			remove +=1
 		offset = offset[remove:]
-		offset=int(offset,16)
+		try:
+			offset=int(offset,16)
+		except:
+			offset = offset[1:]
+			try:
+				offset=int(offset,16)
+			except:
+				offset = offset[1:]
+				offset=int(offset,16)
+
 		each1 = array[1]
 		each2 = array[2]
 		each3 = array[3]
@@ -8977,8 +9047,14 @@ def createDisassemblyLists():
 def clearTempDis():
 	global tempDisassembly
 	global tempAddresses
+	global tempMnemonic
+	global tempOp_str
 	tempDisassembly.clear()
 	tempAddresses.clear()
+	tempMnemonic.clear()
+	tempOp_str.clear()
+
+
 
 def checkForBad00(data, offset, end):
 	dprint2("checkForBad00")
@@ -9095,7 +9171,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
 				stringVal+=curDisassembly
 
-				addDis(offset,"A."+curDisassembly)
+				addDis(offset,"A."+curDisassembly, "db", "0x"+bytesRes[2:])
 				# print ("y offset", hex(t))
 		
 				# stringVal= beforeS + stringVal
@@ -9110,11 +9186,11 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 					stringVal=stringVal+res
 				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(startAddString, stringVala,dbOut,nada ))
 				stringVal+=curDisassembly
-				addDis(int(startAddString, 16),"B."+curDisassembly)
+				addDis(int(startAddString, 16),"B."+curDisassembly, "string","")
 				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
 				if  shBy.boolspecial[offset]==False:
 					stringVal+="*C"+curDisassembly
-					addDis(offset,""+curDisassembly)
+					addDis(offset,""+curDisassembly, "db", "0x"+bytesRes[2:])
 				if len(beforeS) > 0:
 					stringVal= beforeS +"\n"+ "C."+curDisassembly
 				dprint2 ("stringVal", stringVal)
@@ -9125,7 +9201,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 			if not skip:
 				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
 				stringVal+="*B"+curDisassembly
-				addDis(offset,"D."+stringVal)
+				addDis(offset,"d."+stringVal, "db", "0x"+bytesRes[2:])
 			skip=False
 		if shBy.boolspecial[offset]==True:
 			mes=shBy.specialVal[offset]
@@ -9143,7 +9219,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 			dbOutSp=(binaryToStr(data[shBy.specialStart[offset]:shBy.specialEnd[offset]]))
 			curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(shBy.specialStart[offset])), stringValSp,dbOutSp,nada ))
 			stringVal+=""+curDisassembly
-			addDis(shBy.specialStart[offset],"D."+curDisassembly)
+			addDis(shBy.specialStart[offset],"D."+curDisassembly, "db 0xff\n"*int(len(dbOutSp)/4), "")
 			# print ("got it align", hex(offset))
 			dprint2(hex(len(shBy.boolspecial)))
 
@@ -9163,7 +9239,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 				# stringVal +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
 				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(startAddString, stringVala,dbOut,nada ))
 				stringVal+=curDisassembly
-				addDis(startAddString,"E."+curDisassembly)
+				addDis(startAddString,"E."+curDisassembly, "string", "")
 				# stringVal= beforeS + stringVal
 				dbOut=""
 				dbFlag=False
@@ -9183,37 +9259,30 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 debuging=True
 debuging=False
 # debuging=False
-def dprint(info):
-	print("Debug")
-	if debuging==True:
-		print(info)
+def dprint(*args):
+	# print("Debug")
+	# if debuging==True:
+		# print(info)
+	dprint2(*args)
 
 def dprint2(*args):
-	# print("Debug")
-	# out=""
-	# if debuging:
-	# 	for each in args:
-	# 		try:
-	# 			each=str(each)
-	# 		except:
-	# 			pass
-	# 		# out+=(each) +"\t"
-	# 		out+=each
-	# 	print (out)
+
 	if debuging:
 		try:
+			if  (len(args) == 1):
+				if(type(args[0]) == list):
+					print(args[0])
+					return
+
 			if  (len(args) > 1):
-				# print ("more than 1")
-				strList="("
+				strList = ""
 				for each in args:
 					try:
-						strList+= str(each) + ", "
+						strList += each + " "
 					except:
-						print ("dprint error: 1")
-						print (each + " ")	
-				strList=strList[:-2]
-				strList+=")"
-				print (strList)
+						strList += str(each) + " "
+				print(strList)
+
 			else:
 				for each in args:
 					try:
@@ -9836,7 +9905,7 @@ def disHereShell(data,offset, end, mode, CheckingForDB, bit): #
 
 		if mode=="ascii":
 			val =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(val_a, val_b, val_c, val_d))
-			addDis(int(val_a, 16), "*"+val)
+			addDis(int(val_a, 16), "*"+val, i.mnemonic, i.op_str)
 		else:
 			val = addb + ":\t" + i.mnemonic + " " + i.op_str+"\n"
 			val=('{:<10s} {:<35s}\n'.format(val_a, val_b))
@@ -10143,7 +10212,7 @@ def modifyStringsRange(start,end, dataType, word):
 
 def modifyPushStringsRange(start,end, dataType, word):
 	dprint2 ("modStringPush " )
-	dprint2 (hex(start),hex(end),dataType)
+	dprint2 (hex(start),hex(end),datfaType)
 	global shBy
 	BytesBool=False
 	t=0
@@ -10260,6 +10329,7 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack):
 	if rawBin:
 		shellBytes=rawData2
 	if not rawBin:
+		print ("ffffilename", filename)
 		rawBytes=readShellcode(filename) 
 		rawData2=rawBytes
 		shellBytes=rawData2
@@ -10347,24 +10417,78 @@ def takeBytes(shellBytes,startingAddress):
 		print (str(hex(each)) + "\t"+ l2[t])
 		t+=1
 	# print (l1, l2)
+
+	# i.mnemonic + " " + i.op_str
+
+	# for x,y, mnemonic, op_str in zip(l1, l2, tempMnemonic, tempOp_str):
+
+	for x,y, mnemonic, op_str in zip(tempAddresses, tempDisassembly, tempMnemonic, tempOp_str):
+		# print (hex(x), y ," [",mnemonic,"] [", op_str ,"]")
+		print ((x), y ," [",mnemonic,"] [", op_str ,"]")
+	
 	assembly=binaryToText(shellBytes)   # this creates the string literal, raw hex, etc.
 	return out+assembly
 
 def addComments():
 
-	global bComments
-	if bComments:
-		if not rawHex:
-			for item in m[o].save_PEB_info:
-				tib=item[5]
-				
+	for item in m[o].save_PEB_info:
+		tib=item[5]
+		shBy.comments[int(tib,16)] = "; load TIB"
+		ldr=item[6]
+		shBy.comments[int(ldr,16)] = "; load PEB_LDR_DATA LoaderData"
+		mods=item[7]
+		modAdd=mods[0]
+		modText=mods[1]
+		shBy.comments[int(mods,16)] = "; LIST_ENTRY InMemoryOrderModuleList"
+		shBy.comments[int(modAdd,16)] = "; "+ modText
 
-				shBy.comments[int(tib,16)] = "; load TIB"
-				ldr=item[6]
-				
-				shBy.comments[int(ldr,16)] = "; load PEB_LDR_DATA LoaderData"
-				mods=item[7]
-				shBy.comments[int(mods,16)] = "; LIST_ENTRY InMemoryOrderModuleList"
+		adv=item[8]
+		for each in adv:
+			try:
+				if each != -1:
+					shBy.comments[int(each,16)] = "; advancing DLL flink"
+			except:
+
+				print (type(each))
+				print (each)
+	for item in m[o].save_PushRet_info:
+
+		#(495, 4, 'rawHex', -1, 0, ('0x1ef', 'ebx'), '0x1f0')
+		push=item[5]
+		pushOffset=push[0]
+		pushReg=push[1]
+		retOffset=item[6]
+		shBy.comments[int(pushOffset,0)] = "; pushing return address "
+		shBy.comments[int(retOffset,0)] = "; returning to " + pushReg
+
+
+	for item in m[o].save_Callpop_info:
+		call_offset = item[0]
+		pop_offset=item[5]
+		shBy.comments[int(call_offset,16)] = " ; using call for GetPC"
+		shBy.comments[int(pop_offset,16)] = " ; GetPC"
+
+	for item in m[o].save_FSTENV_info:
+		FPU_offset = item[5]
+		FSTENV_offset = item[6]
+		shBy.comments[int(FPU_offset,16)] = " ; floating point to set up GetPC"
+		shBy.comments[int(FSTENV_offset,16)] = " ; GetPC"
+
+	for item in m[o].save_Heaven_info:
+		heaven_offset = item[5]
+		pushOffset=item[6]
+		destLocation=item[7]
+		shBy.comments[int(heaven_offset,16)]= " ; invoking Heaven's Gate technique"
+		try:
+			shBy.comments[(pushOffset)]= " ; Heaven's gate destination address: " + str(destLocation)
+		except:
+			shBy.comments[int(pushOffset,16)]= " ; Heaven's gate destination address: " + str(destLocation)
+	for item in m[o].save_Egg_info:
+		eax = item[5]
+		c0_offset = item[6]
+		
+		shBy.comments[int(c0_offset	,16)] = " ; Calling Windows syscall - value: " + eax 
+
 	
 		# print ("index of tib is", tib)
 		# print ("index of ldr is", ldr)
@@ -10381,6 +10505,7 @@ def findInList(listPeb, address):
 	return 0, False
 
 def findRangeUpdate(data, startingAddress):
+	a = 1 #blank functions cause errors
 	# TODO update, without calling the analysis functions
 	pass
 
@@ -10740,13 +10865,44 @@ def encodeShellcode_aus(data):
 	print (binaryToStr(shells))
 	return shells
 
+def encodeShellcodeTesting(data, values):
+	print ("encodeShellcode")
+	a = values[0]
+	b = values[1]
+	c = values[2]
+	# global rawData2
+	# print (binaryToStr(rawData2))
+	shells=""
+	for each in data:
+		new=each+a&255
+		new = (new ^ b)&255
+		new=each-c&255
+		# shells+=str(hex(new)) +" "
+
+		if len(str(hex(new))) % 2 !=0:
+			# print ("got one")
+			new2=str(hex(new))
+			new2="0x0"+new2[2:]
+			shells+=new2 + " "
+		else:
+			shells+=str(hex(new)) + " "
+	shells=split0x(shells)
+	# print(shells)
+	shells=fromhexToBytes(shells)
+	print("ENCODE BYTES")
+	print (binaryToStr(shells))
+	return shells
+
+
+
+
 
 def encodeShellcode(data):
 	print ("encodeShellcode")
 	global rawData2
 	# print (binaryToStr(rawData2))
 	shells=""
-	for each in rawData2:
+	for each in data:
 		new=each^0x3&255 #3
 		new = (new + 2)&255 #4
 		new= new ^ 0x1&255 #8
@@ -10762,7 +10918,7 @@ def encodeShellcode(data):
 	shells=split0x(shells)
 	# print(shells)
 	shells=fromhexToBytes(shells)
-	print("ENCODE BYTES")
+	# print("ENCODE BYTES")
 	print (binaryToStr(shells))
 	return shells
 
@@ -11116,6 +11272,11 @@ def splitDirectory(filename):
 		return "", filename
 
 
+def bramwellstart4():
+	readRegs()
+	ObtainAndExtractSections()
+	getPushStrings(5)
+	printStrings()
 
 
 def bramwellStart():
@@ -11386,7 +11547,30 @@ def bramwellEncodeDecodeWork(shellArg):
 #nodesFiles: txt file containing IPs for each node to be used for distributed computing
 #cpuCount: auto to use max available, otherwise it can be limited
 #outputFile: will spit out a file containing results
-def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = False, distributed = False, cpuCount = "auto", nodesFile = "nodes.txt", outputFile = False):
+#fastMode: only check small portion of the shellcode for peb walking for efficiency. findAll disabled automatically for this one
+
+
+# TODO:
+	# shellEntry
+	# clean up abc values
+	# can print order as list, separate each
+	# get name of file for the outputFile
+	# output file true default(?)
+	# save peb offset
+	# fix distance in callPopRawHex
+	# test inloadorder stuff
+	# save peb list as tuple with offset then order of list
+	# fix 64 bit savebasepebwalk and both versions of printsavedpeb
+	# save name of register for pushret, same thing w/ tuple
+	# look up how fstenv does getpc and save reg name if you can specify
+	# fix syscall saving fs:[0x30] in labelTest.bin --- should only be reg or 0xc0 DONE
+
+def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = False, distributed = False, cpuCount = "auto", nodesFile = "nodes.txt", outputFile = True):
+
+	global shellEntry
+	global decodedBytes	
+
+	# print("ENCODED HERE: \n", encodedShell)
 
 	strAdd="new=(new +VALUE) & 255\n" 
 	strSub="new=(new -VALUE) & 255\n"
@@ -11397,7 +11581,7 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 	strShRight="new=(new << VALUE) & 255\n"
 
 	decodeOps = []
-	print("OPERATIONS:")
+	# print("OPERATIONS:")
 	print(operations)
 	for symbol in operations:
 		if(symbol == "+"):
@@ -11419,29 +11603,113 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 			return
 	opsLen = len(decodeOps)
 
+	# print("DECODEOPS : ", decodeOps)
+
 	if(fastMode):
 		originalEncoded = encodedShell
-		encodedShell = encodedShell[:40] #option for distance
+		encodedShell = encodedShell[:40] #opt ion for distance
 
 	if(distributed):
+			nodeIPs = []
+			with open(nodesFile, 'r') as f:
+			    for row in f:
+			        nodeIPs.append(row.rstrip('\n'))
+			# print("NODES HERE", nodeIPs)
+			
 			# decodeOps_aus = [strXor, strAdd, strSub]
 			# decodeOps = [strXor, strXor, strSub]
-			decodeInfo = doDistr(decodeOps, encodedShell,2, findAll = findAll)
+			decodeInfo = doDistr(decodeOps, encodedShell,2, nodeIPs, findAll = findAll)
+
+			if(fastMode):
+				decodeInfo = decodeInfo[0][0]
+				# print("TESTD IS =", testd)
+				# print("DECODEINFO IS = ", decodeInfo)
+				singleVals = decodeInfo[2]
+				order = decodeInfo[3]
+				# print("GOT SINGLEVALS = ", singleVals)
+				# print("GOT ORDER = ", order)
+
+				outputs,earlyFinish,startVals = austinDecode(decodeOps, originalEncoded	, findAll = findAll, mode = "single", starts = singleVals, order = order)
+				decodeInfo = outputs
+				#parse returned data structure
+				
+
+				for item in decodeInfo:
+					print("############# DECODED ################")
+					try:
+						print("Decoded Bytes: ")
+						print(binaryToStr(item[0]))
+						decodedBytes = item[0]
+						print("\n")
+					except:
+						print(item[0])
+					i = 1
+
+					# decodeValues = re.match("^a[0-9]+b[0-9]+c[0-9]+(d[0-9]+)?(e[0-9]+)?", item[1], re.IGNORECASE)
+					# if(decodeValues):
+						# decodeValues = decodeValues.group()
+						# print("DECODE VALUES: ", decodeValues)
+					decodeValues = item[1].splitlines()
+					decodeValues = decodeValues[-1]
+					decodeValues = re.split("\d+", decodeValues)
+					isNum = False
+					for item2 in decodeValues:
+						if(not isNum):
+							print(item2, "= ", end="")
+						else:
+							print(item2)
+						isNum = not isNum
+					# print("Decoding Values: ", decodeValues)
+					operationOrder = item[3]
+					# print("Operations: ", operationOrder)
+					print("\nOperations: ")
+					for item2 in operationOrder:
+						print(item2, end="")
+					# for x in item[1:]:
+					# 	print("item[",i,"]")
+					# 	print(x)
+					# 	i +=1
+					print("\n\n")
+				return
+
 			for item in decodeInfo:
+				c = 0
 				print("############# DECODED ################")
 				for x in item:
 					try:
 						# x[0] = binaryToStr(x[0])
 						# print("Decoded item info:")
-						for i in range(len(x)):
-							if(i == 0):
-								print(binaryToStr(x[i]))
+						# for i in range(len(x)):
+							# print("PRINTING I = ", i, " C = ", c)
+							# if(i == 0):
+						print("Decoded Bytes: ")
+						print(binaryToStr(x[0]))
+						decodedBytes = x[0]
+						print("\n")
+							# else:
+						# print("X1 HERE")
+						decodeValues = x[1].splitlines()
+						decodeValues = decodeValues[-1]
+						decodeValues = re.split("\d+", decodeValues)
+						print("Decoding Values: ")
+						isNum = False
+						for item2 in decodeValues:
+							if(not isNum):
+								print(item2, "= ", end="")
 							else:
-								print(x[i])
+								print(item2)
+							isNum = not isNum
+						operationOrder = x[3]
+						# print("Decoding Values: ", decodeValues)
+						# print("Operations: ", operationOrder)
+						print("\nOperations: ")
+						for item2 in operationOrder:
+							print(item2, end="")
 					except Exception as e:
 						print("Error: " + str(e))
 						print(x)
 					print("\n\n")
+					c += 1
 
 
 				print("\n\n")
@@ -11449,21 +11717,368 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 
 	else:
 		if(opsLen == 3 or opsLen == 4 or opsLen == 5):
-			outputs,earlyFinish,startVals = austinDecode(decodeOps, encodedShell, findAll = findAll)
+			outputs,earlyFinish,startVals = austinDecode(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount)
 			decodeInfo = outputs
 
+			# print("DECODEINFO MANUAL ATTEMPT")
+			# print("STARTVALS: ",decodeInfo[0][2])
+			# print("ORDER: ", decodeInfo[0][3])
+
+
+
+			if(fastMode):
+
+				if(len(decodeInfo) > 0):
+					decodeInfo = decodeInfo[0]
+
+				singleVals = decodeInfo[2]
+				order = decodeInfo[3]
+				# singleVals = []
+				# order = item[3]
+				# # print("ORDERHERE")
+				# # print(order)
+				# for val in item[2]:
+				# 	singleVals.append(val)
+				#only save the first output of decode -- it won't end early and startvals doesn't matter either
+				outputs,earlyFinish,startVals = austinDecode(decodeOps, originalEncoded	, findAll = findAll, mode = "single", starts = singleVals, order = order)
+				#parse returned data structure
+				decodeInfo = outputs	
+
 			for item in decodeInfo:
-				print("############# DECODED ################")
+					print("############# DECODED ################")
+					try:
+						print("Decoded Bytes: ")
+						print(binaryToStr(item[0]))
+						decodedBytes = item[0]
+						print("\n")
+					except:
+						print(item[0])
+					i = 1
+
+					# decodeValues = re.match("^a[0-9]+b[0-9]+c[0-9]+(d[0-9]+)?(e[0-9]+)?", item[1], re.IGNORECASE)
+					# if(decodeValues):
+						# decodeValues = decodeValues.group()
+						# print("DECODE VALUES: ", decodeValues)
+					decodeValues = item[1].splitlines()
+					decodeValues = decodeValues[-1]
+					# print("Decoding Values: ", decodeValues)
+					print("Decoding Values: ")
+					# decodeValues = re.split("\d+", decodeValues)
+					decodeValues = re.findall('(\d+|[A-Za-z]+)', decodeValues)
+					isNum = False
+					for item2 in decodeValues:
+						if(not isNum):
+							print(item2, "= ", end="")
+						else:
+							print(item2)
+						isNum = not isNum
+						# print(item2)
+					operationOrder = item[3]
+					print("\nOperations: ")
+					for item2 in operationOrder:
+						print(item2, end="")
+					# for x in item[1:]:
+					# 	print("item[",i,"]")
+					# 	print(x)
+					# 	i +=1
+					print("\n\n")
+			# return			
+
+	
+
+			# for item in decodeInfo:
+			# 	print("############# DECODED ################")
+			# 	try:
+			# 		print("item[0]")
+			# 		print(binaryToStr(item[0]))
+			# 	except:
+			# 		print(item[0])
+			# 	i = 1
+			# 	for x in item[1:]:
+			# 		print("item[",i,"]")
+			# 		print(x)
+			# 		i +=1
+			# 	print("\n\n")
+			# return
+	if(outputFile):
+		disassembly=takeBytes(decodedBytes, shellEntry)
+		rawBytes = decodedBytes	
+		directory = ".\\"
+		print ("decrypted disassembly")
+		print (disassembly)
+		if not os.path.exists(directory+'outputs'):
+			os.makedirs(directory+'outputs')
+		print (directory+"outputs\\"+"decoded"+".bin")
+		newBin = open(directory+"outputs\\decrypted-"+"decoded"+".bin", "wb")
+		newBin.write(rawBytes)
+		newBin.close()
+		newDis = open(directory+"outputs\\decrypted-"+"decoded"+"-disassembly.txt", "w")
+		newDis.write(disassembly)
+		newDis.close()
+
+decryptInput = "default"
+decryptNumOps = 3
+decryptOpTypes = ["^", "-", "+"]
+decryptEncodingVals = [3,3,3]
+decryptFile = filename
+decryptBytes = b""
+
+
+
+dFastMode = False
+dFindAll = False
+dDistr = False
+dCPUcount = "auto"
+dNodesFile = "nodes.txt"
+dOutputFile = False
+
+#initialize decryptFile to be the name of rawData2 arg by default DONE
+#same w/ decryptBytes
+#if they change inputfile, set rdata2 again
+def decryptUI():
+	global decodedBytes
+	global decryptInput
+	global decryptNumOps
+	global decryptOpTypes
+	global decryptEncodingVals
+	global dFastMode
+	global dFindAll
+	global dDistr
+	global dCPUcount
+	global dNodesFile
+	global dOutputFile
+	global decryptBytes	
+	global decryptFile
+	global filename
+
+	try:
+		decryptBytes = readShellcode(filename) 
+	except:
+		print("Couldn't read command line input file, reverting to default...")
+		decryptBytes = b''
+		decryptFile = "default.txt"
+
+	while(True):
+		printDecryptHelpUI()
+		entry = input("\nEnter selection: ")
+
+		if(entry == "i"):
+			decryptFile = input("Enter input file: ")
+			try:
+				decryptBytes = readShellcode(decryptFile)
+			except:
+				print("Invalid file.")
+				pass
+
+		elif(entry == "n"):
+			invalidNum = True
+			while(invalidNum):
+				print("Enter number of operations 3-5 [", decryptNumOps, "]: ")
+				num = input()
+				if(int(num) >= 3 and int(num) <=5):
+					decryptNumOps = num
+					invalidNum = False
+				else:
+					print("Invalid entry.")
+
+		elif(entry == "o"):
+			#TODO: this should match num of operations selected, use that param for a for loop or something instead of current way
+			#		separate my spaces OR commas
+			print("\n\nVALID OPERATIONS:\n")
+			print("+ | add")
+			print("- | subtract")
+			print("^ | xor")
+			print("~ | not")
+			print("rl | rotate left")
+			print("rr | rotate right")
+			print("< | shift right")
+
+			invalid = True
+			while(invalid):
+				ops = input("\n\nEnter operations, separated by commas [E.g. +,-,^]: \n> ")
+				ops = ops.split(",")
+				decryptOpTypes = ops
+				invalid = False
+				print("Selected: ")
+				for item in decryptOpTypes:
+					if(item == "+" ):
+						print("add")
+					elif(item == "-"):
+						print("subtract")
+					elif(item == "^"):
+						print("xor")
+					elif(item == "~"):
+						print("not")
+					elif(item == "rl"):
+						print("rotate left")
+					elif(item == "rr"):
+						print("rotate right")
+					elif(item == "<"):
+						print("shift right")
+					else:
+						print("Invalid selection.")
+						invalid = True
+
+		elif(entry == "d"):
+			advancedDecryptMenu()
+		elif(entry == "h"):
+			printDecryptHelpUI()
+		elif(entry == "c"):
+			decryptEncodingVals	= []
+			invalid = True
+			while(invalid):
+				invalid = False
 				try:
-					print(binaryToStr(item[0]))
+					num = int(input("Enter value 1: "))
 				except:
-					print(item[0])
-				for x in item[1:]:
-					print(x)
-				print("\n\n")
+					invalid = True
+					print("Invalid input.")
+			decryptEncodingVals.append(num)
+
+			invalid = True
+			while(invalid):
+				invalid = False
+				try:
+					num = int(input("Enter value 2: "))
+				except:
+					invalid = True
+					print("Invalid input.")
+			decryptEncodingVals.append(num)
+
+			invalid = True
+			while(invalid):
+				invalid = False
+				try:
+					num = int(input("Enter value 3: "))
+				except:
+					invalid = True
+					print("Invalid input.")
+			decryptEncodingVals.append(num)
+
+
+		elif(entry == "e"):
+			print("Encoding...")
+			decryptBytes = encodeShellcodeTesting(decryptBytes, decryptEncodingVals)
+
+		elif(entry == "g"):
+			confirm = print("Run decryption with these settings?")
+			print("Operations: ", decryptOpTypes)
+			print("FindAll: ", dFindAll)
+			print("FastMode: ", dFastMode)
+			print("Distributed: ", dDistr)
+			print("CPUs: ", dCPUcount)
+			print("Nodes File: ", dNodesFile)
+			print("OutputFile: ", dOutputFile)
+			confirm = input("y/n? >")
+			if(confirm == "y"):
+				decodedBytes = decryptShellcode(decryptBytes, decryptOpTypes, findAll = dFindAll, fastMode = dFastMode, distributed = dDistr, cpuCount = dCPUcount, nodesFile = dNodesFile, outputFile = dOutputFile)
+				return
+		else:
+			print("Invalid selection.")
+
+
+
+	
+#def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = False, distributed = False, cpuCount = "auto", nodesFile = "nodes.txt", outputFile = False)
+
+
+def advancedDecryptMenu():
+	global dFastMode
+	global dFindAll
+	global dDistr
+	global dCPUcount
+	global dNodesFile
+	global dOutputFile
+	global decryptInput
+	global decryptNumOps
+	global decryptOpTypes
+	global decryptEncodingVals
+	global decryptBytes	
+	global decryptFile	
+
+
+	printAdvDecryptHelp()
+	while(True):
+		entry = input("\nEnter selection: ")
+
+		if(entry == "fm"):
+			dFastMode = not dFastMode
+			printAdvDecryptHelp()
+		elif(entry == "fa"):
+			dFindAll = not dFindAll	
+			printAdvDecryptHelp()
+		elif(entry == "d"):
+			dDistr = not dDistr	
+			printAdvDecryptHelp()
+		elif(entry == "c"):
+			dCPUcount = input("\nEnter amount of CPUs to use (\"auto\" to automatically use max): ")
+			printAdvDecryptHelp()
+		elif(entry == "n"):
+			dNodesFile = input("\nEnter name of nodes config file: ")
+			printAdvDecryptHelp()
+		elif(entry == "o"):
+			dOutputFile	= not dOutputFile
+			printAdvDecryptHelp()
+		elif(entry == "h"):
+			printAdvDecryptHelp()
+		elif(entry == "x"):
 			return
 
+def printAdvDecryptHelp():
+	global dFastMode
+	global dFindAll
+	global dDistr
+	global dCPUcount
+	global dNodesFile
+	global dOutputFile
+	global decryptInput
+	global decryptNumOps
+	global decryptOpTypes
+	global decryptEncodingVals
+	global decryptBytes	
+	global decryptFile	
 
+	print("\n\nfm - toggle fast mode [", dFastMode, "]")
+	print("fa - toggle find all [", dFindAll, "]")
+	print("d - toggle distributed mode [", dDistr, "]")
+	print("c - enter CPU count [", dCPUcount, "]")
+	print("n - enter nodes file for distributed [", dNodesFile,"]")
+	print("o - toggle separate file output for decrypt function [", dOutputFile, "]")
+	print("h - help (show this screen)")
+	print("x - exit")
+
+def printDecryptHelpUI():
+	global dFastMode
+	global dFindAll
+	global dDistr
+	global dCPUcount
+	global dNodesFile
+	global dOutputFile
+	global decryptInput
+	global decryptNumOps
+	global decryptOpTypes
+	global decryptEncodingVals
+	global decryptBytes	
+	global decryptFile	
+
+	print("\n\n-------DECRYPT MENU-------")
+	print("i - set input file [", decryptFile,"]")
+	print("n - set number of operations [", decryptNumOps,"]")
+	print("o - set operation types ", decryptOpTypes)
+	print("d - advanced settings menu")
+	print("g - go (run decrypt function)")
+	print("h - help (show this screen)")
+	print("\n-------TESTING-------")
+	print("e - apply encoding to input")
+	print("c - change encoding values ", decryptEncodingVals)
+
+
+def analyzeDecoderStubs(shellArg, entryPoint = 0):
+	if rawBin == False:
+			filename=shellArg
+			rawBytes=readShellcode(shellArg)
+
+	re.match("")
 
 
 def austinEncodeDecodeWork(shellArg, operations = []):
@@ -11503,7 +12118,10 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 		print("NORMAL BYTES")
 		print(binaryToStr(rawBytes))
 		print ("rawbytes class", type(rawBytes))
+		print("RAWDATA2 BEFORE ENCODE IN WORKING FUNC: ", rawData2)
 		encoded=encodeShellcode(rawData2)
+
+		print("ENCODED HERE: \n", encoded)
 
 		strAdd="new=(new +VALUE) & 255\n" 
 		strSub="new=(new -VALUE) & 255\n"
@@ -11931,6 +12549,7 @@ def shellDisassemblyInit(shellArg, startAddress):
 	global filename
 	global rawData2
 	global gDisassemblyText
+
 	# print ()
 
 	# filename=shellArg
@@ -11942,25 +12561,33 @@ def shellDisassemblyInit(shellArg, startAddress):
 	# print ("SizeRawdata2", len(rawData2))
 	# rawBytes=rawData2
 	# print ("rawbytes class", type(rawBytes))
-	print ("size shellArg", len(shellArg) )
-	print ("find peb")
 
+	# filename=shellArg
+	# print ("size shellArg", len(shellArg) )
 	mode=""
 	findAllPebSequences(mode)
+	findAllCallpop(shellArg, "noSec")
+	findAllPushRet(shellArg, "noSec")
+	findAllFSTENV(shellArg, "noSec")
+	getSyscallRawHex(startAddress, 8, "noSec", shellArg)
+	getHeavenRawHex(startAddress, 8, "noSec", shellArg)
 
-	print ("find peb res")
+	print ("find peb results:")
 	printSavedPEB()
 	#parameterize
 	disassembly=takeBytes(shellArg,startAddress)
 	   # main one
 	gDisassemblyText = disassembly
 
+	
 	printAllShBy()
 	printAllShByStrings()
 	### Saving disassembly and .bin
+
 	print (filename)
-	print ("before split")
-	directory, filename= (splitDirectory(filename))		
+
+	# print ("before split")
+	directory, filename= (splitDirectory(filename))
 	directory = ""
 	print (directory)
 	print (filename)
@@ -11979,11 +12606,6 @@ def shellDisassemblyInit(shellArg, startAddress):
 	newDis.close()
 	# binaryToText(rawBytes)
 
-# fromShellTxt= readShellcode()
-# print(fromShellTxt)
-# printFromStringLiteralToBytes(fromShellTxt)
-# rawBytes=fromStringLiteralToBytes(fromShellTxt)
-# printBytes(fromShellTxt)
 
 
 def bramwellDisassembly():
@@ -12152,6 +12774,7 @@ def bramwellDisassembly2():
 	global rawData2
 	global shellEntry
 	# print ("rawData2 a", len(rawData2))
+	# print (shellEntry)
 	shellDisassemblyInit(rawData2, shellEntry)  #shellcode data, start address
 
 def initSysCallSelect(): #Initialize our list of syscalls to print
@@ -15406,6 +16029,7 @@ if __name__ == "__main__":
 
 
 	#user=BramwellID       #comment out, so only one user shows, or is the last one shown.
+	user=AustinID       #comment out, so only one user shows, or is the last one shown.
 
 	user=AndyID
 	#user=AndyID
@@ -15468,8 +16092,8 @@ if __name__ == "__main__":
 			# 	rawBytes=readShellcodeTest(filename) 
 
 
-
-			saveBinAscii()
+			bramwellstart4()
+			# saveBinAscii()
 
 
 		if yes == 2:
@@ -15548,8 +16172,9 @@ if __name__ == "__main__":
 	# Austin=False
 	################################ AUSTIN'S WORK AREA
 	if austin:
-		AustinTesting2()
-
+		# AustinTesting2()
+		AustinTesting3()
+		# AustinTesting4() # decrypt ui
 
 
 
@@ -15559,6 +16184,7 @@ if __name__ == "__main__":
 		init2(filename)
 		# global bit32
 
+		# global linesForward
 		global regsVals
 		linesForward = 40
 		bUI = False
