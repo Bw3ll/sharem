@@ -3321,7 +3321,7 @@ def get_Callpop64(NumOpsDis, bytesToMatch, secNum, data2, distance):
 
 
 def disHereCallpop(address, NumOpsDis, secNum, data, distance):
-	print("ENTERED DISHERECALLPOP")
+	# print("ENTERED DISHERECALLPOP")
 	# dprint2("in dishere")
 	pop = False
 	CODED2 = ""
@@ -6304,9 +6304,9 @@ def convertStringToTrack(dis, offsets):
 def saveBaseEgg(address, NumOpsDis, linesBack, modSecName, secNum, eax, c0_offset, converted = ""):
 	if(secNum != "noSec"):
 
-		print ("before")
-		print (secNum)
-		print(type(secNum))
+		# print ("before")
+		# print (secNum)
+		# print(type(secNum))
 		s[secNum].save_Egg_info.append(tuple((address,NumOpsDis,linesBack,modSecName,secNum,eax, c0_offset)))
 	else:
 		dprint2("Saving one raw")
@@ -10439,7 +10439,7 @@ def addComments():
 		mods=item[7]
 		modAdd=mods[0]
 		modText=mods[1]
-		shBy.comments[int(mods,16)] = "; LIST_ENTRY InMemoryOrderModuleList"
+		# shBy.comments[int(mods,16)] = "; LIST_ENTRY InMemoryOrderModuleList"
 		shBy.comments[int(modAdd,16)] = "; "+ modText
 
 		adv=item[8]
