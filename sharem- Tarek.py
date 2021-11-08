@@ -2453,13 +2453,14 @@ def disHerePushRet(address, NumOpsDis, secNum, data): ##########################
 		# print("hereismeandyhoney")
 
 		ret = re.match("^ret", val, re.IGNORECASE)
-		retf = re.match("^retf", val, re.IGNORECASE)
-		if(ret and not retf and foundPush):
+		if(ret):
 			foundRet = True
 			# points += 1
 			retOffset = addb
 
 
+
+		
 		# print(val)
 	# stop = timeit.default_timer()
 	# print("Time 2: " + str(stop - start))
@@ -2485,14 +2486,12 @@ def disHerePushRet(address, NumOpsDis, secNum, data): ##########################
 		# 	points += 1
 
 
-		if foundPush and foundRet:
-			foundPush = False
-			foundRet = False
-			if(rawHex):
-				modSecName = peName
-			else:
-				modSecName = section.sectionName
-			saveBasePushRet(address, NumOpsDis, modSecName, secNum, points, (pushOffset, pushReg), retOffset)
+	if foundPush and foundRet:
+		if(rawHex):
+			modSecName = peName
+		else:
+			modSecName = section.sectionName
+		saveBasePushRet(address, NumOpsDis, modSecName, secNum, points, (pushOffset, pushReg), retOffset)
 
 def disHerePushRet64(address, NumOpsDis, secNum, data): ############################# AUSTIN ############################
 
@@ -2616,20 +2615,20 @@ def PushRetrawhex(address, linesForward2, secNum, data):
 				chunk = orgListDisassembly[t+1:t+linesForward]
 				chunkOffsets = orgListOffset[t+1:t+linesForward]
 				for item in chunk:
-					bad = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(int)|(db)|(hlt)|(loop)|(leave)|(int3)|(insd)|(enter)|(jns)|(call)|(retf))", item, re.M|re.I)
+					bad = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(int)|(db)|(hlt)|(loop)|(leave)|(int3)|(insd)|(enter)|(jns)|(call))", item, re.M|re.I)
 					if(bad):
 						break
 					# print("item: ",item)
 					isRET = re.search("ret", item, re.IGNORECASE)
-					isRETF = re.search("retf", item, re.IGNORECASE)
-					if (isRET):
+					if isRET:
 						ret_offset = hex(orgListOffset[index + t + 1])
 						# print("isret")
-						print("saved a pushret: push = ", push_offset, " ret = ", ret_offset)
 						saveBasePushRet(address, linesForward, 'noSec', secNum, 2, (push_offset,pushReg), ret_offset)
 
 						break
 					index += 1
+
+
 			t+=1	 
 
 	else:
@@ -2643,19 +2642,10 @@ def saveBasePushRet(address, NumOpsDis,modSecName,secNum, points, pushOffset, re
 	#print "saving"
 	#save virtaul address as well
 	if(secNum != "noSec"):
-
-		for each in s[secNum].save_PushRet_info:
-			if retOffset == each[6]:
-				return
 		s[secNum].save_PushRet_info.append(tuple((address,NumOpsDis,modSecName,secNum,points, pushOffset, retOffset)))
-
-
 	else:
 		secNum = -1
 		modSecName = "rawHex"
-		for each in m[o].save_PushRet_info:
-			if retOffset == each[6]:
-				return
 		m[o].save_PushRet_info.append(tuple((address,NumOpsDis,modSecName,secNum,points, pushOffset, retOffset)))
 
 
@@ -2715,8 +2705,6 @@ def printSavedPushRet(bit = 32): ############################## AUSTIN #########
 						add4 = str(add3)
 					val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 					print (gre + val + res)
-					if(addb == retOffset):
-						break
 			if bit == 64:
 				for i in cs64.disasm(CODED2, address):
 					if(rawHex):
@@ -2730,8 +2718,6 @@ def printSavedPushRet(bit = 32): ############################## AUSTIN #########
 						add4 = str(add3)
 					val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 					print (gre + val + res)
-					if(addb == retOffset):
-						break
 	#return val5
 
 			# print ("\n")
@@ -2818,8 +2804,6 @@ def printSavedPushRet(bit = 32): ############################## AUSTIN #########
 					# if (t<2):
 					# 	print(each)
 					print(gre + each + res)
-					if(addb == retOffset):
-						break
 					t+=1
 
 				j += 1
@@ -3872,8 +3856,8 @@ def printSavedCallPop(bit = 32): ######################## AUSTIN ###############
 			distance = item[4]
 			pop_offset = item[5]
 			address = origAddr + distance
-			popOpcLen = 1
-			CODED2 = rawData2[(origAddr):(address+NumOpsDis	)]
+
+			CODED2 = rawData2[(address):(address+NumOpsDis)]
 
 			outString = "Item: " + str(j)
 			if(secNum != -1):
@@ -3893,7 +3877,7 @@ def printSavedCallPop(bit = 32): ######################## AUSTIN ###############
 			#address2 = address + section.ImageBase + section.VirtualAdd
 			val5 =[]
 			
-			for i in callCS.disasm(CODED2, origAddr):
+			for i in callCS.disasm(CODED2, address):
 				if(rawHex):
 					add4 = hex(int(i.address))
 					addb = hex(int(i.address))
@@ -3904,14 +3888,13 @@ def printSavedCallPop(bit = 32): ######################## AUSTIN ###############
 					add3 = hex (int(i.address + section.startLoc	))
 					add4 = str(add3)
 				val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+
 				print (gre + val + res)
-				if(addb == pop_offset):
-					break
 				# print (val)
 				#stop printing after we print out our getPC pop
-				# isPop = re.search("^pop ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)|(8)|(9)|(1[0-5])))", val, re.IGNORECASE)
-				# if(isPop):
-					# break
+				isPop = re.search("^pop ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)|(8)|(9)|(1[0-5])))", val, re.IGNORECASE)
+				if(isPop):
+					break
 
 
 				
@@ -3936,7 +3919,6 @@ def printSavedCallPop(bit = 32): ######################## AUSTIN ###############
 				distance = item[4]
 				pop_offset = item[5]
 				address = origAddr + distance
-				popOpcLen = 1
 				# print("NUMBACK = " + str(NumOpsBack))
 
 				section = s[secNum]
@@ -3960,11 +3942,10 @@ def printSavedCallPop(bit = 32): ######################## AUSTIN ###############
 				val3 = []
 				address2 = address + section.ImageBase + section.VirtualAdd
 				val5 =[]
-				CODED2 = section.data2[(origAddr):(address+NumOpsDis)]
+				CODED2 = section.data2[(address):(address+NumOpsDis)]
 				
 				CODED3 = CODED2
-
-				for i in callCS.disasm(CODED3, origAddr):
+				for i in callCS.disasm(CODED3, address):
 					add = hex(int(i.address))
 					addb = hex(int(i.address +  section.VirtualAdd))
 					add2 = str(add)
@@ -3975,14 +3956,11 @@ def printSavedCallPop(bit = 32): ######################## AUSTIN ###############
 					val3.append(add2)
 					val5.append(val)
 					print (gre + val + res)
-					if(addb == pop_offset):
-						break
-					
 					# print (val)
 					#stop printing after we print out our getPC pop
-					# isPop = re.search("^pop ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)|(8)|(9)|(1[0-5])))", val, re.IGNORECASE)
-					# if(isPop):
-						# break
+					isPop = re.search("^pop ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)|(8)|(9)|(1[0-5])))", val, re.IGNORECASE)
+					if(isPop):
+						break
 
 				print ("\n")
 				j += 1
@@ -5413,7 +5391,7 @@ def disHereSyscall(address, NumOpsDis, NumOpsBack, secNum, data): ############ A
 
 		for line in disString:
 			# if(re.match("(fs:\[0xc0\])|(fs:\[(((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))))( ?\+ ?(0x)?[0-9a-f]+)?\])", line, re.IGNORECASE)):
-			if(re.match("^((call)|(jump)) dword ptr fs:\[((((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))))( ?\+ ?(0x)?[0-9a-f]+)?|(0xc0))\]", line, re.IGNORECASE) or re.match("^(syscall)", line, re.IGNORECASE) or re.match("^(int 0x2e)", line, re.IGNORECASE)):
+			if(re.match("^((call)|(jump)) dword ptr fs:\[((((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))))( ?\+ ?(0x)?[0-9a-f]+)?|(0xc0))\]", line, re.IGNORECASE)):
 				c0_match = True
 				c0_offset = line.split()[-1]
 				c0_offset = c0_offset[:-1]
@@ -5476,8 +5454,7 @@ def getSyscallRawHex(address, linesBack, secNum, data):
 				# dprint2(e, hex(orgListOffset[t]))
 				# isEgg = re.search("fs:(\[0xc0\])?", e, re.IGNORECASE)
 				isEgg = re.search("^((call)|(jump)) dword ptr fs:\[((((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))))( ?\+ ?(0x)?[0-9a-f]+)?|(0xc0))\]", e, re.IGNORECASE)
-				eggNew = re.search("^((int 0x2e)|(syscall))", e, re.IGNORECASE)
-				if(isEgg or eggNew):
+				if(isEgg):
 					c0_offset = hex(orgListOffset[t])
 					address = int(orgListOffset[t])
 					# dprint2("EGGHUNT HERE")
@@ -6526,7 +6503,7 @@ def printSavedEgg(bit = 32, showDisassembly = True): ######################## AU
 			else:
 				outString += " | Module: " + modSecName
 
-			outString += " | EAX: " + eax + " | Syscall Offset: " + c0_offset
+			outString += " | EAX: " + eax + " | 0xc0 Offset: " + c0_offset
 
 			print ("\n******************************************************************************")
 			print (yel + outString + res)
@@ -6572,7 +6549,7 @@ def printSavedEgg(bit = 32, showDisassembly = True): ######################## AU
 				else:
 					outString += " | Module: " + modSecName
 
-				outString += " | EAX: " + eax + " | Syscall Offset: " + c0_offset
+				outString += " | EAX: " + eax + " | 0xc0 Offset: " + c0_offset
 
 				print ("\n******************************************************************************")
 				print (yel + outString + res)
@@ -11762,16 +11739,10 @@ def bramwellEncodeDecodeWork(shellArg):
 	# adjustable points in disherepeb # DONE
 	# fix 64 bit issue with peb -- 
 	# fix callpop issues # FIXED for .exe -- printing still odd? do we want pop spot or call spot? does it matter?
-	#		bin issues still exist # DONE
-	# add support for int 0x2e and syscall instruction(?) DONE
-	# callpop should print starting at call and ending in pop # DONE
-	# fix weird issues in pushret -- dont save on retf, and push offset AFTER ret offset saving sometimes # FIXED these two issues -- still some odd printing
-	# fix extra printing 
-	#in uidiscover -- findallpebseqold is still being used for shellcode -- why? fix for new one to work with both
+	#		bin issues still exist
+	# add support for int 0x2e and syscall instruction(?)
+	# callpop should print starting at call and ending in pop
 
-	#start printing at "address" in printsavedpushret() and have check for when to start
-	#check callpop print ending when using .exe and in diff sections
-	# check 64bit peb logic -- finding only 1 point where it should 2???
 
 #done
 ############## output file complete for decrypt stuff -- still needs formatting maybe
@@ -11785,7 +11756,6 @@ def bramwellEncodeDecodeWork(shellArg):
 ############## integration of decoder stub results into searching
 ############## various decrypt bug fixes
 ############## fixed testing function for decrypt for accurate
-############## 
 
 
 def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = False, distributed = False, cpuCount = "auto", nodesFile = "nodes.txt", outputFile = True):
@@ -13505,8 +13475,6 @@ def get_max_length(list_of_strings):
 			max_len = len(i)
 			res = len(i)
 	return res
-
-
 
 def uiDiscover(): 	#Discover shellcode instructions
 	global bPushRet
@@ -16566,8 +16534,8 @@ if __name__ == "__main__":
 	################################ AUSTIN'S WORK AREA
 	if austin:
 		# AustinTesting2()
-		AustinTesting3()
-		# AustinTesting4() # decrypt ui
+		# AustinTesting3()
+		AustinTesting4() # decrypt ui
 		# AustinTestingStub()
 
 
