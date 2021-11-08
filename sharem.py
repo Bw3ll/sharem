@@ -2622,10 +2622,10 @@ def PushRetrawhex(address, linesForward2, secNum, data):
 					# print("item: ",item)
 					isRET = re.search("ret", item, re.IGNORECASE)
 					isRETF = re.search("retf", item, re.IGNORECASE)
-					if (isRET):
+					if (isRET and not isRETF):
 						ret_offset = hex(orgListOffset[index + t + 1])
 						# print("isret")
-						print("saved a pushret: push = ", push_offset, " ret = ", ret_offset)
+						# print("saved a pushret: push = ", push_offset, " ret = ", ret_offset)
 						saveBasePushRet(address, linesForward, 'noSec', secNum, 2, (push_offset,pushReg), ret_offset)
 
 						break
@@ -16420,9 +16420,9 @@ if __name__ == "__main__":
 
 
 	#user=BramwellID       #comment out, so only one user shows, or is the last one shown.
-	user=AndyID      #comment out, so only one user shows, or is the last one shown.
+	# user=AndyID      #comment out, so only one user shows, or is the last one shown.
 
-
+	user = AustinID
 	# user=AndyID
 	# user=BramwellID
 
