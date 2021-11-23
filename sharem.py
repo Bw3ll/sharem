@@ -2660,7 +2660,6 @@ def disHerePushRet64(address, NumOpsDis, secNum, data): ########################
 		saveBasePushRet(address, NumOpsDis, modSecName, secNum, points, (pushOffset, pushReg), retOffset)
 
 
-
 def PushRetrawhex(address, linesForward2, secNum, data):
 	global bit32
 	global ignoreDisDiscovery
@@ -2679,6 +2678,7 @@ def PushRetrawhex(address, linesForward2, secNum, data):
 		for e in orgListDisassembly:
 			pushReg = ""
 			isPUSH = re.search("push", e, re.IGNORECASE)
+			# if "push" in 
 			if isPUSH:
 				# print ("truth3")
 				# print("ispush")
@@ -2718,6 +2718,83 @@ def PushRetrawhex(address, linesForward2, secNum, data):
 						# else:
 							# print("item ----> ", item)
 					index += 1
+			t+=1	 
+
+	else:
+
+		for match in PUSH_RET.values():
+			if bit32:
+				get_PushRet_start(4, match, secNum, data)
+			else:
+				get_PushRet_start64(4, match, secNum, data)
+
+
+
+
+
+
+def PushRetrawhex2(address, linesForward2, secNum, data):
+	global bit32
+	global ignoreDisDiscovery
+	global linesForward
+	address = hex(address)
+	linesGoBack = 10
+	t = 0
+	truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, 0x0, linesGoBack)  # arg: starting offset/entry point - leave 0 generally
+	# print("------------>", orgListOffset,orgListDisassembly)
+	# input()
+	if(ignoreDisDiscovery):
+		truth = False
+
+	if (truth):
+		t = [orgListDisassembly.index(i) for i in orgListDisassembly if "push" in i]
+		if t != []:
+			t = t[0]
+
+		# print ("truth2")
+		# for e in orgListDisassembly:
+			pushReg = ""
+			# isPUSH = re.search("push", e, re.IGNORECASE)
+			# if "push" in 
+			# if isPUSH:
+				# print ("truth3")
+				# print("ispush")
+			try:
+				pushReg = orgListDisassembly[t].split()[1]
+			except Exception as e:
+
+				pushReg = orgListDisassembly[t].split()
+				# print("Push ret function", e)
+				# input()
+			# print ("pushreg", pushReg)
+			# input()
+
+			push_offset = hex(orgListOffset[t])
+			address = int(orgListOffset[t])
+			index = 0
+			chunk = orgListDisassembly[t+1:t+linesForward]
+			chunkOffsets = orgListOffset[t+1:t+linesForward]
+			for item in chunk:
+				bad = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(int)|(db)|(hlt)|(loop)|(leave)|(int3)|(insd)|(enter)|(jns)|(call)|(retf))", item, re.M|re.I)
+				if(bad):
+					# print("bad")
+					break
+				# print("item: ",item)
+				isRET = re.search("ret", item, re.IGNORECASE)
+				isRETF = re.search("retf", item, re.IGNORECASE)
+				if (isRET):
+					if not isRETF:
+						# print ("item",item)
+						ret_offset = hex(orgListOffset[index + t + 1])
+
+						# print("isret")
+						# print("saved a pushret: push = ", push_offset, " ret = ", ret_offset)
+						saveBasePushRet(address, linesForward, 'noSec', secNum, 2, (push_offset,pushReg), ret_offset)
+
+						break
+					# else:
+						# print("item ----> ", item)
+				index += 1
 			t+=1	 
 
 	else:
@@ -3182,8 +3259,10 @@ def FSTENVrawhex(address, linesBack2, secNum, data):
 	address = int(address)
 	linesGoBack = 10
 	t = 0
+	print("start")
 	truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, 0x0, linesGoBack)
 	truth = False
+	print("done")
 	# t = 0
 	# for line in orgListDisassembly:
 	# 	dprint2(hex(orgListOffset[t]), "   ", orgListDisassembly[t])
@@ -3924,7 +4003,8 @@ def callPopRawHex_old(address, linesForward2, secNum, data):
 		for match in CALLPOP_START.values(): #iterate through all opcodes representing combinations of registers
 			get_Callpop(10, match[0], secNum, data, match[1])
 
-def callPopRawHex(address, linesForward2, secNum, data):
+
+def callPopRawHex2(address, linesForward2, secNum, data):
 	global bit32
 	global ignoreDisDiscovery
 	global maxDistance
@@ -3937,6 +4017,58 @@ def callPopRawHex(address, linesForward2, secNum, data):
 	linesGoBack = 10
 	truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(address, 0x0, linesGoBack)
 
+	t = 0
+	if truth:
+		for disasmLine in orgListDisassembly:
+			distance = None
+			isCall = re.match("^call (0x)?[0-9,a-f]{1,2}", disasmLine, re.IGNORECASE)
+			if(isCall):
+				dest = disasmLine.split()[1]
+				numeric = re.match(" ?(0x)?([0-9A-F])+$", dest, re.IGNORECASE)
+				# print("found call with dest ", dest, "on line ", disasmLine, " ||||| NUMERIC = ", numeric)
+				if(numeric):
+					distance = int(dest, 0) - orgListOffset[t]
+					# print("Distance after math = ", distance)
+					w = t+1
+					for postCallLine in orgListDisassembly[t+1:t+1+linesForward+maxDistance]:
+						bad = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(int)|(retf)|(db)|(hlt)|(loop)|(ret)|(leave)|(int3)|(insd)|(enter)|(jns)|(call))", postCallLine, re.M|re.I)
+						isPop = re.search("^pop ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)|(8)|(9)|(1[0-5])))", postCallLine, re.IGNORECASE)
+
+						# print("comparing destination ", dest, " to line ", orgListDisassembly[w], " OFFSET:", hex(orgListOffset[w]))
+						if(bad and (int(dest,0) <= orgListOffset[w])):
+							# print("got a bbad on line ", postCallLine, " | offset: ", hex(orgListOffset[w]), " | call offset: ", hex(orgListOffset[t]))
+							break
+						if(isPop and (int(dest,0) <= orgListOffset[w])):
+							# print("found a good pop on line", postCallLine, " | offset: ", hex(orgListOffset[w]), " | call offset: ", hex(orgListOffset[t]))
+							address = orgListOffset[t]
+							pop_offset = orgListOffset[w]
+							distance = pop_offset - address
+
+							pop_offset = hex(pop_offset)
+							saveBaseCallpop(address, linesForward, 'noSec', secNum, distance, pop_offset)
+							break
+						w+=1
+				
+			t += 1
+
+	else:
+		for match in CALLPOP_START.values(): #iterate through all opcodes representing combinations of registers
+			get_Callpop(10, match[0], secNum, data, match[1])
+
+def callPopRawHex(address, linesForward2, secNum, data):
+	global bit32
+	global ignoreDisDiscovery
+	global maxDistance
+	global linesForward
+
+	global debuging
+
+	# debuging = True
+	address = int(address)
+	linesGoBack = 10
+	# print("start presyscall")
+	truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(address, 0x0, linesGoBack)
+	# print("end presyscall")
 	t = 0
 	if truth:
 		for disasmLine in orgListDisassembly:
@@ -6855,6 +6987,7 @@ def findAllCallpop_old2(data2, secNum, numOps = 10): ################## AUSTIN #
 
 def findAllCallpop(data2, secNum, numOps = 10): ################## AUSTIN ######################
 	if(secNum == 'noSec'):
+
 		callPopRawHex(0, 15, secNum, data2)
 	else:
 		for match in CALLPOP_START.values(): #iterate through all opcodes representing combinations of registers
@@ -6890,7 +7023,7 @@ def findAllPebSequences_old2(data2, secNum): ################## AUSTIN #########
 		get_PEB_walk_start("normal", 19, match, secNum, data2) 
 
 
-def optimized_find(numOps, match, secNum, data2, funcName = None):
+def optimized_find(numOps, match, secNum, data2, funcName = None, mode=None):
 	start = 0
 
 	if "disHereCallpop" == funcName or "disHereCallpop64" == funcName:
@@ -6936,9 +7069,12 @@ def optimized_find(numOps, match, secNum, data2, funcName = None):
 			elif "disHereSyscall" == funcName:
 				disHereSyscall(start, numOps, 20, secNum, data2)
 			elif "disHerePEB" == funcName:
-				disHerePEB("normal", start, numOps, secNum, data2)
+				ans = disHerePEB("normal", start, numOps, secNum, data2)
+				if mode=="decrypt" and ans is not None:
+					print ("got disherepeb", ans)
+					return ans
 			elif "disHereHeavenPE" == funcName:
-				matchList = ["push", "xor", "xchg", "pop", "sub", "add"]
+				# matchList = ["push", "xor", "xchg", "pop", "sub", "add"]
 			# dprint2("back = " + str(back))
 			# CODED2 = data[(address-(NumOpsBack-back)):(address+x)]
 				flag = False
@@ -7080,7 +7216,7 @@ def findAllPebSequences_old2(mode, data2=None, secNum=None): ################## 
 				# print("Time: ", (end-start))
 			end = time.time()
 			print("\nElapsed time: ", end-startTime)
-
+#p1
 def findAllPebSequences(mode, data2=None, secNum=None): ################## AUSTIN ######################
 
 	# global rawHex
@@ -7091,7 +7227,10 @@ def findAllPebSequences(mode, data2=None, secNum=None): ################## AUSTI
 		if shellBit == 32:
 			for match in PEB_WALK.values(): #iterate through all opcodes representing combinations of registers
 				# ans=get_PEB_walk_start(mode, 19, match, "noSec", data2) #19 hardcoded for now, seems like good value for peb walking sequence
-				ans=get_PEB_walk_start(mode, 19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+				# ans=get_PEB_walk_start(mode, 19, match, "noSec", rawData2)
+				#ind(numOps, match, secNum, data2, funcName = None):
+				ans = optimized_find(19, match, "noSec", rawData2, "disHerePEB", mode=mode)
+				 #19 hardcoded for now, seems like good value for peb walking sequence
 				# print ("ans", ans)
 
 				if mode=="decrypt" and ans is not None:
@@ -9762,6 +9901,7 @@ def createDisassemblyLists():
 	# for e in listDisassembly:
 	# 	print (str(hex(listOffset[t])) + " " + e + "\n")
 	# 	t+=1
+
 	return listOffset, listDisassembly
 
 def clearTempDis():
@@ -11056,6 +11196,7 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack):
 		rawData2=rawBytes
 		shellBytes=rawData2
 	i=startingAddress
+	# shBy.offsets = [i for i in shellBytes]
 	for x in shellBytes:
 		shBy.offsets.append(i)
 		shBy.values.append(x)
@@ -11076,6 +11217,7 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack):
 		findStrings(shellBytes,3)
 		findStringsWide(shellBytes,3)
 		findPushAsciiMixed(shellBytes,3)
+
 	anaFindFF(shellBytes)
 	out=findRange(shellBytes, startingAddress)  #1st time helps do corrections
 	anaFindFF(shellBytes)
