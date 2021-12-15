@@ -2660,6 +2660,7 @@ def disHerePushRet64(address, NumOpsDis, secNum, data): ########################
 		saveBasePushRet(address, NumOpsDis, modSecName, secNum, points, (pushOffset, pushReg), retOffset)
 
 
+
 def PushRetrawhex(address, linesForward2, secNum, data):
 	global bit32
 	global ignoreDisDiscovery
@@ -2678,7 +2679,6 @@ def PushRetrawhex(address, linesForward2, secNum, data):
 		for e in orgListDisassembly:
 			pushReg = ""
 			isPUSH = re.search("push", e, re.IGNORECASE)
-			# if "push" in 
 			if isPUSH:
 				# print ("truth3")
 				# print("ispush")
@@ -2718,83 +2718,6 @@ def PushRetrawhex(address, linesForward2, secNum, data):
 						# else:
 							# print("item ----> ", item)
 					index += 1
-			t+=1	 
-
-	else:
-
-		for match in PUSH_RET.values():
-			if bit32:
-				get_PushRet_start(4, match, secNum, data)
-			else:
-				get_PushRet_start64(4, match, secNum, data)
-
-
-
-
-
-
-def PushRetrawhex2(address, linesForward2, secNum, data):
-	global bit32
-	global ignoreDisDiscovery
-	global linesForward
-	address = hex(address)
-	linesGoBack = 10
-	t = 0
-	truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, 0x0, linesGoBack)  # arg: starting offset/entry point - leave 0 generally
-	# print("------------>", orgListOffset,orgListDisassembly)
-	# input()
-	if(ignoreDisDiscovery):
-		truth = False
-
-	if (truth):
-		t = [orgListDisassembly.index(i) for i in orgListDisassembly if "push" in i]
-		if t != []:
-			t = t[0]
-
-		# print ("truth2")
-		# for e in orgListDisassembly:
-			pushReg = ""
-			# isPUSH = re.search("push", e, re.IGNORECASE)
-			# if "push" in 
-			# if isPUSH:
-				# print ("truth3")
-				# print("ispush")
-			try:
-				pushReg = orgListDisassembly[t].split()[1]
-			except Exception as e:
-
-				pushReg = orgListDisassembly[t].split()
-				# print("Push ret function", e)
-				# input()
-			# print ("pushreg", pushReg)
-			# input()
-
-			push_offset = hex(orgListOffset[t])
-			address = int(orgListOffset[t])
-			index = 0
-			chunk = orgListDisassembly[t+1:t+linesForward]
-			chunkOffsets = orgListOffset[t+1:t+linesForward]
-			for item in chunk:
-				bad = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(int)|(db)|(hlt)|(loop)|(leave)|(int3)|(insd)|(enter)|(jns)|(call)|(retf))", item, re.M|re.I)
-				if(bad):
-					# print("bad")
-					break
-				# print("item: ",item)
-				isRET = re.search("ret", item, re.IGNORECASE)
-				isRETF = re.search("retf", item, re.IGNORECASE)
-				if (isRET):
-					if not isRETF:
-						# print ("item",item)
-						ret_offset = hex(orgListOffset[index + t + 1])
-
-						# print("isret")
-						# print("saved a pushret: push = ", push_offset, " ret = ", ret_offset)
-						saveBasePushRet(address, linesForward, 'noSec', secNum, 2, (push_offset,pushReg), ret_offset)
-
-						break
-					# else:
-						# print("item ----> ", item)
-				index += 1
 			t+=1	 
 
 	else:
@@ -3259,10 +3182,8 @@ def FSTENVrawhex(address, linesBack2, secNum, data):
 	address = int(address)
 	linesGoBack = 10
 	t = 0
-	print("start")
 	truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, 0x0, linesGoBack)
 	truth = False
-	print("done")
 	# t = 0
 	# for line in orgListDisassembly:
 	# 	dprint2(hex(orgListOffset[t]), "   ", orgListDisassembly[t])
@@ -4003,58 +3924,6 @@ def callPopRawHex_old(address, linesForward2, secNum, data):
 		for match in CALLPOP_START.values(): #iterate through all opcodes representing combinations of registers
 			get_Callpop(10, match[0], secNum, data, match[1])
 
-
-def callPopRawHex2(address, linesForward2, secNum, data):
-	global bit32
-	global ignoreDisDiscovery
-	global maxDistance
-	global linesForward
-
-	global debuging
-
-	# debuging = True
-	address = int(address)
-	linesGoBack = 10
-	truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(address, 0x0, linesGoBack)
-
-	t = 0
-	if truth:
-		for disasmLine in orgListDisassembly:
-			distance = None
-			isCall = re.match("^call (0x)?[0-9,a-f]{1,2}", disasmLine, re.IGNORECASE)
-			if(isCall):
-				dest = disasmLine.split()[1]
-				numeric = re.match(" ?(0x)?([0-9A-F])+$", dest, re.IGNORECASE)
-				# print("found call with dest ", dest, "on line ", disasmLine, " ||||| NUMERIC = ", numeric)
-				if(numeric):
-					distance = int(dest, 0) - orgListOffset[t]
-					# print("Distance after math = ", distance)
-					w = t+1
-					for postCallLine in orgListDisassembly[t+1:t+1+linesForward+maxDistance]:
-						bad = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(int)|(retf)|(db)|(hlt)|(loop)|(ret)|(leave)|(int3)|(insd)|(enter)|(jns)|(call))", postCallLine, re.M|re.I)
-						isPop = re.search("^pop ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)|(8)|(9)|(1[0-5])))", postCallLine, re.IGNORECASE)
-
-						# print("comparing destination ", dest, " to line ", orgListDisassembly[w], " OFFSET:", hex(orgListOffset[w]))
-						if(bad and (int(dest,0) <= orgListOffset[w])):
-							# print("got a bbad on line ", postCallLine, " | offset: ", hex(orgListOffset[w]), " | call offset: ", hex(orgListOffset[t]))
-							break
-						if(isPop and (int(dest,0) <= orgListOffset[w])):
-							# print("found a good pop on line", postCallLine, " | offset: ", hex(orgListOffset[w]), " | call offset: ", hex(orgListOffset[t]))
-							address = orgListOffset[t]
-							pop_offset = orgListOffset[w]
-							distance = pop_offset - address
-
-							pop_offset = hex(pop_offset)
-							saveBaseCallpop(address, linesForward, 'noSec', secNum, distance, pop_offset)
-							break
-						w+=1
-				
-			t += 1
-
-	else:
-		for match in CALLPOP_START.values(): #iterate through all opcodes representing combinations of registers
-			get_Callpop(10, match[0], secNum, data, match[1])
-
 def callPopRawHex(address, linesForward2, secNum, data):
 	global bit32
 	global ignoreDisDiscovery
@@ -4066,9 +3935,8 @@ def callPopRawHex(address, linesForward2, secNum, data):
 	# debuging = True
 	address = int(address)
 	linesGoBack = 10
-	# print("start presyscall")
 	truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(address, 0x0, linesGoBack)
-	# print("end presyscall")
+
 	t = 0
 	if truth:
 		for disasmLine in orgListDisassembly:
@@ -6987,7 +6855,6 @@ def findAllCallpop_old2(data2, secNum, numOps = 10): ################## AUSTIN #
 
 def findAllCallpop(data2, secNum, numOps = 10): ################## AUSTIN ######################
 	if(secNum == 'noSec'):
-
 		callPopRawHex(0, 15, secNum, data2)
 	else:
 		for match in CALLPOP_START.values(): #iterate through all opcodes representing combinations of registers
@@ -7023,7 +6890,7 @@ def findAllPebSequences_old2(data2, secNum): ################## AUSTIN #########
 		get_PEB_walk_start("normal", 19, match, secNum, data2) 
 
 
-def optimized_find(numOps, match, secNum, data2, funcName = None, mode=None):
+def optimized_find(numOps, match, secNum, data2, funcName = None):
 	start = 0
 
 	if "disHereCallpop" == funcName or "disHereCallpop64" == funcName:
@@ -7069,12 +6936,9 @@ def optimized_find(numOps, match, secNum, data2, funcName = None, mode=None):
 			elif "disHereSyscall" == funcName:
 				disHereSyscall(start, numOps, 20, secNum, data2)
 			elif "disHerePEB" == funcName:
-				ans = disHerePEB("normal", start, numOps, secNum, data2)
-				if mode=="decrypt" and ans is not None:
-					print ("got disherepeb", ans)
-					return ans
+				disHerePEB("normal", start, numOps, secNum, data2)
 			elif "disHereHeavenPE" == funcName:
-				# matchList = ["push", "xor", "xchg", "pop", "sub", "add"]
+				matchList = ["push", "xor", "xchg", "pop", "sub", "add"]
 			# dprint2("back = " + str(back))
 			# CODED2 = data[(address-(NumOpsBack-back)):(address+x)]
 				flag = False
@@ -7216,7 +7080,7 @@ def findAllPebSequences_old2(mode, data2=None, secNum=None): ################## 
 				# print("Time: ", (end-start))
 			end = time.time()
 			print("\nElapsed time: ", end-startTime)
-#p1
+
 def findAllPebSequences(mode, data2=None, secNum=None): ################## AUSTIN ######################
 
 	# global rawHex
@@ -7227,10 +7091,7 @@ def findAllPebSequences(mode, data2=None, secNum=None): ################## AUSTI
 		if shellBit == 32:
 			for match in PEB_WALK.values(): #iterate through all opcodes representing combinations of registers
 				# ans=get_PEB_walk_start(mode, 19, match, "noSec", data2) #19 hardcoded for now, seems like good value for peb walking sequence
-				# ans=get_PEB_walk_start(mode, 19, match, "noSec", rawData2)
-				#ind(numOps, match, secNum, data2, funcName = None):
-				ans = optimized_find(19, match, "noSec", rawData2, "disHerePEB", mode=mode)
-				 #19 hardcoded for now, seems like good value for peb walking sequence
+				ans=get_PEB_walk_start(mode, 19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
 				# print ("ans", ans)
 
 				if mode=="decrypt" and ans is not None:
@@ -9046,6 +8907,7 @@ def AustinTesting4():
 
 def AustinTestingStub():
 	global filename
+	#stub end = 21
 	analyzeDecoderStubs(filename)
 
 def AustinTesting3():
@@ -9901,7 +9763,6 @@ def createDisassemblyLists():
 	# for e in listDisassembly:
 	# 	print (str(hex(listOffset[t])) + " " + e + "\n")
 	# 	t+=1
-
 	return listOffset, listDisassembly
 
 def clearTempDis():
@@ -11196,7 +11057,6 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack):
 		rawData2=rawBytes
 		shellBytes=rawData2
 	i=startingAddress
-	# shBy.offsets = [i for i in shellBytes]
 	for x in shellBytes:
 		shBy.offsets.append(i)
 		shBy.values.append(x)
@@ -11217,7 +11077,6 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack):
 		findStrings(shellBytes,3)
 		findStringsWide(shellBytes,3)
 		findPushAsciiMixed(shellBytes,3)
-
 	anaFindFF(shellBytes)
 	out=findRange(shellBytes, startingAddress)  #1st time helps do corrections
 	anaFindFF(shellBytes)
@@ -12446,8 +12305,10 @@ def bramwellEncodeDecodeWork(shellArg):
 	#in uidiscover -- findallpebseqold is still being used for shellcode -- why? fix for new one to work with both
 
 	#start printing at "address" in printsavedpushret() and have check for when to start
-	#check callpop print ending when using .exe and in diff sections
+	#check callpop print ending when using .exe and in diff sections - different sections still need to check
 	# check 64bit peb logic -- finding only 1 point where it should 2???
+	#fix numoperations in ui to be autogenerated
+	#check specialencoder5 maybe test list comprehension in decrypt?
 
 #done
 ############## output file complete for decrypt stuff -- still needs formatting maybe
@@ -12464,7 +12325,7 @@ def bramwellEncodeDecodeWork(shellArg):
 ############## 
 
 
-def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = False, distributed = False, cpuCount = "auto", nodesFile = "nodes.txt", outputFile = True):
+def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = False, distributed = False, cpuCount = "auto", nodesFile = "nodes.txt", outputFile = True, mode = "default", stubParams = ([],[]), listComp = False):
 
 	global shellEntry
 	global decodedBytes	
@@ -12621,10 +12482,57 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 				# return
 
 	# non-distributed
+	elif(mode == "stub"):
+		if(opsLen >= 1 and opsLen <= 5):
+			outputs,earlyFinish,startVals = austinDecode(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount, mode = "stub", stubParams = stubParams)
+			decodeInfo = outputs
+
+			for item in decodeInfo:
+					print("############# DECODED ################")
+					try:
+						print("Decoded Bytes: ")
+						print(binaryToStr(item[0]))
+						decodedBytes = item[0]
+						print("\n")
+					except:
+						print(item[0])
+					i = 1
+
+					# decodeValues = re.match("^a[0-9]+b[0-9]+c[0-9]+(d[0-9]+)?(e[0-9]+)?", item[1], re.IGNORECASE)
+					# if(decodeValues):
+						# decodeValues = decodeValues.group()
+						# print("DECODE VALUES: ", decodeValues)
+					decodeValues = item[1].splitlines()
+					decodeValues = decodeValues[-1]
+					# print("Decoding Values: ", decodeValues)
+					print("Decoding Values: ")
+					# decodeValues = re.split("\d+", decodeValues)
+					decodeValues = re.findall('(\d+|[A-Za-z]+)', decodeValues)
+					isNum = False
+					for item2 in decodeValues:
+						if(not isNum):
+							print(item2, "= ", end="")
+						else:
+							print(item2)
+						isNum = not isNum
+						# print(item2)
+					operationOrder = item[3]
+					print("\nOperations: ")
+					for item2 in operationOrder:
+						print(item2, end="")
+					# for x in item[1:]:
+					# 	print("item[",i,"]")
+					# 	print(x)
+					# 	i +=1
+					print("\n\n")
 	else:
 		if(opsLen >= 1 and opsLen <= 5):
-			outputs,earlyFinish,startVals = austinDecode(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount)
-			decodeInfo = outputs
+			if(listComp):
+				outputs,earlyFinish,startVals = austinListComp(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount)
+				decodeInfo = outputs
+			else:
+				outputs,earlyFinish,startVals = austinDecode(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount)
+				decodeInfo = outputs
 
 			# print("DECODEINFO MANUAL ATTEMPT")
 			# print("STARTVALS: ",decodeInfo[0][2])
@@ -12758,7 +12666,8 @@ def decryptUI():
 	global filename
 
 	try:
-		decryptBytes = readShellcode(filename) 
+		decryptFile = filename	
+		decryptBytes = readShellcode(decryptFile) 
 	except:
 		print("Couldn't read command line input file, reverting to default...")
 		decryptBytes = b''
@@ -12776,21 +12685,6 @@ def decryptUI():
 				print("Invalid file.")
 				pass
 
-		elif(entry == "n"):
-			invalidNum = True
-			while(invalidNum):
-				print("Enter number of operations 1-5 [", decryptNumOps, "]: ")
-				try:
-					num = input()
-					if(int(num) >= 1 and int(num) <=5):
-						decryptNumOps = num
-						invalidNum = False
-					else:
-						print("Invalid entry.")
-				except:
-					print("Invalid entry.")
-					pass
-
 		elif(entry == "o"):
 			#TODO: this should match num of operations selected, use that param for a for loop or something instead of current way
 			#		separate my spaces OR commas
@@ -12805,7 +12699,7 @@ def decryptUI():
 
 			invalid = True
 			while(invalid):
-				ops = input("\n\nEnter operations, separated by commas [E.g. +,-,^]: \n> ")
+				ops = input("\n\nEnter 1-5 operations, separated by commas [E.g. +,-,^]: \n> ")
 				ops = ops.split(",")
 				decryptOpTypes = ops
 				invalid = False
@@ -12828,6 +12722,7 @@ def decryptUI():
 					else:
 						print("Invalid selection.")
 						invalid = True
+				decryptNumOps = len(decryptOpTypes)
 
 		elif(entry == "d"):
 			advancedDecryptMenu()
@@ -12871,10 +12766,29 @@ def decryptUI():
 			decryptBytes = encodeShellcodeTesting(decryptBytes, decryptEncodingVals)
 
 		elif(entry == "s"):
-			print("Entering decoder stub testing...")
-			numVals,opTypes = analyzeDecoderStubs()
+			print("Entering decoder stub mode...")
+			sameFile = True
+			altFile = input("Use different file for decoder stub? y/n: ")
+			if(altFile == 'n'):
+				stubFile = decryptFile
+			else:
+				sameFile = False
+				stubFile = input("Enter decoder stub filename: ")
+
+			entrypoint = input("Enter entrypoint: ")
+			stubEnd = '-1' #leaving it on default (autodetect) for now.
+			# stubEnd = input("Enter offset for end of stub: ")
+			
+
+
+			numVals,opTypes,stubEnd = analyzeDecoderStubs(shellArg = stubFile, entryPoint = entrypoint, stubEnd = stubEnd)
+			if(sameFile):
+				decryptBytes = decryptBytes[stubEnd:]
 			print("Got these values from stub: ", numVals)
 			print("Got these operations from stub: ", opTypes)
+			print("Got stubEnd offset: ", stubEnd)
+			input("press enter to proceed...")
+			decodedBytes = decryptShellcode(decryptBytes, decryptOpTypes, findAll = dFindAll, fastMode = dFastMode, distributed = dDistr, cpuCount = dCPUcount, nodesFile = dNodesFile, outputFile = dOutputFile, mode = "stub", stubParams = (numVals,opTypes))
 
 		elif(entry == "g"):
 			confirm = print("Run decryption with these settings?")
@@ -12889,6 +12803,21 @@ def decryptUI():
 			if(confirm == "y"):
 				decodedBytes = decryptShellcode(decryptBytes, decryptOpTypes, findAll = dFindAll, fastMode = dFastMode, distributed = dDistr, cpuCount = dCPUcount, nodesFile = dNodesFile, outputFile = dOutputFile)
 				return
+
+		elif(entry == "l"):
+			confirm = print("Run listcomp decryption with these settings?")
+			print("Operations: ", decryptOpTypes)
+			print("FindAll: ", dFindAll)
+			print("FastMode: ", dFastMode)
+			print("Distributed: ", dDistr)
+			print("CPUs: ", dCPUcount)
+			print("Nodes File: ", dNodesFile)
+			print("OutputFile: ", dOutputFile)
+			confirm = input("y/n? >")
+			if(confirm == "y"):
+				decodedBytes = decryptShellcode(decryptBytes, decryptOpTypes, findAll = dFindAll, fastMode = dFastMode, distributed = dDistr, cpuCount = dCPUcount, nodesFile = dNodesFile, outputFile = dOutputFile, listComp = True)
+				return
+
 		else:
 			print("Invalid selection.")
 
@@ -12993,19 +12922,24 @@ def printDecryptHelpUI():
 
 	print("\n\n-------DECRYPT MENU-------")
 	print("i - set input file [", decryptFile,"]")
-	print("n - set number of operations [", decryptNumOps,"]")
 	print("o - set operation types ", decryptOpTypes)
 	print("d - advanced settings menu")
+	print("s - decoder stub mode")
 	print("g - go (run decrypt function)")
 	print("h - help (show this screen)")
 	print("\n-------TESTING-------")
 	print("e - apply encoding to input")
 	print("c - change encoding values ", decryptEncodingVals)
-	print("s - decoder stub testing")
+	print("l - go with list comprehension testing")
 
 #stubEnd goes to end of file by default
+#returns: 1. list of detected values | 2. list of detected operations | 3. offset for the end of the decoder stub portion 
 def analyzeDecoderStubs(shellArg="default", entryPoint = 0, stubEnd = -1):
 	
+	entryPoint = int(entryPoint,0)
+	stubEnd = int(stubEnd,0)
+	rawBytes = b''
+
 	if(shellArg == "default"):
 		shellArg = input("Enter decoder stub file: ")
 
@@ -13036,18 +12970,25 @@ def analyzeDecoderStubs(shellArg="default", entryPoint = 0, stubEnd = -1):
 
 		add4 = hex(int(i.address))
 		addb = hex(int(i.address))
+		size = hex(int(i.size))
 		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 		# val2.append(val)
 		# val3.append(add2)
 		disString += val
 
 
-
 		# print("checking this one: ", i.op_str)
 		numeric = re.search("(0x)?([0-9a-f]+)$", i.op_str, re.IGNORECASE)
 		bad = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(int)|(retf)|(db)|(hlt)|(loop)|(ret)|(leave)|(int3)|(insd)|(enter)|(jns))", i.mnemonic, re.M|re.I)
+		
 		if(numeric and not bad):
-				numVals.append(numeric.group())
+			numVals.append(numeric.group())
+		elif(bad):
+			print("Decoder disasm: ")
+			print(disString)
+			#return if we hit a jump -- this is probably the loop portion of our stub
+			#add size of loop instruction with offset to start of the instruction to get offset to first encoded byte
+			return (numVals, opTypes, (int(addb, 16) + int(size, 16)))
 
 		isXor = re.search("^(xor)", i.mnemonic, re.IGNORECASE)
 		isAdd = re.search("^(add)|(adc)", i.mnemonic, re.IGNORECASE)
@@ -13080,7 +13021,7 @@ def analyzeDecoderStubs(shellArg="default", entryPoint = 0, stubEnd = -1):
 	# print(numVals)
 	# print("opTypes here: ")
 	# print(opTypes)
-	return (numVals, opTypes)
+	return (numVals, opTypes,  (int(addb, 16) + int(size, 16)))
 
 def austinEncodeDecodeWork(shellArg, operations = []):
 	#DONE: 	4&5 ops support for everything

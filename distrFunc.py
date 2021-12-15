@@ -234,7 +234,7 @@ def p2EncodeDistr(low, high, encodeBytes4, sample, rank, queue, version, endFlag
 	# if(version == 3):
 	for i in range(low,high):
 		if(endFlag.value >= 1):
-			print("ending early, someone found a match")
+			# print("ending early, someone found a match")
 			queue.put(outs)
 			return
 
@@ -260,7 +260,7 @@ def p2EncodeDistr(low, high, encodeBytes4, sample, rank, queue, version, endFlag
 			if(not findAll):
 				endFlag.value = 1
 			outs.append(output)
-			print("FOUND IN P2ENCODEDISTR BY RANK = ", rank, "FINDALL = ", str(findAll))
+			# print("FOUND IN P2ENCODEDISTR BY RANK = ", rank, "FINDALL = ", str(findAll))
 			#print(output)
 	# elif(version == 4):
 	# 	for i in range(low,high):
