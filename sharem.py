@@ -149,10 +149,11 @@ if numArgs > 1:			# to get full functionality, need to put file location for bin
 		# print("set rawHEx")
 		try: 
 			if(re.match( "^r", sys.argv[2], re.M|re.I)):
-				if(re.match( "(r32)|(raw32)|(raw)|(r)", sys.argv[2], re.M|re.I)):
+				if(re.match( "(r32)|(raw32)|(raw)|(r$)", sys.argv[2], re.M|re.I)):
 					bit32 = True
 				if(re.match( "(r64)|(raw64)", sys.argv[2], re.M|re.I)):
 					bit32 = False
+					print ("rbit64")
 		except Exception as e:
 			print("Invalid path to hex file.")
 			print(e)
@@ -259,8 +260,14 @@ if not skipExtraction:
 		PEtemp = PE_path + "/"+ peName
 
 	if(rawHex):
+		print ("check")
 		bit32 = True #### ADD UI SELECTION LATER #####
 		pe = peName
+if not rawHex:
+	if win32file.GetBinaryType(PEtemp) == 6:
+		bit32 = False	
+	else:
+		bit32 = True
 
 class OSVersion:
 	#Used for list of OSVersions to print for syscall
@@ -9818,7 +9825,7 @@ def modifyStringsRange(start,end, dataType, word):
 
 def modifyPushStringsRange(start,end, dataType, word):
 	dprint2 ("modStringPush " )
-	dprint2 (hex(start),hex(end),datfaType)
+	# dprint2 (hex(start),hex(end),datfaType)
 	global shBy
 	BytesBool=False
 	t=0
@@ -14671,7 +14678,7 @@ if __name__ == "__main__":
 
 	user=AustinID       #comment out, so only one user shows, or is the last one shown.
 
-	# user=AndyID
+	user=AndyID
 	user=BramwellID
 	
 	if user==AustinID:
