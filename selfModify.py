@@ -13,9 +13,9 @@ from lists import PEB_WALK
 import lists
 from capstone import *
 import capstone
+
 def get_PEB_walk_start_decode(mode, NumOpsDis ,bytesToMatch, secNum, data2): 
 	#change to work off of data2 - add param - get rid of secNum
-
 	global o
 	foundCount = 0
 	numOps = NumOpsDis
@@ -46,17 +46,17 @@ def get_PEB_walk_start_decode(mode, NumOpsDis ,bytesToMatch, secNum, data2):
 		if(found):
 			# print("hit a found")
 			# input("enter..")
-			ans = disherePEB_decode_old(mode, t, numOps, secNum, data2)
+			ans = disherePEB_decrypt(mode, t, numOps, secNum, data2)
 			if mode=="decrypt" and ans is not None:
-				print ("got disherepeb", ans)
+				# print ("got disherepeb", ans)
 				return ans
 
 			
 
 		t=t+1
 
-def disherePEB_decode_old(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ##############
-	print ("disHerePEB", mode)
+def disherePEB_decrypt(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ##############
+	# print ("disHerePEB", mode)
 	global o
 	w=0
 
@@ -196,7 +196,7 @@ def disherePEB_decode_old(mode, address, NumOpsDis, secNum, data): ############ 
 
 
 	stop = timeit.default_timer()
-	print("Time PEB: " + str(stop - start))
+	# print("Time PEB: " + str(stop - start))
 
 	if(points >= 2):
 
@@ -204,8 +204,8 @@ def disherePEB_decode_old(mode, address, NumOpsDis, secNum, data): ############ 
 
 
 		if mode=="decrypt":
-			print ("decrypt returning")
-			print (address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, loadModList_offset, advanceDLL_Offset)
+			# print ("decrypt returning")
+			# print (address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, loadModList_offset, advanceDLL_Offset)
 			return address , NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, loadModList_offset, advanceDLL_Offset
 
 
@@ -219,8 +219,8 @@ def findAllPebSequences_decode(mode, inputBytes): ################## AUSTIN ####
 		ans=get_PEB_walk_start_decode(mode, 19, match, "noSec", inputBytes) #19 hardcoded for now, seems like good value for peb walking sequence
 		# print ("ans", ans)
 		if mode=="decrypt" and ans is not None:
-			print ("good, get pet walk")
-			print (ans)
+			# print ("good, get pet walk")
+			# print (ans)
 			return (ans)
 
 
@@ -1417,7 +1417,7 @@ def block_size(id, p, n):
 #stubParams: when being run after analyzing decoder stub, first list in stubParams tuple should be all detected values. The second should be the list of desired operations to try.
 
 def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], findAll = False, cpuCount = "auto", stubParams = ([],[])):
-# def austinDecode(*args):
+# def austinDecode(*args): asdf
 	global aLimit
 	global bLimit
 	global cLimit
@@ -1438,7 +1438,7 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], f
 	global iValue
 
 
-	print("austinDecode")
+	# print("austinDecode")
 	u=0
 	t=0
 
@@ -1492,7 +1492,7 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], f
 			iLimit, iValue=lim, res
 		t+=1
 
-	tempMax(20, 20,20, 3)
+	tempMax(3, 3,3, 3)
 
 	# print ("aLimit", aLimit, aValue)
 	# print ("bLimit", bLimit, bValue)
@@ -1712,11 +1712,10 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], f
 		eachLen = len(permutations)
 
 		eachInd = 0
-		print("mylist2 here: ", mylist2)
+		# print("mylist2 here: ", mylist2)
 
 		if (len(args) == 1):
-			for aNum in numVals:
-				a = aNum
+			for a in numVals:
 				while(eachInd < eachLen ):
 					if(matched == 1):
 						# print("MATCHED FLAG")
@@ -1757,10 +1756,8 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], f
 						matched = rpOut[1]		
 
 		elif(len(mylist2) == 2):
-				for aNum in numVals:
-					a=aNum
-					for bNum in numVals:
-						b=bNum
+				for a in numVals:
+					for b in numVals:
 						eachInd = 0
 						while(eachInd < eachLen ):
 							if(matched == 1):
@@ -1810,14 +1807,14 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], f
 #		loop 3 - 0,5,10
 		# elif len(args == 3):
 		elif(len(mylist2) == 3):
-			for aNum in numVals:
-				for bNum in numVals:
-					for cNum in numVals:
+			for a in numVals:
+				for b in numVals:
+					for c in numVals:
 						while(eachInd < eachLen ):
 							if(matched == 1):
 								# print("MATCHED FLAG")
 								return out,early,startVals
-							encodeBytes4.append((aNum,bNum,cNum,permutations[eachInd]))
+							encodeBytes4.append((a,b,c,permutations[eachInd]))
 							eachInd += 1
 							curPerm += 1
 							if(curPerm > listLimit):
@@ -1831,9 +1828,9 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], f
 								curPerm = 0
 								encodeBytes4 = []
 								hitLimit = True
-								startVals.append(aNum)
-								startVals.append(bNum)
-								startVals.append(cNum)
+								startVals.append(a)
+								startVals.append(b)
+								startVals.append(c)
 								#if we don't want to find them all and we found one of them, we are done
 								if(matched == 1 and findAll == False):
 									early = False
@@ -1857,15 +1854,15 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], f
 		# elif len(args == 4)
 		elif(len(mylist2) == 4):
 		# print("in loop a=", a, "b=", b, "c=", c, "d=", d, "eachInd=", eachInd, "eachLen=", eachLen)
-			for aNum in numVals:
-				for bNum in numVals:
-					for cNum in numVals:
-						for dNum in numVals:
+			for a in numVals:
+				for b in numVals:
+					for c in numVals:
+						for d in numVals:
 							while(eachInd < eachLen):
 								if(matched == 1):
 									# print("MATCHED FLAG")
 									return out,early,startVals
-								encodeBytes4.append((aNum,bNum,cNum,dNum,permutations[eachInd]))
+								encodeBytes4.append((a,b,c,d,permutations[eachInd]))
 								eachInd += 1
 								curPerm += 1
 								if(curPerm > listLimit):
@@ -1879,10 +1876,10 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], f
 									curPerm = 0
 									encodeBytes4 = []
 									hitLimit = True
-									startVals.append(aNum)
-									startVals.append(bNum)
-									startVals.append(cNum)
-									startVals.append(dNum)
+									startVals.append(a)
+									startVals.append(b)
+									startVals.append(c)
+									startVals.append(d)
 									#if we don't want to find them all and we found one of them, we are done
 									if(matched == 1 and findAll == False):
 										early = False
@@ -1905,16 +1902,16 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], f
 
 		# elif len(args == 5):
 		elif(len(mylist2) == 5):
-				for aNum in numVals:
-					for bNum in numVals:
-						for cNum in numVals:
-							for dNum in numVals:
-								for eNum in numVals:
+				for a in numVals:
+					for b in numVals:
+						for c in numVals:
+							for d in numVals:
+								for e in numVals:
 									while(eachInd < eachLen):
 										if(matched == 1):
 											# print("MATCHED FLAG")
 											return out,early,startVals
-										encodeBytes4.append((aNum,bNum,cNum,dNum,eNum,permutations[eachInd]))
+										encodeBytes4.append((a,b,c,d,e,permutations[eachInd]))
 										eachInd += 1
 										curPerm += 1
 										if(curPerm > listLimit):
@@ -1928,11 +1925,11 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], f
 											curPerm = 0
 											encodeBytes4 = []
 											hitLimit = True
-											startVals.append(aNum)
-											startVals.append(bNum)
-											startVals.append(cNum)
-											startVals.append(dNum)
-											startVals.append(eNum)
+											startVals.append(a)
+											startVals.append(b)
+											startVals.append(c)
+											startVals.append(d)
+											startVals.append(e)
 											#if we don't want to find them all and we found one of them, we are done
 											if(matched == 1 and findAll == False):
 												early = False
@@ -2210,17 +2207,17 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], f
 						matched = rpOut[1]
 
 	tupleStop = timeit.default_timer()
-	print("Tuple time: " + str(tupleStop - tupleStart))
+	# print("Tuple time: " + str(tupleStop - tupleStart))
 
-	print("LISTDONE")
+	# print("LISTDONE")
 	# print(encodeBytes4)
 	print(len(encodeBytes4))
 	sortOut = sorted(out)
-	print("LEN SORT PAR", str(len(sortOut)))
+	# print("LEN SORT PAR", str(len(sortOut)))
 
 	
 	stop = timeit.default_timer()
-	print("Total time PAR: " + str(stop - start))
+	print("Total time: " + str(stop - start))
 
 
 	# print ("Total number of iterations:", len(encodeBytes4))
@@ -2233,11 +2230,11 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], f
 
 	finTime=stop-start
 	cores=240
-	print (totalPerm, "Perm")
+	# print (totalPerm, "Perm")
 	numSeconds=0.00001
 
-	print ("end time: ", z/finTime )
-	print ("finTime", finTime)
+	# print ("end time: ", z/finTime )
+	# print ("finTime", finTime)
 	return out, early, startVals
 
 def listHelper(each,a,b,c,sample,encodeBytes4):
@@ -4848,14 +4845,11 @@ def doStuffP2(inputs, sample, rank):
 		eval(newcode) 
 		
 					# encode="encodeBytes.append(new)"
-	try:
-		print (newString, "\n", "a",a, "b",b, "c",c ,"")
-	except:
-		print("ERROR HERE SAMPLE BELOW")
-		print(sample)
+		# print (newString, "\n", "a",a, "b",b, "c",c ,"")
+
 	bytesStr = bytes(encodeBytes)
 	out = newString + "\n" + "a" + str(a) + "b" + str(b) + "c" + str(c)
-	print ("\nencoder5 new", binaryToStr(bytesStr),"\n\n\n")
+	# print ("\nencoder5 new", binaryToStr(bytesStr),"\n\n\n")
 	# return out
 	return (bytesStr, out, list((a,b,c)), each)
 	# return "ok"
@@ -4883,10 +4877,10 @@ def doStuffP24(inputs, sample, rank):
 		eval(newcode) 
 		
 					# encode="encodeBytes.append(new)"
-	print (newString, "\n", "a",a, "b",b, "c",c ,"d",d, "")
+	# print (newString, "\n", "a",a, "b",b, "c",c ,"d",d, "")
 	bytesStr = bytes(encodeBytes)
 	out = newString + "\n" + "a" + str(a) + "b" + str(b) + "c" + str(c) + "d" + str(d)
-	print ("\nencoder5 new", binaryToStr(bytesStr),"\n\n\n")
+	# print ("\nencoder5 new", binaryToStr(bytesStr),"\n\n\n")
 	return (bytesStr, out, list((a,b,c,d)), each)
 	# return out
 	# return "ok"
@@ -4915,10 +4909,10 @@ def doStuffP25(inputs, sample, rank):
 		eval(newcode) 
 		
 					# encode="encodeBytes.append(new)"
-	print (newString, "\n", "a",a, "b",b, "c",c ,"d",d, "e",e, "")
+	# print (newString, "\n", "a",a, "b",b, "c",c ,"d",d, "e",e, "")
 	bytesStr = bytes(encodeBytes)
 	out = newString + "\n" + "a" + str(a) + "b" + str(b) + "c" + str(c) + "d" + str(d) + "e" + str(e)
-	print ("\nencoder5 new", binaryToStr(bytesStr),"\n\n\n")
+	# print ("\nencoder5 new", binaryToStr(bytesStr),"\n\n\n")
 	return (bytesStr, out, list((a,b,c,d,e)), each)
 	# return out
 	# return "ok"
@@ -4945,14 +4939,12 @@ def doStuffP21(inputs, sample, rank):
 		eval(newcode) 
 		
 					# encode="encodeBytes.append(new)"
-	try:
-		print (newString, "\n", "a",a,"")
-	except:
-		print("ERROR HERE SAMPLE BELOW")
-		print(sample)
+
+	# print (newString, "\n", "a",a,"")
+
 	bytesStr = bytes(encodeBytes)
 	out = newString + "\n" + "a" + str(a)
-	print ("\nencoder5 new", binaryToStr(bytesStr),"\n\n\n")
+	# print ("\nencoder5 new", binaryToStr(bytesStr),"\n\n\n")
 	# return out
 	return (bytesStr, out, list((a,)), each)
 	# return "ok"
@@ -4981,14 +4973,12 @@ def doStuffP22(inputs, sample, rank):
 		eval(newcode) 
 		
 					# encode="encodeBytes.append(new)"
-	try:
-		print (newString, "\n", "a",a, "b",b,"")
-	except:
-		print("ERROR HERE SAMPLE BELOW")
-		print(sample)
+
+	# print (newString, "\n", "a",a, "b",b,"")
+
 	bytesStr = bytes(encodeBytes)
 	out = newString + "\n" + "a" + str(a) + "b" + str(b)
-	print ("\nencoder5 new", binaryToStr(bytesStr),"\n\n\n")
+	# print ("\nencoder5 new", binaryToStr(bytesStr),"\n\n\n")
 	# return out
 	return (bytesStr, out, list((a,b)), each)
 	# return "ok"

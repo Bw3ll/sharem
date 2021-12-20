@@ -50,7 +50,7 @@ def get_PEB_walk_start_decodeDistr(mode, NumOpsDis ,bytesToMatch, secNum, data2)
 			# input("enter..")
 			ans = disHerePEB_decodeDistr(mode, t, numOps, secNum, data2)
 			if mode=="decrypt" and ans is not None:
-				print ("got disherepeb", ans)
+				# print ("got disherepeb", ans)
 				return ans
 
 			
@@ -59,7 +59,7 @@ def get_PEB_walk_start_decodeDistr(mode, NumOpsDis ,bytesToMatch, secNum, data2)
 
 def disHerePEB_decodeDistr(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ##############
 	import capstone
-	print ("disHerePEB", mode)
+	# print ("disHerePEB", mode)
 	global o
 	w=0
 
@@ -196,10 +196,10 @@ def disHerePEB_decodeDistr(mode, address, NumOpsDis, secNum, data): ############
 
 	
 	disString = val5
-	print("dishere disString: ", disString)
+	# print("dishere disString: ", disString)
 
 	stop = timeit.default_timer()
-	print("Time PEB: " + str(stop - start))
+	# print("Time PEB: " + str(stop - start))
 
 	if(points >= 2):
 
@@ -207,8 +207,8 @@ def disHerePEB_decodeDistr(mode, address, NumOpsDis, secNum, data): ############
 
 
 		if mode=="decrypt":
-			print ("decrypt returning")
-			print (address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, loadModList_offset, advanceDLL_Offset)
+			# print ("decrypt returning")
+			# print (address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, loadModList_offset, advanceDLL_Offset)
 			return address , NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, loadModList_offset, advanceDLL_Offset
 
 
@@ -222,8 +222,8 @@ def findAllPebSequences_decodeDistr(mode, inputBytes): ################## AUSTIN
 		ans=get_PEB_walk_start_decodeDistr(mode, 19, match, "noSec", inputBytes) #19 hardcoded for now, seems like good value for peb walking sequence
 		# print ("ans", ans)
 		if mode=="decrypt" and ans is not None:
-			print ("good, get pet walk")
-			print (ans)
+			# print ("good, get pet walk")
+			# print (ans)
 			return (ans)
 
 
@@ -293,10 +293,10 @@ def doStuffP21Distr(inputs, sample, rank):
 		newcode=compile(newString,"",'exec')
 		eval(newcode) 
 					# encode="encodeBytes.append(new)"
-	print (newString, "\n", "a",a, "")
+	# print (newString, "\n", "a",a, "")
 	bytesStr = bytes(encodeBytes)
 	out = newString + "\n" + "a" + str(a)
-	print ("\nencoder5 new", binaryToStrDistr(bytesStr),"\n\n\n")
+	# print ("\nencoder5 new", binaryToStrDistr(bytesStr),"\n\n\n")
 	return (bytesStr, out, list((a,)), each)
 	# return out
 	# return "ok"
@@ -323,10 +323,10 @@ def doStuffP22Distr(inputs, sample, rank):
 		newcode=compile(newString,"",'exec')
 		eval(newcode) 
 					# encode="encodeBytes.append(new)"
-	print (newString, "\n", "a",a, "b",b, "")
+	# print (newString, "\n", "a",a, "b",b, "")
 	bytesStr = bytes(encodeBytes)
 	out = newString + "\n" + "a" + str(a) + "b" + str(b)
-	print ("\nencoder5 new", binaryToStrDistr(bytesStr),"\n\n\n")
+	# print ("\nencoder5 new", binaryToStrDistr(bytesStr),"\n\n\n")
 	return (bytesStr, out, list((a,b)), each)
 	# return out
 	# return "ok"
@@ -357,10 +357,10 @@ def doStuffP2Distr(inputs, sample, rank):
 		eval(newcode) 
 		
 					# encode="encodeBytes.append(new)"
-	print (newString, "\n", "a",a, "b",b, "c",c ,"")
+	# print (newString, "\n", "a",a, "b",b, "c",c ,"")
 	bytesStr = bytes(encodeBytes)
 	out = newString + "\n" + "a" + str(a) + "b" + str(b) + "c" + str(c)
-	print ("\nencoder5 new", binaryToStrDistr(bytesStr),"\n\n\n")
+	# print ("\nencoder5 new", binaryToStrDistr(bytesStr),"\n\n\n")
 	# return out
 	return (bytesStr, out, list((a,b,c)), each)
 	# return "ok"
@@ -388,10 +388,10 @@ def doStuffP24Distr(inputs, sample, rank):
 		newcode=compile(newString,"",'exec')
 		eval(newcode) 
 					# encode="encodeBytes.append(new)"
-	print (newString, "\n", "a",a, "b",b, "c",c ,"d",d, "")
+	# print (newString, "\n", "a",a, "b",b, "c",c ,"d",d, "")
 	bytesStr = bytes(encodeBytes)
 	out = newString + "\n" + "a" + str(a) + "b" + str(b) + "c" + str(c) + "d" + str(d)
-	print ("\nencoder5 new", binaryToStrDistr(bytesStr),"\n\n\n")
+	# print ("\nencoder5 new", binaryToStrDistr(bytesStr),"\n\n\n")
 	return (bytesStr, out, list((a,b,c,d)), each)
 	# return out
 	# return "ok"
@@ -421,10 +421,10 @@ def doStuffP25Distr(inputs, sample, rank):
 		eval(newcode) 
 		
 					# encode="encodeBytes.append(new)"
-	print (newString, "\n", "a",a, "b",b, "c",c ,"d",d, "e",e, "")
+	# print (newString, "\n", "a",a, "b",b, "c",c ,"d",d, "e",e, "")
 	bytesStr = bytes(encodeBytes)
 	out = newString + "\n" + "a" + str(a) + "b" + str(b) + "c" + str(c) + "d" + str(d) + "e" + str(e)
-	print ("\nencoder5 new", binaryToStrDistr(bytesStr),"\n\n\n")
+	# print ("\nencoder5 new", binaryToStrDistr(bytesStr),"\n\n\n")
 	return (bytesStr, out, list((a,b,c,d,e)), each)
 	# return out
 	# return "ok"

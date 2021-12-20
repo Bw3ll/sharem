@@ -485,92 +485,93 @@ def setAll():
 	setReg(ebpVal, False, "ebp")
 	setReg(espVal, False, "esp")
 
+runThis = 3
+if(runThis == 2):
+	# def testingAssembly():
+	setReg(strHex, True, "eax")
 
-# def testingAssembly():
-setReg(strHex, True, "eax")
+	setReg(strHex, False, "eax")
 
-setReg(strHex, False, "eax")
+	# test="0xaa"
+	# test2="0x2"
+	# print (hxRStr(test2))
 
-# test="0xaa"
-# test2="0x2"
-# print (hxRStr(test2))
+	# print ("\nresults:")
+	# for r1,r2,r3,r4,s in realEAX:
+	# 	print (hxRStr(str(hex(r2))))
 
-# print ("\nresults:")
-# for r1,r2,r3,r4,s in realEAX:
-# 	print (hxRStr(str(hex(r2))))
-
-# print ("\nHexresults:")
-# for r1,r2,r3,r4,s in realEAX:
-# 	res= hxR(r1)+hxR(r2)+hxR(r3)+hxR(r4)
-# 	print( res+"\n")
-
-
-# print ("print ret432 eax:")
-# print( retR32("eax", "x")+"\n")
-
-# print (realEAX)
-
-r1, r2, r3, r4,s= realEAX[len(realEAX)-1]
-# print( r1,r2,r3,r4)
-
-# print ("ebx")
-# print (realEBX)
-# print (realEBX2)
-
-# print ("eCx")
-# print (realECX)
-# print (realECX2)
-# print (hex(retR32Int("ebx")))
-
-# print( "before ebp")
-# print (hex(retR32Int("ebp")))
-# print ("\n***")
-addReg16b("0x0044", False, "ebp","16b")
-
-# print ("\nafter1 ebp")
-# print (hex(retR32Int("ebp")))
-
-# print ("\nadd")
-
-# print ("\nafter2")
-# print (hex(retR32Int("ebp")))
-# print (realESI2)
+	# print ("\nHexresults:")
+	# for r1,r2,r3,r4,s in realEAX:
+	# 	res= hxR(r1)+hxR(r2)+hxR(r3)+hxR(r4)
+	# 	print( res+"\n")
 
 
+	# print ("print ret432 eax:")
+	# print( retR32("eax", "x")+"\n")
 
-# print (realEAX)
-addReg16b("0x0099", True, "eax","16b")
-# print (realEAX)
+	# print (realEAX)
 
-# print ("***")
+	r1, r2, r3, r4,s= realEAX[len(realEAX)-1]
+	# print( r1,r2,r3,r4)
 
-addReg16b("0x0099", True, "eSP","16b")
-# print (realESP)
+	# print ("ebx")
+	# print (realEBX)
+	# print (realEBX2)
 
+	# print ("eCx")
+	# print (realECX)
+	# print (realECX2)
+	# print (hex(retR32Int("ebx")))
 
-# print ("set reg***")
-setReg16("0x0022", False, "ebx")
-# print (realEBX2)
+	# print( "before ebp")
+	# print (hex(retR32Int("ebp")))
+	# print ("\n***")
+	addReg16b("0x0044", False, "ebp","16b")
 
+	# print ("\nafter1 ebp")
+	# print (hex(retR32Int("ebp")))
 
-# print ("\nnew testing")
-setReg("0x0040aabb", False, "ecx")
-# print (hex(retR32Int("ecx")))
-addReg16b("0xdd000000", False,"ecx", "32")
-# print (hex(retR32Int("ecx")))
+	# print ("\nadd")
 
-readRegs()
-
-setAll()
-# print ("show")
-showAllRegs()
-
-print ("my test")
-# setReg("0x0044", False, "eax")
-showAllRegs()
+	# print ("\nafter2")
+	# print (hex(retR32Int("ebp")))
+	# print (realESI2)
 
 
-res1=12
-res2=23
-ans="0x{0:08x}".format(res1)
-print (ans)
+
+	# print (realEAX)
+	addReg16b("0x0099", True, "eax","16b")
+	# print (realEAX)
+
+	# print ("***")
+
+	addReg16b("0x0099", True, "eSP","16b")
+	# print (realESP)
+
+
+	# print ("set reg***")
+	setReg16("0x0022", False, "ebx")
+	# print (realEBX2)
+
+
+	# print ("\nnew testing")
+	setReg("0x0040aabb", False, "ecx")
+	# print (hex(retR32Int("ecx")))
+	addReg16b("0xdd000000", False,"ecx", "32")
+	# print (hex(retR32Int("ecx")))
+
+	readRegs()
+
+	setAll()
+	# print ("show")
+	showAllRegs()
+
+	print ("my test")
+	# setReg("0x0044", False, "eax")
+	showAllRegs()
+
+
+	res1=12
+	res2=23
+	ans="0x{0:08x}".format(res1)
+	print (ans)
