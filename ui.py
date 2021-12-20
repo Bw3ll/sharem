@@ -35,22 +35,22 @@ def showOptions(shellBit):
 """
 	optionsLabel = yel + optionsLabel + res
 	options = """
-  h:		{}
-  d:		{}
-  D:		{}
-  i:		{}
-  p:		{}
-  b:		{}
-  q:		{}
-  s:		{}
-  k:		{}
-  j:		{}
-  m:		{}
-  e:		{}
-  o:		{}
-  a:		{}
-  c:		{}
-  x:		{}
+   h:		{}
+   d:		{}
+   D:		{}
+   i:		{}
+   p:		{}
+   b:		{}
+   q:		{}
+   s:		{}
+   k:		{}
+   j:		{}
+   m:		{}
+   e:		{}
+   o:		{}
+   a:		{}
+   c:		{}
+   x:		{}
 	""".format( cya +"Display options."+res, 
 				cya+ "Disassembly of shellcode submenu"+res, 
 				cya+ "Disassemble shellcode"+res, 
@@ -90,7 +90,7 @@ def printBitMenu():
 
 def displayCurrentInstructions(bPushRet, bCallPop, bFstenv, bEgg, bHeaven, bPEB, bDisass, bAll): #Display current shellcode instruction selections
 	info = ''
-	info = "Shellcode instructions:\n"
+	info = " Shellcode instructions:\n"
 	info += yel +"\tpr"+res+cya+" - Push ret\t\t\t"+res+"[" 
 	info += yel +"x" +res if bPushRet else " "
 	info += "]\n"
@@ -119,7 +119,7 @@ def displayCurrentInstructions(bPushRet, bCallPop, bFstenv, bEgg, bHeaven, bPEB,
 	print(info)
 
 def displayCurrentSelections(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisass, bpAll): #Displays current print selections
-	iMenu = "Selections to print:\n"
+	iMenu = " Selections to print:\n"
 	iMenu += cya + "\tpr"+yel+" - Push ret\t\t\t[" 
 	iMenu += cya + "x" + res if bpPushRet else " "
 	iMenu += yel +"]\n" +res
@@ -163,58 +163,58 @@ def displayCurrentSelections(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven
 #ui Discover Menu text
 def instructionsMenu(bPushRet, bCallPop, bFstenv, bEgg, bHeaven, bPEB, bDisass, bAll):
 	iMenu = "\n"
-	iMenu += "Selections to find:\n"
-	iMenu += yel +"\tpr"+res+cya+" - Push ret\t\t\t"+res+"[" 
-	iMenu += yel +"x" +res if bPushRet else " "
+	iMenu += " Selections to find:\n"
+	iMenu += cya +"\tpr"+res+yel+" - Push ret\t\t\t"+res+"[" 
+	iMenu += cya +"x" +res if bPushRet else " "
 	iMenu += "]\n"
-	iMenu += yel +"\tcp"+res+cya+" - Call pop / GetPC\t\t"+res+"[" 
-	iMenu += yel +"x" +res if bCallPop else " "
+	iMenu += cya +"\tcp"+res+yel+" - Call pop / GetPC\t\t"+res+"[" 
+	iMenu += cya +"x" +res if bCallPop else " "
 	iMenu += "]\n"
-	iMenu += yel + "\tfe"+res+cya+" - Fstenv / GetPC\t\t"+res+"[" 
-	iMenu += yel +"x"+res if bFstenv else  " "
+	iMenu += cya + "\tfe"+res+yel+" - Fstenv / GetPC\t\t"+res+"[" 
+	iMenu += cya +"x"+res if bFstenv else  " "
 	iMenu += "]\n"
-	iMenu += yel +"\tsy"+res+cya+" - Windows syscall\t\t"+res+"[" 
-	iMenu += yel +"x"+res if bEgg else " "
+	iMenu += cya +"\tsy"+res+yel+" - Windows syscall\t\t"+res+"[" 
+	iMenu += cya +"x"+res if bEgg else " "
 	iMenu += "]\n"
-	iMenu += yel + "\thg"+res+cya+" - Heaven's gate\t\t"+res+"[" 
-	iMenu += yel +"x"+res if bHeaven else " "
+	iMenu += cya + "\thg"+res+yel+" - Heaven's gate\t\t"+res+"[" 
+	iMenu += cya +"x"+res if bHeaven else " "
 	iMenu += "]\n"
-	iMenu += yel +"\tpb"+res+cya+" - Walking the PEB\t\t"+res+"[" 
-	iMenu += yel +"x"+res if bPEB else " "
+	iMenu += cya +"\tpb"+res+yel+" - Walking the PEB\t\t"+res+"[" 
+	iMenu += cya +"x"+res if bPEB else " "
 	iMenu += "]\n"
-	iMenu += yel +"\tfd"+res+cya+" - Find disassembly\t\t"+res+"["
-	iMenu += yel +"x"+res if bDisass else " "
+	iMenu += cya +"\tfd"+res+yel+" - Find disassembly\t\t"+res+"["
+	iMenu += cya +"x"+res if bDisass else " "
 	iMenu += "]\n"
-	iMenu += yel +"\tall"+res+cya+" - All selections\t\t"+res+"["
-	iMenu += yel +"x"+res if bAll else " "
+	iMenu += cya +"\tall"+res+yel+" - All selections\t\t"+res+"["
+	iMenu += cya +"x"+res if bAll else " "
 	iMenu += "]\n\t\t*Default\n\n"
-	iMenu += yel +"\nh"+res+cya+" - Show options.\n"
-	iMenu += yel + "g"+res+cya+" - Toggle selections.\n"
-	iMenu += yel + "c"+res+cya+" - Clear all selections.\n"
-	iMenu += yel +"s"+res+cya+" - Change technical setttings for finding shellcode instructions.\n"
-	iMenu += yel + "z"+res+cya+" - Find instructions.\n"
-	iMenu += yel + "r"+res+cya+" - Reset found instructions.\n"
-	iMenu += yel + "x"+res+cya+" - Exit.\n" + res
+	iMenu += cya +"\n h"+res+yel+" - Show options.\n"
+	iMenu += cya + " g"+res+yel+" - Toggle selections.\n"
+	iMenu += cya + " c"+res+yel+" - Clear all selections.\n"
+	iMenu += cya +" s"+res+yel+" - Change technical setttings for finding shellcode instructions.\n"
+	iMenu += cya + " z"+res+yel+" - Find instructions.\n"
+	iMenu += cya + " r"+res+yel+" - Reset found instructions.\n"
+	iMenu += cya + " x"+res+yel+" - Exit.\n" + res
 	print(iMenu)
 
 def instructionSelectMenu():
-	iSMenu = "\n\n...................\n"
-	iSMenu += "Toggle Instructions"
-	iSMenu += "\n...................\n"
-	iSMenu += "Enter each instruction set code to toggle, delimitied by a space.\n"
-	iSMenu +="\te.g. cp, fe, peb, all, none\n\n"
-	iSMenu +="x to exit.\n\n"
+	iSMenu = "\n\n ...................\n"
+	iSMenu += " Toggle Instructions"
+	iSMenu += "\n ...................\n"
+	iSMenu += " Enter each instruction set code to toggle, delimitied by a space.\n"
+	iSMenu +="\t e.g. cp, fe, peb, all, none\n\n"
+	iSMenu +=" x to exit.\n\n"
 	print(iSMenu)
 
 def techSettingsMenu(bytesForward, bytesBack, linesForward, linesBack):
 	tMenu =  "\n"
-	tMenu += "Global PE settings:\n"
+	tMenu += " Global PE settings:\n"
 	tMenu += cya + "\t Max bytes to dissassemble forward:  " + yel + str(bytesForward) + res
 	tMenu += "\n"
 	tMenu += cya + "\t Max bytes to dissassemble backward: " + yel + str(bytesBack) + res
 	tMenu += "\n\n"
 
-	tMenu += "Global Shellcode settings:\n"
+	tMenu += " Global Shellcode settings:\n"
 
 	tMenu += cya + "\t Max instructions to check forward:  " + yel + str(linesForward) + res
 	tMenu += "\n"
@@ -285,7 +285,7 @@ def printMenu(bpPushRet, bpCallPop, bpFstenv, bpEgg, bpHeaven, bpPEB, bExportAll
 	else:
 		p2screen = " "
 
-	iMenu = "Selections to print:\n"
+	iMenu = " Selections to print:\n"
 	iMenu += cya + "\tpr"+yel+" - Push ret\t\t\t["+res 
 	iMenu += cya + "x" + res if bpPushRet else " "
 	iMenu += yel + "]\n" + res
@@ -322,16 +322,16 @@ def printMenu(bpPushRet, bpCallPop, bpFstenv, bpEgg, bpHeaven, bpPEB, bExportAll
 	iMenu += cya + "\tall"+yel+" - All selections\t\t["
 	iMenu += cya + "x" if bpAll else " "
 	iMenu += yel + "]\n\t\t*Default\n\n" + res
-	iMenu += "{} - Export all to JSON. \t[".format(cya + "j"+ res)
+	iMenu += " {} {} \t[".format(cya + "j"+ res, yel + "- Export all to JSON." + res)
 	iMenu += cya + "x" + res if bExportAll else " "
 	iMenu += "]\n"
-	iMenu += "{} - Print to screen \t\t[{}]\n".format(cya + "p" + res, cya + p2screen + res)
-	iMenu += "{} - Show options.\n".format(cya + "h" + res)
-	iMenu += "{} - Clear all print selections.\n".format(cya + "c" + res)
-	iMenu += "{} - Windows syscall submenu.\n".format(cya + "s" + res)
-	iMenu += "{} - Toggle selections.\n".format(cya + "g" + res)
-	iMenu += "{} - Print selections.\n".format(cya + "z" + res)
-	iMenu += "{} - Exit.\n".format(cya + "x" + res)
+	iMenu += " {} {} \t\t[{}]\n".format(cya + "p" + res, yel + "- Print to screen" + res, cya + p2screen + res)
+	iMenu += " {} {}\n".format(cya + "h" + res, yel + "- Show options." + res)
+	iMenu += " {} {}\n".format(cya + "c" + res, yel + "- Clear all print selections." + res)
+	iMenu += " {} {}\n".format(cya + "s" + res, yel + "- Windows syscall submenu." + res)
+	iMenu += " {} {}\n".format(cya + "g" + res, yel + "- Toggle selections." + res)
+	iMenu += " {} {}\n".format(cya + "z" + res, yel + "- Print selections." + res)
+	iMenu += " {} {}\n".format(cya + "x" + res, yel + "- Exit." + res)
 	print(iMenu)
 
 def osFindSelectionPrint(osVersion):
@@ -339,6 +339,7 @@ def osFindSelectionPrint(osVersion):
 		return osVersion.toggle
 
 	else:
+		
 		print("false")
 
 def osFindSelection(osVersion):	
@@ -356,7 +357,7 @@ def osFindSelection(osVersion):
 def syscallPrintSubMenu(syscallSelection, showDisassembly, syscallPrintBit, showOptions):
 	vMenu = ""
 	if(showOptions):
-		vMenu += " Selections:\n"
+		vMenu += yel + " Selections:\n" + res
 	nada = ""
 	column1 = 0 		#The col1 position in syscallSelection
 	column2 = 0
@@ -423,7 +424,7 @@ def syscallPrintSubMenu(syscallSelection, showDisassembly, syscallPrintBit, show
 
 				#Format Categories
 				else:
-					vMenu += (' {:<4s} {:<17s}  {:<8}'.format(syscallSelection[column1].code, syscallSelection[column1].name, osFindSelection(syscallSelection[column1]))) 
+					vMenu += (' {:<4s} {:<17s}  {:<8}'.format(syscallSelection[column1].code , syscallSelection[column1].name, osFindSelection(syscallSelection[column1]))) 
 				column1 += 1
 				if column1 >= (len(syscallSelection)):
 							column1 = -1
@@ -446,19 +447,19 @@ def syscallPrintSubMenu(syscallSelection, showDisassembly, syscallPrintBit, show
 	vMenu += "\n"
 
 	if showOptions:
-		vMenu += "\nFunctional Commands:\n"
-		vMenu += "h - Options.\n"
-		vMenu += "c - Clear syscall selections.\n"
-		vMenu += "g - Enter syscall selections.\n"
-		vMenu += "b - Change bit mode for syscall.\t\t["
+		vMenu += "\n Functional Commands:\n\n"
+		vMenu += " {} - Options.\n".format(cya + "h" + res)
+		vMenu += " {} - Clear syscall selections.\n".format(cya + "c" + res)
+		vMenu += " {} - Enter syscall selections.\n".format(cya + "g" + res)
+		vMenu += " {} - Change bit mode for syscall.\t[".format(cya + "b" + res)
 		vMenu += str(syscallPrintBit)
 		vMenu += "]\n"
-		vMenu += "d - Display disassembly.\t["
+		vMenu += " {} - Display disassembly.\t[".format(cya + "d" + res)
 		vMenu += "x" if showDisassembly else " "
 		vMenu += "]\n"
-		vMenu += "z - Print syscalls.\n"
+		vMenu += " {} - Print syscalls.\n".format(cya + "z" + res)
 		# vMenu += "b - Change bits 64]\n"
-		vMenu += "x - Exit.\n"
+		vMenu += " {} - Exit.\n".format(cya + "x" + res)
 
 	print(vMenu)
 
@@ -481,14 +482,14 @@ def printModulesMenu(modulesMode):
 		iMenu += "\t[ ]\n"
 	iMenu += "\t\t*Default\n"
 	iMenu += "\t\t**This must be selected to find InMemoryOrderModuleList.\n"
-	iMenu += "\th - Show options.\n"
-	iMenu += "\tp - Print.\n"
-	iMenu += "\tz - Execute.\n"
-	iMenu += "\tr - Reset InMemoryOrderModuleList.\n"
-	iMenu += "\tx - Exit.\n"
+	iMenu += "\t h - Show options.\n"
+	iMenu += "\t p - Print.\n"
+	iMenu += "\t z - Execute.\n"
+	iMenu += "\t r - Reset InMemoryOrderModuleList.\n"
+	iMenu += "\t x - Exit.\n"
 	print(iMenu)
 
-def 	stringMenu(bAsciiStrings, bWideCharStrings, bPushStackStrings, bAllStrings, s, useStringsFile, stringsEmu):
+def stringMenu(bAsciiStrings, bWideCharStrings, bPushStackStrings, bAllStrings, s, useStringsFile, stringsEmu):
 	if useStringsFile:
 		strFile = "Yes"
 	else:
@@ -499,26 +500,26 @@ def 	stringMenu(bAsciiStrings, bWideCharStrings, bPushStackStrings, bAllStrings,
 	else:
 		emu = "No"
 	iMenu = ''
-	iMenu += "Strings to find:\n"
-	iMenu += yel + "\tas - ASCII strings\t[" + res
+	iMenu += gre + " Strings to find:\n\n" + res
+	iMenu += cya + "\tas"+ yel + " - ASCII strings\t[" + res
 	iMenu += cya + "x"+res if bAsciiStrings else " "
 	iMenu += yel + "]\n" + res
-	iMenu += yel +"\twc - Wide char strings\t[" + res
+	iMenu += cya + "\twc"+ yel + " - Wide char strings\t[" + res
 	iMenu += cya + "x" +res if bWideCharStrings else " "
 	iMenu += yel + "]\n" + res
-	iMenu += yel + "\tps - Push stack strings\t[" + res
+	iMenu += cya + "\tps"+ yel + " - Push stack strings\t[" + res
 	iMenu += cya + "x"+res if bPushStackStrings else " "
 	iMenu += yel + "]\n" + res
-	iMenu += yel + "\tall - All strings\t[" + res
+	iMenu += cya + "\tall"+ yel + " - All strings\t[" + res
 	iMenu += cya + "x" +res if bAllStrings else " "
 	iMenu += yel + "]\n\n" + res
 	# iMenu += "Sections:\n"
 	# for sec in s:
 	# 	iMenu += "\t" + sec.sectionName.decode() + "\n"
 	# iMenu += "\n"
-	iMenu += "h - Show options.\n"
-	iMenu += "g - Toggle selections.\n\n"
-	iMenu += "Strings emulation:\n"
+	iMenu += cya + " h"+yel + " - Show options.\n"
+	iMenu += cya + " g"+yel +" - Toggle selections.\n\n"
+	iMenu += gre + " Strings emulation:\n\n" + res
 	iMenu += yel+"\tm - Manually set register values for emulation.\n" + res
 	
 	iMenu +=gre+ "\t\tNote: This is only a sanity check.\n" + res
@@ -527,12 +528,11 @@ def 	stringMenu(bAsciiStrings, bWideCharStrings, bPushStackStrings, bAllStrings,
 	iMenu +=yel+ "\te - Enable emulation of stack strings with use of registers ["+res +"{}".format(cya + emu + res) + yel + "]\n" + res
 	iMenu +=gre+ "\t\tNote: This should not be used ordinarily.\n" + res
 	iMenu +=yel+ "\ts - Check accuracy of found stack strings.\n\n" + res
-	iMenu += "c - Clear selections.\n"
-	iMenu += "p - Print found strings.\n"
-	
-	iMenu += "z - Find strings.\n"
-	iMenu += "r - Reset found strings.\n"
-	iMenu += "x - Exit.\n"
+	iMenu += cya + " c"+yel + " - Clear selections.\n"
+	iMenu += cya + " p"+yel + " - Print found strings.\n"
+	iMenu += cya + " z"+yel + " - Find strings.\n"
+	iMenu += cya + " r"+yel + " - Reset found strings.\n"
+	iMenu += cya + " x"+yel + " - Exit.\n"
 	print(iMenu)
 
 
@@ -572,10 +572,10 @@ def disToggleMenu(toggList=None):
   Selections:
 
   """
-	text += "\t{}      [{}]\n".format(yel + "  s - Find strings in shellcode"+ res, cya + strTogg + res)
-	text += "\t{}     [{}]\n".format(yel + "  d - Use deobfuscated shellcode"+ res, cya + deobfTogg + res)
-	text += "\t{} [{}]\n".format(yel + "  p - Find all shellcode insructions"+ res, cya + findshellTogg+ res)
-	text += "\t{} [{}]\n".format(yel + "  c - Enable comments in disassembly"+ res, cya + commentsTogg+ res)
+	text += "\t{}      [{}]\n".format(cya + "  s"+yel+" - Find strings in shellcode"+ res, cya + strTogg + res)
+	text += "\t{}     [{}]\n".format(cya + "  d"+yel+" - Use deobfuscated shellcode"+ res, cya + deobfTogg + res)
+	text += "\t{} [{}]\n".format(cya + "  p"+yel+" - Find all shellcode insructions"+ res, cya + findshellTogg+ res)
+	text += "\t{} [{}]\n".format(cya + "  c"+yel+" - Enable comments in disassembly"+ res, cya + commentsTogg+ res)
 
 	print(text)
   	# s - Find strings in shellcode      [{}]

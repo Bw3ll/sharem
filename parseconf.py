@@ -6,13 +6,13 @@ from helpers import Singleton
 
 class Configuration(metaclass=Singleton):
 
-    def __init__(self):
-        pass
+    def __init__(self, cfgFile):
+        self.cfgFile = cfgFile
 
     def readConf(self):
         conf = configparser.RawConfigParser()
         _path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "config.cfg"
+            os.path.dirname(os.path.abspath(__file__)), self.cfgFile
                 )
         conf.read(_path)
         self.config = conf
@@ -22,7 +22,7 @@ class Configuration(metaclass=Singleton):
 
         conf = configparser.RawConfigParser()
         _path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "config.cfg"
+            os.path.dirname(os.path.abspath(__file__)), self.cfgFile
                 )
         conf.read(_path)
         self.config = conf
@@ -31,7 +31,7 @@ class Configuration(metaclass=Singleton):
         sharem_strings = self.config.items('SHAREM STRINGS')
         sharem_search = self.config.items('SHAREM SEARCH')
         sharem_syscalls = self.config.items('SHAREM SYSCALLS')
-
+        sharem_decoder = self.config.items('SHAREM DECRYPT')
         for key, val in self.args.items():
             for x in sharem_search:
                 if(key in x):
@@ -43,6 +43,10 @@ class Configuration(metaclass=Singleton):
             for x in sharem_syscalls:
                 if(key in x):
                     self.config['SHAREM SYSCALLS'][str(key)] = str(val)
+            for x in sharem_decoder:
+                if(key in x):
+
+                    self.config['SHAREM DECRYPT'][str(key)] = str(val)
 
 
             # print("Key: ", key, "Val: ", val)
@@ -59,7 +63,7 @@ class Configuration(metaclass=Singleton):
     def save(self):
         # print("save")
         _path = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "config.cfg"
+            os.path.dirname(os.path.abspath(__file__)), self.cfgFile
                 )
         with open(_path, "w") as configfile:
             self.config.write(configfile)
