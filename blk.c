@@ -233,6 +233,37 @@ int fnstenv(){
 	__asm
 	{
 		add eax,eax
+		call cp1
+		cp1:
+		inc eax
+		inc eax
+		inc eax
+		pop eax
+
+		inc eax
+		inc eax
+		inc eax
+
+		call cp2
+		nop
+		nop
+		cp2:
+		nop
+		nop
+		pop EDX
+
+
+		nop 
+		xchg eax, ebx
+
+		call cp3
+		mov dword ptr[eax], ESP
+		cp3:
+		nop
+		nop
+		nop
+		nop
+		pop esp
 	}
 
 	return 0;

@@ -24,12 +24,6 @@ import datetime
 from selfModify import *
 from ui import *
 import colorama
-from parseconf import Configuration
-import ast
-import argparse
-
-
-
 colorama.init()
 # readRegs()
 # testingAssembly()
@@ -39,27 +33,11 @@ red ='\u001b[31;1m'
 gre = '\u001b[32;1m'
 yel = '\u001b[33;1m'
 blu = '\u001b[34;1m'
-mag = '\u001b[35;1m'
+magenta = '\u001b[35;1m'
 cya = '\u001b[36;1m'
 whi = '\u001b[37m'
 res = '\u001b[0m'
 
-# print(red + "Hello there. I'm Tarek, testing colors.")
-# print(gre + "Hello there. I'm Tarek, testing colors.")
-
-# print(yel + "Hello there. I'm Tarek, testing colors.")
-# print(blu + "Hello there. I'm Tarek, testing colors.")
-# print(mag + "Hello there. I'm Tarek, testing colors.")
-# print(cya + "Hello there. I'm Tarek, testing colors.")
-# print(whi + "Hello there. I'm Tarek, testing colors.")
-# print(res)
-# input()
-
-
-
-
-elapsed_time = 0
-pebPresent = False
 doneAlready1 = []
 syscallString = ''
 chMode = False
@@ -174,17 +152,12 @@ bModulesFound = False
 deobfShell = True
 fastMode=False
 pebPoints = 2
-p2screen = True
-configOptions = {}
-print_style = "left"
-stubFile = "stub.txt"
-sameFile = True
-stubEntry = 0
-stubEnd = 0
+
+
+
 ignoreDisDiscovery=False
-conFile = "config.cfg" 
-workDir = False
-bit32_argparse = False
+
+
 FindStringsStatus=True
 
 # FindStringsStatus=False
@@ -209,332 +182,132 @@ bComments = True
 
 #####SAME AS FROM SHAREM
 filename=""
-
-# if numArgs > 1:			# to get full functionality, need to put file location for binary that is installed (may need to find some DLLs in that directory)
-# 	txtDoc= re.search( r'\.txt', sys.argv[1], re.M|re.I)
-# 	binFile= re.search( r'\.bin', sys.argv[1], re.M|re.I)
-# 	if binFile:
-# 		# filenameRaw=sys.argv[1]
-# 		filename=sys.argv[1]
-# 	if txtDoc:
-# 		filename= sys.argv[1]
-# 		# filenameRaw=sys.argv[1]
-# 		skipExtraction=True
-# 		rawHex=True
-# 		# print("set rawHEx")
-# 		try: 
-# 			if(re.match( "^r", sys.argv[2], re.M|re.I)):
-# 				if(re.match( "(r32)|(raw32)|(raw)|(r$)", sys.argv[2], re.M|re.I)):
-# 					bit32 = True
-# 				if(re.match( "(r64)|(raw64)", sys.argv[2], re.M|re.I)):
-# 					bit32 = False
-# 		except Exception as e:
-# 			print("Invalid path to hex file.")
-# 			print(e)
-# 			quit()
-# 		# print("bits", bit32)
-# 	# if binFile:
-# 	# 	rawBin=True
-
-
-# 	# if binFile:
-# 	# 	rawHex = True
-# 	# 	rawBin=True  # only if .bin, not .txt
-# 	# 	print("set raw2", (sys.argv[2]), (sys.argv[1]), peName)
-# 	# 	try:
-# 	# 		f = open(peName, "rb")
-# 	# 		# global rawData2
-# 	# 		rawData2 = f.read()
-# 	# 		f.close()
-# 	# 		# print ("rawData2", len(rawData2))
-# 	# 	except Exception as e:
-# 	# 		print("Invalid path to hex file.")
-# 	# 		print(e)
-# 	# 		quit()
-# # print("bits", bit32)
-
-# if len(filename) > 1:
-# 	testing=filename
-
-# # print("NUMARGS")
-# # print(numArgs)
-
-# if numArgs==1:
-# 	skipExtraction=True
-# 	rawHex=True
-# 	filename= sys.argv[1]
-# 	print("numargs")
-# if not skipExtraction:
-# 	if numArgs > 1:			# to get full functionality, need to put file location for binary that is installed (may need to find some DLLs in that directory)
-# 		peName= sys.argv[1] 
-# 		matchObj = re.match( r'^[a-z]+:[\\|/]+', peName, re.M|re.I)
-# 		if matchObj:
-# 			isPe=True
-# 			head, tail = os.path.split(peName)
-# 			peName = tail
-# 			PE_path = head
-# 			skipPath = True
-# 		if not matchObj:
-# 			skipPath = False
-# 		matchObj = re.match( r'^[a-z0-9]+.txt', peName, re.M|re.I)
-# 		if matchObj:
-# 			rawBin=False  # only if .bin, not .txt
-# 			head, tail = os.path.split(peName)
-# 			with open(tail, "r") as ins:
-# 				for line in ins:
-# 					line2 = line.rstrip('\n')
-# 					PEsList.append(line2)
-# 			peName = PEsList[0]
-# 			# print "name"
-# 			print (peName)
-# 			head, tail = os.path.split(peName)
-# 			peName = tail
-# 			PE_path = head
-# 			numPE = len(PEsList)
-# 			skipPath = True
-# 			# print PEsList
-# 	PEtemp = PE_path + "/"+ peName
-
-parser = argparse.ArgumentParser()
-group = parser.add_mutually_exclusive_group(required=True)
-group.add_argument('--pe', '-pe', type=str)
-group.add_argument('--r', '-r',type=str)
-group.add_argument('-r64', '--r64',  type=str)
-group.add_argument('-r32', '--r32',  type=str)
-
-parser.add_argument('--d', '-d', type=str, required=False)
-parser.add_argument('--c', '-c', '--config', type=str, required=False)
+if numArgs > 1:			# to get full functionality, need to put file location for binary that is installed (may need to find some DLLs in that directory)
+	txtDoc= re.search( r'\.txt', sys.argv[1], re.M|re.I)
+	binFile= re.search( r'\.bin', sys.argv[1], re.M|re.I)
+	if binFile:
+		# filenameRaw=sys.argv[1]
+		filename=sys.argv[1]
+	if txtDoc:
+		filename= sys.argv[1]
+		# filenameRaw=sys.argv[1]
+		skipExtraction=True
+		rawHex=True
+		# print("set rawHEx")
+		try: 
+			if(re.match( "^r", sys.argv[2], re.M|re.I)):
+				if(re.match( "(r32)|(raw32)|(raw)|(r)", sys.argv[2], re.M|re.I)):
+					bit32 = True
+				if(re.match( "(r64)|(raw64)", sys.argv[2], re.M|re.I)):
+					bit32 = False
+		except Exception as e:
+			print("Invalid path to hex file.")
+			print(e)
+			quit()
+		# print("bits", bit32)
+	# if binFile:
+	# 	rawBin=True
 
 
-args = parser.parse_args()
-# print(args)
-# print("Args ------> ", args)
+	# if binFile:
+	# 	rawHex = True
+	# 	rawBin=True  # only if .bin, not .txt
+	# 	print("set raw2", (sys.argv[2]), (sys.argv[1]), peName)
+	# 	try:
+	# 		f = open(peName, "rb")
+	# 		# global rawData2
+	# 		rawData2 = f.read()
+	# 		f.close()
+	# 		# print ("rawData2", len(rawData2))
+	# 	except Exception as e:
+	# 		print("Invalid path to hex file.")
+	# 		print(e)
+	# 		quit()
+print("bits", bit32)
 
-if args.r or args.r64 or args.r32:
-	if args.r:
-		file2Check = args.r
-		bit32 = True
-		# bit32_argparse = True
-	if args.r32:
-		file2Check = args.r32
-		bit32 = True
-		bit32_argparse = True
-		
-	elif args.r64:
-		# print("64 bit <---")
-		file2Check = args.r64
-		bit32 = False
-		bit32_argparse = True
+if len(filename) > 1:
+	testing=filename
+
+# print("NUMARGS")
+# print(numArgs)
+
+if numArgs==1:
+	skipExtraction=True
+	rawHex=True
+	filename= sys.argv[1]
+	print("numargs")
+if not skipExtraction:
+	if numArgs > 1:			# to get full functionality, need to put file location for binary that is installed (may need to find some DLLs in that directory)
+		peName= sys.argv[1] 
+		matchObj = re.match( r'^[a-z]+:[\\|/]+', peName, re.M|re.I)
+		if matchObj:
+			isPe=True
+			head, tail = os.path.split(peName)
+			peName = tail
+			PE_path = head
+			skipPath = True
+		if not matchObj:
+			skipPath = False
+		matchObj = re.match( r'^[a-z0-9]+.txt', peName, re.M|re.I)
+		if matchObj:
+			rawBin=False  # only if .bin, not .txt
+			head, tail = os.path.split(peName)
+			with open(tail, "r") as ins:
+				for line in ins:
+					line2 = line.rstrip('\n')
+					PEsList.append(line2)
+			peName = PEsList[0]
+			# print "name"
+			print (peName)
+			head, tail = os.path.split(peName)
+			peName = tail
+			PE_path = head
+			numPE = len(PEsList)
+			skipPath = True
+			# print PEsList
+	PEtemp = PE_path + "/"+ peName
 
 
-	if os.path.isfile(file2Check):
-		shellFile = os.path.basename(file2Check)
-		if(len(shellFile) > 3):
-			ext = shellFile[-3:]
-			if ext == "txt":
-				rawHex = True
-				filename = shellFile
+	############### AUSTIN ####################
+	# print ("entering Austin")
+	rawHex = False
+	# global rawData2
 
-			else:
-				f = open(file2Check, "rb")
+	# print ("0", sys.argv[0])
+	# print ("1", sys.argv[1])
+
+	# print ("2", sys.argv[2])
+	if(numArgs > 2):
+		if binFile and (re.match( "^r", sys.argv[2], re.M|re.I)):
+			if(re.match( "(r32)|(raw32)|(raw)|(r)", sys.argv[2], re.M|re.I)):
+				bit32 = True
+			if(re.match( "(r64)|(raw64)", sys.argv[2], re.M|re.I)):
+				bit32= False
+
+			# if(sys.argv[2] == "raw"):
+			rawHex = True
+			rawBin=True  # only if .bin, not .txt
+			# dprint("set raw", (sys.argv[2]), (sys.argv[1]), peName)
+			try:
+				f = open(peName, "rb")
+				# global rawData2
 				rawData2 = f.read()
 				f.close()
-				rawHex = True
-				rawBin = True
+				# print ("rawData2", len(rawData2))
+			except Exception as e:
+				print("Invalid path to hex file.")
+				print(e)
+				quit()
+	############### AUSTIN ####################
 
-		print("Shellcode file: ", shellFile)
-	else:
-		print(args.r, "file doesn't exist")
-		sys.exit()
+	if skipPath == False:
+		PEtemp = peName
+	if skipPath == True:
+		PEtemp = PE_path + "/"+ peName
 
-
-if args.pe:
-	if os.path.isfile(args.pe):
-
-		peFile = os.path.basename(args.pe)
-		peName = args.pe
-		print("PE path is: ", peFile)
-		if win32file.GetBinaryType(args.pe) == 6:
-			# print("64 bit file", args.pe)
-			bit32 = False
-		else:
-			# print("32 bit")
-			bit32 = True
-	else:
-		print(args.pe, "file doesn't exist")
-		sys.exit()
-
-
-if args.c:
-	if os.path.isfile(args.c):
-		conFile = args.c
-		# conFile = os.path.basename(args.c)
-		print("Config path is: ", conFile)
-	else:
-		print(args.c, "file doesn't exist")
-		sys.exit()
-
-
-if args.d:
-	if os.path.isdir(args.d):
-
-		workingDir = args.d
-		workDir = True
-		print("Directory path is: ", workingDir)
-
-	else:
-		print(args.d, "directory doesn't exist")
-		sys.exit()
-# print(peFile)
-# print(args.pe, args.r, args.d, args.c)
-# input()
-
-
-
-
-# if numArgs > 1:			# to get full functionality, need to put file location for binary that is installed (may need to find some DLLs in that directory)
-# 	txtDoc= re.search( r'\.txt', sys.argv[1], re.M|re.I)
-# 	binFile= re.search( r'\.bin', sys.argv[1], re.M|re.I)
-# 	if binFile:
-# 		# filenameRaw=sys.argv[1]
-# 		filename=sys.argv[1]
-# 	if txtDoc:
-# 		# print("txt------------>", txtDoc)
-# 		# input()
-# 		filename= sys.argv[1]
-# 		# filenameRaw=sys.argv[1]
-# 		skipExtraction=True
-# 		rawHex=True
-# 		# print("set rawHEx")
-# 		try: 
-# 			if(re.match( "^r", sys.argv[2], re.M|re.I)):
-# 				if(re.match( "(r32)|(raw32)|(raw)|(r$)", sys.argv[2], re.M|re.I)):
-# 					bit32 = True
-# 				if(re.match( "(r64)|(raw64)", sys.argv[2], re.M|re.I)):
-# 					bit32 = False
-# 		except Exception as e:
-# 			print("Invalid path to hex file.")
-# 			print(e)
-# 			quit()
-# 		# print("bits", bit32)
-# 	# if binFile:
-# 	# 	rawBin=True
-
-
-# 	# if binFile:
-# 	# 	rawHex = True
-# 	# 	rawBin=True  # only if .bin, not .txt
-# 	# 	print("set raw2", (sys.argv[2]), (sys.argv[1]), peName)
-# 	# 	try:
-# 	# 		f = open(peName, "rb")
-# 	# 		# global rawData2
-# 	# 		rawData2 = f.read()
-# 	# 		f.close()
-# 	# 		# print ("rawData2", len(rawData2))
-# 	# 	except Exception as e:
-# 	# 		print("Invalid path to hex file.")
-# 	# 		print(e)
-# 	# 		quit()
-# print("bits", bit32)
-
-# if len(filename) > 1:
-# 	testing=filename
-
-# # print("NUMARGS")
-# # print(numArgs)
-
-# if numArgs==1:
-# 	skipExtraction=True
-# 	rawHex=True
-# 	filename= sys.argv[1]
-# 	print("numargs")
-# if not skipExtraction:
-# 	if numArgs > 1:			# to get full functionality, need to put file location for binary that is installed (may need to find some DLLs in that directory)
-# 		peName= sys.argv[1] 
-# 		matchObj = re.match( r'^[a-z]+:[\\|/]+', peName, re.M|re.I)
-# 		if matchObj:
-# 			isPe=True
-# 			head, tail = os.path.split(peName)
-# 			peName = tail
-
-# 			PE_path = head
-# 			skipPath = True
-# 		if not matchObj:
-# 			skipPath = False
-# 		matchObj = re.match( r'^[a-z0-9]+.dat', peName, re.M|re.I)
-# 		if matchObj:
-# 			rawBin=False  # only if .bin, not .txt
-# 			head, tail = os.path.split(peName)
-
-# 			with open(tail, "r") as ins:
-# 				for line in ins:
-# 					line2 = line.rstrip('\n')
-# 					# print("=======> ", line2)
-# 					PEsList.append(line2)
-# 			peName = PEsList[0]
-# 			# print(peName)
-# 			# print "name"
-# 			print (peName)
-# 			input()
-# 			head, tail = os.path.split(peName)
-# 			peName = tail
-
-# 			PE_path = head
-# 			numPE = len(PEsList)
-# 			skipPath = True
-# 			# print PEsList
-# 	PEtemp = PE_path + "/"+ peName
-
-
-# 	############### AUSTIN ####################
-# 	# print ("entering Austin")
-# 	rawHex = False
-# 	# global rawData2
-
-# 	# print ("0", sys.argv[0])
-# 	# print ("1", sys.argv[1])
-
-# 	# print ("2", sys.argv[2])
-# 	if(numArgs > 2):
-# 		if binFile and (re.match( "^r", sys.argv[2], re.M|re.I)):
-# 			if(re.match( "(r32)|(raw32)|(raw)|(r$)", sys.argv[2], re.M|re.I)):
-# 				bit32 = True
-# 			if(re.match( "(r64)|(raw64)", sys.argv[2], re.M|re.I)):
-# 				bit32= False
-
-# 			# if(sys.argv[2] == "raw"):
-# 			rawHex = True
-# 			rawBin=True  # only if .bin, not .txt
-# 			# dprint("set raw", (sys.argv[2]), (sys.argv[1]), peName)
-# 			try:
-# 				print("Bin------------>", peName)
-# 				input()
-# 				f = open(peName, "rb")
-# 				# global rawData2
-# 				rawData2 = f.read()
-# 				f.close()
-# 				# print ("rawData2", len(rawData2))
-# 			except Exception as e:
-# 				print("Invalid path to hex file.")
-# 				print(e)
-# 				quit()
-# 	############### AUSTIN ####################
-
-# 	if skipPath == False:
-# 		PEtemp = peName
-# 	if skipPath == True:
-# 		PEtemp = PE_path + "/"+ peName
-
-# 	if(rawHex):
-# 		# bit32 = True #### ADD UI SELECTION LATER #####
-# 		pe = peName
-
-# if not rawHex:
-# 	if win32file.GetBinaryType(PEtemp) == 6:
-# 		bit32 = False
-# 	else:
-# 		bit32 = True
-
+	if(rawHex):
+		bit32 = True #### ADD UI SELECTION LATER #####
+		pe = peName
 
 class OSVersion:
 	#Used for list of OSVersions to print for syscall
@@ -1252,57 +1025,46 @@ def digDeeper(PE_DLL):
 			# print("#########################################")
 			# print("APPENDING SOMETHING NEW: " + dll)
 			#input("enter...")
-			peFound=True
+
 			newpath = extractDLLNew(dll)
-			# print("Newpath", newpath)
-			# input()
 			# print(newpath)
 			# input("newpath")
 			doneAlready0.append(dll)
 			paths.append(newpath)
-			try:
-				pe = pefile.PE(newpath)
-			except:
-				print ("Invalid path found for " + newpath + "\nResults, thus, will be inaccurate.")
-				peFound=False
-				name = "Invalid path for " + newpath
-				iatList[c].entries.append(name)
-				PE_DLLS.append(name)
-		name = ""
+			pe = pefile.PE(newpath)
 		name = ""
 		try:
-			if peFound:
-				cont=False
-				if not searchIATName(dll):
-					newIAT()
-					c=curIAT()
-					iatList[c].name=dll
-					cont=True
+			cont=False
+			if not searchIATName(dll):
+				newIAT()
+				c=curIAT()
+				iatList[c].name=dll
+				cont=True
 
-				# print(dll)
-				# print(type(pe))
-				for entry in pe.DIRECTORY_ENTRY_IMPORT:
-					name = entry.dll
-					try:
-						name = name.decode()
-					except:
-						# input("enter...")
-						pass
+			# print(dll)
+			# print(type(pe))
+			for entry in pe.DIRECTORY_ENTRY_IMPORT:
+				name = entry.dll
+				try:
+					name = name.decode()
+				except:
+					# input("enter...")
+					pass
 
-					# print(name)
-					if cont:
-						apiMSWIN = re.match( r'\bAPI-MS-WIN\b', name, re.M|re.I)
-						if not apiMSWIN:
-							# print(iatList[c].entries)
-							# print("not match")
-							# input("iatlist")
-							# if(iatList[c].entries[-1] not == "name")
-							iatList[c].entries.append(name)
+				# print(name)
+				if cont:
 					apiMSWIN = re.match( r'\bAPI-MS-WIN\b', name, re.M|re.I)
-					if not apiMSWIN:			
-						# print("not match")	
-						if name not in PE_DLLS:
-							PE_DLLS.append(name)# + " " + dll)
+					if not apiMSWIN:
+						# print(iatList[c].entries)
+						# print("not match")
+						# input("iatlist")
+						# if(iatList[c].entries[-1] not == "name")
+						iatList[c].entries.append(name)
+				apiMSWIN = re.match( r'\bAPI-MS-WIN\b', name, re.M|re.I)
+				if not apiMSWIN:			
+					# print("not match")	
+					if name not in PE_DLLS:
+						PE_DLLS.append(name)# + " " + dll)
 		except Exception as e:
 		 	pass
 		 	# print(e)
@@ -1393,14 +1155,14 @@ def ObtainAndExtractSections():
 	global pe
 	test = ""
 	i = 0
-	# print ("pename " + peName)
+	print ("pename " + peName)
 	pe = pefile.PE(peName)
-	# print (pe.OPTIONAL_HEADER.AddressOfEntryPoint)
+	print (pe.OPTIONAL_HEADER.AddressOfEntryPoint)
 
 
 	for sec in pe.sections:
 		sections.append(sec.Name)
-	# print (sections)
+	print (sections)
 
 	# print pe.sections[0].get_data()[0:]
 
@@ -1460,7 +1222,7 @@ def ObtainAndExtractSections():
 	#	print(str(r))
 		r=stripWhite1(r)
 		display = display +str(r) + ", "
-	# print ("Sections: " + display)
+	print ("Sections: " + display)
 	# print len(PE_DLLS)
 	o = 0
 	t=0
@@ -1840,7 +1602,6 @@ def get_PEB_walk_start(mode, NumOpsDis ,bytesToMatch, secNum, data2):
 	t=0
 	len_data2 = len(data2)
 	len_bytesToMatch = len(bytesToMatch)
-	found = False
 	for v in data2:
 		found = True #reset flag
 		#replace with bytesToMatch list if desired
@@ -1868,6 +1629,7 @@ def get_PEB_walk_start(mode, NumOpsDis ,bytesToMatch, secNum, data2):
 				print ("got disherepeb", ans)
 				return ans
 
+			
 
 		t=t+1
 
@@ -1910,11 +1672,9 @@ def get_PEB_walk_start(mode, NumOpsDis ,bytesToMatch, secNum, data2):
 
 #CHANGED: works based off of all sections in pefile now (rather than just .text). unused 'Reg' param changed to secNum to indicate where data came from.
 
-
-#h1
 def get_PEB_walk_start_64(NumOpsDis ,bytesToMatch, secNum, data2): ############### AUSTIN ######################
 	#change to work off of data2 - add param - get rid of secNum
-	#bytesToMatch 'RAX_OFFSET_NONE': b"\x65\x48\x8B\x04\x25\x60\x00\x00\x00",
+
 	global o
 	foundCount = 0
 	numOps = NumOpsDis
@@ -1922,27 +1682,6 @@ def get_PEB_walk_start_64(NumOpsDis ,bytesToMatch, secNum, data2): #############
 	t=0
 	len_data2 = len(data2)
 	len_bytesToMatch = len(bytesToMatch)
-
-	# print("Data2 type: ", type(data2), "bytes to match type", type(bytesToMatch),"Data2 Length: ", len(data2), "bytes to match len", len(bytesToMatch))
-	# input()
-
-	t = 0
-	found=False
-	
-	# print("Type of lists dict", type(bytesToMatch))
-	# print("Type", type(data2))
-
-	# for i in bytesToMatch:
-	# 	i = str(i)
-	# 	for k in data2:
-	# 		k = str(k)
-	# 		print("Type ", type(i), type(k), i, k)
-	# 		input()
-
-
-
-
-
 	for v in data2:
 		found = True #reset flag
 		#replace with bytesToMatch list if desired
@@ -1954,6 +1693,7 @@ def get_PEB_walk_start_64(NumOpsDis ,bytesToMatch, secNum, data2): #############
 			# elif ((i+t) >= len_data2 or i >= len_bytesToMatch):
 			# 	found = False # out of range
 			try:
+				#print(data2[t+i])
 				#input("enter..")
 				if ((data2[t+i]) != (bytesToMatch[i])):
 					found = False #no match
@@ -1964,16 +1704,12 @@ def get_PEB_walk_start_64(NumOpsDis ,bytesToMatch, secNum, data2): #############
 			i += 1
 
 		if(found):
-			# print("offset", t, "Section", secNum)
-			# print("dis Here ", t, numOps, secNum)
-			# print (found)
-			# print (binaryToStr(data2[t:t+10]))
-
 			disHerePEB_64(t, numOps, secNum, data2)
 
 			
 
 		t=t+1
+
 
 #CHANGED: works based off of all sections in pefile now (rather than just .text). unused 'Reg' param changed to secNum to indicate where data came from.
 
@@ -2156,21 +1892,11 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 		saveBasePEBWalk(address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, (loadModList_offset, listEntryText	), advanceDLL_Offset)
 
 def disHerePEB_64(address, NumOpsDis, secNum, data): ############## AUSTIN ####################
-	# print ("disHerePEB_64")
-	# print("Address", address, "NumOpsDis", NumOpsDis, "SecNum", secNum)
-	# input()
 
 	global o
-	global pebPresent
 	global total1
 	global total2
 	w=0
-
-	if shellBit == 32:
-		callCS = cs
-	else:
-		callCS = cs64
-	pebFound = False
 	## Capstone does not seem to allow me to start disassemblying at a given point, so I copy out a chunk to  disassemble. I append a 0x00 because it does not always disassemble correctly (or at all) if just two bytes. I cause it not to be displayed through other means. It simply take the starting address of the jmp [reg], disassembles backwards, and copies it to a variable that I examine more closely.
 	#lGoBack = linesGoBackFindOP
 
@@ -2201,7 +1927,7 @@ def disHerePEB_64(address, NumOpsDis, secNum, data): ############## AUSTIN #####
 	#CODED3 = CODED2.encode()
 	CODED3 = CODED2
 
-	for i in callCS.disasm(CODED3, address):
+	for i in cs.disasm(CODED3, address):
 
 		if(secNum == "noSec"):
 
@@ -2225,12 +1951,11 @@ def disHerePEB_64(address, NumOpsDis, secNum, data): ############## AUSTIN #####
 	# total2 += (stop - start)
 	# print("Time 2 PEB: " + str(stop - start))
 
-	# for each in val5:
-		# print ("\t", each)
+
 	points = 0
 	disString = val5
 	for line in disString:
-		# print("line", line)
+
 		##############################################
 
 		movLoadPEB = re.match("^(mov) ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15)))), ?((q|d)?word ptr gs:\[(((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15)))) ?\+ ?)?0x60)\]", line, re.IGNORECASE)
@@ -2242,12 +1967,9 @@ def disHerePEB_64(address, NumOpsDis, secNum, data): ############## AUSTIN #####
 		pushLoadPEB = re.match("^(push) ((q|d)?word ptr gs:\[(((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15)))))) ?(\+ ?0x60)?\]", line, re.IGNORECASE)
 
 
-		# if movLoadPEB:
-			# print("FFFFFFFFFFFFFFFFFFFFFFFFFFFFOOOOOOOOOOOOOUND!!!")
 		if(movLoadPEB or addLoadPEB or adcLoadPEB or xorLoadPEB or orLoadPEB or xchgLoadPEB or pushLoadPEB):
-			pebFound = True
 			points += 1
-			
+	
 
 		##############################################
 
@@ -2290,6 +2012,7 @@ def disHerePEB_64(address, NumOpsDis, secNum, data): ############## AUSTIN #####
 
 		if(movLoadInLoadOrder or addLoadInLoadOrder or adcLoadInLoadOrder or xorLoadInLoadOrder or orLoadInLoadOrder or xchgLoadInLoadOrder):
 			points += 1
+
 		###############################################
 
 
@@ -2316,31 +2039,20 @@ def disHerePEB_64(address, NumOpsDis, secNum, data): ############## AUSTIN #####
 			points += 1
 
 
+
 		###############################################
 
 		lod = re.match("^(lodsq)|(lodsd)", line, re.IGNORECASE)
 
 		if(lod):
 			points += 1
-	# pebPresent = True
-	# print(pebPoints, type(pebPoints))
-	# input()
-	if not pebPresent:
 
-		if(points >= pebPoints):
-			if rawHex:
-				modSecName = 'N/A'
-			else:
-				modSecName = section.sectionName
-			saveBasePEBWalk_64(address, NumOpsDis, modSecName, secNum, points)
-	else:
 
-		if(points >= pebPoints and pebFound):
-			if rawHex:
-				modSecName = 'N/A'
-			else:
-				modSecName = section.sectionName
-			saveBasePEBWalk_64(address, NumOpsDis, modSecName, secNum, points)
+	if(points >= 1):
+		modSecName = section.sectionName
+		saveBasePEBWalk_64(address, NumOpsDis, modSecName, secNum, points)
+
+
 
 
 def saveBasePEBWalk_old(address, NumOpsDis,modSecName,secNum, points): 
@@ -2455,10 +2167,8 @@ def printSavedPEB(): ######################## AUSTIN ###########################
 					add2 = str(add)
 					add3 = hex (int(i.address + section.startLoc	))
 					add4 = str(add3)
-				val = formatPrint(i, add4, addb)
-
-				# val =  gre + i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + cya + " (offset " + addb + ")\n" + res
-				print (val)
+				val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+				print (gre + val + res)
 	#return val5
 			print ("\n")
 			j += 1
@@ -2526,9 +2236,7 @@ def printSavedPEB(): ######################## AUSTIN ###########################
 					add2 = str(add)
 					add3 = hex (int(i.address + section.startLoc	))
 					add4 = str(add3)
-					val = formatPrint(i, add4, addb, pe=True)
-
-					# val =  gre + i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + cya + " (offset " + addb + ")" + res
+					val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 					val2.append(val)
 					val3.append(add2)
 					val5.append(val)
@@ -2554,18 +2262,18 @@ def printSavedPEB_64(): ############## AUSTIN ####################
 
 			CODED2 = rawData2[address:(address+NumOpsDis)]
 
-			outString = yel + "\n\nItem: " + str(j) + " | Points: " + str(points) + res
+			outString = "\n\nItem: " + str(j) + " | Points: " + str(points)
 			if(secNum != -1):
 
-				outString += yel + " | Section: " + str(secNum) + " | Section name: " + modSecName + res
+				outString += " | Section: " + str(secNum) + " | Section name: " + modSecName
 				# if(secNum != 0):
 				# 	trash = raw_input("enter...")
-					
+				
 			else:
-				outString += yel + " | Module: " + cya + modSecName + res
+				outString += " | Module: " + modSecName
 
 			print ("\n******************************************************************************")
-			print ( outString )
+			print (outString)
 			print ("\n")
 			val =""
 			val2 = []
@@ -2584,9 +2292,7 @@ def printSavedPEB_64(): ############## AUSTIN ####################
 					add2 = str(add)
 					add3 = hex (int(i.address + section.startLoc	))
 					add4 = str(add3)
-				val = formatPrint(i, add4, addb)
-
-				# val =  gre + i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + cya + " (offset " + addb + ")\n" + res
+				val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 				# val2.append(val)
 		# val3.append(add2)
 		# val5.append(val)
@@ -2613,7 +2319,7 @@ def printSavedPEB_64(): ############## AUSTIN ####################
 				section = s[secNum]
 
 				# outString = "h: "+str(h) +"w: "+str(w)+
-				outString = "\n\nItem: " + str(j) + " | Points: " + str(points)
+				outString = "h: "+str(h) +"w: "+str(w)+"\n\nItem: " + str(j) + " | Points: " + str(points)
 				if(secNum != -1):
 
 					outString += " | Section: " + str(secNum) + " | Section name: " + modSecName.decode()
@@ -2641,9 +2347,7 @@ def printSavedPEB_64(): ############## AUSTIN ####################
 					add2 = str(add)
 					add3 = hex (int(i.address + section.startLoc	))
 					add4 = str(add3)
-					val = formatPrint(i, add4, addb, pe=True)
-
-					# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+					val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 					val2.append(val)
 					val3.append(add2)
 					val5.append(val)
@@ -2662,10 +2366,10 @@ def get_PushRet_start(NumOpsDis ,bytesToMatch, secNum, data2): #################
 	foundCount = 0
 	numOps = NumOpsDis
 
+
 	t=0
 	len_data2 = len(data2)
 	len_bytesToMatch = len(bytesToMatch)
-	
 	for v in data2:
 		found = True #reset flag
 		#replace with bytesToMatch list if desired
@@ -2684,13 +2388,12 @@ def get_PushRet_start(NumOpsDis ,bytesToMatch, secNum, data2): #################
 			except Exception as e:
 				# input(e)
 				# print ("ERROR")
-				print (e)
+				# print (e)
 				pass
 			i += 1
-		
+
 		if(found):
-			# print("Matched: ", hex(v))
-			# input()
+
 			disHerePushRet(t, numOps, secNum, data2)
 
 
@@ -2711,8 +2414,8 @@ def disHerePushRet(address, NumOpsDis, secNum, data): ##########################
 	if(secNum != "noSec"):
 		section = s[secNum]
 		# start = timeit.default_timer()
-
 	CODED2 = data[address:(address+NumOpsDis)]
+
 	# I create the individual lines of code that will appear>
 	val =""
 	val2 = []
@@ -2740,32 +2443,24 @@ def disHerePushRet(address, NumOpsDis, secNum, data): ##########################
 		val5.append(val)
 
 		push = re.match("^push ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)|(8|9|(1([0-5])))))", val, re.IGNORECASE)
-		#print("-->", val)
 		if(push):
 			pushReg = i.op_str
-			# print("Push found", pushReg)
-			
 			foundPush = True
 			# points += 1
 			pushOffset = addb
-			# print("Push offset", str(pushOffset))
-			# input()
-
 		# if(pushea):
 		# 	print("Found pushea")
 		# print("hereismeandyhoney")
 
 		ret = re.match("^ret", val, re.IGNORECASE)
-		retf = re.match("^retf", val, re.IGNORECASE)
-
-		if(ret and not retf and foundPush):
-			# print("Found Ret: ", val, addb)
-			# input()
+		if(ret):
 			foundRet = True
 			# points += 1
 			retOffset = addb
 
 
+
+		
 		# print(val)
 	# stop = timeit.default_timer()
 	# print("Time 2: " + str(stop - start))
@@ -2791,17 +2486,12 @@ def disHerePushRet(address, NumOpsDis, secNum, data): ##########################
 		# 	points += 1
 
 
-		if foundPush and foundRet:
-			foundPush = False
-			foundRet = False
-			if(rawHex):
-				modSecName = peName
-			else:
-				modSecName = section.sectionName
-			# print("Pushoffset", pushOffset, "Ret", retOffset)
-			# input()
-
-			saveBasePushRet(address, NumOpsDis, modSecName, secNum, points, (pushOffset, pushReg), retOffset)
+	if foundPush and foundRet:
+		if(rawHex):
+			modSecName = peName
+		else:
+			modSecName = section.sectionName
+		saveBasePushRet(address, NumOpsDis, modSecName, secNum, points, (pushOffset, pushReg), retOffset)
 
 def disHerePushRet64(address, NumOpsDis, secNum, data): ############################# AUSTIN ############################
 
@@ -2897,38 +2587,25 @@ def disHerePushRet64(address, NumOpsDis, secNum, data): ########################
 
 
 
-def PushRetrawhex(address, secNum, data):
+def PushRetrawhex(address, linesForward2, secNum, data):
 	global bit32
 	global ignoreDisDiscovery
 	global linesForward
 	address = hex(address)
-	# linesGoBack = 10
-	linesGoBack = linesBack
-	# print("Lines Forward", linesForward)
-	# input()
+	linesGoBack = 10
 	t = 0
 	truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, 0x0, linesGoBack)  # arg: starting offset/entry point - leave 0 generally
-	# print("------------>", orgListOffset,orgListDisassembly)
-	# input()
+
 	if(ignoreDisDiscovery):
 		truth = False
 
 	if (truth):
-		# print ("truth2")
 		for e in orgListDisassembly:
 			pushReg = ""
 			isPUSH = re.search("push", e, re.IGNORECASE)
 			if isPUSH:
-				# print ("truth3")
-				# print(res)
-				# print("Found push, offset=", hex(orgListOffset[t]))
-				try:
-					pushReg = orgListDisassembly[t].split()[1]
-				except Exception as e:
-
-					pushReg = orgListDisassembly[t].split()
-					# print("Push ret function", e)
-					# input()
+				# print("ispush")
+				pushReg = orgListDisassembly[t].split()[1]
 				# print ("pushreg", pushReg)
 				# input()
 
@@ -2938,105 +2615,23 @@ def PushRetrawhex(address, secNum, data):
 				chunk = orgListDisassembly[t+1:t+linesForward]
 				chunkOffsets = orgListOffset[t+1:t+linesForward]
 				for item in chunk:
-					bad = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(int)|(db)|(hlt)|(loop)|(leave)|(int3)|(insd)|(enter)|(jns)|(call)|(retf)|(push))", item, re.M|re.I)
+					bad = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(int)|(db)|(hlt)|(loop)|(leave)|(int3)|(insd)|(enter)|(jns)|(call))", item, re.M|re.I)
 					if(bad):
-						# print("bad")
 						break
 					# print("item: ",item)
 					isRET = re.search("ret", item, re.IGNORECASE)
-					isRETF = re.search("retf", item, re.IGNORECASE)
-					if (isRET):
-						if not isRETF:
-							# print ("item",item)
-							ret_offset = hex(orgListOffset[index + t + 1])
-
-							# print("isret")
-							# print("saved a pushret: push = ", push_offset, " ret = ", ret_offset)
-							saveBasePushRet(address, linesForward, 'noSec', secNum, 2, (push_offset,pushReg), ret_offset)
-
-							break
-						# else:
-							# print("item ----> ", item)
-					index += 1
-			t+=1	 
-
-	else:
-
-		for match in PUSH_RET.values():
-			if bit32:
-				get_PushRet_start(4, match, secNum, data)
-			else:
-				get_PushRet_start64(4, match, secNum, data)
-
-
-
-
-def PushRetrawhex2(address, secNum, data):
-	global bit32
-	global ignoreDisDiscovery
-	global linesForward
-	address = hex(address)
-	linesGoBack = 10
-	t = 0
-	truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, 0x0, linesGoBack)  # arg: starting offset/entry point - leave 0 generally
-	# print("------------>", orgListOffset,orgListDisassembly)
-	# input()
-	if(ignoreDisDiscovery):
-		truth = False
-
-	if (truth):
-		t = [orgListDisassembly.index(i) for i in orgListDisassembly if "push" in i]
-		if t != []:
-			t = t[0]
-
-		# print ("truth2")
-		# for e in orgListDisassembly:
-			pushReg = ""
-			# isPUSH = re.search("push", e, re.IGNORECASE)
-			# if "push" in 
-			# if isPUSH:
-				# print ("truth3")
-				# print("ispush")
-			try:
-				pushReg = orgListDisassembly[t].split()[1]
-			except Exception as e:
-
-				pushReg = orgListDisassembly[t].split()
-				# print("Push ret function", e)
-				# input()
-			# print ("pushreg", pushReg)
-			# input()
-
-			push_offset = hex(orgListOffset[t])
-			address = int(orgListOffset[t])
-			index = 0
-			chunk = orgListDisassembly[t+1:t+linesForward]
-			chunkOffsets = orgListOffset[t+1:t+linesForward]
-			for item in chunk:
-				bad = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(int)|(db)|(hlt)|(loop)|(leave)|(int3)|(insd)|(enter)|(jns)|(call)|(retf))", item, re.M|re.I)
-				if(bad):
-					# print("bad")
-					break
-				# print("item: ",item)
-				isRET = re.search("ret", item, re.IGNORECASE)
-				isRETF = re.search("retf", item, re.IGNORECASE)
-				if (isRET):
-					if not isRETF:
-						# print ("item",item)
+					if isRET:
 						ret_offset = hex(orgListOffset[index + t + 1])
-
 						# print("isret")
-						# print("saved a pushret: push = ", push_offset, " ret = ", ret_offset)
 						saveBasePushRet(address, linesForward, 'noSec', secNum, 2, (push_offset,pushReg), ret_offset)
 
 						break
-					# else:
-						# print("item ----> ", item)
-				index += 1
+					index += 1
+
+
 			t+=1	 
 
 	else:
-
 		for match in PUSH_RET.values():
 			if bit32:
 				get_PushRet_start(4, match, secNum, data)
@@ -3044,35 +2639,19 @@ def PushRetrawhex2(address, secNum, data):
 				get_PushRet_start64(4, match, secNum, data)
 
 def saveBasePushRet(address, NumOpsDis,modSecName,secNum, points, pushOffset, retOffset): ################## AUSTIN ##############################
-	# print ("saving", hex(address))
+	#print "saving"
 	#save virtaul address as well
 	if(secNum != "noSec"):
-
-		for each in s[secNum].save_PushRet_info:
-			if retOffset == each[6]:
-				return
 		s[secNum].save_PushRet_info.append(tuple((address,NumOpsDis,modSecName,secNum,points, pushOffset, retOffset)))
-
-
 	else:
 		secNum = -1
 		modSecName = "rawHex"
-		for each in m[o].save_PushRet_info:
-			if retOffset == each[6]:
-				return
-		# print("Saving pushoffset", pushOffset, retOffset)
-		# input()
-
 		m[o].save_PushRet_info.append(tuple((address,NumOpsDis,modSecName,secNum,points, pushOffset, retOffset)))
 
 
 def printSavedPushRet(bit = 32): ############################## AUSTIN #############################
 		#formatting
 	j = 0
-	if bit == 32:
-		callCS = cs
-	else:
-		callCS = cs64
 	if(rawHex):
 		for item in m[o].save_PushRet_info:
 			CODED2 = b""
@@ -3084,7 +2663,7 @@ def printSavedPushRet(bit = 32): ############################## AUSTIN #########
 			points = item[4]
 			pushOffset = item[5]
 			retOffset = item[6]
-			printEnd = int(retOffset, 16) + 15
+			printEnd = int(retOffset, 16) + 3
 
 			# CODED2 = rawData2[address:(address+NumOpsDis)]
 			CODED2 = rawData2[address:(printEnd)]
@@ -3113,37 +2692,32 @@ def printSavedPushRet(bit = 32): ############################## AUSTIN #########
 			#address2 = address + section.ImageBase + section.VirtualAdd
 			val5 =[]
 
-			# if bit == 32:
-			for i in callCS.disasm(CODED2, address):
-				if(rawHex):
-					add4 = hex(int(i.address))
-					addb = hex(int(i.address))
-				else:
-					add = hex(int(i.address))
-					addb = hex(int(i.address +  section.VirtualAdd))
-					add2 = str(add)
-					add3 = hex (int(i.address + section.startLoc	))
-					add4 = str(add3)
-				val = formatPrint(i, add4, addb)
-				# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
-				print (gre + val + res)
-				if(addb == retOffset):
-					break
-			# if bit == 64:
-			# 	for i in cs64.disasm(CODED2, address):
-			# 		if(rawHex):
-			# 			add4 = hex(int(i.address))
-			# 			addb = hex(int(i.address))
-			# 		else:
-			# 			add = hex(int(i.address))
-			# 			addb = hex(int(i.address +  section.VirtualAdd))
-			# 			add2 = str(add)
-			# 			add3 = hex (int(i.address + section.startLoc	))
-			# 			add4 = str(add3)
-			# 		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
-			# 		print (gre + val + res)
-			# 		if(addb == retOffset):
-			# 			break
+			if bit == 32:
+				for i in cs.disasm(CODED2, address):
+					if(rawHex):
+						add4 = hex(int(i.address))
+						addb = hex(int(i.address))
+					else:
+						add = hex(int(i.address))
+						addb = hex(int(i.address +  section.VirtualAdd))
+						add2 = str(add)
+						add3 = hex (int(i.address + section.startLoc	))
+						add4 = str(add3)
+					val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+					print (gre + val + res)
+			if bit == 64:
+				for i in cs64.disasm(CODED2, address):
+					if(rawHex):
+						add4 = hex(int(i.address))
+						addb = hex(int(i.address))
+					else:
+						add = hex(int(i.address))
+						addb = hex(int(i.address +  section.VirtualAdd))
+						add2 = str(add)
+						add3 = hex (int(i.address + section.startLoc	))
+						add4 = str(add3)
+					val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+					print (gre + val + res)
 	#return val5
 
 			# print ("\n")
@@ -3160,6 +2734,7 @@ def printSavedPushRet(bit = 32): ############################## AUSTIN #########
 			h += 1
 			for item in section.save_PushRet_info:
 				CODED2 = ""
+
 				address = item[0]
 				NumOpsDis = item[1]
 				modSecName = item[2]
@@ -3167,7 +2742,10 @@ def printSavedPushRet(bit = 32): ############################## AUSTIN #########
 				points = item[4]
 				pushOffset = item[5]
 				retOffset = item[6]
+
 				section = s[secNum]
+
+
 				printEnd = int(retOffset, 16) + 3 - section.VirtualAdd
 				outString = "Item: " + str(j) + " | Points: " + str(points)
 
@@ -3197,40 +2775,28 @@ def printSavedPushRet(bit = 32): ############################## AUSTIN #########
 
 
 				CODED3 = CODED2
-				stopRet = False
-				# print("pushret print function", CODED3.hex())
-				for i in callCS.disasm(CODED3, address):
-					add = hex(int(i.address))
-					addb = hex(int(i.address +  section.VirtualAdd))
-					add2 = str(add)
-					add3 = hex (int(i.address + section.startLoc	))
-					add4 = str(add3)
-					val = formatPrint(i, add4, addb, pe=True)
-
-					# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
-					val2.append(val)
-					val3.append(add2)
-					checkRet= re.search( retOffset, val, re.M|re.I)
-					if checkRet:
-						if not stopRet:
-							val5.append(val)
-							stopRet = True
-						else:
-							pass
-					if not stopRet:
+				if bit == 32:
+					for i in cs.disasm(CODED3, address):
+						add = hex(int(i.address))
+						addb = hex(int(i.address +  section.VirtualAdd))
+						add2 = str(add)
+						add3 = hex (int(i.address + section.startLoc	))
+						add4 = str(add3)
+						val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+						val2.append(val)
+						val3.append(add2)
 						val5.append(val)
-					# val5.append(val)
-				# if bit == 64:
-				# 	for i in cs64.disasm(CODED3, address):
-				# 		add = hex(int(i.address))
-				# 		addb = hex(int(i.address +  section.VirtualAdd))
-				# 		add2 = str(add)
-				# 		add3 = hex (int(i.address + section.startLoc	))
-				# 		add4 = str(add3)
-				# 		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
-				# 		val2.append(val)
-				# 		val3.append(add2)
-				# 		val5.append(val)
+				if bit == 64:
+					for i in cs64.disasm(CODED3, address):
+						add = hex(int(i.address))
+						addb = hex(int(i.address +  section.VirtualAdd))
+						add2 = str(add)
+						add3 = hex (int(i.address + section.startLoc	))
+						add4 = str(add3)
+						val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+						val2.append(val)
+						val3.append(add2)
+						val5.append(val)
 					# print (val)
 				# print ("\n")
 				t = 0
@@ -3238,8 +2804,6 @@ def printSavedPushRet(bit = 32): ############################## AUSTIN #########
 					# if (t<2):
 					# 	print(each)
 					print(gre + each + res)
-					# if(addb == retOffset):
-						# break
 					t+=1
 
 				j += 1
@@ -3332,28 +2896,17 @@ def get_PushRet_start64(NumOpsDis ,bytesToMatch, secNum, data2): ###############
 			# 	getSyscallPE(20, 20, match, secNum, data2)
 			disHerePushRet64(t, numOps, secNum, data2)
 
+
+			
+
 		t=t+1
-
-
-
-
-
 def findAllPushRet64(data2, secNum): ################## AUSTIN #########################
 	if(secNum == 'noSec'):
-		PushRetrawhex(0, 'noSec', data2)
-	else:
-		for match in PUSH_RET.values():
-			optimized_find(4, match, secNum, data2, "disHerePushRet64")
-			# get_PushRet_start64(4, match, secNum, data2)
-			#disHerePushRet64(t, numOps, secNum, data2)
-
-
-def findAllPushRet64_old2(data2, secNum): ################## AUSTIN #########################
-	if(secNum == 'noSec'):
-		PushRetrawhex(0, 'noSec', data2)
+		PushRetrawhex(0, 15, 'noSec', data2)
 	else:
 		for match in PUSH_RET.values():
 			get_PushRet_start64(4, match, secNum, data2)
+
 
 #NumOpsBack: how many opcodes to search back when looking for fpu instruction
 def disHereFSTENV(address, NumOpsDis, NumOpsBack, secNum, data): ############ AUSTIN ##############
@@ -3363,10 +2916,7 @@ def disHereFSTENV(address, NumOpsDis, NumOpsBack, secNum, data): ############ AU
 	global total2
 	global fcount
 	w=0
-	if shellBit == 32:
-		callCS = cs
-	else:
-		callCS = cs64
+
 	## Capstone does not seem to allow me to start disassemblying at a given point, so I copy out a chunk to  disassemble. I append a 0x00 because it does not always disassemble correctly (or at all) if just two bytes. I cause it not to be displayed through other means. It simply take the starting address of the jmp [reg], disassembles backwards, and copies it to a variable that I examine more closely.
 	#lGoBack = linesGoBackFindOP
 
@@ -3412,7 +2962,7 @@ def disHereFSTENV(address, NumOpsDis, NumOpsBack, secNum, data): ############ AU
 		# dprint2("******************************************")
 
 		t = 0
-		for i in callCS.disasm(CODED3, (address -(NumOpsBack-back))):
+		for i in cs.disasm(CODED3, (address -(NumOpsBack-back))):
 
 			#dprint2('address in for = ' + str(address))
 			if(secNum == "noSec"):
@@ -3496,17 +3046,12 @@ def FSTENVrawhex(address, linesBack2, secNum, data):
 	global bit32
 	global ignoreDisDiscovery
 	global linesBack
-	# linesBack = 10
-	linesBack = linesBack2
-	# print("Lines Back --> ", linesBack)
+	linesBack = 10
 	address = int(address)
 	linesGoBack = 10
-
 	t = 0
 	truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, 0x0, linesGoBack)
-	# truth = False
-	# print("done")
-
+	truth = False
 	# t = 0
 	# for line in orgListDisassembly:
 	# 	dprint2(hex(orgListOffset[t]), "   ", orgListDisassembly[t])
@@ -3517,31 +3062,19 @@ def FSTENVrawhex(address, linesBack2, secNum, data):
 	chunk = ""
 	chunkOffsets = ""
 	if(truth):
-		# removeAmount=len(orgListDisassembly) - linesBack
-		# orgListDisassembly=orgListDisassembly[removeAmount:]
-		# orgListOffset=orgListOffset[removeAmount:]
-
-		# print("After List modification")
-		# print ("removeAmount", removeAmount, "size", len(orgListDisassembly), "linesBack", linesBack)
 		for e in orgListDisassembly:
-
-			# print (e)
-			# print(e)
 			isFSTENV = re.search("^fn?stenv", e, re.IGNORECASE)
 			if isFSTENV:
-				# print("Found fst instruction")
-				FSTENV_offset = hex(orgListOffset[t])
-				# print("offset: ", FSTENV_offset)   #Offset of fstenv
+				FSTENV_offset = hex(orgListOffset[t])   #Offset of fstenv
 				address = int(orgListOffset[t])
-				fpuIndex = 0	
+				fpuIndex = 0
 
 				isFPU, fpuIndex = get_FPUInstruction(orgListDisassembly, orgListOffset, linesBack, t)
 				# t_temp -= 1 
 
 
 				if isFPU:
-					# print("Found fstenv")
-					# input()
+
 					# dprint2("hello", t_temp)
 					FPU_offset = hex(orgListOffset[fpuIndex])
 
@@ -3553,11 +3086,9 @@ def FSTENVrawhex(address, linesBack2, secNum, data):
 						saveBaseFSTENV(address, (t - fpuIndex + 1), linesGoBack, peName, secNum, FPU_offset, FSTENV_offset, printEnd)
 						# break
 
-					except Exception as e:
-						print(e)
-						# break
+					except:
+						break
 						pass
-			t += 1
 
 
 	else:
@@ -3568,7 +3099,6 @@ def get_FPUInstruction(orgListDisassembly, orgListOffset, linesGoBack, FSTENV_of
 	fpuIndex = FSTENV_offset - 1
 	isFPU = False
 
-	# print("FSTENV_offset", FSTENV_offset, "linesGoBack", linesGoBack)
 	if((FSTENV_offset-linesGoBack)<0):
 		chunk = orgListDisassembly[0:FSTENV_offset]
 		chunkOffsets = orgListOffset[0:FSTENV_offset]
@@ -3577,7 +3107,6 @@ def get_FPUInstruction(orgListDisassembly, orgListOffset, linesGoBack, FSTENV_of
 		chunkOffsets = orgListOffset[FSTENV_offset-linesGoBack:FSTENV_offset]
 	chunk.reverse()
 	for i in chunk:
-		# print("current inst", i)
 		isFPU = re.search("^f((?!n?stenv).)*$", i, re.IGNORECASE)
 		if isFPU:
 			break
@@ -3620,10 +3149,6 @@ def saveBaseFSTENV(address, NumOpsDis, NumOpsBack, modSecName, secNum, FPU_offse
 
 def printSavedFSTENV(bit = 32): ######################## AUSTIN ###############################3
 
-	if bit == 32:
-		callCS = cs
-	else:
-		callCS = cs64
 	#formatting
 	j = 0
 	if(rawHex):
@@ -3673,43 +3198,42 @@ def printSavedFSTENV(bit = 32): ######################## AUSTIN ################
 			#address2 = address + section.ImageBase + section.VirtualAdd
 			val5 =[]
 
-			# if bit==32:
-			for i in callCS.disasm(CODED2, (address - NumOpsBack)):
-				if(rawHex):
-					add4 = hex(int(i.address))
-					addb = hex(int(i.address))
-				else:
-					add = hex(int(i.address))
-					addb = hex(int(i.address +  section.VirtualAdd))
-					add2 = str(add)
-					add3 = hex (int(i.address + section.startLoc	))
-					add4 = str(add3)
-				val = formatPrint(i, add4, addb)
-				# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
-				val5.append(val)
-				print(gre + val + res)
+			if bit==32:
+				for i in cs.disasm(CODED2, (address - NumOpsBack)):
+					if(rawHex):
+						add4 = hex(int(i.address))
+						addb = hex(int(i.address))
+					else:
+						add = hex(int(i.address))
+						addb = hex(int(i.address +  section.VirtualAdd))
+						add2 = str(add)
+						add3 = hex (int(i.address + section.startLoc	))
+						add4 = str(add3)
+					val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+					val5.append(val)
+					print(val)
 
 
 			# print (gre + val + res)
-			# if bit==64:
-			# 	for i in cs64.disasm(CODED2, (address - NumOpsBack)):
-			# 		if(rawHex):
-			# 			add4 = hex(int(i.address))
-			# 			addb = hex(int(i.address))
-			# 		else:
-			# 			add = hex(int(i.address))
-			# 			addb = hex(int(i.address +  section.VirtualAdd))
-			# 			add2 = str(add)
-			# 			add3 = hex (int(i.address + section.startLoc	))
-			# 			add4 = str(add3)
+			if bit==64:
+				for i in cs64.disasm(CODED2, (address - NumOpsBack)):
+					if(rawHex):
+						add4 = hex(int(i.address))
+						addb = hex(int(i.address))
+					else:
+						add = hex(int(i.address))
+						addb = hex(int(i.address +  section.VirtualAdd))
+						add2 = str(add)
+						add3 = hex (int(i.address + section.startLoc	))
+						add4 = str(add3)
 
-			# 	# if(hex(i.address) == printEnd):
-			# 	# 	break
-			# 		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
-			# 		val5.append(val)
+				# if(hex(i.address) == printEnd):
+				# 	break
+					val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+					val5.append(val)
 
-			# # print (gre + val + res)
-			# 		print(gre + val + res)
+			# print (gre + val + res)
+					print(gre + val + res)
 	#return val5
 			print ("\n")
 			j += 1
@@ -3758,36 +3282,30 @@ def printSavedFSTENV(bit = 32): ######################## AUSTIN ################
 				CODED2 = section.data2[(address-NumOpsBack):(address+NumOpsDis)]
 
 				CODED3 = CODED2
-				# if bit == 32:
-				for i in callCS.disasm(CODED3, address):
-					add = hex(int(i.address))
-					addb = hex(int(i.address +  section.VirtualAdd - NumOpsBack))
-					add2 = str(add)
-					add3 = hex (int(i.address + section.startLoc	- NumOpsBack))
-					add4 = str(add3)
-					val = formatPrint(i, add4, addb, pe=True)
-					# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
-					val2.append(val)
-					val3.append(add2)
-					val5.append(val)
-					if str(FSTENV_offset) == addb: 
+				if bit == 32:
+					for i in cs.disasm(CODED3, address):
+						add = hex(int(i.address))
+						addb = hex(int(i.address +  section.VirtualAdd - NumOpsBack))
+						add2 = str(add)
+						add3 = hex (int(i.address + section.startLoc	- NumOpsBack))
+						add4 = str(add3)
+						val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+						val2.append(val)
+						val3.append(add2)
+						val5.append(val)
 						print (gre + val + res)
-						break
-					else:
+				if bit == 64:
+					for i in cs64.disasm(CODED3, address):
+						add = hex(int(i.address))
+						addb = hex(int(i.address +  section.VirtualAdd - NumOpsBack))
+						add2 = str(add)
+						add3 = hex (int(i.address + section.startLoc	- NumOpsBack))
+						add4 = str(add3)
+						val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+						val2.append(val)
+						val3.append(add2)
+						val5.append(val)
 						print (gre + val + res)
-
-				# if bit == 64:
-				# 	for i in cs64.disasm(CODED3, address):
-				# 		add = hex(int(i.address))
-				# 		addb = hex(int(i.address +  section.VirtualAdd - NumOpsBack))
-				# 		add2 = str(add)
-				# 		add3 = hex (int(i.address + section.startLoc	- NumOpsBack))
-				# 		add4 = str(add3)
-				# 		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
-				# 		val2.append(val)
-				# 		val3.append(add2)
-				# 		val5.append(val)
-				# 		print (gre + val + res)
 				print ("\n")
 				j += 1
 				# print str(type(m[o].data2))
@@ -4011,7 +3529,7 @@ def disHereCallpop64(address, NumOpsDis, secNum, data, distance):
 	x = NumOpsDis
 
 	origAddr = address
-	# address = address + distance
+	address = address + distance
 	valOffsets =[]
 
 	CODED2 = data[(origAddr):(address+20)]
@@ -4053,20 +3571,15 @@ def disHereCallpop64(address, NumOpsDis, secNum, data, distance):
 	dprint2 (len(val5), "lenght val5")
 	disString = val5
 	t = 0
-	# print("CODED2 Before", CODED2.hex())
-
 	for line in disString:
 		##############################################
 		dprint2(line)
 		call = re.match("^call [0x]*[0-9a-f]{1,2}", disString[0], re.IGNORECASE)
 		if(call):
-			# print("Found call")
-			# input()
 			# pop_addr = line.split()[1]
 			# pop_addr = pop_addr[:-1]
 			# print ("found call")
 			pop_addr = valOpstr[t]
-			# print("pop address", pop_addr)
 			dprint2("POP ADDR = " + str(pop_addr))
 			# dprint2(binaryToStr(CODED3))
 		# dprint2("POP OFFSET")
@@ -4075,8 +3588,7 @@ def disHereCallpop64(address, NumOpsDis, secNum, data, distance):
 	if(secNum != "noSec"):
 		section = s[secNum]
 	CODED2 = data[(address):(address+NumOpsDis)]
-	# print("CODED2 after", CODED2.hex())
-	# input()
+
 	# I create the individual lines of code that will appear>
 	val =""
 	val2 = []
@@ -4122,34 +3634,27 @@ def disHereCallpop64(address, NumOpsDis, secNum, data, distance):
 		if bad:
 			dprint2 ("got bad")
 		if(bad) and (t > 0):
-			# print("Returning")
 			return
 		t+=1
 
-	t=0
 
-	for line in disString:
-		# print("Line", line, "offset", valOffsets[t])
-		# print("offset: ", valOffsets)
+
+	for line in disString2:
+
 		##############################################
 		#Note that push/pop are invalid for e registers in x64. r registers are correct.
 		# pop = re.match("^pop (((r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp))) | (r((8)|(9)|(1(0-5)))d?)", line, re.IGNORECASE)
-		# print("disString2", line)
+
 		# jmp = re.match("^jmp", line, re.IGNORECASE)
-		# call = re.match("^call", line, re.IGNORECASE)
+		call = re.match("^call", line, re.IGNORECASE)
 		# bad = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(int)|(retf)|(db)|(hlt)|(loop)|(ret)|(leave)|(int3)|(insd)|(enter)|(jns))", line, re.M|re.I)
 		# if(jmp or call or bad):
 			# return
 
 		pop = re.match("^pop ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)|(8)|(9)|(1[0-5])))", line, re.IGNORECASE)
 		if(pop):
-			# print("offset: ", valOffsets[t])
-			# print(pop)
-			# input()
-			# pop_offset = valOpstr[t]
-			# print("Found pop offset")
 
-			pop_offset = valOffsets[t]
+			pop_offset = valOpstr[t]
 			# dprint2("POP OFFSET")
 			# dprint2(line)
 		# dprint2(pop_offset)
@@ -4161,12 +3666,10 @@ def disHereCallpop64(address, NumOpsDis, secNum, data, distance):
 			else:
 				modSecName = section.sectionName
 			# dprint2("saving one")
-			# print("Saving call pop: ", origAddr, "pop offset", pop_offset)
-			# print("Saving: ", hex(origAddr), "pop_offset", pop_offset)
 			saveBaseCallpop(origAddr, NumOpsDis, modSecName, secNum, distance, pop_offset)
 			return
 		t+=1
-def callPopRawHex_old(address, secNum, data):
+def callPopRawHex_old(address, linesForward2, secNum, data):
 	global bit32
 	global ignoreDisDiscovery
 	global maxDistance
@@ -4265,7 +3768,6 @@ def callPopRawHex_old(address, secNum, data):
 		for match in CALLPOP_START.values(): #iterate through all opcodes representing combinations of registers
 			get_Callpop(10, match[0], secNum, data, match[1])
 
-
 def callPopRawHex(address, linesForward2, secNum, data):
 	global bit32
 	global ignoreDisDiscovery
@@ -4318,23 +3820,14 @@ def callPopRawHex(address, linesForward2, secNum, data):
 			get_Callpop(10, match[0], secNum, data, match[1])
 
 def saveBaseCallpop(address, NumOpsDis,modSecName,secNum,distance,pop_offset): 
-	# print("saveBaseCallpop", address, NumOpsDis,modSecName,secNum,distance,pop_offset)
 	# dprint2("saving")
 	#save virtaul address as well
-	tmp = tuple((address,NumOpsDis,modSecName,secNum,distance, pop_offset))
-	
-
 	if(secNum != "noSec"):
-		if tmp not in s[secNum].save_Callpop_info:
-		# print("Saving pop_offset", pop_offset)
-			s[secNum].save_Callpop_info.append(tuple((address,NumOpsDis,modSecName,secNum,distance, pop_offset)))
+		s[secNum].save_Callpop_info.append(tuple((address,NumOpsDis,modSecName,secNum,distance, pop_offset)))
 	else:
 		secNum = -1
 		modSecName = "rawHex"
-		tmp = tuple((address,NumOpsDis,modSecName,secNum,distance, pop_offset))
-		
-		if tmp not in m[o].save_Callpop_info:
-			m[o].save_Callpop_info.append(tuple((address,NumOpsDis,modSecName,secNum,distance,pop_offset)))
+		m[o].save_Callpop_info.append(tuple((address,NumOpsDis,modSecName,secNum,distance,pop_offset)))
 
 
 
@@ -4363,8 +3856,8 @@ def printSavedCallPop(bit = 32): ######################## AUSTIN ###############
 			distance = item[4]
 			pop_offset = item[5]
 			address = origAddr + distance
-			popOpcLen = 1
-			CODED2 = rawData2[(origAddr):(address+NumOpsDis	)]
+
+			CODED2 = rawData2[(address):(address+NumOpsDis)]
 
 			outString = "Item: " + str(j)
 			if(secNum != -1):
@@ -4384,7 +3877,7 @@ def printSavedCallPop(bit = 32): ######################## AUSTIN ###############
 			#address2 = address + section.ImageBase + section.VirtualAdd
 			val5 =[]
 			
-			for i in callCS.disasm(CODED2, origAddr):
+			for i in callCS.disasm(CODED2, address):
 				if(rawHex):
 					add4 = hex(int(i.address))
 					addb = hex(int(i.address))
@@ -4394,17 +3887,14 @@ def printSavedCallPop(bit = 32): ######################## AUSTIN ###############
 					add2 = str(add)
 					add3 = hex (int(i.address + section.startLoc	))
 					add4 = str(add3)
-				val = formatPrint(i, add4, addb)
+				val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 
-				# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 				print (gre + val + res)
-				if(addb == pop_offset):
-					break
 				# print (val)
 				#stop printing after we print out our getPC pop
-				# isPop = re.search("^pop ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)|(8)|(9)|(1[0-5])))", val, re.IGNORECASE)
-				# if(isPop):
-					# break
+				isPop = re.search("^pop ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)|(8)|(9)|(1[0-5])))", val, re.IGNORECASE)
+				if(isPop):
+					break
 
 
 				
@@ -4429,7 +3919,6 @@ def printSavedCallPop(bit = 32): ######################## AUSTIN ###############
 				distance = item[4]
 				pop_offset = item[5]
 				address = origAddr + distance
-				popOpcLen = 1
 				# print("NUMBACK = " + str(NumOpsBack))
 
 				section = s[secNum]
@@ -4453,33 +3942,25 @@ def printSavedCallPop(bit = 32): ######################## AUSTIN ###############
 				val3 = []
 				address2 = address + section.ImageBase + section.VirtualAdd
 				val5 =[]
-				CODED2 = section.data2[(origAddr):(address+NumOpsDis)]
+				CODED2 = section.data2[(address):(address+NumOpsDis)]
 				
 				CODED3 = CODED2
-				# print("origAddr: ", origAddr, "CODED3", CODED3, "Address", address)
-				# print("print output", CODED3.hex())
-
-				for i in callCS.disasm(CODED3, origAddr):
+				for i in callCS.disasm(CODED3, address):
 					add = hex(int(i.address))
 					addb = hex(int(i.address +  section.VirtualAdd))
 					add2 = str(add)
 					add3 = hex (int(i.address + section.startLoc))
 					add4 = str(add3)
-					val = formatPrint(i, add4, add, pe=True)
-
-					# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+					val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 					val2.append(val)
 					val3.append(add2)
 					val5.append(val)
 					print (gre + val + res)
-					if(addb == pop_offset):
-						break
-					
 					# print (val)
 					#stop printing after we print out our getPC pop
-					# isPop = re.search("^pop ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)|(8)|(9)|(1[0-5])))", val, re.IGNORECASE)
-					# if(isPop):
-						# break
+					isPop = re.search("^pop ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)|(8)|(9)|(1[0-5])))", val, re.IGNORECASE)
+					if(isPop):
+						break
 
 				print ("\n")
 				j += 1
@@ -4490,10 +3971,11 @@ def printSavedCallPop(bit = 32): ######################## AUSTIN ###############
 
 
 def identifySyscall(callNum): # returns two lists containing lists of the format [syscall name 1, version 1, version 2.... ]. First list is results for x86 OSes, second is for x86-64
-	# callNum = 0x26
+
 	result = []
 	result64 = []
 	result32 = []
+
 	callNum = format(callNum, '#06x')
 	with open('nt64.csv', 'r') as file:
 		nt64Csv = csv.reader(file)
@@ -4568,6 +4050,7 @@ def identifySyscall(callNum): # returns two lists containing lists of the format
 
 	result.append(result32)
 	result.append(result64)
+
 	return result
 
 #enter callNum as hex code of syscall, bit and wanted version are optional and will return most recent 64bit OS by default
@@ -4607,6 +4090,8 @@ def getSyscall(callNum, bit = 64, version = "default"):
 		name = item[0]
 		osList = item[1:]
 
+		print("OSLIST IS")
+		print(osList)
 		for osItem in osList:
 
 			if(osItem.lower().replace(" ", "") == version):
@@ -4649,10 +4134,12 @@ def getSyscallRecent(callNum, bit = 64, print2File=None):
 		version = version.rsplit('(',1)[0]
 		if(version not in categories):
 			categories.append(version)
+
 	# print(categories)
 	finalCat = [[] for _ in range(len(categories))]
 	finalList = ["" for _ in range(len(versions))]
 	# print(finalCat)
+
 
 	for item in apiList:
 		name = item[0]
@@ -4679,7 +4166,7 @@ def getSyscallRecent(callNum, bit = 64, print2File=None):
 						print("\n")
 					else:
 						syscallString += "OS: " + versions[i]
-						syscallString += " Syscall: " + finalList[i]
+						syscallString += "Syscall: " + finalList[i]
 						syscallString += "\n"
 						# return syscallString
 	except:
@@ -4698,7 +4185,7 @@ def getSyscallRecent(callNum, bit = 64, print2File=None):
 				print("\n")
 			else:
 				syscallString += "OS: " + newestVersion
-				syscallString += " Syscall: " +newest
+				syscallString += "Syscall: " +newest
 				syscallString += "\n"
 				# return syscallString
 	return syscallString
@@ -4734,6 +4221,7 @@ def printSyscallResult(syscalls):
 
 
 def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startStates: tuple containing starting values of each register | stack: list of items on the stack
+
 	eax = startStates[0]
 	ebx = startStates[1]
 	ecx = startStates[2]
@@ -4762,7 +4250,6 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 		line = line.rsplit('	', 1)[0]
 		# print("____________-")
 		# print(line)
-
 		mov = re.match("^(mov) (e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
 		add = re.match("^(add) (e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
 		sub = re.match("^(sub) (e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
@@ -5235,7 +4722,6 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 					esp = found
 
 			elif(variable):
-
 				found = str(variable.group())
 				if(found == reg):
 					nullify = True
@@ -5259,12 +4745,10 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 					found = ebp
 				elif(found == 'esp'):
 					found = esp
-
 				else:
 					found = "unknown"
 
 				found = str(found)
-
 
 			elif(numeric):
 				found = int(numeric.group(), 0)
@@ -5525,11 +5009,9 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 						esp = found
 				elif(found == 'esp'):
 					found = esp
-
 					if(reg == 'eax'):
 						esp = eax
 						eax = found
-
 					elif(reg == 'ebx'):
 						esp = ebx
 						ebx = found
@@ -5561,7 +5043,6 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 		elif(push):
 
 			line = line.split(' ',1)[-1]
-
 			line = line.replace(' ', '')
 
 			# print("PUSH LINE IS")
@@ -5615,11 +5096,10 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 
 			else:
 				found = "unknown"
+
 			stack.append(found)
 
 			if(esp != "unknown"):
-				if type(esp) == int:
-					esp = str(esp)
 				esp = int(esp, 0) - 4
 			else:
 				espOffset -= 4
@@ -5645,9 +5125,7 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 				# print(found)
 
 				if(stack):
-
 					val = str(stack.pop())
-
 				else:
 					val = "unknown"
 
@@ -5679,9 +5157,6 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 					found = "unknown"
 
 			if(esp != "unknown"):
-				if type(esp) == int:
-					esp = str(esp)
-				# print("----> ", esp, type(esp))
 				esp = int(esp, 0) + 4
 			else:
 				espOffset += 4
@@ -5730,6 +5205,7 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 		except Exception as e:
 			# print(e)
 			pass
+
 	return(regsResult, stack)
 
 
@@ -5775,8 +5251,6 @@ def getSyscallPE(NumOpsDis, NumOpsBack, bytesToMatch, secNum, data2):
 			i += 1
 
 		if(found):
-			# print("Found syscall")
-			# input()
 			# dprint2("here's one")
 			# input("enter..")
 			disHereSyscall(t, numOps, NumOpsBack, secNum, data2)
@@ -5917,7 +5391,7 @@ def disHereSyscall(address, NumOpsDis, NumOpsBack, secNum, data): ############ A
 
 		for line in disString:
 			# if(re.match("(fs:\[0xc0\])|(fs:\[(((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))))( ?\+ ?(0x)?[0-9a-f]+)?\])", line, re.IGNORECASE)):
-			if(re.match("^((call)|(jump)) dword ptr fs:\[((((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))))( ?\+ ?(0x)?[0-9a-f]+)?|(0xc0))\]", line, re.IGNORECASE) or re.match("^(syscall)", line, re.IGNORECASE) or re.match("^(int 0x2e)", line, re.IGNORECASE)):
+			if(re.match("^((call)|(jump)) dword ptr fs:\[((((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))))( ?\+ ?(0x)?[0-9a-f]+)?|(0xc0))\]", line, re.IGNORECASE)):
 				c0_match = True
 				c0_offset = line.split()[-1]
 				c0_offset = c0_offset[:-1]
@@ -5948,6 +5422,7 @@ def disHereSyscall(address, NumOpsDis, NumOpsBack, secNum, data): ############ A
 
 				startStates = ("unknown","unknown","unknown","unknown","unknown","unknown","unknown","unknown")
 				eax = trackRegs(disString, startStates, [])[0][0]
+
 				# eax = trackRegs(disString, regsVals, [])[0][0]
 
 				# if(eax != "unknown"):
@@ -5960,7 +5435,7 @@ def getSyscallRawHex(address, linesBack, secNum, data):
 		global regsVals
 		dprint2("DISEGG2")
 		address = hex(address)
-		linesGoBack = linesBack
+		linesGoBack = 10
 		t = 0
 
 		addressInt = int(address,16)
@@ -5979,8 +5454,7 @@ def getSyscallRawHex(address, linesBack, secNum, data):
 				# dprint2(e, hex(orgListOffset[t]))
 				# isEgg = re.search("fs:(\[0xc0\])?", e, re.IGNORECASE)
 				isEgg = re.search("^((call)|(jump)) dword ptr fs:\[((((e?((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|((a|b|c|d)(h|l)))))( ?\+ ?(0x)?[0-9a-f]+)?|(0xc0))\]", e, re.IGNORECASE)
-				eggNew = re.search("^((int 0x2e)|(syscall))", e, re.IGNORECASE)
-				if(isEgg or eggNew):
+				if(isEgg):
 					c0_offset = hex(orgListOffset[t])
 					address = int(orgListOffset[t])
 					# dprint2("EGGHUNT HERE")
@@ -6397,10 +5871,7 @@ def disHereHeavenPE(address, NumOpsDis, NumOpsBack, secNum, data): ############ 
 	global total2
 	global fcount
 	w=0
-	if shellBit == 32:
-		callCS = cs
-	else:
-		callCS = cs64
+
 	disString = []
 	destLocation = -1
 	push_offset = -1
@@ -6460,7 +5931,7 @@ def disHereHeavenPE(address, NumOpsDis, NumOpsBack, secNum, data): ############ 
 		# dprint2(binaryToStr(CODED3))
 		# dprint2("******************************************")
 		offsets = []
-		for i in callCS.disasm(CODED3, address):
+		for i in cs.disasm(CODED3, address):
 			# dprint2('address in for = ' + str(address))
 			if(secNum == "noSec"):
 
@@ -6479,12 +5950,9 @@ def disHereHeavenPE(address, NumOpsDis, NumOpsBack, secNum, data): ############ 
 			# val2.append(val)
 			# val3.append(add2)
 			val5.append(val)
-
 			# dprint2(val)
 
 			disString = val5
-			# print(disString)
-			# input()
 			# dprint2("before")
 			# dprint2(disString)
 			# disString = disString[2:]
@@ -6496,8 +5964,6 @@ def disHereHeavenPE(address, NumOpsDis, NumOpsBack, secNum, data): ############ 
 
 		push_offset = ""
 		t = 0
-		# print("Length: ", len(disString))
-		# input()
 		for line in disString:
 			# dprint2("HEAVLINE", line)
 			bad = re.match("^((jmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(int)|(db)|(hlt)|(loop)|(ret)|(leave)|(int3)|(insd)|(enter)|(jns)|(call))", line, re.M|re.I)   # addd call
@@ -6534,6 +6000,8 @@ def disHereHeavenPE(address, NumOpsDis, NumOpsBack, secNum, data): ############ 
 			#dword ptr [0xe0ff4212]
 			if(byte or insd or longNum or outsd):
 				unlikely = unlikely + 1
+
+
 
 		if(heav_match and (unlikely < 3)):
 			# dprint2("heavenhere")
@@ -6604,7 +6072,7 @@ def disHereHeavenPE(address, NumOpsDis, NumOpsBack, secNum, data): ############ 
 
 def getHeavenRawHex(address, linesBack, secNum, data):
 		address = hex(address)
-		linesGoBack = linesBack
+		linesGoBack = 10
 		t = 0
 		truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, 0x0, linesGoBack)  # arg: starting offset/entry point - leave 0 generally
 
@@ -6698,24 +6166,16 @@ def getHeavenRawHex(address, linesBack, secNum, data):
 						flag33 = False
 						destLocation = -1
 						for i in range(len(stack)-1, -1, -1):
-							# print("Processing: ", str(stack[i]))
-							if(stack[i] == hex(0x33)):
-								# print("Flag True")
-								# input()
-								# dprint2("set 33 flag")
-								flag33 = True
 							# dprint2("checking this value: ", stack[i])
 							if(flag33):
 								# dprint2("set deslocation = ", stack[i])
 								destLocation = stack[i]
-								# print("New dstlocation", str(stack[i]))
 								flag33 = False
 
-							# if(stack[i] == hex(0x33)):
-							# 	print("Flag True")
-							# 	input()
-							# 	# dprint2("set 33 flag")
-							# 	flag33 = True
+							if(stack[i] == hex(0x33)):
+								# dprint2("set 33 flag")
+								flag33 = True
+
 						# dprint2("after loop, destLocation = ", destLocation)
 						if(destLocation != -1 and destLocation != "unknown"):
 							c = 0
@@ -6724,9 +6184,7 @@ def getHeavenRawHex(address, linesBack, secNum, data):
 							for line in chunk:
 								if(re.search(destRegex, line, re.IGNORECASE)):
 									push_offset = chunkOffsets[c]
-
 								c += 1
-
 						modSecName = peName
 						saveBaseHeaven(address, -1, (linesBack), modSecName, secNum, offset, "retf", pushOffset = push_offset, destLocation = destLocation, converted = converted)
 					# # dprint2("eax = " + str(eax) + "\n\n\n")
@@ -6742,17 +6200,8 @@ def getHeavenRawHex(address, linesBack, secNum, data):
 
 def saveBaseHeaven(address, NumOpsDis, linesBack, modSecName, secNum, offset, pivottype, pushOffset = -1, destLocation = -1, converted = ""):
 	if(secNum != "noSec"):
-		found = False
-		# saving = tuple((address,NumOpsDis,linesBack,modSecName,secNum, offset, pushOffset, destLocation, pivottype))
-		for i in s[secNum].save_Heaven_info:
-			if offset == i[5]:
-				found = True
-				# print("found")
-		#dprint2("heavensave")
-		# print("--> ", saving)
-		# input()
-		if not found:
-			s[secNum].save_Heaven_info.append(tuple((address,NumOpsDis,linesBack,modSecName,secNum, offset, pushOffset, destLocation, pivottype)))
+		dprint2("heavensave")
+		s[secNum].save_Heaven_info.append(tuple((address,NumOpsDis,linesBack,modSecName,secNum, offset, pushOffset, destLocation, pivottype)))
 	else:
 
 		dprint2("Saving one raw")
@@ -6877,9 +6326,7 @@ def printSavedHeaven(bit = 32): ######################## AUSTIN ################
 					# add3 = hex (int(i.address + section.startLoc	- NumOpsBack))
 					add3 = hex (int(i.address + section.startLoc))
 					add4 = str(add3)
-					val = formatPrint(i, add4, addb, pe=True)
-
-					# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+					val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 					val2.append(val)
 					val3.append(add2)
 					val5.append(val)
@@ -6999,10 +6446,8 @@ def convertStringToTrack(dis, offsets):
 	dprint2(offsets)
 	t = 0
 	result = [""]
-	#val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
 	for item in dis:
-		# outstr = '{:<35s} {:<20s} {:<20s}'.format(item, hex(offsets[t]), " (offset " + hex(offsets[t]) + ")")
-		outstr = item + "\t\t\t\t" + " " + hex(offsets[t]) + " (offset " + hex(offsets[t]) + ")"
+		outstr = item + "\t\t\t\t" + hex(offsets[t]) + " (offset " + hex(offsets[t]) + ")"
 		result.append(outstr)
 		t += 1
 
@@ -7011,7 +6456,6 @@ def convertStringToTrack(dis, offsets):
 
 
 def saveBaseEgg(address, NumOpsDis, linesBack, modSecName, secNum, eax, c0_offset, converted = ""):
-
 	if(secNum != "noSec"):
 
 		# print ("before")
@@ -7059,7 +6503,7 @@ def printSavedEgg(bit = 32, showDisassembly = True): ######################## AU
 			else:
 				outString += " | Module: " + modSecName
 
-			outString += " | EAX: " + eax + " | Syscall Offset: " + c0_offset
+			outString += " | EAX: " + eax + " | 0xc0 Offset: " + c0_offset
 
 			print ("\n******************************************************************************")
 			print (yel + outString + res)
@@ -7105,7 +6549,7 @@ def printSavedEgg(bit = 32, showDisassembly = True): ######################## AU
 				else:
 					outString += " | Module: " + modSecName
 
-				outString += " | EAX: " + eax + " | Syscall Offset: " + c0_offset
+				outString += " | EAX: " + eax + " | 0xc0 Offset: " + c0_offset
 
 				print ("\n******************************************************************************")
 				print (yel + outString + res)
@@ -7126,9 +6570,7 @@ def printSavedEgg(bit = 32, showDisassembly = True): ######################## AU
 						add2 = str(add)
 						add3 = hex (int(i.address + section.startLoc	- NumOpsBack))
 						add4 = str(add3)
-						val = formatPrint(i, add4, addb, pe=True)
-
-						# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+						val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 						val2.append(val)
 						val3.append(add2)
 						val5.append(val)
@@ -7147,19 +6589,15 @@ def printSavedEgg(bit = 32, showDisassembly = True): ######################## AU
 def saveBasePEBWalk(address, NumOpsDis,modSecName,secNum, points, loadTIB_offset, loadLDR_offset, loadModList_offset, advanceDLL_Offset): 
 	# print("saving")
 	#save virtaul address as well
-
-	peb_data = tuple((address,NumOpsDis,modSecName,secNum,points,loadTIB_offset,loadLDR_offset,loadModList_offset,advanceDLL_Offset))
-
 	if(secNum != "noSec"):
-		if peb_data not in s[secNum].save_PEB_info:
-			s[secNum].save_PEB_info.append(tuple((address,NumOpsDis,modSecName,secNum,points,loadTIB_offset,loadLDR_offset,loadModList_offset,advanceDLL_Offset)))
+		s[secNum].save_PEB_info.append(tuple((address,NumOpsDis,modSecName,secNum,points,loadTIB_offset,loadLDR_offset,loadModList_offset,advanceDLL_Offset)))
 	else:
 		secNum = -1
 		modSecName = "rawHex"
 		m[o].save_PEB_info.append(tuple((address,NumOpsDis,modSecName,secNum,points,loadTIB_offset,loadLDR_offset,loadModList_offset,advanceDLL_Offset)))
 
 
-def findAllFSTENV_old2(data2, secNum): ################## AUSTIN ######################
+def findAllFSTENV(data2, secNum): ################## AUSTIN ######################
 	if(secNum == 'noSec'):
 		FSTENVrawhex(0, 10, 'noSec', data2)
 
@@ -7167,29 +6605,14 @@ def findAllFSTENV_old2(data2, secNum): ################## AUSTIN ###############
 		for match in FSTENV_GET_BASE.values(): #iterate through all opcodes representing combinations of registers
 			get_FSTENV(10, 15, match, secNum, data2) 
 
-def findAllFSTENV(data2, secNum): ################## AUSTIN ######################
-	global linesBack
-	if(secNum == 'noSec'):
-		FSTENVrawhex(0, linesBack, 'noSec', data2)
-#numOps, match, secNum, data2, funcName = None):
-	else:
-		for match in FSTENV_GET_BASE.values(): #iterate through all opcodes representing combinations of registers
-			optimized_find(10, match, secNum, data2, "disHereFSTENV")
-			# get_FSTENV(10, 15, match, secNum, data2) 
-
 def findAllSyscall(data2, secNum):
 	for match in EGGHUNT.values():
 		getSyscallPE(20, 20, match, secNum, data2)
 
-def findAllHeaven_old2(data2, secNum):
+def findAllHeaven(data2, secNum):
 	for match in HEAVEN.values():
 		get_HeavenPE(4, 20, match, secNum, data2)
 
-def findAllHeaven(data2, secNum):
-	for match in HEAVEN.values():
-		optimized_find(4, match, secNum, data2, "disHereHeavenPE")
-		# get_HeavenPE(4, 20, match, secNum, data2)
-#disHereHeavenPE(t, numOps, NumOpsBack, secNum, data2)
 def findAllFSTENV_old(): ################## AUSTIN ######################
 
 	if(rawHex):
@@ -7205,245 +6628,33 @@ def findAllFSTENV_old(): ################## AUSTIN ######################
 			for match in FSTENV_GET_BASE.values(): #iterate through all opcodes representing combinations of registers
 				get_FSTENV(10, 15, match, secNum, data2) 
 
-
-def findAllCallpop_old2(data2, secNum, numOps = 10): ################## AUSTIN ######################
-	if(secNum == 'noSec'):
-		callPopRawHex(0, secNum, data2)
-	else:
-		for match in CALLPOP_START.values(): #iterate through all opcodes representing combinations of registers
-			# optimized_find(numOps, match, secNum, data2, "disHereCallpop")
-			get_Callpop(numOps, match[0], secNum, data2, match[1]) 
-
-
-
-
 def findAllCallpop(data2, secNum, numOps = 10): ################## AUSTIN ######################
 	if(secNum == 'noSec'):
 		callPopRawHex(0, 15, secNum, data2)
 	else:
 		for match in CALLPOP_START.values(): #iterate through all opcodes representing combinations of registers
-			optimized_find(numOps, match, secNum, data2, "disHereCallpop")
-			# get_Callpop(numOps, match[0], secNum, data2, match[1]) 
+			get_Callpop(numOps, match[0], secNum, data2, match[1]) 
 
-
-def findAllCallpop64_old2(data2, secNum): ################## AUSTIN ######################
-
-	for match in CALLPOP_START.values(): #iterate through all opcodes representing combinations of registers
-		get_Callpop64(10, match[0], secNum, data2, match[1])
 
 def findAllCallpop64(data2, secNum): ################## AUSTIN ######################
 
 	for match in CALLPOP_START.values(): #iterate through all opcodes representing combinations of registers
-		optimized_find(10, match, secNum, data2, "disHereCallpop64")
-		# get_Callpop64(10, match[0], secNum, data2, match[1])
-
+		get_Callpop64(10, match[0], secNum, data2, match[1])
 
 
 def findAllPebSequences_old(data2, secNum): ################## AUSTIN ######################
-	# global rawHex
-#get_PEB_walk_start(mode, NumOpsDis ,bytesToMatch, secNum, data2): 
-#disHerePEB(mode, t, numOps, secNum, data2)
-	for match in PEB_WALK.values(): #iterate through all opcodes representing combinations of registers
-		optimized_find(19, match, secNum, data2, "disHerePEB")
-		# get_PEB_walk_start("normal", 19, match, secNum, data2)
-
-def findAllPebSequences_old2(data2, secNum): ################## AUSTIN ######################
 	# global rawHex
 
 	for match in PEB_WALK.values(): #iterate through all opcodes representing combinations of registers
 		get_PEB_walk_start("normal", 19, match, secNum, data2) 
 
 
-def optimized_find(numOps, match, secNum, data2, funcName = None):
-	start = 0
-
-	if "disHereCallpop" == funcName or "disHereCallpop64" == funcName:
-		patternMatch = match[0]
-	else:
-		patternMatch = match
-	foundFS = False
-	while True:
-		
-		start = data2.find(patternMatch, start)
-		if start == -1:
-			break
-		else:
-			
-					# foundFS = False
 
 
-						# print("---> ", instr)
-						# input()
 
-		# val2.append(val)
-		# val3.append(add2)
-			#
-			# instr = cs.disasm(data2[start], 30)
-			# for i in instr:
-			# 	print(i.mnemonic , i.op_str)
-			# 	input()
-		#disHereFSTENV(t, numOps, NumOpsBack, secNum, data2)
-
-				#disHereCallpop(t, numOps, secNum, data2, distance)
-			if "disHerePEB_64" == funcName:
-				disHerePEB_64(start, numOps, secNum, data2)
-			elif "disHereCallpop" == funcName:
-				disHereCallpop(start, numOps, secNum, data2, match[1])
-			elif "disHereCallpop64" == funcName:
-				disHereCallpop64(start, numOps, secNum, data2, match[1])
-			elif "disHerePushRet" == funcName:
-				disHerePushRet(start, numOps, secNum, data2)
-			elif "disHerePushRet64" == funcName:
-				disHerePushRet64(start, numOps, secNum, data2)
-			elif "disHereFSTENV" == funcName:
-				disHereFSTENV(start, numOps, 15, secNum, data2)
-			elif "disHereSyscall" == funcName:
-				disHereSyscall(start, numOps, 20, secNum, data2)
-			elif "disHerePEB" == funcName:
-				disHerePEB("normal", start, numOps, secNum, data2)
-			elif "disHereHeavenPE" == funcName:
-				matchList = ["push", "xor", "xchg", "pop", "sub", "add"]
-			# dprint2("back = " + str(back))
-			# CODED2 = data[(address-(NumOpsBack-back)):(address+x)]
-				flag = False
-				for back in range(20):
-
-		# dprint2("back = " + str(back))
-			# CODED2 = data[(address-(NumOpsBack-back)):(address+x)]
-					CODED3 = data2[start - (20-back):(start+numOps)]
-			# CODED3 = data2[start:(start+numOps)]
-					instr=""
-					for i in cs.disasm(CODED3, start):
-						instr+=  i.mnemonic + " "
-					# print("intr", instr)
-					# input()
-					if "retf" in instr:
-						if "add" in instr or "push" in instr or "xor" in instr or "xchg" in instr or "pop" in instr or "sub" in instr:
-							flag = True
-							# foundFS = False
-					if "lcall" in instr or "ljmp" in instr:
-						# print("CODED3", CODED3.hex(), "back --> ",back, instr, start)
-						# input()
-						flag = True
-				if flag:
-					disHereHeavenPE(start, numOps, 20, secNum, data2)
-#disHerePEB(mode, t, numOps, secNum, data2)
-#disHereHeavenPE(t, numOps, NumOpsBack, secNum, data2)
-
-			# disHerePEB_64(start, 28, secNum, data2)
-			start += len(patternMatch)
 
 #mode, data2=None, secNum=None
 # def findAllPebSequences(data2, secNum, mode): ################## AUSTIN ######################
-def findAllPebSequences_old2(mode, data2=None, secNum=None): ################## AUSTIN ######################
-
-	# global rawHex
-	# print ("findAllPebSequences", mode, binaryToStr(rawData2),)
-	if(rawHex):
-		# print("in check")
-
-		if shellBit == 32:
-			for match in PEB_WALK.values(): #iterate through all opcodes representing combinations of registers
-				# ans=get_PEB_walk_start(mode, 19, match, "noSec", data2) #19 hardcoded for now, seems like good value for peb walking sequence
-				ans=get_PEB_walk_start(mode, 19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
-				# print ("ans", ans)
-
-				if mode=="decrypt" and ans is not None:
-					print ("good, get peb walk")
-					print (ans)
-					return (ans)
-		else:
-			# print("Here")
-			# input()
-			for match in PEB_WALK_MOV_64.values():
-				get_PEB_walk_start_64(28, match, secNum, data2)
-
-		# for match in PEB_WALK_ADD.values(): #iterate through all opcodes representing combinations of registers
-		# 	get_PEB_walk_start(mode, 19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
-		# for match in PEB_WALK_ADC.values(): #iterate through all opcodes representing combinations of registers
-		# 	get_PEB_walk_start(mode, 19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
-		# for match in PEB_WALK_OR.values(): #iterate through all opcodes representing combinations of registers
-		# 	get_PEB_walk_start(mode, 19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
-		# for match in PEB_WALK_XOR.values(): #iterate through all opcodes representing combinations of registers
-		# 	get_PEB_walk_start(mode, 19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
-		# for match in PEB_WALK_XCHG.values(): #iterate through all opcodes representing combinations of registers
-		# 	get_PEB_walk_start(mode, 19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
-	else:
-
-		if(bit32):
-			for secNum in range(len(s)):
-				# print("Trying section: " + str(secNum))
-				data2 = s[secNum].data2
-
-				# print("before mov")
-				for match in PEB_WALK.values(): #iterate through all opcodes representing combinations of registers
-					get_PEB_walk_start(mode, 19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
-			# # # print("after mov")
-			# for match in PEB_WALK_MOV_OLD.values(): #iterate through all opcodes representing combinations of registers
-			# 	get_PEB_walk_start(mode, 19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
-			# for match in PEB_WALK_ADD_OLD.values(): #iterate through all opcodes representing combinations of registers
-			# 	get_PEB_walk_start(mode, 19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
-			# for match in PEB_WALK_ADC_OLD.values(): #iterate through all opcodes representing combinations of registers
-			# 	get_PEB_walk_start(mode, 19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
-			# for match in PEB_WALK_OR_OLD.values(): #iterate through all opcodes representing combinations of registers
-			# 	get_PEB_walk_start(mode, 19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
-			# for match in PEB_WALK_XOR_OLD.values(): #iterate through all opcodes representing combinations of registers
-			# 	get_PEB_walk_start(mode, 19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
-			# for match in PEB_WALK_XCHG_OLD.values(): #iterate through all opcodes representing combinations of registers
-			# 	get_PEB_walk_start(mode, 19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
-
-			# def get_PEB_walk_start_64(NumOpsDis ,bytesToMatch, secNum, data2):
-
-			# 	if(found):
-			# 			disHerePEB_64(t, numOps, secNum, data2)
-		else:
-			startTime = time.time()
-
-			for secNum in range(len(s)):
-				# print("Sec Num: ", secNum)
-				data2 = s[secNum].data2
-				# start = time.time()
-				data2Tmp = data2
-				# offset = 0
-				# index=0
-				for match in PEB_WALK_MOV_64.values(): #iterate through all opcodes representing combinations of registers
-					# print("Finding value", match.hex())
-					# optimized_find(match, secNum, data2, disHerePEB_64) 
-					# optimized_find(match, secNum, data2, disHerePEB_64) 
-					# optimized_find(match, secNum, data2) 
-
-					# print("Section ", secNum)
-					# start = 0
-					# while True:
-					# 	start = data2.find(match, start)
-					# 	if start == -1:
-					# 		break
-					# 	else:
-							# disHerePEB_64(start, 28, secNum, data2)
-					# 		start += len(match)
-
-					get_PEB_walk_start_64(28, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
-
-
-					# if match in data2Tmp:
-					# # 	print("found one")
-					# 	offset = data2.find(match)
-					# 	print("Offset is: ", offset, secNum)
-					# 	disHerePEB_64(offset, 28, secNum, data2)
-					# 	offset += 1
-					# 	index += 1
-					# data2Tmp = data2Tmp[index:]
-					# disHerePEB_64(t, numOps, secNum, data2)
-					# data2 = s[secNum].data2
-					# print("Testing..")
-					# if match in data2:
-						# print("data2 at  39068", hex(data2[39068]), hex(data2[16974]))
-						# print("Found already at", data2.index(match))
-						# disHerePEB_64(data2.index(match), 28, secNum, data2)
-				# end = time.time()
-				# print("Time: ", (end-start))
-			end = time.time()
-			print("\nElapsed time: ", end-startTime)
 
 def findAllPebSequences(mode, data2=None, secNum=None): ################## AUSTIN ######################
 
@@ -7453,7 +6664,6 @@ def findAllPebSequences(mode, data2=None, secNum=None): ################## AUSTI
 		# print("in check")
 
 		if shellBit == 32:
-
 			for match in PEB_WALK.values(): #iterate through all opcodes representing combinations of registers
 				# ans=get_PEB_walk_start(mode, 19, match, "noSec", data2) #19 hardcoded for now, seems like good value for peb walking sequence
 				ans=get_PEB_walk_start(mode, 19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
@@ -7463,11 +6673,7 @@ def findAllPebSequences(mode, data2=None, secNum=None): ################## AUSTI
 					print ("good, get peb walk")
 					print (ans)
 					return (ans)
-		else:
-			# print("Here")
-			# input()
-			for match in PEB_WALK_MOV_64.values():
-				get_PEB_walk_start_64(28, match, secNum, data2)
+
 
 		# for match in PEB_WALK_ADD.values(): #iterate through all opcodes representing combinations of registers
 		# 	get_PEB_walk_start(mode, 19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
@@ -7479,17 +6685,14 @@ def findAllPebSequences(mode, data2=None, secNum=None): ################## AUSTI
 		# 	get_PEB_walk_start(mode, 19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
 		# for match in PEB_WALK_XCHG.values(): #iterate through all opcodes representing combinations of registers
 		# 	get_PEB_walk_start(mode, 19, match, "noSec", rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
-	else:
 
-		if(bit32):
-			for secNum in range(len(s)):
-				# print("Trying section: " + str(secNum))
-				data2 = s[secNum].data2
-
-				# print("before mov")
-				for match in PEB_WALK.values(): #iterate through all opcodes representing combinations of registers
-					optimized_find(19, match, secNum, data2, "disHerePEB")
-					# get_PEB_walk_start(mode, 19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
+	elif(bit32):
+		for secNum in range(len(s)):
+			# print("Trying section: " + str(secNum))
+			data2 = s[secNum].data2
+			# print("before mov")
+			for match in PEB_WALK.values(): #iterate through all opcodes representing combinations of registers
+				get_PEB_walk_start(mode, 19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
 			# # # print("after mov")
 			# for match in PEB_WALK_MOV_OLD.values(): #iterate through all opcodes representing combinations of registers
 			# 	get_PEB_walk_start(mode, 19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
@@ -7504,71 +6707,18 @@ def findAllPebSequences(mode, data2=None, secNum=None): ################## AUSTI
 			# for match in PEB_WALK_XCHG_OLD.values(): #iterate through all opcodes representing combinations of registers
 			# 	get_PEB_walk_start(mode, 19, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
 
-			# def get_PEB_walk_start_64(NumOpsDis ,bytesToMatch, secNum, data2):
+	else:
+		for secNum in range(len(s)):
+			data2 = s[secNum].data2
+			for match in PEB_WALK_MOV_64.values(): #iterate through all opcodes representing combinations of registers
+				get_PEB_walk_start_64(28, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
 
-			# 	if(found):
-			# 			disHerePEB_64(t, numOps, secNum, data2)
-		else:
-
-			for secNum in range(len(s)):
-				# print("Sec Num: ", secNum)
-				data2 = s[secNum].data2
-				# start = time.time()
-				data2Tmp = data2
-				# offset = 0
-				# index=0
-				for match in PEB_WALK_MOV_64.values(): #iterate through all opcodes representing combinations of registers
-					# print("Finding value", match.hex())
-					optimized_find(28, match, secNum, data2, "disHerePEB_64") 
-
-					# print("Section ", secNum)
-					# start = 0
-					# while True:
-					# 	start = data2.find(match, start)
-					# 	if start == -1:
-					# 		break
-					# 	else:
-							# disHerePEB_64(start, 28, secNum, data2)
-					# 		start += len(match)
-
-					# get_PEB_walk_start_64(28, match, secNum, data2) #19 hardcoded for now, seems like good value for peb walking sequence
-
-
-					# if match in data2Tmp:
-					# # 	print("found one")
-					# 	offset = data2.find(match)
-					# 	print("Offset is: ", offset, secNum)
-					# 	disHerePEB_64(offset, 28, secNum, data2)
-					# 	offset += 1
-					# 	index += 1
-					# data2Tmp = data2Tmp[index:]
-					# disHerePEB_64(t, numOps, secNum, data2)
-					# data2 = s[secNum].data2
-					# print("Testing..")
-					# if match in data2:
-						# print("data2 at  39068", hex(data2[39068]), hex(data2[16974]))
-						# print("Found already at", data2.index(match))
-						# disHerePEB_64(data2.index(match), 28, secNum, data2)
-				# end = time.time()
-				# print("Time: ", (end-start))
 
 
 def findAllPushRet(data2, secNum): ################## AUSTIN #########################
-	if(secNum == 'noSec'):
-		PushRetrawhex(0, 'noSec', data2)
-	else:
-		for match in PUSH_RET.values():
-			optimized_find(4, match, secNum, data2, "disHerePushRet") 
-			# get_PushRet_start(4, match, secNum, data2)
+	for match in PUSH_RET.values(): 
+		get_PushRet_start(4, match, secNum, data2)
 
-	# for match in PUSH_RET.values(): 
-	# 	get_PushRet_start(4, match, secNum, data2)
-def findAllPushRet_old2(data2, secNum): ################## AUSTIN #########################
-	if(secNum == 'noSec'):
-		PushRetrawhex(0, 'noSec', data2)
-	else:
-		for match in PUSH_RET.values():
-			get_PushRet_start(4, match, secNum, data2)
 
 
 def findAllPushRet_old(): ################## AUSTIN #########################
@@ -7638,7 +6788,6 @@ def findStrings(binary,Num):#,t):
 							s[t].Strings.append(tuple((word, offset, wordSize)))
 						except:
 							# print ("saving string", word.encode("utf-8"))
-							# print("6934", word)
 							stringsTemp.append(tuple((word, offset, wordSize)))
 					inProgress=False
 					word=""
@@ -7646,17 +6795,15 @@ def findStrings(binary,Num):#,t):
 			x+=1
 			y+=1
 			if x == len(binary):   #last byte, final end
-			# dprint ("reached")
-				wordSize=len(word)
-				# dprint2 (word, hex(offset), wordSize)
-				if wordSize>0:
-					try:
-						s[t].Strings.append(tuple((word, offset, wordSize)))
-					except: 
-
-						# print("6949", word)
-						# print ("saving string", word.encode("utf-8"))
-						stringsTemp.append(tuple((word, offset, wordSize)))
+ 				# dprint ("reached")
+ 				wordSize=len(word)
+ 				# dprint2 (word, hex(offset), wordSize)
+ 				if wordSize>0:
+	 				try:
+	 					s[t].Strings.append(tuple((word, offset, wordSize)))
+	 				except: 
+	 					# print ("saving string", word.encode("utf-8"))
+	 					stringsTemp.append(tuple((word, offset, wordSize)))
 	except Exception as e:
 		print ("*String finding error1!!!")
 		print (e)
@@ -7702,30 +6849,12 @@ def findStringsWide(binary,Num):#,t):
 				limit=0
 				if ((x==maxBinary-1)):
 					if (len(word) >= (Num*2)):
-						odd = True
-						even = True
-
-						for i in range(len(word)):
-
-							if (i%2) != 0:
-								# print("I: ", i, word)
-								if(word[i] != "."):
-									odd = False
-						
-							if i == 10:
-								break
-
-						# if ((word[1]==".") and (word[3]==".") and (word[5]==".") and (word[7]==".") and (word[9]==".") and (word[2]!=".") and (word[4]!=".") and (word[6]!=".") and (word[8]!=".") and (word[10]!=".")):
-						if odd:
+						if ((word[1]==".") and (word[3]==".") and (word[5]==".") and (word[7]==".") and (word[9]==".") and (word[2]!=".") and (word[4]!=".") and (word[6]!=".") and (word[8]!=".") and (word[10]!=".")):
 							wordSize=len(word)
 							# print ("ws - got one1\n")
 							try:
-
-								# print("word", word, "offset", hex(offset))
 								s[t].wideStrings.append(tuple((word, offset,wordSize)))
 							except:
-								# print("7001", word)
-
 								stringsTempWide.append(tuple((word, offset,wordSize)))
 			else:
 				if inProgress:
@@ -7744,37 +6873,16 @@ def findStringsWide(binary,Num):#,t):
 							# if ((word[length-2]=="\x00") and (word[length-3]=="\x00") and (WideCnt >= Num)):
 								inProgress=False
 								if (len(word) >= (Num*2)):
-									odd = True
-									even = True
+									if ((word[1]==".") and (word[3]==".") and (word[5]==".") and (word[7]==".") and (word[9]==".") and (word[2]!=".") and (word[4]!=".") and (word[6]!=".") and (word[8]!=".") and (word[10]!=".")):
+										if ((ord(word[0])>0x40 ) and (ord(word[0])<0x5b ) or (ord(word[0])>0x60 ) and (ord(word[0])<0x7b )):
+											wordSize=len(word)
+											# print ("ws - got one2", "t", hex(t), word, hex(offset), wordSize)
 
-									for i in range(len(word)):
-
-										if (i%2) != 0:
-											# print("I: ", i, word)
-											if(word[i] != "."):
-												odd = False
-									
-										if i == 10:
-											break
-
-
-
-										if odd:
-									# if ((word[1]==".") and (word[3]==".") and (word[5]==".") and (word[7]==".") and (word[9]==".") and (word[2]!=".") and (word[4]!=".") and (word[6]!=".") and (word[8]!=".") and (word[10]!=".")):
-											if ((ord(word[0])>0x40 ) and (ord(word[0])<0x5b ) or (ord(word[0])>0x60 ) and (ord(word[0])<0x7b )):
-												# wordSize=len(word)
-												# print ("wideStrings - got one2", "t", hex(t), word, hex(offset), wordSize)
-												wordSize=len(word)/2
-												word = changeWide(word)
-												if wordSize>0:
-													try:
-														
-														s[t].wideStrings.append(tuple((word, offset,wordSize)))
-														# print ("success")
-													except:
-														# print("7028", word)
-														# print("7036", hex(offset), word)
-														stringsTempWide.append(tuple((word, offset,wordSize)))
+											try:
+												s[t].wideStrings.append(tuple((word, offset,wordSize)))
+												# print ("success")
+											except:
+												stringsTempWide.append(tuple((word, offset,wordSize)))
 								word=""
 								offset=0
 								WideCnt=0
@@ -7784,45 +6892,16 @@ def findStringsWide(binary,Num):#,t):
 					PossibleWide=False
 					limit=0
 				if ((inProgress==True) & (PossibleWide == False)) or ((x==maxBinary) and (inProgress==True)):# & (WideCnt >= Num):
-					# print("Size of word", len(word), word)
 					if (len(word) >= (Num*2)):
-						# print("Problem with ", word)
-						# # input()
-						odd = True
-						even = True
-
-						for i in range(len(word)):
-
-							if (i%2) != 0:
-								# print("I: ", i, word)
-								if(word[i] != "."):
-									odd = False
-							# else:
-							# 	if(word[i] == "."):
-							# 		even = False
-
-							if i == 8:
-								break
-
-													
-
-						# if (((word[1]==".") and (word[3]==".") and (word[5]==".") and (word[7]==".")) or  ((word[2]!=".") and (word[4]!=".") and (word[6]!=".") and (word[8]!="."))):
-						if odd:
+						if ((word[1]==".") and (word[3]==".") and (word[5]==".") and (word[7]==".") and (word[9]==".") and (word[2]!=".") and (word[4]!=".") and (word[6]!=".") and (word[8]!=".") and (word[10]!=".")):
 							if (((ord(word[0]))>0x40 ) and (ord(word[0])<0x5b ) or (ord(word[0])>0x60 ) and (ord(word[0])<0x7b )):
-								# print("found2", word)
 								wordSize=len(word)/2
 								word = changeWide(word)
 								if wordSize>0:
-									# print("Found2", word)
-									# print(word)
-									# input()
 									try:
 										s[t].wideStrings.append(tuple((word, offset,wordSize)))
 									except:
-										# print("7054", word)
 										stringsTempWide.append(tuple((word, offset,wordSize)))
-
-
 					inProgress=False
 					word=""
 					offset=0
@@ -7830,12 +6909,11 @@ def findStringsWide(binary,Num):#,t):
 			x+=1
 			y+=1
 	except Exception as e:
-		print(traceback.format_exc())
 		print ("*String finding error2!!!")
 		print(e)
-		input()
 	dprint2("Strings Wide")
 	t=1
+
 	# for x, y, z  in s[t].wideStrings:
 	# 	print (x + "\t" + str(hex(y)))
 	# print ("Total: "  + str(len(s[t].wideStrings)))
@@ -9272,7 +8350,6 @@ def AustinTesting4():
 
 def AustinTestingStub():
 	global filename
-	#stub end = 21
 	analyzeDecoderStubs(filename)
 
 def AustinTesting3():
@@ -10099,9 +9176,9 @@ def createDisassemblyLists():
 				offset = offset[1:]
 				offset=int(offset,16)
 
-		each1, each2, each3 = array[1], array[2], array[3]
-		# each2 = array[2]
-		# each3 = array[3]
+		each1 = array[1]
+		each2 = array[2]
+		each3 = array[3]
 		try:
 			each4 = array[4]
 		except:
@@ -10842,232 +9919,6 @@ def disHereAnalysis(data,offset, end, mode, CheckingForDB): #
 	return returnString
 
 
-def disHereShell_old2(data,offset, end, mode, CheckingForDB, bit): #
-	global labels
-	global offsets
-	global labelOffsets
-	global possibleBadLabelOffsets
-	global bit32
-	printAllShByRange(offset,end)
-	dprint2 ("dis: dishereshell - range  "  + str(hex(offset)) + " " + str(hex(end)))
-	dprint2(binaryToStr(data[offset:end]))
-	dprint2(binaryToStr(data))
-	nada=""
-	
-	callCS = cs
-	if(bit32):
-		callCS = cs
-	else:
-		callCS = cs64
-
-	global o
-	w=0
-
-	try:
-		address=offset
-	except:
-		address=0
-	i=0
-	callCS.skipdata = True
-	callCS.skipdata_setup = ("db", None, None)
-	if offset==False:
-		offset=0
-	if end==False:
-		end=len(data)-1
-	CODED2=data[offset:end]
-	val =""
-	val2 = []
-	val3 = []
-	val5 =[]
-	startAdd=[]
-	nextAdd=[]
-	bytesPerLine=[]
-	cntLines=0
-	bytesEachLine=[]
-	asciiPerLine=[]
-	CODED3 = CODED2
-	current=0
-
-	for i in callCS.disasm(CODED3, address):
-		cntLines+=1
-		if current>0:
-			nextAd=sadd1
-			nextAdd.append(nextAd)
-		sadd1=int(i.address )
-
-		startAdd.append(int(sadd1))
-		current+=1
-		val=i.mnemonic + " " + i.op_str 
-		offsets.append((int(i.address)))
-		controlFlow= re.match( r'\bcall\b|\bjmp\b|\bje\b|\bjne\b|\bja\b|\bjg\b|\bjge\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bloop\b|\bloopcc\b|\bloope\b|\bloopne\b|\bloopnz\b|\bloopz\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', val, re.M|re.I)
-		if controlFlow:
-			val=i.op_str
-			isHex= re.match( "^[0-9][x]*[A-Fa-f0-9 -]*",val, re.M|re.I)
-			if isHex:
-				dprint2("addlabel: shell call " + val)
-				is0x=re.match("0x*",val, re.M|re.I)
-				if not is0x:
-					val="0x"+val
-				dprint2  ("6 appending label " + val)
-
-				labels.append(val)
-				labelOffsets.append(int(i.op_str, 16))
-	
-	for labOff in labelOffsets:
-		if labOff not in offsets:
-			# print ("bad " + str(hex(labOff)))
-			if str(hex(labOff)) not in possibleBadLabelOffsets:
-				possibleBadLabelOffsets.append((str(hex(labOff))))
-				# modifyShByRange(data, labOff,labOff+1,"d")
-	dprint2 (possibleBadLabelOffsets)
-	t=0
-	ans=0
-	total=0
-	for each in startAdd:
-		try:
-			ans=int(startAdd[t+1]) - int(each)
-			bytesPerLine.append(ans)
-			total+=ans
-		except:
-			ans2= hex(len(data)-total)
-			bytesPerLine.append(int(ans2,16))
-		t+=1
-	cnt=0
-	t=0
-	for i in callCS.disasm(CODED3, address): 
-		ans= binaryToStr(CODED3[cnt:cnt+bytesPerLine[t]]) #+ " " + str(t) + "\n"
-		res=""
-		for y in CODED3[cnt:cnt+bytesPerLine[t]]:
-			yy=ord2(y) 
-			zz=show1(yy) 
-			old="nope"
-			if ((yy > 31) & (yy < 127)):
-				try: 
-					zz=int(zz,16)
-					zz = chr(zz)
-				except:
-					zz = chr(zz)
-			else:
-				zz="."
-			old=zz
-			res += zz # stripWhite(zz)#chr(zz)
-
-		asciiPerLine.append(res)
-		bytesEachLine.append(ans)
-		cnt+=bytesPerLine[t]
-		t+=1	
-	t=0
-	try:
-		add = hex(int(i.address))
-	except:
-		dprint2 ("weird error - investigate")
-		pass
-	callCS.skipdata = True
-	sizeShell=len(CODED2)
-	for i in callCS.disasm(CODED2, address):
-		CantSkip=True
-		add = hex(int(i.address))
-		addb = hex(int(i.address))
-		add2 = str(add)
-		# add3 = hex (int(i.address + section.startLoc	))
-		add3=0
-		add4 = str(add3)
-		#  testing=('{:20s} {:20s} {:20s}'.format(a,b,c))
-		val_a=addb#"\t"#\t"
-		val_b=i.mnemonic + " " + i.op_str 
-		val_b1=i.mnemonic
-		val_b2=i.op_str
-		num_bytes=0
-		try:
-			val_c= bytesEachLine[t] 
-			val_d=asciiPerLine[t] 
-		except:
-			val_c=""
-			val_d=""
-		# CheckingForDB=False
-		if CheckingForDB:
-			try:
-				num_bytes=int(len(val_c)/4)
-			except:
-				num_bytes=1
-			val_b, num_bytes =checkForValidAddress2(val_a,val_b1, val_b2, sizeShell, possibleBadLabelOffsets,data,num_bytes)
-
-		if mode=="ascii":
-			val =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(val_a, val_b, val_c, val_d))
-			addDis(int(val_a, 16), "*"+val, i.mnemonic, i.op_str)
-		else:
-			val = addb + ":\t" + i.mnemonic + " " + i.op_str+"\n"
-			val=('{:<10s} {:<35s}\n'.format(val_a, val_b))
-
-		####ADD COMMENTS
-		if shBy.comments[int(addb,16)] !="":
-			val_b=shBy.comments[int(addb,16)]
-			val_comment =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(nada, val_b, nada, nada))
-			val+=val_comment
-		#### ADD COMENTS END
-		truth,res=checkForLabel(addb,labels)
-		if truth:
-			val=res+val
-		valCheck=i.mnemonic + " " + i.op_str 
-		controlFlow= re.match( r'\bjmp\b|\bje\b|\bjne\b|\bjg\b|\bjge\b|\bja\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bret\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', valCheck, re.M|re.I)
-
-		if controlFlow:
-			val=val+"\n"
-		# while (num_bytes>0):	
-		# 	if num_bytes>0:
-		# 		val, num_bytes,val_c =makeDBforUnknownBytes(num_bytes, val_c, addb)
-		# 		dprint ("truth check " + addb)
-		# 		truth,res=checkForLabel(addb,labels)
-		# 		if truth:
-		# 			val=res+val
-		# 		valCheck=i.mnemonic + " " + i.op_str 
-		# 		addb=str(hex(int(addb,16)+1))
-		# 		dprint("final val_c")
-		# 		dprint(type(val_c))
-		# 		val2.append(val)
-		# 		val3.append(add2)
-		# 		val5.append(val)
-		# 		CantSkip=False
-
-		############Stack strings begin
-		try:
-			cur=int(add,16)
-			# print (hex(shBy.pushStringEnd[cur]), add, "pushending")
-			if (shBy.pushStringEnd[cur]-2) == cur:
-				dprint2 ("push match", shBy.pushStringValue[cur])
-				nada=""
-				msg="; "+shBy.pushStringValue[cur] + " - Stack string"
-				newVal =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(nada, msg, nada, nada))
-				val= newVal+val
-				dprint2 (val)
-		except Exception as e:
-			# print ("weird error", e)
-			pass
-		##### Stack Strings End
-
-		####ADD COMMENTS
-		# if shBy.comments[int(addb,16)] !="":
-		# 	val=val+shBy.comments[int(addb,16)]
-		#### ADD COMENTS END
-		if CantSkip:
-			val2.append(val)
-			val3.append(add2)
-			val5.append(val)
-
-
-		# if shBy.pushStringEnd[t]==:
-		t+=1
-	returnString=""
-	for y in val5:
-		returnString+=y
-
-
-	dprint2 ("possibleBadLabelOffsets")
-	dprint2 (possibleBadLabelOffsets)
-	return returnString
-
-
-
 def disHereShell(data,offset, end, mode, CheckingForDB, bit): #
 	global labels
 	global offsets
@@ -11644,10 +10495,7 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack):
 		shellBytes=rawData2
 	if not rawBin:
 		# print ("ffffilename", filename)
-		# print("read shellcode Start: ", start)
 		rawBytes=readShellcode(filename) 
-		# print("read shellcode end: ", time.time() - start)
-
 		rawData2=rawBytes
 		shellBytes=rawData2
 	i=startingAddress
@@ -11672,19 +10520,12 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack):
 		findStringsWide(shellBytes,3)
 		findPushAsciiMixed(shellBytes,3)
 	anaFindFF(shellBytes)
-
 	out=findRange(shellBytes, startingAddress)  #1st time helps do corrections
-
 	anaFindFF(shellBytes)
-
 	l1, l2=createDisassemblyLists()
-
 	# saveDB()
-
 	clearDisassBytClass()
-
 	truth, tl1, tl2= findTargetAddressReturnPrior(targetAddress, linesGoBack, l1, l2)
-
 
 	dprint2("sizetl1 ", len(tl1))
 	return truth, tl1, tl2, l1,l2
@@ -11692,7 +10533,7 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack):
 def takeBytes(shellBytes,startingAddress):
 	global shBy
 	global FindStringsStatus
-	# print ("take bytes")
+	print ("take bytes")
 
 	#FindStringsStatus=False
 	i=startingAddress
@@ -11726,14 +10567,14 @@ def takeBytes(shellBytes,startingAddress):
 	anaFindFF(shellBytes)
 	addComments()
 
-	# print ("***lenthShellBytes", len(shellBytes))
+	print ("***lenthShellBytes", len(shellBytes))
 	out=findRange(shellBytes, startingAddress)  #1st time helps do corrections
 	
 	anaFindFF(shellBytes)
 	clearTempDis()   # we must call this function before making new diassembly
 	out=findRange(shellBytes, startingAddress) # makes sure all corrections fully implemented # this creates final disassembly
 	# printAllShBy()
-	# print ("printing final\n")
+	print ("printing final\n")
 	l1, l2=createDisassemblyLists()
 
 	t=0
@@ -11846,11 +10687,8 @@ def findRange(data, startingAddress):
 	max=len(shBy.bytesType)-1
 	finalPrint=""
 	analysis= disHereAnalysis(data, False, False, "ascii", True)
-
 	analysisFindHiddenCalls(data, startingAddress)
-
 	analysisConvertBytes(data, startingAddress)
-
 	analysisFindHiddenCalls(data, startingAddress)
 	if FindStringsStatus:
 		anaFindStrings(data,startingAddress)
@@ -11864,14 +10702,11 @@ def findRange(data, startingAddress):
 		if typeBytes:
 
 			dprint2 ("above is instructions")
-
 			finalPrint0+= (disHereShell(data, start, current, "ascii", True, bit))
 
 		if not typeBytes:
 			dprint2 ("above is data")
-
 			finalPrint0+= (disHereMakeDB2(data, start, current, "ascii", True))
-
 		dprint2 (finalPrint0)
 		finalPrint+=finalPrint0
 		# analysisFindHiddenCalls(data, startingAddress)
@@ -12723,8 +11558,6 @@ def init2(filename):
 		# print(filename[-4:])
 		if(filename[-4:] == ".txt"): #don't need to call readShellcode if it is a binary file
 			rawData2=readShellcode(filename) 
-
-
 # Extraction()
 
 # starting()
@@ -12906,22 +11739,10 @@ def bramwellEncodeDecodeWork(shellArg):
 	# adjustable points in disherepeb # DONE
 	# fix 64 bit issue with peb -- 
 	# fix callpop issues # FIXED for .exe -- printing still odd? do we want pop spot or call spot? does it matter?
-	#		bin issues still exist # DONE
-	# add support for int 0x2e and syscall instruction(?) DONE
-	# callpop should print starting at call and ending in pop # DONE
-	# fix weird issues in pushret -- dont save on retf, and push offset AFTER ret offset saving sometimes # FIXED these two issues -- still some odd printing
-	# fix extra printing 
-	#in uidiscover -- findallpebseqold is still being used for shellcode -- why? fix for new one to work with both
+	#		bin issues still exist
+	# add support for int 0x2e and syscall instruction(?)
+	# callpop should print starting at call and ending in pop
 
-	#start printing at "address" in printsavedpushret() and have check for when to start
-	#check callpop print ending when using .exe and in diff sections - different sections still need to check
-	# check 64bit peb logic -- finding only 1 point where it should 2???
-	#fix numoperations in ui to be autogenerated
-	#check specialencoder5 maybe test list comprehension in decrypt?
-	# take a look through the decrypt for globals
-	# try using threading instead of parallel
-	# try to optimize decoder
-	# fix the int/str issues in analyzedecoder
 
 #done
 ############## output file complete for decrypt stuff -- still needs formatting maybe
@@ -12935,10 +11756,9 @@ def bramwellEncodeDecodeWork(shellArg):
 ############## integration of decoder stub results into searching
 ############## various decrypt bug fixes
 ############## fixed testing function for decrypt for accurate
-############## 
 
 
-def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = False, distributed = False, cpuCount = "auto", nodesFile = "nodes.txt", outputFile = True, mode = "default", stubParams = ([],[]), listComp = False):
+def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = False, distributed = False, cpuCount = "auto", nodesFile = "nodes.txt", outputFile = True):
 
 	global shellEntry
 	global decodedBytes	
@@ -12956,7 +11776,7 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 
 	decodeOps = []
 	# print("OPERATIONS:")
-	# print(operations)
+	print(operations)
 	for symbol in operations:
 		if(symbol == "+"):
 			decodeOps.append(strAdd)
@@ -13095,57 +11915,10 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 				# return
 
 	# non-distributed
-	elif(mode == "stub"):
-		if(opsLen >= 1 and opsLen <= 5):
-			outputs,earlyFinish,startVals = austinDecode(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount, mode = "stub", stubParams = stubParams)
-			decodeInfo = outputs
-
-			for item in decodeInfo:
-					print("############# DECODED ################")
-					try:
-						print("Decoded Bytes: ")
-						print(binaryToStr(item[0]))
-						decodedBytes = item[0]
-						print("\n")
-					except:
-						print(item[0])
-					i = 1
-
-					# decodeValues = re.match("^a[0-9]+b[0-9]+c[0-9]+(d[0-9]+)?(e[0-9]+)?", item[1], re.IGNORECASE)
-					# if(decodeValues):
-						# decodeValues = decodeValues.group()
-						# print("DECODE VALUES: ", decodeValues)
-					decodeValues = item[1].splitlines()
-					decodeValues = decodeValues[-1]
-					# print("Decoding Values: ", decodeValues)
-					print("Decoding Values: ")
-					# decodeValues = re.split("\d+", decodeValues)
-					decodeValues = re.findall('(\d+|[A-Za-z]+)', decodeValues)
-					isNum = False
-					for item2 in decodeValues:
-						if(not isNum):
-							print(item2, "= ", end="")
-						else:
-							print(item2)
-						isNum = not isNum
-						# print(item2)
-					operationOrder = item[3]
-					print("\nOperations: ")
-					for item2 in operationOrder:
-						print(item2, end="")
-					# for x in item[1:]:
-					# 	print("item[",i,"]")
-					# 	print(x)
-					# 	i +=1
-					print("\n\n")
 	else:
 		if(opsLen >= 1 and opsLen <= 5):
-			if(listComp):
-				outputs,earlyFinish,startVals = austinListComp(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount)
-				decodeInfo = outputs
-			else:
-				outputs,earlyFinish,startVals = austinDecode(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount)
-				decodeInfo = outputs
+			outputs,earlyFinish,startVals = austinDecode(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount)
+			decodeInfo = outputs
 
 			# print("DECODEINFO MANUAL ATTEMPT")
 			# print("STARTVALS: ",decodeInfo[0][2])
@@ -13156,22 +11929,20 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 			if(fastMode):
 
 				if(len(decodeInfo) > 0):
-					# print("DECODEINFO HERE", decodeInfo)
 					decodeInfo = decodeInfo[0]
 
-					singleVals = decodeInfo[2]
-					order = decodeInfo[3]
-					# singleVals = []
-					# order = item[3]
-					# # print("ORDERHERE")
-					# # print(order)
-					# for val in item[2]:
-					# 	singleVals.append(val)
-					#only save the first output of decode -- it won't end early and startvals doesn't matter either
-					outputs,earlyFinish,startVals = austinDecode(decodeOps, originalEncoded	, findAll = findAll, mode = "single", starts = singleVals, order = order)
-					#parse returned data structure
-					decodeInfo = outputs	
-
+				singleVals = decodeInfo[2]
+				order = decodeInfo[3]
+				# singleVals = []
+				# order = item[3]
+				# # print("ORDERHERE")
+				# # print(order)
+				# for val in item[2]:
+				# 	singleVals.append(val)
+				#only save the first output of decode -- it won't end early and startvals doesn't matter either
+				outputs,earlyFinish,startVals = austinDecode(decodeOps, originalEncoded	, findAll = findAll, mode = "single", starts = singleVals, order = order)
+				#parse returned data structure
+				decodeInfo = outputs	
 
 			for item in decodeInfo:
 					print("############# DECODED ################")
@@ -13229,7 +12000,7 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 			# 		i +=1
 			# 	print("\n\n")
 			# return
-	if(outputFile and (len(decodeInfo) > 0)):
+	if(outputFile):
 		disassembly=takeBytes(decodedBytes, shellEntry)
 		rawBytes = decodedBytes	
 		directory = ".\\"
@@ -13279,11 +12050,9 @@ def decryptUI():
 	global decryptBytes	
 	global decryptFile
 	global filename
-	global stubFile
 
 	try:
-		decryptFile = filename	
-		decryptBytes = readShellcode(decryptFile) 
+		decryptBytes = readShellcode(filename) 
 	except:
 		print("Couldn't read command line input file, reverting to default...")
 		decryptBytes = b''
@@ -13291,21 +12060,30 @@ def decryptUI():
 
 	while(True):
 		printDecryptHelpUI()
-		print(cya + "\n Sharem>" + yel + "Decoder> "+res, end="")
-		entry = input()
+		entry = input("\nEnter selection: ")
 
 		if(entry == "i"):
-			print(cya + "Enter input file: " + res, end="")
-
-			decryptFile = input()
+			decryptFile = input("Enter input file: ")
 			try:
 				decryptBytes = readShellcode(decryptFile)
 			except:
-				print(red + "Invalid file." + res)
+				print("Invalid file.")
 				pass
-		elif(entry == "x"):
-			return
-		
+
+		elif(entry == "n"):
+			invalidNum = True
+			while(invalidNum):
+				print("Enter number of operations 1-5 [", decryptNumOps, "]: ")
+				try:
+					num = input()
+					if(int(num) >= 1 and int(num) <=5):
+						decryptNumOps = num
+						invalidNum = False
+					else:
+						print("Invalid entry.")
+				except:
+					print("Invalid entry.")
+					pass
 
 		elif(entry == "o"):
 			#TODO: this should match num of operations selected, use that param for a for loop or something instead of current way
@@ -13321,7 +12099,7 @@ def decryptUI():
 
 			invalid = True
 			while(invalid):
-				ops = input("\n\nEnter 1-5 operations, separated by commas [E.g. +,-,^]: \n> ")
+				ops = input("\n\nEnter operations, separated by commas [E.g. +,-,^]: \n> ")
 				ops = ops.split(",")
 				decryptOpTypes = ops
 				invalid = False
@@ -13344,7 +12122,6 @@ def decryptUI():
 					else:
 						print("Invalid selection.")
 						invalid = True
-				decryptNumOps = len(decryptOpTypes)
 
 		elif(entry == "d"):
 			advancedDecryptMenu()
@@ -13388,49 +12165,13 @@ def decryptUI():
 			decryptBytes = encodeShellcodeTesting(decryptBytes, decryptEncodingVals)
 
 		elif(entry == "s"):
-			
-			print("Entering decoder stub mode...")
-			sameFile = True
-			altFile = input("Use different file for decoder stub? y/n: ")
-			if(altFile == 'n'):
-				stubFile = decryptFile
-			else:
-				sameFile = False
-				stubFile = input("Enter decoder stub filename: ")
-
-			stubEntry = input("Enter entrypoint: ")
-			stubEnd = '-1' #leaving it on default (autodetect) for now.
-			# stubEnd = input("Enter offset for end of stub: ")
-			
-
-
-			numVals,opTypes,stubEnd = analyzeDecoderStubs(shellArg = stubFile, entryPoint = stubEntry, stubEnd = stubEnd)
-			if(sameFile):
-				decryptBytes = decryptBytes[stubEnd:]
+			print("Entering decoder stub testing...")
+			numVals,opTypes = analyzeDecoderStubs()
 			print("Got these values from stub: ", numVals)
 			print("Got these operations from stub: ", opTypes)
-			print("Got stubEnd offset: ", stubEnd)
-			input("press enter to proceed...")
-			decodedBytes = decryptShellcode(decryptBytes, decryptOpTypes, findAll = dFindAll, fastMode = dFastMode, distributed = dDistr, cpuCount = dCPUcount, nodesFile = dNodesFile, outputFile = dOutputFile, mode = "stub", stubParams = (numVals,opTypes))
 
 		elif(entry == "g"):
-			print(cya + " Operations: ", gre + str(decryptOpTypes) + res)
-			print(cya + " FindAll: ", gre + str(dFindAll) + res)
-			print(cya + " FastMode: ", gre + str(dFastMode) + res)
-			print(cya + " Distributed: ", gre + str(dDistr) + res)
-			print(cya + " CPUs: ", gre + str(dCPUcount) + res)
-			print(cya + " Nodes File: ", yel + str(dNodesFile) + res)
-			print(cya + " OutputFile: ", gre + str(dOutputFile) + res)
-
-			confirm = print(yel + "\n Run decryption with these settings "+ res + gre + "[y/n] ? "+res, end="")
-
-			confirm = input()
-			if(confirm == "y"):
-				decodedBytes = decryptShellcode(decryptBytes, decryptOpTypes, findAll = dFindAll, fastMode = dFastMode, distributed = dDistr, cpuCount = dCPUcount, nodesFile = dNodesFile, outputFile = dOutputFile)
-				return
-
-		elif(entry == "l"):
-			confirm = print("Run listcomp decryption with these settings?")
+			confirm = print("Run decryption with these settings?")
 			print("Operations: ", decryptOpTypes)
 			print("FindAll: ", dFindAll)
 			print("FastMode: ", dFastMode)
@@ -13440,9 +12181,8 @@ def decryptUI():
 			print("OutputFile: ", dOutputFile)
 			confirm = input("y/n? >")
 			if(confirm == "y"):
-				decodedBytes = decryptShellcode(decryptBytes, decryptOpTypes, findAll = dFindAll, fastMode = dFastMode, distributed = dDistr, cpuCount = dCPUcount, nodesFile = dNodesFile, outputFile = dOutputFile, listComp = True)
+				decodedBytes = decryptShellcode(decryptBytes, decryptOpTypes, findAll = dFindAll, fastMode = dFastMode, distributed = dDistr, cpuCount = dCPUcount, nodesFile = dNodesFile, outputFile = dOutputFile)
 				return
-
 		else:
 			print("Invalid selection.")
 
@@ -13468,8 +12208,7 @@ def advancedDecryptMenu():
 
 	printAdvDecryptHelp()
 	while(True):
-		print(cya + "\n Sharem>" + yel + "Decoder>" + gre + "Advanced> "+res, end="")
-		entry = input()
+		entry = input("\nEnter selection: ")
 
 		if(entry == "fm"):
 			dFastMode = not dFastMode
@@ -13523,16 +12262,14 @@ def printAdvDecryptHelp():
 	global decryptBytes	
 	global decryptFile	
 
-	print(yel + "\n\n ....................\n    Advanced menu\n ...................." + res)
-	print("\n\n {} - Toggle fast mode [{}]".format(cya + "fm" + res, gre + str(dFastMode)+res))
-	print(" {} - Toggle find all [".format(cya + "fa" + res), gre + str(dFindAll)+res, "]")
-	print(" {}  - Toggle distributed mode [".format(cya + "d" + res), gre + str(dDistr)+res, "]")
-	print(" {}  - Enter CPU count [".format(cya + "c" + res), gre + str(dCPUcount) + res, "]")
-	print(" {}  - Enter nodes file for distributed [".format(cya + "n" + res), gre + str(dNodesFile) + res,"]")
-	print(" {}  - Toggle separate file output for decrypt function [".format(cya + "o" + res), gre+ str(dOutputFile) + res, "]")
-	print(" {}  - Help (show this screen)".format(cya + "h" + res))
-	print(" {}  - Exit".format(cya + "x" + res))
-
+	print("\n\nfm - toggle fast mode [", dFastMode, "]")
+	print("fa - toggle find all [", dFindAll, "]")
+	print("d - toggle distributed mode [", dDistr, "]")
+	print("c - enter CPU count [", dCPUcount, "]")
+	print("n - enter nodes file for distributed [", dNodesFile,"]")
+	print("o - toggle separate file output for decrypt function [", dOutputFile, "]")
+	print("h - help (show this screen)")
+	print("x - exit")
 
 def printDecryptHelpUI():
 	global dFastMode
@@ -13548,54 +12285,34 @@ def printDecryptHelpUI():
 	global decryptBytes	
 	global decryptFile	
 
-	print(yel + "\n\n .....................\n     Decrypt menu\n .....................\n"+ res)
-	print(" {} - Set input file {}".format(cya + "i" + res,  gre+"["+decryptFile+"]"+res))
-
-	# print(" {} - Set input file [".format(cya + "i" + res), gre+decryptFile+res,"]")
-	# print(" {} - Set number of operations {:>20}".format(cya + "n" + res, gre + "["+str(decryptNumOps) +"]"+ res))
-	print(" {} - Set operation types ".format(cya + "o" + res), gre + str(decryptOpTypes)+res)
-	print(" {} - Advanced settings menu".format(cya + "d" + res))
-	print(" {} - Decoder stub testing".format(cya + "s" + res))
-
-	print(" {} - Go (run decrypt function)".format(cya + "g" + res))
-	print(" {} - Help (show this screen)".format(cya + "h" + res))
-	print(" {} - Exit".format(cya + "x" + res))
-
-	print(yel + "\n .....................\n     Testing\n .....................\n"+ res)
-
-	# print(yel + "\n+----------------Testing-----------------+\n"+res)
-	print(" {} - Apply encoding to input".format(cya + "e" + res))
-	print(" {} - Change encoding values ".format(cya + "c" + res), gre + str(decryptEncodingVals)+res)
-
-	
+	print("\n\n-------DECRYPT MENU-------")
+	print("i - set input file [", decryptFile,"]")
+	print("n - set number of operations [", decryptNumOps,"]")
+	print("o - set operation types ", decryptOpTypes)
+	print("d - advanced settings menu")
+	print("g - go (run decrypt function)")
+	print("h - help (show this screen)")
+	print("\n-------TESTING-------")
+	print("e - apply encoding to input")
+	print("c - change encoding values ", decryptEncodingVals)
+	print("s - decoder stub testing")
 
 #stubEnd goes to end of file by default
-#returns: 1. list of detected values | 2. list of detected operations | 3. offset for the end of the decoder stub portion 
 def analyzeDecoderStubs(shellArg="default", entryPoint = 0, stubEnd = -1):
 	
-	entryPoint = int(entryPoint,0)
-	#handle type issues with param
-	try:
-		stubEnd = int(stubEnd,0)
-	except:
-		pass
-	rawBytes = b''
-
 	if(shellArg == "default"):
-		print(yel + " Enter decoder stub file: " + res, end="")
-		shellArg = input()
+		shellArg = input("Enter decoder stub file: ")
 
 		try:
 			rawBytes=readShellcode(shellArg)
 		except:
-			print(red + " Error: Couldn't read file."+res)
-			return -1, -1
+			print("Error: Couldn't read file.")
 	else:
 		try:
 			rawBytes=readShellcode(shellArg)
 		except:
-			print(red + " Error: Couldn't read file." + res)
-			return -1, -1
+			print("Error: Couldn't read file.")
+
 	if(stubEnd == -1):
 		stubEnd = len(rawBytes)
 	CODED3 = rawBytes[entryPoint:stubEnd]
@@ -13613,25 +12330,18 @@ def analyzeDecoderStubs(shellArg="default", entryPoint = 0, stubEnd = -1):
 
 		add4 = hex(int(i.address))
 		addb = hex(int(i.address))
-		size = hex(int(i.size))
 		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 		# val2.append(val)
 		# val3.append(add2)
 		disString += val
 
 
+
 		# print("checking this one: ", i.op_str)
 		numeric = re.search("(0x)?([0-9a-f]+)$", i.op_str, re.IGNORECASE)
 		bad = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(int)|(retf)|(db)|(hlt)|(loop)|(ret)|(leave)|(int3)|(insd)|(enter)|(jns))", i.mnemonic, re.M|re.I)
-		
 		if(numeric and not bad):
-			numVals.append(numeric.group())
-		elif(bad):
-			print("Decoder disasm: ")
-			print(disString)
-			#return if we hit a jump -- this is probably the loop portion of our stub
-			#add size of loop instruction with offset to start of the instruction to get offset to first encoded byte
-			return (numVals, opTypes, (int(addb, 16) + int(size, 16)))
+				numVals.append(numeric.group())
 
 		isXor = re.search("^(xor)", i.mnemonic, re.IGNORECASE)
 		isAdd = re.search("^(add)|(adc)", i.mnemonic, re.IGNORECASE)
@@ -13664,7 +12374,7 @@ def analyzeDecoderStubs(shellArg="default", entryPoint = 0, stubEnd = -1):
 	# print(numVals)
 	# print("opTypes here: ")
 	# print(opTypes)
-	return (numVals, opTypes,  (int(addb, 16) + int(size, 16)))
+	return (numVals, opTypes)
 
 def austinEncodeDecodeWork(shellArg, operations = []):
 	#DONE: 	4&5 ops support for everything
@@ -14134,6 +12844,7 @@ def shellDisassemblyInit(shellArg, startAddress):
 	global filename
 	global rawData2
 	global gDisassemblyText
+
 	# print ()
 
 	# filename=shellArg
@@ -14149,7 +12860,6 @@ def shellDisassemblyInit(shellArg, startAddress):
 	# filename=shellArg
 	# print ("size shellArg", len(shellArg) )
 	mode=""
-
 	findAllPebSequences(mode)
 	findAllCallpop(shellArg, "noSec")
 	findAllPushRet(shellArg, "noSec")
@@ -14179,7 +12889,7 @@ def shellDisassemblyInit(shellArg, startAddress):
 	directory=""
 
 
-	import os
+
 	if not os.path.exists(directory+'outputs'):
 		os.makedirs(directory+'outputs')
 	# print (directory+"outputs\\"+filename[:-4]+".bin")
@@ -14211,8 +12921,8 @@ def disassembleSubMenu():
 	global rawData2
 	global bDisassemblyFound
 	while True:
-		print(cya + " Sharem>" + yel + "Disasm> " + res, end="")
-		choice = input()
+		
+		choice = input("Sharem>Disasm> ")
 		choice = choice.lower()
 		if choice == "":
 			continue
@@ -14367,7 +13077,7 @@ def initSysCallSelect(): #Initialize our list of syscalls to print
 	global syscallPrintBit
 	global shellBit
 	global bit32
-	global os
+
 	syscallPrintBit = 64
 	syscallSelection = []
 
@@ -14382,8 +13092,6 @@ def initSysCallSelect(): #Initialize our list of syscalls to print
 				nt32Csv = csv.reader(file)
 				versions = next(nt32Csv)
 				versions = versions[1:]
-
-
 
 	#Loop through the list of versions
 	for version in versions:
@@ -14429,8 +13137,8 @@ def initSysCallSelect(): #Initialize our list of syscalls to print
 
 		#See if our category exists in the list
 		categoryFound = False
-		for osv in syscallSelection:
-			if osv.category == category:
+		for os in syscallSelection:
+			if os.category == category:
 				categoryFound = True
 				break
 
@@ -14529,8 +13237,6 @@ def initSysCallSelect(): #Initialize our list of syscalls to print
 		syscallSelection.append(obj)
 
 	#Add our multiselect objects
-	# print("########## OS initsyscall ###########", os)
-
 	category = "server Column multiselect variables"
 	obj = OSVersion()
 	obj._init_("All releases", category, False, "all")
@@ -14539,7 +13245,7 @@ def initSysCallSelect(): #Initialize our list of syscalls to print
 	obj._init_("Only latest releases", category, False, "l")
 	syscallSelection.append(obj)
 	obj = OSVersion()
-	obj._init_("Current Windows 10", category, False, "d")
+	obj._init_("Current Windows 10", category, True, "d")
 	syscallSelection.append(obj)
 	obj = OSVersion()
 	obj._init_("Current Windows 10 and Windows 7", category, False, "D")
@@ -14547,684 +13253,11 @@ def initSysCallSelect(): #Initialize our list of syscalls to print
 
 	#Set Win10 Default
 	t = len(syscallSelection) - 1
-	for osv in syscallSelection:
+	for os in syscallSelection:
 		if(syscallSelection[t].category == "Windows 10"):
-			syscallSelection[t].toggle = False
+			syscallSelection[t].toggle = True
 			break
 		t-=1
-
-def modConf():
-	global bPushRet
-	global bCallPop
-	global bFstenv
-	global bSyscall
-	global bHeaven
-	global bPEB
-	global bDisassembly
-	global pebPresent
-	global pebPoints
-	global configOptions
-	global p2screen
-	global bytesForward
-	global bytesBack
-	global linesForward
-	global linesBack
-	global bPushStackStrings
-	global bWideCharStrings
-	global bAsciiStrings
-	global syscallSelection
-	global dFastMode
-	global dFindAll
-	global dDistr
-	global dCPUcount
-	global dNodesFile
-	global dOutputFile
-	global decryptOpTypes
-	global decryptFile
-	global stubFile
-	global sameFile
-	global stubEntry
-	global stubEnd
-
-	listofStrings = ['pushret', 'callpop', 'fstenv', 'syscall', 'heaven', 'peb', 'disassembly', 'pebpresent', 'bit32','max_bytes_forward','max_bytes_backward','max_lines_forward', 'max_lines_backward','print_to_screen', 'push_stack_strings', 'ascii_strings', 'wide_char_strings', 'fast_mode', 'find_all', 'dist_mode', 'cpu_count', 'nodes_file', 'output_file', 'dec_operation_type', 'decrypt_file', 'stub_file', 'use_same_file', 'stub_entry_point', 'stub_end']
-	listofBools = [bPushRet, bCallPop, bFstenv, bSyscall, bHeaven, bPEB, bDisassembly, pebPresent, bit32, bytesForward, bytesBack, linesForward, linesBack,p2screen, bPushStackStrings, bAsciiStrings, bWideCharStrings, dFastMode, dFindAll, dDistr, dCPUcount, dNodesFile, dOutputFile, decryptOpTypes, decryptFile, stubFile, sameFile, stubEntry, stubEnd]
-
-	listofSyscalls = []
-	for osv in syscallSelection:
-		if osv.toggle == True:
-			listofSyscalls.append(osv.code)
-	listofStrings.append('selected_syscalls')
-	listofBools.append(listofSyscalls)
-	for booli, boolStr in zip(listofBools, listofStrings):
-
-		configOptions[boolStr] = booli
-
-
-
-
-
-
-def readConf():
-	global bPushRet
-	global bCallPop
-	global bFstenv
-	global bSyscall
-	global bHeaven
-	global bPEB
-	global bDisassembly
-	global pebPresent
-	global pebPoints
-	global bit32
-	global p2screen
-	global bytesForward
-	global bytesBack
-	global linesForward
-	global linesBack
-	global bPushStackStrings
-	global bWideCharStrings
-	global bAsciiStrings
-	global syscallSelection
-	global shellBit
-	global print_style
-	global dFastMode
-	global dFindAll
-	global dDistr
-	global dCPUcount
-	global dNodesFile
-	global dOutputFile
-	global decryptOpTypes
-	global decryptFile
-	global stubFile
-	global sameFile
-	global stubEntry
-	global stubEnd
-	# global os
-	import os
-
-	con = Configuration(conFile)
-	conr = con.readConf()
-	initSysCallSelect()
-
-	
-	startupBool = conr.getboolean('SHAREM STARTUP','startup_enabled')
-	
-	
-
-# Reading decryption variables from config
-
-	dFastMode = conr.getboolean('SHAREM DECRYPT','fast_mode')
-	dFindAll = conr.getboolean('SHAREM DECRYPT','find_all')
-	dDistr = conr.getboolean('SHAREM DECRYPT','dist_mode')
-	dCPUcount = int(conr['SHAREM DECRYPT']['cpu_count'])
-	dNodesFile = conr['SHAREM DECRYPT']['nodes_file']
-	if not (os.path.exists(dNodesFile)):
-		print(red +"\n\nConfig file Error:", yel + dNodesFile + res, red + "doesn't exist!!" + res)
-	dOutputFile = conr['SHAREM DECRYPT']['output_file']
-	decryptOpTypes = conr['SHAREM DECRYPT']['dec_operation_type']
-	try:
-		 decryptOpTypes = ast.literal_eval(decryptOpTypes)
-	except:
-		print(yel + "The value of", red + decryptOpTypes, yel + "is not correct or malformed!!"+ res)
-		sys.exit()
-	decryptFile = conr['SHAREM DECRYPT']['decrypt_file']
-	if not (os.path.exists(decryptFile)):
-		print(red +"\n\nConfig file Error:", yel + decryptFile + res, red + "doesn't exist!!" + res)
-	stubFile = conr['SHAREM DECRYPT']['stub_file']
-	if not (os.path.exists(stubFile)):
-		print(red +"\n\nConfig file Error:", yel + stubFile + res, red + "doesn't exist!!" + res)
-
-	sameFile = conr.getboolean('SHAREM DECRYPT','use_same_file')
-	stubEntry = int(conr['SHAREM DECRYPT']['stub_entry_point'])
-	stubEnd = int(conr['SHAREM DECRYPT']['stub_end'])
-
-
-	# print(dFastMode, dFindAll, dDistr, dCPUcount, dNodesFile, dOutputFile, decryptOpTypes, decryptFile, stubFile, sameFile, stubEntry, stubEnd)
-
-
-
-
-
-#===============================================
-
-
-	bPushRet= conr.getboolean('SHAREM SEARCH','pushret')
-	bCallPop= conr.getboolean('SHAREM SEARCH','callpop')
-	bFstenv= conr.getboolean('SHAREM SEARCH','fstenv')
-	bSyscall= conr.getboolean('SHAREM SEARCH','syscall')
-	bHeaven= conr.getboolean('SHAREM SEARCH','heaven')
-	bPEB= conr.getboolean('SHAREM SEARCH','peb')
-	bDisassembly= conr.getboolean('SHAREM SEARCH','disassembly')
-	pebPresent = conr.getboolean('SHAREM SEARCH','pebpresent')
-	if rawHex and not bit32_argparse:
-		bit32 = conr.getboolean('SHAREM SEARCH','bit32')
-
-		if bit32:
-			shellBit = 32
-		else:
-			shellBit = 64
-
-
-
-	p2screen =  conr.getboolean('SHAREM SEARCH','print_to_screen')
-	bPushStackStrings =  conr.getboolean('SHAREM STRINGS','push_stack_strings')
-
-	bAsciiStrings =  conr.getboolean('SHAREM STRINGS','ascii_strings')
-	bWideCharStrings =  conr.getboolean('SHAREM STRINGS','wide_char_strings')
-
-	malformed = "print('malformed')"
-	pebPoints = int(conr['SHAREM SEARCH']['pebpoints'])
-	bytesForward = int(conr['SHAREM SEARCH']['max_bytes_forward'])
-	bytesBack = int(conr['SHAREM SEARCH']['max_lines_backward'])
-	linesForward = int(conr['SHAREM SEARCH']['max_lines_forward'])
-	linesBack = int(conr['SHAREM SEARCH']['max_lines_backward'])
-	print_style = conr['SHAREM SEARCH']['print_format_style']
-	if print_style != "right" and print_style != "left":
-		print(yel + "\n\nError: format style in config file is not correct."+ res, red + print_style+res , yel +"<-- should be either right, or left." +res)
-		sys.exit()
-	list_of_syscalls = str(conr['SHAREM SYSCALLS']['selected_syscalls'])
-
-	try:
-		list_of_syscalls = ast.literal_eval(list_of_syscalls)
-		if(type(list_of_syscalls) != list):
-			print("Error:", list_of_syscalls, "<-- this should be a list.")
-		# print(list_of_syscalls)
-
-	except:
-		print(yel + "The value of", red + list_of_syscalls, yel + "is not correct or malformed!!"+ res)
-		sys.exit()
-	# list_of_syscalls = list_of_syscalls[1:-1].replace(" ", "").replace("'", "").split(",")
-
-	for selected in list_of_syscalls:
-		for osv in syscallSelection:
-			if osv.code == selected:
-				osv.toggle = True
-
-	if not startupBool:
-		return False
-	else:
-		return True
-			# print(os.code, os.name, os.category, os.toggle)
-
-
-
-def isFound():
-	global bPushRetFound
-	global bCallPopFound
-	global bDisassemblyFound
-	global bFstenvFound
-	global bSyscallFound
-	global bPEBFound
-
-
-	if bPushRetFound:
-		print('Pushret instructions found')
-	else:
-		print('Pushret instructions Not found')
-
-	if bCallPopFound:
-		print('Callpop instructions found')
-	else:
-		print('Callpop instructions Not found')
-
-
-	if bDisassemblyFound:
-		print('Disassembly found')
-	else:
-		print('Disassembly Not found')
-
-	if bFstenvFound:
-		print('Fstenv instructions found')
-	else:
-		print('Fstenv instructions Not found')
-
-	if bSyscallFound:
-		print('Syscall instructions found')
-	else:
-		print('Syscall instructions Not found')
-
-	if bPEBFound:
-		print('Peb instructions found')
-	else:
-		print('Peb instructions Not found')
-
-
-
-
-def startupPrint():
-	global bPushRetFound
-	global bCallPopFound
-	global bDisassemblyFound
-	global bFstenvFound
-	global bSyscallFound
-	global bHeavenFound
-	global bPEBFound
-	global rawData2
-	global bAsciiStrings
-	global bWideCharStrings
-	global bPushStackStrings
-	global bStringsFound
-	global bTempWideString
-	global bPushStringsFound
-	global minStrLen
-	global bpAll
-	global bpPushRet
-	global bpFstenv
-	global bpSyscall
-	global bpHeaven
-	global bpPEB
-	global bpCallPop
-	global bpStrings
-	global bpPushStrings
-	global bpEvilImports
-	global bpModules
-
-	bPushRetFound = bCallPopFound = bDisassemblyFound = bFstenvFound = bHeavenFound = bPEBFound = bStringsFound = bTempWideString = bPushStringsFound = False
-	minStrLen = 7
-
-	l_of_strings = ["Finding Strings..", "Finding unicode strings..", "Finding pushstack strings..","Searching for disassembly..", "Searching for Fstenv instructions..", "Searching for pushret instructions..", "Searching for callpop instructions..", "Searching for heaven's gate instructions..", "Searching for syscall instructions..", "Searching for peb instructions.."]
-
-	max_len = get_max_length(l_of_strings)
-	if rawHex:
-
-		print(cya + "\n\n Finding shellcode Strings\n\n" + res)
-		
-		if bAsciiStrings:
-			print(yel + " Finding Strings..", end="")
-			findStrings(rawData2,3)
-			curLen = len("Finding Strings..")
-
-			if (len(stringsTemp) > 0):
-				# print(gre + "[Found]".rjust(max_len) + res)
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-				# print({>30}).format(gre +"[Found]"+res)
-				bStringsFound = True
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print(red + "[Not Found]".rjust(max_len) + res)
-
-
-		if bWideCharStrings:
-			print(yel + " Finding unicode strings..", end="")
-
-			findStringsWide(rawData2,3)
-			curLen = len("Finding unicode strings..")
-
-			if (len(stringsTempWide) > 0):
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print(gre + "[Found]".rjust(max_len) + res)
-				bTempWideString = True
-
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print(red + "[Not Found]".rjust(max_len) + res)
-
-		if bPushStackStrings:
-			print(yel + " Finding pushstack strings..", end="")
-
-			findPushAsciiMixed(rawData2,3)
-			curLen = len("Finding pushstack strings..")
-			if (len(pushStringsTemp) > 0):
-				
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print(gre + "[Found]".rjust(max_len) + res)
-				bPushStringsFound = True
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print(red + "[Not Found]".rjust(max_len) + res)
-
-
-
-		print(cya + "\n\n Finding Shellcode instructions\n\n" + res)
-		if bDisassembly:
-			print(yel + " Searching for disassembly..", end="")
-			curLen = len("Searching for disassembly..")
-
-			dontPrint()
-			shellDisassemblyInit(rawData2, startAddress)
-			allowPrint()
-			colorama.init()
-			if gDisassemblyText != "":
-				bDisassemblyFound = True
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(30) + res)
-			else:
-				print("\n")
-		if bFstenv:
-			print(yel + " Searching for Fstenv instructions..", end="")
-			curLen = len("Searching for Fstenv instructions..")
-
-			findAllFSTENV(rawData2, 'noSec')
-			if len(m[o].save_FSTENV_info) > 0:
-				bFstenvFound = True
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(22) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(22) + res)
-
-
-		if bPushRet:
-			print(yel + " Searching for pushret instructions..", end="")
-			curLen = len("Searching for pushret instructions..")
-
-			if bit32:
-				findAllPushRet(rawData2, 'noSec')
-			else: 
-				findAllPushRet64(rawData2, 'noSec')
-
-			if len(m[o].save_PushRet_info) > 0:
-				bPushRetFound = True
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(21) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(21) + res)
-
-
-
-		if bCallPop:
-			print(yel + " Searching for callpop instructions..", end="")
-			curLen = len("Searching for callpop instructions..")
-			if bit32:
-				findAllCallpop(rawData2, 'noSec')
-			else: 
-				findAllCallpop64(rawData2, 'noSec')
-			if len(m[o].save_Callpop_info) > 0:
-				bCallPopFound = True
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(21) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(21) + res)
-
-
-
-		if bHeaven:
-			print(yel + " Searching for heaven's gate instructions..", end="")
-			curLen = len("Searching for heaven's gate instructions..")
-			getHeavenRawHex(0, linesBack, 'noSec', rawData2)
-			if len(m[o].save_Heaven_info) > 0:
-				bHeavenFound = True
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + "[Found]".rjust(19) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(19) + res)
-
-
-
-		if bSyscall:
-			print(yel + " Searching for syscall instructions..", end="")
-			curLen = len("Searching for syscall instructions..")
-
-			getSyscallRawHex(0, linesBack, 'noSec', rawData2)
-			if len(m[o].save_Egg_info) > 0:
-				bSyscallFound = True
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(21) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(21) + res)
-
-
-
-		if bPEB:
-			print(yel + " Searching for peb instructions..", end="")
-			curLen = len("Searching for peb instructions..")
-
-			findAllPebSequences("normal", rawData2, 'noSec')
-			if len(m[o].save_PEB_info) > 0:
-				bPEBFound = True
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(25) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(25) + res)
-
-# PE Sections
-	else:
-		print(cya + "\n\n Finding PE Strings\n\n" + res)
-
-		t=0
-		for sec in pe.sections:
-			if bAsciiStrings:
-				findStrings(s[t].data2,minStrLen)
-			if bWideCharStrings:
-				findStringsWide(s[t].data2,minStrLen)
-			if bPushStackStrings:
-				findPushAsciiMixed(s[t].data2,5, t)
-			t+=1
-		t = 0
-		bTempWideString = False
-			#print("{:>{x}}".format("[Found]    ", x=15+(maxLen-curLen)))
-		for sec in pe.sections:
-			if (len(s[t].Strings) > 0):
-				bStringsFound = True
-			
-			if (len(s[t].wideStrings) > 0):
-				bTempWideString = True
-				
-			if (len(s[t].pushStrings) > 0):
-				bPushStringsFound = True
-
-			t+=1
-
-		curLen = len("Finding strings..")
-		print(yel + " Finding strings.."+res, end="")
-
-		if bStringsFound:
-
-			# curLen = len("Finding strings..")
-			print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-			# print(yel + "Finding strings.."+gre+"[Found]".rjust(40) + res)
-		else:
-			print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-			# print(yel + "Finding strings.."+red+"[Not Found]".rjust(40) + res)
-
-		curLen = len("Finding unicode strings..")
-		print(yel + " Finding unicode strings.."+res, end="")
-
-		if bTempWideString:
-			print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-			# print(yel + "Finding unicode strings.."+gre+"[Found]".rjust(32) + res)
-		else:
-			print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-			# print(yel + "Finding unicode strings.."+red+"[Not Found]".rjust(32) + res)
-
-
-		curLen = len("Finding pushstack strings..")
-		print(yel + " Finding pushstack strings.."+res, end="")
-		if bPushStringsFound:
-			print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-			# print(yel + "Finding pushstack strings.."+gre+"[Found]".rjust(34) + res)
-		else:
-			print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-			# print(yel + "Finding pushstack strings.."+red+"[Not Found]".rjust(34) + res)
-
-
-
-		print(cya + "\n\nFinding PE instructions\n\n" + res)
-
-
-
-		if bFstenv:
-			print(yel + " Searching for Fstenv instructions..", end="")
-			curLen = len("Searching for Fstenv instructions..")
-			for secNum in range(len(s)):
-				data2 = s[secNum].data2
-				findAllFSTENV(data2, secNum)
-			for i in s:
-				if (len(i.save_FSTENV_info) > 0):
-					bFstenvFound = True
-			if bFstenvFound:
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(26) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(26) + res)
-
-		if bPushRet:
-			print(yel + " Searching for pushret instructions..", end="")
-			curLen = len("Searching for pushret instructions..")
-
-			for secNum in range(len(s)):
-				data2 = s[secNum].data2
-				if bit32:
-					findAllPushRet(data2, secNum)
-				else:
-					# pass
-					findAllPushRet64(data2, secNum)
-
-			for i in s:
-				if (len(i.save_PushRet_info) > 0):
-					bPushRetFound = True
-			if bPushRetFound:
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(21) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(21) + res)
-
-		if bCallPop:
-			print(yel + " Searching for callpop instructions..", end="")
-			curLen = len("Searching for callpop instructions..")
-
-			for secNum in range(len(s)):
-				data2 = s[secNum].data2
-				if bit32:
-					findAllCallpop(data2, secNum)
-				else:
-					findAllCallpop64(data2, secNum)
-			for i in s:
-				if (len(i.save_Callpop_info) > 0):
-					bCallPopFound = True
-			if bCallPopFound:
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(25) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(25) + res)
-
-		if bHeaven:
-			print(yel + " Searching for heaven's gate instructions..", end="")
-			curLen = len("Searching for heaven's gate instructions..")
-
-			for secNum in range(len(s)):
-				data2 = s[secNum].data2
-				findAllHeaven(data2, secNum)
-			for i in s:
-				if (len(i.save_Heaven_info) > 0):
-					bHeavenFound = True
-			if bHeavenFound:
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(15) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(15) + res)
-
-		if bSyscall:
-			print(yel + " Searching for syscall instructions..", end="")
-			curLen = len("Searching for syscall instructions..")
-
-			for secNum in range(len(s)):
-				data2 = s[secNum].data2
-				for match in EGGHUNT.values():
-					optimized_find(20, match, secNum, data2, "disHereSyscall")
-			for i in s:
-				if (len(i.save_Egg_info) > 0):
-					bSyscallFound = True
-			if bSyscallFound:
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(21) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(21) + res)
-
-		if bPEB:
-			print(yel + " Searching for peb instructions..", end="")
-			curLen = len("Searching for peb instructions..")
-
-			if shellBit == 64:
-						
-				data2 = 0
-				secNum = 0
-				#npeb
-				findAllPebSequences("normal", data2, secNum)
-			else:
-				secNum = 0
-				data2 = 0
-				findAllPebSequences("normal", data2, secNum)
-			for i in s:
-				if (len(i.save_PEB_info) > 0):
-					bPEBFound = True
-
-			if bPEBFound:
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(25) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(29) + res)
-
-
-
-	#Saving data
-	bpPushRet = bpSyscall = bpHeaven = bpFstenv = bpPEB = bpStrings = bpCallPop = bpEvilImports = bpModules = True
-	outputData = generateOutputData()
-	print(cya + "\n\nSaving to Json.." , end='')
-	printToJson(False, outputData)
-	print(gre + 'Done' + res)
-	print(cya + "\nSaving to Text.." , end='')
-	printToText(outputData)
-	print(gre + 'Done\n\n' + res)
-
-def saveConf(con):
-	try:
-		con.changeConf(configOptions)
-		con.save()
-		print(yel + "Configuration has been Saved.\n" + res)
-	except Exception as e:
-		print(yel + "Could not save configuration." + res, e)
-
-    	
-
-
-
 def ui(): #UI menu loop
 	global maxDistance #Max distance that a callpop can call
 	#Disassembly option variables
@@ -15284,14 +13317,13 @@ def ui(): #UI menu loop
 	global stringReadability #What % of string should be letters, numbers, or spaces
 	global checkGoodStrings #Whether or not we check if a string is good
 	global shellEntry
-	global configOptions
 	# bit32 = True
-	# bPushRet = True
-	# bFstenv = True
-	# bSyscall = True
-	# bHeaven = True
-	# bPEB = True
-	# bCallPop = True
+	bPushRet = True
+	bFstenv = True
+	bSyscall = True
+	bHeaven = True
+	bPEB = True
+	bCallPop = True
 	bStrings = True
 	bModules = True
 	bEvilImports = True
@@ -15315,9 +13347,9 @@ def ui(): #UI menu loop
 	bPushStringsFound = False
 	bModulesFound = False
 	bEvilImportsFound = False
-	# bAsciiStrings = True
-	# bWideCharStrings = True
-	# bPushStackStrings = True
+	bAsciiStrings = True
+	bWideCharStrings = True
+	bPushStackStrings = True
 	bPushStrings = True
 	bShellcodeAll = True
 	bExportAll = True
@@ -15325,42 +13357,34 @@ def ui(): #UI menu loop
 	stringsDeeper = False
 	checkGoodStrings = True
 	minStrLen = 7
-	# linesForward = 7
-	# linesBack = 10
-	# bytesForward = 15
-	# bytesBack = 15
+	linesForward = 7
+	linesBack = 10
+	bytesForward = 15
+	bytesBack = 15
 	maxDistance = 15
 	modulesMode = 3
 	pushStringRegisters = 'unset'
 	showDisassembly = True
 	stringReadability = .65
-	# print("----> bit", bit32)
 	if(bit32):
 		shellBit = 32
 	elif(bit32 == False):
 
 		shellBit = 64
-	# print("OS ---> ui", os)
 
 	#need this for selecting and printing syscalls
-	# initSysCallSelect()
+	initSysCallSelect()
 
 	x = ""
-	con = Configuration(conFile)
 	
-
-
-
-
 	# 	for item in section.save_PushRet_info:
 	# for item in m[o].save_PushRet_info:
 	print("Bits: ", shellBit)
 	showOptions(shellBit)
 	while x != "e":		#Loops on keyboard input
 		try:			#Will break the loop on entering x
-			print(cya + " Sharem> " + res, end="")
-			userIN = input()
-			print(res)
+			print("...\n")
+			userIN = input("Sharem> ")
 			if userIN[0:1] == "x":
 				print("\nExiting program.\n")
 				break
@@ -15380,27 +13404,15 @@ def ui(): #UI menu loop
 				disassembleSubMenu()
 			elif userIN[0:1] == "s":	#We want to find
 				uiDiscover()
-
-			elif(re.match("^b$", userIN)):
-				decryptUI()
-			elif userIN[0:1] == "a":	#Set bits
+			elif userIN[0:1] == "b":	#Set bits
 				uiBits()
 				initSysCallSelect()
-				# print("\nReturning to main menu.\n")
-
-			elif(re.match("^c$", userIN)):
-				# print(configOptions)
-				# if configOptions:
-				modConf()
-				saveConf(con)
-					# configData = ",".join(configOptions)
-					# print(configData)
-					
+				print("\nReturning to main menu.\n")
 			elif userIN[0:1] == "u":
 				Text2Json(rawData2)
 			elif userIN[0:1] == "p":	#We want to print
 				uiPrint()
-				# print("\nReturning to main menu.\n")
+				print("\nReturning to main menu.\n")
 			elif userIN[0:1] == "i":
 				if(rawHex):
 					# info = showBasicInfo()
@@ -15410,10 +13422,10 @@ def ui(): #UI menu loop
 					print(info)
 			elif userIN[0:1] == "k":
 				uiFindStrings()
-				# print("\nReturning to main menu.\n")
+				print("\nReturning to main menu.\n")
 			elif userIN[0:1] == "j":
 				uiShellcodeStrings()
-				# print("\nReturning to main menu.\n")
+				print("\nReturning to main menu.\n")
 			elif userIN[0:1] == "e":
 				uiFindImports()
 			elif userIN[0:1] == "q":
@@ -15422,7 +13434,7 @@ def ui(): #UI menu loop
 				saveBinAscii()
 			elif userIN[0:1] == "m":	
 				uiModulesSubMenu()
-				# print("\nReturning to main menu.\n")
+				print("\nReturning to main menu.\n")
 			else:
 				print("\nInvalid input.\n")
 
@@ -15435,11 +13447,11 @@ def ui(): #UI menu loop
 def uiBits():	#Change the bit mode
 	global bit32
 	global shellBit
-	print("\n ........\n Bit Mode\n ........")
+	print("\n........\nBit Mode\n........")
 	printBitMenu()
 	bitIN = input("> ")
 	y = ""
-	while True:				#Loop until we break
+	while y != "e":				#Loop until we break
 		if bitIN == "32":
 			bit32 = True
 			shellBit = 32
@@ -15450,11 +13462,9 @@ def uiBits():	#Change the bit mode
 			shellBit = 64
 			print("\nBits set to 64\n")
 			break
-		elif bitIN == "x":
-			break
 		else:
 			print("Invalid input...\n")
-		print("\n ........\nBit Mode\n ........")
+		print("\n........\nBit Mode\n........")
 		bitIN = input("> ")
 
 def get_max_length(list_of_strings):
@@ -15465,8 +13475,6 @@ def get_max_length(list_of_strings):
 			max_len = len(i)
 			res = len(i)
 	return res
-
-
 
 def uiDiscover(): 	#Discover shellcode instructions
 	global bPushRet
@@ -15485,18 +13493,12 @@ def uiDiscover(): 	#Discover shellcode instructions
 	global bPEBFound
 	global bCallPopFound
 	global minStrLen
-	global elapsed_time
-	global configOptions
 
-	print(yel + "\n ...........................\n Find Shellcode Instructions\n ..........................." + res)
+	print("\n...........................\nFind Shellcode Instructions\n...........................")
 	instructionsMenu(bPushRet, bCallPop, bFstenv, bSyscall, bHeaven, bPEB, bDisassembly, bShellcodeAll)
-
-	
+	listIN = input("Sharem> ")
 	x = ""
-	while True:			#Loop until we break on x
-		print(yel + " Sharem>" + res, end="")
-		print(cya + "Shell> " + res, end="")
-		listIN = input()
+	while x != "e":			#Loop until we break on x
 		if(re.match("^s$", listIN, re.IGNORECASE)):
 			uiDiscoverTechMenu()
 
@@ -15529,9 +13531,6 @@ def uiDiscover(): 	#Discover shellcode instructions
 		elif(re.match("^r$", listIN)):
 			clearInstructions()
 			print("Found shellcode instructions cleared.\n")
-		
-
-
 		elif(re.match("^z$", listIN, re.IGNORECASE)):
 
 			list_of_labels = ["Searching for disassembly", "Searching for fstenv instructions", "Searching for push ret instructions", "Searching for call pop instructions", "Searching for heaven's gate instructions", "Searching for windows syscall instructions", "Searching for PEB walking instructions"]
@@ -15539,19 +13538,15 @@ def uiDiscover(): 	#Discover shellcode instructions
 		#For each boolean set, we execute the finding functions
 			if bDisassembly and not bDisassemblyFound:
 				curLen = len("Searching for disassembly")
-				print(cya + " Searching for disassembly..." + res, end="", flush=True)
+				print(cya + "Searching for disassembly..." + res, end="", flush=True)
 
 				if rawHex:
-
-					# print("Bit: ", bit32)
 					if bit32:
-						start = time.time()
 						dontPrint()
 						shellDisassemblyInit(rawData2, startAddress)
 						allowPrint()
 						colorama.init()
-						end = time.time()
-						elapsed_time += end - start
+
 				if gDisassemblyText != "":
 					print("{:>{x}}[{}]".format("", gre + "Found"+res, x=15+(maxLen-curLen)))
 					bDisassemblyFound = True
@@ -15561,10 +13556,8 @@ def uiDiscover(): 	#Discover shellcode instructions
 					#print("{:>{x}}".format("[Not Found]", x=15+(maxLen-curLen)))
 				
 			if bFstenv and not bFstenvFound:
-
 				curLen = len("Searching for fstenv instructions")
-				print(cya + " Searching for fstenv instructions..."+res, end="", flush=True)
-				start = time.time()
+				print(cya + "Searching for fstenv instructions..."+res, end="", flush=True)
 				if (rawHex):
 					findAllFSTENV(rawData2, 'noSec')
 
@@ -15589,14 +13582,11 @@ def uiDiscover(): 	#Discover shellcode instructions
 					print("{:>{x}}[{}]".format("", red + "Not Found"+ res, x=15+(maxLen-curLen)))
 
 					#print("{:>{x}}".format("[Not Found]", x=15+(maxLen-curLen)))
-				end = time.time()
-				elapsed_time += end - start
+
 						
 			if bPushRet and not bPushRetFound:
-
-				start = time.time()
 				curLen = len("Searching for push ret instructions")
-				print(cya + " Searching for push ret instructions..." + res, end="", flush=True)
+				print(cya + "Searching for push ret instructions..." + res, end="", flush=True)
 				if (rawHex):
 					if bit32:
 						findAllPushRet(rawData2, 'noSec')
@@ -15623,12 +13613,10 @@ def uiDiscover(): 	#Discover shellcode instructions
 					print("{:>{x}}[{}]".format("", gre + "Found" + res, x=15+(maxLen-curLen)))
 				else:
 					print("{:>{x}}[{}]".format("", red + "Not Found" + res, x=15+(maxLen-curLen)))
-				end = time.time()
-			if bCallPop and not bCallPopFound:
 
-				start = time.time()
+			if bCallPop and not bCallPopFound:
 				curLen = len("Searching for call pop instructions")
-				print(cya + " Searching for call pop instructions..."+res, end="", flush=True)
+				print(cya + "Searching for call pop instructions..."+res, end="", flush=True)
 				if (rawHex):
 					if bit32:
 						findAllCallpop(rawData2, 'noSec')
@@ -15652,15 +13640,12 @@ def uiDiscover(): 	#Discover shellcode instructions
 					print("{:>{x}}[{}]".format("", gre + "Found" + res, x=15+(maxLen-curLen)))
 				else:
 					print("{:>{x}}[{}]".format("", red + "Not Found" + res, x=15+(maxLen-curLen)))
-				end = time.time()
-				elapsed_time += end-start
-			if bHeaven and not bHeavenFound:
 
-				start = time.time()
+			if bHeaven and not bHeavenFound:
 				curLen = len("Searching for heaven's gate instructions")
-				print(cya + " Searching for heaven's gate instructions..."+ res, end="", flush=True)
+				print(cya + "Searching for heaven's gate instructions..."+ res, end="", flush=True)
 				if (rawHex):
-					getHeavenRawHex(0, linesBack, 'noSec', rawData2)
+					getHeavenRawHex(0, 8, 'noSec', rawData2)
 
 				else:
 					for secNum in range(len(s)):
@@ -15676,24 +13661,20 @@ def uiDiscover(): 	#Discover shellcode instructions
 					print("{:>{x}}[{}]".format("", gre + "Found" + res, x=15+(maxLen-curLen)))
 				else:
 					print("{:>{x}}[{}]".format("", red + "Not Found" + res, x=15+(maxLen-curLen)))
-				end = time.time()
-				elapsed_time += end - start
+
 
 			if bSyscall and not bSyscallFound:
-
-				start = time.time()
 				curLen = len("Searching for windows syscall instructions")
-				print(cya + " Searching for windows syscall instructions..."+res, end="", flush=True)
+				print(cya + "Searching for windows syscall instructions..."+res, end="", flush=True)
 				if (rawHex):
 					# getSyscallPE(20, 20, match, 'noSec', rawData2)
-					getSyscallRawHex(0, linesBack, 'noSec', rawData2)
+					getSyscallRawHex(0, 8, 'noSec', rawData2)
 
 				else:
 					for secNum in range(len(s)):
 							data2 = s[secNum].data2
 							for match in EGGHUNT.values():
-								optimized_find(20, match, secNum, data2, "disHereSyscall")
-								# getSyscallPE(20, 20, match, secNum, data2)
+								getSyscallPE(20, 20, match, secNum, data2)
 				for i in s:
 					if (len(i.save_Egg_info) > 0):
 						bSyscallFound = True
@@ -15705,34 +13686,25 @@ def uiDiscover(): 	#Discover shellcode instructions
 					print("{:>{x}}[{}]".format("", gre + "Found" + res, x=15+(maxLen-curLen)))
 				else:
 					print("{:>{x}}[{}]".format("", red + "Not Found"+ res, x=15+(maxLen-curLen)))
-				end = time.time()
-				elapsed_time += end - start
+
 
 			if bPEB and not bPEBFound:
-
-				start = time.time()
 				curLen = len("Searching for PEB walking instructions")
-				print(cya + " Searching for PEB walking instructions..."+res, end="", flush=True)
+				print(cya + "Searching for PEB walking instructions..."+res, end="", flush=True)
 				if (rawHex):
-					# findAllPebSequences_old(rawData2, 'noSec')
-					findAllPebSequences("normal", rawData2, 'noSec')
+					findAllPebSequences_old(rawData2, 'noSec')
 					# findAllPebSequences(rawData2, 0, "decrypt")
 				else:
 					if shellBit == 64:
 						
-					# for secNum in range(len(s)):
-						# data2 = s[secNum].data2
-						data2 = 0
-						secNum = 0
-						#npeb
-						findAllPebSequences("normal", data2, secNum)
+						for secNum in range(len(s)):
+							data2 = s[secNum].data2
+							findAllPebSequences("normal", data2, secNum)
 					else:
-						# for secNum in range(len(s)):
-							# data2 = s[secNum].data2
-						secNum = 0
-						data2 = 0
-						findAllPebSequences("normal", data2, secNum)
-							# findAllPebSequences_old(data2, secNum)
+						for secNum in range(len(s)):
+							data2 = s[secNum].data2
+						# findAllPebSequences(data2, secNum, "normal")
+							findAllPebSequences_old(data2, secNum)
 				for i in s:
 					if (len(i.save_PEB_info) > 0):
 						bPEBFound = True
@@ -15743,26 +13715,16 @@ def uiDiscover(): 	#Discover shellcode instructions
 					print("{:>{x}}[{}]".format("", gre + "Found" + res, x=15+(maxLen-curLen)))
 				else:
 					print("{:>{x}}[{}]".format("", red + "Not Found" + res, x=15+(maxLen-curLen)))
-				end = time.time()
-				elapsed_time += end - start
-				# pass
-
-		
-
-
-
+				pass
 			print(".........................\n")
-			print(yel + " Search for shellcode instructions completed.\n"+res)
-
-			print(yel + " Elapsed time:" +res, format(elapsed_time, ".5f"))
-			
+			print(yel + "Search for shellcode instructions completed.\n"+res)
 			# print("Exiting discovery menu\n")
 			# break
 		elif(re.match("^x$", listIN, re.IGNORECASE)):
-			# print("\nReturning to main menu.\n")
+			print("\nReturning to main menu.\n")
 			break
 		elif(re.match("^g$", listIN, re.IGNORECASE)):
-			print(" Enter input delimited by commas or spaces. (x to exit)\n\tE.g. pr, pb, hg\n")
+			print("Enter input delimited by commas or spaces. (x to exit)\n\tE.g. pr, pb, hg\n")
 			while x != 'e':
 				instructionSelectIn = input("> ")
 				if(re.match("^x$", instructionSelectIn, re.IGNORECASE)):
@@ -15792,30 +13754,25 @@ def uiDiscover(): 	#Discover shellcode instructions
 				if bFD:
 					bDisassembly = False if bDisassembly else True
 				if bShellcodeAll:
-					bPushRet= bPR = True
-					bFstenv= bFE = True
-					bCallPop= bCP = True
-					bSyscall= bSy = True
-					bPEB= bPB = True
-					bHeaven= bHG = True
-					bDisassembly= bFD = True
+					bPushRet, bPR = True
+					bFstenv, bFE = True
+					bCallPop, bCP = True
+					bSyscall, bSy = True
+					bPEB, bPB = True
+					bHeaven, bHG = True
+					bDisassembly, bFD = True
 				if  bPushRet and bFstenv and bCallPop and bSyscall and bPEB and bHeaven and bDisassembly:
 					bShellcodeAll = True
 				if(bPR or bFE or bCP or bSy or bPB or bHG or bFD):
-					print(" Shellcode selections changed.\n")
+					print("Shellcode selections changed.\n")
 					displayCurrentInstructions(bPushRet, bCallPop, bFstenv, bSyscall, bHeaven, bPEB, bDisassembly, bShellcodeAll)
 					break
 				else:
-					print(" Input not recognized.\n")
+					print("Input not recognized.\n")
 		else:
-			print("\n Input not recognized.\n")
-
-		# modConf()
-
-		# print("\n...........................\nFind Shellcode Instructions\n...........................")
-		# 
-
-		# listIN = input("> ")
+			print("\nInput not recognized.\n")
+		print("\n...........................\nFind Shellcode Instructions\n...........................")
+		listIN = input("> ")
 		
 def uiDiscoverTechMenu():	#Tech settings for shellcode discovery
 	global linesForward
@@ -15824,24 +13781,22 @@ def uiDiscoverTechMenu():	#Tech settings for shellcode discovery
 	global bytesBack
 	global minStrLen
 	x=""
-	print("\n ..................\n Technical Settings\n ..................\n")
+	print("\n..................\nTechnical Settings\n..................\n")
 	techSettingsMenu(bytesForward, bytesBack, linesForward, linesBack)
-	
-	while True:
-		print(yel+ " Sharem>" + cya + "Shell>" + res+ red + "Tech> " + res, end="")
-		techIN = input()
+	techIN = input("> ")
+	while x != "e":
 		if(techIN[0:1] == "x"):
-			# print("Returning to find shellcode instructions menu.\n")
+			print("Returning to find shellcode instructions menu.\n")
 			break
 		elif(techIN[0:1] == "g"):
 			uiGlobalTechMenu()
-			# print("Returning to tech settings submenu.\n")
+			print("Returning to tech settings submenu.\n")
 		elif(techIN[0:1] == "c"):
 			uiCPTechMenu()
-			# print("Returning to tech settings submenu.\n")
+			print("Returning to tech settings submenu.\n")
 		elif(techIN[0:1] == "p"):
 			uiPebTechMenu()
-			# print("Returning to tech settings submenu.\n")
+			print("Returning to tech settings submenu.\n")
 		elif(techIN[0:1] == "k"):
 			print("\nEnter minimum string length (current: " , minStrLen, ")\n")
 			while x!='e':
@@ -15854,40 +13809,38 @@ def uiDiscoverTechMenu():	#Tech settings for shellcode discovery
 					minStrLen = int(stLenIn)
 					break
 			print("\nMinimum string length changed to", minStrLen, ".\n")
-			# print("\nReturning to tech settings submenu.\n")
+			print("\nReturning to tech settings submenu.\n")
 		elif(techIN[0:1] == "h"):
 			techSettingsMenu(bytesForward, bytesBack, linesForward, linesBack)
 		else:
 			print("Invalid input")
-		# print("\n..................\nTechnical Settings\n..................\n")
-		# techIN = input("> ")
-
+		print("\n..................\nTechnical Settings\n..................\n")
+		techIN = input("> ")
 def uiGlobalTechMenu(): 	
 	global bytesForward
 	global bytesBack
 	global linesForward
 	global linesBack
 	x = ""
-	# print("\n............................\nGlobal settings for PE files\n............................\n")
+	print("\n............................\nGlobal settings for PE files\n............................\n")
 	globalTechMenu(bytesForward, bytesBack, linesForward, linesBack)
-	while True:
-		print(yel+ " Sharem>" + cya + "Shell>" + res+ red + "Tech>" + res + whi + "Global> " + res, end="")
-		gtIN = input()
-		if(gtIN == "x"):
+	while x != "e":
+		gtIN = input("> ")
+		if(gtIN[0:1] == "x"):
 			break
-		elif gtIN == "":
-			continue
-		elif(gtIN == "fb"):
-			bytesForward = int(input("Enter new value: "))
-		elif(gtIN == "bb"):
-			bytesBack = int(input("Enter new value: "))
-		elif(gtIN == "fi"):
-			linesForward = int(input("Enter new value: "))
-		elif(gtIN == "bi"):
-			linesBack = int(input("Enter new value: "))
 		else:
-			print("Invalid input. Type x to exit.")
-		# print("\n............................\nGlobal settings for PE files\n............................\n")
+			print("\nEnter new value: \n")
+			print("...")
+			gtvalIN = input("> ")
+			if(gtIN[0:2] == "fb"):
+				bytesForward = int(gtvalIN)
+			elif(gtIN[0:2] == "bb"):
+				bytesBack = int(gtvalIN)
+			elif(gtIN[0:2] == "fi"):
+				linesForward = int(gtvalIN)
+			elif(gtIN[0:2] == "bi"):
+				linesBack = int(gtvalIN)
+		print("\n............................\nGlobal settings for PE files\n............................\n")
 
 def uiCPTechMenu(): 	#Tech settings for callpop
 	global maxDistance
@@ -15909,26 +13862,24 @@ def uiPebTechMenu():
 	# global pointsLimit
 	pebTechMenu(pebPoints)
 	x = ""
-	print("Enter number of features")
-	while True:
+	while x != "e":
 		pebtIN = input("> ")
-		if(pebtIN.isnumeric()):
-			pebPoints = int(pebtIN)
-			break
+		if(re.match("^[0x]*[0-9a-f]+", pebtIN, re.IGNORECASE)):
+			pebPoints = pebtIN
 		elif pebtIN == "x":
 			break
 		else:
 			print("\nInput invalid, please enter a decimal number, or x to exit: ")
 
 def pebTechMenu(pointsLimit):
-	pebTMenu = "\nPEB Points Settings\n\n"
+	pebTMenu = "PEB Points Settings\n"
 	pebTMenu += "Current minimum number of likely features: "
-	pebTMenu += yel + str(pointsLimit) + res
+	pebTMenu += str(pointsLimit)
 	pebTMenu += "\n"	
-	pebTMenu += cya + "\t*Note: These are unique features to identify PEB wakling.\n"
-	pebTMenu += "\t*Note: Below 3 generally is not recommended\n" + res
+	pebTMenu += "\t*These are unique features to identify PEB wakling.\n"
+	pebTMenu += "\t*Below 3 generally is not recommended\n"
 
-	
+	pebTMenu += "\nEnter number of features: "
 	print (pebTMenu)
 
 def uiPrint(): 	#Print instructions
@@ -15962,39 +13913,30 @@ def uiPrint(): 	#Print instructions
 	global stringsTempWide
 	global pushStringsTemp
 	global stringsTemp
-	global p2screen
 
 
-	print(yel + "\n ..........\n Print Menu\n ..........\n" + res)
-	printMenu(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bExportAll, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisassembly, bpAll, p2screen)
+
+	print("\n..........\nPrint Menu\n..........\n")
+	printMenu(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bExportAll, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisassembly, bpAll)
 	if (not bPushRetFound) and (not bFstenvFound) and (not bSyscallFound) and (not bHeavenFound) and (not bPEBFound) and (not bCallPopFound) and (not bStringsFound) and (not bPushStringsFound) and (not bModulesFound) and (not bDisassemblyFound):
 		print("Warning: No selections have been discovered.\n")
 
 	x=""
-
-	while True:
-		print(cya + " Sharem>" + gre + "Print> " + res, end="")
-		listIN = input()
+	while x != "e":
+		listIN = input("> ")
 		# print("input is: ", listIN, "\n")
 		# if(listIN[0:1] == "t"):
 		# 	uiToggleMenu(True)
 		if(re.match("^x$", listIN, re.IGNORECASE)):
 			break
-		elif(re.match("^p$", listIN, re.IGNORECASE)):
-			if p2screen:
-				print("Print to screen disabled")
-				p2screen = False
-			else:
-				print("Print to screen enabled")
-				p2screen = True
 		elif(re.match("^z$", listIN, re.IGNORECASE)):
-			if bDisassembly and p2screen:
+			if bDisassembly:
 				if bDisassemblyFound:
 					print(cya + "\n***********\nDisassembly\n***********" + res)
 					print(gDisassemblyText)
 				else:
 					print("\nNo disassembly found.\n")
-			if bpPushRet and p2screen:
+			if bpPushRet:
 				if bPushRetFound:
 					
 					print(cya + "\n***********\nPush ret\n***********\n" + res)
@@ -16003,7 +13945,7 @@ def uiPrint(): 	#Print instructions
 					print("\nNo push ret instructions found.\n")
 
 
-			if bpModules and bModulesFound and p2screen:
+			if bpModules and bModulesFound:
 				print(cya + "\n\n*******\nModules\n*******\n\n" + res)
 				t=0
 				for x in IATs.foundDll:
@@ -16022,7 +13964,7 @@ def uiPrint(): 	#Print instructions
 					print((('{:<15s} {:<40s} {:<5} {:<0}').format(x, IATs.path[t], " from ", IATs.originate[t])))
 					t+=1
 				print("\n")
-			if bpStrings and p2screen:
+			if bpStrings:
 				if bStringsFound:
 					print("\n***********\nStrings\n***********\n")
 					t=0
@@ -16072,7 +14014,7 @@ def uiPrint(): 	#Print instructions
 				else:
 					print("\nNo strings found.\n")
 
-			if bpPushStrings and p2screen:
+			if bpPushStrings:
 				if bPushStringsFound:
 					print(cya + "\n************\nPush Strings\n************\n"+res)
 					t=0
@@ -16099,26 +14041,26 @@ def uiPrint(): 	#Print instructions
 						print(e)
 				else:
 					print("\nNo push strings found.\n")
-			if bpFstenv and p2screen:
+			if bpFstenv:
 				if bFstenvFound:
 					print(cya + "\n***********\nFstenv\n***********\n" + res)
 					printSavedFSTENV(shellBit)
 
 				else:
 					print("\nNo fstenv instructions found.\n")
-			if bpCallPop and p2screen:
+			if bpCallPop:
 				if bCallPopFound:
 					print(cya + "\n***********\nCall Pop\n***********\n" + res)
 					printSavedCallPop(shellBit)
 				else:
 					print("\nNo call pop instructions found.\n")
-			if bpSyscall and p2screen:
+			if bpSyscall:
 				if bSyscallFound:
 					print(cya + "\n***************\nWindows syscall\n***************\n" + res)
 					printSavedEgg(shellBit)
 				else:
 					print("\nNo syscall instructions found.\n")
-			if bpPEB and p2screen:
+			if bpPEB:
 				if bPEBFound:
 					print(cya + "\n***************\nWalking the PEB\n***************\n" + res)
 					if shellBit == 32:
@@ -16132,21 +14074,18 @@ def uiPrint(): 	#Print instructions
 				else:
 					print("\nNo peb walking instructions found.\n")
 				
-			if bpHeaven and p2screen:
+			if bpHeaven:
 				if bHeavenFound:
 					print(cya + "\n***************\nHeaven's Gate\n***************\n" + res)
 					printSavedHeaven(shellBit)
 				else:
 					print("No heaven's gate instructions found.\n")
 			outputData = generateOutputData()
-
 			printToJson(bpAll, outputData)
 			printToText(outputData)
-			if not p2screen:
-				print("Data saved.")
 		elif(re.match("^h$", listIN, re.IGNORECASE)):
 			print("\n.......\n")
-			printMenu(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bExportAll, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisassembly, bpAll, p2screen)
+			printMenu(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bExportAll, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisassembly, bpAll)
 		elif(re.match("^s$", listIN, re.IGNORECASE)):
 			uiPrintSyscallSubMenu()
 		elif(re.match("^j$", listIN, re.IGNORECASE)):
@@ -16265,7 +14204,7 @@ def uiPrint(): 	#Print instructions
 					print("\nInput not recognized.\n")
 		else:
 			print("\nInput not recognized.\n")
-		# print(yel + "\n ..........\n Print Menu\n ..........\n")
+		print("\n..........\nPrint Menu\n..........\n")
 
 def uiPrintSyscallSubMenu(): #Printing/settings for syscalls
 	global syscallSelection
@@ -16273,14 +14212,13 @@ def uiPrintSyscallSubMenu(): #Printing/settings for syscalls
 	global showDisassembly
 	global syscallPrintBit
 
-	print(yel + "\n ...................\n Syscall Settings\n ...................\n" + res)
+	print("\n................\nSyscall Settings\n................\n")
 	syscallPrintSubMenu(syscallSelection, showDisassembly, syscallPrintBit, True)
 	x = ""
 	while x != "e":
-		print(cya + " Sharem>" + gre + "Print>" + yel + "Syscalls> " + res, end="")
-		syscallIN = input()
+		syscallIN = input("> ")
 		if(re.match("^x$", syscallIN, re.IGNORECASE)):
-			# print("Returning to print menu.")
+			print("Returning to print menu.")
 			break
 		elif(re.match("^h$", syscallIN, re.IGNORECASE)):
 			syscallPrintSubMenu(syscallSelection, showDisassembly, syscallPrintBit, True)
@@ -16291,8 +14229,8 @@ def uiPrintSyscallSubMenu(): #Printing/settings for syscalls
 		elif(re.match("^z$", syscallIN, re.IGNORECASE)):
 			printSavedEgg(syscallPrintBit, showDisassembly)
 		elif(re.match("^c$", syscallIN, re.IGNORECASE)):
-			for osv in syscallSelection:
-				osv.toggle = False
+			for os in syscallSelection:
+				os.toggle = False
 			print("\nChanges applied: ")
 			syscallPrintSubMenu(syscallSelection, showDisassembly, syscallPrintBit, False)
 
@@ -16304,7 +14242,7 @@ def uiPrintSyscallSubMenu(): #Printing/settings for syscalls
 			elif(syscallBitIN[0:1] == "2"): 
 				syscallPrintBit = 64
 			print("Print bits set to : ", syscallPrintBit,".")
-			# print("Returning to syscall selection submenu.\n")
+			print("Returning to syscall selection submenu.\n")
 
 			
 
@@ -16538,20 +14476,16 @@ def uiFindStrings():
 	global useStringsFile
 	global chMode
 
-
-
 	if(bAsciiStrings and bWideCharStrings and bPushStackStrings):
 			bAllStrings = True
 	else:
 		bAllStrings = False
-
-	print(yel + "\n ...............\n  Find Strings\n ...............\n"+res)
+	print("\n............\nFind Strings\n............\n")
 	stringMenu(bAsciiStrings, bWideCharStrings, bPushStackStrings, bAllStrings, s, useStringsFile, chMode)
 	x=""
-	while True:
-		# print("\n............\nFind Strings\n............\n")
-		print(cya + " Sharem>" + gre + "Strings> " + res, end="")
-		stringIN = input()
+	while x != "e":
+		print("\n............\nFind Strings\n............\n")
+		stringIN = input("Sharem>Strings> ")
 		if(re.match("^x$", stringIN, re.IGNORECASE)):
 			break
 		elif(re.match("^h$", stringIN, re.IGNORECASE)):
@@ -16687,29 +14621,29 @@ def uiFindStrings():
 
 				if(bStringsFound):
 					curLen = len("Searching for Strings")
-					print(cya + " searchinG for strings."+ res, end="", flush=True)
+					print(cya + "searchinG for strings."+ res, end="", flush=True)
 					print("{:>{x}}[{}]".format("", gre + "Found" + res, x=20+(maxLen-curLen)))
 				else:
 					curLen = len("Searching for strings")
-					print(cya + " searching for strings."+ res, end="", flush=True)
+					print(cya + "searching for strings."+ res, end="", flush=True)
 					print("{:>{x}}[{}]".format("", red + "Not Found" + res, x=20+(maxLen-curLen)))
 
 				if(bTempWideString):
 					curLen = len("Searching for wide strings")
-					print(cya + " searching for wide strings." + res, end="", flush=True)
+					print(cya + "searching for wide strings." + res, end="", flush=True)
 					print("{:>{x}}[{}]".format("", gre + "Found" + res, x=20+(maxLen-curLen)))
 				else:
 					curLen = len("Searching for wide strings")
-					print(cya + " searching for wide strings." + res, end="", flush=True)
+					print(cya + "searching for wide strings." + res, end="", flush=True)
 					print("{:>{x}}[{}]".format("", red + "Not Found" + res, x=20+(maxLen-curLen)))
 
 				if(bPushStringsFound):
 					curLen = len("Searching for push stack strings")
-					print(cya + " Searching for push stack strings."+ res, end="", flush=True)
+					print(cya + "Searching for push stack strings."+ res, end="", flush=True)
 					print("{:>{x}}[{}]".format("", gre +"Found" + res, x=20+(maxLen-curLen)))
 				else:
 					curLen = len("Searching for Push stack strings")
-					print(cya + " Searching for push stack strings."+ res, end="", flush=True)
+					print(cya + "Searching for push stack strings."+ res, end="", flush=True)
 					print("{:>{x}}[{}]".format("", red + "Not Found" + res, x=20+(maxLen-curLen)))
 
 
@@ -16727,32 +14661,32 @@ def uiFindStrings():
 				print("\n")
 				if (len(stringsTemp) > 0):
 					curLen = len("Searching for Strings")
-					print(cya + " searching for strings."+ res, end="", flush=True)
+					print(cya + "searching for strings."+ res, end="", flush=True)
 					print("{:>{x}}[{}]".format("", gre + "Found" + res, x=20+(maxLen-curLen)))
 					bStringsFound = True
 				else:
 					curLen = len("Searching for strings")
-					print(cya + " searching for strings."+ res, end="", flush=True)
+					print(cya + "searching for strings."+ res, end="", flush=True)
 					print("{:>{x}}[{}]".format("", red + "Not found" + res, x=20+(maxLen-curLen)))
 					bStringsFound = True
 				if (len(stringsTempWide) > 0):
 					curLen = len("Searching for wide strings")
-					print(cya + " searching for wide strings." + res, end="", flush=True)
+					print(cya + "searching for wide strings." + res, end="", flush=True)
 					print("{:>{x}}[{}]".format("", gre + "Found"+ res, x=20+(maxLen-curLen)))
 					bStringsFound = True
 				else:
 					curLen = len("Searching for wide strings")
-					print(cya + " searching for wide strings." + res, end="", flush=True)
+					print(cya + "searching for wide strings." + res, end="", flush=True)
 					print("{:>{x}}[{}]".format("", red + "Not found"+ res, x=20+(maxLen-curLen)))
 					bStringsFound = True
 				if (len(pushStringsTemp) > 0):
 					curLen = len("Searching for push stack strings")
-					print(cya + " Searching for push stack strings."+ res, end="", flush=True)
+					print(cya + "Searching for push stack strings."+ res, end="", flush=True)
 					print("{:>{x}}[{}]".format("", gre + "Found" +res, x=20+(maxLen-curLen)))
 					bPushStringsFound = True
 				else:
 					curLen = len("Searching for push stack strings")
-					print(cya + " Searching for push stack strings."+ res, end="", flush=True)
+					print(cya + "Searching for push stack strings."+ res, end="", flush=True)
 					print("{:>{x}}[{}]".format("", red + "Not found" + res, x=20+(maxLen-curLen)))
 					bStringsFound = True
 
@@ -16932,29 +14866,29 @@ def findAll():  #Find everything
 			if(bStringsFound):
 				curLen = len("Searching for Strings")
 				print("searching for strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
+				print("{:>{x}}{}".format("", "[Found]", x=15+(maxLen-curLen)))
 			else:
 				curLen = len("Searching for strings")
 				print("Searching for strings: ", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
+				print("{:>{x}}{}".format("", "[Not Found]", x=15+(maxLen-curLen)))
 
 			if(bTempWideString):
 				curLen = len("Searching for wide strings")
 				print("searching for wide strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
+				print("{:>{x}}{}".format("", "[Found]", x=15+(maxLen-curLen)))
 			else:
 				curLen = len("Searching for wide strings")
 				print("searching for wide strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
+				print("{:>{x}}{}".format("", "[Not Found]", x=15+(maxLen-curLen)))
 
 			if(bPushStringsFound):
 				curLen = len("Searching for push stack strings")
 				print("Searching for push stack strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
+				print("{:>{x}}{}".format("", "[Found]", x=15+(maxLen-curLen)))
 			else:
 				curLen = len("Searching for push stack strings")
 				print("Searching for push stack strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
+				print("{:>{x}}{}".format("", "[Not Found]", x=15+(maxLen-curLen)))
 
 
 
@@ -16971,32 +14905,32 @@ def findAll():  #Find everything
 			if (len(stringsTemp) > 0):
 				curLen = len("Searching for strings")
 				print("searching for strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
+				print("{:>{x}}{}".format("", "[Found]", x=15+(maxLen-curLen)))
 				bStringsFound = True
 			else:
 				curLen = len("Searching for strings")
 				print("searching for strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
+				print("{:>{x}}{}".format("", "[Not found]", x=15+(maxLen-curLen)))
 				bStringsFound = True
 			if (len(stringsTempWide) > 0):
 				curLen = len("Searching for wide strings")
 				print("Searching for  wide strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
+				print("{:>{x}}{}".format("", "[Found]", x=15+(maxLen-curLen)))
 				bStringsFound = True
 			else:
 				curLen = len("Searching for wide strings")
 				print("searching for wide strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
+				print("{:>{x}}{}".format("", "[Not found]", x=15+(maxLen-curLen)))
 				bStringsFound = True
 			if (len(pushStringsTemp) > 0):
 				curLen = len("Searching for push stack strings")
 				print("Searching for push stack strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
+				print("{:>{x}}{}".format("", "[Found]", x=15+(maxLen-curLen)))
 				bPushStringsFound = True
 			else:
 				curLen = len("Searching for push stack strings")
 				print("Searching for push stack strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
+				print("{:>{x}}{}".format("", "[Not found]", x=15+(maxLen-curLen)))
 				bStringsFound = True
 
 		#if (len(stringsTemp) > 0):
@@ -17020,11 +14954,11 @@ def findAll():  #Find everything
 			if (len(i.save_FSTENV_info) > 0):
 				bFstenvFound = True
 		if len(m[o].save_FSTENV_info) > 0:
-			print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
+			print("{:>{x}}{}".format("", "[Found]", x=15+(maxLen-curLen)))
 
 			bFstenvFound = True
 		else:
-			print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
+			print("{:>{x}}{}".format("", "[Not Found]", x=15+(maxLen-curLen)))
 
 
 	if not bPushRetFound:
@@ -17054,9 +14988,9 @@ def findAll():  #Find everything
 
 			bPushRetFound = True
 		if(bPushRetFound):
-			print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
+			print("{:>{x}}{}".format("", "[Found]", x=15+(maxLen-curLen)))
 		else:
-			print("{:>{x}}{}".format("", "["+red+"Not Found"+res+"]", x=15+(maxLen-curLen)))
+			print("{:>{x}}{}".format("", "[Not Found]", x=15+(maxLen-curLen)))
 
 	if not bCallPopFound:
 		curLen = len("Searching for call pop instructions")
@@ -17081,9 +15015,9 @@ def findAll():  #Find everything
 		if len(m[o].save_Callpop_info) > 0:
 			bCallPopFound = True
 		if(bCallPopFound):
-			print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
+			print("{:>{x}}{}".format("", "[Found]", x=15+(maxLen-curLen)))
 		else:
-			print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
+			print("{:>{x}}{}".format("", "[Not Found]", x=15+(maxLen-curLen)))
 
 
 	if not bHeavenFound:
@@ -17103,9 +15037,9 @@ def findAll():  #Find everything
 			bHeavenFound = True
 
 		if(bHeavenFound):
-			print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
+			print("{:>{x}}{}".format("", "[Found]", x=15+(maxLen-curLen)))
 		else:
-			print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
+			print("{:>{x}}{}".format("", "[Not Found]", x=15+(maxLen-curLen)))
 
 
 	if not bSyscallFound:
@@ -17126,9 +15060,9 @@ def findAll():  #Find everything
 		if len(m[o].save_Egg_info) > 0:
 			bSyscallFound = True
 		if(bSyscallFound):
-			print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
+			print("{:>{x}}{}".format("", "[Found]", x=15+(maxLen-curLen)))
 		else:
-			print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
+			print("{:>{x}}{}".format("", "[Not Found]", x=15+(maxLen-curLen)))
 
 	if not bPEBFound:
 		curLen = len("Searching for PEB walking instructions")
@@ -17146,9 +15080,9 @@ def findAll():  #Find everything
 		if len(m[o].save_PEB_info) > 0:
 			bPEBFound = True
 		if(bPEBFound):
-			print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
+			print("{:>{x}}{}".format("", "[Found]", x=15+(maxLen-curLen)))
 		else:
-			print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
+			print("{:>{x}}{}".format("", "[Not Found]", x=15+(maxLen-curLen)))
 
 		pass
 
@@ -17165,7 +15099,7 @@ def findAll():  #Find everything
 				print("{:>{x}}{}".format("", gre + "[Found]" + res, x=15+(maxLen-curLen)))
 				bDisassemblyFound = True
 			else:
-				print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
+				print("{:>{x}}{}".format("", "[Not Found]", x=15+(maxLen-curLen)))
 	print("\n")
 	print(".........................\n")
 	print("Search completed.\n")
@@ -17182,29 +15116,29 @@ def syscallSelectionsSubMenu(): #Select osversions for syscalls
 		v = "asdf"
 		# print(type(v))
 		#Recursively loop through to check each OS
-		for osv in syscallSelection:
+		for os in syscallSelection:
 			#If we make changes, our multiselects no longer apply
-			if (osv.category == "server Column multiselect variables"):
-				osv.toggle = False
+			if (os.category == "server Column multiselect variables"):
+				os.toggle = False
 
 			#If we find a match between the selection codes and our input, toggle that os
-			if re.search(fr"(^| |,){osv.code}($| |,)", sysSelectIN):
-				osv.toggle = False if osv.toggle else True
+			if re.search(fr"(^| |,){os.code}($| |,)", sysSelectIN):
+				os.toggle = False if os.toggle else True
 
 				#If we toggle a category, toggle everything in that category
-				if(osv.name == osv.category):
+				if(os.name == os.category):
 					for ver in syscallSelection:
-						if(ver.category == osv.category):
-							ver.toggle = osv.toggle
+						if(ver.category == os.category):
+							ver.toggle = os.toggle
 
 				#If we toggle a multiselect, do a multiselect
-				if(osv.code == "all"): 	#Toggle all
-					osv.toggle = True
+				if(os.code == "all"): 	#Toggle all
+					os.toggle = True
 					for ver in syscallSelection:
 						if not (ver.category == "server Column multiselect variables"):
 							ver.toggle = True
-				if(osv.code == "l"): 	#Only latest releases
-					osv.toggle = True
+				if(os.code == "l"): 	#Only latest releases
+					os.toggle = True
 					for ver in syscallSelection:
 						if not (ver.category == "server Column multiselect variables"):
 							ver.toggle = False
@@ -17217,8 +15151,8 @@ def syscallSelectionsSubMenu(): #Select osversions for syscalls
 							currentCategory = ver.category
 							syscallSelection[t-1].toggle = True
 						t+=1
-				if(osv.code == "d"): 	#Only current win10
-					osv.toggle = True
+				if(os.code == "d"): 	#Only current win10
+					os.toggle = True
 					for ver in syscallSelection:
 						if not (ver.category == "server Column multiselect variables"):
 							ver.toggle = False
@@ -17228,8 +15162,8 @@ def syscallSelectionsSubMenu(): #Select osversions for syscalls
 							syscallSelection[t].toggle = True
 							break
 						t-=1
-				if(osv.code == "D"): 	#only current win10 and 7
-					osv.toggle = True
+				if(os.code == "D"): 	#only current win10 and 7
+					os.toggle = True
 					for ver in syscallSelection:
 						if not (ver.category == "server Column multiselect variables"):
 							ver.toggle = False
@@ -17368,6 +15302,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 		outfile = filename.split(".")[0]
 		outfileName = filename
 
+
 	#jsonFileName =  os.getcwd() + "\\" + noExtension + "\\output_" + peName + "_" + filetime + ".json"
 	jsonFileName =  os.getcwd() + "\\" + outfile + "\\" + outfileName + "_" + filetime + ".json"
 	os.makedirs(os.path.dirname(jsonFileName), exist_ok=True)
@@ -17399,35 +15334,6 @@ def printToJson(bpAll, outputData):	#Output data to json
 	js_ob = json.dumps(outputData, indent = 3)
 
 	outfile.write(js_ob)
-
-
-def formatPrint(i, add4, addb, pe=False, syscall=False):
-
-
-	#print('{1:>{0}}'.format(length, string))
-	
-	# print("---------> ", len(i.op_str))
-	if print_style == "right":
-		length = 35
-		if not pe:
-			val =('{0:<6s} {1:<{2}s} {3:<8s}'.format(i.mnemonic, i.op_str, length, add4))
-			return val
-		else:
-			val =('{0:<6s} {1:<{2}s} {3:<12s} {4:<10}'.format(i.mnemonic, i.op_str, length, add4, "(offset " + addb + ")"))
-			return val
-	elif print_style == "left":
-		length = 30
-		if not pe:
-			val =('{0:<10s} {1:<4s} {2} '.format(add4, i.mnemonic, i.op_str ))
-			return val
-		else:
-			val =('{0:<10s} {1:<4s} {2:<{3}s} {4}'.format(add4, i.mnemonic, i.op_str , length, "(offset " + addb + ")"))
-
-			# val =('{0:<6s} {1:<{2}s} {3:<12s} {4:<10}'.format(i.mnemonic, i.op_str, length, add4, "(offset " + addb + ")"))
-			return val
-	else:
-		print("Error: format style is not correct, it should be either right, or left.")
-		sys.exit()
 
 def generateOutputData(): #Generate the dictionary for json out
 	global bPushRetFound
@@ -17621,8 +15527,6 @@ def generateOutputData(): #Generate the dictionary for json out
 			# 	jsonData['strings'][s[t].sectionName.decode()].append({'type':'tempString', 'section':s[t].sectionName.decode(), 'offset': hex(offset), "address":hex(s[t].ImageBase + s[t].VirtualAdd + offset), 'length':sstr(length), 'value':str(value)})
 	if (bPushRetFound):
 		if(rawHex):
-			# for i in m[o].save_PushRet_info:
-
 			for item in m[o].save_PushRet_info:
 				address = item[0]
 				NumOpsDis = item[1]
@@ -17630,23 +15534,14 @@ def generateOutputData(): #Generate the dictionary for json out
 				secNum = item[3]
 				points = item[4]
 				pushOffset = item[5]
-				# print ("printoffset", pushOffset)
-				pushAdd=int(pushOffset[0],16)
 				retOffset = item[6]
-				# print ("retOffset", retOffset)
-				printEnd = int(retOffset, 16) + 15
-				# print ("printEnd", printEnd)
+				printEnd = int(retOffset, 16) + 3
 				CODED2 = rawData2[address:(printEnd)]
-				# print ("1",binaryToStr(CODED2))
-				# print ("\n2",binaryToStr(rawData2[pushAdd:(printEnd)]))
-
-			
-
 				val =""
 				val2 = []
 				val3 = []
 				val5 =[]
-				stopRet=False
+
 				for i in callCS.disasm(CODED2, address):
 					if(rawHex):
 						add4 = hex(int(i.address))
@@ -17657,36 +15552,8 @@ def generateOutputData(): #Generate the dictionary for json out
 						add2 = str(add)
 						add3 = hex (int(i.address + section.startLoc	))
 						add4 = str(add3)
-
-					val = formatPrint(i, add4, addb)
-					# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
-					checkRet= re.search( retOffset, val, re.M|re.I)
-					# if str(retOffset) == addb:
-					# 	val5.append(val)
-					# 	break
-					# else:
-					# 	val5.append(val)
-					if checkRet:
-						if not stopRet:
-							val5.append(val)
-							stopRet = True
-						else:
-							pass
-					if not stopRet:
-						val5.append(val)
-
-				# for i in callCS.disasm(CODED2, address):
-				# 	if(rawHex):
-				# 		add4 = hex(int(i.address))
-				# 		addb = hex(int(i.address))
-				# 	else:
-				# 		add = hex(int(i.address))
-				# 		addb = hex(int(i.address +  section.VirtualAdd))
-				# 		add2 = str(add)
-				# 		add3 = hex (int(i.address + section.startLoc	))
-				# 		add4 = str(add3)
-				# 	val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
-				# 	val5.append(val)
+					val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+					val5.append(val)
 
 				jsonData['pushret'].append({'address': hex(address), 'pushOffset':pushOffset, 'retOffset': retOffset, "modSecName": modSecName, "disassembly":val5, "internalData" : {'secNum': secNum, 'NumOpsDis': NumOpsDis,'points': points}})
 		else:
@@ -17708,43 +15575,30 @@ def generateOutputData(): #Generate the dictionary for json out
 					val5 =[]
 					CODED2 = section.data2[address:printEnd]
 					CODED3 = CODED2
-					stopRet = False
-					# print("pushret generat function", CODED3.hex())
 					for i in callCS.disasm(CODED3, address):
 						add = hex(int(i.address))
 						addb = hex(int(i.address +  section.VirtualAdd))
 						add2 = str(add)
 						add3 = hex (int(i.address + section.startLoc))
 						add4 = str(add3)
-						val = formatPrint(i, add4, addb, pe=True)
-
-						# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+						val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
 						val2.append(val)
 						val3.append(add2)
-						checkRet= re.search( retOffset, val, re.M|re.I)
-						if checkRet:
-							if not stopRet:
-								val5.append(val)
-								stopRet = True
-							else:
-								pass
-						if not stopRet:
-							val5.append(val)
-						# val5.append(val)
+						val5.append(val)
 					pOut=""
 					pSize=len(pushOffset)-1
-					# t=0
+					t=0
 					
 					
-					# for p in pushOffset:
+					for p in pushOffset:
 						
 
-					# 	if t<pSize:
-					# 		pOut+=p + ", "
-					# 	else:
-					# 		pOut+=p
-					# 	t+=1
-					# pushOffset=pOut
+						if t<pSize:
+							pOut+=p + ", "
+						else:
+							pOut+=p
+						t+=1
+					pushOffset=pOut
 					jsonData['pushret'].append({'address': hex(address),'pushOffset':pushOffset, 'retOffset': retOffset, "modSecName": modSecName, "disassembly":val5, "internalData" : {'secNum': secNum, 'NumOpsDis': NumOpsDis,'points': points}})
 
 	if (bCallPopFound):
@@ -17766,59 +15620,41 @@ def generateOutputData(): #Generate the dictionary for json out
 					if(rawHex):
 						add4 = hex(int(i.address))
 						addb = hex(int(i.address))
-					# else:
-					# 	add = hex(int(i.address))
-					# 	addb = hex(int(i.address +  section.VirtualAdd))
-					# 	add2 = str(add)
-					# 	add3 = hex (int(i.address + section.startLoc))
-					# 	add4 = str(add3)
-					val = formatPrint(i, add4, addb)
-					# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
-					val5.append(val)
-				jsonData['callpop'].append({'address':hex(address), 'modSecName':modSecName, 'pop_offset':pop_offset, 'distance':distance,"disassembly":val5, "internalData" : {'secNum':secNum,'NumOpsDis':NumOpsDis}})
-		else:
-			for section in s:
-				for item in section.save_Callpop_info:
-					# address = item[0]
-					origAddr = item[0]
-					NumOpsDis = item[1]
-					modSecName = item[2].decode()
-					secNum = item[3]
-					distance = item[4]
-					pop_offset = item[5]
-					# print("pop_offset in generateoutputdata", pop_offset)
-					# input()
-					address = origAddr + distance
-					section = s[secNum]
-					CODED2 = section.data2[(origAddr):(address+NumOpsDis)]
-					# print(CODED2)
-					# input()
-					# CODED2 = section.data2[(address):(address+1+distance)]
-					CODED3 = CODED2
-					val =""
-					val2 = []
-					val3 = []
-					val5 =[]
-					# print("Disassm", CODED3.hex())
-					# input()
-					# print("origAddr: ", address, "CODED3", CODED3)
-					# print("origAddr: ", origAddr, "CODED3", CODED3, "Address", address)
-					# print("Generate output", CODED3.hex())
-					for i in callCS.disasm(CODED3, origAddr):
+					else:
 						add = hex(int(i.address))
 						addb = hex(int(i.address +  section.VirtualAdd))
 						add2 = str(add)
 						add3 = hex (int(i.address + section.startLoc	))
 						add4 = str(add3)
-						val = formatPrint(i, add4, addb, pe=True)
-
-						# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+					val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+					val5.append(val)
+				jsonData['callpop'].append({'address':hex(address), 'modSecName':modSecName, 'pop_offset':pop_offset, 'distance':distance,"disassembly":val5, "internalData" : {'secNum':secNum,'NumOpsDis':NumOpsDis}})
+		else:
+			for section in s:
+				for item in section.save_Callpop_info:
+					address = item[0]
+					NumOpsDis = item[1]
+					modSecName = item[2].decode()
+					secNum = item[3]
+					distance = item[4]
+					pop_offset = item[5]
+					section = s[secNum]
+					CODED2 = section.data2[(address):(address+1+distance)]
+					CODED3 = CODED2
+					val =""
+					val2 = []
+					val3 = []
+					val5 =[]
+					for i in callCS.disasm(CODED3, address):
+						add = hex(int(i.address))
+						addb = hex(int(i.address +  section.VirtualAdd))
+						add2 = str(add)
+						add3 = hex (int(i.address + section.startLoc	))
+						add4 = str(add3)
+						val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
 						val2.append(val)
 						val3.append(add2)
 						val5.append(val)
-						if(addb == pop_offset):
-							break
-					address = origAddr + section.VirtualAdd
 					jsonData['callpop'].append({'address':hex(address), 'modSecName':modSecName, 'pop_offset':pop_offset, 'distance':distance,"disassembly":val5, "internalData" : {'secNum':secNum,'NumOpsDis':NumOpsDis}})
 
 	if (bFstenvFound):
@@ -17842,9 +15678,7 @@ def generateOutputData(): #Generate the dictionary for json out
 					if(rawHex):
 						add4 = hex(int(i.address))
 						addb = hex(int(i.address))
-					val = formatPrint(i, add4, addb)
-
-					# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+					val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
 					val5.append(val)
 				jsonData['fstenv'].append({'address':hex(address), 'modSecName':modSecName, 'FPU_offset':FPU_offset, 'FSTENV_offset':FSTENV_offset,"disassembly":val5, "internalData" : {'secNum':secNum, 'NumOpsDis':NumOpsDis, 'NumOpsBack':NumOpsBack, 'printEnd':printEnd}})
 		else:
@@ -17871,16 +15705,12 @@ def generateOutputData(): #Generate the dictionary for json out
 						add2 = str(add)
 						add3 = hex (int(i.address + section.startLoc - NumOpsBack))
 						add4 = str(add3)
-						val = formatPrint(i, add4, addb, pe=True)
-
-						# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+						val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
 						val2.append(val)
 						val3.append(add2)
 						val5.append(val)
-						if str(FSTENV_offset) == addb:
+						if(addb == printEnd):
 							break
-						# if(addb == printEnd):
-							# break
 					jsonData['fstenv'].append({'address':hex(address), 'modSecName':modSecName, 'FPU_offset':FPU_offset, 'FSTENV_offset':FSTENV_offset,"disassembly":val5, "internalData" : {'secNum':secNum, 'NumOpsDis':NumOpsDis, 'NumOpsBack':NumOpsBack, 'printEnd':printEnd}})
 
 	#jsonheav
@@ -17906,9 +15736,7 @@ def generateOutputData(): #Generate the dictionary for json out
 					line = line.replace("\t", " ")
 					converted2.append(line)
 				converted = converted2
-
 				jsonData['heavensGate'].append({'address':address, 'modSecName':modSecName, 'pushOffset':pushOffset, 'heaven_offset':offset, 'destLocation':destLocation, "disassembly":converted, "internalData" : {'secNum':secNum, 'NumOpsDis':NumOpsDis, 'NumOpsBack':NumOpsBack, 'pivottype':pivottype}})
-				#Heaven Item: 0 | Section: -1 | Section name: rawHex | Heaven's Gate offset: 0x1ad
 		else:
 			for section in s:
 				for item in section.save_Heaven_info:
@@ -17950,16 +15778,10 @@ def generateOutputData(): #Generate the dictionary for json out
 						add2 = str(add)
 						add3 = hex (int(i.address + section.startLoc))
 						add4 = str(add3)
-						val = formatPrint(i, add4, addb, pe=True)
-
-						# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+						val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
 						val2.append(val)
 						val3.append(add2)
 						val5.append(val)
-					# print("Push offset: ", pushOffset)
-					# input()
-					pushOffset = str(hex(pushOffset))
-					# print("Offset", pushOffset)
 					jsonData['heavensGate'].append({'address':hex(address), 'modSecName':modSecName, 'pushOffset':pushOffset, 'heaven_offset':offset, 'destLocation':destLocation, "disassembly":val5, "internalData" : {'secNum':secNum, 'NumOpsDis':NumOpsDis, 'NumOpsBack':NumOpsBack, 'pivottype':pivottype}})
 	#jsonpeb
 	if (bPEBFound):
@@ -17990,15 +15812,8 @@ def generateOutputData(): #Generate the dictionary for json out
 						add2 = str(add)
 						add3 = hex (int(i.address + section.startLoc	))
 						add4 = str(add3)
-					val = formatPrint(i, add4, addb)
-
-					# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
-					if "db" in val:
-						break
-
+					val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
 					val5.append(val)
-					if "ret" in val:
-						break
 				jsonData['PEB'].append({'address':hex(address), 'modSecName':modSecName,"disassembly":val5, "internalData":{'secNum':secNum, 'NumOpsDis':NumOpsDis, 'points':points}})
 		else:
 			for section in s:
@@ -18021,9 +15836,7 @@ def generateOutputData(): #Generate the dictionary for json out
 							add2 = str(add)
 							add3 = hex (int(i.address + section.startLoc	))
 							add4 = str(add3)
-							val = formatPrint(i, add4, addb, pe=True)
-
-							# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+							val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
 							val2.append(val)
 							val3.append(add2)
 							val5.append(val)
@@ -18065,9 +15878,7 @@ def generateOutputData(): #Generate the dictionary for json out
 							add2 = str(add)
 							add3 = hex (int(i.address + section.startLoc	))
 							add4 = str(add3)
-							val = formatPrint(i, add4, addb, pe=True)
-
-							# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+							val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
 							val2.append(val)
 							val3.append(add2)
 							val5.append(val)
@@ -18092,10 +15903,7 @@ def generateOutputData(): #Generate the dictionary for json out
 				c0_offset = item[6]
 				converted = item[7]
 				syscalls = "not found"
-				# CODED2 = rawData2[address:(printEnd)]
 
-				# print(NumOpsDis)
-				CODED2 = rawData2[address:(address+20)]
 				converted = [string.replace("\t", "") for string in converted]
 				if(eax != "unknown"):
 					# syscalls = returnSyscalls(int(eax, 0))
@@ -18103,42 +15911,7 @@ def generateOutputData(): #Generate the dictionary for json out
 					# input()
 					syscalls = getSyscallRecent(int(eax, 0), 64, "print2Json")
 
-				CODED3 = CODED2
-				val5 = []
-				for i in callCS.disasm(CODED3, address):
-
-					add4 = hex(int(i.address))
-					addb = hex(int(i.address))
-					val = formatPrint(i, add4, addb)
-					val5.append(val)
-					# print(i.mnemonic, i.op_str, add4, addb)
-					# val = formatPrint(i, add4, addb, pe=True)
-
-					# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
-					# val2.append(val)
-					# val3.append(add2)
-					# val5.append(val)
-
-					if c0_offset == addb:
-						break
-
-				# for idx, val in enumerate(converted):
-				# 	if val.find("(offset") != -1:
-						
-				# 		converted[idx] = val[:val.find("offset")-18]
-				# allInstr = conerted.split(" ")
-				# mnemonic = allInstr[0]
-				# add4 = allInstr[-3]
-				# addb = allInstr[-2:]
-				# op_str = allInstr[1:-4]
-				# converted = formatPrint()
-
-				# print(converted)
-				# input()
-
-				# print(val5)
-
-				jsonData['syscall'].append({'address':hex(address), 'modSecName':modSecName, 'eax':eax, 'c0_offset':c0_offset, "disassembly":val5, "syscalls":syscalls,"internalData":{'NumOpsDis':NumOpsDis, 'NumOpsBack':NumOpsBack, 'secNum':secNum}})
+				jsonData['syscall'].append({'address':hex(address), 'modSecName':modSecName, 'eax':eax, 'c0_offset':c0_offset, "disassembly":converted, "syscalls":syscalls,"internalData":{'NumOpsDis':NumOpsDis, 'NumOpsBack':NumOpsBack, 'secNum':secNum}})
 		else:
 			for section in s:
 				for item in section.save_Egg_info:
@@ -18161,9 +15934,7 @@ def generateOutputData(): #Generate the dictionary for json out
 						add2 = str(add)
 						add3 = hex (int(i.address + section.startLoc	- NumOpsBack))
 						add4 = str(add3)
-						val = formatPrint(i, add4, addb, pe=True)
-
-						# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+						val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
 						val2.append(val)
 						val3.append(add2)
 						val5.append(val)
@@ -18173,13 +15944,8 @@ def generateOutputData(): #Generate the dictionary for json out
 					if(eax != "unknown"):
 						# syscalls = returnSyscalls(int(eax, 0))
 						syscalls = getSyscallRecent(int(eax, 0), 64, "print2Json")
-					if 'syscall' in val5[-1]:
-						offsetLabel = 'syscall offset'
-					elif 'int' in val5[-1]:
-						offsetLabel = 'int offset'
-					else:
-						offsetLabel = 'c0_offset'
-					jsonData['syscall'].append({'address':hex(address), 'modSecName':modSecName, 'eax':eax, offsetLabel:c0_offset,"disassembly":val5, "syscalls":syscalls, "internalData":{'NumOpsDis':NumOpsDis, 'NumOpsBack':NumOpsBack, 'secNum':secNum}})
+
+					jsonData['syscall'].append({'address':hex(address), 'modSecName':modSecName, 'eax':eax, 'c0_offset':c0_offset,"disassembly":val5, "syscalls":syscalls, "internalData":{'NumOpsDis':NumOpsDis, 'NumOpsBack':NumOpsBack, 'secNum':secNum}})
 	if(bModulesFound):
 		t = 0
 		for x in IATs.foundDll:
@@ -18206,7 +15972,6 @@ def generateOutputData(): #Generate the dictionary for json out
 
 def dontPrint():
 	sys.stdout = open(os.devnull, 'w')
-	# sys.stdout = open('nul', 'w')
 
 def allowPrint():
 	sys.stdout = sys.__stdout__
@@ -18335,7 +16100,7 @@ def printToText(outputData):	#Output data to text doc
 											tempX+=char
 										j+=1
 									# outString += ('{:<5} {:<32s} {:<20s} {:<11s} {:<4}'.format("",str(tempX), "Offset: " + str(hex(y)),"Address: " + str(hex(y + s[t].ImageBase + s[t].VirtualAdd)),"Length: "+ str(int(z))))
-									outString += ('{:<5} {:<32s} {:<10s} {:<16} {:<10} {:<10}'.format("",str(x), str(hex(y + s[t].ImageBase + s[t].VirtualAdd)), "Offset: " + str(hex(y+s[t].VirtualAdd)),"size: "+ str(int(z)) , "Unicode"))
+									outString += ('{:<5} {:<32s} {:<10s} {:<16} {:<10} {:<10}'.format("",str(tempX), str(hex(y + s[t].ImageBase + s[t].VirtualAdd)), "Offset: " + str(hex(y+s[t].VirtualAdd)),"size: "+ str(int(z)) , "Unicode"))
 									outString += ("\n")
 
 								outString += ("\n\n**Push Stack Strings**\n\n")
@@ -18358,16 +16123,16 @@ def printToText(outputData):	#Output data to text doc
 			# 	print ("\t"+ str(word4) + "\t" + hex(offset) + "\t" + str(hex(wordLength)))
 					if(len(stringsTemp) > 0):
 						for x, y, z in stringsTemp:
-							outString += ('{:<5} {:<32s} {:<16s} {:<8s} {:<10}\n'.format("",str(x), "Offset: " + str(hex(y)),"size: "+ str(int(z)), "Ascii"))
+							outString += ('{:<5} {:<32s} {:<20s} {:<11s}\n'.format("",str(x), "Offset: " + str(hex(y)),"size: "+ str(int(z))))
 					outString += "\n"
 					if(len(stringsTempWide) >0):
 						for x, y, z in stringsTempWide:
-							outString += ('{:<5} {:<32s} {:<16s} {:<8s} {:<10}\n'.format("",str(x), "Offset: " + str(hex(y)),"size: "+ str(int(z)), "Unicode"))
+							outString += ('{:<5} {:<32s} {:<20s} {:<11s}\n'.format("",str(x), "Offset: " + str(hex(y)),"size: "+ str(int(z))))
 					outString += "\n"	
 					if(len(pushStringsTemp) > 0):
 						outString += ("\n\n**Push Stack Strings**\n\n")
 						for word4, offset, wordLength, instLen in pushStringsTemp:
-							outString += ('{:<5} {:<32s} {:<16s} {:<8s} {:<10}\n'.format("",str(word4), "Offset: " + str(hex(offset)),"size: "+ str(int(wordLength)), "Stack String"))
+							outString += ('{:<5} {:<32s} {:<20s} {:<11s}\n'.format("",str(word4), "Offset: " + str(hex(offset)),"size: "+ str(int(wordLength))))
 					outString += "\n"
 
 
@@ -18454,20 +16219,7 @@ def printToText(outputData):	#Output data to text doc
 			outString+="\n\n***************\nWindows syscall\n***************\n\n"
 			itemNum = 0
 
-
 			for item in data['syscall']:
-				if 'c0_offset' in item:
-					offsetLabel = 'c0_offset'
-					offString = ' | 0xc0 offset: '
-				elif 'syscall offset' in item:
-					offsetLabel = 'syscall offset'
-					offString = ' | syscall offset: '
-				elif 'int offset' in item:
-					offsetLabel = 'int offset'
-					offString = ' | int offset: '
-				else:
-					offsetLabel = 'c0_offset'
-					offString = ' | 0xc0 offset: '
 				outString+="********************************************************************************************************\n"
 
 				outString += "Syscall Item: " + str(itemNum)
@@ -18475,14 +16227,13 @@ def printToText(outputData):	#Output data to text doc
 					outString += " | Section name: " + str(item['modSecName'])
 				else:
 					outString += " | Module: " + item['modSecName']
-				outString += " | EAX: " + item['eax'] + offString + item[offsetLabel]
+				outString += " | EAX: " + item['eax'] + " | 0xc0 Offset: " + item['c0_offset']
 				outString += "\n"
 				for line in item['disassembly']:
 					outString += line + "\n"
 				
 				if item['syscalls'] == "not found":
-					outString += "\nSyscall cannot be determined\n"
-
+					pass
 				else:
 					outString += "\n"
 					outString += getSyscallRecent(int(item['eax'], 0), 64, "print2Text")
@@ -18511,7 +16262,7 @@ def printToText(outputData):	#Output data to text doc
 					mods = item['mods']
 					mods = ', '.join(mods)
 					# print(item['mods'].split(","))
-					# print("DEBUG: 16483")
+
 					offString = "Offsets:\n"
 					offString += "TIB: " + item['tib'] + "\n"
 					offString += "LDR: " + item['ldr'] + "\n"
@@ -18526,15 +16277,15 @@ def printToText(outputData):	#Output data to text doc
 
 					adv = ', '.join(adv)
 
-					# print("DEBUG: 16498")
+					
 
 
 					offString = "Adv: " + str(adv) + "\n"
 					outString += offString + "\n"
 
 				except Exception as e:
-					pass
-					# print("Exception", e)
+					print(e)
+					
 				for line in item['disassembly']:
 					outString+=line + "\n"
 				itemNum += 1
@@ -18542,8 +16293,6 @@ def printToText(outputData):	#Output data to text doc
 			outString+="\nNo peb walking instructions found.\n"
 		
 	if bpHeaven:
-		#Heaven Item: 0 | Section: -1 | Section name: rawHex | PushOffset: 0x1211 | Heaven's Gate offset: 0x1ad
-		#jsonData['heavensGate'].append({'address':address, 'modSecName':modSecName, 'pushOffset':pushOffset, 'heaven_offset':offset, 'destLocation':destLocation, "disassembly":converted, "internalData" : {'secNum':secNum, 'NumOpsDis':NumOpsDis, 'NumOpsBack':NumOpsBack, 'pivottype':pivottype}})
 		if bHeavenFound:
 			outString+="\n\n***************\nHeaven's Gate\n***************\n\n"
 			itemNum = 0
@@ -18553,9 +16302,9 @@ def printToText(outputData):	#Output data to text doc
 
 				outString += "Heaven Item: " + str(itemNum) 
 				if(rawHex):
-					outString += " | Section: " + str(item['internalData']['secNum']) + " | Section name: " + item['modSecName'] + " | PushOffset: "+ hex(item['pushOffset']) + " | Heaven's Gate offset: " + str(item['heaven_offset']) 
+					outString += " | Section: " + str(item['internalData']['secNum']) + " | Section name: " + item['modSecName'] + " | Heaven's Gate offset: " + str(item['heaven_offset']) 
 				else:
-					outString += " | Module: " + item['modSecName'] + " | Heaven's Gate offset: " + str(item['heaven_offset']) + " | Push dest. addr offset: " + item['pushOffset'] + " | Dest. Address: " + str(item['destLocation'])
+					outString += " | Module: " + item['modSecName'] + " | Heaven's Gate offset: " + str(item['heaven_offset']) + " | Push dest. addr offset: " + hex(item['pushOffset']) + " | Dest. Address: " + str(item['destLocation'])
 
 				outString+= "\n"
 				for line in item['disassembly']:
@@ -18620,23 +16369,6 @@ def returnSyscalls(callNum, bit = 64):
 	#Return our list of syscalls
 	return finalList
 
-def testTarek():
-	global bPushRet
-	global bFstenv
-	global bSyscall
-	global bHeaven
-	global bPEB
-	global bCallPop
-	global bDisassembly
-	global bShellcodeAll
-	global bWideCharStrings
-	global bAsciiStrings
-	global bPushStackStrings
-	
-
-	bPushRet = bFstenv = bSyscall = bHeaven = bPEB = bCallPop = bDisassembly = bShellcodeAll = bWideCharStrings = bAsciiStrings = bPushStackStrings = True
-
-
 if __name__ == "__main__":
 
 	# EXTRACTION - if dealing with PE files, uncomment this:
@@ -18656,12 +16388,11 @@ if __name__ == "__main__":
 
 
 	#user=BramwellID       #comment out, so only one user shows, or is the last one shown.
-	# user=AndyID      #comment out, so only one user shows, or is the last one shown.
+	user=AndyID      #comment out, so only one user shows, or is the last one shown.
 
-	# user = AustinID
-	user=AndyID
+
+	# user=AndyID
 	# user=BramwellID
-
 
 	
 	if user==AustinID:
@@ -18809,8 +16540,7 @@ if __name__ == "__main__":
 
 
 
-	if tarek:
-		testTarek()
+
 	################################ ANDY'S WORK AREA
 	if andy:
 
@@ -18836,16 +16566,17 @@ if __name__ == "__main__":
 		# bEm = True
 		# bit32=False
 		# ignoreDisDiscovery = True
-
 		bUI= True
-		# bCheck = False
+		bCheck = False
 		bCheck = True
 		# bUI= False
-		# bit32=True
+		bit32=True
 
 
 
 		
+
+
 
 		if(bit32):
 			shellBit = 32
@@ -18864,12 +16595,7 @@ if __name__ == "__main__":
 
 		#Run the UI
 		if bUI:
-			if not readConf():
-				ui()
-			else:
-				print(gre + "\n\n[Attention] Startup config has been used.\n")
-				print(whi + "Change the startup value to disabled in the config file if you want to use the UI menu.\n" + res)
-				startupPrint()
+			ui()
 		#Run command line instead
 		elif bCheck: 
 			if bSyscall:
@@ -18956,8 +16682,3 @@ if __name__ == "__main__":
 				print("\n")
 		# print ("neo subarashiki kono sekai")
 
-		bSyscall = True
-		# bCallPop = True
-		# bEm = True
-		# bit32=False
-		# ignoreDisDiscovery = True

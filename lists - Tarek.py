@@ -438,65 +438,7 @@ PEB_WALK_PUSH64 = {
 
 #################### 64 BIT PEB WALK ###########################################
 
-
 PEB_WALK_MOV_64 = {
-	'RAX_OFFSET_NONE': b"\x65\x48",
-	'RAX_OFFSET_R9':   b"\x65\x49",
-	'R9_OFFSET_NONE':  b"\x65\x4C",
-	'R9_OFFSET_R9':    b"\x65\x4D",
-	"push gs rdx":b"\x65\xff",
-	
-	"push gs r9":b"\x65\x41", 
-
-	
-}
-
-PEB_WALK_MOV_64_temp = {
-	'RAX_OFFSET_NONE': b"\x65\x48\x8B",
-	'RAX_OFFSET_R9':   b"\x65\x49\x8B",
-	'R9_OFFSET_NONE':  b"\x65\x4C\x8B",
-	'R9_OFFSET_RBP':   b"\x65\x4C\x8B",
-	'R9_OFFSET_R9':    b"\x65\x4D\x8B",
-	"mov rdx":b"\x65\x48\x8b", 
-	"sbb rax":b"\x65\x48\x1b", 
-	"sbb r9":b"\x65\x4d\x1b",  
-	"add rax":b"\x65\x48\x03",  
-	"add r9":b"\x65\x4d\x03",   
-	"add r10":b"\x65\x4c\x03",  
-	"mov r10":b"\x65\x4c\x8b",  
-	"or rax":b"\x65\x48\x0b",   
-	"or r9":b"\x65\x4d\x0b",    
-	"or r10":b"\x65\x4c\x0b",   
-	"xor rax":b"\x65\x48\x33",  
-	"xor r9":b"\x65\x4d\x33",   
-	"xor r10":b"\x65\x4c\x33",  
-	"adc rbx":b"\x65\x48\x13",  
-	"adc r9":b"\x65\x4d\x13",   
-	"adc r10":b"\x65\x4c\x13",  
-	"push gs rdx":b"\x65\xff\x70",
-	"push gs rbx":b"\x65\xff\x73",
-	"push gs rcx":b"\x65\xff\x71",
-	"push gs rdx":b"\x65\xff\x72",
-	"push gs rdi":b"\x65\xff\x77",
-	"push gs rsi":b"\x65\xff\x76",
-	"push gs rbp":b"\x65\xff\x75",
-	"push gs r9":b"\x65\x41\xff", 
-	"sub rdi":b"\x65\x48\x2b",    
-	"sub r15":b"\x65\x4d\x2b",    
-	"xchg gs, rdi":b"\x65\x48\x87",
-	"xchg gs, r10":b"\x65\x4c\x87",
-	"xchg gs r15":b"\x65\x4d\x87",
-	"xchg gs r15":b"\x65\x49\x8b",
-	"mov r14":b"\x65\x4d\x8b"
-
-	
-}
-
-
-
-
-
-PEB_WALK_MOV_64_backup = {
 	'RAX_OFFSET_NONE': b"\x65\x48\x8B\x04\x25\x60\x00\x00\x00",
 	'RAX_OFFSET_RAX':  b"\x65\x48\x8B\x40\x60",
 	'RAX_OFFSET_RBX':  b"\x65\x48\x8B\x43\x60",
@@ -709,14 +651,11 @@ PEB_WALK_MOV_64_backup = {
 	'R15_OFFSET_R15':  b"\x65\x4D\x8B\x7F\x60"
 }
 
-HEAVEN_old= {
-	'JMPCALL': b"\x33\x00"
-}
-
 HEAVEN = {
 	'JMPCALL': b"\x33\x00",
 	'RETF': b"\xCB"
 }
+
 
 ################### AUSTIN ###############################
 FSTENV_GET_BASE = {
@@ -781,8 +720,6 @@ FSTENV_GET_BASE = {
 }
 
 EGGHUNT = {
-	'syscall': b"\x0f\x05",
-	'int': b"\xcd\x2e",
 	'NONE_CALL': b"\x64\xFF\x15",
 	'EAX': b"\x64\xFF\x10",
 	'EBX': b"\x64\xFF\x13",
@@ -805,7 +742,6 @@ EGGHUNT = {
 
 }
 
-
 CALLPOP_START = {
 	#add small amounts of backwards calls
 	'0': (b"\xE8\x00\x00\x00\x00", 5),
@@ -819,7 +755,6 @@ CALLPOP_START = {
 	'8': (b"\xE8\x08\x00\x00\x00", 13),
 	'9': (b"\xE8\x09\x00\x00\x00", 14),
 	'10': (b"\xE8\x0A\x00\x00\x00", 15)
-	
 }
 
 
@@ -845,22 +780,22 @@ PUSH_RET = {
 	'ESI_PAD': b"\x56\xC2",
 	'EBP_PAD': b"\x55\xC2",
 	'ESP_PAD': b"\x54\xC2",
-	'EAX_RETF': b"\x50\xCB",
-	'EBX_RETF': b"\x53\xCB",
-	'ECX_RETF': b"\x51\xCB",
-	'EDX_RETF': b"\x52\xCB",
-	'EDI_RETF': b"\x57\xCB",
-	'ESI_RETF': b"\x56\xCB",
-	'EBP_RETF': b"\x55\xCB",
-	'ESP_RETF': b"\x54\xCB",
-	'EAX_RETF_PAD': b"\x50\xCA",
-	'EBX_RETF_PAD': b"\x53\xCA",
-	'ECX_RETF_PAD': b"\x51\xCA",
-	'EDX_RETF_PAD': b"\x52\xCA",
-	'EDI_RETF_PAD': b"\x57\xCA",
-	'ESI_RETF_PAD': b"\x56\xCA",
-	'EBP_RETF_PAD': b"\x55\xCA",
-	'ESP_RETF_PAD': b"\x54\xCA"
+	# 'EAX_RETF': b"\x50\xCB",
+	# 'EBX_RETF': b"\x53\xCB",
+	# 'ECX_RETF': b"\x51\xCB",
+	# 'EDX_RETF': b"\x52\xCB",
+	# 'EDI_RETF': b"\x57\xCB",
+	# 'ESI_RETF': b"\x56\xCB",
+	# 'EBP_RETF': b"\x55\xCB",
+	# 'ESP_RETF': b"\x54\xCB",
+	# 'EAX_RETF_PAD': b"\x50\xCA",
+	# 'EBX_RETF_PAD': b"\x53\xCA",
+	# 'ECX_RETF_PAD': b"\x51\xCA",
+	# 'EDX_RETF_PAD': b"\x52\xCA",
+	# 'EDI_RETF_PAD': b"\x57\xCA",
+	# 'ESI_RETF_PAD': b"\x56\xCA",
+	# 'EBP_RETF_PAD': b"\x55\xCA",
+	# 'ESP_RETF_PAD': b"\x54\xCA"
 
 }
 
