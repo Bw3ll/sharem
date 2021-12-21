@@ -14207,7 +14207,8 @@ def shellDisassemblyInit(shellArg):
 	# directory, filename= (splitDirectory(filename))
 	dirPath = '\\'.join(filename.split("\\")[:-1])
 	filename = os.path.basename(filename)
-
+	print("filename: ", filename)
+	input()
 	directory = ""
 	# print (directory)
 	# print (filename)
@@ -18871,21 +18872,21 @@ if __name__ == "__main__":
 	################################ ANDY'S WORK AREA
 	if andy:
 
-		if workDir:
-			readConf()
+		# if workDir:
+		# 	readConf()
 
-			for i in list_of_files:
-				clearAll()
+		# 	for i in list_of_files:
+		# 		clearAll()
 
-				if os.path.isfile(i):
-					print(yel + "Processing: " + red + i +res)
-					init2(filename)
-					startupPrint()
-					print("peb: ", bPEBFound)
+		# 		if os.path.isfile(i):
+		# 			print(yel + "Processing: " + red + i +res)
+		# 			init2(filename)
+		# 			startupPrint()
+		# 			print("peb: ", bPEBFound)
 
 
 
-		sys.exit()
+		# sys.exit()
 		init2(filename)
 		if(bit32):
 			shellBit = 32
