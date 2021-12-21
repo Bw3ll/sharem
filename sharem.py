@@ -345,6 +345,7 @@ if args.r or args.r64 or args.r32:
 
 			else:
 				f = open(file2Check, "rb")
+				filename = file2Check
 				rawData2 = f.read()
 				f.close()
 				rawHex = True
@@ -14205,15 +14206,18 @@ def shellDisassemblyInit(shellArg):
 	# print("Full path: ", filename.split("/"))
 	# input()
 	# directory, filename= (splitDirectory(filename))
+	print ("filename before", filename)
 	dirPath = '\\'.join(filename.split("\\")[:-1])
 	filename = os.path.basename(filename)
 
+	print ("filename:", filename)
+	input()
 	directory = ""
 	# print (directory)
 	# print (filename)
 	directory=""
 
-
+	bytesOutput=shellArg
 	# import os
 	if not os.path.exists(directory+'disassembly'):
 		os.makedirs(directory+'disassembly')
@@ -14223,8 +14227,8 @@ def shellDisassemblyInit(shellArg):
 	# newBin.close()
 	txtDis = open(directory+"disassembly\\"+filename[:-4]+"-disassembly.txt", "w")
 	if save_bin_file:
-		binDis = open(directory+"disassembly\\"+filename[:-4]+"-disassembly.bin", "w")
-		binDis.write(disassembly)
+		binDis = open(directory+"disassembly\\"+filename[:-4]+"-disassembly.bin", "wb")
+		binDis.write(bytesOutput)
 		binDis.close()
 
 
@@ -15583,9 +15587,9 @@ def uiDiscover(): 	#Discover shellcode instructions
 					# print("Bit: ", bit32)
 					if bit32:
 						start = time.time()
-						dontPrint()
+						# dontPrint()
 						shellDisassemblyInit(rawData2)
-						allowPrint()
+						# allowPrint()
 						colorama.init()
 						end = time.time()
 						elapsed_time += end - start
@@ -18871,21 +18875,7 @@ if __name__ == "__main__":
 	################################ ANDY'S WORK AREA
 	if andy:
 
-		if workDir:
-			readConf()
 
-			for i in list_of_files:
-				clearAll()
-
-				if os.path.isfile(i):
-					print(yel + "Processing: " + red + i +res)
-					init2(filename)
-					startupPrint()
-					print("peb: ", bPEBFound)
-
-
-
-		sys.exit()
 		init2(filename)
 		if(bit32):
 			shellBit = 32
