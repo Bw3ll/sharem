@@ -186,7 +186,10 @@ conFile = "config.cfg"
 workDir = False
 bit32_argparse = False
 FindStringsStatus=True
-
+linesForward = 7
+linesBack = 10
+bytesForward = 15
+bytesBack = 15
 # FindStringsStatus=False
 
 
@@ -206,6 +209,7 @@ bdeobfCodeFound = False
 bfindShell = False
 bfindShellFound = False
 bComments = True
+shellBit=32
 
 #####SAME AS FROM SHAREM
 filename=""
@@ -315,16 +319,19 @@ if args.r or args.r64 or args.r32:
 		file2Check = args.r
 		bit32 = True
 		# bit32_argparse = True
+		shellBit = 32
 	if args.r32:
 		file2Check = args.r32
 		bit32 = True
 		bit32_argparse = True
+		shellBit = 32
 		
 	elif args.r64:
 		# print("64 bit <---")
 		file2Check = args.r64
 		bit32 = False
 		bit32_argparse = True
+		shellBit = 64
 
 
 	if os.path.isfile(file2Check):
@@ -385,6 +392,8 @@ if args.d:
 	else:
 		print(args.d, "directory doesn't exist")
 		sys.exit()
+
+
 # print(peFile)
 # print(args.pe, args.r, args.d, args.c)
 # input()
@@ -7446,7 +7455,7 @@ def findAllPebSequences_old2(mode, data2=None, secNum=None): ################## 
 			print("\nElapsed time: ", end-startTime)
 
 def findAllPebSequences(mode, data2=None, secNum=None): ################## AUSTIN ######################
-
+	global shellBit
 	# global rawHex
 	# print ("findAllPebSequences", mode, binaryToStr(rawData2),)
 	if(rawHex):
@@ -7764,7 +7773,7 @@ def findStringsWide(binary,Num):#,t):
 											if ((ord(word[0])>0x40 ) and (ord(word[0])<0x5b ) or (ord(word[0])>0x60 ) and (ord(word[0])<0x7b )):
 												# wordSize=len(word)
 												# print ("wideStrings - got one2", "t", hex(t), word, hex(offset), wordSize)
-												wordSize=len(word)/2
+												wordSize=int(len(word)/2)
 												word = changeWide(word)
 												if wordSize>0:
 													try:
@@ -7810,7 +7819,7 @@ def findStringsWide(binary,Num):#,t):
 						if odd:
 							if (((ord(word[0]))>0x40 ) and (ord(word[0])<0x5b ) or (ord(word[0])>0x60 ) and (ord(word[0])<0x7b )):
 								# print("found2", word)
-								wordSize=len(word)/2
+								wordSize=int(len(word)/2)
 								word = changeWide(word)
 								if wordSize>0:
 									# print("Found2", word)
@@ -7831,9 +7840,8 @@ def findStringsWide(binary,Num):#,t):
 			y+=1
 	except Exception as e:
 		print(traceback.format_exc())
-		print ("*String finding error2!!!")
+		print ("*String finding error 2!!!")
 		print(e)
-		input()
 	dprint2("Strings Wide")
 	t=1
 	# for x, y, z  in s[t].wideStrings:
@@ -11977,7 +11985,9 @@ def anaFindStrings(data, startingAddress):
 	try:
 		for word,offset,distance  in stringsTempWide:# and stringsTemp:
 			dprint2 ("ok")
+			dprint2 (type(word), type(offset), type(distance))
 			dprint2 ("\t"+ str(word) + "\t" + str(hex(offset)) + "\t" + str(hex(distance))) 
+
 			# dprint2 (word, offset, distance, "before modify range")
 			# modifyStringsRange(offset, offset+distance, "s", word)
 			# dprint2 (goodString(data,word,6),"goodstring", word)
@@ -12005,9 +12015,11 @@ def anaFindStrings(data, startingAddress):
 				if total > 1:
 					modifyShByRange(data, offset, offset+distance+total, "d")
 					# modifyStringsRange(offset, offset+distance+total, "s", word)
-	except:
-		dprint2 ("Exception")
-		dprint2 (e)
+	except Exception as e:
+		print ("Exception")
+		print (e)
+		print(traceback.format_exc())
+		input()
 		pass
 	###   end
 	dprint2 ("end wideStrings")
@@ -14130,10 +14142,13 @@ def shellDisassemblyStart(shellArg):
 
 
 
-def shellDisassemblyInit(shellArg, startAddress):
+def shellDisassemblyInit(shellArg):
 	global filename
 	global rawData2
 	global gDisassemblyText
+	global shellEntry
+
+	startAddress=shellEntry
 	# print ()
 
 	# filename=shellArg
@@ -14236,7 +14251,7 @@ def disassembleSubMenu():
 			if rawHex:
 				if bfindShell:
 					dontPrint()
-					shellDisassemblyInit(rawData2, startAddress)
+					shellDisassemblyInit(rawData2)
 					allowPrint()
 					if gDisassemblyText == "":
 						print("\nUnable to find any disassembly.\n")
@@ -14272,7 +14287,7 @@ def changeEntryPoint():
 			print("Please enter a valid hex address")
 	shellEntry = int(entrypoint, 16)
 
-	print("\nEntry point: " + str(hex(shellEntry)) + "\n")
+	print("\nEntry point: " + str(hex(shellEntry))+"\n")
 
 
 
@@ -14360,7 +14375,7 @@ def bramwellDisassembly2():
 	global shellEntry
 	# print ("rawData2 a", len(rawData2))
 	# print (shellEntry)
-	shellDisassemblyInit(rawData2, shellEntry)  #shellcode data, start address
+	shellDisassemblyInit(rawData2)  #shellcode data, start address
 
 def initSysCallSelect(): #Initialize our list of syscalls to print
 	global syscallSelection
@@ -14885,7 +14900,7 @@ def startupPrint():
 			curLen = len("Searching for disassembly..")
 
 			dontPrint()
-			shellDisassemblyInit(rawData2, startAddress)
+			shellDisassemblyInit(rawData2)
 			allowPrint()
 			colorama.init()
 			if gDisassemblyText != "":
@@ -15325,21 +15340,13 @@ def ui(): #UI menu loop
 	stringsDeeper = False
 	checkGoodStrings = True
 	minStrLen = 7
-	# linesForward = 7
-	# linesBack = 10
-	# bytesForward = 15
-	# bytesBack = 15
 	maxDistance = 15
 	modulesMode = 3
 	pushStringRegisters = 'unset'
 	showDisassembly = True
 	stringReadability = .65
 	# print("----> bit", bit32)
-	if(bit32):
-		shellBit = 32
-	elif(bit32 == False):
 
-		shellBit = 64
 	# print("OS ---> ui", os)
 
 	#need this for selecting and printing syscalls
@@ -15372,7 +15379,7 @@ def ui(): #UI menu loop
 				if not rawHex:
 					print("\nThis option is for shellcode only.\n")
 				else:
-					shellDisassemblyInit(rawData2, shellEntry)
+					shellDisassemblyInit(rawData2)
 					bramwellStart2()
 			elif userIN[0:1] == "d":
 				disToggleMenu()
@@ -15547,7 +15554,7 @@ def uiDiscover(): 	#Discover shellcode instructions
 					if bit32:
 						start = time.time()
 						dontPrint()
-						shellDisassemblyInit(rawData2, startAddress)
+						shellDisassemblyInit(rawData2)
 						allowPrint()
 						colorama.init()
 						end = time.time()
@@ -17159,7 +17166,7 @@ def findAll():  #Find everything
 		if rawHex:
 			curLen = len("Searching for disassembly")
 			print("Searching for disassembly.", end="", flush=True)
-			shellDisassemblyInit(rawData2, startAddress)
+			shellDisassemblyInit(rawData2)
 			#allowPrint()
 			if gDisassemblyText != "":
 				print("{:>{x}}{}".format("", gre + "[Found]" + res, x=15+(maxLen-curLen)))
@@ -18730,7 +18737,7 @@ if __name__ == "__main__":
 			init2(filename)
 			# bramwellDisassembly2()   # Takes as input .txt file of shellcode	- also takes .bin (py sharem.py shellcode.bin raw) - note the raw keyword at the end!!!
 
-			shellDisassemblyInit(rawData2, shellEntry)
+			shellDisassemblyInit(rawData2)
 			bramwellStart2()
 
 
