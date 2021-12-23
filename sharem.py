@@ -922,19 +922,15 @@ def checkDllInCurrentIAT(dll):
 
 def dep():	
 	global pe
-	print("Hi 1")
 	return bool(pe.OPTIONAL_HEADER.DllCharacteristics & 0x0100)
 def aslr():
-	print("Hi 2")
-
+	global pe
 	return bool(pe.OPTIONAL_HEADER.DllCharacteristics & 0x0040)
 def seh():
-	print("Hi 3")
-
+	global pe
 	return bool(pe.OPTIONAL_HEADER.DllCharacteristics & 0x0400)
 def CFG():
-	print("Hi 4")
-
+	global pe
 	return bool(pe.OPTIONAL_HEADER.DllCharacteristics & 0x4000)
 
 def Extraction():
@@ -990,6 +986,7 @@ def Extraction():
 	m[o].protect = m[o].protect + m[o].depStatus + m[o].aslrStatus + m[o].sehSTATUS + m[o].CFGstatus
 	DLL_Protect.append(m[o].protect)
 
+	print ("extraction end")
 def findEvilImports():
 	global FoundApisAddress
 	for item in pe.DIRECTORY_ENTRY_IMPORT:
@@ -1616,7 +1613,7 @@ def ObtainAndExtractSections():
 	o = 0
 	t=0
 	# modName = peName
-def f(dllName):
+def extractDLLNew(dllName):
 	global o
 	global index
 	global  newpath
@@ -19032,11 +19029,12 @@ if __name__ == "__main__":
 	shBy=DisassByt()
 	shBy._init_()
 	# EXTRACTION - if dealing with PE files, uncomment this:
-	try:
-		Extraction()
-	except Exception as e:
-		print(e)
-		pass
+	if not rawHex:
+		try:
+			Extraction()
+		except Exception as e:
+			print(e)
+			pass
 
 	hashShellcode(rawData2)  # if comes after args parser
 
