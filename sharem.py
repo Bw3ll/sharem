@@ -19046,7 +19046,7 @@ if __name__ == "__main__":
 	BramwellID=0
 	AustinID=1
 	view=2
-
+	JacobID=3
 
 	#user=BramwellID       #comment out, so only one user shows, or is the last one shown.
 	# user=view      #comment out, so only one user shows, or is the last one shown.
@@ -19072,6 +19072,9 @@ if __name__ == "__main__":
 		viewBool=True
 	elif user==JacobID:
 		jacob=True
+		bramwell=False
+		austin=False
+		viewBool=False
 	elif user==TarekID:
 		tarek=True
 	
