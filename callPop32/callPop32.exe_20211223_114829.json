@@ -1,0 +1,257 @@
+{
+   "dateAnalyzed": "2021-12-23 11:48:29",
+   "secondsSinceEpoch": 1640281709.78238,
+   "fileType": "PE",
+   "bits": 32,
+   "modules": [],
+   "imports": [],
+   "peInfo": [
+      {
+         "sectionName": ".text",
+         "entryPoint": {
+            "offset": "0x13f1",
+            "imageBasePlusVirtualAdd": "0x401000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0x1000",
+         "virtualSize": "0x10a53",
+         "sectionSizeOfRawData": "0x10c00",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "False",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "6b03179aed09643fcca7175ecbaa4369",
+            "md5": "f1759855b16da7c0b684f2191cdd6a6e08c6b7bd3fbebd4e680e1d27eff31b3b"
+         }
+      },
+      {
+         "sectionName": ".rdata",
+         "entryPoint": {
+            "offset": "0x13f1",
+            "imageBasePlusVirtualAdd": "0x412000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0x12000",
+         "virtualSize": "0x644a",
+         "sectionSizeOfRawData": "0x6600",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "False",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "5ba2d3a2b539790cf82472897b83483b",
+            "md5": "7cea140f67bc4bd3dbed662ce9e6cad9438d4a41d793f8b8509f11cf83a67552"
+         }
+      },
+      {
+         "sectionName": ".data",
+         "entryPoint": {
+            "offset": "0x13f1",
+            "imageBasePlusVirtualAdd": "0x419000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0x19000",
+         "virtualSize": "0x1554",
+         "sectionSizeOfRawData": "0xc00",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "False",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "7d18267b9e04dbf633a9c13a4c34d0a8",
+            "md5": "fc62f53714f6d77fa1015293c596874903806c21460d711e092e772f40057a12"
+         }
+      }
+   ],
+   "pushret": [
+      {
+         "address": "0xece6",
+         "pushOffset": [
+            "0xfce6",
+            "ebx"
+         ],
+         "retOffset": "0xfce7",
+         "modSecName": ".text",
+         "disassembly": [
+            "0x40fce6   push ebx                            (offset 0xfce6)",
+            "0x40fce7   ret                                 (offset 0xfce7)"
+         ],
+         "internalData": {
+            "secNum": 0,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      },
+      {
+         "address": "0x8dd0",
+         "pushOffset": [
+            "0x9dd0",
+            "edi"
+         ],
+         "retOffset": "0x9dd1",
+         "modSecName": ".text",
+         "disassembly": [
+            "0x409dd0   push edi                            (offset 0x9dd0)",
+            "0x409dd1   ret                                 (offset 0x9dd1)"
+         ],
+         "internalData": {
+            "secNum": 0,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      },
+      {
+         "address": "0xea03",
+         "pushOffset": [
+            "0xfa03",
+            "esi"
+         ],
+         "retOffset": "0xfa04",
+         "modSecName": ".text",
+         "disassembly": [
+            "0x40fa03   push esi                            (offset 0xfa03)",
+            "0x40fa04   ret                                 (offset 0xfa04)"
+         ],
+         "internalData": {
+            "secNum": 0,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      },
+      {
+         "address": "0xeb5c",
+         "pushOffset": [
+            "0xfb5c",
+            "esi"
+         ],
+         "retOffset": "0xfb5d",
+         "modSecName": ".text",
+         "disassembly": [
+            "0x40fb5c   push esi                            (offset 0xfb5c)",
+            "0x40fb5d   ret  0xff2                          (offset 0xfb5d)"
+         ],
+         "internalData": {
+            "secNum": 0,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      },
+      {
+         "address": "0x4815",
+         "pushOffset": [
+            "0x16815",
+            "esi"
+         ],
+         "retOffset": "0x16816",
+         "modSecName": ".rdata",
+         "disassembly": [
+            "0x416815   push esi                            (offset 0x16815)",
+            "0x416816   ret                                 (offset 0x16816)"
+         ],
+         "internalData": {
+            "secNum": 1,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      },
+      {
+         "address": "0x4ea5",
+         "pushOffset": [
+            "0x16ea5",
+            "ecx"
+         ],
+         "retOffset": "0x16ea6",
+         "modSecName": ".rdata",
+         "disassembly": [
+            "0x416ea5   push ecx                            (offset 0x16ea5)",
+            "0x416ea6   ret  0xc03f                         (offset 0x16ea6)"
+         ],
+         "internalData": {
+            "secNum": 1,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      },
+      {
+         "address": "0x20a",
+         "pushOffset": [
+            "0x1920a",
+            "eax"
+         ],
+         "retOffset": "0x1920b",
+         "modSecName": ".data",
+         "disassembly": [
+            "0x41920a   push eax                            (offset 0x1920a)",
+            "0x41920b   ret                                 (offset 0x1920b)"
+         ],
+         "internalData": {
+            "secNum": 2,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      }
+   ],
+   "callpop": [
+      {
+         "address": "0x191cc",
+         "modSecName": ".data",
+         "pop_offset": "0x191d1",
+         "distance": 5,
+         "disassembly": [
+            "0x4191cc   call 0x1d1                          (offset 0x191cc)",
+            "0x4191d1   pop  eax                            (offset 0x191d1)"
+         ],
+         "internalData": {
+            "secNum": 2,
+            "NumOpsDis": 10
+         }
+      },
+      {
+         "address": "0x19210",
+         "modSecName": ".data",
+         "pop_offset": "0x19215",
+         "distance": 5,
+         "disassembly": [
+            "0x419210   call 0x215                          (offset 0x19210)",
+            "0x419215   pop  ebx                            (offset 0x19215)"
+         ],
+         "internalData": {
+            "secNum": 2,
+            "NumOpsDis": 10
+         }
+      },
+      {
+         "address": "0x1921e",
+         "modSecName": ".data",
+         "pop_offset": "0x19229",
+         "distance": 9,
+         "disassembly": [
+            "0x41921e   call 0x227                          (offset 0x1921e)",
+            "0x419223   add  ebx, ebx                       (offset 0x19223)",
+            "0x419225   add  ebx, ebx                       (offset 0x19225)",
+            "0x419227   add  ebx, ebx                       (offset 0x19227)",
+            "0x419229   pop  eax                            (offset 0x19229)"
+         ],
+         "internalData": {
+            "secNum": 2,
+            "NumOpsDis": 10
+         }
+      }
+   ],
+   "PEB": [],
+   "fstenv": [],
+   "heavensGate": [],
+   "syscall": [],
+   "strings": {},
+   "shellcode": {
+      "rawhex": "",
+      "strlit": ""
+   }
+}

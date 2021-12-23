@@ -1,0 +1,53 @@
+Filename: callpop2.txt
+File Type: rawHex
+Bits: 32
+Date Analyzed: 2021-12-23 10:07:02
+Seconds since last epoch: 1640275622.020884
+
+Section info
+
+Entry point: 0x0
+
+No strings found.
+
+No push ret instructions found.
+
+No fstenv instructions found.
+
+
+***********
+Call Pop
+***********
+
+********************************************************************************************************
+Call pop Item: 0 | Section: -1 | Section name: rawHex
+0x0        call 7 
+0x5        pop  ebx 
+0x6        call 0x123b 
+0xb        pop  ecx 
+
+No syscall instructions found.
+
+No peb walking instructions found.
+
+No heaven's gate instructions found.
+
+
+****************
+Disassembly
+****************
+
+0x0        call 7                              \xe8\x02\x00\x00\x00      .....     
+0x5        pop ebx                             \x5b                      [         
+0x6        call 0x123b                         \xe8\x30\x12\x00\x00      .0...     
+0xb        pop ecx                             \x59                      Y         
+            ; GetPC                                                                
+[33;1m
+Raw Hex:
+[0m"[32;1me8020000005be83012000059[0m"
+[33;1m
+String Literal:
+[0m"[32;1m\xe8\x02\x00\x00\x00\x5b\xe8\x30\x12\x00\x00\x59[0m"
+[33;1m
+Array Literal:
+[0m{[32;1m0xe8, 0x02, 0x00, 0x00, 0x00, 0x5b, 0xe8, 0x30, 0x12, 0x00, 0x00, 0x59[0m}

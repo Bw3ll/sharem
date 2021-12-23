@@ -1,0 +1,96 @@
+0x0        call 5                              \xe8\x00\x00\x00\x00      .....     
+	 label_0x5:
+0x5        pop edx                             \x5a                      Z         
+            ; GetPC                                                                
+	 label_0x6:
+0x6        lea edx, [edx - 5]                  \x8d\x52\xfb              .R.       
+0x9        mov ecx, 0x70                       \xb9\x70\x00\x00\x00      .p...     
+0xe        mov ebp, esp                        \x89\xe5                  ..        
+0x10       sub esp, 0x200                      \x81\xec\x00\x02\x00\x00  ......    
+0x16       push esp                            \x54                      T         
+0x17       pop edi                             \x5f                      _         
+0x18       lea esi, [edx + 0x36]               \x8d\xb2\x36\x00\x00\x00  ..6...    
+0x1e       call 0x25                           \xe8\x02\x00\x00\x00      .....     
+0x23       jmp esp                             \xff\xe4                  ..        
+
+	 label_0x25:
+0x25       xor eax, eax                        \x31\xc0                  1.        
+0x27       mov al, byte ptr [esi + 1]          \x8a\x46\x01              .F.       
+0x2a       xor al, 0x73                        \x34\x73                  4s        
+0x2c       mov byte ptr [edi + 1], al          \x88\x47\x01              .G.       
+0x2f       inc edi                             \x47                      G         
+0x30       inc esi                             \x46                      F         
+0x31       loop 0x25                           \xe2\xf2                  ..        
+0x33       ret                                 \xc3                      .         
+
+0x34       jmp edi                             \xff\xe7                  ..        
+
+0x36       db 0xe3 (!)                        \xe3                      .         
+0x37       db 0xe3 (!)                        \xe3                      .         
+0x38       jecxz 0x1d                          \xe3\xe3                  ..        
+
+0x3a       mov word ptr [edi + 0x17a842db], ss \x8c\x97\xdb\x42\xa8\x17  ...B..    
+0x40       clc                                 \xf8                      .         
+0x41       or byte ptr [ebx - 8], al           \x08\x43\xf8              .C.       
+0x44       or al, 0x7f                         \x0c\x7f                  ..        
+0x46       clc                                 \xf8                      .         
+0x47       or al, 0x6f                         \x0c\x6f                  .o        
+0x49       clc                                 \xf8                      .         
+0x4a       xor al, 0x7b                        \x34\x7b                  4{        
+0x4c       clc                                 \xf8                      .         
+0x4d       add al, 0x53                        \x04\x53                  .S        
+0x4f       clc                                 \xf8                      .         
+	 label_0x50:
+0x50       dec esp                             \x4c                      L         
+0x51       or eax, 0x8106407f                  \xf3\x0d\x7f\x40\x06\x81  ...@..    
+0x57       cli                                 \xfa                      .         
+0x58       mov ah, 0x70                        \xb4\x70                  .p        
+0x5a       or ecx, dword ptr [edi - 8]         \x0b\x4f\xf8              .O.       
+0x5d       and al, 0xb                         \x24\x0b                  $.        
+0x5f       jb 0x12                             \x72\xb1                  r.        
+
+0x61       clc                                 \xf8                      .         
+0x62       or dword ptr [ebx + 0x72], edx      \x09\x53\x72              .Sr       
+0x65       mov ah, 0xfa                        \xb4\xfa                  ..        
+0x67       scasb al, byte ptr es:[edi]         \xae                      .         
+0x68       clc                                 \xf8                      .         
+0x69       inc edi                             \x47                      G         
+0x6a       fdiv qword ptr [edx - 0x4b]         \xdc\x72\xb5              .r.       
+0x6d       dec ebp                             \x36\xf2\x4d              6.M       
+0x70       xor byte ptr [ecx], al              \x30\x01                  0.        
+0x72       push ss                             \x16                      .         
+0x73       adc al, byte ptr [esi]              \x12\x06                  ..        
+0x75       xor edx, 0x101c7b0d                 \x81\xf2\x0d\x7b\x1c\x10  ...{..    
+0x7b       push ss                             \x16                      .         
+0x7c       add byte ptr [esi], al              \x00\x06                  ..        
+0x7e       lcall 0x15b4:0x725709f8             \x9a\xf8\x09\x57\x72\xb4\x15...Wr..   
+0x85       clc                                 \xf8                      .         
+0x86       pop edi                             \x5f                      _         
+0x87       sbb al, 0xf8                        \x1c\xf8                  ..        
+0x89       or dword ptr [edi + 0x72], ebp      \x09\x6f\x72              .or       
+0x8c       mov ah, 0xf8                        \xb4\xf8                  ..        
+0x8e       paddusb mm1, qword ptr [edi - 0x55054b8e] \x0f\xdc\x8f\x72\xb4\xfa\xaa...r...   
+0x95       ret 0x208c                          \xc2\x8c\x20              ..        
+
+0x98       xchg eax, ecx                       \x91                      .         
+0x99       mov ds, word ptr [ebx]              \x8e\x1b                  ..        
+0x9b       adc byte ptr [edx], dl              \x10\x12                  ..        
+0x9d       pop ds                              \x1f                      .         
+0x9e       adc dl, bh                          \x10\xfa                  ..        
+0xa0       xchg eax, ecx                       \x91                      .         
+0xa1       and dword ptr [ecx], esp            \x21\x21                  !!        
+0xa3       and byte ptr [eax], ah              \x20\x20                            
+0xa5       and byte ptr [eax], ah              \x20\x20                            
+0xa7       and byte ptr [eax], ah              \x20\x20                            
+0xa9       and dword ptr [eax], esp            \x21\x20                  !         
+0xab       db 0x8c                             \x8c                      .         
+0xac       movsb byte ptr es:[edi], byte ptr [esi] \xa4                      .         
+[33;1m
+Raw Hex:
+[0m"[32;1me8000000005a8d52fbb97000000089e581ec00020000545f8db236000000e802000000ffe431c08a460134738847014746e2f2c3ffe7e3e3e3e38c97db42a817f80843f80c7ff80c6ff8347bf80453f84cf30d7f400681fab4700b4ff8240b72b1f8095372b4faaef847dc72b536f24d300116120681f20d7b1c101600069af8095772b415f85f1cf8096f72b4f80fdc8f72b4faaac28c20918e1b10121f10fa91212120202020202021208ca4[0m"
+[33;1m
+String Literal:
+[0m"[32;1m\xe8\x00\x00\x00\x00\x5a\x8d\x52\xfb\xb9\x70\x00\x00\x00\x89\xe5\x81\xec\x00\x02\x00\x00\x54\x5f\x8d\xb2\x36\x00\x00\x00\xe8\x02\x00\x00\x00\xff\xe4\x31\xc0\x8a\x46\x01\x34\x73\x88\x47\x01\x47\x46\xe2\xf2\xc3\xff\xe7\xe3\xe3\xe3\xe3\x8c\x97\xdb\x42\xa8\x17\xf8\x08\x43\xf8\x0c\x7f\xf8\x0c\x6f\xf8\x34\x7b\xf8\x04\x53\xf8\x4c\xf3\x0d\x7f\x40\x06\x81\xfa\xb4\x70\x0b\x4f\xf8\x24\x0b\x72\xb1\xf8\x09\x53\x72\xb4\xfa\xae\xf8\x47\xdc\x72\xb5\x36\xf2\x4d\x30\x01\x16\x12\x06\x81\xf2\x0d\x7b\x1c\x10\x16\x00\x06\x9a\xf8\x09\x57\x72\xb4\x15\xf8\x5f\x1c\xf8\x09\x6f\x72\xb4\xf8\x0f\xdc\x8f\x72\xb4\xfa\xaa\xc2\x8c\x20\x91\x8e\x1b\x10\x12\x1f\x10\xfa\x91\x21\x21\x20\x20\x20\x20\x20\x20\x21\x20\x8c\xa4[0m"
+[33;1m
+Array Literal:
+[0m{[32;1m0xe8, 0x00, 0x00, 0x00, 0x00, 0x5a, 0x8d, 0x52, 0xfb, 0xb9, 0x70, 0x00, 0x00, 0x00, 0x89, 0xe5, 0x81, 0xec, 0x00, 0x02, 0x00, 0x00, 0x54, 0x5f, 0x8d, 0xb2, 0x36, 0x00, 0x00, 0x00, 0xe8, 0x02, 0x00, 0x00, 0x00, 0xff, 0xe4, 0x31, 0xc0, 0x8a, 0x46, 0x01, 0x34, 0x73, 0x88, 0x47, 0x01, 0x47, 0x46, 0xe2, 0xf2, 0xc3, 0xff, 0xe7, 0xe3, 0xe3, 0xe3, 0xe3, 0x8c, 0x97, 0xdb, 0x42, 0xa8, 0x17, 0xf8, 0x08, 0x43, 0xf8, 0x0c, 0x7f, 0xf8, 0x0c, 0x6f, 0xf8, 0x34, 0x7b, 0xf8, 0x04, 0x53, 0xf8, 0x4c, 0xf3, 0x0d, 0x7f, 0x40, 0x06, 0x81, 0xfa, 0xb4, 0x70, 0x0b, 0x4f, 0xf8, 0x24, 0x0b, 0x72, 0xb1, 0xf8, 0x09, 0x53, 0x72, 0xb4, 0xfa, 0xae, 0xf8, 0x47, 0xdc, 0x72, 0xb5, 0x36, 0xf2, 0x4d, 0x30, 0x01, 0x16, 0x12, 0x06, 0x81, 0xf2, 0x0d, 0x7b, 0x1c, 0x10, 0x16, 0x00, 0x06, 0x9a, 0xf8, 0x09, 0x57, 0x72, 0xb4, 0x15, 0xf8, 0x5f, 0x1c, 0xf8, 0x09, 0x6f, 0x72, 0xb4, 0xf8, 0x0f, 0xdc, 0x8f, 0x72, 0xb4, 0xfa, 0xaa, 0xc2, 0x8c, 0x20, 0x91, 0x8e, 0x1b, 0x10, 0x12, 0x1f, 0x10, 0xfa, 0x91, 0x21, 0x21, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x21, 0x20, 0x8c, 0xa4[0m}

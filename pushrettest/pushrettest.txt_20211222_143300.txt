@@ -1,0 +1,440 @@
+Filename: pushrettest.txt
+File Type: rawHex
+Bits: 32
+Date Analyzed: 2021-12-22 14:33:00
+Seconds since last epoch: 1640205180.212496
+
+Section info
+
+Entry point: 0x0
+
+No strings found.
+
+
+***********
+Push ret
+***********
+
+********************************************************************************************************
+Push ret Item: 0 | Section: -1 | Section name: rawHex | PUSH Offset: 0x0, eax | RET Offset: 0x1
+0x0        push eax 
+0x1        ret   
+********************************************************************************************************
+Push ret Item: 1 | Section: -1 | Section name: rawHex | PUSH Offset: 0x2, ebx | RET Offset: 0x3
+0x2        push ebx 
+0x3        ret   
+********************************************************************************************************
+Push ret Item: 2 | Section: -1 | Section name: rawHex | PUSH Offset: 0x4, ecx | RET Offset: 0x5
+0x4        push ecx 
+0x5        ret   
+********************************************************************************************************
+Push ret Item: 3 | Section: -1 | Section name: rawHex | PUSH Offset: 0x6, edx | RET Offset: 0x7
+0x6        push edx 
+0x7        ret   
+********************************************************************************************************
+Push ret Item: 4 | Section: -1 | Section name: rawHex | PUSH Offset: 0x8, edi | RET Offset: 0x9
+0x8        push edi 
+0x9        ret   
+********************************************************************************************************
+Push ret Item: 5 | Section: -1 | Section name: rawHex | PUSH Offset: 0xa, esi | RET Offset: 0xb
+0xa        push esi 
+0xb        ret   
+********************************************************************************************************
+Push ret Item: 6 | Section: -1 | Section name: rawHex | PUSH Offset: 0xc, ebp | RET Offset: 0xd
+0xc        push ebp 
+0xd        ret   
+********************************************************************************************************
+Push ret Item: 7 | Section: -1 | Section name: rawHex | PUSH Offset: 0xe, esp | RET Offset: 0xf
+0xe        push esp 
+0xf        ret   
+********************************************************************************************************
+Push ret Item: 8 | Section: -1 | Section name: rawHex | PUSH Offset: 0x10, eax | RET Offset: 0x11
+0x10       push eax 
+0x11       ret  0 
+********************************************************************************************************
+Push ret Item: 9 | Section: -1 | Section name: rawHex | PUSH Offset: 0x14, ebx | RET Offset: 0x15
+0x14       push ebx 
+0x15       ret  0 
+********************************************************************************************************
+Push ret Item: 10 | Section: -1 | Section name: rawHex | PUSH Offset: 0x18, ecx | RET Offset: 0x19
+0x18       push ecx 
+0x19       ret  0 
+********************************************************************************************************
+Push ret Item: 11 | Section: -1 | Section name: rawHex | PUSH Offset: 0x1c, edx | RET Offset: 0x1d
+0x1c       push edx 
+0x1d       ret  0 
+********************************************************************************************************
+Push ret Item: 12 | Section: -1 | Section name: rawHex | PUSH Offset: 0x20, edi | RET Offset: 0x21
+0x20       push edi 
+0x21       ret  0 
+********************************************************************************************************
+Push ret Item: 13 | Section: -1 | Section name: rawHex | PUSH Offset: 0x24, esi | RET Offset: 0x25
+0x24       push esi 
+0x25       ret  0 
+********************************************************************************************************
+Push ret Item: 14 | Section: -1 | Section name: rawHex | PUSH Offset: 0x28, ebp | RET Offset: 0x29
+0x28       push ebp 
+0x29       ret  0 
+********************************************************************************************************
+Push ret Item: 15 | Section: -1 | Section name: rawHex | PUSH Offset: 0x2c, esp | RET Offset: 0x2d
+0x2c       push esp 
+0x2d       ret  0 
+********************************************************************************************************
+Push ret Item: 16 | Section: -1 | Section name: rawHex | PUSH Offset: 0x61, eax | RET Offset: 0x62
+0x61       push eax 
+0x62       ret   
+********************************************************************************************************
+Push ret Item: 17 | Section: -1 | Section name: rawHex | PUSH Offset: 0x64, ecx | RET Offset: 0x65
+0x64       push ecx 
+0x65       ret   
+********************************************************************************************************
+Push ret Item: 18 | Section: -1 | Section name: rawHex | PUSH Offset: 0x67, edx | RET Offset: 0x68
+0x67       push edx 
+0x68       ret   
+********************************************************************************************************
+Push ret Item: 19 | Section: -1 | Section name: rawHex | PUSH Offset: 0x6a, ebx | RET Offset: 0x6b
+0x6a       push ebx 
+0x6b       ret   
+********************************************************************************************************
+Push ret Item: 20 | Section: -1 | Section name: rawHex | PUSH Offset: 0x6d, esp | RET Offset: 0x6e
+0x6d       push esp 
+0x6e       ret   
+********************************************************************************************************
+Push ret Item: 21 | Section: -1 | Section name: rawHex | PUSH Offset: 0x70, ebp | RET Offset: 0x71
+0x70       push ebp 
+0x71       ret   
+********************************************************************************************************
+Push ret Item: 22 | Section: -1 | Section name: rawHex | PUSH Offset: 0x73, esi | RET Offset: 0x74
+0x73       push esi 
+0x74       ret   
+********************************************************************************************************
+Push ret Item: 23 | Section: -1 | Section name: rawHex | PUSH Offset: 0x76, edi | RET Offset: 0x77
+0x76       push edi 
+0x77       ret   
+********************************************************************************************************
+Push ret Item: 24 | Section: -1 | Section name: rawHex | PUSH Offset: 0x79, eax | RET Offset: 0x7a
+0x79       push eax 
+0x7a       ret  5 
+********************************************************************************************************
+Push ret Item: 25 | Section: -1 | Section name: rawHex | PUSH Offset: 0x7e, ecx | RET Offset: 0x7f
+0x7e       push ecx 
+0x7f       ret  5 
+********************************************************************************************************
+Push ret Item: 26 | Section: -1 | Section name: rawHex | PUSH Offset: 0x83, edx | RET Offset: 0x84
+0x83       push edx 
+0x84       ret  5 
+********************************************************************************************************
+Push ret Item: 27 | Section: -1 | Section name: rawHex | PUSH Offset: 0x88, ebx | RET Offset: 0x89
+0x88       push ebx 
+0x89       ret  5 
+********************************************************************************************************
+Push ret Item: 28 | Section: -1 | Section name: rawHex | PUSH Offset: 0x8d, esp | RET Offset: 0x8e
+0x8d       push esp 
+0x8e       ret  5 
+********************************************************************************************************
+Push ret Item: 29 | Section: -1 | Section name: rawHex | PUSH Offset: 0x92, ebp | RET Offset: 0x93
+0x92       push ebp 
+0x93       ret  5 
+********************************************************************************************************
+Push ret Item: 30 | Section: -1 | Section name: rawHex | PUSH Offset: 0x97, esi | RET Offset: 0x98
+0x97       push esi 
+0x98       ret  5 
+********************************************************************************************************
+Push ret Item: 31 | Section: -1 | Section name: rawHex | PUSH Offset: 0x9c, edi | RET Offset: 0x9d
+0x9c       push edi 
+0x9d       ret  5 
+********************************************************************************************************
+Push ret Item: 32 | Section: -1 | Section name: rawHex | PUSH Offset: 0xe0, eax | RET Offset: 0xe2
+0xe0       push eax 
+0xe1       inc  eax 
+0xe2       ret   
+
+No fstenv instructions found.
+
+No call pop instructions found.
+
+No syscall instructions found.
+
+No peb walking instructions found.
+
+No heaven's gate instructions found.
+
+
+****************
+Disassembly
+****************
+
+0x0        push eax                            \x50                      P         
+           ; pushing return address                                                
+0x1        ret                                 \xc3                      .         
+           ; returning to eax                                                      
+
+0x2        push ebx                            \x53                      S         
+           ; pushing return address                                                
+0x3        ret                                 \xc3                      .         
+           ; returning to ebx                                                      
+
+0x4        push ecx                            \x51                      Q         
+           ; pushing return address                                                
+	 label_0x5:
+0x5        ret                                 \xc3                      .         
+           ; returning to ecx                                                      
+
+0x6        push edx                            \x52                      R         
+           ; pushing return address                                                
+0x7        ret                                 \xc3                      .         
+           ; returning to edx                                                      
+
+0x8        push edi                            \x57                      W         
+           ; pushing return address                                                
+0x9        ret                                 \xc3                      .         
+           ; returning to edi                                                      
+
+0xa        push esi                            \x56                      V         
+           ; pushing return address                                                
+0xb        ret                                 \xc3                      .         
+           ; returning to esi                                                      
+
+0xc        push ebp                            \x55                      U         
+           ; pushing return address                                                
+0xd        ret                                 \xc3                      .         
+           ; returning to ebp                                                      
+
+0xe        push esp                            \x54                      T         
+           ; pushing return address                                                
+0xf        ret                                 \xc3                      .         
+           ; returning to esp                                                      
+
+0x10       push eax                            \x50                      P         
+           ; pushing return address                                                
+0x11       ret 0                               \xc2\x00\x00              ...       
+           ; returning to eax                                                      
+
+0x14       push ebx                            \x53                      S         
+           ; pushing return address                                                
+0x15       ret 0                               \xc2\x00\x00              ...       
+           ; returning to ebx                                                      
+
+0x18       push ecx                            \x51                      Q         
+           ; pushing return address                                                
+0x19       ret 0                               \xc2\x00\x00              ...       
+           ; returning to ecx                                                      
+
+0x1c       push edx                            \x52                      R         
+           ; pushing return address                                                
+	 label_0x1d:
+0x1d       ret 0                               \xc2\x00\x00              ...       
+           ; returning to edx                                                      
+
+0x20       push edi                            \x57                      W         
+           ; pushing return address                                                
+0x21       ret 0                               \xc2\x00\x00              ...       
+           ; returning to edi                                                      
+
+0x24       push esi                            \x56                      V         
+           ; pushing return address                                                
+	 label_0x25:
+0x25       ret 0                               \xc2\x00\x00              ...       
+           ; returning to esi                                                      
+
+0x28       push ebp                            \x55                      U         
+           ; pushing return address                                                
+0x29       ret 0                               \xc2\x00\x00              ...       
+           ; returning to ebp                                                      
+
+0x2c       push esp                            \x54                      T         
+           ; pushing return address                                                
+0x2d       ret 0                               \xc2\x00\x00              ...       
+           ; returning to esp                                                      
+
+0x30       push eax                            \x50                      P         
+0x31       retf                                \xcb                      .         
+0x32       push ebx                            \x53                      S         
+0x33       retf                                \xcb                      .         
+0x34       push ecx                            \x51                      Q         
+0x35       retf                                \xcb                      .         
+0x36       push edx                            \x52                      R         
+0x37       retf                                \xcb                      .         
+0x38       push edi                            \x57                      W         
+0x39       retf                                \xcb                      .         
+0x3a       push esi                            \x56                      V         
+0x3b       retf                                \xcb                      .         
+0x3c       push ebp                            \x55                      U         
+0x3d       retf                                \xcb                      .         
+0x3e       push esp                            \x54                      T         
+0x3f       retf                                \xcb                      .         
+0x40       push eax                            \x50                      P         
+0x41       retf 0                              \xca\x00\x00              ...       
+0x44       push ebx                            \x53                      S         
+0x45       retf 0                              \xca\x00\x00              ...       
+0x48       push ecx                            \x51                      Q         
+0x49       retf 0                              \xca\x00\x00              ...       
+0x4c       push edx                            \x52                      R         
+0x4d       retf 0                              \xca\x00\x00              ...       
+0x50       push edi                            \x57                      W         
+0x51       retf 0                              \xca\x00\x00              ...       
+0x54       push esi                            \x56                      V         
+0x55       retf 0                              \xca\x00\x00              ...       
+0x58       push ebp                            \x55                      U         
+0x59       retf 0                              \xca\x00\x00              ...       
+0x5c       push esp                            \x54                      T         
+0x5d       retf 0                              \xca\x00\x00              ...       
+0x60       inc ecx                             \x41                      A         
+0x61       push eax                            \x50                      P         
+           ; pushing return address                                                
+0x62       ret                                 \xc3                      .         
+           ; returning to eax                                                      
+
+0x63       inc ecx                             \x41                      A         
+0x64       push ecx                            \x51                      Q         
+           ; pushing return address                                                
+0x65       ret                                 \xc3                      .         
+           ; returning to ecx                                                      
+
+0x66       inc ecx                             \x41                      A         
+0x67       push edx                            \x52                      R         
+           ; pushing return address                                                
+0x68       ret                                 \xc3                      .         
+           ; returning to edx                                                      
+
+0x69       inc ecx                             \x41                      A         
+0x6a       push ebx                            \x53                      S         
+           ; pushing return address                                                
+0x6b       ret                                 \xc3                      .         
+           ; returning to ebx                                                      
+
+0x6c       inc ecx                             \x41                      A         
+0x6d       push esp                            \x54                      T         
+           ; pushing return address                                                
+0x6e       ret                                 \xc3                      .         
+           ; returning to esp                                                      
+
+0x6f       inc ecx                             \x41                      A         
+0x70       push ebp                            \x55                      U         
+           ; pushing return address                                                
+0x71       ret                                 \xc3                      .         
+           ; returning to ebp                                                      
+
+0x72       inc ecx                             \x41                      A         
+0x73       push esi                            \x56                      V         
+           ; pushing return address                                                
+0x74       ret                                 \xc3                      .         
+           ; returning to esi                                                      
+
+0x75       inc ecx                             \x41                      A         
+0x76       push edi                            \x57                      W         
+           ; pushing return address                                                
+0x77       ret                                 \xc3                      .         
+           ; returning to edi                                                      
+
+0x78       inc ecx                             \x41                      A         
+0x79       push eax                            \x50                      P         
+           ; pushing return address                                                
+0x7a       ret 5                               \xc2\x05\x00              ...       
+           ; returning to eax                                                      
+
+0x7d       inc ecx                             \x41                      A         
+0x7e       push ecx                            \x51                      Q         
+           ; pushing return address                                                
+0x7f       ret 5                               \xc2\x05\x00              ...       
+           ; returning to ecx                                                      
+
+0x82       inc ecx                             \x41                      A         
+0x83       push edx                            \x52                      R         
+           ; pushing return address                                                
+0x84       ret 5                               \xc2\x05\x00              ...       
+           ; returning to edx                                                      
+
+0x87       inc ecx                             \x41                      A         
+0x88       push ebx                            \x53                      S         
+           ; pushing return address                                                
+0x89       ret 5                               \xc2\x05\x00              ...       
+           ; returning to ebx                                                      
+
+0x8c       inc ecx                             \x41                      A         
+0x8d       push esp                            \x54                      T         
+           ; pushing return address                                                
+0x8e       ret 5                               \xc2\x05\x00              ...       
+           ; returning to esp                                                      
+
+0x91       inc ecx                             \x41                      A         
+0x92       push ebp                            \x55                      U         
+           ; pushing return address                                                
+0x93       ret 5                               \xc2\x05\x00              ...       
+           ; returning to ebp                                                      
+
+0x96       inc ecx                             \x41                      A         
+0x97       push esi                            \x56                      V         
+           ; pushing return address                                                
+0x98       ret 5                               \xc2\x05\x00              ...       
+           ; returning to esi                                                      
+
+0x9b       inc ecx                             \x41                      A         
+0x9c       push edi                            \x57                      W         
+           ; pushing return address                                                
+0x9d       ret 5                               \xc2\x05\x00              ...       
+           ; returning to edi                                                      
+
+0xa0       inc ecx                             \x41                      A         
+0xa1       push eax                            \x50                      P         
+0xa2       retf                                \xcb                      .         
+0xa3       inc ecx                             \x41                      A         
+0xa4       push ecx                            \x51                      Q         
+0xa5       retf                                \xcb                      .         
+0xa6       inc ecx                             \x41                      A         
+0xa7       push edx                            \x52                      R         
+0xa8       retf                                \xcb                      .         
+0xa9       inc ecx                             \x41                      A         
+0xaa       push ebx                            \x53                      S         
+0xab       retf                                \xcb                      .         
+0xac       inc ecx                             \x41                      A         
+0xad       push esp                            \x54                      T         
+0xae       retf                                \xcb                      .         
+0xaf       inc ecx                             \x41                      A         
+0xb0       push ebp                            \x55                      U         
+0xb1       retf                                \xcb                      .         
+0xb2       inc ecx                             \x41                      A         
+0xb3       push esi                            \x56                      V         
+0xb4       retf                                \xcb                      .         
+0xb5       inc ecx                             \x41                      A         
+0xb6       push edi                            \x57                      W         
+0xb7       retf                                \xcb                      .         
+0xb8       inc ecx                             \x41                      A         
+0xb9       push eax                            \x50                      P         
+0xba       retf 5                              \xca\x05\x00              ...       
+0xbd       inc ecx                             \x41                      A         
+0xbe       push ecx                            \x51                      Q         
+0xbf       retf 5                              \xca\x05\x00              ...       
+0xc2       inc ecx                             \x41                      A         
+0xc3       push edx                            \x52                      R         
+0xc4       retf 5                              \xca\x05\x00              ...       
+0xc7       inc ecx                             \x41                      A         
+0xc8       push ebx                            \x53                      S         
+0xc9       retf 5                              \xca\x05\x00              ...       
+0xcc       inc ecx                             \x41                      A         
+0xcd       push esp                            \x54                      T         
+0xce       retf 5                              \xca\x05\x00              ...       
+0xd1       inc ecx                             \x41                      A         
+0xd2       push ebp                            \x55                      U         
+0xd3       retf 5                              \xca\x05\x00              ...       
+0xd6       inc ecx                             \x41                      A         
+0xd7       push esi                            \x56                      V         
+0xd8       retf 5                              \xca\x05\x00              ...       
+0xdb       inc ecx                             \x41                      A         
+0xdc       push edi                            \x57                      W         
+0xdd       retf 5                              \xca\x05\x00              ...       
+0xe0       push eax                            \x50                      P         
+           ; pushing return address                                                
+0xe1       inc eax                             \x40                      @         
+0xe2       ret                                 \xc3                      .         
+           ; returning to eax                                                      
+
+[33;1m
+Raw Hex:
+[0m"[32;1m50c353c351c352c357c356c355c354c350c2000053c2000051c2000052c2000057c2000056c2000055c2000054c2000050cb53cb51cb52cb57cb56cb55cb54cb50ca000053ca000051ca000052ca000057ca000056ca000055ca000054ca00004150c34151c34152c34153c34154c34155c34156c34157c34150c205004151c205004152c205004153c205004154c205004155c205004156c205004157c205004150cb4151cb4152cb4153cb4154cb4155cb4156cb4157cb4150ca05004151ca05004152ca05004153ca05004154ca05004155ca05004156ca05004157ca05005040c3[0m"
+[33;1m
+String Literal:
+[0m"[32;1m\x50\xc3\x53\xc3\x51\xc3\x52\xc3\x57\xc3\x56\xc3\x55\xc3\x54\xc3\x50\xc2\x00\x00\x53\xc2\x00\x00\x51\xc2\x00\x00\x52\xc2\x00\x00\x57\xc2\x00\x00\x56\xc2\x00\x00\x55\xc2\x00\x00\x54\xc2\x00\x00\x50\xcb\x53\xcb\x51\xcb\x52\xcb\x57\xcb\x56\xcb\x55\xcb\x54\xcb\x50\xca\x00\x00\x53\xca\x00\x00\x51\xca\x00\x00\x52\xca\x00\x00\x57\xca\x00\x00\x56\xca\x00\x00\x55\xca\x00\x00\x54\xca\x00\x00\x41\x50\xc3\x41\x51\xc3\x41\x52\xc3\x41\x53\xc3\x41\x54\xc3\x41\x55\xc3\x41\x56\xc3\x41\x57\xc3\x41\x50\xc2\x05\x00\x41\x51\xc2\x05\x00\x41\x52\xc2\x05\x00\x41\x53\xc2\x05\x00\x41\x54\xc2\x05\x00\x41\x55\xc2\x05\x00\x41\x56\xc2\x05\x00\x41\x57\xc2\x05\x00\x41\x50\xcb\x41\x51\xcb\x41\x52\xcb\x41\x53\xcb\x41\x54\xcb\x41\x55\xcb\x41\x56\xcb\x41\x57\xcb\x41\x50\xca\x05\x00\x41\x51\xca\x05\x00\x41\x52\xca\x05\x00\x41\x53\xca\x05\x00\x41\x54\xca\x05\x00\x41\x55\xca\x05\x00\x41\x56\xca\x05\x00\x41\x57\xca\x05\x00\x50\x40\xc3[0m"
+[33;1m
+Array Literal:
+[0m{[32;1m0x50, 0xc3, 0x53, 0xc3, 0x51, 0xc3, 0x52, 0xc3, 0x57, 0xc3, 0x56, 0xc3, 0x55, 0xc3, 0x54, 0xc3, 0x50, 0xc2, 0x00, 0x00, 0x53, 0xc2, 0x00, 0x00, 0x51, 0xc2, 0x00, 0x00, 0x52, 0xc2, 0x00, 0x00, 0x57, 0xc2, 0x00, 0x00, 0x56, 0xc2, 0x00, 0x00, 0x55, 0xc2, 0x00, 0x00, 0x54, 0xc2, 0x00, 0x00, 0x50, 0xcb, 0x53, 0xcb, 0x51, 0xcb, 0x52, 0xcb, 0x57, 0xcb, 0x56, 0xcb, 0x55, 0xcb, 0x54, 0xcb, 0x50, 0xca, 0x00, 0x00, 0x53, 0xca, 0x00, 0x00, 0x51, 0xca, 0x00, 0x00, 0x52, 0xca, 0x00, 0x00, 0x57, 0xca, 0x00, 0x00, 0x56, 0xca, 0x00, 0x00, 0x55, 0xca, 0x00, 0x00, 0x54, 0xca, 0x00, 0x00, 0x41, 0x50, 0xc3, 0x41, 0x51, 0xc3, 0x41, 0x52, 0xc3, 0x41, 0x53, 0xc3, 0x41, 0x54, 0xc3, 0x41, 0x55, 0xc3, 0x41, 0x56, 0xc3, 0x41, 0x57, 0xc3, 0x41, 0x50, 0xc2, 0x05, 0x00, 0x41, 0x51, 0xc2, 0x05, 0x00, 0x41, 0x52, 0xc2, 0x05, 0x00, 0x41, 0x53, 0xc2, 0x05, 0x00, 0x41, 0x54, 0xc2, 0x05, 0x00, 0x41, 0x55, 0xc2, 0x05, 0x00, 0x41, 0x56, 0xc2, 0x05, 0x00, 0x41, 0x57, 0xc2, 0x05, 0x00, 0x41, 0x50, 0xcb, 0x41, 0x51, 0xcb, 0x41, 0x52, 0xcb, 0x41, 0x53, 0xcb, 0x41, 0x54, 0xcb, 0x41, 0x55, 0xcb, 0x41, 0x56, 0xcb, 0x41, 0x57, 0xcb, 0x41, 0x50, 0xca, 0x05, 0x00, 0x41, 0x51, 0xca, 0x05, 0x00, 0x41, 0x52, 0xca, 0x05, 0x00, 0x41, 0x53, 0xca, 0x05, 0x00, 0x41, 0x54, 0xca, 0x05, 0x00, 0x41, 0x55, 0xca, 0x05, 0x00, 0x41, 0x56, 0xca, 0x05, 0x00, 0x41, 0x57, 0xca, 0x05, 0x00, 0x50, 0x40, 0xc3[0m}
