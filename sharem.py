@@ -2313,7 +2313,7 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 		#print("Adding item #" + str(len(m[o].save_PEB_info)))
 		# print("saving at sec num = " + str(secNum))
 		saveBasePEBWalk(address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, (loadModList_offset, listEntryText	), advanceDLL_Offset)
-		
+
 		# if(rawHex):
 		# 	m[o].save_PEB_info = helperListToSet(m[o].save_PEB_info)
 		# else:
@@ -15826,7 +15826,7 @@ def uiDiscover(): 	#Discover shellcode instructions
 			print("Found shellcode instructions cleared.\n")
 		
 
-
+			# test
 		elif(re.match("^z$", listIN, re.IGNORECASE)):
 
 			list_of_labels = ["Searching for disassembly", "Searching for fstenv instructions", "Searching for push ret instructions", "Searching for call pop instructions", "Searching for heaven's gate instructions", "Searching for windows syscall instructions", "Searching for PEB walking instructions"]
