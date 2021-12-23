@@ -150,7 +150,7 @@ mESP = ''
 
 
 gDisassemblyText=""
-# Moved from Andy's work area
+# Moved from viewBool's work area
 linesForward = 40
 bUI = True
 bPushRet = True
@@ -2915,7 +2915,6 @@ def disHerePushRet(address, NumOpsDis, secNum, data): ##########################
 
 		# if(pushea):
 		# 	print("Found pushea")
-		# print("hereismeandyhoney")
 
 		ret = re.match("^ret", val, re.IGNORECASE)
 		retf = re.match("^retf", val, re.IGNORECASE)
@@ -19041,19 +19040,19 @@ if __name__ == "__main__":
 
 	bramwell=False
 	austin=False
-	andy=False
+	viewBool=False
 	tarek=False
 	jacob=False
 	BramwellID=0
 	AustinID=1
-	AndyID=2
+	view=2
 
 
 	#user=BramwellID       #comment out, so only one user shows, or is the last one shown.
-	# user=AndyID      #comment out, so only one user shows, or is the last one shown.
+	# user=view      #comment out, so only one user shows, or is the last one shown.
 
 	# user = AustinID
-	user=AndyID
+	user=view
 	# user=BramwellID
 
 
@@ -19061,16 +19060,16 @@ if __name__ == "__main__":
 	if user==AustinID:
 		austin=True
 		bramwell=False
-		andy = False
+		viewBool = False
 	elif user==BramwellID:
 
 		bramwell=True
 		austin=False
-		andy=False
-	elif user==AndyID:
+		viewBool=False
+	elif user==view:
 		bramwell=False
 		austin=False
-		andy=True
+		viewBool=True
 	elif user==JacobID:
 		jacob=True
 	elif user==TarekID:
@@ -19230,8 +19229,8 @@ if __name__ == "__main__":
 
 	if tarek:
 		testTarek()
-	################################ ANDY'S WORK AREA
-	if andy:
+	################################ viewBool'S WORK AREA
+	if viewBool:
 
 		if workDir:
 			work_from_directory()
