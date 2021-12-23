@@ -132,6 +132,7 @@ filenameRaw=""
 skipExtraction=False
 rawHex = False
 rawData2 = b''
+
 numArgs = len(sys.argv)
 rawBin=False  # only if .bin, not .txt
 isPe=False
@@ -306,8 +307,9 @@ group.add_argument('--pe', '-pe', type=str)
 group.add_argument('--r', '-r',type=str)
 group.add_argument('-r64', '--r64',  type=str)
 group.add_argument('-r32', '--r32',  type=str)
+group.add_argument('--d', '-d', type=str, required=False)
 
-parser.add_argument('--d', '-d', type=str, required=False)
+
 parser.add_argument('--c', '-c', '--config', type=str, required=False)
 
 
@@ -345,6 +347,7 @@ if args.r or args.r64 or args.r32:
 
 			else:
 				f = open(file2Check, "rb")
+				filename = file2Check
 				rawData2 = f.read()
 				f.close()
 				rawHex = True
@@ -388,7 +391,11 @@ if args.d:
 
 		workingDir = args.d
 		workDir = True
-		list_of_files = os.listdir(workingDir)
+		for path in os.listdir(workingDir):
+			full_path = os.path.join(workingDir, path)
+			if os.path.isfile(full_path):
+				list_of_files.append(full_path)
+		# list_of_files = os.listdir(workingDir)
 		print("Directory path is: ", workingDir, list_of_files)
 
 	else:
@@ -616,6 +623,8 @@ def newModule():
 	obj = MyBytes()
 	obj._init_()
 	m.append(obj)
+
+
 if __name__ == "__main__":
 	newModule()
 
@@ -862,7 +871,6 @@ def Extraction():
 	m[o].CFGstatus =  str(CFG())
 	m[o].protect = m[o].protect + m[o].depStatus + m[o].aslrStatus + m[o].sehSTATUS + m[o].CFGstatus
 	DLL_Protect.append(m[o].protect)
-
 
 def findEvilImports():
 	global FoundApisAddress
@@ -1394,6 +1402,7 @@ def ObtainAndExtractDlls():
 	modName = peName
 
 def ObtainAndExtractSections():
+
 	getDLLs()
 	global peName
 	global PE_DLLS
@@ -1402,6 +1411,8 @@ def ObtainAndExtractSections():
 	global modName
 	global sections
 	global pe
+
+
 	test = ""
 	i = 0
 	# print ("pename " + peName)
@@ -1419,9 +1430,10 @@ def ObtainAndExtractSections():
 	# print "m " + str(len(m))
 	# print "s " + str(len(s))
 	t=0
+	# print("Length of pe sections", len(pe.sections))
 	for x in pe.sections:
 		newSection()
-
+		# print(red + "S: after --> " + res, s)
 		s[t].modName=peName
 		s[t].entryPoint = pe.OPTIONAL_HEADER.AddressOfEntryPoint
 		
@@ -1438,7 +1450,9 @@ def ObtainAndExtractSections():
 		s[t].Hash_sha256_section=	 pe.sections[t].get_hash_md5()
 		s[t].Hash_md5_section =   pe.sections[t].get_hash_sha256()
 		tem =0
+		# print("Extraction: ", t, type(pe.sections[t].get_data()[0:]))
 		s[t].data2  = pe.sections[t].get_data()[0:]
+		# print("Checking", type(s[t].data2))
 		s[t].protect = str(peName) + "\t"
 		s[t].depStatus =  str(dep())
 		s[t].aslrStatus =  str(aslr())
@@ -1447,6 +1461,13 @@ def ObtainAndExtractSections():
 		s[t].protect = s[t].protect + s[t].depStatus + s[t].aslrStatus + s[t].sehSTATUS + s[t].CFGstatus
 		DLL_Protect.append(s[t].protect)
 		t+=1
+
+
+	# print("check: ", s, len(s))
+	# for section in s:
+		# print("Type: ", type(section.data2), section.sectionName)
+
+	# input()
 		# print "did it" + str(t)
 		# print sect.get_hash_md5()
 		# print sect.get_hash_sha256()
@@ -1476,7 +1497,7 @@ def ObtainAndExtractSections():
 	o = 0
 	t=0
 	# modName = peName
-def extractDLLNew(dllName):
+def f(dllName):
 	global o
 	global index
 	global  newpath
@@ -1783,17 +1804,22 @@ def binaryToText(binary, json=None):
 		brawHex = rawH
 		bstrLit = strLit
 
-		rawH=yel+'\nRaw Hex:\n'+res+'"'+gre + rawH+res+'"\n'
-		strLit=yel+'\nString Literal:\n'+res+'"'+gre + strLit+res+'"\n'
+		rawHwColor=yel+'\nRaw Hex:\n'+res+'"'+gre + rawH+res+'"\n'
+		rawH='\nRaw Hex:\n'+'"'+ rawH+'"\n'
+
+		strLitwColor=yel+'\nString Literal:\n'+res+'"'+gre + strLit+res+'"\n'
+		strLit='\nString Literal:\n'+'"'+ strLit+'"\n'
 
 		# strLit = "\nString Literal:\n\""+strLit+"\"\n"
 		arrayLit=arrayLit[:-2]
 
-		arrayLit =yel + "\nArray Literal:\n"+res+"{"+gre + arrayLit+res + "}\n"
+		arrayLitwColor =yel + "\nArray Literal:\n"+res+"{"+gre + arrayLit+res + "}\n"
+		arrayLit ="\nArray Literal:\n"+"{" + arrayLit+ "}\n"
+
 		if json==None:
-			print (strLit)
-			print (rawH)
-			print (arrayLit)
+			print (strLitwColor)
+			print (rawHwColor)
+			print (arrayLitwColor)
 		returnVal=rawH+strLit+arrayLit
 	except Exception as e:
 		print ("*Not valid format")
@@ -2168,6 +2194,11 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 		#print("Adding item #" + str(len(m[o].save_PEB_info)))
 		# print("saving at sec num = " + str(secNum))
 		saveBasePEBWalk(address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, (loadModList_offset, listEntryText	), advanceDLL_Offset)
+		# if(rawHex):
+		# 	m[o].save_PEB_info = helperListToSet(m[o].save_PEB_info)
+		# else:
+		# 	print("Length peb_info", len(s[secNum].save_PEB_info), s[secNum].save_PEB_info)
+		# 	s[secNum].save_PEB_info =helperListToSet(s[secNum].save_PEB_info)
 
 def disHerePEB_64(address, NumOpsDis, secNum, data): ############## AUSTIN ####################
 	# print ("disHerePEB_64")
@@ -2982,7 +3013,10 @@ def PushRetrawhex(address, secNum, data):
 			else:
 				get_PushRet_start64(4, match, secNum, data)
 
-
+	if(rawHex):
+		m[o].save_PushRet_info = helperListToSet(m[o].save_PushRet_info)
+	else:
+		s[secNum].save_PushRet_info =helperListToSet(s[secNum].save_PushRet_info)
 
 
 def PushRetrawhex2(address, secNum, data):
@@ -3576,6 +3610,12 @@ def FSTENVrawhex(address, linesBack2, secNum, data):
 	else:
 		for match in FSTENV_GET_BASE.values(): #iterate through all opcodes representing combinations of registers
 			get_FSTENV(10, 15, match, secNum, data)
+
+
+	if(rawHex):
+		m[o].save_FSTENV_info = helperListToSet(m[o].save_FSTENV_info)
+	else:
+		s[secNum].save_FSTENV_info =helperListToSet(s[secNum].save_FSTENV_info)
 
 def get_FPUInstruction(orgListDisassembly, orgListOffset, linesGoBack, FSTENV_offset):
 	fpuIndex = FSTENV_offset - 1
@@ -4330,7 +4370,42 @@ def callPopRawHex(address, linesForward2, secNum, data):
 		for match in CALLPOP_START.values(): #iterate through all opcodes representing combinations of registers
 			get_Callpop(10, match[0], secNum, data, match[1])
 
+
+	
+	if(rawHex):
+		m[o].save_Callpop_info = helperListToSet(m[o].save_Callpop_info)
+	else:
+		s[secNum].save_Callpop_info =helperListToSet(s[secNum].save_Callpop_info)
+		
+
+def helperListToSet(ourList):
+
+	ourList = set(ourList)
+	ourList = list(ourList)
+	return ourList
+
 def saveBaseCallpop(address, NumOpsDis,modSecName,secNum,distance,pop_offset): 
+	# print("saveBaseCallpop", address, NumOpsDis,modSecName,secNum,distance,pop_offset)
+	# dprint2("saving")
+	#save virtaul address as well
+	tmp = tuple((address,NumOpsDis,modSecName,secNum,distance, pop_offset))
+	# 
+
+	if(secNum != "noSec"):
+		# if tmp not in s[secNum].save_Callpop_info:
+		# print("Saving pop_offset", pop_offset)
+		s[secNum].save_Callpop_info.append(tuple((address,NumOpsDis,modSecName,secNum,distance, pop_offset)))
+	else:
+		secNum = -1
+		modSecName = "rawHex"
+		# tmp = tuple((address,NumOpsDis,modSecName,secNum,distance, pop_offset))
+		
+		# if tmp not in m[o].save_Callpop_info:
+		m[o].save_Callpop_info.append(tuple((address,NumOpsDis,modSecName,secNum,distance,pop_offset)))
+
+
+
+def saveBaseCallpop_backup(address, NumOpsDis,modSecName,secNum,distance,pop_offset): 
 	# print("saveBaseCallpop", address, NumOpsDis,modSecName,secNum,distance,pop_offset)
 	# dprint2("saving")
 	#save virtaul address as well
@@ -6042,6 +6117,10 @@ def getSyscallRawHex(address, linesBack, secNum, data):
 			# print ("\n\n\n")
 		if(not truth):
 			dprint2("I failed")
+		if(rawHex):
+			m[o].save_Egg_info = helperListToSet(m[o].save_Egg_info)
+		else:
+			s[secNum].save_Egg_info =helperListToSet(s[secNum].save_Egg_info)
 
 def disHereHeavenPE_old(address, NumOpsDis, NumOpsBack, secNum, data): ############ AUSTIN ##############
 
@@ -6250,6 +6329,59 @@ def disHereHeavenPE_old(address, NumOpsDis, NumOpsBack, secNum, data): #########
 			# 		# dprint2("TrackRegs found eax = " + str(eax))
 			# 		saveBaseEgg(address, NumOpsDis, (NumOpsBack - back), modSecName, secNum, eax, c0_offset)
 			# 	return
+
+
+
+def work_from_directory():
+	global filename
+	global rawHex
+	global rawBin
+	global peName
+	global rawData2
+
+
+	readConf()
+
+	for i in list_of_files:
+		dirName = '\\'.join(i.split("\\")[:-1])
+		fileName = i.split("\\")[-1]
+		output = "******************************\n"
+		output += yel + "\nFile      : " + gre + fileName +res + "\n"
+		output += yel + "Directory : " + gre + dirName + res + "\n\n"
+		output += "******************************\n\n"
+		print(output)
+		# print("******************************"  + yel + "\nFile: " + gre + i +res + "\n******************************")
+
+		if os.path.isfile(i):
+			if i[-3:] == "txt":
+				newModule()
+				# Extraction()
+				rawHex = True
+			elif i[-3:] == "exe":
+				peName = i
+				rawHex = False
+
+			else:
+				newModule()
+
+				rawHex = True
+				rawBin = True
+				# peName = i
+				f = open(i, "rb")
+				rawData2 = f.read()
+				# print("Length of rawData2", len(rawData2))
+				f.close()
+			filename = i
+			# print(filename)
+			# input()
+			# print("O Before ", m)
+
+			init2(filename)
+			startupPrint()
+			# print("peb: ", bPEBFound)
+
+			clearAll()
+
 
 def getHeavenRawHex_old(address, linesBack, secNum, data):
 		global regsVals
@@ -6751,6 +6883,11 @@ def getHeavenRawHex(address, linesBack, secNum, data):
 				t+=1
 
 			clearTempDis()
+
+		if(rawHex):
+			m[o].save_Heaven_info = helperListToSet(m[o].save_Heaven_info)
+		else:
+			s[secNum].save_Heaven_info =helperListToSet(s[secNum].save_Heaven_info)
 			# print ("\n\n\n")
 
 def saveBaseHeaven(address, NumOpsDis, linesBack, modSecName, secNum, offset, pivottype, pushOffset = -1, destLocation = -1, converted = ""):
@@ -7273,6 +7410,7 @@ def findAllPebSequences_old2(data2, secNum): ################## AUSTIN #########
 def optimized_find(numOps, match, secNum, data2, funcName = None):
 	start = 0
 
+	# print(funcName, type(data2))
 	if "disHereCallpop" == funcName or "disHereCallpop64" == funcName:
 		patternMatch = match[0]
 	else:
@@ -7285,22 +7423,6 @@ def optimized_find(numOps, match, secNum, data2, funcName = None):
 			break
 		else:
 			
-					# foundFS = False
-
-
-						# print("---> ", instr)
-						# input()
-
-		# val2.append(val)
-		# val3.append(add2)
-			#
-			# instr = cs.disasm(data2[start], 30)
-			# for i in instr:
-			# 	print(i.mnemonic , i.op_str)
-			# 	input()
-		#disHereFSTENV(t, numOps, NumOpsBack, secNum, data2)
-
-				#disHereCallpop(t, numOps, secNum, data2, distance)
 			if "disHerePEB_64" == funcName:
 				disHerePEB_64(start, numOps, secNum, data2)
 			elif "disHereCallpop" == funcName:
@@ -14162,6 +14284,9 @@ def shellDisassemblyInit(shellArg):
 	global shellEntry
 
 	startAddress=shellEntry
+
+	# print("ShellArg ----> ", shellArg)
+	# input()
 	# print ()
 
 	# filename=shellArg
@@ -14207,14 +14332,13 @@ def shellDisassemblyInit(shellArg):
 	# directory, filename= (splitDirectory(filename))
 	dirPath = '\\'.join(filename.split("\\")[:-1])
 	filename = os.path.basename(filename)
-	print("filename: ", filename)
-	input()
+
 	directory = ""
 	# print (directory)
 	# print (filename)
 	directory=""
 
-
+	bytesOutput=shellArg
 	# import os
 	if not os.path.exists(directory+'disassembly'):
 		os.makedirs(directory+'disassembly')
@@ -14224,8 +14348,8 @@ def shellDisassemblyInit(shellArg):
 	# newBin.close()
 	txtDis = open(directory+"disassembly\\"+filename[:-4]+"-disassembly.txt", "w")
 	if save_bin_file:
-		binDis = open(directory+"disassembly\\"+filename[:-4]+"-disassembly.bin", "w")
-		binDis.write(disassembly)
+		binDis = open(directory+"disassembly\\"+filename[:-4]+"-disassembly.bin", "wb")
+		binDis.write(bytesOutput)
 		binDis.close()
 
 
@@ -14866,6 +14990,8 @@ def startupPrint():
 	global bpEvilImports
 	global bpModules
 
+
+
 	bPushRetFound = bCallPopFound = bDisassemblyFound = bFstenvFound = bHeavenFound = bPEBFound = bStringsFound = bTempWideString = bPushStringsFound = False
 	minStrLen = 7
 
@@ -15053,11 +15179,11 @@ def startupPrint():
 
 		t=0
 		for sec in pe.sections:
-			if bAsciiStrings:
+			if bAsciiStrings and not bStringsFound:
 				findStrings(s[t].data2,minStrLen)
-			if bWideCharStrings:
+			if bWideCharStrings and not bTempWideString:
 				findStringsWide(s[t].data2,minStrLen)
-			if bPushStackStrings:
+			if bPushStackStrings and not bPushStringsFound:
 				findPushAsciiMixed(s[t].data2,5, t)
 			t+=1
 		t = 0
@@ -15119,11 +15245,12 @@ def startupPrint():
 
 
 
-		if bFstenv:
+		if bFstenv and not bFstenvFound:
 			print(yel + " Searching for Fstenv instructions..", end="")
 			curLen = len("Searching for Fstenv instructions..")
 			for secNum in range(len(s)):
 				data2 = s[secNum].data2
+
 				findAllFSTENV(data2, secNum)
 			for i in s:
 				if (len(i.save_FSTENV_info) > 0):
@@ -15137,7 +15264,7 @@ def startupPrint():
 
 				# print( red + '[Not Found]'.rjust(26) + res)
 
-		if bPushRet:
+		if bPushRet and not bPushRetFound:
 			print(yel + " Searching for pushret instructions..", end="")
 			curLen = len("Searching for pushret instructions..")
 
@@ -15161,7 +15288,7 @@ def startupPrint():
 
 				# print( red + '[Not Found]'.rjust(21) + res)
 
-		if bCallPop:
+		if bCallPop and not bCallPopFound:
 			print(yel + " Searching for callpop instructions..", end="")
 			curLen = len("Searching for callpop instructions..")
 
@@ -15169,6 +15296,7 @@ def startupPrint():
 				data2 = s[secNum].data2
 				if bit32:
 					findAllCallpop(data2, secNum)
+
 				else:
 					findAllCallpop64(data2, secNum)
 			for i in s:
@@ -15183,7 +15311,7 @@ def startupPrint():
 
 				# print( red + '[Not Found]'.rjust(25) + res)
 
-		if bHeaven:
+		if bHeaven and not bHeavenFound:
 			print(yel + " Searching for heaven's gate instructions..", end="")
 			curLen = len("Searching for heaven's gate instructions..")
 
@@ -15202,7 +15330,7 @@ def startupPrint():
 
 				# print( red + '[Not Found]'.rjust(15) + res)
 
-		if bSyscall:
+		if bSyscall and not bSyscallFound:
 			print(yel + " Searching for syscall instructions..", end="")
 			curLen = len("Searching for syscall instructions..")
 
@@ -15222,7 +15350,7 @@ def startupPrint():
 
 				# print( red + '[Not Found]'.rjust(21) + res)
 
-		if bPEB:
+		if bPEB and not bPEBFound:
 			print(yel + " Searching for peb instructions..", end="")
 			curLen = len("Searching for peb instructions..")
 
@@ -17290,23 +17418,30 @@ def syscallSelectionsSubMenu(): #Select osversions for syscalls
 def clearInstructions(): 	#Clears 
 	#clear our lists of found instructions
 	global rawHex
-	for secNum in range(len(s)):
-		s[secNum].save_PEB_info.clear()
-		s[secNum].save_FSTENV_info.clear()
-		s[secNum].save_Egg_info.clear()
-		s[secNum].save_Heaven_info.clear()
-		s[secNum].save_Callpop_info.clear()
-		s[secNum].save_PushRet_info.clear()
+	for secNum in s:
+		secNum.save_PEB_info.clear()
+		secNum.save_FSTENV_info.clear()
+		secNum.save_Egg_info.clear()
+		secNum.save_Heaven_info.clear()
+		secNum.save_Callpop_info.clear()
+		secNum.save_PushRet_info.clear()
 
-	m[o].save_PEB_info.clear()
-	m[o].save_FSTENV_info.clear()
-	m[o].save_Egg_info.clear()
-	m[o].save_Heaven_info.clear()
-	m[o].save_Callpop_info.clear()
-	m[o].save_PushRet_info.clear()
+
+	# o = 0
+	for oNum in m:
+		oNum.save_PEB_info.clear()
+		oNum.save_FSTENV_info.clear()
+		oNum.save_Egg_info.clear()
+		oNum.save_Heaven_info.clear()
+		oNum.save_Callpop_info.clear()
+		oNum.save_PushRet_info.clear()
+		# o+= 1
+	s.clear()
+	m.clear()
+	sections.clear()
 
 	clearFoundBooleans()
-	return
+
 
 def clearMods():			#Clears our module list
 	global bModulesFound
@@ -17337,7 +17472,9 @@ def clearFoundBooleans(): 	#Clears bools saying we've found data
 	bCallPopFound = False
 	bStringsFound = False
 	bEvilImportsFound = False
-	bModulesFound = False	
+	bModulesFound = False
+
+
 def clearAll():		#Clears all found data and booleans
 	clearInstructions()
 	clearMods()
@@ -17354,10 +17491,10 @@ def clearStrings():
 	try:
 		t = 0
 		for sec in pe.sections:
-				s[t].Strings.clear()
-				s[t].wideStrings.clear()
-				s[t].pushStrings.clear()
-				t+=1
+			s[t].Strings.clear()
+			s[t].wideStrings.clear()
+			s[t].pushStrings.clear()
+			t+=1
 
 	except:
 		pass
@@ -17540,7 +17677,7 @@ def generateOutputData(): #Generate the dictionary for json out
 		jsonData['entryPoint'] = entryPoint
 	else:
 		t = 0
-
+		# print("Sections --> ", s)
 		for sec in sections:
 			try:
 				secName = s[t].sectionName.decode()
@@ -18306,11 +18443,13 @@ def printToText(outputData):	#Output data to text doc
 
 	# txtDis = open(directory+"disassembly\\"+filename[:-4]+"-disassembly.txt", "w")
 
-	disFileName = os.getcwd() + "\\" + outfile + "\\" + outfileName + "-disassembly.txt"
-	binFileName = os.getcwd() + "\\" + outfile + "\\" + outfileName + "-disassembly.bin"
+	
 	os.makedirs(os.path.dirname(txtFileName), exist_ok=True)
 	text = open(txtFileName, "w")
 
+
+	disFileName = os.getcwd() + "\\" + outfile + "\\" + outfileName + "-disassembly.txt"
+	binFileName = os.getcwd() + "\\" + outfile + "\\" + outfileName + "-disassembly.bin"
 	disasm = open(disFileName, "w")
 	disasm.write(gDisassemblyText)
 	disasm.close()
@@ -18700,7 +18839,8 @@ if __name__ == "__main__":
 	# EXTRACTION - if dealing with PE files, uncomment this:
 	try:
 		Extraction()
-	except:
+	except Exception as e:
+		print(e)
 		pass
 
 	bramwell=False
@@ -18872,21 +19012,38 @@ if __name__ == "__main__":
 	################################ ANDY'S WORK AREA
 	if andy:
 
-		# if workDir:
-		# 	readConf()
+		if workDir:
+			work_from_directory()
+			# readConf()
 
-		# 	for i in list_of_files:
-		# 		clearAll()
+			# for i in list_of_files:
+			# 	print("******************************"  + yel + "\nProcessing: " + gre + i +res + "\n******************************")
 
-		# 		if os.path.isfile(i):
-		# 			print(yel + "Processing: " + red + i +res)
-		# 			init2(filename)
-		# 			startupPrint()
-		# 			print("peb: ", bPEBFound)
+			# 	if os.path.isfile(i):
+			# 		if i[-3:] == "txt":
+			# 			rawHex = True
+			# 		elif i[-3:] == "bin":
+			# 			rawHex = True
+			# 			rawBin = True
+			# 			f = open(i, "rb")
+			# 			rawData2 = f.read()
+
+			# 		filename = i
+			# 		init2(filename)
+			# 		startupPrint()
+			# 		# print("peb: ", bPEBFound)
+
+			# 		clearAll()
+
+				# 	f = open(file2Check, "rb")
+				# filename = file2Check
+				# rawData2 = f.read()
+				# f.close()
+				# rawHex = True
+				# rawBin = True
 
 
 
-		# sys.exit()
 		init2(filename)
 		if(bit32):
 			shellBit = 32
