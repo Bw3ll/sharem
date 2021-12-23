@@ -27,7 +27,8 @@ import colorama
 from parseconf import Configuration
 import ast
 import argparse
-
+import hashlib
+import ssdeep
 
 
 colorama.init()
@@ -193,6 +194,11 @@ linesBack = 10
 bytesForward = 15
 bytesBack = 15
 # FindStringsStatus=False
+unencryptedShell=0x0
+decoderShell=0x1
+unecryptedBodyShell=0x3
+# debugging=True
+debugging=False
 
 
 GoodStrings=["cmd",  "net","add", "win", "http", "dll", "sub", "calc"]
@@ -614,6 +620,107 @@ class FoundIATs:
 		self.foundDll=[]
 		self.path = []
 		self.originate=[]
+
+class shellcode:
+	def __init__(self, rawData=None, decodedBody=None, decoderStub=None, unencrypted=None):
+		# print ("init")
+		self.rawData2 = rawData
+		self.decodedBody=decodedBody
+		self.decoderStub=decoderStub
+		self.unencrypted=unencrypted
+
+	def setRawData2(self, rawData):
+		self.rawData2 = rawData
+	def setDecodedBody(self, decodedBody):
+		self.decodedBody=decodedBody
+	def setDecoderStub(self, decoderStub):
+		self.decoderStub=decoderStub
+	def setUnecrypted(self, unencrypted):
+		self.unencrypted=unencrypted
+
+
+class shellHash:
+	def __init__(self, md5=None, sha256=None, ssdeep=None):
+		# print ("init")
+		self.md5 = md5
+		self.sha256 = sha256
+		self.ssdeep = ssdeep
+		self.unecryptedMd5 = None
+		self.unecryptedSha256 = None
+		self.unecryptedSsdeep = None
+		self.decoderStubSha256 = None
+		self.decoderStubMd5 = None
+		self.decoderStubSsdeep = None
+		self.unecryptedBodyMd5 = None
+		self.unecryptedBodySha256 = None
+		self.unecryptedBodySsdeep = None
+
+	def setMd5(self, md5, mode=None):
+		# print ("setMd5")
+		if mode==None:
+			self.md5 = md5
+			# print ("self.md5", self.md5)
+		elif mode==unencryptedShell:
+			self.unecryptedMd5=md5
+			# print ("self.unecryptedMd5", self.unecryptedMd5)
+		elif mode==decoderShell:
+			self.decoderStubMd5=md5
+			# print ("self.decoderStubMd5", self.decoderStubMd5)
+		elif mode==unecryptedBodyShell:
+			self.unecryptedBodyMd5=md5
+			# print ("self.unecryptedBodyMd5", self.unecryptedBodyMd5)
+
+	def setSha256(self,sha256, mode=None):
+		# print("setSha256")
+		if mode==None:
+			self.sha256 = sha256
+			# print ("self.sha256", self.sha256)
+		elif mode==unencryptedShell:
+			self.unecryptedSha256=sha256
+			# print ("self.unecryptedSha256", self.unecryptedSha256)
+		elif mode==decoderShell:
+			self.decoderStubSha256=sha256
+			# print ("self.decoderStubSha256", self.decoderStubSha256)
+		elif mode==unecryptedBodyShell:
+			self.unecryptedBodySha256=sha256
+			# print ("self.unecryptedBodySha256", self.unecryptedBodySha256)
+			
+	def setSsdeep(self,ssdeepHash, mode=None):
+		if mode==None:
+			# print("setSsdeep")
+			self.ssdeep = ssdeepHash
+			# print ("self.ssdeep", self.ssdeep)
+		elif mode==unencryptedShell:
+			self.unecryptedSsdeep=ssdeepHash
+			# print ("self.unecryptedSsdeep", self.unecryptedSsdeep)
+		elif mode==decoderShell:
+			self.decoderStubSsdeep=ssdeepHash
+			# print ("self.decoderStubSsdeep", self.decoderStubSsdeep)
+		elif mode==unecryptedBodyShell:
+			self.unecryptedBodySsdeep=ssdeepHash
+			# print ("self.unecryptedBodySsdeep", self.unecryptedBodySsdeep)
+
+	def show(self, mode=None):
+		print("show")
+		if mode==None:
+			out="md5: " + self.md5 + "\n"
+			out+="sha256: " + self.sha256+ "\n"
+			out+="ssdeep: " + self.ssdeep
+		elif mode==unecryptedBodyShell:
+			out="md5: " + self.unecryptedBodyMd5 + "\n"
+			out+="sha256: " + self.unecryptedBodySha256+ "\n"
+			out+="ssdeep: " + self.unecryptedBodySsdeep
+		elif mode==decoderShell:
+			out="md5: " + self.decoderStubMd5 + "\n"
+			out+="sha256: " + self.decoderStubSha256+ "\n"
+			out+="ssdeep: " + self.decoderStubSsdeep
+		elif mode==unencryptedShell:
+			out="md5: " + self.unecryptedMd5 + "\n"
+			out+="sha256: " + self.unecryptedSha256+ "\n"
+			out+="ssdeep: " + self.unecryptedSsdeep
+
+		return out
+
 iatList=[]
 m = []   # start modules
 s = []  # start sections
@@ -625,8 +732,16 @@ def newModule():
 	m.append(obj)
 
 
-if __name__ == "__main__":
-	newModule()
+# if __name__ == "__main__":
+# 	newModule()
+# 	shellHash=shellHash()
+# 	sh=shellcode()
+	# IATs = FoundIATs()
+	# IATs._init_()
+	# shBy=DisassByt()
+	# shBy._init_()
+
+
 
 def newSection():
 	global s
@@ -639,10 +754,6 @@ def newIAT():
 	obj = IATS()
 	obj._init_()
 	iatList.append(obj)
-
-if __name__ == '__main__':
-	IATs = FoundIATs()
-	IATs._init_()
 
 class DisassByt:
 	def _init_(self): #, name):
@@ -688,9 +799,6 @@ def clearDisassBytClass():
 	shBy.specialEnd.clear()
 	shBy.comments.clear()
 
-if __name__ == '__main__':
-	shBy=DisassByt()
-	shBy._init_()
 
 def stripWhite(str1):
 
@@ -814,15 +922,24 @@ def checkDllInCurrentIAT(dll):
 
 def dep():	
 	global pe
+	print("Hi 1")
 	return bool(pe.OPTIONAL_HEADER.DllCharacteristics & 0x0100)
 def aslr():
-   return bool(pe.OPTIONAL_HEADER.DllCharacteristics & 0x0040)
+	print("Hi 2")
+
+	return bool(pe.OPTIONAL_HEADER.DllCharacteristics & 0x0040)
 def seh():
-   return bool(pe.OPTIONAL_HEADER.DllCharacteristics & 0x0400)
+	print("Hi 3")
+
+	return bool(pe.OPTIONAL_HEADER.DllCharacteristics & 0x0400)
 def CFG():
-   return bool(pe.OPTIONAL_HEADER.DllCharacteristics & 0x4000)
+	print("Hi 4")
+
+	return bool(pe.OPTIONAL_HEADER.DllCharacteristics & 0x4000)
 
 def Extraction():
+
+	print("Extraction")
 	global entryPoint
 	global VirtualAdd
 	global ImageBase
@@ -833,6 +950,7 @@ def Extraction():
 	global modName
 	global peName
 	global index
+	global pe
 
 	modName = peName
 	try:
@@ -1402,6 +1520,7 @@ def ObtainAndExtractDlls():
 	modName = peName
 
 def ObtainAndExtractSections():
+
 
 	getDLLs()
 	global peName
@@ -2194,6 +2313,7 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 		#print("Adding item #" + str(len(m[o].save_PEB_info)))
 		# print("saving at sec num = " + str(secNum))
 		saveBasePEBWalk(address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, (loadModList_offset, listEntryText	), advanceDLL_Offset)
+		
 		# if(rawHex):
 		# 	m[o].save_PEB_info = helperListToSet(m[o].save_PEB_info)
 		# else:
@@ -4225,9 +4345,9 @@ def callPopRawHex_old(address, secNum, data):
 	global maxDistance
 	global linesForward
 
-	global debuging
+	global debugging
 
-	# debuging = True
+	# debugging = True
 	address = int(address)
 	linesGoBack = 10
 	truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(address, 0x0, linesGoBack)
@@ -4325,9 +4445,9 @@ def callPopRawHex(address, linesForward2, secNum, data):
 	global maxDistance
 	global linesForward
 
-	global debuging
+	global debugging
 
-	# debuging = True
+	# debugging = True
 	address = int(address)
 	linesGoBack = 10
 	truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(address, 0x0, linesGoBack)
@@ -6117,10 +6237,10 @@ def getSyscallRawHex(address, linesBack, secNum, data):
 			# print ("\n\n\n")
 		if(not truth):
 			dprint2("I failed")
-		if(rawHex):
-			m[o].save_Egg_info = helperListToSet(m[o].save_Egg_info)
-		else:
-			s[secNum].save_Egg_info =helperListToSet(s[secNum].save_Egg_info)
+		# if(rawHex):
+		# 	m[o].save_Egg_info = helperListToSet(m[o].save_Egg_info)
+		# else:
+		# 	s[secNum].save_Egg_info =helperListToSet(s[secNum].save_Egg_info)
 
 def disHereHeavenPE_old(address, NumOpsDis, NumOpsBack, secNum, data): ############ AUSTIN ##############
 
@@ -9712,7 +9832,7 @@ stringLiteral="\x31\xC9\xB9\xAD\xDE\x65\x64\xC1\xE9\x10\x51\x68\x77\x6F\x72\x6B\
 # stringLiteral=test2
 ArrayLiteral="0x31, 0xC9, 0xB9, 0xAD, 0xDE, 0x65, 0x64, 0xC1, 0xE9, 0x10, 0x51, 0x68, 0x77, 0x6F, 0x72, 0x6B, 0x68, 0x6F, 0x69, 0x74, 0x20, 0x68, 0x45, 0x78, 0x70, 0x6C, 0x89, 0xE2, 0xB9, 0xCA, 0xAD, 0xDE, 0x29, 0xC1, 0xE9, 0x18, 0x51, 0x68, 0x6E, 0x73, 0x20, 0x3A, 0x68, 0x75, 0x74, 0x74, 0x6F, 0x68, 0x73, 0x65, 0x20, 0x62, 0x68, 0x20, 0x6D, 0x6F, 0x75, 0x68, 0x70, 0x69, 0x6E, 0x67, 0x68, 0x53, 0x77, 0x61, 0x70, 0x89, 0xE3, 0x31, 0xC9, 0x51, 0x52, 0x53, 0x51, 0xFF, 0xD0"
 rawHex2 ="31C9B9ADDE6564C1E9105168776F726B686F697420684578706C89E2B9CAADDE29C1E91851686E73203A687574746F687365206268206D6F756870696E67685377617089E331C951525351FFD0"
-shellcode='shellcode.txt'
+# shellcode='shellcode.txt'
 shellcode2='shellcode2.txt'
 shellcode3='shellcode3.txt'
 shellcode4='shellcode4.txt'
@@ -10482,18 +10602,17 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 	val=stringVal
 	return val
 
-debuging=True
-debuging=False
-# debuging=False
+
+# debugging=False
 def dprint(*args):
 	# print("Debug")
-	# if debuging==True:
+	# if debugging==True:
 		# print(info)
 	dprint2(*args)
 
 def dprint2(*args):
 
-	if debuging:
+	if debugging:
 		try:
 			if  (len(args) == 1):
 				if(type(args[0]) == list):
@@ -11777,6 +11896,7 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack):
 	global shBy
 	global FindStringsStatus
 	FindStringsStatus2 =	FindStringsStatus 
+	startingAddress=shellEntry
 
 	FindStringsStatus2 = False
 	clearTempDis()
@@ -11832,6 +11952,7 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack):
 	return truth, tl1, tl2, l1,l2
 
 def takeBytes(shellBytes,startingAddress):
+	print ("takeBytes")
 	global shBy
 	global FindStringsStatus
 	# print ("take bytes")
@@ -11976,6 +12097,8 @@ def findRangeUpdate(data, startingAddress):
 	# TODO update, without calling the analysis functions
 	pass
 
+
+#findrange
 def findRange(data, startingAddress):
 	global bit32
 	global FindStringsStatus
@@ -11987,6 +12110,7 @@ def findRange(data, startingAddress):
 	start=startingAddress
 	max=len(shBy.bytesType)-1
 	finalPrint=""
+	dprint2("start**", hex(startingAddress))
 	analysis= disHereAnalysis(data, False, False, "ascii", True)
 
 	analysisFindHiddenCalls(data, startingAddress)
@@ -14277,6 +14401,7 @@ def shellDisassemblyStart(shellArg):
 
 
 def shellDisassemblyInit(shellArg):
+	print ("shellDisassemblyInit")
 	global filename
 	global rawData2
 	global gDisassemblyText
@@ -14288,6 +14413,7 @@ def shellDisassemblyInit(shellArg):
 	# print("ShellArg ----> ", shellArg)
 	# input()
 	# print ()
+
 
 	# filename=shellArg
 	# rawBytes=readShellcode(shellArg) 
@@ -14314,6 +14440,7 @@ def shellDisassemblyInit(shellArg):
 	print ("find peb results:")
 	printSavedPEB()
 	#parameterize
+	print ("preStart", hex(startAddress))
 	disassembly=takeBytes(shellArg,startAddress)
 	   # main one
 	gDisassemblyText = disassembly
@@ -14333,7 +14460,9 @@ def shellDisassemblyInit(shellArg):
 	dirPath = '\\'.join(filename.split("\\")[:-1])
 	filename = os.path.basename(filename)
 
-	directory = ""
+
+
+	# input()
 	# print (directory)
 	# print (filename)
 	directory=""
@@ -17028,6 +17157,65 @@ def uiFindImports():
 		else:
 			print("Input not recognized.\n")
 
+def hashShellcode(shell, mode=None):
+	# print("hash:")
+	# print(hashlib.md5(open('shellcode4.bin','rb').read()).hexdigest())
+	# print(hashlib.md5(shell).hexdigest())
+	# print(hashlib.sha256(open('shellcode4.bin','rb').read()).hexdigest())
+	# print(hashlib.sha256(shell).hexdigest())
+
+	# hash2 = ssdeep.hash('Also called fuzzy hashes, Ctph can match inputs that have homologies.')
+	# print ("ssdeep tester", hash2)
+	# ssdeepHash1 = ssdeep.hash(open('shellcode4.bin','rb').read())
+	
+	ssdeepHash = ssdeep.hash(shell)
+	md5sum=(hashlib.md5(shell).hexdigest())
+	sha256=(hashlib.sha256(shell).hexdigest())
+	if mode == None:	
+		shHash.setMd5(md5sum)
+		shHash.setSha256(sha256)
+		shHash.setSsdeep(ssdeepHash)
+	if mode == unencryptedShell:
+		shHash.setMd5(md5sum, unencryptedShell)
+		shHash.setSha256(sha256, unencryptedShell)
+		shHash.setSsdeep(ssdeepHash, unencryptedShell)
+	if mode == decoderShell:
+		shHash.setSha256(sha256, decoderShell)
+		shHash.setSsdeep(ssdeepHash, decoderShell)
+		shHash.setMd5(md5sum, decoderShell)
+	if mode == unecryptedBodyShell:
+		shHash.setMd5(md5sum, unecryptedBodyShell)
+		shHash.setSha256(sha256, unecryptedBodyShell)
+		shHash.setSsdeep(ssdeepHash, unecryptedBodyShell)
+
+def hashShellcodeTestShow(mode=None):
+	print ("hashShellcodeTestShow")
+	if mode==None:
+		print(shHash.show())
+	if mode == unencryptedShell:
+		print(shHash.show(unencryptedShell))
+	if mode == decoderShell:
+		print(shHash.show(decoderShell))
+	if mode == unecryptedBodyShell:
+		print(shHash.show(unecryptedBodyShell))
+
+
+# 	unencryptedShell=0x0
+# decoderShell=0x1
+# unecryptedBodyShell=0x3
+
+	# class shellHash:
+	# def __init__(self, md5=none, s=none):
+	# 	self.md5 = md
+	# 	self.sha256 = s
+
+	# def setMd5(self, m):
+	# 	self.md5 = m
+	# def setSha256(self,s):
+	# 	self.sha256 = s
+	# def show(self):
+	# 	out="md5: " + self.md5 + "\n"
+	# 	out+="sha256: " + self.sha256
 def findAll():  #Find everything
 	global peName
 	global bEvilImportsFound
@@ -18836,12 +19024,22 @@ def testTarek():
 
 if __name__ == "__main__":
 
+	newModule()
+	shHash=shellHash()
+	sh=shellcode()
+	IATs = FoundIATs()
+	IATs._init_()
+	shBy=DisassByt()
+	shBy._init_()
 	# EXTRACTION - if dealing with PE files, uncomment this:
 	try:
 		Extraction()
 	except Exception as e:
 		print(e)
 		pass
+
+	hashShellcode(rawData2)  # if comes after args parser
+
 
 	bramwell=False
 	austin=False
@@ -18892,7 +19090,7 @@ if __name__ == "__main__":
 		
 		# yes = 1
 
-		yes = 2
+		yes =559
 
 
 		if yes == 53:
@@ -18928,8 +19126,33 @@ if __name__ == "__main__":
 			init2(filename)
 			# bramwellDisassembly2()   # Takes as input .txt file of shellcode	- also takes .bin (py sharem.py shellcode.bin raw) - note the raw keyword at the end!!!
 
+			shellEntry=0x44
 			shellDisassemblyInit(rawData2)
 			bramwellStart2()
+
+
+		if yes ==559:
+
+			print ("results")
+			hashShellcode(rawData2, unecryptedBodyShell)   ## options (None, unecryptedBodyShell,unencryptedShell, decoderShell )
+			hashShellcodeTestShow(unecryptedBodyShell)  ## options (None, unecryptedBodyShell,unencryptedShell, decoderShell )
+
+			X86_CODE32_LOOP = b"\x41\x4a\xeb\xfe"
+			X86_CODE32 = b"\x41\x4a\x66\x0f\xef\xc1" # INC ecx; DEC edx; PXOR xmm0, xmm1
+			random = b"\x5F\x5F\x01\xFF\xBF\x05\x00\x00\x00" 
+			X86_CODE32_JUMP = b"\xeb\x02\x90\x90\x90\x90\x90\x90" # jmp 4; nop; nop; nop; nop; nop; nop
+
+
+			#shellcode object
+			sh.setRawData2(X86_CODE32_LOOP)
+			print (binaryToStr(sh.rawData2))
+			sh.setDecoderStub(X86_CODE32)
+			print (binaryToStr(sh.decoderStub))
+			sh.setDecodedBody(random)
+			print (binaryToStr(sh.decodedBody))			
+			sh.setUnecrypted(X86_CODE32_JUMP)
+			print (binaryToStr(sh.unencrypted))
+
 
 
 		if yes == 3:
