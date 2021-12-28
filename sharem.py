@@ -12983,7 +12983,7 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 		originalEncoded = encodedShell
 		encodedShell = encodedShell[:40] #opt ion for distance
 
-	if(distributed):
+	if(distributed and not (mode == "stub")):
 			nodeIPs = []
 			with open(nodesFile, 'r') as f:
 			    for row in f:
