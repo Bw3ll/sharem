@@ -1,0 +1,2229 @@
+{
+   "dateAnalyzed": "2021-12-22 12:42:08",
+   "secondsSinceEpoch": 1640198528.288127,
+   "fileType": "PE",
+   "bits": 32,
+   "modules": [],
+   "imports": [],
+   "peInfo": [
+      {
+         "sectionName": ".text",
+         "entryPoint": {
+            "offset": "0x13f1",
+            "imageBasePlusVirtualAdd": "0x401000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0x1000",
+         "virtualSize": "0x10a53",
+         "sectionSizeOfRawData": "0x10c00",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "False",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "6b03179aed09643fcca7175ecbaa4369",
+            "md5": "f1759855b16da7c0b684f2191cdd6a6e08c6b7bd3fbebd4e680e1d27eff31b3b"
+         }
+      },
+      {
+         "sectionName": ".rdata",
+         "entryPoint": {
+            "offset": "0x13f1",
+            "imageBasePlusVirtualAdd": "0x412000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0x12000",
+         "virtualSize": "0x644a",
+         "sectionSizeOfRawData": "0x6600",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "False",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "5ba2d3a2b539790cf82472897b83483b",
+            "md5": "7cea140f67bc4bd3dbed662ce9e6cad9438d4a41d793f8b8509f11cf83a67552"
+         }
+      },
+      {
+         "sectionName": ".data",
+         "entryPoint": {
+            "offset": "0x13f1",
+            "imageBasePlusVirtualAdd": "0x419000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0x19000",
+         "virtualSize": "0x1554",
+         "sectionSizeOfRawData": "0xc00",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "False",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "7d18267b9e04dbf633a9c13a4c34d0a8",
+            "md5": "fc62f53714f6d77fa1015293c596874903806c21460d711e092e772f40057a12"
+         }
+      }
+   ],
+   "pushret": [
+      {
+         "address": "0xece6",
+         "pushOffset": [
+            "0xfce6",
+            "ebx"
+         ],
+         "retOffset": "0xfce7",
+         "modSecName": ".text",
+         "disassembly": [
+            "0x40fce6   push ebx                            (offset 0xfce6)",
+            "0x40fce7   ret                                 (offset 0xfce7)"
+         ],
+         "internalData": {
+            "secNum": 0,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      },
+      {
+         "address": "0x8dd0",
+         "pushOffset": [
+            "0x9dd0",
+            "edi"
+         ],
+         "retOffset": "0x9dd1",
+         "modSecName": ".text",
+         "disassembly": [
+            "0x409dd0   push edi                            (offset 0x9dd0)",
+            "0x409dd1   ret                                 (offset 0x9dd1)"
+         ],
+         "internalData": {
+            "secNum": 0,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      },
+      {
+         "address": "0xea03",
+         "pushOffset": [
+            "0xfa03",
+            "esi"
+         ],
+         "retOffset": "0xfa04",
+         "modSecName": ".text",
+         "disassembly": [
+            "0x40fa03   push esi                            (offset 0xfa03)",
+            "0x40fa04   ret                                 (offset 0xfa04)"
+         ],
+         "internalData": {
+            "secNum": 0,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      },
+      {
+         "address": "0xeb5c",
+         "pushOffset": [
+            "0xfb5c",
+            "esi"
+         ],
+         "retOffset": "0xfb5d",
+         "modSecName": ".text",
+         "disassembly": [
+            "0x40fb5c   push esi                            (offset 0xfb5c)",
+            "0x40fb5d   ret  0xff2                          (offset 0xfb5d)"
+         ],
+         "internalData": {
+            "secNum": 0,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      },
+      {
+         "address": "0x4815",
+         "pushOffset": [
+            "0x16815",
+            "esi"
+         ],
+         "retOffset": "0x16816",
+         "modSecName": ".rdata",
+         "disassembly": [
+            "0x416815   push esi                            (offset 0x16815)",
+            "0x416816   ret                                 (offset 0x16816)"
+         ],
+         "internalData": {
+            "secNum": 1,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      },
+      {
+         "address": "0x4ea5",
+         "pushOffset": [
+            "0x16ea5",
+            "ecx"
+         ],
+         "retOffset": "0x16ea6",
+         "modSecName": ".rdata",
+         "disassembly": [
+            "0x416ea5   push ecx                            (offset 0x16ea5)",
+            "0x416ea6   ret  0xc03f                         (offset 0x16ea6)"
+         ],
+         "internalData": {
+            "secNum": 1,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      },
+      {
+         "address": "0x20a",
+         "pushOffset": [
+            "0x1920a",
+            "eax"
+         ],
+         "retOffset": "0x1920b",
+         "modSecName": ".data",
+         "disassembly": [
+            "0x41920a   push eax                            (offset 0x1920a)",
+            "0x41920b   ret                                 (offset 0x1920b)"
+         ],
+         "internalData": {
+            "secNum": 2,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      }
+   ],
+   "callpop": [
+      {
+         "address": "0x191cc",
+         "modSecName": ".data",
+         "pop_offset": "0x191d1",
+         "distance": 5,
+         "disassembly": [
+            "0x4191cc   call 0x1d1                          (offset 0x191cc)",
+            "0x4191d1   pop  eax                            (offset 0x191d1)"
+         ],
+         "internalData": {
+            "secNum": 2,
+            "NumOpsDis": 10
+         }
+      },
+      {
+         "address": "0x19210",
+         "modSecName": ".data",
+         "pop_offset": "0x19215",
+         "distance": 5,
+         "disassembly": [
+            "0x419210   call 0x215                          (offset 0x19210)",
+            "0x419215   pop  ebx                            (offset 0x19215)"
+         ],
+         "internalData": {
+            "secNum": 2,
+            "NumOpsDis": 10
+         }
+      },
+      {
+         "address": "0x1921e",
+         "modSecName": ".data",
+         "pop_offset": "0x19229",
+         "distance": 9,
+         "disassembly": [
+            "0x41921e   call 0x227                          (offset 0x1921e)",
+            "0x419223   add  ebx, ebx                       (offset 0x19223)",
+            "0x419225   add  ebx, ebx                       (offset 0x19225)",
+            "0x419227   add  ebx, ebx                       (offset 0x19227)",
+            "0x419229   pop  eax                            (offset 0x19229)"
+         ],
+         "internalData": {
+            "secNum": 2,
+            "NumOpsDis": 10
+         }
+      }
+   ],
+   "PEB": [],
+   "fstenv": [],
+   "heavensGate": [],
+   "syscall": [],
+   "strings": {
+      ".text": [
+         {
+            "type": "string",
+            "section": ".text",
+            "offset": "0x25c0",
+            "address": "0x4025c0",
+            "length": "8",
+            "value": "UQPXY]Y["
+         },
+         {
+            "type": "string",
+            "section": ".text",
+            "offset": "0x3d06",
+            "address": "0x403d06",
+            "length": "13",
+            "value": "ItC<Lt3<Tt#<h"
+         },
+         {
+            "type": "string",
+            "section": ".text",
+            "offset": "0x3daf",
+            "address": "0x403daf",
+            "length": "8",
+            "value": "A<lt'<tt"
+         },
+         {
+            "type": "string",
+            "section": ".text",
+            "offset": "0x5265",
+            "address": "0x405265",
+            "length": "7",
+            "value": "t#VhT-A"
+         },
+         {
+            "type": "string",
+            "section": ".text",
+            "offset": "0x9ace",
+            "address": "0x409ace",
+            "length": "8",
+            "value": "QQSVj8j@"
+         },
+         {
+            "type": "string",
+            "section": ".text",
+            "offset": "0xdf96",
+            "address": "0x40df96",
+            "length": "8",
+            "value": "PPPPPPPP"
+         },
+         {
+            "type": "string",
+            "section": ".text",
+            "offset": "0xe14e",
+            "address": "0x40e14e",
+            "length": "7",
+            "value": "PPPPPWS"
+         },
+         {
+            "type": "string",
+            "section": ".text",
+            "offset": "0xe20c",
+            "address": "0x40e20c",
+            "length": "12",
+            "value": "PP9E u:PPVWP"
+         },
+         {
+            "type": "pushString",
+            "section": ".text",
+            "value": "L!AP!A",
+            "offset": "0x5143",
+            "length": "6"
+         },
+         {
+            "type": "pushString",
+            "section": ".text",
+            "value": "T4AP4AT4A",
+            "offset": "0x631f",
+            "length": "9"
+         }
+      ],
+      ".rdata": [
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12512",
+            "address": "0x412512",
+            "length": "7",
+            "value": "stdcall"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1251e",
+            "address": "0x41251e",
+            "length": "8",
+            "value": "thiscall"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1252a",
+            "address": "0x41252a",
+            "length": "8",
+            "value": "fastcall"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12536",
+            "address": "0x412536",
+            "length": "10",
+            "value": "vectorcall"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12546",
+            "address": "0x412546",
+            "length": "7",
+            "value": "clrcall"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1255a",
+            "address": "0x41255a",
+            "length": "7",
+            "value": "swift_1"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12566",
+            "address": "0x412566",
+            "length": "7",
+            "value": "swift_2"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1257a",
+            "address": "0x41257a",
+            "length": "8",
+            "value": "restrict"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12586",
+            "address": "0x412586",
+            "length": "9",
+            "value": "unaligned"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12590",
+            "address": "0x412590",
+            "length": "9",
+            "value": "restrict("
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x125c8",
+            "address": "0x4125c8",
+            "length": "8",
+            "value": "operator"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12651",
+            "address": "0x412651",
+            "length": "8",
+            "value": "vftable'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1265d",
+            "address": "0x41265d",
+            "length": "8",
+            "value": "vbtable'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12671",
+            "address": "0x412671",
+            "length": "7",
+            "value": "typeof'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1267d",
+            "address": "0x41267d",
+            "length": "19",
+            "value": "local static guard'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12695",
+            "address": "0x412695",
+            "length": "7",
+            "value": "string'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x126a1",
+            "address": "0x4126a1",
+            "length": "17",
+            "value": "vbase destructor'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x126b5",
+            "address": "0x4126b5",
+            "length": "27",
+            "value": "vector deleting destructor'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x126d5",
+            "address": "0x4126d5",
+            "length": "28",
+            "value": "default constructor closure'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x126f5",
+            "address": "0x4126f5",
+            "length": "27",
+            "value": "scalar deleting destructor'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12715",
+            "address": "0x412715",
+            "length": "28",
+            "value": "vector constructor iterator'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12735",
+            "address": "0x412735",
+            "length": "27",
+            "value": "vector destructor iterator'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12755",
+            "address": "0x412755",
+            "length": "34",
+            "value": "vector vbase constructor iterator'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12779",
+            "address": "0x412779",
+            "length": "25",
+            "value": "virtual displacement map'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12795",
+            "address": "0x412795",
+            "length": "31",
+            "value": "eh vector constructor iterator'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x127b9",
+            "address": "0x4127b9",
+            "length": "30",
+            "value": "eh vector destructor iterator'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x127d9",
+            "address": "0x4127d9",
+            "length": "37",
+            "value": "eh vector vbase constructor iterator'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12801",
+            "address": "0x412801",
+            "length": "25",
+            "value": "copy constructor closure'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1281d",
+            "address": "0x41281d",
+            "length": "14",
+            "value": "udt returning'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12839",
+            "address": "0x412839",
+            "length": "14",
+            "value": "local vftable'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12849",
+            "address": "0x412849",
+            "length": "34",
+            "value": "local vftable constructor closure'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12875",
+            "address": "0x412875",
+            "length": "8",
+            "value": "delete[]"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12881",
+            "address": "0x412881",
+            "length": "13",
+            "value": "omni callsig'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12891",
+            "address": "0x412891",
+            "length": "25",
+            "value": "placement delete closure'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x128ad",
+            "address": "0x4128ad",
+            "length": "27",
+            "value": "placement delete[] closure'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x128cd",
+            "address": "0x4128cd",
+            "length": "36",
+            "value": "managed vector constructor iterator'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x128f5",
+            "address": "0x4128f5",
+            "length": "35",
+            "value": "managed vector destructor iterator'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1291d",
+            "address": "0x41291d",
+            "length": "36",
+            "value": "eh vector copy constructor iterator'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12945",
+            "address": "0x412945",
+            "length": "42",
+            "value": "eh vector vbase copy constructor iterator'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12971",
+            "address": "0x412971",
+            "length": "25",
+            "value": "dynamic initializer for '"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1298d",
+            "address": "0x41298d",
+            "length": "31",
+            "value": "dynamic atexit destructor for '"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x129b1",
+            "address": "0x4129b1",
+            "length": "33",
+            "value": "vector copy constructor iterator'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x129d5",
+            "address": "0x4129d5",
+            "length": "39",
+            "value": "vector vbase copy constructor iterator'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12a01",
+            "address": "0x412a01",
+            "length": "41",
+            "value": "managed vector copy constructor iterator'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12a2d",
+            "address": "0x412a2d",
+            "length": "26",
+            "value": "local static thread guard'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12a48",
+            "address": "0x412a48",
+            "length": "12",
+            "value": "operator \"\" "
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12a58",
+            "address": "0x412a58",
+            "length": "17",
+            "value": "operator co_await"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12a6c",
+            "address": "0x412a6c",
+            "length": "11",
+            "value": "operator<=>"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12a79",
+            "address": "0x412a79",
+            "length": "16",
+            "value": "Type Descriptor'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12a8d",
+            "address": "0x412a8d",
+            "length": "26",
+            "value": "Base Class Descriptor at ("
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12aa9",
+            "address": "0x412aa9",
+            "length": "17",
+            "value": "Base Class Array'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12abd",
+            "address": "0x412abd",
+            "length": "27",
+            "value": "Class Hierarchy Descriptor'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12add",
+            "address": "0x412add",
+            "length": "24",
+            "value": "Complete Object Locator'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12af9",
+            "address": "0x412af9",
+            "length": "20",
+            "value": "anonymous namespace'"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12bc0",
+            "address": "0x412bc0",
+            "length": "8",
+            "value": "FlsAlloc"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12bd4",
+            "address": "0x412bd4",
+            "length": "7",
+            "value": "FlsFree"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12be4",
+            "address": "0x412be4",
+            "length": "11",
+            "value": "FlsGetValue"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12bf8",
+            "address": "0x412bf8",
+            "length": "11",
+            "value": "FlsSetValue"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12c0c",
+            "address": "0x412c0c",
+            "length": "27",
+            "value": "InitializeCriticalSectionEx"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12d54",
+            "address": "0x412d54",
+            "length": "14",
+            "value": "CorExitProcess"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x133cc",
+            "address": "0x4133cc",
+            "length": "15",
+            "value": "AreFileApisANSI"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x133e4",
+            "address": "0x4133e4",
+            "length": "15",
+            "value": "CompareStringEx"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x13424",
+            "address": "0x413424",
+            "length": "13",
+            "value": "LCMapStringEx"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1343c",
+            "address": "0x41343c",
+            "length": "16",
+            "value": "LocaleNameToLCID"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x13454",
+            "address": "0x413454",
+            "length": "36",
+            "value": "AppPolicyGetProcessTerminationMethod"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x134d0",
+            "address": "0x4134d0",
+            "length": "9",
+            "value": "NAN(SNAN)"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x134dc",
+            "address": "0x4134dc",
+            "length": "9",
+            "value": "nan(snan)"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x134e8",
+            "address": "0x4134e8",
+            "length": "8",
+            "value": "NAN(IND)"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x134f4",
+            "address": "0x4134f4",
+            "length": "8",
+            "value": "nan(ind)"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x13698",
+            "address": "0x413698",
+            "length": "7",
+            "value": "Tuesday"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x136a0",
+            "address": "0x4136a0",
+            "length": "9",
+            "value": "Wednesday"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x136ac",
+            "address": "0x4136ac",
+            "length": "8",
+            "value": "Thursday"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x136c0",
+            "address": "0x4136c0",
+            "length": "8",
+            "value": "Saturday"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x136fc",
+            "address": "0x4136fc",
+            "length": "7",
+            "value": "January"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x13704",
+            "address": "0x413704",
+            "length": "8",
+            "value": "February"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x13738",
+            "address": "0x413738",
+            "length": "9",
+            "value": "September"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x13744",
+            "address": "0x413744",
+            "length": "7",
+            "value": "October"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1374c",
+            "address": "0x41374c",
+            "length": "8",
+            "value": "November"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x13758",
+            "address": "0x413758",
+            "length": "8",
+            "value": "December"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1376c",
+            "address": "0x41376c",
+            "length": "8",
+            "value": "MM/dd/yy"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x13778",
+            "address": "0x413778",
+            "length": "19",
+            "value": "dddd, MMMM dd, yyyy"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1378c",
+            "address": "0x41378c",
+            "length": "8",
+            "value": "HH:mm:ss"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x13dc9",
+            "address": "0x413dc9",
+            "length": "62",
+            "value": "abcdefghijklmnopqrstuvwxyz[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x13f49",
+            "address": "0x413f49",
+            "length": "62",
+            "value": "ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`ABCDEFGHIJKLMNOPQRSTUVWXYZ{|}~"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x176b1",
+            "address": "0x4176b1",
+            "length": "9",
+            "value": "nextafter"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x177d9",
+            "address": "0x4177d9",
+            "length": "7",
+            "value": "text$mn"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x177ed",
+            "address": "0x4177ed",
+            "length": "7",
+            "value": "idata$5"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x17811",
+            "address": "0x417811",
+            "length": "7",
+            "value": "CRT$XCA"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x17825",
+            "address": "0x417825",
+            "length": "8",
+            "value": "CRT$XCAA"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x17839",
+            "address": "0x417839",
+            "length": "7",
+            "value": "CRT$XCZ"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1784d",
+            "address": "0x41784d",
+            "length": "7",
+            "value": "CRT$XIA"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x17861",
+            "address": "0x417861",
+            "length": "8",
+            "value": "CRT$XIAA"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x17875",
+            "address": "0x417875",
+            "length": "8",
+            "value": "CRT$XIAC"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x17889",
+            "address": "0x417889",
+            "length": "7",
+            "value": "CRT$XIC"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1789d",
+            "address": "0x41789d",
+            "length": "7",
+            "value": "CRT$XIZ"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x178b1",
+            "address": "0x4178b1",
+            "length": "7",
+            "value": "CRT$XPA"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x178c5",
+            "address": "0x4178c5",
+            "length": "7",
+            "value": "CRT$XPX"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x178d9",
+            "address": "0x4178d9",
+            "length": "8",
+            "value": "CRT$XPXA"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x178ed",
+            "address": "0x4178ed",
+            "length": "7",
+            "value": "CRT$XPZ"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x17901",
+            "address": "0x417901",
+            "length": "7",
+            "value": "CRT$XTA"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x17915",
+            "address": "0x417915",
+            "length": "7",
+            "value": "CRT$XTZ"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x17939",
+            "address": "0x417939",
+            "length": "12",
+            "value": "rdata$sxdata"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x17951",
+            "address": "0x417951",
+            "length": "12",
+            "value": "rdata$zzzdbg"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x17969",
+            "address": "0x417969",
+            "length": "7",
+            "value": "rtc$IAA"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1797d",
+            "address": "0x41797d",
+            "length": "7",
+            "value": "rtc$IZZ"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x17991",
+            "address": "0x417991",
+            "length": "7",
+            "value": "rtc$TAA"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x179a5",
+            "address": "0x4179a5",
+            "length": "7",
+            "value": "rtc$TZZ"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x179b9",
+            "address": "0x4179b9",
+            "length": "7",
+            "value": "xdata$x"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x179cd",
+            "address": "0x4179cd",
+            "length": "7",
+            "value": "idata$2"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x179e1",
+            "address": "0x4179e1",
+            "length": "7",
+            "value": "idata$3"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x179f5",
+            "address": "0x4179f5",
+            "length": "7",
+            "value": "idata$4"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x17a09",
+            "address": "0x417a09",
+            "length": "7",
+            "value": "idata$6"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x17f7a",
+            "address": "0x417f7a",
+            "length": "23",
+            "value": "QueryPerformanceCounter"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x17f94",
+            "address": "0x417f94",
+            "length": "19",
+            "value": "GetCurrentProcessId"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x17faa",
+            "address": "0x417faa",
+            "length": "18",
+            "value": "GetCurrentThreadId"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x17fc0",
+            "address": "0x417fc0",
+            "length": "23",
+            "value": "GetSystemTimeAsFileTime"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x17fda",
+            "address": "0x417fda",
+            "length": "19",
+            "value": "InitializeSListHead"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x17ff0",
+            "address": "0x417ff0",
+            "length": "17",
+            "value": "IsDebuggerPresent"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x18004",
+            "address": "0x418004",
+            "length": "24",
+            "value": "UnhandledExceptionFilter"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x18020",
+            "address": "0x418020",
+            "length": "27",
+            "value": "SetUnhandledExceptionFilter"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1803e",
+            "address": "0x41803e",
+            "length": "15",
+            "value": "GetStartupInfoW"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x18050",
+            "address": "0x418050",
+            "length": "25",
+            "value": "IsProcessorFeaturePresent"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1806c",
+            "address": "0x41806c",
+            "length": "16",
+            "value": "GetModuleHandleW"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x18080",
+            "address": "0x418080",
+            "length": "17",
+            "value": "GetCurrentProcess"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x18094",
+            "address": "0x418094",
+            "length": "16",
+            "value": "TerminateProcess"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x180a6",
+            "address": "0x4180a6",
+            "length": "12",
+            "value": "KERNEL32.dll"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x180b6",
+            "address": "0x4180b6",
+            "length": "9",
+            "value": "RtlUnwind"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x180c2",
+            "address": "0x4180c2",
+            "length": "12",
+            "value": "GetLastError"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x180d2",
+            "address": "0x4180d2",
+            "length": "12",
+            "value": "SetLastError"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x180e2",
+            "address": "0x4180e2",
+            "length": "20",
+            "value": "EnterCriticalSection"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x180fa",
+            "address": "0x4180fa",
+            "length": "20",
+            "value": "LeaveCriticalSection"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x18112",
+            "address": "0x418112",
+            "length": "21",
+            "value": "DeleteCriticalSection"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1812a",
+            "address": "0x41812a",
+            "length": "37",
+            "value": "InitializeCriticalSectionAndSpinCount"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x18152",
+            "address": "0x418152",
+            "length": "8",
+            "value": "TlsAlloc"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1815e",
+            "address": "0x41815e",
+            "length": "11",
+            "value": "TlsGetValue"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1816c",
+            "address": "0x41816c",
+            "length": "11",
+            "value": "TlsSetValue"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1817a",
+            "address": "0x41817a",
+            "length": "7",
+            "value": "TlsFree"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x18184",
+            "address": "0x418184",
+            "length": "11",
+            "value": "FreeLibrary"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x18192",
+            "address": "0x418192",
+            "length": "14",
+            "value": "GetProcAddress"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x181a4",
+            "address": "0x4181a4",
+            "length": "14",
+            "value": "LoadLibraryExW"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x181b6",
+            "address": "0x4181b6",
+            "length": "14",
+            "value": "RaiseException"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x181c8",
+            "address": "0x4181c8",
+            "length": "12",
+            "value": "GetStdHandle"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x181d8",
+            "address": "0x4181d8",
+            "length": "9",
+            "value": "WriteFile"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x181e4",
+            "address": "0x4181e4",
+            "length": "18",
+            "value": "GetModuleFileNameW"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x181fa",
+            "address": "0x4181fa",
+            "length": "11",
+            "value": "ExitProcess"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x18208",
+            "address": "0x418208",
+            "length": "18",
+            "value": "GetModuleHandleExW"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1821e",
+            "address": "0x41821e",
+            "length": "15",
+            "value": "GetCommandLineA"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x18230",
+            "address": "0x418230",
+            "length": "15",
+            "value": "GetCommandLineW"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x18242",
+            "address": "0x418242",
+            "length": "9",
+            "value": "HeapAlloc"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1824e",
+            "address": "0x41824e",
+            "length": "8",
+            "value": "HeapFree"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1825a",
+            "address": "0x41825a",
+            "length": "14",
+            "value": "CompareStringW"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1826c",
+            "address": "0x41826c",
+            "length": "12",
+            "value": "LCMapStringW"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1827c",
+            "address": "0x41827c",
+            "length": "11",
+            "value": "GetFileType"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1828a",
+            "address": "0x41828a",
+            "length": "9",
+            "value": "FindClose"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x18296",
+            "address": "0x418296",
+            "length": "16",
+            "value": "FindFirstFileExW"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x182aa",
+            "address": "0x4182aa",
+            "length": "13",
+            "value": "FindNextFileW"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x182ba",
+            "address": "0x4182ba",
+            "length": "15",
+            "value": "IsValidCodePage"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x182d6",
+            "address": "0x4182d6",
+            "length": "8",
+            "value": "GetOEMCP"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x182e2",
+            "address": "0x4182e2",
+            "length": "9",
+            "value": "GetCPInfo"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x182ee",
+            "address": "0x4182ee",
+            "length": "19",
+            "value": "MultiByteToWideChar"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x18304",
+            "address": "0x418304",
+            "length": "19",
+            "value": "WideCharToMultiByte"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1831a",
+            "address": "0x41831a",
+            "length": "22",
+            "value": "GetEnvironmentStringsW"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x18334",
+            "address": "0x418334",
+            "length": "23",
+            "value": "FreeEnvironmentStringsW"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1834e",
+            "address": "0x41834e",
+            "length": "23",
+            "value": "SetEnvironmentVariableW"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x18368",
+            "address": "0x418368",
+            "length": "12",
+            "value": "SetStdHandle"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x18378",
+            "address": "0x418378",
+            "length": "14",
+            "value": "GetStringTypeW"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1838a",
+            "address": "0x41838a",
+            "length": "14",
+            "value": "GetProcessHeap"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1839c",
+            "address": "0x41839c",
+            "length": "16",
+            "value": "FlushFileBuffers"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x183b0",
+            "address": "0x4183b0",
+            "length": "12",
+            "value": "GetConsoleCP"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x183c0",
+            "address": "0x4183c0",
+            "length": "14",
+            "value": "GetConsoleMode"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x183d2",
+            "address": "0x4183d2",
+            "length": "13",
+            "value": "GetFileSizeEx"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x183e2",
+            "address": "0x4183e2",
+            "length": "16",
+            "value": "SetFilePointerEx"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x183f6",
+            "address": "0x4183f6",
+            "length": "8",
+            "value": "HeapSize"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x18402",
+            "address": "0x418402",
+            "length": "11",
+            "value": "HeapReAlloc"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x18410",
+            "address": "0x418410",
+            "length": "11",
+            "value": "CloseHandle"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1841e",
+            "address": "0x41841e",
+            "length": "11",
+            "value": "CreateFileW"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1842c",
+            "address": "0x41842c",
+            "length": "13",
+            "value": "WriteConsoleW"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x1843c",
+            "address": "0x41843c",
+            "length": "13",
+            "value": "DecodePointer"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x121ec",
+            "address": "0x4121ec",
+            "length": "11",
+            "value": "hello world"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x12203",
+            "address": "0x412203",
+            "length": "8",
+            "value": "XPPPPPPP"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x125ca",
+            "address": "0x4125ca",
+            "length": "26",
+            "value": "abcdefghijklmnopqrstuvwxyz"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x125ea",
+            "address": "0x4125ea",
+            "length": "26",
+            "value": "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x127d9",
+            "address": "0x4127d9",
+            "length": "26",
+            "value": "abcdefghijklmnopqrstuvwxyz"
+         },
+         {
+            "type": "string",
+            "section": ".rdata",
+            "offset": "0x127f9",
+            "address": "0x4127f9",
+            "length": "26",
+            "value": "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x12b58",
+            "address": "0x412b58",
+            "length": "28",
+            "value": "aim-i-oesnhl--"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x12b94",
+            "address": "0x412b94",
+            "length": "8",
+            "value": "kre3"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x12ba8",
+            "address": "0x412ba8",
+            "length": "7",
+            "value": "aim-"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x12d3c",
+            "address": "0x412d3c",
+            "length": "11",
+            "value": "mcrel"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x12fe0",
+            "address": "0x412fe0",
+            "length": "27",
+            "value": "aim-i-oefl-122"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x13018",
+            "address": "0x413018",
+            "length": "35",
+            "value": "aim-i-oelclzto-121"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x13060",
+            "address": "0x413060",
+            "length": "44",
+            "value": "aim-i-oelclzto-boeel--"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x130c0",
+            "address": "0x4130c0",
+            "length": "37",
+            "value": "aim-i-oepoeshed-112"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x1310c",
+            "address": "0x41310c",
+            "length": "29",
+            "value": "aim-i-oesrn-110"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x13148",
+            "address": "0x413148",
+            "length": "30",
+            "value": "aim-i-oessnol--"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x13188",
+            "address": "0x413188",
+            "length": "28",
+            "value": "aim-i-oewntl--"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x131c4",
+            "address": "0x4131c4",
+            "length": "29",
+            "value": "aim-i-oextt-210"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x13200",
+            "address": "0x413200",
+            "length": "38",
+            "value": "aim-i-toenue-idwl--"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x13250",
+            "address": "0x413250",
+            "length": "42",
+            "value": "aim-i-euiyssefntosl--"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x132a8",
+            "address": "0x4132a8",
+            "length": "34",
+            "value": "etm-i-tsrdaobxl--"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x132f0",
+            "address": "0x4132f0",
+            "length": "38",
+            "value": "etm-i-tsrwnosainl--"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x13340",
+            "address": "0x413340",
+            "length": "8",
+            "value": "avp3"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x13360",
+            "address": "0x413360",
+            "length": "34",
+            "value": "aim-i-pmdlrniel--"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x133b8",
+            "address": "0x4133b8",
+            "length": "7",
+            "value": "etm-"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x137f0",
+            "address": "0x4137f0",
+            "length": "7",
+            "value": "Tedy"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x13800",
+            "address": "0x413800",
+            "length": "9",
+            "value": "Wdedy"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x13814",
+            "address": "0x413814",
+            "length": "8",
+            "value": "Tusa"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x13838",
+            "address": "0x413838",
+            "length": "8",
+            "value": "Stra"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x138ac",
+            "address": "0x4138ac",
+            "length": "7",
+            "value": "Jnay"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x138bc",
+            "address": "0x4138bc",
+            "length": "8",
+            "value": "Fbur"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x13910",
+            "address": "0x413910",
+            "length": "9",
+            "value": "Spebr"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x13924",
+            "address": "0x413924",
+            "length": "7",
+            "value": "Otbr"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x13934",
+            "address": "0x413934",
+            "length": "8",
+            "value": "Nvme"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x13948",
+            "address": "0x413948",
+            "length": "8",
+            "value": "Dcme"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x1396c",
+            "address": "0x41396c",
+            "length": "8",
+            "value": "M/dy"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x13980",
+            "address": "0x413980",
+            "length": "11",
+            "value": "dd,MM "
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x13996",
+            "address": "0x413996",
+            "length": "8",
+            "value": "d,yy"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x139a8",
+            "address": "0x4139a8",
+            "length": "8",
+            "value": "H:ms"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x14af4",
+            "address": "0x414af4",
+            "length": "10",
+            "value": "a-ZLt"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x14bc0",
+            "address": "0x414bc0",
+            "length": "10",
+            "value": "u-ZLt"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x14d38",
+            "address": "0x414d38",
+            "length": "10",
+            "value": "s-PLt"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x14d5c",
+            "address": "0x414d5c",
+            "length": "10",
+            "value": "a-ZCr"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x14d8c",
+            "address": "0x414d8c",
+            "length": "10",
+            "value": "u-ZCr"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x14dfc",
+            "address": "0x414dfc",
+            "length": "10",
+            "value": "s-PCr"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x14edc",
+            "address": "0x414edc",
+            "length": "10",
+            "value": "b-ALt"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x14f34",
+            "address": "0x414f34",
+            "length": "10",
+            "value": "s-ALt"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x14f80",
+            "address": "0x414f80",
+            "length": "10",
+            "value": "s-ACr"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x1591c",
+            "address": "0x41591c",
+            "length": "10",
+            "value": "a-zcr"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x15934",
+            "address": "0x415934",
+            "length": "10",
+            "value": "a-zlt"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x15970",
+            "address": "0x415970",
+            "length": "10",
+            "value": "b-alt"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x15edc",
+            "address": "0x415edc",
+            "length": "10",
+            "value": "s-acr"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x15ef4",
+            "address": "0x415ef4",
+            "length": "10",
+            "value": "s-alt"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x15f0c",
+            "address": "0x415f0c",
+            "length": "10",
+            "value": "s-pcr"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x15f24",
+            "address": "0x415f24",
+            "length": "10",
+            "value": "s-plt"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x15fd0",
+            "address": "0x415fd0",
+            "length": "10",
+            "value": "u-zcr"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x15fe8",
+            "address": "0x415fe8",
+            "length": "10",
+            "value": "u-zlt"
+         },
+         {
+            "type": "wideString",
+            "section": ".rdata",
+            "offset": "0x16ad8",
+            "address": "0x416ad8",
+            "length": "7",
+            "value": "CNU$"
+         }
+      ],
+      ".data": []
+   },
+   "shellcode": {
+      "rawhex": "",
+      "strlit": ""
+   }
+}

@@ -1,0 +1,490 @@
+Filename: fstenvrawtest.txt
+File Type: rawHex
+Bits: 32
+Date Analyzed: 2021-12-23 09:59:55
+Seconds since last epoch: 1640275195.17747
+
+Section info
+
+Entry point: 0x0
+
+No strings found.
+
+No push ret instructions found.
+
+
+***********
+Fstenv
+***********
+
+********************************************************************************************************
+Fstenv Item: 0 | Section: -1 | Section name: rawHex | FPU Offset: 0x0 | FSTENV Offset: 0x2
+0x0        fdiv dword ptr [eax] 
+0x2        fnstenv [eax] 
+********************************************************************************************************
+Fstenv Item: 1 | Section: -1 | Section name: rawHex | FPU Offset: 0x4 | FSTENV Offset: 0x6
+0x4        fdiv dword ptr [eax] 
+0x6        fnstenv [ebx] 
+********************************************************************************************************
+Fstenv Item: 2 | Section: -1 | Section name: rawHex | FPU Offset: 0x8 | FSTENV Offset: 0xa
+0x8        fdiv dword ptr [eax] 
+0xa        fnstenv [ecx] 
+********************************************************************************************************
+Fstenv Item: 3 | Section: -1 | Section name: rawHex | FPU Offset: 0xc | FSTENV Offset: 0xe
+0xc        fdiv dword ptr [eax] 
+0xe        fnstenv [edx] 
+********************************************************************************************************
+Fstenv Item: 4 | Section: -1 | Section name: rawHex | FPU Offset: 0x10 | FSTENV Offset: 0x12
+0x10       fdiv dword ptr [eax] 
+0x12       fnstenv [edi] 
+********************************************************************************************************
+Fstenv Item: 5 | Section: -1 | Section name: rawHex | FPU Offset: 0x14 | FSTENV Offset: 0x16
+0x14       fdiv dword ptr [eax] 
+0x16       fnstenv [esi] 
+********************************************************************************************************
+Fstenv Item: 6 | Section: -1 | Section name: rawHex | FPU Offset: 0x18 | FSTENV Offset: 0x1a
+0x18       fdiv dword ptr [eax] 
+0x1a       fnstenv [ebp] 
+********************************************************************************************************
+Fstenv Item: 7 | Section: -1 | Section name: rawHex | FPU Offset: 0x1d | FSTENV Offset: 0x1f
+0x1d       fdiv dword ptr [eax] 
+0x1f       fnstenv [esp] 
+********************************************************************************************************
+Fstenv Item: 8 | Section: -1 | Section name: rawHex | FPU Offset: 0x22 | FSTENV Offset: 0x24
+0x22       fdiv dword ptr [eax] 
+0x24       fnstenv [eax + 5] 
+********************************************************************************************************
+Fstenv Item: 9 | Section: -1 | Section name: rawHex | FPU Offset: 0x2a | FSTENV Offset: 0x2c
+0x2a       fdiv dword ptr [eax] 
+0x2c       fnstenv [ebx + 5] 
+********************************************************************************************************
+Fstenv Item: 10 | Section: -1 | Section name: rawHex | FPU Offset: 0x32 | FSTENV Offset: 0x34
+0x32       fdiv dword ptr [eax] 
+0x34       fnstenv [ecx + 5] 
+********************************************************************************************************
+Fstenv Item: 11 | Section: -1 | Section name: rawHex | FPU Offset: 0x3a | FSTENV Offset: 0x3c
+0x3a       fdiv dword ptr [eax] 
+0x3c       fnstenv [edx + 5] 
+********************************************************************************************************
+Fstenv Item: 12 | Section: -1 | Section name: rawHex | FPU Offset: 0x42 | FSTENV Offset: 0x44
+0x42       fdiv dword ptr [eax] 
+0x44       fnstenv [edi + 5] 
+********************************************************************************************************
+Fstenv Item: 13 | Section: -1 | Section name: rawHex | FPU Offset: 0x4a | FSTENV Offset: 0x4c
+0x4a       fdiv dword ptr [eax] 
+0x4c       fnstenv [esi + 5] 
+********************************************************************************************************
+Fstenv Item: 14 | Section: -1 | Section name: rawHex | FPU Offset: 0x52 | FSTENV Offset: 0x54
+0x52       fdiv dword ptr [eax] 
+0x54       fnstenv [ebp + 5] 
+********************************************************************************************************
+Fstenv Item: 15 | Section: -1 | Section name: rawHex | FPU Offset: 0x5a | FSTENV Offset: 0x5c
+0x5a       fdiv dword ptr [eax] 
+0x5c       fnstenv [esp + 5] 
+********************************************************************************************************
+Fstenv Item: 16 | Section: -1 | Section name: rawHex | FPU Offset: 0x63 | FSTENV Offset: 0x65
+0x63       fdiv dword ptr [eax] 
+0x65       fnstenv [eax + 5] 
+********************************************************************************************************
+Fstenv Item: 17 | Section: -1 | Section name: rawHex | FPU Offset: 0x6a | FSTENV Offset: 0x6c
+0x6a       fdiv dword ptr [eax] 
+0x6c       fnstenv [ebx + 5] 
+********************************************************************************************************
+Fstenv Item: 18 | Section: -1 | Section name: rawHex | FPU Offset: 0x71 | FSTENV Offset: 0x73
+0x71       fdiv dword ptr [eax] 
+0x73       fnstenv [ecx + 5] 
+********************************************************************************************************
+Fstenv Item: 19 | Section: -1 | Section name: rawHex | FPU Offset: 0x78 | FSTENV Offset: 0x7a
+0x78       fdiv dword ptr [eax] 
+0x7a       fnstenv [edx + 5] 
+********************************************************************************************************
+Fstenv Item: 20 | Section: -1 | Section name: rawHex | FPU Offset: 0x7f | FSTENV Offset: 0x81
+0x7f       fdiv dword ptr [eax] 
+0x81       fnstenv [edi + 5] 
+********************************************************************************************************
+Fstenv Item: 21 | Section: -1 | Section name: rawHex | FPU Offset: 0x86 | FSTENV Offset: 0x88
+0x86       fdiv dword ptr [eax] 
+0x88       fnstenv [esi + 5] 
+********************************************************************************************************
+Fstenv Item: 22 | Section: -1 | Section name: rawHex | FPU Offset: 0x8d | FSTENV Offset: 0x8f
+0x8d       fdiv dword ptr [eax] 
+0x8f       fnstenv [ebp + 5] 
+********************************************************************************************************
+Fstenv Item: 23 | Section: -1 | Section name: rawHex | FPU Offset: 0x94 | FSTENV Offset: 0x96
+0x94       fdiv dword ptr [eax] 
+0x96       fnstenv [esp + 5] 
+********************************************************************************************************
+Fstenv Item: 24 | Section: -1 | Section name: rawHex | FPU Offset: 0x9c | FSTENV Offset: 0xa0
+0x9c       fdiv dword ptr [bx + si] 
+0x9f       inc  ecx 
+0xa0       fnstenv [eax] 
+********************************************************************************************************
+Fstenv Item: 25 | Section: -1 | Section name: rawHex | FPU Offset: 0xa2 | FSTENV Offset: 0xa6
+0xa2       fdiv dword ptr [bx + si] 
+0xa5       inc  ecx 
+0xa6       fnstenv [ecx] 
+********************************************************************************************************
+Fstenv Item: 26 | Section: -1 | Section name: rawHex | FPU Offset: 0xa8 | FSTENV Offset: 0xac
+0xa8       fdiv dword ptr [bx + si] 
+0xab       inc  ecx 
+0xac       fnstenv [edx] 
+********************************************************************************************************
+Fstenv Item: 27 | Section: -1 | Section name: rawHex | FPU Offset: 0xae | FSTENV Offset: 0xb2
+0xae       fdiv dword ptr [bx + si] 
+0xb1       inc  ecx 
+0xb2       fnstenv [ebx] 
+********************************************************************************************************
+Fstenv Item: 28 | Section: -1 | Section name: rawHex | FPU Offset: 0xb4 | FSTENV Offset: 0xb8
+0xb4       fdiv dword ptr [bx + si] 
+0xb7       inc  ecx 
+0xb8       fnstenv [esp] 
+********************************************************************************************************
+Fstenv Item: 29 | Section: -1 | Section name: rawHex | FPU Offset: 0xbb | FSTENV Offset: 0xbf
+0xbb       fdiv dword ptr [bx + si] 
+0xbe       inc  ecx 
+0xbf       fnstenv [ebp] 
+********************************************************************************************************
+Fstenv Item: 30 | Section: -1 | Section name: rawHex | FPU Offset: 0xc2 | FSTENV Offset: 0xc6
+0xc2       fdiv dword ptr [bx + si] 
+0xc5       inc  ecx 
+0xc6       fnstenv [esi] 
+********************************************************************************************************
+Fstenv Item: 31 | Section: -1 | Section name: rawHex | FPU Offset: 0xc8 | FSTENV Offset: 0xcc
+0xc8       fdiv dword ptr [bx + si] 
+0xcb       inc  ecx 
+0xcc       fnstenv [edi] 
+********************************************************************************************************
+Fstenv Item: 32 | Section: -1 | Section name: rawHex | FPU Offset: 0xce | FSTENV Offset: 0xd2
+0xce       fdiv dword ptr [bx + si] 
+0xd1       inc  ecx 
+0xd2       fnstenv [eax + 5] 
+********************************************************************************************************
+Fstenv Item: 33 | Section: -1 | Section name: rawHex | FPU Offset: 0xd8 | FSTENV Offset: 0xdc
+0xd8       fdiv dword ptr [bx + si] 
+0xdb       inc  ecx 
+0xdc       fnstenv [ecx + 5] 
+********************************************************************************************************
+Fstenv Item: 34 | Section: -1 | Section name: rawHex | FPU Offset: 0xe2 | FSTENV Offset: 0xe6
+0xe2       fdiv dword ptr [bx + si] 
+0xe5       inc  ecx 
+0xe6       fnstenv [edx + 5] 
+********************************************************************************************************
+Fstenv Item: 35 | Section: -1 | Section name: rawHex | FPU Offset: 0xec | FSTENV Offset: 0xf0
+0xec       fdiv dword ptr [bx + si] 
+0xef       inc  ecx 
+0xf0       fnstenv [ebx + 5] 
+********************************************************************************************************
+Fstenv Item: 36 | Section: -1 | Section name: rawHex | FPU Offset: 0xf6 | FSTENV Offset: 0xfa
+0xf6       fdiv dword ptr [bx + si] 
+0xf9       inc  ecx 
+0xfa       fnstenv [esp] 
+********************************************************************************************************
+Fstenv Item: 37 | Section: -1 | Section name: rawHex | FPU Offset: 0x101 | FSTENV Offset: 0x105
+0x101      fdiv dword ptr [bx + si] 
+0x104      inc  ecx 
+0x105      fnstenv [ebp + 5] 
+********************************************************************************************************
+Fstenv Item: 38 | Section: -1 | Section name: rawHex | FPU Offset: 0x10b | FSTENV Offset: 0x10f
+0x10b      fdiv dword ptr [bx + si] 
+0x10e      inc  ecx 
+0x10f      fnstenv [esi + 5] 
+********************************************************************************************************
+Fstenv Item: 39 | Section: -1 | Section name: rawHex | FPU Offset: 0x115 | FSTENV Offset: 0x119
+0x115      fdiv dword ptr [bx + si] 
+0x118      inc  ecx 
+0x119      fnstenv [edi + 5] 
+********************************************************************************************************
+Fstenv Item: 40 | Section: -1 | Section name: rawHex | FPU Offset: 0x11f | FSTENV Offset: 0x123
+0x11f      fdiv dword ptr [bx + si] 
+0x122      inc  ecx 
+0x123      fnstenv [eax + 5] 
+********************************************************************************************************
+Fstenv Item: 41 | Section: -1 | Section name: rawHex | FPU Offset: 0x128 | FSTENV Offset: 0x12c
+0x128      fdiv dword ptr [bx + si] 
+0x12b      inc  ecx 
+0x12c      fnstenv [ecx + 5] 
+********************************************************************************************************
+Fstenv Item: 42 | Section: -1 | Section name: rawHex | FPU Offset: 0x131 | FSTENV Offset: 0x135
+0x131      fdiv dword ptr [bx + si] 
+0x134      inc  ecx 
+0x135      fnstenv [edx + 5] 
+********************************************************************************************************
+Fstenv Item: 43 | Section: -1 | Section name: rawHex | FPU Offset: 0x13a | FSTENV Offset: 0x13e
+0x13a      fdiv dword ptr [bx + si] 
+0x13d      inc  ecx 
+0x13e      fnstenv [ebx + 5] 
+********************************************************************************************************
+Fstenv Item: 44 | Section: -1 | Section name: rawHex | FPU Offset: 0x143 | FSTENV Offset: 0x147
+0x143      fdiv dword ptr [bx + si] 
+0x146      inc  ecx 
+0x147      fnstenv [esp + 5] 
+********************************************************************************************************
+Fstenv Item: 45 | Section: -1 | Section name: rawHex | FPU Offset: 0x14d | FSTENV Offset: 0x151
+0x14d      fdiv dword ptr [bx + si] 
+0x150      inc  ecx 
+0x151      fnstenv [ebp + 5] 
+********************************************************************************************************
+Fstenv Item: 46 | Section: -1 | Section name: rawHex | FPU Offset: 0x156 | FSTENV Offset: 0x15a
+0x156      fdiv dword ptr [bx + si] 
+0x159      inc  ecx 
+0x15a      fnstenv [esi + 5] 
+********************************************************************************************************
+Fstenv Item: 47 | Section: -1 | Section name: rawHex | FPU Offset: 0x15f | FSTENV Offset: 0x163
+0x15f      fdiv dword ptr [bx + si] 
+0x162      inc  ecx 
+0x163      fnstenv [edi + 5] 
+
+No call pop instructions found.
+
+No syscall instructions found.
+
+No peb walking instructions found.
+
+No heaven's gate instructions found.
+
+
+****************
+Disassembly
+****************
+
+0x0        fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x2        fnstenv [eax]                       \xd9\x30                  .0        
+            ; GetPC                                                                
+0x4        fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x6        fnstenv [ebx]                       \xd9\x33                  .3        
+            ; GetPC                                                                
+0x8        fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0xa        fnstenv [ecx]                       \xd9\x31                  .1        
+            ; GetPC                                                                
+0xc        fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0xe        fnstenv [edx]                       \xd9\x32                  .2        
+            ; GetPC                                                                
+0x10       fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x12       fnstenv [edi]                       \xd9\x37                  .7        
+            ; GetPC                                                                
+0x14       fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x16       fnstenv [esi]                       \xd9\x36                  .6        
+            ; GetPC                                                                
+0x18       fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x1a       fnstenv [ebp]                       \xd9\x75\x00              .u.       
+            ; GetPC                                                                
+0x1d       fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x1f       fnstenv [esp]                       \xd9\x34\x24              .4$       
+            ; GetPC                                                                
+0x22       fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x24       fnstenv [eax + 5]                   \xd9\xb0\x05\x00\x00\x00  ......    
+            ; GetPC                                                                
+0x2a       fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x2c       fnstenv [ebx + 5]                   \xd9\xb3\x05\x00\x00\x00  ......    
+            ; GetPC                                                                
+0x32       fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x34       fnstenv [ecx + 5]                   \xd9\xb1\x05\x00\x00\x00  ......    
+            ; GetPC                                                                
+0x3a       fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x3c       fnstenv [edx + 5]                   \xd9\xb2\x05\x00\x00\x00  ......    
+            ; GetPC                                                                
+0x42       fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x44       fnstenv [edi + 5]                   \xd9\xb7\x05\x00\x00\x00  ......    
+            ; GetPC                                                                
+0x4a       fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x4c       fnstenv [esi + 5]                   \xd9\xb6\x05\x00\x00\x00  ......    
+            ; GetPC                                                                
+0x52       fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x54       fnstenv [ebp + 5]                   \xd9\xb5\x05\x00\x00\x00  ......    
+            ; GetPC                                                                
+0x5a       fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x5c       fnstenv [esp + 5]                   \xd9\xb4\x24\x05\x00\x00\x00..$....   
+            ; GetPC                                                                
+0x63       fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x65       fnstenv [eax + 5]                   \xd9\x70\x05              .p.       
+            ; GetPC                                                                
+0x68       add byte ptr [eax], al              \x00\x00                  ..        
+0x6a       fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x6c       fnstenv [ebx + 5]                   \xd9\x73\x05              .s.       
+            ; GetPC                                                                
+0x6f       add byte ptr [eax], al              \x00\x00                  ..        
+0x71       fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x73       fnstenv [ecx + 5]                   \xd9\x71\x05              .q.       
+            ; GetPC                                                                
+0x76       add byte ptr [eax], al              \x00\x00                  ..        
+0x78       fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x7a       fnstenv [edx + 5]                   \xd9\x72\x05              .r.       
+            ; GetPC                                                                
+0x7d       add byte ptr [eax], al              \x00\x00                  ..        
+0x7f       fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x81       fnstenv [edi + 5]                   \xd9\x77\x05              .w.       
+            ; GetPC                                                                
+0x84       add byte ptr [eax], al              \x00\x00                  ..        
+0x86       fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x88       fnstenv [esi + 5]                   \xd9\x76\x05              .v.       
+            ; GetPC                                                                
+0x8b       add byte ptr [eax], al              \x00\x00                  ..        
+0x8d       fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x8f       fnstenv [ebp + 5]                   \xd9\x75\x05              .u.       
+            ; GetPC                                                                
+0x92       add byte ptr [eax], al              \x00\x00                  ..        
+0x94       fdiv dword ptr [eax]                \xd8\x30                  .0        
+            ; floating point to set up GetPC                                       
+0x96       fnstenv [esp + 5]                   \xd9\x74\x24\x05          .t$.      
+            ; GetPC                                                                
+0x9a       add byte ptr [eax], al              \x00\x00                  ..        
+0x9c       fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0x9f       inc ecx                             \x41                      A         
+0xa0       fnstenv [eax]                       \xd9\x30                  .0        
+            ; GetPC                                                                
+0xa2       fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0xa5       inc ecx                             \x41                      A         
+0xa6       fnstenv [ecx]                       \xd9\x31                  .1        
+            ; GetPC                                                                
+0xa8       fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0xab       inc ecx                             \x41                      A         
+0xac       fnstenv [edx]                       \xd9\x32                  .2        
+            ; GetPC                                                                
+0xae       fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0xb1       inc ecx                             \x41                      A         
+0xb2       fnstenv [ebx]                       \xd9\x33                  .3        
+            ; GetPC                                                                
+0xb4       fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0xb7       inc ecx                             \x41                      A         
+0xb8       fnstenv [esp]                       \xd9\x34\x24              .4$       
+            ; GetPC                                                                
+0xbb       fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0xbe       inc ecx                             \x41                      A         
+0xbf       fnstenv [ebp]                       \xd9\x75\x00              .u.       
+            ; GetPC                                                                
+0xc2       fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0xc5       inc ecx                             \x41                      A         
+0xc6       fnstenv [esi]                       \xd9\x36                  .6        
+            ; GetPC                                                                
+0xc8       fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0xcb       inc ecx                             \x41                      A         
+0xcc       fnstenv [edi]                       \xd9\x37                  .7        
+            ; GetPC                                                                
+0xce       fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0xd1       inc ecx                             \x41                      A         
+0xd2       fnstenv [eax + 5]                   \xd9\xb0\x05\x00\x00\x00  ......    
+            ; GetPC                                                                
+0xd8       fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0xdb       inc ecx                             \x41                      A         
+0xdc       fnstenv [ecx + 5]                   \xd9\xb1\x05\x00\x00\x00  ......    
+            ; GetPC                                                                
+0xe2       fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0xe5       inc ecx                             \x41                      A         
+0xe6       fnstenv [edx + 5]                   \xd9\xb2\x05\x00\x00\x00  ......    
+            ; GetPC                                                                
+0xec       fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0xef       inc ecx                             \x41                      A         
+0xf0       fnstenv [ebx + 5]                   \xd9\xb3\x05\x00\x00\x00  ......    
+            ; GetPC                                                                
+0xf6       fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0xf9       inc ecx                             \x41                      A         
+0xfa       fnstenv [esp]                       \xd9\xb4\x24\x00\x00\x00\x00..$....   
+            ; GetPC                                                                
+0x101      fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0x104      inc ecx                             \x41                      A         
+0x105      fnstenv [ebp + 5]                   \xd9\xb5\x05\x00\x00\x00  ......    
+            ; GetPC                                                                
+0x10b      fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0x10e      inc ecx                             \x41                      A         
+0x10f      fnstenv [esi + 5]                   \xd9\xb6\x05\x00\x00\x00  ......    
+            ; GetPC                                                                
+0x115      fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0x118      inc ecx                             \x41                      A         
+0x119      fnstenv [edi + 5]                   \xd9\xb7\x05\x00\x00\x00  ......    
+            ; GetPC                                                                
+0x11f      fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0x122      inc ecx                             \x41                      A         
+0x123      fnstenv [eax + 5]                   \xd9\x70\x05              .p.       
+            ; GetPC                                                                
+0x126      add byte ptr [eax], al              \x00\x00                  ..        
+0x128      fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0x12b      inc ecx                             \x41                      A         
+0x12c      fnstenv [ecx + 5]                   \xd9\x71\x05              .q.       
+            ; GetPC                                                                
+0x12f      add byte ptr [eax], al              \x00\x00                  ..        
+0x131      fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0x134      inc ecx                             \x41                      A         
+0x135      fnstenv [edx + 5]                   \xd9\x72\x05              .r.       
+            ; GetPC                                                                
+0x138      add byte ptr [eax], al              \x00\x00                  ..        
+0x13a      fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0x13d      inc ecx                             \x41                      A         
+0x13e      fnstenv [ebx + 5]                   \xd9\x73\x05              .s.       
+            ; GetPC                                                                
+0x141      add byte ptr [eax], al              \x00\x00                  ..        
+0x143      fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0x146      inc ecx                             \x41                      A         
+0x147      fnstenv [esp + 5]                   \xd9\x74\x24\x05          .t$.      
+            ; GetPC                                                                
+0x14b      add byte ptr [eax], al              \x00\x00                  ..        
+0x14d      fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0x150      inc ecx                             \x41                      A         
+0x151      fnstenv [ebp + 5]                   \xd9\x75\x05              .u.       
+            ; GetPC                                                                
+0x154      add byte ptr [eax], al              \x00\x00                  ..        
+0x156      fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0x159      inc ecx                             \x41                      A         
+0x15a      fnstenv [esi + 5]                   \xd9\x76\x05              .v.       
+            ; GetPC                                                                
+0x15d      add byte ptr [eax], al              \x00\x00                  ..        
+0x15f      fdiv dword ptr [bx + si]            \x67\xd8\x30              g.0       
+            ; floating point to set up GetPC                                       
+0x162      inc ecx                             \x41                      A         
+0x163      fnstenv [edi + 5]                   \xd9\x77\x05              .w.       
+            ; GetPC                                                                
+0x166      add byte ptr [eax], al              \x00\x00                  ..        
+[33;1m
+Raw Hex:
+[0m"[32;1md830d930d830d933d830d931d830d932d830d937d830d936d830d97500d830d93424d830d9b005000000d830d9b305000000d830d9b105000000d830d9b205000000d830d9b705000000d830d9b605000000d830d9b505000000d830d9b42405000000d830d970050000d830d973050000d830d971050000d830d972050000d830d977050000d830d976050000d830d975050000d830d9742405000067d83041d93067d83041d93167d83041d93267d83041d93367d83041d9342467d83041d9750067d83041d93667d83041d93767d83041d9b00500000067d83041d9b10500000067d83041d9b20500000067d83041d9b30500000067d83041d9b4240000000067d83041d9b50500000067d83041d9b60500000067d83041d9b70500000067d83041d97005000067d83041d97105000067d83041d97205000067d83041d97305000067d83041d9742405000067d83041d97505000067d83041d97605000067d83041d977050000[0m"
+[33;1m
+String Literal:
+[0m"[32;1m\xd8\x30\xd9\x30\xd8\x30\xd9\x33\xd8\x30\xd9\x31\xd8\x30\xd9\x32\xd8\x30\xd9\x37\xd8\x30\xd9\x36\xd8\x30\xd9\x75\x00\xd8\x30\xd9\x34\x24\xd8\x30\xd9\xb0\x05\x00\x00\x00\xd8\x30\xd9\xb3\x05\x00\x00\x00\xd8\x30\xd9\xb1\x05\x00\x00\x00\xd8\x30\xd9\xb2\x05\x00\x00\x00\xd8\x30\xd9\xb7\x05\x00\x00\x00\xd8\x30\xd9\xb6\x05\x00\x00\x00\xd8\x30\xd9\xb5\x05\x00\x00\x00\xd8\x30\xd9\xb4\x24\x05\x00\x00\x00\xd8\x30\xd9\x70\x05\x00\x00\xd8\x30\xd9\x73\x05\x00\x00\xd8\x30\xd9\x71\x05\x00\x00\xd8\x30\xd9\x72\x05\x00\x00\xd8\x30\xd9\x77\x05\x00\x00\xd8\x30\xd9\x76\x05\x00\x00\xd8\x30\xd9\x75\x05\x00\x00\xd8\x30\xd9\x74\x24\x05\x00\x00\x67\xd8\x30\x41\xd9\x30\x67\xd8\x30\x41\xd9\x31\x67\xd8\x30\x41\xd9\x32\x67\xd8\x30\x41\xd9\x33\x67\xd8\x30\x41\xd9\x34\x24\x67\xd8\x30\x41\xd9\x75\x00\x67\xd8\x30\x41\xd9\x36\x67\xd8\x30\x41\xd9\x37\x67\xd8\x30\x41\xd9\xb0\x05\x00\x00\x00\x67\xd8\x30\x41\xd9\xb1\x05\x00\x00\x00\x67\xd8\x30\x41\xd9\xb2\x05\x00\x00\x00\x67\xd8\x30\x41\xd9\xb3\x05\x00\x00\x00\x67\xd8\x30\x41\xd9\xb4\x24\x00\x00\x00\x00\x67\xd8\x30\x41\xd9\xb5\x05\x00\x00\x00\x67\xd8\x30\x41\xd9\xb6\x05\x00\x00\x00\x67\xd8\x30\x41\xd9\xb7\x05\x00\x00\x00\x67\xd8\x30\x41\xd9\x70\x05\x00\x00\x67\xd8\x30\x41\xd9\x71\x05\x00\x00\x67\xd8\x30\x41\xd9\x72\x05\x00\x00\x67\xd8\x30\x41\xd9\x73\x05\x00\x00\x67\xd8\x30\x41\xd9\x74\x24\x05\x00\x00\x67\xd8\x30\x41\xd9\x75\x05\x00\x00\x67\xd8\x30\x41\xd9\x76\x05\x00\x00\x67\xd8\x30\x41\xd9\x77\x05\x00\x00[0m"
+[33;1m
+Array Literal:
+[0m{[32;1m0xd8, 0x30, 0xd9, 0x30, 0xd8, 0x30, 0xd9, 0x33, 0xd8, 0x30, 0xd9, 0x31, 0xd8, 0x30, 0xd9, 0x32, 0xd8, 0x30, 0xd9, 0x37, 0xd8, 0x30, 0xd9, 0x36, 0xd8, 0x30, 0xd9, 0x75, 0x00, 0xd8, 0x30, 0xd9, 0x34, 0x24, 0xd8, 0x30, 0xd9, 0xb0, 0x05, 0x00, 0x00, 0x00, 0xd8, 0x30, 0xd9, 0xb3, 0x05, 0x00, 0x00, 0x00, 0xd8, 0x30, 0xd9, 0xb1, 0x05, 0x00, 0x00, 0x00, 0xd8, 0x30, 0xd9, 0xb2, 0x05, 0x00, 0x00, 0x00, 0xd8, 0x30, 0xd9, 0xb7, 0x05, 0x00, 0x00, 0x00, 0xd8, 0x30, 0xd9, 0xb6, 0x05, 0x00, 0x00, 0x00, 0xd8, 0x30, 0xd9, 0xb5, 0x05, 0x00, 0x00, 0x00, 0xd8, 0x30, 0xd9, 0xb4, 0x24, 0x05, 0x00, 0x00, 0x00, 0xd8, 0x30, 0xd9, 0x70, 0x05, 0x00, 0x00, 0xd8, 0x30, 0xd9, 0x73, 0x05, 0x00, 0x00, 0xd8, 0x30, 0xd9, 0x71, 0x05, 0x00, 0x00, 0xd8, 0x30, 0xd9, 0x72, 0x05, 0x00, 0x00, 0xd8, 0x30, 0xd9, 0x77, 0x05, 0x00, 0x00, 0xd8, 0x30, 0xd9, 0x76, 0x05, 0x00, 0x00, 0xd8, 0x30, 0xd9, 0x75, 0x05, 0x00, 0x00, 0xd8, 0x30, 0xd9, 0x74, 0x24, 0x05, 0x00, 0x00, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0x30, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0x31, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0x32, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0x33, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0x34, 0x24, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0x75, 0x00, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0x36, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0x37, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0xb0, 0x05, 0x00, 0x00, 0x00, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0xb1, 0x05, 0x00, 0x00, 0x00, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0xb2, 0x05, 0x00, 0x00, 0x00, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0xb3, 0x05, 0x00, 0x00, 0x00, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0xb4, 0x24, 0x00, 0x00, 0x00, 0x00, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0xb5, 0x05, 0x00, 0x00, 0x00, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0xb6, 0x05, 0x00, 0x00, 0x00, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0xb7, 0x05, 0x00, 0x00, 0x00, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0x70, 0x05, 0x00, 0x00, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0x71, 0x05, 0x00, 0x00, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0x72, 0x05, 0x00, 0x00, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0x73, 0x05, 0x00, 0x00, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0x74, 0x24, 0x05, 0x00, 0x00, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0x75, 0x05, 0x00, 0x00, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0x76, 0x05, 0x00, 0x00, 0x67, 0xd8, 0x30, 0x41, 0xd9, 0x77, 0x05, 0x00, 0x00[0m}

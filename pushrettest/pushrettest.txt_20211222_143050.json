@@ -1,0 +1,614 @@
+{
+   "dateAnalyzed": "2021-12-22 14:30:50",
+   "secondsSinceEpoch": 1640205050.486669,
+   "fileType": "rawHex",
+   "bits": 32,
+   "entryPoint": "0x0",
+   "pushret": [
+      {
+         "address": "0x0",
+         "pushOffset": [
+            "0x0",
+            "eax"
+         ],
+         "retOffset": "0x1",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x0        push eax ",
+            "0x1        ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x2",
+         "pushOffset": [
+            "0x2",
+            "ebx"
+         ],
+         "retOffset": "0x3",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x2        push ebx ",
+            "0x3        ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x4",
+         "pushOffset": [
+            "0x4",
+            "ecx"
+         ],
+         "retOffset": "0x5",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x4        push ecx ",
+            "0x5        ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x6",
+         "pushOffset": [
+            "0x6",
+            "edx"
+         ],
+         "retOffset": "0x7",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x6        push edx ",
+            "0x7        ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x8",
+         "pushOffset": [
+            "0x8",
+            "edi"
+         ],
+         "retOffset": "0x9",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x8        push edi ",
+            "0x9        ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0xa",
+         "pushOffset": [
+            "0xa",
+            "esi"
+         ],
+         "retOffset": "0xb",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0xa        push esi ",
+            "0xb        ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0xc",
+         "pushOffset": [
+            "0xc",
+            "ebp"
+         ],
+         "retOffset": "0xd",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0xc        push ebp ",
+            "0xd        ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0xe",
+         "pushOffset": [
+            "0xe",
+            "esp"
+         ],
+         "retOffset": "0xf",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0xe        push esp ",
+            "0xf        ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x10",
+         "pushOffset": [
+            "0x10",
+            "eax"
+         ],
+         "retOffset": "0x11",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x10       push eax ",
+            "0x11       ret  0 "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x14",
+         "pushOffset": [
+            "0x14",
+            "ebx"
+         ],
+         "retOffset": "0x15",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x14       push ebx ",
+            "0x15       ret  0 "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x18",
+         "pushOffset": [
+            "0x18",
+            "ecx"
+         ],
+         "retOffset": "0x19",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x18       push ecx ",
+            "0x19       ret  0 "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x1c",
+         "pushOffset": [
+            "0x1c",
+            "edx"
+         ],
+         "retOffset": "0x1d",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x1c       push edx ",
+            "0x1d       ret  0 "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x20",
+         "pushOffset": [
+            "0x20",
+            "edi"
+         ],
+         "retOffset": "0x21",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x20       push edi ",
+            "0x21       ret  0 "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x24",
+         "pushOffset": [
+            "0x24",
+            "esi"
+         ],
+         "retOffset": "0x25",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x24       push esi ",
+            "0x25       ret  0 "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x28",
+         "pushOffset": [
+            "0x28",
+            "ebp"
+         ],
+         "retOffset": "0x29",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x28       push ebp ",
+            "0x29       ret  0 "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x2c",
+         "pushOffset": [
+            "0x2c",
+            "esp"
+         ],
+         "retOffset": "0x2d",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x2c       push esp ",
+            "0x2d       ret  0 "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x61",
+         "pushOffset": [
+            "0x61",
+            "eax"
+         ],
+         "retOffset": "0x62",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x61       push eax ",
+            "0x62       ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x64",
+         "pushOffset": [
+            "0x64",
+            "ecx"
+         ],
+         "retOffset": "0x65",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x64       push ecx ",
+            "0x65       ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x67",
+         "pushOffset": [
+            "0x67",
+            "edx"
+         ],
+         "retOffset": "0x68",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x67       push edx ",
+            "0x68       ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x6a",
+         "pushOffset": [
+            "0x6a",
+            "ebx"
+         ],
+         "retOffset": "0x6b",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x6a       push ebx ",
+            "0x6b       ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x6d",
+         "pushOffset": [
+            "0x6d",
+            "esp"
+         ],
+         "retOffset": "0x6e",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x6d       push esp ",
+            "0x6e       ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x70",
+         "pushOffset": [
+            "0x70",
+            "ebp"
+         ],
+         "retOffset": "0x71",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x70       push ebp ",
+            "0x71       ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x73",
+         "pushOffset": [
+            "0x73",
+            "esi"
+         ],
+         "retOffset": "0x74",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x73       push esi ",
+            "0x74       ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x76",
+         "pushOffset": [
+            "0x76",
+            "edi"
+         ],
+         "retOffset": "0x77",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x76       push edi ",
+            "0x77       ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x79",
+         "pushOffset": [
+            "0x79",
+            "eax"
+         ],
+         "retOffset": "0x7a",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x79       push eax ",
+            "0x7a       ret  5 "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x7e",
+         "pushOffset": [
+            "0x7e",
+            "ecx"
+         ],
+         "retOffset": "0x7f",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x7e       push ecx ",
+            "0x7f       ret  5 "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x83",
+         "pushOffset": [
+            "0x83",
+            "edx"
+         ],
+         "retOffset": "0x84",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x83       push edx ",
+            "0x84       ret  5 "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x88",
+         "pushOffset": [
+            "0x88",
+            "ebx"
+         ],
+         "retOffset": "0x89",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x88       push ebx ",
+            "0x89       ret  5 "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x8d",
+         "pushOffset": [
+            "0x8d",
+            "esp"
+         ],
+         "retOffset": "0x8e",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x8d       push esp ",
+            "0x8e       ret  5 "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x92",
+         "pushOffset": [
+            "0x92",
+            "ebp"
+         ],
+         "retOffset": "0x93",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x92       push ebp ",
+            "0x93       ret  5 "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x97",
+         "pushOffset": [
+            "0x97",
+            "esi"
+         ],
+         "retOffset": "0x98",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x97       push esi ",
+            "0x98       ret  5 "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x9c",
+         "pushOffset": [
+            "0x9c",
+            "edi"
+         ],
+         "retOffset": "0x9d",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x9c       push edi ",
+            "0x9d       ret  5 "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0xe0",
+         "pushOffset": [
+            "0xe0",
+            "eax"
+         ],
+         "retOffset": "0xe2",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0xe0       push eax ",
+            "0xe1       inc  eax ",
+            "0xe2       ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      }
+   ],
+   "callpop": [],
+   "PEB": [],
+   "fstenv": [],
+   "heavensGate": [],
+   "syscall": [],
+   "strings": [],
+   "shellcode": {
+      "rawhex": "50c353c351c352c357c356c355c354c350c2000053c2000051c2000052c2000057c2000056c2000055c2000054c2000050cb53cb51cb52cb57cb56cb55cb54cb50ca000053ca000051ca000052ca000057ca000056ca000055ca000054ca00004150c34151c34152c34153c34154c34155c34156c34157c34150c205004151c205004152c205004153c205004154c205004155c205004156c205004157c205004150cb4151cb4152cb4153cb4154cb4155cb4156cb4157cb4150ca05004151ca05004152ca05004153ca05004154ca05004155ca05004156ca05004157ca05005040c3",
+      "strlit": "\\x50\\xc3\\x53\\xc3\\x51\\xc3\\x52\\xc3\\x57\\xc3\\x56\\xc3\\x55\\xc3\\x54\\xc3\\x50\\xc2\\x00\\x00\\x53\\xc2\\x00\\x00\\x51\\xc2\\x00\\x00\\x52\\xc2\\x00\\x00\\x57\\xc2\\x00\\x00\\x56\\xc2\\x00\\x00\\x55\\xc2\\x00\\x00\\x54\\xc2\\x00\\x00\\x50\\xcb\\x53\\xcb\\x51\\xcb\\x52\\xcb\\x57\\xcb\\x56\\xcb\\x55\\xcb\\x54\\xcb\\x50\\xca\\x00\\x00\\x53\\xca\\x00\\x00\\x51\\xca\\x00\\x00\\x52\\xca\\x00\\x00\\x57\\xca\\x00\\x00\\x56\\xca\\x00\\x00\\x55\\xca\\x00\\x00\\x54\\xca\\x00\\x00\\x41\\x50\\xc3\\x41\\x51\\xc3\\x41\\x52\\xc3\\x41\\x53\\xc3\\x41\\x54\\xc3\\x41\\x55\\xc3\\x41\\x56\\xc3\\x41\\x57\\xc3\\x41\\x50\\xc2\\x05\\x00\\x41\\x51\\xc2\\x05\\x00\\x41\\x52\\xc2\\x05\\x00\\x41\\x53\\xc2\\x05\\x00\\x41\\x54\\xc2\\x05\\x00\\x41\\x55\\xc2\\x05\\x00\\x41\\x56\\xc2\\x05\\x00\\x41\\x57\\xc2\\x05\\x00\\x41\\x50\\xcb\\x41\\x51\\xcb\\x41\\x52\\xcb\\x41\\x53\\xcb\\x41\\x54\\xcb\\x41\\x55\\xcb\\x41\\x56\\xcb\\x41\\x57\\xcb\\x41\\x50\\xca\\x05\\x00\\x41\\x51\\xca\\x05\\x00\\x41\\x52\\xca\\x05\\x00\\x41\\x53\\xca\\x05\\x00\\x41\\x54\\xca\\x05\\x00\\x41\\x55\\xca\\x05\\x00\\x41\\x56\\xca\\x05\\x00\\x41\\x57\\xca\\x05\\x00\\x50\\x40\\xc3"
+   }
+}

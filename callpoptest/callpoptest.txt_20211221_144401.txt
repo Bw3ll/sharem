@@ -1,0 +1,147 @@
+Filename: callpoptest.txt
+File Type: rawHex
+Bits: 32
+Date Analyzed: 2021-12-21 14:44:01
+Seconds since last epoch: 1640119441.221709
+
+Section info
+
+Entry point: 0x0
+
+No strings found.
+
+
+***********
+Push ret
+***********
+
+********************************************************************************************************
+Push ret Item: 0 | Section: -1 | Section name: rawHex | PUSH Offset: 0x12, eax | RET Offset: 0x13
+0x12       push eax 
+0x13       ret   
+
+No fstenv instructions found.
+
+
+***********
+Call Pop
+***********
+
+********************************************************************************************************
+Call pop Item: 0 | Section: -1 | Section name: rawHex
+0x18       call 0x1d 
+0x1d       pop  ebx 
+********************************************************************************************************
+Call pop Item: 1 | Section: -1 | Section name: rawHex
+0x24       call 0x2d 
+0x29       add  ebx, ebx 
+0x2b       add  ebx, ebx 
+0x2d       add  ebx, ebx 
+0x2f       pop  eax 
+********************************************************************************************************
+Call pop Item: 2 | Section: -1 | Section name: rawHex
+0x4e       call 0x59 
+0x53       add  ebx, ebx 
+0x55       add  ebx, ebx 
+0x57       add  ebx, ebx 
+0x59       add  ebx, ebx 
+0x5b       add  ebx, ebx 
+0x5d       add  ebx, ebx 
+0x5f       add  ebx, ebx 
+0x61       add  ebx, ebx 
+0x63       add  ebx, ebx 
+0x65       add  ebx, ebx 
+0x67       add  ebx, ebx 
+0x69       add  ebx, ebx 
+0x6b       add  ebx, ebx 
+0x6d       pop  edx 
+
+No syscall instructions found.
+
+No peb walking instructions found.
+
+No heaven's gate instructions found.
+
+
+****************
+Disassembly
+****************
+
+0x0        call 6                              \xe8\x01\x00\x00\x00      .....     
+0x5        pop ebx                             \x5b                      [         
+	 label_0x6:
+0x6        call 0xd                            \xe8\x02\x00\x00\x00      .....     
+	 label_0xd:
+0xb        XPPPPPPP ; string                  \x58\x50\x50\x50\x50\x50\x50\x50          
+0x13       ret                                 \xc3                      .         
+           ; returning to eax                                                      
+
+0x14       ret                                 \xc3                      .         
+
+0x15       ret                                 \xc3                      .         
+
+0x16       ret                                 \xc3                      .         
+
+0x17       ret                                 \xc3                      .         
+
+0x18       call 0x1d                           \xe8\x00\x00\x00\x00      .....     
+	 label_0x1d:
+0x1d       pop ebx                             \x5b                      [         
+            ; GetPC                                                                
+0x1e       call 0x24                           \xe8\x01\x00\x00\x00      .....     
+0x23       pop ebx                             \x5b                      [         
+	 label_0x24:
+0x24       call 0x2d                           \xe8\x04\x00\x00\x00      .....     
+0x29       add ebx, ebx                        \x01\xdb                  ..        
+0x2b       add ebx, ebx                        \x01\xdb                  ..        
+	 label_0x2d:
+0x2d       add ebx, ebx                        \x01\xdb                  ..        
+0x2f       pop eax                             \x58                      X         
+            ; GetPC                                                                
+0x30       call 0x50                           \xe8\x1b\x00\x00\x00      .....     
+0x35       add ebx, ebx                        \x01\xdb                  ..        
+0x37       add ebx, ebx                        \x01\xdb                  ..        
+	 label_0x39:
+0x39       add ebx, ebx                        \x01\xdb                  ..        
+0x3b       add ebx, ebx                        \x01\xdb                  ..        
+0x3d       add ebx, ebx                        \x01\xdb                  ..        
+0x3f       add ebx, ebx                        \x01\xdb                  ..        
+0x41       add ebx, ebx                        \x01\xdb                  ..        
+0x43       add ebx, ebx                        \x01\xdb                  ..        
+0x45       add ebx, ebx                        \x01\xdb                  ..        
+0x47       add ebx, ebx                        \x01\xdb                  ..        
+0x49       add ebx, ebx                        \x01\xdb                  ..        
+0x4b       add ebx, ebx                        \x01\xdb                  ..        
+0x4d       pop ecx                             \x59                      Y         
+0x4e       call 0x59                           \xe8\x06\x00\x00\x00      .....     
+0x53       add ebx, ebx                        \x01\xdb                  ..        
+0x55       add ebx, ebx                        \x01\xdb                  ..        
+0x57       db 0x01 (!)                        \x01                      .         
+0x58       db 0xdb (!)                        \xdb                      .         
+	 label_0x59:
+0x59       add ebx, ebx                        \x01\xdb                  ..        
+0x5b       add ebx, ebx                        \x01\xdb                  ..        
+0x5d       add ebx, ebx                        \x01\xdb                  ..        
+0x5f       add ebx, ebx                        \x01\xdb                  ..        
+0x61       add ebx, ebx                        \x01\xdb                  ..        
+0x63       add ebx, ebx                        \x01\xdb                  ..        
+0x65       add ebx, ebx                        \x01\xdb                  ..        
+0x67       add ebx, ebx                        \x01\xdb                  ..        
+0x69       add ebx, ebx                        \x01\xdb                  ..        
+0x6b       add ebx, ebx                        \x01\xdb                  ..        
+0x6d       pop edx                             \x5a                      Z         
+            ; GetPC                                                                
+0x6e       db 0xe8                             \xe8                      .         
+0x6f       add dword ptr [eax], eax            \x01\x00                  ..        
+0x71       db 0x00                             \x00                      .         
+0x72       db 0x00 (!)                        \x00                      .         
+0x73       db 0x5e (!)                        \x5e                      ^         
+[33;1m
+Raw Hex:
+[0m"[32;1me8010000005be8020000005850505050505050c3c3c3c3c3e8000000005be8010000005be80400000001db01db01db58e81b00000001db01db01db01db01db01db01db01db01db01db01db01db59e80600000001db01db01db01db01db01db01db01db01db01db01db01db01db5ae8010000005e[0m"
+[33;1m
+String Literal:
+[0m"[32;1m\xe8\x01\x00\x00\x00\x5b\xe8\x02\x00\x00\x00\x58\x50\x50\x50\x50\x50\x50\x50\xc3\xc3\xc3\xc3\xc3\xe8\x00\x00\x00\x00\x5b\xe8\x01\x00\x00\x00\x5b\xe8\x04\x00\x00\x00\x01\xdb\x01\xdb\x01\xdb\x58\xe8\x1b\x00\x00\x00\x01\xdb\x01\xdb\x01\xdb\x01\xdb\x01\xdb\x01\xdb\x01\xdb\x01\xdb\x01\xdb\x01\xdb\x01\xdb\x01\xdb\x59\xe8\x06\x00\x00\x00\x01\xdb\x01\xdb\x01\xdb\x01\xdb\x01\xdb\x01\xdb\x01\xdb\x01\xdb\x01\xdb\x01\xdb\x01\xdb\x01\xdb\x01\xdb\x5a\xe8\x01\x00\x00\x00\x5e[0m"
+[33;1m
+Array Literal:
+[0m{[32;1m0xe8, 0x01, 0x00, 0x00, 0x00, 0x5b, 0xe8, 0x02, 0x00, 0x00, 0x00, 0x58, 0x50, 0x50, 0x50, 0x50, 0x50, 0x50, 0x50, 0xc3, 0xc3, 0xc3, 0xc3, 0xc3, 0xe8, 0x00, 0x00, 0x00, 0x00, 0x5b, 0xe8, 0x01, 0x00, 0x00, 0x00, 0x5b, 0xe8, 0x04, 0x00, 0x00, 0x00, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x58, 0xe8, 0x1b, 0x00, 0x00, 0x00, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x59, 0xe8, 0x06, 0x00, 0x00, 0x00, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x01, 0xdb, 0x5a, 0xe8, 0x01, 0x00, 0x00, 0x00, 0x5e[0m}

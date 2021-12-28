@@ -1,0 +1,109 @@
+{
+   "dateAnalyzed": "2021-12-23 12:21:25",
+   "secondsSinceEpoch": 1640283685.571067,
+   "fileType": "rawHex",
+   "bits": 32,
+   "entryPoint": "0x0",
+   "pushret": [
+      {
+         "address": "0x0",
+         "pushOffset": [
+            "0x0",
+            "eax"
+         ],
+         "retOffset": "0x1",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x0        push eax ",
+            "0x1        ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x2",
+         "pushOffset": [
+            "0x2",
+            "eax"
+         ],
+         "retOffset": "0x3",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x2        push eax ",
+            "0x3        ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x4",
+         "pushOffset": [
+            "0x4",
+            "eax"
+         ],
+         "retOffset": "0x5",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x4        push eax ",
+            "0x5        ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x6",
+         "pushOffset": [
+            "0x6",
+            "eax"
+         ],
+         "retOffset": "0x7",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x6        push eax ",
+            "0x7        ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x8",
+         "pushOffset": [
+            "0x8",
+            "eax"
+         ],
+         "retOffset": "0x9",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x8        push eax ",
+            "0x9        ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      }
+   ],
+   "callpop": [],
+   "PEB": [],
+   "fstenv": [],
+   "heavensGate": [],
+   "syscall": [],
+   "strings": [],
+   "shellcode": {
+      "rawhex": "50c350c350c350c350c3",
+      "strlit": "\\x50\\xc3\\x50\\xc3\\x50\\xc3\\x50\\xc3\\x50\\xc3"
+   }
+}
