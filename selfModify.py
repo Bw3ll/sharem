@@ -1492,7 +1492,7 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], f
 			iLimit, iValue=lim, res
 		t+=1
 
-	tempMax(3, 3,3, 3)
+	# tempMax(3, 3,3, 3)
 
 	# print ("aLimit", aLimit, aValue)
 	# print ("bLimit", bLimit, bValue)
@@ -3747,7 +3747,7 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 					iLimit, iValue=lim, res
 				t+=1
 
-			tempMax(4, 4,4, 3)
+			# tempMax(4, 4,4, 3)
 
 			# print ("aLimit", aLimit, aValue)
 			# print ("bLimit", bLimit, bValue)
