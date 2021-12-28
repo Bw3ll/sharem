@@ -197,8 +197,8 @@ bytesBack = 15
 unencryptedShell=0x0
 decoderShell=0x1
 unecryptedBodyShell=0x3
-# debugging=True
-debugging=False
+debugging=True
+# debugging=False
 
 
 GoodStrings=["cmd",  "net","add", "win", "http", "dll", "sub", "calc"]
@@ -370,7 +370,7 @@ if args.pe:
 
 		peFile = os.path.basename(args.pe)
 		peName = args.pe
-		print("PE path is: ", args.pe)
+		# print("PE path is: ", args.pe)
 		if win32file.GetBinaryType(args.pe) == 6:
 			# print("64 bit file", args.pe)
 			bit32 = False
@@ -935,7 +935,7 @@ def CFG():
 
 def Extraction():
 
-	print("Extraction")
+	# print("Extraction")
 	global entryPoint
 	global VirtualAdd
 	global ImageBase
@@ -986,7 +986,7 @@ def Extraction():
 	m[o].protect = m[o].protect + m[o].depStatus + m[o].aslrStatus + m[o].sehSTATUS + m[o].CFGstatus
 	DLL_Protect.append(m[o].protect)
 
-	print ("extraction end")
+	# print ("extraction end")
 def findEvilImports():
 	global FoundApisAddress
 	for item in pe.DIRECTORY_ENTRY_IMPORT:
@@ -1829,21 +1829,27 @@ def show1(int):
 		show = "{0:02x}".format(int) #
 		return show
 
-def binaryToStr(binary):
-	# OP_SPECIAL = b"\x8d\x4c\xff\xe2\x01\xd8\x81\xc6\x34\x12\x00\x00"
+def binaryToStr(binary, mode = None):
 	newop=""
-	# newAscii=""
 	try:
-		for v in binary:
-			i = ord2(v) 
-			newop += "\\x"+show1(i)
-			# newAscii += "\\x"+chr(i)
-		# print newop
-		# print newAscii
-		return newop
+		if mode ==None or mode ==1:
+			for v in binary:
+				newop += "\\x"+"{0:02x}".format(v) #   e.g \\xab\\xac\\xad\\xae
+			return newop
+		elif mode==2:
+			for v in binary:
+				newop += "{0:02x}".format(v)		#   e.g abacadae
+				print ("newop",newop)
+			return newop
+		elif mode==3:
+			for v in binary:
+				newop += "{0:02x} ".format(v)    #   e.g ab ac ad ae
+				print ("newop",newop)
+			return newop
 	except Exception as e:
 		print ("*Not valid format")
 		print(e)
+
 
 def Text2Json(shell, json=None):
 	#print(shell)
@@ -1933,9 +1939,10 @@ def binaryToText(binary, json=None):
 		arrayLit ="\nArray Literal:\n"+"{" + arrayLit+ "}\n"
 
 		if json==None:
-			print (strLitwColor)
-			print (rawHwColor)
-			print (arrayLitwColor)
+			# print (strLitwColor)
+			# print (rawHwColor)
+			# print (arrayLitwColor)
+			pass
 		returnVal=rawH+strLit+arrayLit
 	except Exception as e:
 		print ("*Not valid format")
@@ -9657,7 +9664,7 @@ def AustinTesting2():
 	# rawBytes=rawData2
 	# print ("rawbytes class", type(rawBytes))
 
-	# disassembly=takeBytes(data2,(len(data2)-10))
+	# disassembly, assemblyBytes=takeBytes(data2,(len(data2)-10))
 	# directory, filename= (splitDirectory(filename))
 	# directory=""
 
@@ -9843,19 +9850,7 @@ possibleBadLabelOffsets=[]
 def show1(int):
 		show = "{0:02x}".format(int) #
 		return show
-def binaryToStr(binary):
-	newop=""
-	try:
-		for v in binary:
-			i = ord2(v) 
-			newop += "\\x"+show1(i)
-			# newAscii += "\\x"+chr(i)
-		# print newop
-		# print newAscii
-		return newop
-	except Exception as e:
-		print ("*Not valid format")
-		print(e)
+
 def ord2(x):
 	return x
 
@@ -10457,13 +10452,16 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 	sVal=""
 	beforeS=""
 	curDisassembly=""
+	instr=""
 	# for x in range (length):
 		# if offset >= length:
 		# 	break
 
 	maxSize=offset+length
+	sample=""
 	while offset < maxSize:
 		stop=offset+1
+		sample=data[offset:stop]
 		bytesRes= (binaryToStr(data[offset:stop]))
 		instr="db 0"+bytesRes[1:]+" (!)"
 		Ascii2=makeAsciiforDB(bytesRes)
@@ -10545,6 +10543,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 				stringVal+="*B"+curDisassembly
 				addDis(offset,"d."+stringVal, "db", "0x"+bytesRes[2:])
 			skip=False
+		# "bytesres
 		if shBy.boolspecial[offset]==True:
 			mes=shBy.specialVal[offset]
 			offset=shBy.specialEnd[offset]-1
@@ -10554,14 +10553,29 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 			if shBy.specialVal[t] == "al":
 				stringValSp="align " +distanceStr
 			elif shBy.specialVal[t] == "ff":
-				stringValSp="db 0xff x "  + distanceStr 
+				stringValSp="db 0xff x"  + distanceStr 
 			else:
 				stringValSp="align " +distanceStr
 			nada=""
 			dbOutSp=(binaryToStr(data[shBy.specialStart[offset]:shBy.specialEnd[offset]]))
 			curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(shBy.specialStart[offset])), stringValSp,dbOutSp,nada ))
 			stringVal+=""+curDisassembly
-			addDis(shBy.specialStart[offset],"D."+curDisassembly, "db 0xff\n"*int(len(dbOutSp)/4), "")
+			if shBy.specialVal[t] == "al":
+				stringValSp="align " +distanceStr
+				bytesRes= (binaryToStr(sample,2))
+				bytesOut="db 0x"+bytesRes+"\n"
+				addDis(shBy.specialStart[offset],"D."+curDisassembly, bytesOut*int(len(dbOutSp)/4), "")   #doesn't seem to be used
+			elif shBy.specialVal[t] == "ff":
+				stringValSp="db 0xff x"  + distanceStr 
+				bytesRes= (binaryToStr(sample,2))
+				bytesOut="db 0x"+bytesRes+"\n"
+				addDis(shBy.specialStart[offset],"D."+curDisassembly,bytesOut*int(len(dbOutSp)/4), "")
+			else:
+				bytesRes= (binaryToStr(sample,2))
+				bytesOut="db 0x"+bytesRes+"\n"
+				addDis(shBy.specialStart[offset],"D."+curDisassembly, (bytesOut)*int(len(dbOutSp)/4), "")   		# this is the one used
+				stringValSp="align " +distanceStr
+			# addDis(shBy.specialStart[offset],"D."+curDisassembly, "db 0xff\n"*int(len(dbOutSp)/4), "")
 			# print ("got it align", hex(offset))
 			dprint2(hex(len(shBy.boolspecial)))
 
@@ -11948,7 +11962,7 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack):
 	return truth, tl1, tl2, l1,l2
 
 def takeBytes(shellBytes,startingAddress):
-	print ("takeBytes")
+	dprint2 ("takeBytes")
 	global shBy
 	global FindStringsStatus
 	# print ("take bytes")
@@ -12005,13 +12019,15 @@ def takeBytes(shellBytes,startingAddress):
 
 	# for x,y, mnemonic, op_str in zip(l1, l2, tempMnemonic, tempOp_str):
 
-	for x,y, mnemonic, op_str in zip(tempAddresses, tempDisassembly, tempMnemonic, tempOp_str):
+	# for x,y, mnemonic, op_str in zip(tempAddresses, tempDisassembly, tempMnemonic, tempOp_str):
+	for x,y, mnemonic, op_str in zip(l1, l2, tempMnemonic, tempOp_str):
+
 		# print (hex(x), y ," [",mnemonic,"] [", op_str ,"]")
 		# print ((x), y ," [",mnemonic,"] [", op_str ,"]")
-		print ((x), y )
+		print (hex(x), "\t", y," - ", mnemonic, op_str )
 	
 	assembly=binaryToText(shellBytes)   # this creates the string literal, raw hex, etc.
-	return out+assembly
+	return out,assembly
 
 def addComments():
 
@@ -13086,7 +13102,8 @@ def bramwellEncodeDecodeWork(shellArg):
 	rawData2=new
 	mode=""
 	findAllPebSequences(mode)
-	disassembly=takeBytes(new,0)
+	disassembly, assemblyBytes=takeBytes(new,0)
+	res=disassembly+assemblyBytes
 	print ("decrypted disassembly")
 	print (disassembly)
 	if not os.path.exists(directory+'outputs'):
@@ -13096,7 +13113,7 @@ def bramwellEncodeDecodeWork(shellArg):
 	newBin.write(rawBytes)
 	newBin.close()
 	newDis = open(directory+"outputs\\decrypted-"+filename[:-4]+"-disassembly.txt", "w")
-	newDis.write(disassembly)
+	newDis.write(res)
 	newDis.close()
 
 
@@ -13104,12 +13121,12 @@ def bramwellEncodeDecodeWork(shellArg):
 	### example of shellcode from ML - combining decoder + decoded
 	yes=3
 	if yes==2:
-		disassembly=takeBytes(old,0)
+		disassembly, assemblyBytes=takeBytes(old,0)
 		print ("old disassembly")
 		print (disassembly)
 		final=old[:0x23] +new[0x23:]
 		clearDisassBytClass()
-		disassembly=takeBytes(final,0)
+		disassembly, assemblyBytes=takeBytes(final,0)
 
 		print ("combined")
 		print (disassembly)
@@ -13126,11 +13143,11 @@ def bramwellEncodeDecodeWork(shellArg):
 		decoded=decodeShellcode3(encoded,old)
 		print ("decoding done")
 		clearDisassBytClass()
-		disassembly=takeBytes(decoded,0)
+		disassembly, assemblyBytes=takeBytes(decoded,0)
 		print ("old disassembly")
 		print (disassembly)
 
-	# disassembly=takeBytes(rawBytes,0)
+	# disassembly, assemblyBytes=takeBytes(rawBytes,0)
 
 
 	# ### Saving disassembly and .bin
@@ -13496,7 +13513,7 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 			# 	print("\n\n")
 			# return
 	if(outputFile and (len(decodeInfo) > 0)):
-		disassembly=takeBytes(decodedBytes, shellEntry)
+		disassembly, assemblyBytes=takeBytes(decodedBytes, shellEntry)
 		rawBytes = decodedBytes	
 		directory = ".\\"
 		print ("decrypted disassembly")
@@ -14135,7 +14152,7 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 						# print("CONVERTED SINGLE HERE")
 						# print(binaryToStr(rawData2))
 
-						disassembly=takeBytes(new,0)
+						disassembly, assemblyBytes=takeBytes(new,0)
 					if(outputFile):
 						print ("decrypted disassembly")
 						print (disassembly)
@@ -14220,7 +14237,7 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 						# print("CONVERTED SINGLE HERE")
 						# print(binaryToStr(rawData2))
 				if(outputFile):
-					disassembly=takeBytes(new,0)
+					disassembly, assemblyBytes=takeBytes(new,0)
 					print ("decrypted disassembly")
 					print (disassembly)
 					if not os.path.exists(directory+'outputs'):
@@ -14297,7 +14314,7 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 		# rawData2=new
 		# mode=""
 		# findAllPebSequences(mode)
-		# disassembly=takeBytes(new,0)
+		# disassembly, assemblyBytes=takeBytes(new,0)
 		# print ("decrypted disassembly")
 		# print (disassembly)
 		# if not os.path.exists(directory+'outputs'):
@@ -14315,12 +14332,12 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 		# ### example of shellcode from ML - combining decoder + decoded
 		# yes=3
 		# if yes==2:
-		# 	disassembly=takeBytes(old,0)
+		# 	disassembly, assemblyBytes=takeBytes(old,0)
 		# 	print ("old disassembly")
 		# 	print (disassembly)
 		# 	final=old[:0x23] +new[0x23:]
 		# 	clearDisassBytClass()
-		# 	disassembly=takeBytes(final,0)
+		# 	disassembly, assemblyBytes=takeBytes(final,0)
 
 		# 	print ("combined")
 		# 	print (disassembly)
@@ -14337,11 +14354,11 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 		# 	decoded=decodeShellcode3(encoded,old)
 		# 	print ("decoding done")
 		# 	clearDisassBytClass()
-		# 	disassembly=takeBytes(decoded,0)
+		# 	disassembly, assemblyBytes=takeBytes(decoded,0)
 		# 	print ("old disassembly")
 		# 	print (disassembly)
 
-		# # disassembly=takeBytes(rawBytes,0)
+		# # disassembly, assemblyBytes=takeBytes(rawBytes,0)
 
 
 		# # ### Saving disassembly and .bin
@@ -14368,7 +14385,7 @@ def shellDisassemblyStart(shellArg):
 	rawBytes=rawData2
 	findAllPebSequences(mode)
 	print ("rawbytes class", type(rawBytes))
-	disassembly=takeBytes(rawBytes,0)
+	disassembly, assemblyBytes=takeBytes(rawBytes,0)
 	
 	print ("final output:\n" + disassembly)
 	printAllShBy()
@@ -14437,7 +14454,7 @@ def shellDisassemblyInit(shellArg):
 	printSavedPEB()
 	#parameterize
 	print ("preStart", hex(startAddress))
-	disassembly=takeBytes(shellArg,startAddress)
+	disassembly, assemblyBytes=takeBytes(shellArg,startAddress)
 	   # main one
 	gDisassemblyText = disassembly
 
@@ -15646,7 +15663,7 @@ def ui(): #UI menu loop
 
 	# 	for item in section.save_PushRet_info:
 	# for item in m[o].save_PushRet_info:
-	print("Bits: ", shellBit)
+	# print("Bits: ", shellBit)
 	showOptions(shellBit)
 	while x != "e":		#Loops on keyboard input
 		try:			#Will break the loop on entering x
@@ -15665,7 +15682,7 @@ def ui(): #UI menu loop
 					print("\nThis option is for shellcode only.\n")
 				else:
 					shellDisassemblyInit(rawData2)
-					bramwellStart2()
+					# bramwellStart2()
 			elif userIN[0:1] == "d":
 				disToggleMenu()
 				disassembleUiMenu(shellEntry)
@@ -19053,7 +19070,7 @@ if __name__ == "__main__":
 
 	# user = AustinID
 	user=view
-	# user=BramwellID
+	user=BramwellID
 
 
 	
@@ -19091,6 +19108,7 @@ if __name__ == "__main__":
 		# yes = 1
 
 		yes =559
+		# yes=2
 
 
 		if yes == 53:
@@ -19128,12 +19146,12 @@ if __name__ == "__main__":
 
 			shellEntry=0x44
 			shellDisassemblyInit(rawData2)
-			bramwellStart2()
+			# bramwellStart2()
 
 
 		if yes ==559:
 
-			print ("results")
+			print ("myresults")
 			hashShellcode(rawData2, unecryptedBodyShell)   ## options (None, unecryptedBodyShell,unencryptedShell, decoderShell )
 			hashShellcodeTestShow(unecryptedBodyShell)  ## options (None, unecryptedBodyShell,unencryptedShell, decoderShell )
 
