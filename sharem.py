@@ -197,6 +197,9 @@ bytesBack = 15
 unencryptedShell=0x0
 decoderShell=0x1
 unecryptedBodyShell=0x3
+sample=0x4
+allObject=0x5
+
 debugging=True
 # debugging=False
 
@@ -701,23 +704,27 @@ class shellHash:
 			# print ("self.unecryptedBodySsdeep", self.unecryptedBodySsdeep)
 
 	def show(self, mode=None):
-		print("show")
+		
 		if mode==None:
-			out="md5: " + self.md5 + "\n"
-			out+="sha256: " + self.sha256+ "\n"
-			out+="ssdeep: " + self.ssdeep
+			out="Shellcode"
+			out+="\tmd5: " + self.md5 + "\n"
+			out+="\tsha256: " + self.sha256+ "\n"
+			out+="\tssdeep: " + self.ssdeep
 		elif mode==unecryptedBodyShell:
-			out="md5: " + self.unecryptedBodyMd5 + "\n"
-			out+="sha256: " + self.unecryptedBodySha256+ "\n"
-			out+="ssdeep: " + self.unecryptedBodySsdeep
+			out="Decoded shellcode body"
+			out+="\tmd5: " + self.unecryptedBodyMd5 + "\n"
+			out+="\tsha256: " + self.unecryptedBodySha256+ "\n"
+			out+="\tssdeep: " + self.unecryptedBodySsdeep
 		elif mode==decoderShell:
-			out="md5: " + self.decoderStubMd5 + "\n"
-			out+="sha256: " + self.decoderStubSha256+ "\n"
-			out+="ssdeep: " + self.decoderStubSsdeep
+			out="Shellcode decoder stub"	
+			out+="\tmd5: " + self.decoderStubMd5 + "\n"
+			out+="\tsha256: " + self.decoderStubSha256+ "\n"
+			out+="\tssdeep: " + self.decoderStubSsdeep
 		elif mode==unencryptedShell:
-			out="md5: " + self.unecryptedMd5 + "\n"
-			out+="sha256: " + self.unecryptedSha256+ "\n"
-			out+="ssdeep: " + self.unecryptedSsdeep
+			out="Decoded shellcode (all)"
+			out+="\tmd5: " + self.unecryptedMd5 + "\n"
+			out+="\tsha256: " + self.unecryptedSha256+ "\n"
+			out+="\tssdeep: " + self.unecryptedSsdeep
 
 		return out
 
@@ -17170,7 +17177,7 @@ def uiFindImports():
 		else:
 			print("Input not recognized.\n")
 
-def hashShellcode(shell, mode=None):
+def hashShellcode(shell=None, mode=None):
 	# print("hash:")
 	# print(hashlib.md5(open('shellcode4.bin','rb').read()).hexdigest())
 	# print(hashlib.md5(shell).hexdigest())
@@ -17180,11 +17187,15 @@ def hashShellcode(shell, mode=None):
 	# hash2 = ssdeep.hash('Also called fuzzy hashes, Ctph can match inputs that have homologies.')
 	# print ("ssdeep tester", hash2)
 	# ssdeepHash1 = ssdeep.hash(open('shellcode4.bin','rb').read())
-	
-	ssdeepHash = ssdeep.hash(shell)
-	md5sum=(hashlib.md5(shell).hexdigest())
-	sha256=(hashlib.sha256(shell).hexdigest())
-	if mode == None:	
+	if shell != None:
+		ssdeepHash = ssdeep.hash(shell)
+		md5sum=(hashlib.md5(shell).hexdigest())
+		sha256=(hashlib.sha256(shell).hexdigest())
+	# if shell ==None:
+	# 	ssdeepHash = ssdeep.hash(sh.rawData2)
+	# 	md5sum=(hashlib.md5(sh.rawData2).hexdigest())
+	# 	sha256=(hashlib.sha256(sh.rawData2).hexdigest())
+	if mode == sample:	
 		shHash.setMd5(md5sum)
 		shHash.setSha256(sha256)
 		shHash.setSsdeep(ssdeepHash)
@@ -17200,10 +17211,38 @@ def hashShellcode(shell, mode=None):
 		shHash.setMd5(md5sum, unecryptedBodyShell)
 		shHash.setSha256(sha256, unecryptedBodyShell)
 		shHash.setSsdeep(ssdeepHash, unecryptedBodyShell)
+	if shell == None and (mode == allObject or mode == None ):		
+		ssdeepHash = ssdeep.hash(sh.rawData2)
+		md5sum=(hashlib.md5(sh.rawData2).hexdigest())
+		sha256=(hashlib.sha256(sh.rawData2).hexdigest())
+		shHash.setMd5(md5sum)
+		shHash.setSha256(sha256)
+		shHash.setSsdeep(ssdeepHash)
+
+		ssdeepHash = ssdeep.hash(sh.unencrypted)
+		md5sum=(hashlib.md5(sh.unencrypted).hexdigest())
+		sha256=(hashlib.sha256(sh.unencrypted).hexdigest())
+		shHash.setMd5(md5sum, unencryptedShell)
+		shHash.setSha256(sha256, unencryptedShell)
+		shHash.setSsdeep(ssdeepHash, unencryptedShell)
+
+		ssdeepHash = ssdeep.hash(sh.decoderStub)
+		md5sum=(hashlib.md5(sh.decoderStub).hexdigest())
+		sha256=(hashlib.sha256(sh.decoderStub).hexdigest())
+		shHash.setSha256(sha256, decoderShell)
+		shHash.setSsdeep(ssdeepHash, decoderShell)
+		shHash.setMd5(md5sum, decoderShell)
+
+		ssdeepHash = ssdeep.hash(sh.decodedBody)
+		md5sum=(hashlib.md5(sh.decodedBody).hexdigest())
+		sha256=(hashlib.sha256(sh.decodedBody).hexdigest())
+		shHash.setMd5(md5sum, unecryptedBodyShell)
+		shHash.setSha256(sha256, unecryptedBodyShell)
+		shHash.setSsdeep(ssdeepHash, unecryptedBodyShell)
 
 def hashShellcodeTestShow(mode=None):
-	print ("hashShellcodeTestShow")
-	if mode==None:
+	# print ("hashShellcodeTestShow")
+	if mode==sample:
 		print(shHash.show())
 	if mode == unencryptedShell:
 		print(shHash.show(unencryptedShell))
@@ -17211,6 +17250,12 @@ def hashShellcodeTestShow(mode=None):
 		print(shHash.show(decoderShell))
 	if mode == unecryptedBodyShell:
 		print(shHash.show(unecryptedBodyShell))
+	if mode == None:		
+		print(shHash.show())
+		print(shHash.show(unencryptedShell))
+		print(shHash.show(decoderShell))
+		print(shHash.show(unecryptedBodyShell))
+
 
 
 # 	unencryptedShell=0x0
@@ -19053,7 +19098,7 @@ if __name__ == "__main__":
 			print(e)
 			pass
 
-	hashShellcode(sh.rawData2)  # if comes after args parser
+	hashShellcode(sh.rawData2, sample)  # if comes after args parser
 
 
 	bramwell=False
@@ -19155,6 +19200,8 @@ if __name__ == "__main__":
 
 			print ("results")
 			hashShellcode(sh.rawData2, unecryptedBodyShell)   ## options (None, unecryptedBodyShell,unencryptedShell, decoderShell )
+
+
 			hashShellcodeTestShow(unecryptedBodyShell)  ## options (None, unecryptedBodyShell,unencryptedShell, decoderShell )
 
 			X86_CODE32_LOOP = b"\x41\x4a\xeb\xfe"
@@ -19164,14 +19211,27 @@ if __name__ == "__main__":
 
 
 			#shellcode object
-			sh.setrawData2(X86_CODE32_LOOP)
-			print (binaryToStr(sh.sh.rawData2))
+			# sh.setrawData2(X86_CODE32_LOOP)
+			print (binaryToStr(sh.rawData2))
 			sh.setDecoderStub(X86_CODE32)
 			print (binaryToStr(sh.decoderStub))
 			sh.setDecodedBody(random)
 			print (binaryToStr(sh.decodedBody))			
 			sh.setUnecrypted(X86_CODE32_JUMP)
 			print (binaryToStr(sh.unencrypted))
+
+			hashShellcode()   ## options (sample, unecryptedBodyShell,unencryptedShell, decoderShell )
+
+			hashShellcodeTestShow(sample)  ## options (sample, unecryptedBodyShell,unencryptedShell, decoderShell )
+			print ("\n\n")
+			hashShellcodeTestShow(unecryptedBodyShell)  ## options (sample, unecryptedBodyShell,unencryptedShell, decoderShell )
+			print ("\n\n")
+			hashShellcodeTestShow(unencryptedShell)  ## options (sample, unecryptedBodyShell,unencryptedShell, decoderShell )
+			print ("\n\n")
+			hashShellcodeTestShow(decoderShell)  ## options (sample, unecryptedBodyShell,unencryptedShell, decoderShell )
+			print ("\n\n")
+			hashShellcodeTestShow()  ## options (sample, unecryptedBodyShell,unencryptedShell, decoderShell )
+
 
 
 
