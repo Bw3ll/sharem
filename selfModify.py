@@ -3896,7 +3896,7 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 							if(len(rpOut) > 0):
 								out = out + rpOut[0]
 								matched = rpOut[1]
-							totalRuns += curPerm7
+							totalRuns += curPerm
 							curPerm = 0
 							encodeBytes4 = []
 							hitLimit = True
