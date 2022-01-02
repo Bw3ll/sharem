@@ -16493,6 +16493,7 @@ def discoverDisassembly(maxLen=None):
 		print("{:>{x}}[{}]".format("", red + "Not Found" + res, x=15+(maxLen-curLen)))
 		#print("{:>{x}}".format("[Not Found]", x=15+(maxLen-curLen)))
 	# elapsed_time += end - start
+	end = time.time()
 
 	return end-start
 
