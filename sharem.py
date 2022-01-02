@@ -16197,6 +16197,8 @@ def discoverSyscal(maxLen=None):
 def discoverDisassembly(maxLen=None):
 	global bDisassemblyFound	
 	global gDisassemblyText
+	global bit32
+	global rawHex
 	if maxLen==None:
 		maxLen=42
 	curLen = len("Searching for disassembly")
@@ -16221,7 +16223,8 @@ def discoverDisassembly(maxLen=None):
 
 		#print("{:>{x}}".format("[Not Found]", x=15+(maxLen-curLen)))
 	# elapsed_time += end - start
-	return end-start
+	if bit32:
+		return end-start
 	
 def discoverHeaven(maxLen=None):
 	global bHeavenFound
