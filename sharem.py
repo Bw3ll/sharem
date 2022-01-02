@@ -71,6 +71,12 @@ m = {} #[]   # start modules CHANGED to dicitonary
 mL=[]
 s = []  # start sections
 list_of_files = []
+list_of_files32 = []
+list_of_files64 = []
+list_of_pe32 = []
+list_of_pe64 = []
+
+
 elapsed_time = 0
 pebPresent = False
 doneAlready1 = []
@@ -327,112 +333,237 @@ filename=""
 # 			# print PEsList
 # 	PEtemp = PE_path + "/"+ peName
 
-parser = argparse.ArgumentParser()
-group = parser.add_mutually_exclusive_group(required=True)
-group.add_argument('--pe', '-pe', type=str)
-group.add_argument('--r', '-r',type=str)
-group.add_argument('-r64', '--r64',  type=str)
-group.add_argument('-r32', '--r32',  type=str)
-group.add_argument('--d', '-d', type=str, required=False)
 
+def parsePE():
+	pass
 
-parser.add_argument('--c', '-c', '--config', type=str, required=False)
+def parseShell():
+	pass
 
-
-args = parser.parse_args()
-# print(args)
-# print("Args ------> ", args)
-
-if args.r or args.r64 or args.r32:
-	if args.r:
-		file2Check = args.r
-		bit32 = True
-		# bit32_argparse = True
-		shellBit = 32
-	if args.r32:
-		file2Check = args.r32
-		bit32 = True
-		bit32_argparse = True
-		shellBit = 32
-		
-	elif args.r64:
-		# print("64 bit <---")
-		file2Check = args.r64
-		bit32 = False
-		bit32_argparse = True
-		shellBit = 64
-
-
-	if os.path.isfile(file2Check):
-		shellFile = os.path.basename(file2Check)
-		if(len(shellFile) > 3):
-			ext = shellFile[-3:]
-			if ext == "txt":
-				rawHex = True
-				filename = file2Check
-
-			else:
-				f = open(file2Check, "rb")
-				filename = file2Check
-				rawData2 = f.read()
-				f.close()
-				rawHex = True
-				rawBin = True
-			filename2=filename
-		print("Shellcode: ", shellFile)
+def isDir(file_path):
+	if os.path.isdir(file_path):
+		return True
 	else:
-		print(args.r, "file doesn't exist")
-		sys.exit()
+		return False
 
 
+def isPE(file_path):
 
 
-if args.pe:
-	if os.path.isfile(args.pe):
+	hnd = open(file_path, "rb")
+	# print("First 2 bytes: ", repr(hnd.read(2)))
+	# print("First 2 bytes: ", repr(hnd.read(2)))
 
-		peFile = os.path.basename(args.pe)
-		peName = args.pe
-		# print("PE path is: ", args.pe)
-		if win32file.GetBinaryType(args.pe) == 6:
-			# print("64 bit file", args.pe)
+	mz = b'\x4d\x5a'
+
+	mzFile = hnd.read(2)
+	# print("Two bytes ", mzFile)
+	hnd.close()
+	if mzFile == mz:	# PE file
+		# print(yel + "Found EXE file" + res, file_path)
+		return True
+	else:
+		return False
+
+def CliParser():
+
+	global peName
+	global rawData2
+	global filename
+	global bit32
+	global shellBit
+	global rawBin
+	global rawHex
+	global conFile
+	global workDir
+
+	parser = argparse.ArgumentParser()
+	group = parser.add_mutually_exclusive_group(required=True)
+	group.add_argument('--pe', '-pe', type=str)
+	group.add_argument('--r', '-r',type=str)
+	group.add_argument('-r64', '--r64',  type=str)
+	group.add_argument('-r32', '--r32',  type=str)
+	group.add_argument('--d', '-d', type=str, required=False)
+
+
+	parser.add_argument('--c', '-c', '--config', type=str, required=False)
+
+
+	args = parser.parse_args()
+	# print(args)
+	# print("Args ------> ", args)
+
+	if args.r or args.r64 or args.r32:
+		if args.r:
+			file2Check = args.r
+			bit32 = True
+			# bit32_argparse = True
+			shellBit = 32
+		if args.r32:
+			file2Check = args.r32
+			bit32 = True
+			bit32_argparse = True
+			shellBit = 32
+			
+		elif args.r64:
+			# print("64 bit <---")
+			file2Check = args.r64
+
 			bit32 = False
+			bit32_argparse = True
+			shellBit = 64
+
+
+		if os.path.isfile(file2Check):
+			shellFile = os.path.basename(file2Check)
+			if(len(shellFile) > 3):
+				ext = shellFile[-3:]
+				if ext == "txt":
+					rawHex = True
+					filename = file2Check
+
+				else:
+					f = open(file2Check, "rb")
+					filename = file2Check
+					rawData2 = f.read()
+					f.close()
+					rawHex = True
+					rawBin = True
+
+			print("Shellcode file: ", shellFile)
 		else:
+			print(args.r, "file doesn't exist")
+			sys.exit()
 			# print("32 bit")
 			bit32 = True
 
-		gDirectory, tail = os.path.split(peName)  # keave this here
-		PE_path=gDirectory
+		
 		# print (gDirectory, tail)
-	else:
-		print(args.pe, "file doesn't exist")
-		sys.exit()
+	# 
 
 
-if args.c:
-	if os.path.isfile(args.c):
-		conFile = args.c
-		# conFile = os.path.basename(args.c)
-		print("Config path is: ", conFile)
-	else:
-		print(args.c, "file doesn't exist")
-		sys.exit()
+	if args.pe:
+		if os.path.isfile(args.pe):
+
+			peFile = os.path.basename(args.pe)
+			peName = args.pe
+			print("PE path is: ", args.pe)
+			if win32file.GetBinaryType(args.pe) == 6:
+				# print("64 bit file", args.pe)
+				bit32 = False
+			else:
+				# print("32 bit")
+				bit32 = True
+			gDirectory, tail = os.path.split(peName)  # keave this here
+			PE_path=gDirectory
+		else:
+			print(args.pe, "file doesn't exist3")
+			sys.exit()
 
 
-if args.d:
-	if os.path.isdir(args.d):
+	if args.c:
+		if os.path.isfile(args.c):
+			conFile = args.c
+			# conFile = os.path.basename(args.c)
+			print("Config path is: ", conFile)
+		else:
+			print(args.c, "file doesn't exist")
+			sys.exit()
 
-		workingDir = args.d
-		workDir = True
-		for path in os.listdir(workingDir):
-			full_path = os.path.join(workingDir, path)
-			if os.path.isfile(full_path):
-				list_of_files.append(full_path)
-		# list_of_files = os.listdir(workingDir)
-		print("Directory path is: ", workingDir, list_of_files)
 
-	else:
-		print(args.d, "directory doesn't exist")
-		sys.exit()
+	if args.d:
+		if os.path.isdir(args.d):
+
+			workingDir = args.d
+			workDir = True
+			for path in os.listdir(workingDir):
+				full_path = os.path.join(workingDir, path)
+
+
+				if os.path.isfile(full_path):
+					# print("Found file", full_path, isPE(full_path))
+					if isPE(full_path):
+						# print("isPE returned", isPE(full_path), full_path)
+						if win32file.GetBinaryType(full_path) == 6:
+							bit32 = False
+							peName = full_path
+							list_of_pe64.append(full_path)
+
+						else:
+							bit32 = True
+							list_of_pe32.append(full_path)
+
+				elif isDir(full_path):
+					dirName = os.path.basename(full_path)
+					# print("isDir Directory: ", dirName)
+					if "32" in dirName:
+						for f in os.listdir(full_path):
+							ext = f[-3:]
+							if ext == "txt":
+								rawHex = True
+								rawBin = False
+								filename = f
+								bit32 = True
+								full_file_path = os.path.join(full_path, f)
+								# print("full_file_path", full_file_path)
+								list_of_files32.append(full_file_path)
+							else:
+								rawHex = True
+								rawBin = True
+								filename = f
+								bit32 = True
+								fp = open(f, "rb")
+								rawData2 = fp.read()
+								fp.close()
+								full_file_path = os.path.join(full_path, f)
+								# print("full_file_path BIN", full_file_path)
+
+								list_of_files32.append(full_file_path)
+
+					elif "64" in dirName:
+						for f in os.listdir(full_path):
+							ext = f[-3:]
+							if ext == "txt":
+								rawHex = True
+								rawBin = False
+								filename = f
+								bit32 = False
+								full_file_path = os.path.join(full_path, f)
+								# print("full_file_path 64 txt", full_file_path)
+								list_of_files64.append(full_file_path)
+							else:
+								rawHex = True
+								rawBin = True
+								filename = f
+								bit32 = False
+								fp = open(f, "rb")
+								rawData2 = fp.read()
+								fp.close()
+								full_file_path = os.path.join(full_path, f)
+								# print("full_file_path 64 BIN", full_file_path)
+								list_of_files64.append(full_file_path)
+
+
+					else:
+						print("Directory ", full_path, "isn't 32 or 64 bit")
+						continue
+
+					
+
+						
+
+			# work_from_directory()
+				# 		peName = full_path
+				# 	list_of_files.append(full_path)
+
+				# elif os.path.isdir(full_path):
+				# 	print("Found Directory", full_path)
+				# 	input()
+			# list_of_files = os.listdir(workingDir)
+
+		else:
+			print(args.d, "directory doesn't exist")
+			sys.exit()
 
 
 # print(peFile)
@@ -1033,18 +1164,21 @@ def Extraction():
 	global peName
 	global index
 	global pe
+	# print("Extracting ", peName)
 
 	modName = peName
 	try:
 		head, tail = os.path.split(peName)
 		modName = tail
-	except:
+	except Exception as e:
+		print(e)
 		pass
 	PEtemp = PE_path + "/"+ peName
 	if skipPath == False:
 		pe = pefile.PE(peName)
 	if skipPath == True:
 		pe = pefile.PE(PEtemp)
+	# print("peName : ", peName, m)
 	old=o
 	m[o].modName=peName
 	m[o].entryPoint = pe.OPTIONAL_HEADER.AddressOfEntryPoint
@@ -2719,8 +2853,10 @@ def printSavedPEB(): ######################## AUSTIN ###########################
 	dprint2 ("rawhex", rawHex)
 	j = 0
 
+
 	if(rawHex):
 		for item in m[o].save_PEB_info:
+			print("-----------------> ",item)
 
 			mods = ', '.join(item[7])
 			adv = item[8]
@@ -6610,6 +6746,18 @@ def disHereHeavenPE_old(address, NumOpsDis, NumOpsBack, secNum, data): #########
 			# 		saveBaseEgg(address, NumOpsDis, (NumOpsBack - back), modSecName, secNum, eax, c0_offset)
 			# 	return
 
+def print_from_directory(fName):
+	dirName = '\\'.join(fName.split("\\")[:-1])
+	fileName = fName.split("\\")[-1]
+	output = "******************************\n"
+	output += yel + "\nFile      : " + gre + fileName +res + "\n"
+	output += yel + "Directory : " + gre + dirName + res + "\n\n"
+	output += "******************************\n\n"
+
+	return output
+
+
+
 
 
 def work_from_directory():
@@ -6617,51 +6765,167 @@ def work_from_directory():
 	global rawHex
 	global rawBin
 	global peName
+	global rawData2
+	global shellBit
+	global bit32
 	
 
 
 	readConf()
 
-	for i in list_of_files:
-		dirName = '\\'.join(i.split("\\")[:-1])
-		fileName = i.split("\\")[-1]
-		output = "******************************\n"
-		output += yel + "\nFile      : " + gre + fileName +res + "\n"
-		output += yel + "Directory : " + gre + dirName + res + "\n\n"
-		output += "******************************\n\n"
-		print(output)
-		# print("******************************"  + yel + "\nFile: " + gre + i +res + "\n******************************")
 
-		if os.path.isfile(i):
+	if list_of_files32:
+		for i in list_of_files32:
+			# print("list_of_files32 ", rawHex)
+
+			# print("Processing ", i)
+			output = print_from_directory(i)
+			print(output)
+			filename = i
 			if i[-3:] == "txt":
 				# newModule()
-				# Extraction()
 				rawHex = True
-			elif i[-3:] == "exe":
-				peName = i
-				rawHex = False
-				newModule(i,0)
-			else:
-				# newModule()
+				rawBin = False
+				bit32 = True
+				shellBit = 32
 
+				init2(filename)
+			elif i[-3:] == "bin":
+				
 				rawHex = True
 				rawBin = True
+				bit32 = True
+				shellBit = 32
+				f = open(i, "rb")
+				rawData2 = f.read()
+				newModule(o, rawData2)
+				f.close()
+			startupPrint()
+			clearAll()
+
+
+	if list_of_files64:
+		for i in list_of_files64:
+			# print("Processing ", i)
+
+			output = print_from_directory(i)
+			print(output)
+			filename = i
+			# print("list_of_files64 ", rawHex)
+				# newModule()
+				# Extraction()
+				# newModule()
+
+			if i[-3:] == "txt":
+				# newModule(o, rawData2)
+				# Extraction()
+				rawHex = True
+				bit32 = False
+				rawBin = False
+				shellBit = 64
+				init2(filename)
+			elif i[-3:] == "bin":
+				newModule()
+				rawHex = True
+				rawBin = True
+				shellBit = 64
+				bit32 = False
 				# peName = i
 				f = open(i, "rb")
 				readRawData2 = f.read()
 				newModule(o, readRawData2)
 				# print("Length of m[o].rawData2", len(m[o].rawData2))
 				f.close()
-			filename = i
-			# print(filename)
-			# input()
-			# print("O Before ", m)
-
-			init2(filename)
 			startupPrint()
-			# print("peb: ", bPEBFound)
-
 			clearAll()
+
+	if list_of_pe32:
+		for i in list_of_pe32:
+			# print("Processing ", i)
+
+			peName = i
+			filename = i
+			rawHex = False
+			rawBin = False
+			shellBit = 32
+			# print(" PE 32 --> ", rawHex)
+
+			newModule(i, 0)
+			Extraction()
+			output = print_from_directory(i)
+			print(output)
+			bit32 = True
+			init2(i)
+			startupPrint()
+			clearAll()
+
+
+	if list_of_pe64:
+		for i in list_of_pe64:
+			# print("Processing ", i)
+
+			peName = i
+			filename = i
+			rawHex = False
+			# print(" PE 64 --> ", rawHex)
+
+			rawBin = False
+			newModule(i, 0)
+			Extraction()
+			output = print_from_directory(i)
+			print(output)
+			bit32 = False
+			shellBit = 64
+			init2(i)
+			startupPrint()
+			clearAll()
+
+			# print("S: ---> ", len(s))
+			# for sec in s:
+			# 	print("Length ", len(sec.Strings))
+			# 	print("Length ", len(sec.wideStrings))
+			# 	print("Length ", len(sec.pushStrings))
+
+
+	# for i in list_of_files:
+	# 	dirName = '\\'.join(i.split("\\")[:-1])
+	# 	fileName = i.split("\\")[-1]
+	# 	output = "******************************\n"
+	# 	output += yel + "\nFile      : " + gre + fileName +res + "\n"
+	# 	output += yel + "Directory : " + gre + dirName + res + "\n\n"
+	# 	output += "******************************\n\n"
+	# 	print(output)
+	# 	# print("******************************"  + yel + "\nFile: " + gre + i +res + "\n******************************")
+
+	# 	if os.path.isfile(i):
+	# 		if i[-3:] == "txt":
+	# 			newModule()
+	# 			# Extraction()
+	# 			rawHex = True
+	# 		elif i[-3:] == "exe":
+	# 			peName = i
+	# 			rawHex = False
+
+	# 		else:
+	# 			newModule()
+
+	# 			rawHex = True
+	# 			rawBin = True
+	# 			# peName = i
+	# 			f = open(i, "rb")
+	# 			rawData2 = f.read()
+	# 			# print("Length of rawData2", len(rawData2))
+	# 			f.close()
+	# 		filename = i
+	# 		# print(filename)
+	# 		# input()
+	# 		# print("O Before ", m)
+
+	# 		init2(filename)
+	# 		startupPrint()
+	# 		# print("peb: ", bPEBFound)
+
+	# 		clearAll()
 
 
 def getHeavenRawHex_old(address, linesBack, secNum, data):
@@ -7886,7 +8150,7 @@ def findAllPebSequences(mode, data2=None, secNum=None): ################## AUSTI
 			# print("Here")
 			# input()
 			for match in PEB_WALK_MOV_64.values():
-				get_PEB_walk_start_64(28, match, secNum, data2)
+				get_PEB_walk_start_64(28, match, "noSec", rawData2)
 
 		# for match in PEB_WALK_ADD.values(): #iterate through all opcodes representing combinations of registers
 		# 	get_PEB_walk_start(mode, 19, match, "noSec", m[o].rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
@@ -14658,6 +14922,7 @@ def dp(out):
 	txtDis.close()
 
 
+
 def dp2(out):
 	txtDis = open("logging.txt", "a")
 	txtDis.write(out+"\n")
@@ -15471,7 +15736,7 @@ def startupPrint():
 	global bpPushStrings
 	global bpEvilImports
 	global bpModules
-
+	global rawHex
 
 
 	bPushRetFound = bCallPopFound = bDisassemblyFound = bFstenvFound = bHeavenFound = bPEBFound = bStringsFound = bTempWideString = bPushStringsFound = False
@@ -15481,6 +15746,7 @@ def startupPrint():
 
 	max_len = get_max_length(l_of_strings)
 	if rawHex:
+		# print("Shellcode section")
 
 		print(cya + "\n\n Finding shellcode Strings\n\n" + res)
 		
@@ -15535,7 +15801,8 @@ def startupPrint():
 
 
 
-		print(cya + "\n\n Finding shellcode instructions\n\n" + res)
+		print(cya + "\n\n Finding Shellcode instructions\n\n" + res)
+		
 		
 		if bFstenv and not bFstenvFound:
 			print(yel + " Searching for Fstenv instructions..", end="")
@@ -15754,8 +16021,11 @@ def startupPrint():
 			for secNum in range(len(s)):
 				data2 = s[secNum].data2
 				if bit32:
+					# print("32 bit <--")
 					findAllPushRet(data2, secNum)
 				else:
+					# print("64 bit <--")
+
 					# pass
 					findAllPushRet64(data2, secNum)
 
@@ -16199,33 +16469,33 @@ def discoverDisassembly(maxLen=None):
 	global gDisassemblyText
 	global bit32
 	global rawHex
+
 	if maxLen==None:
 		maxLen=42
 	curLen = len("Searching for disassembly")
 	print(cya + " Searching for disassembly..." + res, end="", flush=True)
-
+	start = time.time()
+	
 	if rawHex:
 
 		# print("Bit: ", bit32)
 		if bit32:
-			start = time.time()
 			# dontPrint()
+
 			shellDisassemblyInit(m[o].rawData2, "silent")
 			# allowPrint()
 			colorama.init()
-			end = time.time()
 			# elapsed_time += end - start
 	if gDisassemblyText != "":
 		print("{:>{x}}[{}]".format("", gre + "Found"+res, x=15+(maxLen-curLen)))
 		bDisassemblyFound = True
 	else:
 		print("{:>{x}}[{}]".format("", red + "Not Found" + res, x=15+(maxLen-curLen)))
-
 		#print("{:>{x}}".format("[Not Found]", x=15+(maxLen-curLen)))
 	# elapsed_time += end - start
-	if bit32:
-		return end-start
-	
+
+	return end-start
+
 def discoverHeaven(maxLen=None):
 	global bHeavenFound
 	if maxLen==None:
@@ -18168,13 +18438,19 @@ def clearStrings():
 	bStringsFound = False
 	try:
 		t = 0
-		for sec in pe.sections:
-			s[t].Strings.clear()
-			s[t].wideStrings.clear()
-			s[t].pushStrings.clear()
-			t+=1
+		for sec in s:
+			sec.Strings.clear()
+			sec.wideStrings.clear()
+			sec.pushStrings.clear()
 
-	except:
+		# for sec in pe.sections:
+		# 	s[t].Strings.clear()
+		# 	s[t].wideStrings.clear()
+		# 	s[t].pushStrings.clear()
+		# 	t+=1
+
+	except Exception as e:
+		print("Clear strings Here", e)
 		pass
 	stringsTempWide.clear()
 	pushStringsTemp.clear()
@@ -18205,7 +18481,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 	global bCallPopFound
 	global shellBit
 	global rawHex
-
+	global filename
 
 	time = datetime.datetime.now()
 	filetime = time.strftime("%Y%m%d_%H%M%S")
@@ -18215,6 +18491,8 @@ def printToJson(bpAll, outputData):	#Output data to json
 		if(char == '.'):
 			break
 		t += 1
+
+	filename = filename.split("\\")[-1]
 	noExtension = peName[0:t]
 	if filename == "":
 		outfile = peName.split(".")[0]
@@ -18225,6 +18503,8 @@ def printToJson(bpAll, outputData):	#Output data to json
 
 	#jsonFileName =  os.getcwd() + "\\" + noExtension + "\\output_" + peName + "_" + filetime + ".json"
 	jsonFileName =  os.getcwd() + "\\" + outfile + "\\" + outfileName + "_" + filetime + ".json"
+	# print("outfile: ", outfile, "outfileName", outfileName)
+	# input()
 	os.makedirs(os.path.dirname(jsonFileName), exist_ok=True)
 
 	#Just clear the output data pushed here if it's not selected
@@ -19198,7 +19478,7 @@ def printToText(outputData):	#Output data to text doc
 	global syscallString
 	global gDisassemblyText
 	global save_bin_file
-
+	global filename
 
 
 	data = outputData
@@ -19219,7 +19499,9 @@ def printToText(outputData):	#Output data to text doc
 			break
 		t += 1
 	noExtension = peName[0:t]
+	# print("File name in printtotext", filename)
 	#print("********************************** ", peName, " **********************")
+	filename = filename.split("\\")[-1]
 	if filename == "":
 		outfile = peName.split(".")[0]
 		outfileName = peName
@@ -19230,6 +19512,8 @@ def printToText(outputData):	#Output data to text doc
 
 	# txtFileName =  os.getcwd() + "\\" + outfile + "\\output_" + outfileName + "_" + filetime + ".txt"
 	txtFileName =  os.getcwd() + "\\" + outfile + "\\" + outfileName + "_" + filetime + ".txt"
+	# print("Saving location: ", outfile, outfileName)
+	# print("Saving location: ", txtFileName)
 
 	# txtDis = open(directory+"disassembly\\"+filename[:-4]+"-disassembly.txt", "w")
 
@@ -19509,6 +19793,7 @@ def testTarek():
 
 if __name__ == "__main__":
 
+	CliParser()
 	if rawHex:
 		newModule(o,rawData2)
 	else:
@@ -19517,6 +19802,7 @@ if __name__ == "__main__":
 	shHash=shellHash()
 	sh=shellcode(rawData2)
 	IATs = FoundIATs()
+	
 	sBy=DisassByt()
 
 	
@@ -19526,7 +19812,7 @@ if __name__ == "__main__":
 		try:
 			Extraction()
 		except Exception as e:
-			print(e)
+			print("Here -----> ", e)
 			pass
 	if rawHex:
 		hashShellcode(m[o].rawData2, sample)  # if comes after args parser
@@ -19662,6 +19948,7 @@ if __name__ == "__main__":
 
 
 			#shellcode object
+			sh.setRawData2(X86_CODE32_LOOP)
 			# sh.setRawData2(X86_CODE32_LOOP)
 			print (binaryToStr(m[o].rawData2))
 			sh.setDecoderStub(X86_CODE32)
@@ -19767,8 +20054,9 @@ if __name__ == "__main__":
 	################################ viewBool'S WORK AREA
 	if viewBool:
 
-		if workDir:
-			work_from_directory()
+		# if workDir:
+		# 	work_from_directory()
+		# 	sys.exit()
 			# readConf()
 
 			# for i in list_of_files:
