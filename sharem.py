@@ -6825,7 +6825,6 @@ def work_from_directory():
 				shellBit = 64
 				init2(filename)
 			elif i[-3:] == "bin":
-				newModule()
 				rawHex = True
 				rawBin = True
 				shellBit = 64

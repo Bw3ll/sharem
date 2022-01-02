@@ -1,0 +1,126 @@
+Filename: push6.exe
+File Type: PE
+Bits: 32
+Date Analyzed: 2022-01-02 14:51:12
+Seconds since last epoch: 1641156672.895224
+
+Section info
+
+Section:.text
+Entry point: 0x1637
+Virtual Address: 0x1000
+ImageBase: 0x400000
+VirtualSize: 0xb5e7
+SizeOfRawData: 0xb600
+VirtualAddress: 0x1000
+ImageBase + sec. virtual address: 0x401000
+Actual size of section: 0xb600
+DEP: True
+ASLR: True
+SEH: False
+CFG: False
+Sha256: 2f706eee01afef1050ef7eaf95f294a5
+md5: da8e8ae18bef90f7606f3f4fd044ad4d136fcbab0296e2fae29ac46edeecc744
+
+Section:.rdata
+Entry point: 0x1637
+Virtual Address: 0xd000
+ImageBase: 0x400000
+VirtualSize: 0x584e
+SizeOfRawData: 0x5a00
+VirtualAddress: 0xd000
+ImageBase + sec. virtual address: 0x40d000
+Actual size of section: 0x5a00
+DEP: True
+ASLR: True
+SEH: False
+CFG: False
+Sha256: f490fdda3d0b76624cca63bbb3513b5d
+md5: ae2bd76877debdf56a8cfa7c1bb4a90fa0b98c5954c9ead5fb806c15ffd1e092
+
+Section:.data
+Entry point: 0x1637
+Virtual Address: 0x13000
+ImageBase: 0x400000
+VirtualSize: 0x11e8
+SizeOfRawData: 0x800
+VirtualAddress: 0x13000
+ImageBase + sec. virtual address: 0x413000
+Actual size of section: 0x800
+DEP: True
+ASLR: True
+SEH: False
+CFG: False
+Sha256: ed9be7257f98813caf13dd605a5ee094
+md5: af0314d04dcab15a07ab0228c71f0d1b63b725a74b4411acab87174181e89f72
+
+Section:.gfids
+Entry point: 0x1637
+Virtual Address: 0x15000
+ImageBase: 0x400000
+VirtualSize: 0xb4
+SizeOfRawData: 0x200
+VirtualAddress: 0x15000
+ImageBase + sec. virtual address: 0x415000
+Actual size of section: 0x200
+DEP: True
+ASLR: True
+SEH: False
+CFG: False
+Sha256: 6d1d0c984b982b7f0d32525f74ec9456
+md5: 3eb1c3b369b2a2c1c4040bb05467acd06c351e6a35cb03094dd354ea25a54cf1
+
+Section:.reloc
+Entry point: 0x1637
+Virtual Address: 0x16000
+ImageBase: 0x400000
+VirtualSize: 0xe2c
+SizeOfRawData: 0x1000
+VirtualAddress: 0x16000
+ImageBase + sec. virtual address: 0x416000
+Actual size of section: 0x1000
+DEP: True
+ASLR: True
+SEH: False
+CFG: False
+Sha256: 4b2cd9e9278c3f218a546505bf693dd6
+md5: 614e290de4d5176d6e9b3aa0f2bbe07a037ece4e9ba99e176c7097b47b4b0f81
+
+
+No strings found.
+
+
+***********
+Push ret
+***********
+
+********************************************************************************************************
+Push ret Item: 0 | Module: .text | PUSH Offset: 0x9dd7, ebx | RET Offset: 0x9dd8
+0x409dd7   push ebx                            (offset 0x9dd7)
+0x409dd8   ret                                 (offset 0x9dd8)
+********************************************************************************************************
+Push ret Item: 1 | Module: .text | PUSH Offset: 0x9b03, esi | RET Offset: 0x9b04
+0x409b03   push esi                            (offset 0x9b03)
+0x409b04   ret                                 (offset 0x9b04)
+********************************************************************************************************
+Push ret Item: 2 | Module: .text | PUSH Offset: 0xc240, eax | RET Offset: 0xc241
+0x40c240   push eax                            (offset 0xc240)
+0x40c241   ret  0x40                           (offset 0xc241)
+********************************************************************************************************
+Push ret Item: 3 | Module: .text | PUSH Offset: 0x9c5c, esi | RET Offset: 0x9c5d
+0x409c5c   push esi                            (offset 0x9c5c)
+0x409c5d   ret  0xff2                          (offset 0x9c5d)
+********************************************************************************************************
+Push ret Item: 4 | Module: .rdata | PUSH Offset: 0x11205, ecx | RET Offset: 0x11206
+0x411205   push ecx                            (offset 0x11205)
+0x411206   ret  0xc03f                         (offset 0x11206)
+
+No fstenv instructions found.
+
+No call pop instructions found.
+
+No syscall instructions found.
+
+No peb walking instructions found.
+
+No heaven's gate instructions found.

@@ -1,0 +1,217 @@
+{
+   "dateAnalyzed": "2022-01-02 14:51:12",
+   "secondsSinceEpoch": 1641156672.885224,
+   "fileType": "PE",
+   "bits": 32,
+   "modules": [],
+   "imports": [],
+   "peInfo": [
+      {
+         "sectionName": ".text",
+         "entryPoint": {
+            "offset": "0x1637",
+            "imageBasePlusVirtualAdd": "0x401000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0x1000",
+         "virtualSize": "0xb5e7",
+         "sectionSizeOfRawData": "0xb600",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "True",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "2f706eee01afef1050ef7eaf95f294a5",
+            "md5": "da8e8ae18bef90f7606f3f4fd044ad4d136fcbab0296e2fae29ac46edeecc744"
+         }
+      },
+      {
+         "sectionName": ".rdata",
+         "entryPoint": {
+            "offset": "0x1637",
+            "imageBasePlusVirtualAdd": "0x40d000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0xd000",
+         "virtualSize": "0x584e",
+         "sectionSizeOfRawData": "0x5a00",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "True",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "f490fdda3d0b76624cca63bbb3513b5d",
+            "md5": "ae2bd76877debdf56a8cfa7c1bb4a90fa0b98c5954c9ead5fb806c15ffd1e092"
+         }
+      },
+      {
+         "sectionName": ".data",
+         "entryPoint": {
+            "offset": "0x1637",
+            "imageBasePlusVirtualAdd": "0x413000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0x13000",
+         "virtualSize": "0x11e8",
+         "sectionSizeOfRawData": "0x800",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "True",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "ed9be7257f98813caf13dd605a5ee094",
+            "md5": "af0314d04dcab15a07ab0228c71f0d1b63b725a74b4411acab87174181e89f72"
+         }
+      },
+      {
+         "sectionName": ".gfids",
+         "entryPoint": {
+            "offset": "0x1637",
+            "imageBasePlusVirtualAdd": "0x415000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0x15000",
+         "virtualSize": "0xb4",
+         "sectionSizeOfRawData": "0x200",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "True",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "6d1d0c984b982b7f0d32525f74ec9456",
+            "md5": "3eb1c3b369b2a2c1c4040bb05467acd06c351e6a35cb03094dd354ea25a54cf1"
+         }
+      },
+      {
+         "sectionName": ".reloc",
+         "entryPoint": {
+            "offset": "0x1637",
+            "imageBasePlusVirtualAdd": "0x416000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0x16000",
+         "virtualSize": "0xe2c",
+         "sectionSizeOfRawData": "0x1000",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "True",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "4b2cd9e9278c3f218a546505bf693dd6",
+            "md5": "614e290de4d5176d6e9b3aa0f2bbe07a037ece4e9ba99e176c7097b47b4b0f81"
+         }
+      }
+   ],
+   "pushret": [
+      {
+         "address": "0x8dd7",
+         "pushOffset": [
+            "0x9dd7",
+            "ebx"
+         ],
+         "retOffset": "0x9dd8",
+         "modSecName": ".text",
+         "disassembly": [
+            "0x409dd7   push ebx                            (offset 0x9dd7)",
+            "0x409dd8   ret                                 (offset 0x9dd8)"
+         ],
+         "internalData": {
+            "secNum": 0,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      },
+      {
+         "address": "0x8b03",
+         "pushOffset": [
+            "0x9b03",
+            "esi"
+         ],
+         "retOffset": "0x9b04",
+         "modSecName": ".text",
+         "disassembly": [
+            "0x409b03   push esi                            (offset 0x9b03)",
+            "0x409b04   ret                                 (offset 0x9b04)"
+         ],
+         "internalData": {
+            "secNum": 0,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      },
+      {
+         "address": "0xb240",
+         "pushOffset": [
+            "0xc240",
+            "eax"
+         ],
+         "retOffset": "0xc241",
+         "modSecName": ".text",
+         "disassembly": [
+            "0x40c240   push eax                            (offset 0xc240)",
+            "0x40c241   ret  0x40                           (offset 0xc241)"
+         ],
+         "internalData": {
+            "secNum": 0,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      },
+      {
+         "address": "0x8c5c",
+         "pushOffset": [
+            "0x9c5c",
+            "esi"
+         ],
+         "retOffset": "0x9c5d",
+         "modSecName": ".text",
+         "disassembly": [
+            "0x409c5c   push esi                            (offset 0x9c5c)",
+            "0x409c5d   ret  0xff2                          (offset 0x9c5d)"
+         ],
+         "internalData": {
+            "secNum": 0,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      },
+      {
+         "address": "0x4205",
+         "pushOffset": [
+            "0x11205",
+            "ecx"
+         ],
+         "retOffset": "0x11206",
+         "modSecName": ".rdata",
+         "disassembly": [
+            "0x411205   push ecx                            (offset 0x11205)",
+            "0x411206   ret  0xc03f                         (offset 0x11206)"
+         ],
+         "internalData": {
+            "secNum": 1,
+            "NumOpsDis": 4,
+            "points": 0
+         }
+      }
+   ],
+   "callpop": [],
+   "PEB": [],
+   "fstenv": [],
+   "heavensGate": [],
+   "syscall": [],
+   "strings": {},
+   "shellcode": {
+      "rawhex": "",
+      "strlit": ""
+   }
+}
