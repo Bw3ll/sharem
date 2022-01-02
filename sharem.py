@@ -255,10 +255,10 @@ filename=""
 # 	# 	print("set raw2", (sys.argv[2]), (sys.argv[1]), peName)
 # 	# 	try:
 # 	# 		f = open(peName, "rb")
-# 	# 		# #global sh.rawData2
-# 	# 		sh.rawData2 = f.read()
+# 	# 		# #global m[o].rawData2
+# 	# 		m[o].rawData2 = f.read()
 # 	# 		f.close()
-# 	# 		# print ("sh.rawData2", len(sh.rawData2))
+# 	# 		# print ("m[o].rawData2", len(m[o].rawData2))
 # 	# 	except Exception as e:
 # 	# 		print("Invalid path to hex file.")
 # 	# 		print(e)
@@ -451,10 +451,10 @@ if args.d:
 # 	# 	print("set raw2", (sys.argv[2]), (sys.argv[1]), peName)
 # 	# 	try:
 # 	# 		f = open(peName, "rb")
-# 	# 		# #global sh.rawData2
-# 	# 		sh.rawData2 = f.read()
+# 	# 		# #global m[o].rawData2
+# 	# 		m[o].rawData2 = f.read()
 # 	# 		f.close()
-# 	# 		# print ("sh.rawData2", len(sh.rawData2))
+# 	# 		# print ("m[o].rawData2", len(m[o].rawData2))
 # 	# 	except Exception as e:
 # 	# 		print("Invalid path to hex file.")
 # 	# 		print(e)
@@ -513,7 +513,7 @@ if args.d:
 # 	############### AUSTIN ####################
 # 	# print ("entering Austin")
 # 	rawHex = False
-# 	# #global sh.rawData2
+# 	# #global m[o].rawData2
 
 # 	# print ("0", sys.argv[0])
 # 	# print ("1", sys.argv[1])
@@ -534,10 +534,10 @@ if args.d:
 # 				print("Bin------------>", peName)
 # 				input()
 # 				f = open(peName, "rb")
-# 				# #global sh.rawData2
-# 				sh.rawData2 = f.read()
+# 				# #global m[o].rawData2
+# 				m[o].rawData2 = f.read()
 # 				f.close()
-# 				# print ("sh.rawData2", len(sh.rawData2))
+# 				# print ("m[o].rawData2", len(m[o].rawData2))
 # 			except Exception as e:
 # 				print("Invalid path to hex file.")
 # 				print(e)
@@ -2558,8 +2558,8 @@ def saveBasePEBWalk_64(address, NumOpsDis,modSecName,secNum, points): ##########
 
 def printSavedPEB(): ######################## AUSTIN ###############################3
 	#formatting
-	#global sh.rawData2
-	dprint2 ("printSavedPEB", len(sh.rawData2))
+	#global m[o].rawData2
+	dprint2 ("printSavedPEB", len(m[o].rawData2))
 	dprint2 ("m[o].save_PEB_info", len(m[o].save_PEB_info))
 	dprint2 ("rawhex", rawHex)
 	j = 0
@@ -2594,7 +2594,7 @@ def printSavedPEB(): ######################## AUSTIN ###########################
 			secNum = item[3]
 			points = item[4]
 
-			CODED2 = sh.rawData2[address:(address+NumOpsDis)]
+			CODED2 = m[o].rawData2[address:(address+NumOpsDis)]
 
 			outString = "\n\nItem: " + str(j) + " | Points: " + str(points)
 			if(secNum != -1):
@@ -2721,7 +2721,7 @@ def printSavedPEB_64(): ############## AUSTIN ####################
 			secNum = item[3]
 			points = item[4]
 
-			CODED2 = sh.rawData2[address:(address+NumOpsDis)]
+			CODED2 = m[o].rawData2[address:(address+NumOpsDis)]
 
 			outString = yel + "\n\nItem: " + str(j) + " | Points: " + str(points) + res
 			if(secNum != -1):
@@ -3257,8 +3257,8 @@ def printSavedPushRet(bit = 32): ############################## AUSTIN #########
 			retOffset = item[6]
 			printEnd = int(retOffset, 16) + 15
 
-			# CODED2 = sh.rawData2[address:(address+NumOpsDis)]
-			CODED2 = sh.rawData2[address:(printEnd)]
+			# CODED2 = m[o].rawData2[address:(address+NumOpsDis)]
+			CODED2 = m[o].rawData2[address:(printEnd)]
 
 			outString = "Item: " + str(j) + " | Points: " + str(points)
 
@@ -3818,9 +3818,9 @@ def printSavedFSTENV(bit = 32): ######################## AUSTIN ################
 			# print("FPU = " + str(FPU_offset))
 			# print("FSTENV = " + str(FSTENV_offset))
 
-			# CODED2 = sh.rawData2[(address-NumOpsBack):(address+NumOpsDis)]
-			CODED2 = sh.rawData2[int(FPU_offset, 16):(int(printEnd, 16))]
-			# CODED2 = sh.rawData2[(address - NumOpsBack):(int(printEnd, 16))]
+			# CODED2 = m[o].rawData2[(address-NumOpsBack):(address+NumOpsDis)]
+			CODED2 = m[o].rawData2[int(FPU_offset, 16):(int(printEnd, 16))]
+			# CODED2 = m[o].rawData2[(address - NumOpsBack):(int(printEnd, 16))]
 			dprint2("PRINT START = " + hex(address-NumOpsBack))
 			dprint2("PRINTEND = " + hex(int(printEnd,16)))
 
@@ -4575,7 +4575,7 @@ def printSavedCallPop(bit = 32): ######################## AUSTIN ###############
 			pop_offset = item[5]
 			address = origAddr + distance
 			popOpcLen = 1
-			CODED2 = sh.rawData2[(origAddr):(address+NumOpsDis	)]
+			CODED2 = m[o].rawData2[(origAddr):(address+NumOpsDis	)]
 
 			outString = "Item: " + str(j)
 			if(secNum != -1):
@@ -6460,7 +6460,7 @@ def work_from_directory():
 	global rawHex
 	global rawBin
 	global peName
-	#global sh.rawData2
+	#global m[o].rawData2
 
 
 	readConf()
@@ -6491,8 +6491,8 @@ def work_from_directory():
 				rawBin = True
 				# peName = i
 				f = open(i, "rb")
-				sh.rawData2 = f.read()
-				# print("Length of sh.rawData2", len(sh.rawData2))
+				m[o].rawData2 = f.read()
+				# print("Length of m[o].rawData2", len(m[o].rawData2))
 				f.close()
 			filename = i
 			# print(filename)
@@ -7468,7 +7468,7 @@ def findAllFSTENV_old(): ################## AUSTIN ######################
 
 	if(rawHex):
 		for match in FSTENV_GET_BASE.values(): #iterate through all opcodes representing combinations of registers
-			get_FSTENV(10, 15, match, "noSec", sh.rawData2) 
+			get_FSTENV(10, 15, match, "noSec", m[o].rawData2) 
 
 
 	elif(bit32):
@@ -7599,14 +7599,14 @@ def optimized_find(numOps, match, secNum, data2, funcName = None):
 def findAllPebSequences_old2(mode, data2=None, secNum=None): ################## AUSTIN ######################
 
 	# global rawHex
-	# print ("findAllPebSequences", mode, binaryToStr(sh.rawData2),)
+	# print ("findAllPebSequences", mode, binaryToStr(m[o].rawData2),)
 	if(rawHex):
 		# print("in check")
 
 		if shellBit == 32:
 			for match in PEB_WALK.values(): #iterate through all opcodes representing combinations of registers
 				# ans=get_PEB_walk_start(mode, 19, match, "noSec", data2) #19 hardcoded for now, seems like good value for peb walking sequence
-				ans=get_PEB_walk_start(mode, 19, match, "noSec", sh.rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+				ans=get_PEB_walk_start(mode, 19, match, "noSec", m[o].rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
 				# print ("ans", ans)
 
 				if mode=="decrypt" and ans is not None:
@@ -7620,15 +7620,15 @@ def findAllPebSequences_old2(mode, data2=None, secNum=None): ################## 
 				get_PEB_walk_start_64(28, match, secNum, data2)
 
 		# for match in PEB_WALK_ADD.values(): #iterate through all opcodes representing combinations of registers
-		# 	get_PEB_walk_start(mode, 19, match, "noSec", sh.rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+		# 	get_PEB_walk_start(mode, 19, match, "noSec", m[o].rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
 		# for match in PEB_WALK_ADC.values(): #iterate through all opcodes representing combinations of registers
-		# 	get_PEB_walk_start(mode, 19, match, "noSec", sh.rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+		# 	get_PEB_walk_start(mode, 19, match, "noSec", m[o].rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
 		# for match in PEB_WALK_OR.values(): #iterate through all opcodes representing combinations of registers
-		# 	get_PEB_walk_start(mode, 19, match, "noSec", sh.rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+		# 	get_PEB_walk_start(mode, 19, match, "noSec", m[o].rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
 		# for match in PEB_WALK_XOR.values(): #iterate through all opcodes representing combinations of registers
-		# 	get_PEB_walk_start(mode, 19, match, "noSec", sh.rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+		# 	get_PEB_walk_start(mode, 19, match, "noSec", m[o].rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
 		# for match in PEB_WALK_XCHG.values(): #iterate through all opcodes representing combinations of registers
-		# 	get_PEB_walk_start(mode, 19, match, "noSec", sh.rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+		# 	get_PEB_walk_start(mode, 19, match, "noSec", m[o].rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
 	else:
 
 		if(bit32):
@@ -7709,7 +7709,7 @@ def findAllPebSequences_old2(mode, data2=None, secNum=None): ################## 
 def findAllPebSequences(mode, data2=None, secNum=None): ################## AUSTIN ######################
 	global shellBit
 	# global rawHex
-	# print ("findAllPebSequences", mode, binaryToStr(sh.rawData2),)
+	# print ("findAllPebSequences", mode, binaryToStr(m[o].rawData2),)
 	if(rawHex):
 		# print("in check")
 
@@ -7717,7 +7717,7 @@ def findAllPebSequences(mode, data2=None, secNum=None): ################## AUSTI
 
 			for match in PEB_WALK.values(): #iterate through all opcodes representing combinations of registers
 				# ans=get_PEB_walk_start(mode, 19, match, "noSec", data2) #19 hardcoded for now, seems like good value for peb walking sequence
-				ans=get_PEB_walk_start(mode, 19, match, "noSec", sh.rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+				ans=get_PEB_walk_start(mode, 19, match, "noSec", m[o].rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
 				# print ("ans", ans)
 
 				if mode=="decrypt" and ans is not None:
@@ -7731,15 +7731,15 @@ def findAllPebSequences(mode, data2=None, secNum=None): ################## AUSTI
 				get_PEB_walk_start_64(28, match, secNum, data2)
 
 		# for match in PEB_WALK_ADD.values(): #iterate through all opcodes representing combinations of registers
-		# 	get_PEB_walk_start(mode, 19, match, "noSec", sh.rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+		# 	get_PEB_walk_start(mode, 19, match, "noSec", m[o].rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
 		# for match in PEB_WALK_ADC.values(): #iterate through all opcodes representing combinations of registers
-		# 	get_PEB_walk_start(mode, 19, match, "noSec", sh.rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+		# 	get_PEB_walk_start(mode, 19, match, "noSec", m[o].rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
 		# for match in PEB_WALK_OR.values(): #iterate through all opcodes representing combinations of registers
-		# 	get_PEB_walk_start(mode, 19, match, "noSec", sh.rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+		# 	get_PEB_walk_start(mode, 19, match, "noSec", m[o].rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
 		# for match in PEB_WALK_XOR.values(): #iterate through all opcodes representing combinations of registers
-		# 	get_PEB_walk_start(mode, 19, match, "noSec", sh.rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+		# 	get_PEB_walk_start(mode, 19, match, "noSec", m[o].rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
 		# for match in PEB_WALK_XCHG.values(): #iterate through all opcodes representing combinations of registers
-		# 	get_PEB_walk_start(mode, 19, match, "noSec", sh.rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
+		# 	get_PEB_walk_start(mode, 19, match, "noSec", m[o].rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
 	else:
 
 		if(bit32):
@@ -7835,7 +7835,7 @@ def findAllPushRet_old2(data2, secNum): ################## AUSTIN ##############
 def findAllPushRet_old(): ################## AUSTIN #########################
 	if(rawHex):
 		for match in PUSH_RET.values(): 
-			get_PushRet_start(4, match, "noSec", sh.rawData2)
+			get_PushRet_start(4, match, "noSec", m[o].rawData2)
 
 	elif(bit32):
 		for secNum in range(len(s)):
@@ -9465,7 +9465,7 @@ def AustinTesting():
 
 
 	if(rawHex):
-		findAllCallpop(sh.rawData2, 'noSec')
+		findAllCallpop(m[o].rawData2, 'noSec')
 
 	printSavedCallPop()
 
@@ -9497,11 +9497,11 @@ def AustinTesting():
 
 	# if(rawHex):
 	# 	for match in EGGHUNT.values(): #iterate through all opcodes representing combinations of registers
-	# 		getSyscallPE(20, 20, match, 'noSec', sh.rawData2) 
+	# 		getSyscallPE(20, 20, match, 'noSec', m[o].rawData2) 
 
 	if(rawHex):
-		getSyscallRawHex(0, 8, 'noSec', sh.rawData2)
-		getHeavenRawHex(0, 8, 'noSec', sh.rawData2)
+		getSyscallRawHex(0, 8, 'noSec', m[o].rawData2)
+		getHeavenRawHex(0, 8, 'noSec', m[o].rawData2)
 
 	printSavedEgg()
 	printSavedHeaven()
@@ -9538,7 +9538,7 @@ def AustinTestingStub():
 def AustinTesting3():
 	global pebPoints
 	global peName
-	#global sh.rawData2
+	#global m[o].rawData2
 	global filename
 	print("HERE PENAME")
 	print(peName)
@@ -9568,7 +9568,7 @@ def AustinTesting3():
 
 
 	if(rawHex):
-		data2 = sh.rawData2
+		data2 = m[o].rawData2
 
 		if(doPeb):
 			findAllPebSequences_old(data2, "noSec")
@@ -9579,9 +9579,9 @@ def AustinTesting3():
 		if(doFstenv):
 			findAllFSTENV(data2, "noSec")
 		if(doSyscall):
-			getSyscallRawHex(0, 8, 'noSec', sh.rawData2)
+			getSyscallRawHex(0, 8, 'noSec', m[o].rawData2)
 		if(doHeaven):
-			getHeavenRawHex(0, 8, 'noSec', sh.rawData2)
+			getHeavenRawHex(0, 8, 'noSec', m[o].rawData2)
 	
 
 
@@ -9627,8 +9627,8 @@ def AustinTesting2():
 
 		rawBytes=readShellcode("daltonShell2.txt") 
 
-		sh.rawData2=rawBytes
-		# print("read dalton, data here: ", sh.rawData2)
+		m[o].rawData2=rawBytes
+		# print("read dalton, data here: ", m[o].rawData2)
 		# printBytes(rawBytes)
 		# print (disHereShell(rawBytes, False, False, "ascii", True))
 
@@ -9636,13 +9636,13 @@ def AustinTesting2():
 	
 
 
-	# print ("Sizesh.rawData2", len(sh.rawData2))
-	rawBytes=sh.rawData2
+	# print ("Sizem[o].rawData2", len(m[o].rawData2))
+	rawBytes=m[o].rawData2
 	# print("NORMAL BYTES")
 	# print(binaryToStr(rawBytes))
 	# print ("rawbytes class", type(rawBytes))
-	# print("sh.rawData2 BEFORE ENCODE IN TEST FUNC: ", sh.rawData2)
-	encoded=encodeShellcode(sh.rawData2)
+	# print("m[o].rawData2 BEFORE ENCODE IN TEST FUNC: ", m[o].rawData2)
+	encoded=encodeShellcode(m[o].rawData2)
 	# print("encoded dalton, data here: ", encoded)
 
 
@@ -9657,11 +9657,11 @@ def AustinTesting2():
 	print("Total time AUSTIN: " + str(stop - start))
 	# rawBytes=readShellcode(shellArg) 
 
-	# sh.rawData2=rawBytes
+	# m[o].rawData2=rawBytes
 	# # # printBytes(rawBytes)
 	# print (disHereShell(rawBytes, False, False, "ascii", True))
-	# print ("Sizesh.rawData2", len(sh.rawData2))
-	# rawBytes=sh.rawData2
+	# print ("Sizem[o].rawData2", len(m[o].rawData2))
+	# rawBytes=m[o].rawData2
 	# print ("rawbytes class", type(rawBytes))
 
 	# disassembly, assemblyBytes=takeBytes(data2,(len(data2)-10))
@@ -11902,7 +11902,7 @@ def findTargetAddressReturnPrior(targetAddress, linesGoBack, l1, l2):
 
 def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack):
 	global filename
-	#global sh.rawData2
+	#global m[o].rawData2
 	global shBy
 	global FindStringsStatus
 	FindStringsStatus2 =	FindStringsStatus 
@@ -11911,7 +11911,7 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack):
 	FindStringsStatus2 = False
 	clearTempDis()
 	if rawBin:
-		shellBytes=sh.rawData2
+		shellBytes=m[o].rawData2
 	if not rawBin:
 		# print ("ffffilename", filename)
 		# print("read shellcode Start: ", start)
@@ -11919,9 +11919,9 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack):
 		rawBytes=readShellcode(filename) 
 		# print("read shellcode end: ", time.time() - start)
 
-		sh.rawData2=rawBytes
+		m[o].rawData2=rawBytes
 		# print(rawBytes.hex())
-		shellBytes=sh.rawData2
+		shellBytes=m[o].rawData2
 	i=startingAddress
 	for x in shellBytes:
 		shBy.offsets.append(i)
@@ -12032,6 +12032,8 @@ def takeBytes(shellBytes,startingAddress):
 def addComments():
 
 	for item in m[o].save_PEB_info:
+		print("ITEMS HERE")
+		print(item)
 		tib=item[5]
 		shBy.comments[int(tib,16)] = "; load TIB"
 		ldr=item[6]
@@ -12455,10 +12457,10 @@ def anaFindFF(data):
 
 def encodeShellcode_aus(data):
 	print ("encodeShellcode")
-	#global sh.rawData2
-	# print (binaryToStr(sh.rawData2))
+	#global m[o].rawData2
+	# print (binaryToStr(m[o].rawData2))
 	shells=""
-	for each in sh.rawData2:
+	for each in m[o].rawData2:
 		new=each+0x10&255
 		new = (new ^ 5)&255
 		new=each-0x13&255
@@ -12483,8 +12485,8 @@ def encodeShellcodeTesting(data, values):
 	a = values[0]
 	b = values[1]
 	c = values[2]
-	# #global sh.rawData2
-	# print (binaryToStr(sh.rawData2))
+	# #global m[o].rawData2
+	# print (binaryToStr(m[o].rawData2))
 	shells=""
 	data = bytearray(data)
 	for i in range(len(data)):
@@ -12513,8 +12515,8 @@ def encodeShellcodeTesting(data, values):
 
 def encodeShellcode(data):
 	print ("encodeShellcode")
-	#global sh.rawData2
-	# print (binaryToStr(sh.rawData2))
+	#global m[o].rawData2
+	# print (binaryToStr(m[o].rawData2))
 	shells=""
 	for each in data:
 		new=each^0x3&255 #3
@@ -12609,12 +12611,12 @@ def truncateToWord(val):
 
 def encodeShellcode2(data):
 	print ("encodeShellcode2")
-	#global sh.rawData2
-	print (binaryToStr(sh.rawData2))
+	#global m[o].rawData2
+	print (binaryToStr(m[o].rawData2))
 	shells=""
 
 	encodeBytes=bytearray()
-	for each in sh.rawData2:
+	for each in m[o].rawData2:
 		new=each^0x55
 		print (1, hex(new), (hex(each), 0x55))
 		# new=truncateTobyte(new)
@@ -12690,10 +12692,10 @@ def decodeShellcode2(data):
 
 def encodeShellcode3(data):
 	print ("encodeShellcode3")
-	#global sh.rawData2
-	print (binaryToStr(sh.rawData2))
+	#global m[o].rawData2
+	print (binaryToStr(m[o].rawData2))
 	encodeBytes=bytearray()
-	for each in sh.rawData2:
+	for each in m[o].rawData2:
 		new=each
 		new= tohex((new^0x55), 8)
 		new= tohex((new ^ 0x11), 8)
@@ -12708,11 +12710,11 @@ def encodeShellcode3(data):
 
 def encodeShellcode3(data):
 	print ("encodeShellcode3")
-	#global sh.rawData2
-	print (binaryToStr(sh.rawData2))
+	#global m[o].rawData2
+	print (binaryToStr(m[o].rawData2))
 	encodeBytes=bytearray()
 	t=0
-	rawData3=sh.rawData2
+	rawData3=m[o].rawData2
 	for each in rawData3:
 		new=each
 		new= tohex((new^0x55), 8)
@@ -12984,18 +12986,18 @@ def bramwellStart3():
 
 ##### START
 def init1():
-	#global sh.rawData2
+	#global m[o].rawData2
 	if(not rawHex):
 		ObtainAndExtractSections()
 		# print (showBasicInfoSections())
 	if (rawHex):#(rawBin == False) and not isPe: 
 		rawBytes=readShellcode(filename) 
-		sh.rawData2=rawBytes
+		m[o].rawData2=rawBytes
 
 
 def init2(filename):
 	# print("init2")
-	#global sh.rawData2
+	#global m[o].rawData2
 	if(not rawHex):
 		ObtainAndExtractSections()
 		# print (showBasicInfoSections())
@@ -13004,7 +13006,7 @@ def init2(filename):
 		# print(filename)
 		# print(filename[-4:])
 		if(filename[-4:] == ".txt"): #don't need to call readShellcode if it is a binary file
-			sh.rawData2=readShellcode(filename) 
+			m[o].rawData2=readShellcode(filename) 
 
 
 # Extraction()
@@ -13024,12 +13026,12 @@ def saveBinAscii():
 
 
 	init2(filename)
-	# print (binaryToStr(sh.rawData2))
+	# print (binaryToStr(m[o].rawData2))
 	if not os.path.exists(directory+'bins'):
 		os.makedirs(directory+'bins')
-	assembly=binaryToText(sh.rawData2)
+	assembly=binaryToText(m[o].rawData2)
 	newBin = open(directory+"bins\\"+filename[:-4]+".bin", "wb")
-	newBin.write(sh.rawData2)
+	newBin.write(m[o].rawData2)
 	newBin.close()
 	newDis = open(directory+"bins\\ascii-"+filename[:-4]+".txt", "w")
 	print (directory+"bins\\ascii-"+filename[:-4]+".txt")
@@ -13039,34 +13041,34 @@ def saveBinAscii():
 
 def bramwellEncodeDecodeWork(shellArg):
 	global filename
-	#global sh.rawData2
+	#global m[o].rawData2
 		
 	if rawBin == False:
 		filename=shellArg
 		rawBytes=readShellcode(shellArg) 
 
-		sh.rawData2=rawBytes
+		m[o].rawData2=rawBytes
 		# printBytes(rawBytes)
 		# print (disHereShell(rawBytes, False, False, "ascii", True))
 
 
 
 
-	print ("Sizesh.rawData2", len(sh.rawData2))
-	rawBytes=sh.rawData2
+	print ("Sizem[o].rawData2", len(m[o].rawData2))
+	rawBytes=m[o].rawData2
 	print ("rawbytes class", type(rawBytes))
-	encoded=encodeShellcode(sh.rawData2)
-	old=sh.rawData2
+	encoded=encodeShellcode(m[o].rawData2)
+	old=m[o].rawData2
 	decoded=decodeShellcode(encoded)
 
 	t=0
 	# for x in range (1000):
-	# 	encoded=encodeShellcodeProto(sh.rawData2, 32, t, 55)
+	# 	encoded=encodeShellcodeProto(m[o].rawData2, 32, t, 55)
 	# 	t+=1
 	print ("new\n\n\n\n")
-	r=encodeShellcodeProto(sh.rawData2, 32,2,55)
+	r=encodeShellcodeProto(m[o].rawData2, 32,2,55)
 	r=decodeShellcodeProto(r, 32,2,55)
-	sh.rawData2=r
+	m[o].rawData2=r
 	mode=""
 	# findAllPebSequences(mode)
 	# printSavedPEB()
@@ -13084,7 +13086,7 @@ def bramwellEncodeDecodeWork(shellArg):
 	for x in range (0x100):
 		print ("checking XOR")
 		new=decodeShellcodeXOR(old, x) # 0x73
-		sh.rawData2=new
+		m[o].rawData2=new
 		print (binaryToStr(new))
 		mode="decrypt"
 		ans =findAllPebSequences(mode)
@@ -13099,7 +13101,7 @@ def bramwellEncodeDecodeWork(shellArg):
 	print ("old-saved", hex(xorKey))
 	new=decodeShellcodeXOR(old, xorKey) # 0x73
 	print ("rawbytes class", type(new))
-	sh.rawData2=new
+	m[o].rawData2=new
 	mode=""
 	findAllPebSequences(mode)
 	disassembly, assemblyBytes=takeBytes(new,0)
@@ -13226,7 +13228,7 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 	global shellEntry
 	global decodedBytes	
 	global filename
-
+	global sh
 	# print("ENCODED HERE: \n", encodedShell)
 
 	strAdd="new=(new +VALUE) & 255\n" 
@@ -13285,7 +13287,7 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 				# print("TESTD IS =", testd)
 				# print("DECODEINFO IS = ", decodeInfo)
 				singleVals = decodeInfo[2]
-				order = decodeInfo[3]
+				or7der = decodeInfo[3]
 				# print("GOT SINGLEVALS = ", singleVals)
 				# print("GOT ORDER = ", order)
 
@@ -13512,6 +13514,9 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 			# 		i +=1
 			# 	print("\n\n")
 			# return
+
+	sh.setDecodedBody(decodedBytes)
+	hashShellcode(decodedBytes, unencryptedShell)
 	if(outputFile and (len(decodeInfo) > 0)):
 		disassembly, assemblyBytes=takeBytes(decodedBytes, shellEntry)
 		rawBytes = decodedBytes	
@@ -13544,7 +13549,7 @@ dCPUcount = "auto"
 dNodesFile = "nodes.txt"
 dOutputFile = False
 
-#initialize decryptFile to be the name of sh.rawData2 arg by default DONE
+#initialize decryptFile to be the name of m[o].rawData2 arg by default DONE
 #same w/ decryptBytes
 #if they change inputfile, set rdata2 again
 def decryptUI():
@@ -13855,7 +13860,7 @@ def printDecryptHelpUI():
 #stubEnd goes to end of file by default
 #returns: 1. list of detected values | 2. list of detected operations | 3. offset for the end of the decoder stub portion 
 def analyzeDecoderStubs(shellArg="default", entryPoint = 0, stubEnd = -1):
-	
+	global sh
 	entryPoint = int(entryPoint,0)
 	#handle type issues with param
 	try:
@@ -13914,6 +13919,13 @@ def analyzeDecoderStubs(shellArg="default", entryPoint = 0, stubEnd = -1):
 			print(disString)
 			#return if we hit a jump -- this is probably the loop portion of our stub
 			#add size of loop instruction with offset to start of the instruction to get offset to first encoded byte
+			# print("STUB PORTION:")
+			# print(binaryToStr(rawBytes[:(int(addb, 16) + int(size, 16))]))
+			# print("\nSHELL PORTION:")
+			# print(binaryToStr(rawBytes[(int(addb, 16) + int(size, 16)):]))
+			sh.setDecoderStub(rawBytes[:(int(addb, 16) + int(size, 16))])
+			hashShellcode(rawBytes[:(int(addb, 16) + int(size, 16))], decoderShell)
+			# print(binaryToStr(sh.decoderStub))
 			return (numVals, opTypes, (int(addb, 16) + int(size, 16)))
 
 		isXor = re.search("^(xor)", i.mnemonic, re.IGNORECASE)
@@ -13947,6 +13959,8 @@ def analyzeDecoderStubs(shellArg="default", entryPoint = 0, stubEnd = -1):
 	# print(numVals)
 	# print("opTypes here: ")
 	# print(opTypes)
+	sh.setDecoderStub(rawBytes[:(int(addb, 16) + int(size, 16))])
+	hashShellcode(rawBytes[:(int(addb, 16) + int(size, 16))], decoderShell)
 	return (numVals, opTypes,  (int(addb, 16) + int(size, 16)))
 
 def austinEncodeDecodeWork(shellArg, operations = []):
@@ -13960,7 +13974,7 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 
 	if __name__ == "__main__":
 		global filename
-		#global sh.rawData2
+		#global m[o].rawData2
 		global fastMode	
 
 		testSingle = False
@@ -13974,20 +13988,20 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 			filename=shellArg
 			rawBytes=readShellcode(shellArg) 
 
-			sh.rawData2=rawBytes
+			m[o].rawData2=rawBytes
 			# printBytes(rawBytes)
 			# print (disHereShell(rawBytes, False, False, "ascii", True))
 
 
 		
 
-		print ("Sizesh.rawData2", len(sh.rawData2))
-		rawBytes=sh.rawData2
+		print ("Sizem[o].rawData2", len(m[o].rawData2))
+		rawBytes=m[o].rawData2
 		print("NORMAL BYTES")
 		print(binaryToStr(rawBytes))
 		print ("rawbytes class", type(rawBytes))
-		print("sh.rawData2 BEFORE ENCODE IN WORKING FUNC: ", sh.rawData2)
-		encoded=encodeShellcode(sh.rawData2)
+		print("m[o].rawData2 BEFORE ENCODE IN WORKING FUNC: ", m[o].rawData2)
+		encoded=encodeShellcode(m[o].rawData2)
 
 		print("ENCODED HERE: \n", encoded)
 
@@ -14111,10 +14125,10 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 
 				# print ("checking decoded")
 				new=item[0]
-				sh.rawData2=new
+				m[o].rawData2=new
 				# print (binaryToStr(new))
 				if(fastMode):
-					sh.rawData2 = sh.rawData2[:40]
+					m[o].rawData2 = m[o].rawData2[:40]
 				mode="decrypt"
 				ans =findAllPebSequences(mode)
 
@@ -14145,12 +14159,12 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 						# print(singleOut)
 						# print("NEWHERE")
 						# print(new)
-						sh.rawData2 = new
+						m[o].rawData2 = new
 						
 						# print("EACHHERE")
 						# print(item[3])
 						# print("CONVERTED SINGLE HERE")
-						# print(binaryToStr(sh.rawData2))
+						# print(binaryToStr(m[o].rawData2))
 
 						disassembly, assemblyBytes=takeBytes(new,0)
 					if(outputFile):
@@ -14197,9 +14211,9 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 
 			# print ("checking decoded")
 			new=item[0]
-			sh.rawData2=new
+			m[o].rawData2=new
 			if(fastMode):
-					sh.rawData2 = sh.rawData2[:40]
+					m[o].rawData2 = m[o].rawData2[:40]
 			# print (binaryToStr(new))
 			mode="decrypt"
 			ans =findAllPebSequences(mode)
@@ -14230,12 +14244,12 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 						# print(singleOut)
 						# print("NEWHERE")
 						# print(new)
-						sh.rawData2 = new
+						m[o].rawData2 = new
 						
 						# print("EACHHERE")
 						# print(item[3])
 						# print("CONVERTED SINGLE HERE")
-						# print(binaryToStr(sh.rawData2))
+						# print(binaryToStr(m[o].rawData2))
 				if(outputFile):
 					disassembly, assemblyBytes=takeBytes(new,0)
 					print ("decrypted disassembly")
@@ -14259,7 +14273,7 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 
 			# print ("checking decoded")
 			# new=decoded[x]
-			# sh.rawData2=new
+			# m[o].rawData2=new
 			# print (binaryToStr(new))
 			# mode="decrypt"
 			# ans =findAllPebSequences(mode)
@@ -14273,12 +14287,12 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 
 		# t=0
 		# # for x in range (1000):
-		# # 	encoded=encodeShellcodeProto(sh.rawData2, 32, t, 55)
+		# # 	encoded=encodeShellcodeProto(m[o].rawData2, 32, t, 55)
 		# # 	t+=1
 		# print ("new\n\n\n\n")
-		# r=encodeShellcodeProto(sh.rawData2, 32,2,55)
+		# r=encodeShellcodeProto(m[o].rawData2, 32,2,55)
 		# r=decodeShellcodeProto(r, 32,2,55)
-		# sh.rawData2=r
+		# m[o].rawData2=r
 		# mode=""
 		# # findAllPebSequences(mode)
 		# # printSavedPEB()
@@ -14296,7 +14310,7 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 		# for x in range (0x100):
 		# 	print ("checking XOR")
 		# 	new=decodeShellcodeXOR(old, x) # 0x73
-		# 	sh.rawData2=new
+		# 	m[o].rawData2=new
 		# 	print (binaryToStr(new))
 		# 	mode="decrypt"
 		# 	ans =findAllPebSequences(mode)
@@ -14311,7 +14325,7 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 		# print ("old-saved", hex(xorKey))
 		# new=decodeShellcodeXOR(old, xorKey) # 0x73
 		# print ("rawbytes class", type(new))
-		# sh.rawData2=new
+		# m[o].rawData2=new
 		# mode=""
 		# findAllPebSequences(mode)
 		# disassembly, assemblyBytes=takeBytes(new,0)
@@ -14371,18 +14385,18 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 
 def shellDisassemblyStart(shellArg):
 	global filename
-	#global sh.rawData2
+	#global m[o].rawData2
 	#print("File name in shellDisassemblyStart ", filename)
 	filename=shellArg
 	if not rawBin:
 		rawBytes=readShellcode(shellArg) 
-		sh.rawData2=rawBytes
+		m[o].rawData2=rawBytes
 	mode=""
 	
 	# printBytes(rawBytes)
 	# print (disHereShell(rawBytes, False, False, "ascii", True))
-	# print ("Sizesh.rawData2", len(sh.rawData2)) 
-	rawBytes=sh.rawData2
+	# print ("Sizem[o].rawData2", len(m[o].rawData2)) 
+	rawBytes=m[o].rawData2
 	findAllPebSequences(mode)
 	print ("rawbytes class", type(rawBytes))
 	disassembly, assemblyBytes=takeBytes(rawBytes,0)
@@ -14416,7 +14430,7 @@ def shellDisassemblyStart(shellArg):
 def shellDisassemblyInit(shellArg):
 	print ("shellDisassemblyInit")
 	global filename
-	#global sh.rawData2
+	#global m[o].rawData2
 	global gDisassemblyText
 	global save_bin_file
 	global shellEntry
@@ -14432,11 +14446,11 @@ def shellDisassemblyInit(shellArg):
 	# rawBytes=readShellcode(shellArg) 
 	# print("Shell Disassembly", shellArg.hex())
 	# input()
-	# sh.rawData2=rawBytes
+	# m[o].rawData2=rawBytes
 	# # # printBytes(rawBytes)
 	# print (disHereShell(rawBytes, False, False, "ascii", True))
-	# print ("Sizesh.rawData2", len(sh.rawData2))
-	# rawBytes=sh.rawData2
+	# print ("Sizem[o].rawData2", len(m[o].rawData2))
+	# rawBytes=m[o].rawData2
 	# print ("rawbytes class", type(rawBytes))
 
 	# filename=shellArg
@@ -14519,7 +14533,7 @@ def bramwellDisassembly():
 def disassembleSubMenu():
 
 	#disToggleMenu()
-	#global sh.rawData2
+	#global m[o].rawData2
 	global bDisassemblyFound
 	while True:
 		print(cya + " Sharem>" + yel + "Disasm> " + res, end="")
@@ -14541,13 +14555,13 @@ def disassembleSubMenu():
 		elif choice == "e":
 			changeEntryPoint()
 		elif choice == "j":
-			raw_shellcode = binaryToText(sh.rawData2, "json")
+			raw_shellcode = binaryToText(m[o].rawData2, "json")
 			Text2Json(raw_shellcode)
 		elif choice == "z":
 			if rawHex:
 				if bfindShell:
 					dontPrint()
-					shellDisassemblyInit(sh.rawData2)
+					shellDisassemblyInit(m[o].rawData2)
 					allowPrint()
 					if gDisassemblyText == "":
 						print("\nUnable to find any disassembly.\n")
@@ -14667,11 +14681,11 @@ def disassembleToggles():
 def bramwellDisassembly2():
 	# global shellcode4
 	# global filename
-	#global sh.rawData2
+	#global m[o].rawData2
 	global shellEntry
-	# print ("sh.rawData2 a", len(sh.rawData2))
+	# print ("m[o].rawData2 a", len(m[o].rawData2))
 	# print (shellEntry)
-	shellDisassemblyInit(sh.rawData2)  #shellcode data, start address
+	shellDisassemblyInit(m[o].rawData2)  #shellcode data, start address
 
 def initSysCallSelect(): #Initialize our list of syscalls to print
 	global syscallSelection
@@ -15112,7 +15126,7 @@ def startupPrint():
 	global bSyscallFound
 	global bHeavenFound
 	global bPEBFound
-	#global sh.rawData2
+	#global m[o].rawData2
 	global bAsciiStrings
 	global bWideCharStrings
 	global bPushStackStrings
@@ -15146,7 +15160,7 @@ def startupPrint():
 		
 		if bAsciiStrings and bStringsFound:
 			print(yel + " Finding Strings..", end="")
-			findStrings(sh.rawData2,3)
+			findStrings(m[o].rawData2,3)
 			curLen = len("Finding Strings..")
 
 			if (len(stringsTemp) > 0):
@@ -15163,7 +15177,7 @@ def startupPrint():
 		if bWideCharStrings and not bTempWideString:
 			print(yel + " Finding unicode strings..", end="")
 
-			findStringsWide(sh.rawData2,3)
+			findStringsWide(m[o].rawData2,3)
 			curLen = len("Finding unicode strings..")
 
 			if (len(stringsTempWide) > 0):
@@ -15180,7 +15194,7 @@ def startupPrint():
 		if bPushStackStrings and not bPushStringsFound:
 			print(yel + " Finding pushstack strings..", end="")
 
-			findPushAsciiMixed(sh.rawData2,3)
+			findPushAsciiMixed(m[o].rawData2,3)
 			curLen = len("Finding pushstack strings..")
 			if (len(pushStringsTemp) > 0):
 				
@@ -15201,7 +15215,7 @@ def startupPrint():
 			curLen = len("Searching for disassembly..")
 
 			dontPrint()
-			shellDisassemblyInit(sh.rawData2)
+			shellDisassemblyInit(m[o].rawData2)
 			allowPrint()
 			colorama.init()
 			if gDisassemblyText != "":
@@ -15215,7 +15229,7 @@ def startupPrint():
 			print(yel + " Searching for Fstenv instructions..", end="")
 			curLen = len("Searching for Fstenv instructions..")
 
-			findAllFSTENV(sh.rawData2, 'noSec')
+			findAllFSTENV(m[o].rawData2, 'noSec')
 			if len(m[o].save_FSTENV_info) > 0:
 				bFstenvFound = True
 				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
@@ -15232,9 +15246,9 @@ def startupPrint():
 			curLen = len("Searching for pushret instructions..")
 
 			if bit32:
-				findAllPushRet(sh.rawData2, 'noSec')
+				findAllPushRet(m[o].rawData2, 'noSec')
 			else: 
-				findAllPushRet64(sh.rawData2, 'noSec')
+				findAllPushRet64(m[o].rawData2, 'noSec')
 
 			if len(m[o].save_PushRet_info) > 0:
 				bPushRetFound = True
@@ -15252,9 +15266,9 @@ def startupPrint():
 			print(yel + " Searching for callpop instructions..", end="")
 			curLen = len("Searching for callpop instructions..")
 			if bit32:
-				findAllCallpop(sh.rawData2, 'noSec')
+				findAllCallpop(m[o].rawData2, 'noSec')
 			else: 
-				findAllCallpop64(sh.rawData2, 'noSec')
+				findAllCallpop64(m[o].rawData2, 'noSec')
 			if len(m[o].save_Callpop_info) > 0:
 				bCallPopFound = True
 				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
@@ -15270,7 +15284,7 @@ def startupPrint():
 		if bHeaven and not bHeavenFound:
 			print(yel + " Searching for heaven's gate instructions..", end="")
 			curLen = len("Searching for heaven's gate instructions..")
-			getHeavenRawHex(0, linesBack, 'noSec', sh.rawData2)
+			getHeavenRawHex(0, linesBack, 'noSec', m[o].rawData2)
 			if len(m[o].save_Heaven_info) > 0:
 				bHeavenFound = True
 				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
@@ -15287,7 +15301,7 @@ def startupPrint():
 			print(yel + " Searching for syscall instructions..", end="")
 			curLen = len("Searching for syscall instructions..")
 
-			getSyscallRawHex(0, linesBack, 'noSec', sh.rawData2)
+			getSyscallRawHex(0, linesBack, 'noSec', m[o].rawData2)
 			if len(m[o].save_Egg_info) > 0:
 				bSyscallFound = True
 				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
@@ -15304,7 +15318,7 @@ def startupPrint():
 			print(yel + " Searching for peb instructions..", end="")
 			curLen = len("Searching for peb instructions..")
 
-			findAllPebSequences("normal", sh.rawData2, 'noSec')
+			findAllPebSequences("normal", m[o].rawData2, 'noSec')
 			if len(m[o].save_PEB_info) > 0:
 				bPEBFound = True
 				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
@@ -15706,7 +15720,7 @@ def ui(): #UI menu loop
 					# print(configData)
 					
 			elif userIN[0:1] == "u":
-				Text2Json(sh.rawData2)
+				Text2Json(m[o].rawData2)
 			elif userIN[0:1] == "p":	#We want to print
 				uiPrint()
 				# print("\nReturning to main menu.\n")
@@ -15855,7 +15869,7 @@ def uiDiscover(): 	#Discover shellcode instructions
 					if bit32:
 						start = time.time()
 						dontPrint()
-						shellDisassemblyInit(sh.rawData2)
+						shellDisassemblyInit(m[o].rawData2)
 						allowPrint()
 						colorama.init()
 						end = time.time()
@@ -15874,7 +15888,7 @@ def uiDiscover(): 	#Discover shellcode instructions
 				print(cya + " Searching for fstenv instructions..."+res, end="", flush=True)
 				start = time.time()
 				if (rawHex):
-					findAllFSTENV(sh.rawData2, 'noSec')
+					findAllFSTENV(m[o].rawData2, 'noSec')
 
 				else:
 					for secNum in range(len(s)):
@@ -15899,7 +15913,7 @@ def uiDiscover(): 	#Discover shellcode instructions
 					#print("{:>{x}}".format("[Not Found]", x=15+(maxLen-curLen)))
 				end = time.time()
 				elapsed_time += end - start
-				# print("After fstenv search", sh.rawData2.hex())
+				# print("After fstenv search", m[o].rawData2.hex())
 						
 			if bPushRet and not bPushRetFound:
 
@@ -15908,9 +15922,9 @@ def uiDiscover(): 	#Discover shellcode instructions
 				print(cya + " Searching for push ret instructions..." + res, end="", flush=True)
 				if (rawHex):
 					if bit32:
-						findAllPushRet(sh.rawData2, 'noSec')
+						findAllPushRet(m[o].rawData2, 'noSec')
 					else: 
-						findAllPushRet64(sh.rawData2, 'noSec')
+						findAllPushRet64(m[o].rawData2, 'noSec')
 
 				else:
 					for secNum in range(len(s)):
@@ -15933,7 +15947,7 @@ def uiDiscover(): 	#Discover shellcode instructions
 				else:
 					print("{:>{x}}[{}]".format("", red + "Not Found" + res, x=15+(maxLen-curLen)))
 				end = time.time()
-				# print("After pushret search", sh.rawData2.hex())
+				# print("After pushret search", m[o].rawData2.hex())
 
 			if bCallPop and not bCallPopFound:
 				start = time.time()
@@ -15941,9 +15955,9 @@ def uiDiscover(): 	#Discover shellcode instructions
 				print(cya + " Searching for call pop instructions..."+res, end="", flush=True)
 				if (rawHex):
 					if bit32:
-						findAllCallpop(sh.rawData2, 'noSec')
+						findAllCallpop(m[o].rawData2, 'noSec')
 					else: 
-						findAllCallpop64(sh.rawData2, 'noSec')
+						findAllCallpop64(m[o].rawData2, 'noSec')
 
 				else:
 					for secNum in range(len(s)):
@@ -15970,7 +15984,7 @@ def uiDiscover(): 	#Discover shellcode instructions
 				curLen = len("Searching for heaven's gate instructions")
 				print(cya + " Searching for heaven's gate instructions..."+ res, end="", flush=True)
 				if (rawHex):
-					getHeavenRawHex(0, linesBack, 'noSec', sh.rawData2)
+					getHeavenRawHex(0, linesBack, 'noSec', m[o].rawData2)
 
 				else:
 					for secNum in range(len(s)):
@@ -15995,8 +16009,8 @@ def uiDiscover(): 	#Discover shellcode instructions
 				curLen = len("Searching for windows syscall instructions")
 				print(cya + " Searching for windows syscall instructions..."+res, end="", flush=True)
 				if (rawHex):
-					# getSyscallPE(20, 20, match, 'noSec', sh.rawData2)
-					getSyscallRawHex(0, linesBack, 'noSec', sh.rawData2)
+					# getSyscallPE(20, 20, match, 'noSec', m[o].rawData2)
+					getSyscallRawHex(0, linesBack, 'noSec', m[o].rawData2)
 
 				else:
 					for secNum in range(len(s)):
@@ -16024,9 +16038,9 @@ def uiDiscover(): 	#Discover shellcode instructions
 				curLen = len("Searching for PEB walking instructions")
 				print(cya + " Searching for PEB walking instructions..."+res, end="", flush=True)
 				if (rawHex):
-					# findAllPebSequences_old(sh.rawData2, 'noSec')
-					findAllPebSequences("normal", sh.rawData2, 'noSec')
-					# findAllPebSequences(sh.rawData2, 0, "decrypt")
+					# findAllPebSequences_old(m[o].rawData2, 'noSec')
+					findAllPebSequences("normal", m[o].rawData2, 'noSec')
+					# findAllPebSequences(m[o].rawData2, 0, "decrypt")
 				else:
 					if shellBit == 64:
 						
@@ -17026,12 +17040,12 @@ def uiFindStrings():
 			else:
 
 				if bAsciiStrings and not bStringsFound:
-					findStrings(sh.rawData2,3)
+					findStrings(m[o].rawData2,3)
 
 				if bWideCharStrings and (stringsTempWide == []):
-					findStringsWide(sh.rawData2,3)
+					findStringsWide(m[o].rawData2,3)
 				if bPushStackStrings and not  bPushStringsFound:
-					findPushAsciiMixed(sh.rawData2,3)
+					findPushAsciiMixed(m[o].rawData2,3)
 				maxLen = len("Searching for Push stack strings")
 
 				print("\n")
@@ -17111,7 +17125,7 @@ def uiShellcodeStrings():
 			shellcodePushStrings = []
 			preSyscalDiscovery(0, 0x0, 20)
 			for x,y,z in stringsTemp:
-				if(goodString(sh.rawData2, x, minStrLen)):
+				if(goodString(m[o].rawData2, x, minStrLen)):
 					shellcodeStrings.append(tuple((x,y,z)))
 			for x,y,z  in shellcodeStrings:
 				print ("\t"+ str(x) + "\t" + str(hex(y)) + "\t" + str(hex(z)))
@@ -17123,7 +17137,7 @@ def uiShellcodeStrings():
 					minStrLen = int(minLenIn)
 					shellcodeStrings = []
 					for x,y,z in stringsTemp:
-						if(goodString(sh.rawData2, x, minStrLen)):
+						if(goodString(m[o].rawData2, x, minStrLen)):
 							shellcodeStrings.append(tuple((x,y,z)))
 					for x,y,z  in shellcodeStrings:
 						print ("\t"+ str(x) + "\t" + str(hex(y)) + "\t" + str(hex(z)))
@@ -17329,12 +17343,12 @@ def findAll():  #Find everything
 
 		else: 
 			if bAsciiStrings:
-				findStrings(sh.rawData2,3)
+				findStrings(m[o].rawData2,3)
 
 			if bWideCharStrings:
-				findStringsWide(sh.rawData2,3)
+				findStringsWide(m[o].rawData2,3)
 			if bPushStackStrings:
-				findPushAsciiMixed(sh.rawData2,3)
+				findPushAsciiMixed(m[o].rawData2,3)
 
 
 			if (len(stringsTemp) > 0):
@@ -17380,7 +17394,7 @@ def findAll():  #Find everything
 
 		#print("Finding fstenv instructions.\n")
 		if (rawHex):
-			findAllFSTENV(sh.rawData2, 'noSec')
+			findAllFSTENV(m[o].rawData2, 'noSec')
 		else:
 			for secNum in range(len(s)):
 				data2 = s[secNum].data2
@@ -17402,10 +17416,10 @@ def findAll():  #Find everything
 		#print("Finding push ret instructions.\n")
 		if (rawHex):
 			if bit32:
-				findAllPushRet(sh.rawData2, 'noSec')
+				findAllPushRet(m[o].rawData2, 'noSec')
 			else:
 				pass
-				# findAllPushRet64(sh.rawData2, 'noSec')
+				# findAllPushRet64(m[o].rawData2, 'noSec')
 
 		else:
 			for secNum in range(len(s)):
@@ -17433,9 +17447,9 @@ def findAll():  #Find everything
 		# print("Finding call pop instructions.\n")
 		if (rawHex):
 			if bit32:
-				findAllCallpop(sh.rawData2, 'noSec')
+				findAllCallpop(m[o].rawData2, 'noSec')
 			else: 
-				findAllCallpop64(sh.rawData2, 'noSec')
+				findAllCallpop64(m[o].rawData2, 'noSec')
 
 		else:
 			for secNum in range(len(s)):
@@ -17460,7 +17474,7 @@ def findAll():  #Find everything
 		print("Searching for heaven's gate instructions.", end="", flush=True)
 		#print("Finding heaven's gate instructions.\n")
 		if (rawHex):
-			getHeavenRawHex(0, 8, 'noSec', sh.rawData2)
+			getHeavenRawHex(0, 8, 'noSec', m[o].rawData2)
 		else:
 			for secNum in range(len(s)):
 					data2 = s[secNum].data2
@@ -17482,8 +17496,8 @@ def findAll():  #Find everything
 		print("Searching for windows syscall instructions.", end="", flush=True)
 		#print("Finding windows syscall instructions.\n")
 		if (rawHex):
-			# getSyscallPE(20, 20, match, 'noSec', sh.rawData2)
-			getSyscallRawHex(0, 8, 'noSec', sh.rawData2)
+			# getSyscallPE(20, 20, match, 'noSec', m[o].rawData2)
+			getSyscallRawHex(0, 8, 'noSec', m[o].rawData2)
 		else:
 			for secNum in range(len(s)):
 					data2 = s[secNum].data2
@@ -17504,7 +17518,7 @@ def findAll():  #Find everything
 		print("Searching for PEB walking instructions.", end="", flush=True)
 		#print("Finding PEB walking instructions.\n")
 		if (rawHex):
-			findAllPebSequences_old(sh.rawData2, 'noSec')
+			findAllPebSequences_old(m[o].rawData2, 'noSec')
 		else:
 			for secNum in range(len(s)):
 					data2 = s[secNum].data2
@@ -17528,7 +17542,7 @@ def findAll():  #Find everything
 		if rawHex:
 			curLen = len("Searching for disassembly")
 			print("Searching for disassembly.", end="", flush=True)
-			shellDisassemblyInit(sh.rawData2)
+			shellDisassemblyInit(m[o].rawData2)
 			#allowPrint()
 			if gDisassemblyText != "":
 				print("{:>{x}}{}".format("", gre + "[Found]" + res, x=15+(maxLen-curLen)))
@@ -17821,7 +17835,7 @@ def generateOutputData(): #Generate the dictionary for json out
 	global rawHex
 	global brawHex
 	global bstrLit
-	#global sh.rawData2
+	#global m[o].rawData2
 
 	time = datetime.datetime.now()
 	epoch = time.timestamp()
@@ -18014,9 +18028,9 @@ def generateOutputData(): #Generate the dictionary for json out
 				# print ("retOffset", retOffset)
 				printEnd = int(retOffset, 16) + 15
 				# print ("printEnd", printEnd)
-				CODED2 = sh.rawData2[address:(printEnd)]
+				CODED2 = m[o].rawData2[address:(printEnd)]
 				# print ("1",binaryToStr(CODED2))
-				# print ("\n2",binaryToStr(sh.rawData2[pushAdd:(printEnd)]))
+				# print ("\n2",binaryToStr(m[o].rawData2[pushAdd:(printEnd)]))
 
 			
 
@@ -18134,7 +18148,7 @@ def generateOutputData(): #Generate the dictionary for json out
 				secNum = item[3]
 				distance = item[4]
 				pop_offset = item[5]
-				CODED2 = sh.rawData2[(address):int(pop_offset, 16) + 1]
+				CODED2 = m[o].rawData2[(address):int(pop_offset, 16) + 1]
 				CODED3 = CODED2
 				val =""
 				val2 = []
@@ -18210,7 +18224,7 @@ def generateOutputData(): #Generate the dictionary for json out
 				FPU_offset  = item[5]
 				FSTENV_offset = item[6]
 				printEnd = item[7]
-				CODED2 = sh.rawData2[int(FPU_offset, 16):(int(printEnd, 16))]
+				CODED2 = m[o].rawData2[int(FPU_offset, 16):(int(printEnd, 16))]
 				CODED3 = CODED2
 				val =""
 				val2 = []
@@ -18357,7 +18371,7 @@ def generateOutputData(): #Generate the dictionary for json out
 				val3 = []
 				#address2 = address + section.ImageBase + section.VirtualAdd
 				val5 =[]
-				CODED2 = sh.rawData2[address:(address+NumOpsDis)]
+				CODED2 = m[o].rawData2[address:(address+NumOpsDis)]
 				for i in callCS.disasm(CODED2, address):
 					if(rawHex):
 						add4 = hex(int(i.address))
@@ -18470,10 +18484,10 @@ def generateOutputData(): #Generate the dictionary for json out
 				c0_offset = item[6]
 				converted = item[7]
 				syscalls = "not found"
-				# CODED2 = sh.rawData2[address:(printEnd)]
+				# CODED2 = m[o].rawData2[address:(printEnd)]
 
 				# print(NumOpsDis)
-				CODED2 = sh.rawData2[address:(address+20)]
+				CODED2 = m[o].rawData2[address:(address+20)]
 				converted = [string.replace("\t", "") for string in converted]
 				if(eax != "unknown"):
 					# syscalls = returnSyscalls(int(eax, 0))
@@ -18970,7 +18984,7 @@ def printToText(outputData):	#Output data to text doc
 		outString += "\nNo Disassembly found.\n"
 	#disassembly = shellDisassemblyStart(filename, "txt")
 	#dontPrint()
-	#disassembly = takeBytes(sh.rawData2, 0)
+	#disassembly = takeBytes(m[o].rawData2, 0)
 	#printAgain()
 	
 	#disassembly = disassembly.split("Raw Hex:")[0]
@@ -19053,7 +19067,7 @@ if __name__ == "__main__":
 			print(e)
 			pass
 
-	hashShellcode(sh.rawData2)  # if comes after args parser
+	hashShellcode(m[o].rawData2)  # if comes after args parser
 
 
 	bramwell=False
@@ -19071,7 +19085,7 @@ if __name__ == "__main__":
 
 	# user = AustinID
 	user=view
-	user=BramwellID
+	# user=BramwellID
 
 
 	
@@ -19115,12 +19129,12 @@ if __name__ == "__main__":
 		if yes == 53:
 			# init2(filename)
 			# init2(filename)
-			# # print (binaryToStr(sh.rawData2))
+			# # print (binaryToStr(m[o].rawData2))
 			# if not os.path.exists(directory+'bins'):
 			# 	os.makedirs(directory+'bins')
-			# assembly=binaryToText(sh.rawData2)
+			# assembly=binaryToText(m[o].rawData2)
 			# newBin = open(directory+"bins\\"+filename[:-4]+".bin", "wb")
-			# newBin.write(sh.rawData2)
+			# newBin.write(m[o].rawData2)
 			# newBin.close()
 			# newDis = open(directory+"bins\\ascii-"+filename[:-4]+".txt", "w")
 			# print (directory+"bins\\ascii-"+filename[:-4]+".txt")
@@ -19154,7 +19168,7 @@ if __name__ == "__main__":
 
 
 			print ("results")
-			hashShellcode(sh.rawData2, unecryptedBodyShell)   ## options (None, unecryptedBodyShell,unencryptedShell, decoderShell )
+			hashShellcode(m[o].rawData2, unecryptedBodyShell)   ## options (None, unecryptedBodyShell,unencryptedShell, decoderShell )
 			hashShellcodeTestShow(unecryptedBodyShell)  ## options (None, unecryptedBodyShell,unencryptedShell, decoderShell )
 
 			X86_CODE32_LOOP = b"\x41\x4a\xeb\xfe"
@@ -19165,7 +19179,7 @@ if __name__ == "__main__":
 
 			#shellcode object
 			sh.setrawData2(X86_CODE32_LOOP)
-			print (binaryToStr(sh.sh.rawData2))
+			print (binaryToStr(m[o].rawData2))
 			sh.setDecoderStub(X86_CODE32)
 			print (binaryToStr(sh.decoderStub))
 			sh.setDecodedBody(random)
@@ -19269,7 +19283,7 @@ if __name__ == "__main__":
 			# 			rawHex = True
 			# 			rawBin = True
 			# 			f = open(i, "rb")
-			# 			sh.rawData2 = f.read()
+			# 			m[o].rawData2 = f.read()
 
 			# 		filename = i
 			# 		init2(filename)
@@ -19280,7 +19294,7 @@ if __name__ == "__main__":
 
 				# 	f = open(file2Check, "rb")
 				# filename = file2Check
-				# sh.rawData2 = f.read()
+				# m[o].rawData2 = f.read()
 				# f.close()
 				# rawHex = True
 				# rawBin = True
@@ -19299,7 +19313,7 @@ if __name__ == "__main__":
 			print(gre + "\n\n[Attention] Startup config has been used.\n")
 			print(whi + "Change the startup value to disabled in the config file if you want to use the UI menu.\n" + res)
 			startupPrint()
-		# print(sh.rawData2.hex())
+		# print(m[o].rawData2.hex())
 		# global bit32
 
 		# global linesForward
@@ -19334,14 +19348,14 @@ if __name__ == "__main__":
 
 		
 		# print("CONVERTED HERE")
-		# print(binaryToStr(sh.rawData2))
+		# print(binaryToStr(m[o].rawData2))
 
 		# initSysCallSelect()
 		# if (rawHex):
 		# 	# for match in EGGHUNT.values():
-		# 	# 	getSyscallPE(20, 20, match, 'noSec', sh.rawData2)
+		# 	# 	getSyscallPE(20, 20, match, 'noSec', m[o].rawData2)
 		# 	print("doing the jive")
-		# 	getSyscallRawHex(0, 8, 'noSec', sh.rawData2)
+		# 	getSyscallRawHex(0, 8, 'noSec', m[o].rawData2)
 		# 	printSavedEgg(shellBit, True)
 
 		#Run the UI
@@ -19353,8 +19367,8 @@ if __name__ == "__main__":
 
 		# 		if (rawHex):
 		# 			# for match in EGGHUNT.values():
-		# 			# 	getSyscallPE(20, 20, match, 'noSec', sh.rawData2)
-		# 			getSyscallRawHex(0, 8, 'noSec', sh.rawData2)
+		# 			# 	getSyscallPE(20, 20, match, 'noSec', m[o].rawData2)
+		# 			getSyscallRawHex(0, 8, 'noSec', m[o].rawData2)
 		# 		else:
 		# 			for secNum in range(len(s)):
 		# 					data2 = s[secNum].data2
@@ -19364,7 +19378,7 @@ if __name__ == "__main__":
 			
 		# 	if bFstenv:
 		# 		if (rawHex):#(rawBin == False) and not isPe: 
-		# 			findAllFSTENV(sh.rawData2, 'noSec')
+		# 			findAllFSTENV(m[o].rawData2, 'noSec')
 
 
 		# 		else:
@@ -19376,10 +19390,10 @@ if __name__ == "__main__":
 		# 	if bPushRet:
 		# 		if (rawHex):#(rawBin == False) and not isPe:
 		# 			if bit32:
-		# 				findAllPushRet(sh.rawData2, 'noSec')
+		# 				findAllPushRet(m[o].rawData2, 'noSec')
 		# 			else: 
 
-		# 				findAllPushRet64(sh.rawData2, 'noSec')
+		# 				findAllPushRet64(m[o].rawData2, 'noSec')
 
 		# 		else:
 		# 			for secNum in range(len(s)):
@@ -19400,10 +19414,10 @@ if __name__ == "__main__":
 		# 		print ("caall pop")
 		# 		if (rawHex):#(rawBin == False) and not isPe:
 		# 			if bit32:
-		# 				findAllCallpop(sh.rawData2, 'noSec')
+		# 				findAllCallpop(m[o].rawData2, 'noSec')
 		# 			else: 
 		# 				print ("test")
-		# 				findAllCallpop64(sh.rawData2, 'noSec')
+		# 				findAllCallpop64(m[o].rawData2, 'noSec')
 
 		# 		else:
 		# 			for secNum in range(len(s)):
@@ -19419,7 +19433,7 @@ if __name__ == "__main__":
 		# 		printSavedCallPop(shellBit)
 		# 	if bHeaven:
 		# 		if (rawHex):
-		# 			getHeavenRawHex(0, 8, 'noSec', sh.rawData2)
+		# 			getHeavenRawHex(0, 8, 'noSec', m[o].rawData2)
 		# 		else:
 		# 			for secNum in range(len(s)):
 		# 					data2 = s[secNum].data2
