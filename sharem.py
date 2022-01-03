@@ -51,7 +51,8 @@ blu = '\u001b[34;1m'
 mag = '\u001b[35;1m'
 cya = '\u001b[36;1m'
 whi = '\u001b[37m'
-res = '\u001b[0m'
+# res = '\u001b[0m'
+res=whi
 
 # print(red + "Hello there. I'm Tarek, testing colors.")
 # print(gre + "Hello there. I'm Tarek, testing colors.")
@@ -121,6 +122,7 @@ vSize= 0
 startAddress= 0 
 endAddy= 0 
 # o=0
+gName=""
 o="shellcode"
 shOrg="shellcode"
 shBody="decoded body"
@@ -196,6 +198,8 @@ bPEBFound = False
 bCallPopFound = False
 bEvilImportsFound = False
 bModulesFound = False
+bWideStringFound = False
+bPushStringsFound = False
 deobfShell = True
 fastMode=False
 pebPoints = 3
@@ -368,7 +372,7 @@ def isPE(file_path):
 		return False
 
 def CliParser():
-
+	global gName
 	global peName
 	global rawData2
 	global filename
@@ -418,6 +422,7 @@ def CliParser():
 
 		if os.path.isfile(file2Check):
 			shellFile = os.path.basename(file2Check)
+			gName=shellFile
 			if(len(shellFile) > 3):
 				ext = shellFile[-3:]
 				if ext == "txt":
@@ -432,7 +437,7 @@ def CliParser():
 					rawHex = True
 					rawBin = True
 
-			print("Shellcode file: ", shellFile)
+			# print("Shellcode file: ", shellFile)
 		else:
 			print(args.r, "file doesn't exist")
 			sys.exit()
@@ -447,9 +452,9 @@ def CliParser():
 	if args.pe:
 		if os.path.isfile(args.pe):
 
-			peFile = os.path.basename(args.pe)
+			gName = os.path.basename(args.pe)
 			peName = args.pe
-			print("PE path is: ", args.pe)
+			# print("PE path is: ", args.pe)
 			if win32file.GetBinaryType(args.pe) == 6:
 				# print("64 bit file", args.pe)
 				bit32 = False
@@ -730,11 +735,12 @@ class OSVersion:
 
 class MyBytes:
 
-	def __init__(self, n, rawD): #, name):
+	def __init__(self, nameOfType, rawD, name): #, name):
 		"""Initializes the data."""
 		self.peName = 'peName'
+		self.shellName=nameOfType
+		self.name =name
 		self.modName ='modName'
-		self.shellName=n
 		self.pe = pe #pefile.PE(self.peName)
 		self.data2 = 0
 		self.rawData2=rawD
@@ -751,6 +757,9 @@ class MyBytes:
 		self.aslrStatus=""
 		self.sehSTATUS=""
 		self.CFGstatus=""
+		self.md5=0
+		self.sha256 = 0
+		self.ssdeep = 0
 		self.Imports=[]
 		self.Hash_sha256_section=""
 		self.Hash_md5_section=""
@@ -766,6 +775,37 @@ class MyBytes:
 		self.save_Heaven_info = []
 	def setShellName(self,n):
 		self.shellName=n
+	def setName(self,n):
+		self.name=n
+	def setHashes(self):
+		ssdeepHash = ssdeep.hash(self.rawData2)
+		md5sum=(hashlib.md5(self.rawData2).hexdigest())
+		sha256=(hashlib.sha256(self.rawData2).hexdigest())
+		self.md5 = md5sum
+		self.sha256=sha256
+		self.ssdeep=ssdeepHash
+	def setHashesPE(self):
+		global peName
+		print (peName)
+		ssdeepHash = ssdeep.hash(open(peName,'rb').read())
+		md5sum=hashlib.md5(open(peName,'rb').read()).hexdigest()
+		sha256=hashlib.sha256(open(peName,'rb').read()).hexdigest()
+		self.md5 = md5sum
+		self.sha256=sha256
+		self.ssdeep=ssdeepHash
+	def getHashes(self):
+		# out=mag+"Shellcode hashes\n"+res
+		out+=yel+ "\tmd5: " +res +self.md5 + "\n"
+		out+=yel+ "\tsha256: " +res+ self.sha256+ "\n"
+		out+=yel+ "\tssdeep: "+res + self.ssdeep+ "\n"
+		return (out)
+	def getMd5(self):
+		return self.md5 
+	def getSsdeep(self):
+		return self.ssdeep
+	def getSha256(self):
+		return self.sha256
+
 # end classs 
 
 class IATS:
@@ -846,6 +886,7 @@ def cBytesChange(name):
 def cBytesShow():
 	print("Current class:", o)
 	print("Total classes:", len(o))
+
 
 class shellHash:
 	def __init__(self, md5=None, sha256=None, ssdeep=None):
@@ -976,24 +1017,50 @@ def clearDisassBytClass():
 	sBy.specialEnd.clear()
 	sBy.comments.clear()
 
-def newModule(n,rawD):
+def newModule(nameOfType,rawD, name="Name"):
 	global m
 	global peName
 	global rawHex
 	global o
-	o=n
-	obj = MyBytes(n,rawD)
-	obj.setShellName(n)
-	m[n]=obj
+	global gName
+	global rawHex
+
+	show=True
+	if show:
+		out= (mag+"new module " + name+res )
+		if rawHex:
+			out+=" - shellcode -  len rawdata2: " + (str(len(rawD)))
+		else:
+			out+=" -pe file"
+
+
+	obj = MyBytes(nameOfType,rawD,name)
+	obj.setShellName(nameOfType)
+	obj.setName(name)
+
+	if rawHex:
+		o=nameOfType   # shellcode - >  "shellcode", "decoded"  -- only two, not name of shellcode
+		m[nameOfType]=obj
+		obj.setHashes()
+	else:  #pe file
+		o=name    # name of the pe   #gName   -- e.g. example.dll, example.exe   -- not the full path
+		m[name]=obj   #name of pe file is the key
+		obj.setHashesPE()
+	
 	if not rawHex:
-		obj.setShellName(peName)
+		obj.setShellName("pe")
 	mL.append(obj)
+
+	if show:
+		print (out)
+		print (gre+"# mods"+res, len(m))
 
 	
 
 def newSection():
 	global s
-	obj = MyBytes("pe",0)
+	global gName
+	obj = MyBytes("pe",0,gName)
 	s.append(obj)
 
 def newIAT():
@@ -1409,7 +1476,7 @@ def cleanColors(out):
 def giveLoadedModules(mode=None):
 	global filename
 	t=0
-	out="Loaded Modules\n\n"
+	out=yel+"\nLoaded Modules\n\n"+res
 	for x in IATs.foundDll:
 		try:
 			x = x.decode()
@@ -2026,7 +2093,7 @@ def extractDLL_MinNew(dll):
 	dllName = dll
 	modName = dll
 	
-	newModule(dll,rawData2)
+	newModule(dll,rawData2,dll)
 
 	#o = o + 1
 	# print "o = " + str(o)
@@ -2078,11 +2145,18 @@ def showBasicInfo():
 	return cat
 
 def showBasicInfoSections():
+	global gName
 	dprint2("showBasicInfoSections")
 	cat=""
 	t=0
-	dprint2 ("# s: " + str(len(s)))
+	# dprint2 ("# s: " + str(len(s)))
+	cat += mag+(gName)+"\n"
+	cat += gre+"Md5: "+res+str(m[o].getMd5())+"\n"
+	cat += gre+"Sha256: "+res+str(m[o].getSha256())+"\n"
+	cat += gre+"Ssdeep: "+res+str(m[o].getSsdeep())+"\n\n"
 
+
+	cat += '\nSection info\n\n'
 	for each in s:	
 		cat +="Section:"+yel+s[t].sectionName.decode()+res+"\n"
 		# cat +="Section: " + str(m[0].sectionName) +"\n"
@@ -7966,7 +8040,6 @@ def optimized_find(numOps, match, secNum, data2, funcName = None):
 		patternMatch = match
 	foundFS = False
 	while True:
-		
 		start = data2.find(patternMatch, start)
 		if start == -1:
 			break
@@ -8241,7 +8314,7 @@ def findAllPebSequences(mode, data2=None, secNum=None): ################## AUSTI
 
 
 def findAllPushRet(data2, secNum): ################## AUSTIN #########################
-	if(secNum == 'noSec'):
+	if rawHex:
 		PushRetrawhex(0, 'noSec', data2)
 	else:
 		for match in PUSH_RET.values():
@@ -10103,18 +10176,6 @@ def AustinTesting2():
 	# newDis.write(disassembly)
 	# newDis.close()
 
-
-def AustinStart():
-
-	# ObtainAndExtractDlls()
-	# runIt()
-	# showBasicInfo()
-	# start = timeit.default_timer()
-	if(not rawHex):
-		ObtainAndExtractSections()
-		print (showBasicInfoSections())
-	# stop = timeit.default_timer()
-	# print("START TIME = " + str(stop - start))
 
 
 def goodString(data,word, size):
@@ -12496,8 +12557,8 @@ def takeBytes(shellBytes,startingAddress):
 def addComments():
 	# print("addcomments:", hex(len(sBy.comments)), hex(len(sBy.bytesType)))
 	for item in m[o].save_PEB_info:
-		print("ITEMS HERE")
-		print(item)
+		# print("ITEMS HERE")
+		# print(item)
 		tib=item[5]
 		sBy.comments[int(tib,16)] = "; load TIB"
 		ldr=item[6]
@@ -12514,12 +12575,13 @@ def addComments():
 				if each != -1:
 					sBy.comments[int(each,16)] = "; advancing DLL flink"
 			except:
-
-				print (type(each))
-				print (each)
+				pass
+				# print (type(each))
+				# print (each)
 	for item in m[o].save_PushRet_info:
 
 		#(495, 4, 'rawHex', -1, 0, ('0x1ef', 'ebx'), '0x1f0')
+		# print ("sBy.comments,",len(sBy.comments))
 		push=item[5]
 		pushOffset=push[0]
 		pushReg=push[1]
@@ -13413,10 +13475,8 @@ def bramwellStart():
 	# ObtainAndExtractDlls()
 	# runIt()
 	readRegs()
-	showBasicInfo()
 	ObtainAndExtractSections()
 	print ("basic info")
-	print (showBasicInfoSections())
 
 
 	OP_SPECIAL = b"\x8d\x4c\xff\xe2\x01\xd8\x81\xc6\x34\x12\x00\x00"
@@ -13455,10 +13515,8 @@ def bramwellStart():
 
 def bramwellStart3():
 
-	showBasicInfo()
 	ObtainAndExtractSections()
 	print ("basic info")
-	print (showBasicInfoSections())
 
 
 
@@ -13484,7 +13542,7 @@ def bramwellStart3():
 
 	print ("start InMem2")
 	InMem2()
-	print(giveLoadedModules())
+	print(giveLoadedModules("save"))
 	print ("end InMem2")
 
 
@@ -13496,7 +13554,6 @@ def init1():
 
 	if(not rawHex):
 		ObtainAndExtractSections()
-		# print (showBasicInfoSections())
 	if (rawHex):#(rawBin == False) and not isPe: 
 		rawBytes=readShellcode(filename) 
 		m[o].rawData2=rawBytes
@@ -13504,18 +13561,19 @@ def init1():
 
 def init2(filename):
 	# print("init2")
-
+	global gName
+	global rawData2
 	if(not rawHex):
 		ObtainAndExtractSections()
-		# print (showBasicInfoSections())
 	if (rawHex):#(rawBin == False) and not isPe: 
 		# print("in rawhex part")
 		# print(filename)
 		# print(filename[-4:])
 		if(filename[-4:] == ".txt"): #don't need to call readShellcode if it is a binary file
+			rawData2=readShellcode(filename) 
 
-			readRawData2=readShellcode(filename) 
-			newModule(o,readRawData2)
+			# readRawData2=readShellcode(filename) 
+			# newModule(o,readRawData2, gName+"--3")
 
 
 
@@ -15729,8 +15787,89 @@ def isFound():
 	else:
 		print('Peb instructions Not found')
 
+def discoverUnicodeStrings(max_len=None):
+	global bWideStringFound
+	if max_len==None:
+		max_len=42
+	bWideStringFound = False
+	print("\n"+yel + " Finding unicode strings..", end="")
+	curLen = len("Finding unicode strings..")
 
+	if rawHex:
+		findStringsWide(m[o].rawData2,3)
+		if (len(stringsTempWide) > 0):
+			bWideStringFound = True
+	else:
+		t=0
+		for sec in pe.sections:
+			if bWideCharStrings and not bWideStringFound:
+				findStringsWide(s[t].data2,minStrLen)
+			t+=1
+		t = 0
+		bWideStringFound = False
+		for sec in pe.sections:
+			if (len(s[t].wideStrings) > 0):
+				bWideStringFound = True
+			t+=1
+	if bWideStringFound:
+		print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
+	else:
+		print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
 
+def discoverAsciiStrings(max_len=None):
+	global bStringsFound
+	if max_len==None:
+		max_len=42
+
+	curLen = len("Finding Ascii strings..")
+	print(yel + " Finding Ascii strings.."+res, end="")
+	if rawHex:
+		findStrings(m[o].rawData2,3)
+		if (len(stringsTemp) > 0):
+			bStringsFound = True
+	else:		
+		t=0
+		for sec in pe.sections:
+			if bAsciiStrings and not bStringsFound:
+				findStrings(s[t].data2,minStrLen)
+			t+=1
+		t = 0
+		for sec in pe.sections:
+			if (len(s[t].Strings) > 0):
+				bStringsFound = True
+			t+=1
+	if bStringsFound:
+		print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
+	else:
+		print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
+
+def discoverStackStrings(max_len=None):
+	global bPushStringsFound
+	if max_len==None:
+		max_len=42
+
+	print(yel + " Finding push stack strings..", end="")
+	curLen = len("Finding push stack strings..")
+	if rawHex:
+		findPushAsciiMixed(m[o].rawData2,3)
+		if (len(pushStringsTemp) > 0):
+			bPushStringsFound = True
+	else:
+		t=0
+		for sec in pe.sections:
+			if bPushStackStrings and not bPushStringsFound:
+				findPushAsciiMixed(s[t].data2,5, t)
+			t+=1
+		t = 0
+		for sec in pe.sections:
+			if (len(s[t].pushStrings) > 0):
+				bPushStringsFound = True
+			t+=1
+	if bPushStringsFound:
+		print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
+	else:
+		print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
+	
 
 def startupPrint():
 	global bPushRetFound
@@ -15740,12 +15879,11 @@ def startupPrint():
 	global bSyscallFound
 	global bHeavenFound
 	global bPEBFound
-
 	global bAsciiStrings
 	global bWideCharStrings
 	global bPushStackStrings
 	global bStringsFound
-	global bTempWideString
+	global bWideStringFound
 	global bPushStringsFound
 	global minStrLen
 	global bpAll
@@ -15761,400 +15899,49 @@ def startupPrint():
 	global bpModules
 	global rawHex
 
+	elapsed_time=0
 
-	bPushRetFound = bCallPopFound = bDisassemblyFound = bFstenvFound = bHeavenFound = bPEBFound = bStringsFound = bTempWideString = bPushStringsFound = False
+	bPushRetFound = bCallPopFound = bDisassemblyFound = bFstenvFound = bHeavenFound = bPEBFound = bStringsFound = bWideStringFound = bPushStringsFound = False
 	minStrLen = 7
-
-	l_of_strings = ["Finding strings..", "Finding unicode strings..", "Finding push stack strings..","Searching for disassembly..", "Searching for Fstenv instructions..", "Searching for push ret instructions..", "Searching for call pop instructions..", "Searching for heaven's gate instructions..", "Searching for syscall instructions..", "Searching for PEB instructions.."]
-
+	l_of_strings = ["Finding Ascii strings..", "Finding unicode strings..", "Finding push stack strings..","Searching for disassembly..", "Searching for Fstenv instructions..", "Searching for push ret instructions..", "Searching for call pop instructions..", "Searching for heaven's gate instructions..", "Searching for syscall instructions..", "Searching for PEB instructions.."]
 	max_len = get_max_length(l_of_strings)
-	if rawHex:
-		# print("Shellcode section")
 
-		print(cya + "\n\n Finding shellcode Strings\n\n" + res)
+	print(cya + "\n\n Finding Strings\n\n" + res)
+	
+	if bAsciiStrings and not bStringsFound:
+		discoverAsciiStrings(max_len)
+	if bWideCharStrings and not bWideStringFound:
+		discoverUnicodeStrings(max_len)
+	if bPushStackStrings and not bPushStringsFound:
+		discoverStackStrings(max_len)
+	
+	if not bFstenvFound:
+		newTime= discoverFstenv(max_len)
+		elapsed_time += newTime
+		pass
+				
+	if not bPushRetFound:
+		newTime= discoverPushRet(max_len)
+		elapsed_time += newTime
 		
-		if bAsciiStrings and bStringsFound:
-			print(yel + " Finding Strings..", end="")
-			findStrings(m[o].rawData2,3)
-			curLen = len("Finding Strings..")
-
-			if (len(stringsTemp) > 0):
-				# print(gre + "[Found]".rjust(max_len) + res)
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-				# print({>30}).format(gre +"[Found]"+res)
-				bStringsFound = True
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print(red + "[Not Found]".rjust(max_len) + res)
-
-
-		if bWideCharStrings and not bTempWideString:
-			print(yel + " Finding unicode strings..", end="")
-
-			findStringsWide(m[o].rawData2,3)
-			curLen = len("Finding unicode strings..")
-
-			if (len(stringsTempWide) > 0):
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print(gre + "[Found]".rjust(max_len) + res)
-				bTempWideString = True
-
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print(red + "[Not Found]".rjust(max_len) + res)
-
-		if bPushStackStrings and not bPushStringsFound:
-			print(yel + " Finding push stack strings..", end="")
-
-			findPushAsciiMixed(m[o].rawData2,3)
-
-			curLen = len("Finding push stack strings..")
-
-			if (len(pushStringsTemp) > 0):
-				
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print(gre + "[Found]".rjust(max_len) + res)
-				bPushStringsFound = True
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print(red + "[Not Found]".rjust(max_len) + res)
-
-
-
-		print(cya + "\n\n Finding Shellcode instructions\n\n" + res)
-
-		if bFstenv and not bFstenvFound:
-			print(yel + " Searching for Fstenv instructions..", end="")
-			curLen = len("Searching for Fstenv instructions..")
-
-			findAllFSTENV(m[o].rawData2, 'noSec')
-			if len(m[o].save_FSTENV_info) > 0:
-				bFstenvFound = True
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(22) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(22) + res)
-
-
-		if bPushRet and not bPushRetFound:
-			print(yel + " Searching for push ret instructions..", end="")
-			curLen = len("Searching for push ret instructions..")
-
-			if bit32:
-				findAllPushRet(m[o].rawData2, 'noSec')
-			else: 
-				findAllPushRet64(m[o].rawData2, 'noSec')
-
-			if len(m[o].save_PushRet_info) > 0:
-				bPushRetFound = True
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(21) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(21) + res)
-
-
-
-		if bCallPop and not bCallPopFound:
-			print(yel + " Searching for call pop instructions..", end="")
-			curLen = len("Searching for call pop instructions..")
-			if bit32:
-				findAllCallpop(m[o].rawData2, 'noSec')
-			else: 
-				findAllCallpop64(m[o].rawData2, 'noSec')
-			if len(m[o].save_Callpop_info) > 0:
-				bCallPopFound = True
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(21) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(21) + res)
-
-
-
-		if bHeaven and not bHeavenFound:
-			print(yel + " Searching for heaven's gate instructions..", end="")
-			curLen = len("Searching for heaven's gate instructions..")
-			getHeavenRawHex(0, linesBack, 'noSec', m[o].rawData2)
-			if len(m[o].save_Heaven_info) > 0:
-				bHeavenFound = True
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + "[Found]".rjust(19) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(19) + res)
-
-
-
-		if bSyscall and not bSyscallFound:
-			print(yel + " Searching for Windows syscall instructions..", end="")
-			curLen = len("Searching for Windows syscall instructions..")
-
-			getSyscallRawHex(0, linesBack, 'noSec', m[o].rawData2)
-			if len(m[o].save_Egg_info) > 0:
-				bSyscallFound = True
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(21) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(21) + res)
-
-
-
-		if bPEB and not bPEBFound:
-			print(yel + " Searching for PEB instructions..", end="")
-			curLen = len("Searching for PEB instructions..")
-
-			findAllPebSequences("normal", m[o].rawData2, 'noSec')
-			if len(m[o].save_PEB_info) > 0:
-				bPEBFound = True
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(25) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(25) + res)
-		if bDisassembly and not bDisassemblyFound:
-			print(yel + " Searching for disassembly..", end="")
-			curLen = len("Searching for disassembly..")
-
-			# dontPrint()
-			shellDisassemblyInit(m[o].rawData2, "silent")
-			# allowPrint()
-			colorama.init()
-			if gDisassemblyText != "":
-				bDisassemblyFound = True
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(30) + res)
-			else:
-				print("\n")
-
-# PE Sections
-	else:
-		print(cya + "\n\n Finding strings\n\n" + res)
-
-		t=0
-		for sec in pe.sections:
-			if bAsciiStrings and not bStringsFound:
-				findStrings(s[t].data2,minStrLen)
-			if bWideCharStrings and not bTempWideString:
-				findStringsWide(s[t].data2,minStrLen)
-			if bPushStackStrings and not bPushStringsFound:
-				findPushAsciiMixed(s[t].data2,5, t)
-			t+=1
-		t = 0
-		bTempWideString = False
-			#print("{:>{x}}".format("[Found]    ", x=15+(maxLen-curLen)))
-		for sec in pe.sections:
-			if (len(s[t].Strings) > 0):
-				bStringsFound = True
-			
-			if (len(s[t].wideStrings) > 0):
-				bTempWideString = True
-				
-			if (len(s[t].pushStrings) > 0):
-				bPushStringsFound = True
-
-			t+=1
-
-		curLen = len("Finding strings..")
-		print(yel + " Finding strings.."+res, end="")
-
-		if bStringsFound:
-
-			# curLen = len("Finding strings..")
-			print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-			# print(yel + "Finding strings.."+gre+"[Found]".rjust(40) + res)
-		else:
-			print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-			# print(yel + "Finding strings.."+red+"[Not Found]".rjust(40) + res)
-
-		curLen = len("Finding unicode strings..")
-		print(yel + " Finding unicode strings.."+res, end="")
-
-		if bTempWideString:
-			print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-			# print(yel + "Finding unicode strings.."+gre+"[Found]".rjust(32) + res)
-		else:
-			print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-			# print(yel + "Finding unicode strings.."+red+"[Not Found]".rjust(32) + res)
-
-
-		curLen = len("Finding push stack strings..")
-		print(yel + " Finding push stack strings.."+res, end="")
-		if bPushStringsFound:
-			print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-			# print(yel + "Finding pushstack strings.."+gre+"[Found]".rjust(34) + res)
-		else:
-			print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-			# print(yel + "Finding pushstack strings.."+red+"[Not Found]".rjust(34) + res)
-
-
-
-		print(cya + "\n\nFinding instructions associated with shellcode\n\n" + res)
-
-
-
-		if bFstenv and not bFstenvFound:
-			print(yel + " Searching for Fstenv instructions..", end="")
-			curLen = len("Searching for Fstenv instructions..")
-			for secNum in range(len(s)):
-				data2 = s[secNum].data2
-
-				findAllFSTENV(data2, secNum)
-			for i in s:
-				if (len(i.save_FSTENV_info) > 0):
-					bFstenvFound = True
-			if bFstenvFound:
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(26) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(26) + res)
-
-		if bPushRet and not bPushRetFound:
-			print(yel + " Searching for push ret instructions..", end="")
-			curLen = len("Searching for push ret instructions..")
-
-			for secNum in range(len(s)):
-				data2 = s[secNum].data2
-				if bit32:
-					# print("32 bit <--")
-					findAllPushRet(data2, secNum)
-				else:
-					# print("64 bit <--")
-
-					# pass
-					findAllPushRet64(data2, secNum)
-
-			for i in s:
-				if (len(i.save_PushRet_info) > 0):
-					bPushRetFound = True
-			if bPushRetFound:
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(21) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(21) + res)
-
-		if bCallPop and not bCallPopFound:
-			print(yel + " Searching for call pop instructions..", end="")
-			curLen = len("Searching for call pop instructions..")
-
-			for secNum in range(len(s)):
-				data2 = s[secNum].data2
-				if bit32:
-					findAllCallpop(data2, secNum)
-
-				else:
-					findAllCallpop64(data2, secNum)
-			for i in s:
-				if (len(i.save_Callpop_info) > 0):
-					bCallPopFound = True
-			if bCallPopFound:
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(25) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(25) + res)
-
-		if bHeaven and not bHeavenFound:
-			print(yel + " Searching for heaven's gate instructions..", end="")
-			curLen = len("Searching for heaven's gate instructions..")
-
-			for secNum in range(len(s)):
-				data2 = s[secNum].data2
-				findAllHeaven(data2, secNum)
-			for i in s:
-				if (len(i.save_Heaven_info) > 0):
-					bHeavenFound = True
-			if bHeavenFound:
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(15) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(15) + res)
-
-		if bSyscall and not bSyscallFound:
-			print(yel + " Searching for Windows syscall instructions..", end="")
-			curLen = len("Searching for Windows syscall instructions..")
-
-			for secNum in range(len(s)):
-				data2 = s[secNum].data2
-				for match in EGGHUNT.values():
-					optimized_find(20, match, secNum, data2, "disHereSyscall")
-			for i in s:
-				if (len(i.save_Egg_info) > 0):
-					bSyscallFound = True
-			if bSyscallFound:
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(21) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(21) + res)
-
-		if bPEB and not bPEBFound:
-			print(yel + " Searching for PEB instructions..", end="")
-			curLen = len("Searching for PEB instructions..")
-
-			if shellBit == 64:
-						
-				data2 = 0
-				secNum = 0
-				#npeb
-				findAllPebSequences("normal", data2, secNum)
-			else:
-				secNum = 0
-				data2 = 0
-				findAllPebSequences("normal", data2, secNum)
-			for i in s:
-				if (len(i.save_PEB_info) > 0):
-					bPEBFound = True
-
-			if bPEBFound:
-				print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
-
-				# print( gre + '[Found]'.rjust(25) + res)
-			else:
-				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
-
-				# print( red + '[Not Found]'.rjust(29) + res)
-
-
+	if not bCallPopFound:
+		newTime=discoverCallPop(max_len)
+		elapsed_time += newTime
+
+	if not bHeavenFound:
+		newTime= discoverHeaven(max_len)
+		elapsed_time += newTime
+
+	if not bSyscallFound:
+		newTime	= discoverSyscal(max_len)
+		elapsed_time += newTime
+
+	if not bPEBFound:
+		newTime	= discoverPEB(max_len)
+		elapsed_time += newTime
+	
+	if not bDisassemblyFound:
+		newTime= discoverDisassembly(max_len)
 
 	#Saving data
 	bpPushRet = bpSyscall = bpHeaven = bpFstenv = bpPEB = bpStrings = bpCallPop = bpEvilImports = bpModules = True
@@ -16166,6 +15953,7 @@ def startupPrint():
 	printToText(outputData)
 	print(gre + 'Done\n\n' + res)
 
+
 def saveConf(con):
 	try:
 		con.changeConf(configOptions)
@@ -16173,10 +15961,6 @@ def saveConf(con):
 		print(yel + "Configuration has been Saved.\n" + res)
 	except Exception as e:
 		print(yel + "Could not save configuration." + res, e)
-
-    	
-
-
 
 def ui(): #UI menu loop
 	global maxDistance #Max distance that a callpop can call
@@ -16238,6 +16022,7 @@ def ui(): #UI menu loop
 	global checkGoodStrings #Whether or not we check if a string is good
 	global shellEntry
 	global configOptions
+	global rawhex
 	# bit32 = True
 	# bPushRet = True
 	# bFstenv = True
@@ -16283,23 +16068,18 @@ def ui(): #UI menu loop
 	pushStringRegisters = 'unset'
 	showDisassembly = True
 	stringReadability = .65
-	# print("----> bit", bit32)
 
-	# print("OS ---> ui", os)
-
-	#need this for selecting and printing syscalls
 	# initSysCallSelect()
 
 	x = ""
 	con = Configuration(conFile)
-	
-
-
 
 	# 	for item in section.save_PushRet_info:
 	# for item in m[o].save_PushRet_info:
 	# print("Bits: ", shellBit)
-	showOptions(shellBit)
+
+
+	showOptions(shellBit, rawHex,m[o].name, m[o].getMd5())
 	while x != "e":		#Loops on keyboard input
 		try:			#Will break the loop on entering x
 			print(cya + " Sharem> " + res, end="")
@@ -16310,7 +16090,7 @@ def ui(): #UI menu loop
 				break
 			
 			elif userIN[0:1] == "h":
-				showOptions(shellBit)
+				showOptions(shellBit, rawHex,m[o].name, m[o].getMd5())
 			
 			elif userIN[0:1] == "D":
 				if not rawHex:
@@ -16358,8 +16138,8 @@ def ui(): #UI menu loop
 			elif userIN[0:1] == "k":
 				uiFindStrings()
 				# print("\nReturning to main menu.\n")
-			elif userIN[0:1] == "j":
-				uiShellcodeStrings()
+			elif userIN[0:2] == "j!":
+				uiShellcodeStrings()  ### deprecated
 				# print("\nReturning to main menu.\n")
 			elif userIN[0:1] == "e":  # "find imports"
 				uiFindImports()
@@ -16416,6 +16196,7 @@ def get_max_length(list_of_strings):
 
 def discoverPEB(maxLen=None):
 	global bPEBFound	
+	global shellBit
 	if maxLen==None:
 		maxLen=42
 	
@@ -16501,11 +16282,8 @@ def discoverDisassembly(maxLen=None):
 	start = time.time()
 	
 	if rawHex:
-
-		# print("Bit: ", bit32)
 		if bit32:
 			# dontPrint()
-
 			shellDisassemblyInit(m[o].rawData2, "silent")
 			# allowPrint()
 			colorama.init()
@@ -16515,7 +16293,6 @@ def discoverDisassembly(maxLen=None):
 		bDisassemblyFound = True
 	else:
 		print("{:>{x}}[{}]".format("", red + "Not Found" + res, x=15+(maxLen-curLen)))
-		#print("{:>{x}}".format("[Not Found]", x=15+(maxLen-curLen)))
 	# elapsed_time += end - start
 	end = time.time()
 
@@ -16562,7 +16339,6 @@ def discoverCallPop(maxLen=None):
 			findAllCallpop(m[o].rawData2, 'noSec')
 		else: 
 			findAllCallpop64(m[o].rawData2, 'noSec')
-
 	else:
 		for secNum in range(len(s)):
 			data2 = s[secNum].data2
@@ -16581,10 +16357,14 @@ def discoverCallPop(maxLen=None):
 	else:
 		print("{:>{x}}[{}]".format("", red + "Not Found" + res, x=15+(maxLen-curLen)))
 	end = time.time()
-	# elapsed_time += end-start
 	return end-start
 def discoverFstenv(maxLen=None):
 	global bFstenvFound	
+
+	pass ### until fixed
+
+	###### CURRENTLY DISABLED!!!
+
 	if maxLen==None:
 		maxLen=42
 	curLen = len("Searching for fstenv instructions")
@@ -16601,21 +16381,16 @@ def discoverFstenv(maxLen=None):
 		if (len(i.save_FSTENV_info) > 0):
 			bFstenvFound = True
 
-
 	if rawHex:
 		if len(m[o].save_FSTENV_info) > 0:
 			bFstenvFound = True
-	
 	if(bFstenvFound):
 		print("{:>{x}}[{}]".format("", gre + "Found" + res, x=15+(maxLen-curLen)))
-
 		#print("{:>{x}}".format("[Found]    ", x=15+(maxlen-curLen)))
 	else:
 		print("{:>{x}}[{}]".format("", red + "Not Found"+ res, x=15+(maxLen-curLen)))
-
 		#print("{:>{x}}".format("[Not Found]", x=15+(maxLen-curLen)))
 	end = time.time()
-	# elapsed_time += end - start
 	# print("After fstenv search", m[o].rawData2.hex())
 	return end-start
 
@@ -16633,7 +16408,6 @@ def discoverPushRet(maxLen=None):
 			findAllPushRet(m[o].rawData2, 'noSec')
 		else: 
 			findAllPushRet64(m[o].rawData2, 'noSec')
-
 	else:
 		for secNum in range(len(s)):
 			data2 = s[secNum].data2
@@ -16648,15 +16422,17 @@ def discoverPushRet(maxLen=None):
 
 	if rawHex:
 		if len(m[o].save_PushRet_info) > 0:
-
 			bPushRetFound = True
+
 	if(bPushRetFound):
 		print("{:>{x}}[{}]".format("", gre + "Found" + res, x=15+(maxLen-curLen)))
 	else:
 		print("{:>{x}}[{}]".format("", red + "Not Found" + res, x=15+(maxLen-curLen)))
 	end = time.time()
 	return end - start
-	# print("After pushret search", m[o].rawData2.hex())
+
+
+
 def uiDiscover(): 	#Discover shellcode instructions
 	global bPushRet
 	global bFstenv
@@ -16725,10 +16501,7 @@ def uiDiscover(): 	#Discover shellcode instructions
 			list_of_labels = ["Searching for disassembly", "Searching for fstenv instructions", "Searching for push ret instructions", "Searching for call pop instructions", "Searching for heaven's gate instructions", "Searching for windows syscall instructions", "Searching for PEB walking instructions"]
 			maxLen = get_max_length(list_of_labels)
 		#For each boolean set, we execute the finding functions
-			if bDisassembly and not bDisassemblyFound:
 
-				newTime= discoverDisassembly(maxLen)
-				
 			if bFstenv and not bFstenvFound:
 				newTime= discoverFstenv(maxLen)
 				elapsed_time += newTime
@@ -16777,6 +16550,9 @@ def uiDiscover(): 	#Discover shellcode instructions
 			if bPEB and not bPEBFound:
 				newTime	= discoverPEB(maxLen)
 				elapsed_time += newTime
+			
+			if bDisassembly and not bDisassemblyFound:
+				newTime= discoverDisassembly(maxLen)
 				
 
 			print(".........................\n")
@@ -17196,7 +16972,7 @@ def uiPrint(): 	#Print instructions
 					print("\nNo push ret instructions found.\n")
 			if bpModules and bModulesFound and p2screen:
 				print(cya + "\n\n*******\nModules\n*******\n\n" + res)
-				print(giveLoadedModules())
+				print(giveLoadedModules("save"))
 			if bpStrings and p2screen:
 				uiPrintStrings(bStringsFound)
 			if bpPushStrings and p2screen:
@@ -17400,10 +17176,10 @@ def uiModulesSubMenu():		#Find and display loaded modules
 		elif(re.match("^h$", modIn, re.IGNORECASE)):
 			printModulesMenu(modulesMode)
 		elif(re.match("^p$", modIn, re.IGNORECASE)):
-			print(giveLoadedModules())
+			print(giveLoadedModules("save"))
 		elif(re.match("^r$", modIn, re.IGNORECASE)):
 			clearMods()
-			print("InMemoryOrderModuleList cleared.\n")
+			print("Loaded modules cleared.\n")
 		elif(re.match("^z$|^m$", modIn, re.IGNORECASE)):
 			if(rawHex):
 				print("\nNo PE file selected\n")
@@ -17601,7 +17377,8 @@ def uiFindStrings():
 	global FindStringsStatus
 	global useStringsFile
 	global chMode
-
+	global bWideStringFound
+	# global bWideStringFound
 
 
 	if(bAsciiStrings and bWideCharStrings and bPushStackStrings):
@@ -17637,8 +17414,23 @@ def uiFindStrings():
 
 			changeRegsFile()
 			useStringsFile = True
+		elif(re.match("^z$", stringIN, re.IGNORECASE)):
 
-
+			if bAsciiStrings and not bStringsFound:
+				discoverAsciiStrings()
+			elif bStringsFound:
+				print (red+"\tAscii strings already found; reset if need be."+res)
+			if bWideCharStrings and not bWideStringFound:
+				discoverUnicodeStrings()
+			elif bWideStringFound:
+				print (red+"\tUnicode strings already found; reset if need be."+res)
+			if bPushStackStrings and not bPushStringsFound:
+				discoverStackStrings()
+			elif bPushStringsFound:
+				print (red+"\tStack strings already found; reset if need be."+res)
+	
+		elif(re.match("^p$", stringIN, re.IGNORECASE)):
+			printStrings()
 			# print("Enter path to register file: (x to exit)\n")
 			# while x != "e":
 			# 	regFilePath = input("> ")
@@ -17713,117 +17505,6 @@ def uiFindStrings():
 			bAllStrings = True
 			showStringSelections(bAsciiStrings, bWideCharStrings, bPushStackStrings, bAllStrings, s)
 
-		elif(re.match("^z$", stringIN, re.IGNORECASE)):
-			if not rawHex:
-				t=0
-				for sec in pe.sections:
-					if bAsciiStrings:
-						findStrings(s[t].data2,minStrLen)
-					if bWideCharStrings:
-						findStringsWide(s[t].data2,minStrLen)
-					if bPushStackStrings:
-
-						#if(pushStringRegisters == 'unset'):
-							#findPushAscii(s[t].data2,minStrLen)
-						findPushAsciiMixed(s[t].data2,5, t)
-						#print(s[t].pushStrings)
-					t+=1
-
-				# if not (pushStringRegisters == 'unset'):
-					# getPushStrings(minStrLen)
-				t = 0
-
-				maxLen = len("Searching for push stack strings")
-				bTempWideString = False
-				#print("{:>{x}}".format("[Found]    ", x=15+(maxLen-curLen)))
-				for sec in pe.sections:
-					if (len(s[t].Strings) > 0):
-						bStringsFound = True
-					
-					if (len(s[t].wideStrings) > 0):
-						bTempWideString = True
-						
-						bStringsFound = True
-					if (len(s[t].pushStrings) > 0):
-						bPushStringsFound = True
-
-					t+=1
-
-				if(bStringsFound):
-					curLen = len("Searching for Strings")
-					print(cya + " searchinG for strings."+ res, end="", flush=True)
-					print("{:>{x}}[{}]".format("", gre + "Found" + res, x=20+(maxLen-curLen)))
-				else:
-					curLen = len("Searching for strings")
-					print(cya + " searching for strings."+ res, end="", flush=True)
-					print("{:>{x}}[{}]".format("", red + "Not Found" + res, x=20+(maxLen-curLen)))
-
-				if(bTempWideString):
-					curLen = len("Searching for wide strings")
-					print(cya + " searching for wide strings." + res, end="", flush=True)
-					print("{:>{x}}[{}]".format("", gre + "Found" + res, x=20+(maxLen-curLen)))
-				else:
-					curLen = len("Searching for wide strings")
-					print(cya + " searching for wide strings." + res, end="", flush=True)
-					print("{:>{x}}[{}]".format("", red + "Not Found" + res, x=20+(maxLen-curLen)))
-
-				if(bPushStringsFound):
-					curLen = len("Searching for push stack strings")
-					print(cya + " Searching for push stack strings."+ res, end="", flush=True)
-					print("{:>{x}}[{}]".format("", gre +"Found" + res, x=20+(maxLen-curLen)))
-				else:
-					curLen = len("Searching for Push stack strings")
-					print(cya + " Searching for push stack strings."+ res, end="", flush=True)
-					print("{:>{x}}[{}]".format("", red + "Not Found" + res, x=20+(maxLen-curLen)))
-
-
-			else:
-
-				if bAsciiStrings and not bStringsFound:
-					findStrings(m[o].rawData2,3)
-
-				if bWideCharStrings and (stringsTempWide == []):
-					findStringsWide(m[o].rawData2,3)
-				if bPushStackStrings and not  bPushStringsFound:
-					findPushAsciiMixed(m[o].rawData2,3)
-				maxLen = len("Searching for Push stack strings")
-
-				print("\n")
-				if (len(stringsTemp) > 0):
-					curLen = len("Searching for Strings")
-					print(cya + " searching for strings."+ res, end="", flush=True)
-					print("{:>{x}}[{}]".format("", gre + "Found" + res, x=20+(maxLen-curLen)))
-					bStringsFound = True
-				else:
-					curLen = len("Searching for strings")
-					print(cya + " searching for strings."+ res, end="", flush=True)
-					print("{:>{x}}[{}]".format("", red + "Not found" + res, x=20+(maxLen-curLen)))
-					bStringsFound = True
-				if (len(stringsTempWide) > 0):
-					curLen = len("Searching for wide strings")
-					print(cya + " searching for wide strings." + res, end="", flush=True)
-					print("{:>{x}}[{}]".format("", gre + "Found"+ res, x=20+(maxLen-curLen)))
-					bStringsFound = True
-				else:
-					curLen = len("Searching for wide strings")
-					print(cya + " searching for wide strings." + res, end="", flush=True)
-					print("{:>{x}}[{}]".format("", red + "Not found"+ res, x=20+(maxLen-curLen)))
-					bStringsFound = True
-				if (len(pushStringsTemp) > 0):
-					curLen = len("Searching for push stack strings")
-					print(cya + " Searching for push stack strings."+ res, end="", flush=True)
-					print("{:>{x}}[{}]".format("", gre + "Found" +res, x=20+(maxLen-curLen)))
-					bPushStringsFound = True
-				else:
-					curLen = len("Searching for push stack strings")
-					print(cya + " Searching for push stack strings."+ res, end="", flush=True)
-					print("{:>{x}}[{}]".format("", red + "Not found" + res, x=20+(maxLen-curLen)))
-					bStringsFound = True
-
-
-			#printStrings()
-		elif(re.match("^p$", stringIN, re.IGNORECASE)):
-			printStrings()
 		else:
 			print("\nInput not recognized.\n")
 
@@ -17851,7 +17532,7 @@ def uiShellcodeStrings():
 			bAllStrings = True
 	else:
 		bAllStrings = False
-	print("\n............\nFind Shellcode Strings\n............\n")
+	print(red+"\nThis function is deprecated!"+res+"\n............\nFind Shellcode Strings\n............\n")
 	shellcodeStringMenu(bAsciiStrings, bWideCharStrings, bPushStackStrings, bAllStrings, s)
 	x=""
 	while x != "e":
@@ -18034,11 +17715,12 @@ def findAll():  #Find everything
 	global bPushStringsFound
 	global modulesMode
 	global minStrLen
-	bTempWideString = False
+	bWideStringFound = False
+	global elapsed_time
 
 
-	list_of_labels = ["Searching for push stack strings","Searching for wide strings", "Searching for strings", "Searching for disassembly", "Searching for fstenv instructions", "Searching for push ret instructions", "Searching for call pop instructions", "Searching for heaven's gate instructions", "Searching for windows syscall instructions", "Searching for PEB walking instructions"]
-	maxLen = get_max_length(list_of_labels)
+	list_of_labels = ["Searching for push stack strings","Searching for unicode strings", "Searching for strings", "Searching for disassembly", "Searching for fstenv instructions", "Searching for push ret instructions", "Searching for call pop instructions", "Searching for heaven's gate instructions", "Searching for windows syscall instructions", "Searching for PEB walking instructions"]
+	max_len = get_max_length(list_of_labels)
 	if not rawHex:
 		print("Finding imports.\n")
 		if not bEvilImportsFound:
@@ -18049,270 +17731,44 @@ def findAll():  #Find everything
 	if(rawHex):
 		pass
 	else:
-		pass
-		# runInMem()
-
-
+		runInMem()
 	if not bStringsFound:
 		print("Finding strings.\n")
-		if not rawHex:
-			t=0
-			for sec in pe.sections:
-				if bAsciiStrings:
-					findStrings(s[t].data2,minStrLen)
-				if bWideCharStrings:
-					findStringsWide(s[t].data2,minStrLen)
-				if bPushStackStrings:
-					findPushAsciiMixed(s[t].data2,minStrLen, t)
-				t+=1
-			t = 0
-			for sec in pe.sections:
-				if (len(s[t].Strings) > 0):
-					bStringsFound = True
-				if (len(s[t].wideStrings) > 0):
-					bTempWideString = True
-				if (len(s[t].pushStrings) > 0):
-					bPushStringsFound = True
-				t+=1
+		discoverAsciiStrings(max_len)
+	if not bWideStringFound:
+		discoverUnicodeStrings(max_len)
+	if not bPushStringsFound:
+		discoverStackStrings(max_len)
+	
+	if bFstenv and not bFstenvFound:
+		newTime= discoverFstenv(max_len)
+		elapsed_time += newTime
+		
+	if bPushRet and not bPushRetFound:
+		newTime= discoverPushRet(max_len)
+		elapsed_time += newTime
+		
+	if bCallPop and not bCallPopFound:
+		newTime=discoverCallPop(max_len)
+		elapsed_time += newTime
 
-			if(bStringsFound):
-				curLen = len("Searching for Strings")
-				print("searching for strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
-			else:
-				curLen = len("Searching for strings")
-				print("Searching for strings: ", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
+	if bHeaven and not bHeavenFound:
+		newTime= discoverHeaven(max_len)
+		elapsed_time += newTime
 
-			if(bTempWideString):
-				curLen = len("Searching for wide strings")
-				print("searching for wide strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
-			else:
-				curLen = len("Searching for wide strings")
-				print("searching for wide strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
+	if bSyscall and not bSyscallFound:
+		newTime	= discoverSyscal(max_len)
+		elapsed_time += newTime
 
-			if(bPushStringsFound):
-				curLen = len("Searching for push stack strings")
-				print("Searching for push stack strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
-			else:
-				curLen = len("Searching for push stack strings")
-				print("Searching for push stack strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
-
-
-
-		else: 
-			if bAsciiStrings:
-				findStrings(m[o].rawData2,3)
-
-			if bWideCharStrings:
-				findStringsWide(m[o].rawData2,3)
-			if bPushStackStrings:
-				findPushAsciiMixed(m[o].rawData2,3)
-
-
-			if (len(stringsTemp) > 0):
-				curLen = len("Searching for strings")
-				print("searching for strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
-				bStringsFound = True
-			else:
-				curLen = len("Searching for strings")
-				print("searching for strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
-				bStringsFound = True
-			if (len(stringsTempWide) > 0):
-				curLen = len("Searching for wide strings")
-				print("Searching for  wide strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
-				bStringsFound = True
-			else:
-				curLen = len("Searching for wide strings")
-				print("searching for wide strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
-				bStringsFound = True
-			if (len(pushStringsTemp) > 0):
-				curLen = len("Searching for push stack strings")
-				print("Searching for push stack strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
-				bPushStringsFound = True
-			else:
-				curLen = len("Searching for push stack strings")
-				print("Searching for push stack strings.", end="", flush=True)
-				print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
-				bStringsFound = True
-
-		#if (len(stringsTemp) > 0):
-		#	bStringsFound = True
-
+	if bPEB and not bPEBFound:
+		newTime	= discoverPEB(max_len)
+		elapsed_time += newTime
+	
+	if bDisassembly and not bDisassemblyFound:
+		newTime= discoverDisassembly(max_len)
 
 	
 
-	if not bFstenvFound:
-		curLen = len("Searching for fstenv instructions")
-		print("Searching for fstenv instructions.", end="", flush=True)
-
-		#print("Finding fstenv instructions.\n")
-		if (rawHex):
-			findAllFSTENV(m[o].rawData2, 'noSec')
-		else:
-			for secNum in range(len(s)):
-				data2 = s[secNum].data2
-				findAllFSTENV(data2, secNum)
-		for i in s:
-			if (len(i.save_FSTENV_info) > 0):
-				bFstenvFound = True
-		if len(m[o].save_FSTENV_info) > 0:
-			print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
-
-			bFstenvFound = True
-		else:
-			print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
-
-
-	if not bPushRetFound:
-		print("Searching for push ret instructions.", end="", flush=True)
-		curLen = len("Searching for push ret instructions")
-		#print("Finding push ret instructions.\n")
-		if (rawHex):
-			if bit32:
-				findAllPushRet(m[o].rawData2, 'noSec')
-			else:
-				findAllPushRet64(m[o].rawData2, 'noSec')
-
-
-		else:
-			for secNum in range(len(s)):
-				data2 = s[secNum].data2
-				if bit32:
-					findAllPushRet(data2, secNum)
-				else:
-					findAllPushRet64(data2, secNum)
-		for i in s:
-			if (len(i.save_PushRet_info) > 0):
-
-				bPushRetFound = True
-		if len(m[o].save_PushRet_info) > 0:
-
-			bPushRetFound = True
-		if(bPushRetFound):
-			print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
-		else:
-			print("{:>{x}}{}".format("", "["+red+"Not Found"+res+"]", x=15+(maxLen-curLen)))
-
-	if not bCallPopFound:
-		curLen = len("Searching for call pop instructions")
-		print("Searching for call pop instructions.", end="", flush=True)
-		# print("Finding call pop instructions.\n")
-		if (rawHex):
-			if bit32:
-				findAllCallpop(m[o].rawData2, 'noSec')
-			else: 
-				findAllCallpop64(m[o].rawData2, 'noSec')
-
-		else:
-			for secNum in range(len(s)):
-				data2 = s[secNum].data2
-				if bit32:
-					findAllCallpop(data2, secNum)
-				else:
-					findAllCallpop64(data2, secNum)
-		for i in s:
-			if (len(i.save_Callpop_info) > 0):
-				bCallPopFound = True
-		if len(m[o].save_Callpop_info) > 0:
-			bCallPopFound = True
-		if(bCallPopFound):
-			print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
-		else:
-			print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
-
-
-	if not bHeavenFound:
-		curLen = len("Searching for heaven's gate instructions")
-		print("Searching for heaven's gate instructions.", end="", flush=True)
-		#print("Finding heaven's gate instructions.\n")
-		if (rawHex):
-			getHeavenRawHex(0, 8, 'noSec', m[o].rawData2)
-		else:
-			for secNum in range(len(s)):
-					data2 = s[secNum].data2
-					findAllHeaven(data2, secNum)
-		for i in s:
-			if (len(i.save_Heaven_info) > 0):
-				bHeavenFound = True
-		if len(m[o].save_Heaven_info) > 0:
-			bHeavenFound = True
-
-		if(bHeavenFound):
-			print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
-		else:
-			print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
-
-
-	if not bSyscallFound:
-		curLen = len("Searching for windows syscall instructions")
-		print("Searching for windows syscall instructions.", end="", flush=True)
-		#print("Finding windows syscall instructions.\n")
-		if (rawHex):
-			# getSyscallPE(20, 20, match, 'noSec', m[o].rawData2)
-			getSyscallRawHex(0, 8, 'noSec', m[o].rawData2)
-		else:
-			for secNum in range(len(s)):
-					data2 = s[secNum].data2
-					for match in EGGHUNT.values():
-						getSyscallPE(20, 20, match, secNum, data2)
-		for i in s:
-			if (len(i.save_Egg_info) > 0):
-				bSyscallFound = True
-		if len(m[o].save_Egg_info) > 0:
-			bSyscallFound = True
-		if(bSyscallFound):
-			print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
-		else:
-			print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
-
-	if not bPEBFound:
-		curLen = len("Searching for PEB walking instructions")
-		print("Searching for PEB walking instructions.", end="", flush=True)
-		#print("Finding PEB walking instructions.\n")
-		if (rawHex):
-			findAllPebSequences_old(m[o].rawData2, 'noSec')
-		else:
-			for secNum in range(len(s)):
-					data2 = s[secNum].data2
-					findAllPebSequences_old(data2, secNum)
-		for i in s:
-			if (len(i.save_PEB_info) > 0):
-				bPEBFound = True
-		if len(m[o].save_PEB_info) > 0:
-			bPEBFound = True
-		if(bPEBFound):
-			print("{:>{x}}{}".format("", "["+gre+"Found"+res+"]", x=15+(maxLen-curLen)))
-		else:
-			print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
-
-		pass
-
-	if not bDisassemblyFound:
-		
-		# print("Finding disassembly.\n")
-		#dontPrint()
-		if rawHex:
-			curLen = len("Searching for disassembly")
-			print("Searching for disassembly.", end="", flush=True)
-
-			shellDisassemblyInit(m[o].rawData2, "silent")
-
-			#allowPrint()
-			if gDisassemblyText != "":
-				print("{:>{x}}{}".format("", gre + "[Found]" + res, x=15+(maxLen-curLen)))
-				bDisassemblyFound = True
-			else:
-				print("{:>{x}}{}".format("", "["+red+"not Found"+res+"]", x=15+(maxLen-curLen)))
 	print("\n")
 	print(".........................\n")
 	print("Search completed.\n")
@@ -18466,19 +17922,18 @@ def clearStrings():
 	global stringsTemp
 	global stringsTempWide
 	global pushStringsTemp
+	global bWideStringFound
+	global bPushStringsFound
+
 	bStringsFound = False
+	bWideStringFound=False
+	bPushStringsFound=False
 	try:
 		t = 0
 		for sec in s:
 			sec.Strings.clear()
 			sec.wideStrings.clear()
 			sec.pushStrings.clear()
-
-		# for sec in pe.sections:
-		# 	s[t].Strings.clear()
-		# 	s[t].wideStrings.clear()
-		# 	s[t].pushStrings.clear()
-		# 	t+=1
 
 	except Exception as e:
 		print("Clear strings Here", e)
@@ -18568,10 +18023,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 
 
 def formatPrint(i, add4, addb, pe=False, syscall=False):
-
-
 	#print('{1:>{0}}'.format(length, string))
-	
 	# print("---------> ", len(i.op_str))
 	if print_style == "right":
 		length = 35
@@ -19378,7 +18830,7 @@ def allowPrint():
 	sys.stdout = sys.__stdout__
 
 def printToTextPushRet(bStringsFound,data):
-	print (bPushRetFound,"found")
+	# print (bPushRetFound,"found")
 	if bPushRetFound:
 		outString="\n\n***********\nPush ret\n***********\n\n"
 		itemNum = 0
@@ -19424,7 +18876,7 @@ def printToTextStrings(bStringsFound):
 							# 	# outString += ("\t"+ str(x) + "\t" + str(hex(y)) + "\t" + str(hex(z))) 
 							# 	outString += ('{:<5}{:<32s}{:<8s}{:<4s}'.format("",str(x), str(hex(y)),str(hex(z))))
 							# 	outString += ("\n")
-							# outString += ("**Wide Strings**\n")
+							# outString += ("**unicode strings**\n")
 							# for x,y,z in s[t].wideStrings:
 							# 	# outString += str("\t"+ str(x) + "\t" + str(hex(y)))
 							# 	outString += ('{:<5}{:<32s}{:<8s}{:<4s}'.format("",str(x), str(hex(y)),str(hex(z))))
@@ -19567,17 +19019,16 @@ def printToText(outputData):	#Output data to text doc
 
 	outString =  'Filename: ' + outfileName + "\n"
 	outString += 'File Type: ' + outputData['fileType'] + "\n"
-	outString += 'Bits: ' + str(shellBit) + "\n"
+	outString += 'Architecture: ' + str(shellBit) +"-bit\n"
 	outString += 'Date Analyzed: ' + time + "\n"
 	outString += "Seconds since last epoch: " + str(epoch) + "\n"
-	outString += '\nSection info\n\n'
 	outString += info
 
 
 	#If we've found and are printing a category, then do so
 	if bpModules and bModulesFound:
 		outString+="\n\n*******\nModules\n*******\n\n"
-		outString+=giveLoadedModules("text")
+		outString+=giveLoadedModules("save")
 	if bpEvilImports and bEvilImportsFound:
 		outString+="\n\n*****************\nImports\n*****************\n"
 		# outString+= showImports()
@@ -19825,31 +19276,22 @@ def testTarek():
 if __name__ == "__main__":
 
 	CliParser()
+	init2(filename)
 	if rawHex:
-		newModule(o,rawData2)
+		newModule(o,rawData2, gName)
 	else:
-		newModule(peName,rawData2)
+		newModule(peName,rawData2, gName)
+		Extraction()
 
 	shHash=shellHash()
 	sh=shellcode(rawData2)
 	IATs = FoundIATs()
-	
 	sBy=DisassByt()
-
-	
-		
-	# EXTRACTION - if dealing with PE files, uncomment this:
-	if not rawHex:
-		try:
-			Extraction()
-		except Exception as e:
-			print("Here -----> ", e)
-			pass
 
 	if rawHex:
 		hashShellcode(m[o].rawData2, sample)  # if comes after args parser
 		if useHash:
-			filename2=shHash.md5
+			filename2=shHash.md5sum
 
 	bramwell=False
 	austin=False
@@ -19927,8 +19369,6 @@ if __name__ == "__main__":
 			print ("end InMem2")
 			print(giveLoadedModules())
 		if yes == 53:
-			# init2(filename)
-			# init2(filename)
 			# # print (binaryToStr(m[o].rawData2))
 			# if not os.path.exists(directory+'bins'):
 			# 	os.makedirs(directory+'bins')
@@ -19941,8 +19381,6 @@ if __name__ == "__main__":
 			# print (directory+"bins\\"+filename[:-4]+".bin")
 			# newDis.write(assembly)
 			# newDis.close()
-
-
 
 			# print ("checking")
 			# if not rawBin:
@@ -19976,10 +19414,7 @@ if __name__ == "__main__":
 			X86_CODE32 = b"\x41\x4a\x66\x0f\xef\xc1" # INC ecx; DEC edx; PXOR xmm0, xmm1
 			random = b"\x5F\x5F\x01\xFF\xBF\x05\x00\x00\x00" 
 			X86_CODE32_JUMP = b"\xeb\x02\x90\x90\x90\x90\x90\x90" # jmp 4; nop; nop; nop; nop; nop; nop
-
-
 			#shellcode object
-
 			sh.setRawData2(X86_CODE32_LOOP)
 			# sh.setRawData2(X86_CODE32_LOOP)
 
@@ -20003,13 +19438,9 @@ if __name__ == "__main__":
 			print ("\n\n")
 			hashShellcodeTestShow()  ## options (sample, unecryptedBodyShell,unencryptedShell, decoderShell )
 
-
-
-
 		if yes == 3:
 			bramwellEncodeDecodeWork(filename)
 			print ("final DIS")
-
 
 		if yes == 4:
 			#bz
@@ -20027,30 +19458,6 @@ if __name__ == "__main__":
 	
 	## AUSTIN --> get list of disassmebly from from shellcode and list of of offsets
 
-
-	####sample input -- if nothing found, it will return as false
-	# targetAddress=0x0
-	# linesGoBack=10
-	# truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, targetAddress, linesGoBack)  # arg: starting offset/entry point - leave 0 generally
-	# if truth:
-	# 	####the FULL disassembly of the shellcode
-	# 	print ("Full disassembly of shellcode")
-	# 	for e in orgListDisassembly:
-	# 		print (str(hex(orgListOffset[t])) + "\t" + e)
-	# 		t+=1
-	# 	print ("\n\n\n")
-	# 	t=0
-
-	# 	##### JUST the found list  = target address - linesGoBack
-	# 	print ("Found Target Address")
-	# 	for each in tl1:
-	# 		print (hex(each), tl2[t]) 
-	# 		t+=1	
-	# else:
-	# 	print ("Target address not found")
-
-
-	# 	t = 0
 
 	# clearTempDis()
 
@@ -20119,8 +19526,6 @@ if __name__ == "__main__":
 				# rawBin = True
 
 
-
-		init2(filename)
 		if(bit32):
 			shellBit = 32
 		elif(bit32 == False):
@@ -20132,144 +19537,3 @@ if __name__ == "__main__":
 			print(gre + "\n\n[Attention] Startup config has been used.\n")
 			print(whi + "Change the startup value to disabled in the config file if you want to use the UI menu.\n" + res)
 			startupPrint()
-		# print(m[o].rawData2.hex())
-		# global bit32
-
-		# global linesForward
-		# global regsVals
-		# linesForward = 40
-		# bUI = False
-		# # bit32 = True
-		# bPushRet = False
-		# bFstenv = False
-		# bSyscall = False
-		# bHeaven = False
-		# bEm = False
-		# bCallPop = True
-		# # bFstenv = True
-		# bPushRet = False
-		# bHeaven = False
-		# # bSyscall = True
-		# # bCallPop = True
-		# # bEm = True
-		# # bit32=False
-		# # ignoreDisDiscovery = True
-
-		# bUI= True
-		# # bCheck = False
-		# bCheck = True
-		# bUI= False
-		# bit32=True
-
-
-
-		
-
-		
-		# print("CONVERTED HERE")
-		# print(binaryToStr(m[o].rawData2))
-
-		# initSysCallSelect()
-		# if (rawHex):
-		# 	# for match in EGGHUNT.values():
-		# 	# 	getSyscallPE(20, 20, match, 'noSec', m[o].rawData2)
-		# 	print("doing the jive")
-		# 	getSyscallRawHex(0, 8, 'noSec', m[o].rawData2)
-
-		# 	printSavedSyscall(shellBit, True)
-
-
-		#Run the UI
-		# if bUI:
-			
-		#Run command line instead
-		# elif bCheck: 
-		# 	if bSyscall:
-
-		# 		if (rawHex):
-		# 			# for match in EGGHUNT.values():
-		# 			# 	getSyscallPE(20, 20, match, 'noSec', m[o].rawData2)
-		# 			getSyscallRawHex(0, 8, 'noSec', m[o].rawData2)
-		# 		else:
-		# 			for secNum in range(len(s)):
-		# 					data2 = s[secNum].data2
-		# 					for match in EGGHUNT.values():
-		# 						getSyscallPE(20, 20, match, secNum, data2)
-		# 		printSavedSyscall(shellBit, True)
-			
-		# 	if bFstenv:
-		# 		if (rawHex):#(rawBin == False) and not isPe: 
-		# 			findAllFSTENV(m[o].rawData2, 'noSec')
-
-
-		# 		else:
-		# 			for secNum in range(len(s)):
-		# 				data2 = s[secNum].data2
-		# 				findAllFSTENV(data2, secNum)
-		# 		printSavedFSTENV(shellBit)
-
-		# 	if bPushRet:
-		# 		if (rawHex):#(rawBin == False) and not isPe:
-		# 			if bit32:
-		# 				findAllPushRet(m[o].rawData2, 'noSec')
-		# 			else: 
-
-		# 				findAllPushRet64(m[o].rawData2, 'noSec')
-
-		# 		else:
-		# 			for secNum in range(len(s)):
-		# 				data2 = s[secNum].data2
-		# 				if bit32:
-		# 					print("running 32 bit")
-		# 					findAllPushRet(data2, secNum)
-		# 				else:
-		# 					print("Running 64 bit")
-		# 					findAllPushRet64(data2, secNum)
-		# 					# print("")
-		# 					# findAllPushRet64(data2, 'noSec')
-		# 					# disHerePushRet64rawhex(0, 10, 'noSec', data2)
-		# 		printSavedPushRet(shellBit)
-
-		# 	if bCallPop:
-
-		# 		print ("caall pop")
-		# 		if (rawHex):#(rawBin == False) and not isPe:
-		# 			if bit32:
-		# 				findAllCallpop(m[o].rawData2, 'noSec')
-		# 			else: 
-		# 				print ("test")
-		# 				findAllCallpop64(m[o].rawData2, 'noSec')
-
-		# 		else:
-		# 			for secNum in range(len(s)):
-		# 				data2 = s[secNum].data2
-		# 				if bit32:
-		# 					findAllCallpop(data2, secNum)
-		# 				else:
-		# 					findAllCallpop64(data2, secNum)
-		# 					# print("")
-		# 					# findAllPushRet64(data2, 'noSec')
-		# 					# disHerePushRet64rawhex(0, 10, 'noSec', data2)
-
-		# 		printSavedCallPop(shellBit)
-		# 	if bHeaven:
-		# 		if (rawHex):
-		# 			getHeavenRawHex(0, 8, 'noSec', m[o].rawData2)
-		# 		else:
-		# 			for secNum in range(len(s)):
-		# 					data2 = s[secNum].data2
-		# 					findAllHeaven(data2, secNum)
-		# 		printSavedHeaven(shellBit)
-
-
-			
-			
-
-		# 		print("\n")
-		# # print ("neo subarashiki kono sekai")
-
-		# bSyscall = True
-		# bCallPop = True
-		# bEm = True
-		# bit32=False
-		# ignoreDisDiscovery = True
