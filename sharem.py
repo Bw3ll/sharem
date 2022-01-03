@@ -18,6 +18,7 @@ try:
 
 except:
 	print ("Pywin32 needs to be installed.\nhttps://pypi.org/project/pywin32/\n\t")
+	
 import ctypes
 from ctypes import windll
 from ctypes import wintypes
@@ -75,6 +76,8 @@ list_of_files32 = []
 list_of_files64 = []
 list_of_pe32 = []
 list_of_pe64 = []
+list_of_unk_files = []
+current_arch = 0
 
 
 elapsed_time = 0
@@ -100,6 +103,7 @@ FoundApisAddress = []
 FoundApisName = []
 saveAPI=0x00
 shellEntry=0x0
+useDirectory = False
 decodedBytes=b''
 VP = 0
 VA=""
@@ -157,7 +161,7 @@ skipExtraction=False
 rawHex = False
 rawData2 = b''
 useHash=False
-
+known_arch = False
 numArgs = len(sys.argv)
 rawBin=False  # only if .bin, not .txt
 isPe=False
@@ -378,6 +382,9 @@ def CliParser():
 	global rawHex
 	global conFile
 	global workDir
+	global useDirectory
+	global bit32_argparse
+	global known_arch
 
 	parser = argparse.ArgumentParser()
 	group = parser.add_mutually_exclusive_group(required=True)
@@ -474,13 +481,13 @@ def CliParser():
 
 
 	if args.d:
+		useDirectory = True
 		if os.path.isdir(args.d):
 
 			workingDir = args.d
 			workDir = True
 			for path in os.listdir(workingDir):
 				full_path = os.path.join(workingDir, path)
-
 
 				if os.path.isfile(full_path):
 					# print("Found file", full_path, isPE(full_path))
@@ -494,8 +501,30 @@ def CliParser():
 						else:
 							bit32 = True
 							list_of_pe32.append(full_path)
+					else:
+						if not known_arch:
+							# ext = f[-3:]
+							# if ext == "txt":
+							# 	rawHex = True
+							# 	rawBin = False
+							# 	filename = f
+							# 	bit32 = True
+							# full_file_path = os.path.join(full_path, f)
+							list_of_unk_files.append(full_path)
+							# else:
+							# 	rawHex = True
+							# 	rawBin = True
+							# 	filename = f
+							# 	bit32 = True
+							# 	fp = open(f, "rb")
+							# 	rawData2 = fp.read()
+							# 	fp.close()
+							# 	full_file_path = os.path.join(full_path, f)
+							# 	list_of_unk_files.append(full_file_path)
 
-				elif isDir(full_path):
+
+
+				elif isDir(full_path) and known_arch:
 					dirName = os.path.basename(full_path)
 					# print("isDir Directory: ", dirName)
 					if "32" in dirName:
@@ -2142,7 +2171,7 @@ def binaryToStr(binary, mode = None):
 		print(e)
 
 
-def Text2Json(shell, json=None):
+def Text2Json(shell, jsonOut=None):
 	#print(shell)
 	#text = binaryToText(shell)
 	global filename
@@ -2163,11 +2192,13 @@ def Text2Json(shell, json=None):
 	shellcode_dict = {"rawhex":raw_hex,
 					"strlit":str_lit}
 
-	if json != None:
+	# print(shellcode_dict)
+	if jsonOut != None:
 		return shellcode_dict
 	fileName = "rawhex" + "_" + inputFile + "_" + filetime + ".json"
 	outDir = os.getcwd() + "\\outputs\\" 
 	fullPath = outDir + fileName
+	os.makedirs(os.path.dirname(outDir), exist_ok=True)
 
 	try:
 		with open(fullPath, 'w') as outfile:
@@ -3589,7 +3620,7 @@ def printSavedPushRet(bit = 32): ############################## AUSTIN #########
 					add = hex(int(i.address))
 					addb = hex(int(i.address +  section.VirtualAdd))
 					add2 = str(add)
-					add3 = hex (int(i.address + section.startLoc	))
+					add3 = hex (int(i.address + section.startLoc))
 					add4 = str(add3)
 				val = formatPrint(i, add4, addb)
 				# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
@@ -3678,14 +3709,20 @@ def printSavedPushRet(bit = 32): ############################## AUSTIN #########
 					val2.append(val)
 					val3.append(add2)
 					checkRet= re.search( retOffset, val, re.M|re.I)
-					if checkRet:
-						if not stopRet:
-							val5.append(val)
-							stopRet = True
-						else:
-							pass
-					if not stopRet:
+					if "ret" in val:
 						val5.append(val)
+						break
+					else:
+						val5.append(val)
+
+					# if checkRet:
+					# 	if not stopRet:
+					# 		val5.append(val)
+					# 		stopRet = True
+					# 	else:
+					# 		pass
+					# if not stopRet:
+					# 	val5.append(val)
 					# val5.append(val)
 				# if bit == 64:
 				# 	for i in cs64.disasm(CODED3, address):
@@ -6762,6 +6799,213 @@ def print_from_directory(fName):
 
 
 
+def parse32Shellcode():
+	global filename
+	global rawHex
+	global rawBin
+	global bit32
+	global shellBit
+	global rawData2
+	global known_arch
+
+	known_arch = True
+
+
+	for i in list_of_files32:
+		# print("list_of_files32 ", rawHex)
+
+		# print("Processing ", i)
+		output = print_from_directory(i)
+		print(output)
+		filename = i
+		if i[-3:] == "txt":
+			# newModule()
+			rawHex = True
+			rawBin = False
+			bit32 = True
+			shellBit = 32
+
+			init2(filename)
+		elif i[-3:] == "bin":
+			
+			rawHex = True
+			rawBin = True
+			bit32 = True
+			shellBit = 32
+			f = open(i, "rb")
+
+			rawData2 = f.read()
+			newModule(o, rawData2)
+			f.close()
+		startupPrint()
+		clearAll()
+
+def parse64Shellcode():
+	global filename
+	global rawHex
+	global rawBin
+	global bit32
+	global shellBit
+	global rawData2
+	global known_arch
+
+	known_arch = True
+
+
+	for i in list_of_files64:
+		# print("Processing ", i)
+
+		output = print_from_directory(i)
+		print(output)
+		filename = i
+		# print("list_of_files64 ", rawHex)
+			# newModule()
+			# Extraction()
+			# newModule()
+
+		if i[-3:] == "txt":
+			# newModule(o, rawData2)
+			# Extraction()
+			rawHex = True
+			bit32 = False
+			rawBin = False
+			shellBit = 64
+			init2(filename)
+		elif i[-3:] == "bin":
+			rawHex = True
+			rawBin = True
+			shellBit = 64
+			bit32 = False
+			# peName = i
+			f = open(i, "rb")
+			readRawData2 = f.read()
+			newModule(o, readRawData2)
+			# print("Length of m[o].rawData2", len(m[o].rawData2))
+			f.close()
+		startupPrint()
+		clearAll()
+
+def parse32PE():
+	global peName
+	global filename
+	global rawHex
+	global rawBin
+	global shellBit
+	global bit32
+	global known_arch
+
+	known_arch = True
+
+	for i in list_of_pe32:
+			# print("Processing ", i)
+
+		peName = i
+		filename = i
+		rawHex = False
+		rawBin = False
+		shellBit = 32
+		# print(" PE 32 --> ", rawHex)
+
+		newModule(i, 0)
+		Extraction()
+		output = print_from_directory(i)
+		print(output)
+		bit32 = True
+		init2(i)
+		startupPrint()
+		clearAll()
+
+
+def parse64PE():
+	global peName
+	global filename
+	global rawHex
+	global rawBin
+	global shellBit
+	global bit32
+	global known_arch
+
+	known_arch = True
+	for i in list_of_pe64:
+			# print("Processing ", i)
+
+		peName = i
+		filename = i
+		rawHex = False
+		# print(" PE 64 --> ", rawHex)
+
+		rawBin = False
+		newModule(i, 0)
+		Extraction()
+		output = print_from_directory(i)
+		print(output)
+		bit32 = False
+		shellBit = 64
+		init2(i)
+		startupPrint()
+		clearAll()
+
+
+def parseUnkownArch():
+
+	global bit32
+	global shellBit
+	global rawHex
+	global rawBin
+	global filename
+	global rawData2
+	global current_arch
+	global known_arch
+
+
+
+	known_arch = False
+	for i in list_of_unk_files:
+		count = 0
+
+		while count < 2:
+			output = print_from_directory(i)
+			print(output)
+
+			filename = i
+			if count == 0:
+				current_arch = 32
+			else:
+				current_arch = 64
+
+			if i[-3:] == "txt":
+				if count == 0:
+					bit32 = True
+					shellBit = 32
+				elif count == 1:
+					bit32 = False
+					shellBit = 64
+				# newModule()
+				rawHex = True
+				rawBin = False
+				
+
+				init2(filename)
+			elif i[-3:] == "bin":
+				
+				rawHex = True
+				rawBin = True
+				if count == 0:
+					bit32 = True
+					shellBit = 32
+				elif count == 1:
+					bit32 = False
+					shellBit = 64
+
+				f = open(i, "rb")
+
+				rawData2 = f.read()
+				newModule(o, rawData2)
+				f.close()
+			startupPrint()
+			clearAll()
+
+			count += 1
 
 def work_from_directory():
 	global filename
@@ -6778,111 +7022,118 @@ def work_from_directory():
 
 
 	if list_of_files32:
-		for i in list_of_files32:
-			# print("list_of_files32 ", rawHex)
+		parse32Shellcode()
+		# for i in list_of_files32:
+		# 	# print("list_of_files32 ", rawHex)
 
-			# print("Processing ", i)
-			output = print_from_directory(i)
-			print(output)
-			filename = i
-			if i[-3:] == "txt":
-				# newModule()
-				rawHex = True
-				rawBin = False
-				bit32 = True
-				shellBit = 32
+		# 	# print("Processing ", i)
+		# 	output = print_from_directory(i)
+		# 	print(output)
+		# 	filename = i
+		# 	if i[-3:] == "txt":
+		# 		# newModule()
+		# 		rawHex = True
+		# 		rawBin = False
+		# 		bit32 = True
+		# 		shellBit = 32
 
-				init2(filename)
-			elif i[-3:] == "bin":
+		# 		init2(filename)
+		# 	elif i[-3:] == "bin":
 				
-				rawHex = True
-				rawBin = True
-				bit32 = True
-				shellBit = 32
-				f = open(i, "rb")
+		# 		rawHex = True
+		# 		rawBin = True
+		# 		bit32 = True
+		# 		shellBit = 32
+		# 		f = open(i, "rb")
 
-				rawData2 = f.read()
-				newModule(o, rawData2)
-				f.close()
-			startupPrint()
-			clearAll()
+		# 		rawData2 = f.read()
+		# 		newModule(o, rawData2)
+		# 		f.close()
+		# 	startupPrint()
+		# 	clearAll()
 
 
 	if list_of_files64:
-		for i in list_of_files64:
-			# print("Processing ", i)
+		parse64Shellcode()
+		# for i in list_of_files64:
+		# 	# print("Processing ", i)
 
-			output = print_from_directory(i)
-			print(output)
-			filename = i
-			# print("list_of_files64 ", rawHex)
-				# newModule()
-				# Extraction()
-				# newModule()
+		# 	output = print_from_directory(i)
+		# 	print(output)
+		# 	filename = i
+		# 	# print("list_of_files64 ", rawHex)
+		# 		# newModule()
+		# 		# Extraction()
+		# 		# newModule()
 
-			if i[-3:] == "txt":
-				# newModule(o, rawData2)
-				# Extraction()
-				rawHex = True
-				bit32 = False
-				rawBin = False
-				shellBit = 64
-				init2(filename)
-			elif i[-3:] == "bin":
-				rawHex = True
-				rawBin = True
-				shellBit = 64
-				bit32 = False
-				# peName = i
-				f = open(i, "rb")
-				readRawData2 = f.read()
-				newModule(o, readRawData2)
-				# print("Length of m[o].rawData2", len(m[o].rawData2))
-				f.close()
-			startupPrint()
-			clearAll()
+		# 	if i[-3:] == "txt":
+		# 		# newModule(o, rawData2)
+		# 		# Extraction()
+		# 		rawHex = True
+		# 		bit32 = False
+		# 		rawBin = False
+		# 		shellBit = 64
+		# 		init2(filename)
+		# 	elif i[-3:] == "bin":
+		# 		rawHex = True
+		# 		rawBin = True
+		# 		shellBit = 64
+		# 		bit32 = False
+		# 		# peName = i
+		# 		f = open(i, "rb")
+		# 		readRawData2 = f.read()
+		# 		newModule(o, readRawData2)
+		# 		# print("Length of m[o].rawData2", len(m[o].rawData2))
+		# 		f.close()
+		# 	startupPrint()
+		# 	clearAll()
 
 	if list_of_pe32:
-		for i in list_of_pe32:
-			# print("Processing ", i)
+		parse32PE()
+		# for i in list_of_pe32:
+		# 	# print("Processing ", i)
 
-			peName = i
-			filename = i
-			rawHex = False
-			rawBin = False
-			shellBit = 32
-			# print(" PE 32 --> ", rawHex)
+		# 	peName = i
+		# 	filename = i
+		# 	rawHex = False
+		# 	rawBin = False
+		# 	shellBit = 32
+		# 	# print(" PE 32 --> ", rawHex)
 
-			newModule(i, 0)
-			Extraction()
-			output = print_from_directory(i)
-			print(output)
-			bit32 = True
-			init2(i)
-			startupPrint()
-			clearAll()
+		# 	newModule(i, 0)
+		# 	Extraction()
+		# 	output = print_from_directory(i)
+		# 	print(output)
+		# 	bit32 = True
+		# 	init2(i)
+		# 	startupPrint()
+		# 	clearAll()
 
 
 	if list_of_pe64:
-		for i in list_of_pe64:
-			# print("Processing ", i)
+		parse64PE()
+		# for i in list_of_pe64:
+		# 	# print("Processing ", i)
 
-			peName = i
-			filename = i
-			rawHex = False
-			# print(" PE 64 --> ", rawHex)
+		# 	peName = i
+		# 	filename = i
+		# 	rawHex = False
+		# 	# print(" PE 64 --> ", rawHex)
 
-			rawBin = False
-			newModule(i, 0)
-			Extraction()
-			output = print_from_directory(i)
-			print(output)
-			bit32 = False
-			shellBit = 64
-			init2(i)
-			startupPrint()
-			clearAll()
+		# 	rawBin = False
+		# 	newModule(i, 0)
+		# 	Extraction()
+		# 	output = print_from_directory(i)
+		# 	print(output)
+		# 	bit32 = False
+		# 	shellBit = 64
+		# 	init2(i)
+		# 	startupPrint()
+		# 	clearAll()
 
+
+	if list_of_unk_files:
+		parseUnkownArch()
 			# print("S: ---> ", len(s))
 			# for sec in s:
 			# 	print("Length ", len(sec.Strings))
@@ -7432,10 +7683,10 @@ def getHeavenRawHex(address, linesBack, secNum, data):
 
 			clearTempDis()
 
-		if(rawHex):
-			m[o].save_Heaven_info = helperListToSet(m[o].save_Heaven_info)
-		else:
-			s[secNum].save_Heaven_info =helperListToSet(s[secNum].save_Heaven_info)
+		# if(rawHex):
+		# 	m[o].save_Heaven_info = helperListToSet(m[o].save_Heaven_info)
+		# else:
+		# 	s[secNum].save_Heaven_info =helperListToSet(s[secNum].save_Heaven_info)
 			# print ("\n\n\n")
 
 def saveBaseHeaven(address, NumOpsDis, linesBack, modSecName, secNum, offset, pivottype, pushOffset = -1, destLocation = -1, converted = ""):
@@ -7458,6 +7709,18 @@ def saveBaseHeaven(address, NumOpsDis, linesBack, modSecName, secNum, offset, pi
 		secNum = -1
 		modSecName = "rawHex"
 		m[o].save_Heaven_info.append(tuple((address,NumOpsDis,linesBack,modSecName,secNum, offset, pushOffset, destLocation, converted, pivottype)))
+
+def cleanOutput(data):
+
+	data = data.replace("\t", "")
+
+	allInstr = data.split(" ")
+	# print("Everything ---> ", allInstr)
+	mnemonic = allInstr[0]
+	add4 = allInstr[-3]
+	addb = allInstr[-2:]
+	op_str = ' '.join(allInstr[1:-3])
+	return mnemonic, op_str, add4, addb
 
 def printSavedHeaven(bit = 32): ######################## AUSTIN ###############################3
 	#formatting
@@ -7499,8 +7762,26 @@ def printSavedHeaven(bit = 32): ######################## AUSTIN ################
 				converted = converted[-1:]
 			elif(pivottype == "retf"):
 				converted = converted[-5:]
+
+			# converted = [string.replace("\t", "") for string in converted]
+
 			for line in converted:
-				print(gre + line + res)
+				if line != "":
+					mnemonic, op_str, add4, addb = cleanOutput(line)
+					convOut = formatPrint(mnemonic + "|" + op_str, add4, addb, syscall=True)
+
+					print(gre + convOut + res)
+					# allInstr = line.split(" ")
+					# # print("Everything ---> ", allInstr)
+					# mnemonic = allInstr[0]
+					# add4 = allInstr[-3]
+					# addb = allInstr[-2:]
+					# op_str = ' '.join(allInstr[1:-3])
+
+					# print("----> mnemonic" , mnemonic, type(mnemonic))
+					# print("-----> op_str", op_str, type(op_str))
+					# input()
+					
 	#return val5
 			print ("\n")
 			j += 1
@@ -7764,7 +8045,12 @@ def printSavedSyscall(bit = 32, showDisassembly = True): #######################
 			print ("\n")
 			if(showDisassembly):
 				for line in converted:
-					print(gre + line + res)
+					if line != "":
+						# print("Line --> ", line)
+						# input()
+						mnemonic, op_str, add4, addb = cleanOutput(line)
+						convOut = formatPrint(mnemonic + "|" + op_str, add4, addb, syscall=True)
+						print(gre + convOut + res)
 
 	#return val5
 			print ("\n")
@@ -8139,7 +8425,6 @@ def findAllPebSequences(mode, data2=None, secNum=None): ################## AUSTI
 		# print("in check")
 
 		if shellBit == 32:
-
 			for match in PEB_WALK.values(): #iterate through all opcodes representing combinations of registers
 				# ans=get_PEB_walk_start(mode, 19, match, "noSec", data2) #19 hardcoded for now, seems like good value for peb walking sequence
 				ans=get_PEB_walk_start(mode, 19, match, "noSec", m[o].rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
@@ -8150,10 +8435,8 @@ def findAllPebSequences(mode, data2=None, secNum=None): ################## AUSTI
 					print (ans)
 					return (ans)
 		else:
-			# print("Here")
-			# input()
 			for match in PEB_WALK_MOV_64.values():
-				get_PEB_walk_start_64(28, match, "noSec", rawData2)
+				get_PEB_walk_start_64(28, match, "noSec", m[o].rawData2)
 
 		# for match in PEB_WALK_ADD.values(): #iterate through all opcodes representing combinations of registers
 		# 	get_PEB_walk_start(mode, 19, match, "noSec", m[o].rawData2) #19 hardcoded for now, seems like good value for peb walking sequence
@@ -15495,8 +15778,8 @@ def modConf():
 	global stubEntry
 	global stubEnd
 
-	listofStrings = ['pushret', 'callpop', 'fstenv', 'syscall', 'heaven', 'peb', 'disassembly', 'pebpresent', 'bit32','max_bytes_forward','max_bytes_backward','max_lines_forward', 'max_lines_backward','print_to_screen', 'push_stack_strings', 'ascii_strings', 'wide_char_strings', 'fast_mode', 'find_all', 'dist_mode', 'cpu_count', 'nodes_file', 'output_file', 'dec_operation_type', 'decrypt_file', 'stub_file', 'use_same_file', 'stub_entry_point', 'stub_end', 'shellEntry']
-	listofBools = [bPushRet, bCallPop, bFstenv, bSyscall, bHeaven, bPEB, bDisassembly, pebPresent, bit32, bytesForward, bytesBack, linesForward, linesBack,p2screen, bPushStackStrings, bAsciiStrings, bWideCharStrings, dFastMode, dFindAll, dDistr, dCPUcount, dNodesFile, dOutputFile, decryptOpTypes, decryptFile, stubFile, sameFile, stubEntry, stubEnd, shellEntry]
+	listofStrings = ['pushret', 'callpop', 'fstenv', 'syscall', 'heaven', 'peb', 'disassembly', 'pebpresent', 'bit32','max_bytes_forward','max_bytes_backward','max_lines_forward', 'max_lines_backward','print_to_screen', 'push_stack_strings', 'ascii_strings', 'wide_char_strings', 'fast_mode', 'find_all', 'dist_mode', 'cpu_count', 'nodes_file', 'output_file', 'dec_operation_type', 'decrypt_file', 'stub_file', 'use_same_file', 'stub_entry_point', 'stub_end', 'shellEntry', 'pebpoints']
+	listofBools = [bPushRet, bCallPop, bFstenv, bSyscall, bHeaven, bPEB, bDisassembly, pebPresent, bit32, bytesForward, bytesBack, linesForward, linesBack,p2screen, bPushStackStrings, bAsciiStrings, bWideCharStrings, dFastMode, dFindAll, dDistr, dCPUcount, dNodesFile, dOutputFile, decryptOpTypes, decryptFile, stubFile, sameFile, stubEntry, stubEnd, shellEntry, pebPoints]
 
 	listofSyscalls = []
 	for osv in syscallSelection:
@@ -15930,7 +16213,7 @@ def startupPrint():
 				print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
 
 				# print( red + '[Not Found]'.rjust(25) + res)
-		if bDisassembly and not bDisassemblyFound:
+		if bDisassembly and not bDisassemblyFound and bit32:
 			print(yel + " Searching for disassembly..", end="")
 			curLen = len("Searching for disassembly..")
 
@@ -18532,7 +18815,17 @@ def printToJson(bpAll, outputData):	#Output data to json
 		outfileName = filename
 
 	#jsonFileName =  os.getcwd() + "\\" + noExtension + "\\output_" + peName + "_" + filetime + ".json"
-	jsonFileName =  os.getcwd() + "\\" + outfile + "\\" + outfileName + "_" + filetime + ".json"
+	if useDirectory:
+		if current_arch == 32:
+			jsonFileName =  os.getcwd() + "\\" + outfile + "\\" +  "32-bit" + "\\" + outfileName + "_" + filetime + ".json"
+		elif current_arch == 64:
+			jsonFileName =  os.getcwd() + "\\" + outfile + "\\" + "64-bit" + "\\" + outfileName + "_" + filetime + ".json"
+
+	else:
+
+		jsonFileName =  os.getcwd() + "\\" + outfile + "\\" + outfileName + "_" + filetime + ".json"
+
+	# jsonFileName =  os.getcwd() + "\\" + outfile + "\\" + outfileName + "_" + filetime + ".json"
 	# print("outfile: ", outfile, "outfileName", outfileName)
 	# input()
 	os.makedirs(os.path.dirname(jsonFileName), exist_ok=True)
@@ -18572,19 +18865,41 @@ def formatPrint(i, add4, addb, pe=False, syscall=False):
 	#print('{1:>{0}}'.format(length, string))
 	
 	# print("---------> ", len(i.op_str))
+
+
 	if print_style == "right":
 		length = 35
+
 		if not pe:
-			val =('{0:<6s} {1:<{2}s} {3:<8s}'.format(i.mnemonic, i.op_str, length, add4))
-			return val
+			if not syscall:
+
+				val =('{0:<6s} {1:<{2}s} {3:<8s}'.format(i.mnemonic, i.op_str, length, add4))
+				return val
+			else:
+				monic = i.split("|")[0]
+				op_str = ''.join(i.split("|")[1])
+
+				val =('{0:<6s} {1:<{2}s} {3:<8s}'.format(monic, op_str, length, add4))
+				return val
+
 		else:
 			val =('{0:<6s} {1:<{2}s} {3:<12s} {4:<10}'.format(i.mnemonic, i.op_str, length, add4, "(offset " + addb + ")"))
 			return val
 	elif print_style == "left":
 		length = 30
 		if not pe:
-			val =('{0:<10s} {1:<4s} {2} '.format(add4, i.mnemonic, i.op_str ))
-			return val
+			if not syscall:
+				val =('{0:<10s} {1:<4s} {2} '.format(add4, i.mnemonic, i.op_str ))
+				return val
+			else:
+				monic = i.split("|")[0]
+				op_str = i.split("|")[1]
+				# print(op_str)
+				# input()
+
+				val =('{0:<6s} {1:<{2}s} {3:<8s}'.format(monic, op_str, length, add4))
+				return val
+
 		else:
 			val =('{0:<10s} {1:<4s} {2:<{3}s} {4}'.format(add4, i.mnemonic, i.op_str , length, "(offset " + addb + ")"))
 
@@ -18887,17 +19202,23 @@ def generateOutputData(): #Generate the dictionary for json out
 						val2.append(val)
 						val3.append(add2)
 						checkRet= re.search( retOffset, val, re.M|re.I)
-						if checkRet:
-							if not stopRet:
-								val5.append(val)
-								stopRet = True
-							else:
-								pass
-						if not stopRet:
+
+						if "ret" in val:
 							val5.append(val)
+							break
+						else:
+							val5.append(val)
+						# if checkRet:
+						# 	if not stopRet:
+						# 		val5.append(val)
+						# 		stopRet = True
+						# 	else:
+						# 		pass
+						# if not stopRet:
+						# 	val5.append(val)
 						# val5.append(val)
-					pOut=""
-					pSize=len(pushOffset)-1
+					# pOut=""
+					# pSize=len(pushOffset)-1
 					# t=0
 					
 					
@@ -19268,14 +19589,14 @@ def generateOutputData(): #Generate the dictionary for json out
 					# input()
 					syscalls = getSyscallRecent(int(eax, 0), 64, "print2Json")
 
-				CODED3 = CODED2
-				val5 = []
-				for i in callCS.disasm(CODED3, address):
+				# CODED3 = CODED2
+				# val5 = []
+				# for i in callCS.disasm(CODED3, address):
 
-					add4 = hex(int(i.address))
-					addb = hex(int(i.address))
-					val = formatPrint(i, add4, addb)
-					val5.append(val)
+				# 	add4 = hex(int(i.address))
+				# 	addb = hex(int(i.address))
+				# 	val = formatPrint(i, add4, addb)
+				# 	val5.append(val)
 					# print(i.mnemonic, i.op_str, add4, addb)
 					# val = formatPrint(i, add4, addb, pe=True)
 
@@ -19284,19 +19605,31 @@ def generateOutputData(): #Generate the dictionary for json out
 					# val3.append(add2)
 					# val5.append(val)
 
-					if c0_offset == addb:
-						break
+					# if c0_offset == addb:
+					# 	break
+				# print(val5)
+				# input()
 
 				# for idx, val in enumerate(converted):
 				# 	if val.find("(offset") != -1:
 						
 				# 		converted[idx] = val[:val.find("offset")-18]
-				# allInstr = conerted.split(" ")
-				# mnemonic = allInstr[0]
-				# add4 = allInstr[-3]
-				# addb = allInstr[-2:]
-				# op_str = allInstr[1:-4]
-				# converted = formatPrint()
+				val5 = []
+				for i in converted:
+				# print(converted, type(converted))
+					if i != "":
+						allInstr = i.split(" ")
+						# print("Everything ---> ", allInstr)
+						mnemonic = allInstr[0]
+						add4 = allInstr[-3]
+						addb = allInstr[-2:]
+						op_str = ' '.join(allInstr[1:-3])
+
+						# print("----> mnemonic" , mnemonic, type(mnemonic))
+						# print("-----> op_str", op_str, type(op_str))
+						# input()
+						convOut = formatPrint(mnemonic + "|" + op_str, add4, addb, syscall=True)
+						val5.append(convOut)
 
 				# print(converted)
 				# input()
@@ -19539,9 +19872,18 @@ def printToText(outputData):	#Output data to text doc
 		outfile = filename.split(".")[0]
 		outfileName = filename
 
+	
 
 	# txtFileName =  os.getcwd() + "\\" + outfile + "\\output_" + outfileName + "_" + filetime + ".txt"
-	txtFileName =  os.getcwd() + "\\" + outfile + "\\" + outfileName + "_" + filetime + ".txt"
+	if useDirectory:
+		if current_arch == 32:
+			txtFileName =  os.getcwd() + "\\" + outfile + "\\" +  "32-bit" + "\\" + outfileName + "_" + filetime + ".txt"
+		elif current_arch == 64:
+			txtFileName =  os.getcwd() + "\\" + outfile + "\\" + "64-bit" + "\\" + outfileName + "_" + filetime + ".txt"
+
+	else:
+
+		txtFileName =  os.getcwd() + "\\" + outfile + "\\" + outfileName + "_" + filetime + ".txt"
 	# print("Saving location: ", outfile, outfileName)
 	# print("Saving location: ", txtFileName)
 
@@ -19558,7 +19900,8 @@ def printToText(outputData):	#Output data to text doc
 	disasm.write(gDisassemblyText)
 	disasm.close()
 
-	if save_bin_file:
+	# print("Type --> ", type(m[o].rawData2), m[o].rawData2)
+	if save_bin_file and rawHex:
 		binasm = open(binFileName, "wb")
 		binasm.write(m[o].rawData2)
 		binasm.close()
@@ -20085,7 +20428,8 @@ if __name__ == "__main__":
 		testTarek()
 	################################ viewBool'S WORK AREA
 	if viewBool:
-
+		if useDirectory:
+			work_from_directory()
 		# if workDir:
 		# 	work_from_directory()
 		# 	sys.exit()
