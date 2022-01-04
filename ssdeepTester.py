@@ -10,6 +10,8 @@ hash2 = ssdeep.hash('Also called fuzzy hashes, Ctph can match idruts that have h
 # hash2 = ssdeep.hash('Also called fuzzy hashes, Austin plays fuzzy guitars')
 
 
+ssdeepHash = ssdeep.hash(open(file_address,'rb').read())
+
 print (hash1)
 print (hash2)
 print(ssdeep.compare(hash1,hash2))
