@@ -14,6 +14,7 @@ cya = '\u001b[36;1m'
 whi = '\u001b[37m'
 res = '\u001b[0m'
 
+
 def bannerOld():
 	text = '''
 
@@ -51,10 +52,17 @@ def banner():
    # Felix Lee <flee@cse.psu.edu>
 
 
-def showOptions(shellBit):
-
+def showOptions(shellBit, rawHex, name,hMd5):
+	if rawHex:
+		showType="shellcode"
+		showType2="\n\tShellcode: "
+	else:
+		showType="PE file"
+		showType2="\n\tPE file: "
 	print(gre + banner() + res)
-	print ("  Shellcode Analysis & Emulation Framework, v. 1.0")
+	print (whi+"  Shellcode Analysis & Emulation Framework, v. 1.0"+res)
+	
+	print (gre+showType2+ cya+name+gre +"\tMd5: "+cya+hMd5+res)
 	optionsLabel = """
   .............
      Options
@@ -71,7 +79,6 @@ def showOptions(shellBit):
    b		{}
    q		{}
    k		{}
-   j		{}
    m		{}
    e		{}
    o		{}
@@ -89,33 +96,19 @@ def showOptions(shellBit):
 				res+"Brute-force deobfuscation of shellcode." +cya,
 				res+"Quick find all."+cya,
 				res+"Find strings."+cya,
-				res+"Find shellcode strings."+cya,
 				res+"Find modules in the IAT and beyond."+cya,
 				res+"Find imports."+cya,
 				res+"Output bins and ASCII text."+cya,
-				res+"Show basic info."+cya,
-				res+"Change architecture, 32-bit or 64-bit."+yel +" [ "+str(shellBit)+"-bit ]"+cya,
+				res+"Show basic "+showType+" info."+cya,
+				res+"Change architecture, 32-bit or 64-bit."+yel +" [ "+cya+str(shellBit)+"-bit"+yel+" ]"+cya,
 				res +"Save current configuration."+cya,
 				res+"Do everything with current selections."+cya,
 				res+"Exit."+cya,
 				)
-	# options = "\nOptions:\n"
-	# options +="h: Display options.\n"
-	# options +="i: Show PE file info.\n"
-	# options +="p: Print menu.\n"
-	# options +="q: Quick find all.\n"
-	# options +="s: Find shellcode instructions.\n"
-	# options +="k: Find strings.\n"
-	# options +="j: Find shellcode strings.\n"
-	# options +="m: Find InMemoryOrderModuleList.\n"
-	# options +="e: Find imports\n"
-	# options +="o: Output bins and ASCII text.\n"
-	# options +="b: Change bits.\n"
-	# options +="x: Exit\n"
 	print(optionsLabel, options)
 
 def printBitMenu():
-	bitMenu = "\nChange bit mode, "+yel+"32-bit "+res+ "or"+yel+ " 64-bit\n" + res
+	bitMenu = "\nChange bit mode, "+yel+"32-bit "+res+ "or"+red+ " 64-bit\n" + res
 	bitMenu +="Enter 32 or 64: "
 	print(bitMenu)
 
@@ -437,7 +430,7 @@ def printModulesMenu(modulesMode):
 		iMenu += "\t["+red+"x"+res+"]\n"
 	else:
 		iMenu += "\t[ ]\n"
-	iMenu += "\t\t*Default\n"
+	iMenu += gre+"\t\tDefault\n"+res
 	# iMenu += "\t\t**This must be selected to find InMemoryOrderModuleList.\n"
 	iMenu += "\t "+cya+"h"+res+" - Show options.\n"
 
@@ -459,38 +452,38 @@ def stringMenu(bAsciiStrings, bWideCharStrings, bPushStackStrings, bAllStrings, 
 		emu = "No"
 	iMenu = ''
 	iMenu += gre + " Strings to find:\n\n" + res
-	iMenu += cya + "\tas"+ yel + " - ASCII strings\t[" + res
+	iMenu += cya + "\tas"+ yel + res+" -"+yel+" ASCII strings\t"+res+"[" 
 	iMenu += cya + "x"+res if bAsciiStrings else " "
-	iMenu += yel + "]\n" + res
-	iMenu += cya + "\twc"+ yel + " - Wide char strings\t[" + res
+	iMenu += res + "]\n" 
+	iMenu += cya + "\twc"+ yel + res+" -"+yel+" Wide char strings\t"+res+"[" 
 	iMenu += cya + "x" +res if bWideCharStrings else " "
-	iMenu += yel + "]\n" + res
-	iMenu += cya + "\tps"+ yel + " - Push stack strings\t[" + res
+	iMenu += res + "]\n" 
+	iMenu += cya + "\tps"+ yel + res+" -"+yel+" Push stack strings\t"+res+"[" 
 	iMenu += cya + "x"+res if bPushStackStrings else " "
-	iMenu += yel + "]\n" + res
-	iMenu += cya + "\tall"+ yel + " - All strings\t[" + res
+	iMenu += res + "]\n" 
+	iMenu += cya + "\tall"+ yel + res+" -"+yel+" All strings\t"+res+"[" 
 	iMenu += cya + "x" +res if bAllStrings else " "
-	iMenu += yel + "]\n\n" + res
+	iMenu += res + "]\n\n"
 	# iMenu += "Sections:\n"
 	# for sec in s:
 	# 	iMenu += "\t" + sec.sectionName.decode() + "\n"
 	# iMenu += "\n"
-	iMenu += cya + " h"+yel + " - Show options.\n"
-	iMenu += cya + " g"+yel +" - Toggle selections.\n\n"
+	iMenu += mag + " h"+res + " - Show options.\n"
+	iMenu += mag + " g"+res +" - Toggle selections.\n\n"
 	iMenu += gre + " Strings emulation:\n\n" + res
-	iMenu += yel+"\tm - Manually set register values for emulation.\n" + res
+	iMenu += gre+"\tm"+res+" - Manually set register values for emulation.\n" + res
 	
-	iMenu +=gre+ "\t\tNote: This is only a sanity check.\n" + res
-	iMenu +=yel+ "\tn - Change name of registers text file for emulation ["+res +"{}".format(cya + strFile + res) + yel + "]\n" + res
-	iMenu +=yel+ "\t\tDefault: " + res + cya + "regs.txt\n" + res
-	iMenu +=yel+ "\te - Enable emulation of stack strings with use of registers ["+res +"{}".format(cya + emu + res) + yel + "]\n" + res
-	iMenu +=gre+ "\t\tNote: This should not be used ordinarily.\n" + res
-	iMenu +=yel+ "\ts - Check accuracy of found stack strings.\n\n" + res
-	iMenu += cya + " c"+yel + " - Clear selections.\n"
-	iMenu += cya + " p"+yel + " - Print found strings.\n"
-	iMenu += cya + " z"+yel + " - Find strings.\n"
-	iMenu += cya + " r"+yel + " - Reset found strings.\n"
-	iMenu += cya + " x"+yel + " - Exit.\n"
+	iMenu +=yel+ "\t\tNote: This is only a sanity check.\n" + res
+	iMenu +=gre+ "\tn"+res+" - Change name of registers text file for emulation "+yel+"["+res +"{}".format(cya + strFile + res) + yel + "]\n" + res
+	iMenu +=gre+ "\t\tDefault: " + res + cya + "regs.txt\n" + res
+	iMenu +=gre+ "\te"+res+" - Enable emulation of stack strings with use of registers "+yel+"["+res +"{}".format(cya + emu + res) + yel + "]\n" + res
+	iMenu +=yel+ "\t\tNote: This should not be used ordinarily.\n" + res
+	iMenu +=gre+ "\ts"+res+" - Check accuracy of found stack strings.\n\n" + res
+	iMenu += mag + " c"+res + " - Clear selections.\n"
+	iMenu += mag + " p"+res + " - Print found strings.\n"
+	iMenu += mag + " z"+res + " - Find strings.\n"
+	iMenu += mag + " r"+res + " - Reset found strings.\n"
+	iMenu += mag + " x"+res + " - Exit.\n"
 	print(iMenu)
 
 
