@@ -1,6 +1,9 @@
 import sys
 import re
 import colorama
+import itertools
+from sharem import get_max_length
+
 colorama.init()
 # readRegs()
 # testingAssembly()
@@ -258,7 +261,7 @@ def cpTechMenu(maxDistance):
 
 # def displayCurrentSelections(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisass, bpAll): #Displays current print selections
 
-def printMenu(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bExportAll, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisass, bpAll, p2screen=None):
+def printMenu(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bExportAll, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisass, bpAll,outDir, p2screen=None):
 	
 
 	if p2screen:
@@ -268,10 +271,11 @@ def printMenu(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bExpor
 
 	iMenu=displayCurrentSelections(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisass, bpAll)
 
-	iMenu += " {} {} \t[".format(gre + "j"+ res, whi + "- Export all to JSON." + res)
+	iMenu += " {} {} \t\t[".format(gre + "j"+ res, whi + "- Export all to JSON." + res)
 	iMenu += cya + "x" + res if bExportAll else " "
 	iMenu += "]\n"
-	iMenu += " {} {} \t\t[{}]\n".format(gre + "p" + res, whi + "- Print to screen" + res, cya + p2screen + res)
+	iMenu += " {} {} \t\t\t[{}]\n".format(gre + "p" + res, whi + "- Print to screen" + res, cya + p2screen + res)
+	iMenu += " {} {} \t\t{}\n".format(gre + "d" + res, whi + "- Change output directory" + res, cya + outDir + res)
 	iMenu += " {} {}\n".format(gre + "h" + res, whi + "- Show options." + res)
 	iMenu += " {} {}\n".format(gre + "c" + res, whi + "- Clear all print selections." + res)
 	iMenu += " {} {}\n".format(gre + "s" + res, whi + "- Windows syscall submenu." + res)
@@ -300,100 +304,228 @@ def osFindSelection(osVersion):
 		g = "[ ]"
 	return g
 
+def newSysCallPrint(syscallSelection):
+	
+	codes = ['xp', 'v', 'w7', 'w8', 'w10', 's3', 's8', 's12', 'all']
+
+	all_selections = []
+	list_of_strings1 = []
+	list_of_strings2 = []
+
+	for ver in syscallSelection:
+		all_selections.append(ver)
+
+	column1 = []
+	column2 = []
+
+	for i in all_selections:
+		if i.code == "w10":
+			index = all_selections.index(i)
+
+	column1 = all_selections[:index-1]
+	column2 = all_selections[index:]
+
+	for i in column1:
+		list_of_strings1.append(i.code + "  " + i.name )
+
+	for i in column2:
+		list_of_strings2.append(i.code + "  " + i.name )
+
+	for both in itertools.zip_longest(column1, column2):
+		col1 = both[0]
+		col2 = both[1]
+		if col1 != None:
+			code1 = col1.code
+			toggle1 = col1.toggle
+			if toggle1:
+				toggle1 = "x"
+			else:
+				toggle1 = " "
+			cat1 = col1.category
+			name1 = col1.name
+		if col2 != None:
+			code2 = col2.code
+			toggle2 = col2.toggle
+			if toggle2:
+				toggle2 = "x"
+			else:
+				toggle2 = " "
+			cat2 = col2.category
+			name2 = col2.name
+
+		maxLen1 = get_max_length(list_of_strings1)
+		maxLen2 = get_max_length(list_of_strings2)
+		L1Len = len(code1 + " " + name1)
+		L2Len = len(code2 + "  "+ name2)
+		if col1 != None and col2 != None:
+			
+			if code1 in codes and code2 in codes:
+				print(" {}  {}{:>{x}}[{}]\t{}  {}{:>{y}}[{}]".format(gre+code1+res, cya + name1 + res, "",red + toggle1+res, gre + code2+res, cya + name2 + res, "",red + toggle2+res, x=(maxLen1-L1Len+8), y=(maxLen2-L2Len+10)))
+			else:
+				print("\t{}  {} {:>{x}}[{}]\t\t{}  {}{:>{y}}[{}]".format(yel + code1 + res, name1, "",red + toggle1+res, yel + code2 + res, name2, "",red + toggle2+res, x=(maxLen1-L1Len), y=(maxLen2-L2Len+2)))
+		elif col2 == None:
+
+			if code1 in codes:
+				print(" {}  {}{:>{x}}[{}]".format(gre + code1 + res, cya + name1 + res, "", red + toggle1+res, x=(maxLen1-L1Len+8)))
+			else:
+				print("\t{}  {} {:>{x}}[{}]".format(yel + code1 +res, name1, "",red + toggle1+res, x=(maxLen1-L1Len)))
+		elif col1 == None:
+			if code2 in codes:
+				print(" {}  {}{:>{x}}[ ]".format(code2, name2))
+			else:
+				print("\t{}  {} {:>{x}}[ ]".format(code2, name2))
+	# print("+------------------------+")
+	# codes = ['xp', 'v', 'w7', 'w8', 'w10', 's3', 's8', 's12', 'all']
+	# maxLen1 = get_max_length(list_of_strings1)
+	# maxLen2 = get_max_length(list_of_strings2)
+
+	# for both in itertools.zip_longest(column1, column2):
+
+	# 	col1 = both[0]
+	# 	col2 = both[1]
+	# 	if col1 != None:
+	# 		code1 = col1.code
+	# 		toggle1 = col1.toggle
+	# 		cat1 = col1.category
+	# 		name1 = col1.name
+	# 	if col2 != None:
+	# 		code2 = col2.code
+	# 		toggle2 = col2.toggle
+	# 		cat2 = col2.category
+	# 		name2 = col2.name
+	# 	if col1 != None and col2 != None:
+	# 		if code1 in codes or code2 in codes:
+	# 			curLen1 = len(code1 + cat1)
+	# 			curLen2 = len(code2 + cat2)
+	# 			curNameLen1 = len(code1 + "  " + name1)
+	# 			curNameLen2 = len(code2 + "  " + name2)
+	# 			curNameLen2 = curNameLen2 +  curNameLen1
+
+	# 			print(" {}  {} {:>{x}}[]   {}  {} {:>{y}}[]".format(code1, cat1, "", code2, cat2, "", x=(maxLen1-curLen1), y=(maxLen2-curLen2)))
+	# 		else:
+	# 			print("\t{}  {} {:>{x}}[]\t\t{}  {} {:>{y}}[]".format(code1, name1, "", code2, name2, "", x=(maxLen1-curNameLen1), y=(maxLen2-curNameLen2)))
+
+	# 	elif col2 == None:
+	# 		if code1 in codes:
+	# 			print("{}  {} []".format(code1, cat1))
+	# 		else:
+	# 			print("{}  {} []".format(code1, name1))
+
+
+
 def syscallPrintSubMenu(syscallSelection, showDisassembly, syscallPrintBit, showOptions):
 	vMenu = ""
+
+	#Used for list of OSVersions to print for syscall
+	# def _init_(self, name, category, toggle, code):
+	# 	self.name = name 			#Version, e.g. SP1
+	# 	self.category = category 	#OS, e.g. Windows 10
+	# 	self.toggle = toggle 		#To print or not
+	# 	self.code = code 			#The opcode, e.g. xp1
+
+	#  xp   Windows XP         [ ]      s3   Windows Server 2003                 [ ]
+ #       xp1  SP1          [ ]             s30   SP0                         [ ]
+ #       xp2  SP2          [ ]             s32   SP2                         [ ]
+ #                                         s3r   R2                          [ ]
+ # v    Windows Vista      [ ]             s3r2  R2 SP2                      [ ]
+	
+
+		# print(x.category, x.name, x.toggle, x.code)
 	if(showOptions):
-		vMenu += blu + " Selections:\n" + res
-	nada = ""
-	column1 = 0 		#The col1 position in syscallSelection
-	column2 = 0
-	col1Newline = False
-	col2Newline = False
-	col1Category = ''
-	col2Category = ''
-	t = 0
-	while not ((column1 == -1) and (column2 == -1)):
+		print(mag + " \n Selections:\n" + res)
+		newSysCallPrint(syscallSelection)
 
-	#Prints two columns recursively from our list
-	#-1 indicates column is done
-		if  not (column1 == -1): 
+	# 	vMenu += mag + " Selections:\n" + res
+	# nada = ""
+	# column1 = 0 		#The col1 position in syscallSelection
+	# column2 = 0
+	# col1Newline = False
+	# col2Newline = False
+	# col1Category = ''
+	# col2Category = ''
+	# t = 0
+	# while not ((column1 == -1) and (column2 == -1)):
 
-			#check for newline
-			if not (syscallSelection[column1].category == col1Category):
-				col1Newline = True
-				col1Category = syscallSelection[column1].category
+	# #Prints two columns recursively from our list
+	# #-1 indicates column is done
+	# 	if  not (column1 == -1): 
+
+	# 		#check for newline
+	# 		if not (syscallSelection[column1].category == col1Category):
+	# 			col1Newline = True
+	# 			col1Category = syscallSelection[column1].category
 
 
-			#check if we've reached the last in a category	
-			if(re.search("server", syscallSelection[column1].category, re.IGNORECASE)):
-				#Look for next col1 category
-				for i in range(len(syscallSelection[column1 + 1:])):
-					if not (re.search("server", syscallSelection[i + column1].category, re.IGNORECASE)):
-						column1 = i + column1
-						col1Category = syscallSelection[column1].category
-						break
+	# 		#check if we've reached the last in a category	
+	# 		if(re.search("server", syscallSelection[column1].category, re.IGNORECASE)):
+	# 			#Look for next col1 category
+	# 			for i in range(len(syscallSelection[column1 + 1:])):
+	# 				if not (re.search("server", syscallSelection[i + column1].category, re.IGNORECASE)):
+	# 					column1 = i + column1
+	# 					col1Category = syscallSelection[column1].category
+	# 					break
 
-					#bounds checking
-					if i == len(syscallSelection[column1 + 1:])-1:
-						column1 = -1
+	# 				#bounds checking
+	# 				if i == len(syscallSelection[column1 + 1:])-1:
+	# 					column1 = -1
 
-		if  not (column2 == -1):
+	# 	if  not (column2 == -1):
 
-			if not (syscallSelection[column2].category == col2Category):
-				col2Newline = True
-				col2Category = syscallSelection[column2].category
-			#check if we've reached the last in a category
-			if not (re.search("server", syscallSelection[column2].category, re.IGNORECASE)):
+	# 		if not (syscallSelection[column2].category == col2Category):
+	# 			col2Newline = True
+	# 			col2Category = syscallSelection[column2].category
+	# 		#check if we've reached the last in a category
+	# 		if not (re.search("server", syscallSelection[column2].category, re.IGNORECASE)):
 
-				#Look for next col2 category
-				for i in range(len(syscallSelection[column2 + 1:])):
-					if (re.search("server", syscallSelection[i + column2].category, re.IGNORECASE)):
-						column2 = i + column2
-						col2Category = syscallSelection[column2].category
-						break
+	# 			#Look for next col2 category
+	# 			for i in range(len(syscallSelection[column2 + 1:])):
+	# 				if (re.search("server", syscallSelection[i + column2].category, re.IGNORECASE)):
+	# 					column2 = i + column2
+	# 					col2Category = syscallSelection[column2].category
+	# 					break
 
-			#bounds checking
-			#After it finds the end of the list, it sets the position (column2) to -1 to know it is at the end
-			if column2 >= (len(syscallSelection)):
-						print("Col2 end")
-						column2 = -1
+	# 		#bounds checking
+	# 		#After it finds the end of the list, it sets the position (column2) to -1 to know it is at the end
+	# 		if column2 >= (len(syscallSelection)):
+	# 					print("Col2 end")
+	# 					column2 = -1
 
-		#Add col1 item
-		if not (column1 == -1):
-			if(col1Newline):
-				vMenu += (' {:<32}'.format(nada))
-			else:
+	# 	#Add col1 item
+	# 	if not (column1 == -1):
+	# 		if(col1Newline):
+	# 			vMenu += (' {:<32}'.format(nada))
+	# 		else:
 
-				#Format non categories
-				if not (syscallSelection[column1].name == syscallSelection[column1].category):
-					vMenu += (' {:<5s} {:<4s} {:<12s} {:<8}'.format(nada, syscallSelection[column1].code, syscallSelection[column1].name, osFindSelection(syscallSelection[column1]))) 
+	# 			#Format non categories
+	# 			if not (syscallSelection[column1].name == syscallSelection[column1].category):
+	# 				vMenu += (' {:<5s} {:<4s} {:<12s} {:<8}'.format(nada, syscallSelection[column1].code, syscallSelection[column1].name, osFindSelection(syscallSelection[column1]))) 
 
-				#Format Categories
-				else:
-					vMenu += (' {:<4s} {:<17s}  {:<8}'.format(syscallSelection[column1].code , syscallSelection[column1].name, osFindSelection(syscallSelection[column1]))) 
-				column1 += 1
-				if column1 >= (len(syscallSelection)):
-							column1 = -1
-		if not (column2 == -1):
-			if not col2Newline: 
+	# 			#Format Categories
+	# 			else:
+	# 				vMenu += (' {:<4s} {:<17s}  {:<8}'.format(syscallSelection[column1].code , syscallSelection[column1].name, osFindSelection(syscallSelection[column1]))) 
+	# 			column1 += 1
+	# 			if column1 >= (len(syscallSelection)):
+	# 						column1 = -1
+	# 	if not (column2 == -1):
+	# 		if not col2Newline: 
 
-				#Format non categories
-				if not (syscallSelection[column2].name == syscallSelection[column2].category) and not (syscallSelection[column2].category == "server Column multiselect variables"):
-					vMenu += (' {:<6s} {:<5s} {:<27s} {:<5}'.format(nada, syscallSelection[column2].code, syscallSelection[column2].name, osFindSelection(syscallSelection[column2])))
+	# 			#Format non categories
+	# 			if not (syscallSelection[column2].name == syscallSelection[column2].category) and not (syscallSelection[column2].category == "server Column multiselect variables"):
+	# 				vMenu += (' {:<6s} {:<5s} {:<27s} {:<5}'.format(nada, syscallSelection[column2].code, syscallSelection[column2].name, osFindSelection(syscallSelection[column2])))
 
-				#Format categories
-				else:
-					vMenu += (' {:<4s} {:<35s} {:<5}'.format(syscallSelection[column2].code, syscallSelection[column2].name, osFindSelection(syscallSelection[column2])))  
-				column2 += 1
-				if column2 >= (len(syscallSelection)):
-							column2 = -1
-		vMenu += "\n"
-		col1Newline = False
-		col2Newline = False
-	vMenu += "\n"
-
+	# 			#Format categories
+	# 			else:
+	# 				vMenu += (' {:<4s} {:<35s} {:<5}'.format(syscallSelection[column2].code, syscallSelection[column2].name, osFindSelection(syscallSelection[column2])))  
+	# 			column2 += 1
+	# 			if column2 >= (len(syscallSelection)):
+	# 						column2 = -1
+	# 	vMenu += "\n"
+	# 	col1Newline = False
+	# 	col2Newline = False
+	# vMenu += "\n"
+	vMenu = ""
 	if showOptions:
-		vMenu += mag+" Functional Commands:\n\n"+res
+		vMenu += mag+" \n\n Functional Commands:\n\n"+res
 		vMenu += " {} - Options.\n".format(cya + "h" + res)
 		vMenu += " {} - Clear syscall selections.\n".format(cya + "c" + res)
 		vMenu += " {} - Enter syscall selections.\n".format(cya + "g" + res)
@@ -478,7 +610,9 @@ def stringMenu(bAsciiStrings, bWideCharStrings, bPushStackStrings, bAllStrings, 
 	iMenu +=gre+ "\t\tDefault: " + res + cya + "regs.txt\n" + res
 	iMenu +=gre+ "\te"+res+" - Enable emulation of stack strings with use of registers "+yel+"["+res +"{}".format(cya + emu + res) + yel + "]\n" + res
 	iMenu +=yel+ "\t\tNote: This should not be used ordinarily.\n" + res
-	iMenu +=gre+ "\ts"+res+" - Check accuracy of found stack strings.\n\n" + res
+	iMenu +=gre+ "\ts"+res+" - Check accuracy of found stack strings.\n" + res
+	iMenu +=gre+ "\tk"+res+" - Change minimum length of strings.\n\n" + res
+
 	iMenu += mag + " c"+res + " - Clear selections.\n"
 	iMenu += mag + " p"+res + " - Print found strings.\n"
 	iMenu += mag + " z"+res + " - Find strings.\n"
