@@ -11176,7 +11176,7 @@ def printTempDis():
 		out+=each+"\n"
 
 		t+=1
-	print (out)
+	# print (out)
 
 def createDisassemblyLists():
 	global off_Label
@@ -11188,7 +11188,7 @@ def createDisassemblyLists():
 	global tempCodes
 
 	mode="ascii"
-	print ("tempAddresses")
+	# print ("tempAddresses")
 	j=0
 	nada=finalOutput=""
 	for cAddress in tempAddresses:
@@ -11238,7 +11238,7 @@ def createDisassemblyLists():
 			pass
 		finalOutput+=out
 		j+=1		
-	print(finalOutput)
+	# print(finalOutput)
 	
 	# pMnemonic= i.mnemonic
 
@@ -11246,9 +11246,9 @@ def createDisassemblyLists():
 	# print ("tempDisassembly")
 	# for each in tempDisassembly:
 	# 	print (each)
-	print (tempDisassembly)
+	# print (tempDisassembly)
 
-	print (len(tempDisassembly), len(tempAddresses))
+	# print (len(tempDisassembly), len(tempAddresses))
 
 
 	if 55==555:
@@ -14984,7 +14984,7 @@ def decryptUI():
 		decryptFile = filename	
 		decryptBytes = readShellcode(decryptFile) 
 	except:
-		print("Couldn't read command line input file, reverting to default...")
+		print("Couldn't read command line input file, please provide only a shellcode file.")
 		decryptBytes = b''
 		decryptFile = "default.txt"
 
