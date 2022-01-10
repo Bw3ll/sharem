@@ -17944,7 +17944,7 @@ def changeRegsFile():
 		# 	break
 	
 
-#Jan102022
+
 def uiFindStrings():
 	global bStringsFound
 	global bPushStringsFound
@@ -17988,7 +17988,7 @@ def uiFindStrings():
 		elif(re.match("^m$", stringIN, re.IGNORECASE)):
 			manualRegisters()
 		#jan102022
-		# print ("hello!")
+		print ("hello!")
 		elif(re.match("^e$", stringIN, re.IGNORECASE)):
 			chMode = True
 			print("\nEmulation enabled\n")
