@@ -12054,7 +12054,7 @@ def disHereShell(data,offset, end, mode, CheckingForDB, bit): #current good 1/8/
 	end= time.time()
 	# print("\t\t[-] loop 5 ", end-start)
 	disHereShell_end = time.time()
-	print ("\t[*]disHereShell:", disHereShell_end- disHereShell_start)
+	# print ("\t[*]disHereShell:", disHereShell_end- disHereShell_start)
 	return ""
 
 def disHereAnalysisOlder(data,offset, end, mode, CheckingForDB): #origianl mostly unedited
@@ -12800,18 +12800,18 @@ def takeBytes(shellBytes,startingAddress, silent=None):
 		dprint4 ("\nfound strings")
 
 	end = time.time()
-	print ("\n[*] Find strings", end-start)
+	# print ("\n[*] Find strings", end-start)
 	
 	start = time.time()
 	anaFindFF(shellBytes)
 	addComments()
 	end = time.time()
-	print ("\n[*] anaFindFF", end-start)
+	# print ("\n[*] anaFindFF", end-start)
 
 	start = time.time()
 	out=findRange(shellBytes, startingAddress,len(sBy.offsets)-1)  #1st time helps do corrections
 	end = time.time()
-	print ("\n[*] findrange #1", end-start)
+	# print ("\n[*] findrange #1", end-start)
 	# print ("**Sizes:  ")
 	# print("\t\tlabels, size:",len(labels))
 	# print("\t\tofsets, size:",len(offsets))
@@ -12825,9 +12825,9 @@ def takeBytes(shellBytes,startingAddress, silent=None):
 	start2 = time.time()
 	out2=findRange(shellBytes, startingAddress,len(sBy.offsets)-1) # makes sure all corrections fully implemented # this creates final disassembly
 	end = time.time()
-	print ("\n\t[*] findrange 2", end-start2)
+	# print ("\n\t[*] findrange 2", end-start2)
 
-	print ("\n\t[*] TakeBytes:", end-takeBytesS)
+	# print ("\n\t[*] TakeBytes:", end-takeBytesS)
 	# print ("**Sizes:  ")
 	# print("\t\tlabels, size:",len(labels))
 	# print("\t\tofsets, size:",len(offsets))
@@ -13043,35 +13043,35 @@ def findRange(data, startingAddress, end2):
 	disHereAnalysis(data, startingAddress, end, "ascii", True)
 
 	fr_end = time.time()
-	print ("\n\t[*] disHereAnalysis", fr_end-fr1)
+	# print ("\n\t[*] disHereAnalysis", fr_end-fr1)
 
 	frHid = time.time()
-	print ("\t\t", red+"beforeHidden"+whi)
+	# print ("\t\t", red+"beforeHidden"+whi)
 	if not mBool[o].bAnaHiddenCallsDone:
 		analysisFindHiddenCalls(data, startingAddress)
 	fr_Hidend = time.time()
-	print ("\t\t", red+"afterHidden"+whi)
+	# print ("\t\t", red+"afterHidden"+whi)
 
-	print ("\n\t[*] analysisFindHiddenCalls", fr_Hidend-frHid)
+	# print ("\n\t[*] analysisFindHiddenCalls", fr_Hidend-frHid)
 
 	fr1 = time.time()
 
 	analysisConvertBytes(data, startingAddress)
 	fr_end = time.time()
-	print ("\n\t[*] analysisConvertBytes", fr_end-fr1)
+	# print ("\n\t[*] analysisConvertBytes", fr_end-fr1)
 
 	fr1 = time.time()
 	if not mBool[o].bAnaHiddenCallsDone:
 		analysisFindHiddenCalls(data, startingAddress)
 	fr_end = time.time()
-	print ("\n\t[*] analysisFindHiddenCalls", fr_end-fr1)
+	# print ("\n\t[*] analysisFindHiddenCalls", fr_end-fr1)
 	
 	fr12 = time.time()
 	shellEntryPassed=False
 	if FindStringsStatus and not mBool[o].bAnaFindStrDone:
 		anaFindStrings(data,startingAddress)
 	fr_end = time.time()
-	print ("\n\t[*] anaFindStrings", fr_end-fr12)
+	# print ("\n\t[*] anaFindStrings", fr_end-fr12)
 
 	finalPrint=""
 	dprint2 ("final disprint", len(finalPrint))
@@ -13136,8 +13136,8 @@ def findRange(data, startingAddress, end2):
 
 		# analysisFindHiddenCalls(data, startingAddress)
 	fr_end = time.time()
-	print ("\n\t[*] inside dshell", inside_shell)
-	print ("\n\t[*] big loop", fr_end-s1)
+	# print ("\n\t[*] inside dshell", inside_shell)
+	# print ("\n\t[*] big loop", fr_end-s1)
 	
 	dprint2 ("final disprint", len(finalPrint))
 
@@ -13242,10 +13242,10 @@ def findRangeOldJan(data, startingAddress, end2):
 
 	fr_end = time.time()
 	
-	print ("\n\t[*] big loop", fr_end-s1)
+	# print ("\n\t[*] big loop", fr_end-s1)
 	
 	fr_end = time.time()
-	print ("\n\t[*] inside dshell", inside_shell)
+	# print ("\n\t[*] inside dshell", inside_shell)
 		# analysisFindHiddenCalls(data, startingAddress)
 	dprint2 ("final disprint", len(finalPrint))
 
@@ -15600,7 +15600,7 @@ def dprint3(*args):
 		dp2 (args)
 
 def shellDisassemblyInit(shellArg, silent=None):
-	print ("shellDisassemblyInit")
+	# print ("shellDisassemblyInit")
 	global filename
 
 	global gDisassemblyText
@@ -17987,8 +17987,7 @@ def uiFindStrings():
 		
 		elif(re.match("^m$", stringIN, re.IGNORECASE)):
 			manualRegisters()
-		#jan102022
-		print ("hello!")
+
 		elif(re.match("^e$", stringIN, re.IGNORECASE)):
 			chMode = True
 			print("\nEmulation enabled\n")
