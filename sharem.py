@@ -53,8 +53,8 @@ blu = '\u001b[34;1m'
 mag = '\u001b[35;1m'
 cya = '\u001b[36;1m'
 whi = '\u001b[37m'
-# res = '\u001b[0m'
-res=whi
+res = '\u001b[0m'
+
 
 # print(red + "Hello there. I'm Tarek, testing colors.")
 # print(gre + "Hello there. I'm Tarek, testing colors.")
@@ -71,6 +71,8 @@ res=whi
 			
 iatList=[]
 m = {} #[]   # start modules CHANGED to dicitonary
+mBool = {} #[]   # start modules CHANGED to dicitonary
+
 mL=[]
 s = []  # start sections
 list_of_files = []
@@ -78,10 +80,12 @@ list_of_files32 = []
 list_of_files64 = []
 list_of_pe32 = []
 list_of_pe64 = []
+
 list_of_unk_files = []
 current_arch = 0
 sharem_out_dir = "current_dir"
 emulation_verbose = True
+
 # labels=[]
 labels=set()
 offsets=set()
@@ -113,8 +117,13 @@ skipPath = False
 FoundApisAddress = []
 FoundApisName = []
 saveAPI=0x00
+
+shellEntry=0x00
+decodedBytes=b''
+
 shellEntry=0x0
 useDirectory = False
+
 VP = 0
 VA=""
 MA=""
@@ -215,6 +224,9 @@ bEvilImportsFound = False
 bModulesFound = False
 bWideStringFound = False
 bPushStringsFound = False
+bAnaHiddenCallsDone=False
+bAnaConvertBytesDone=False
+bAnaFindStrDone=False
 deobfShell = True
 fastMode=False
 pebPoints = 3
@@ -767,6 +779,14 @@ def CliParser():
 # 	else:
 # 		bit32 = True
 
+class foundBooleans():
+	def __init__(self, name):
+		self.bPushStringsFound = False
+		self.bAnaHiddenCallsDone=False
+		self.bAnaHiddenCnt=0
+		self.bAnaConvertBytesDone=False
+		self.bAnaFindStrDone=False
+		self.name=name
 
 class OSVersion:
 	#Used for list of OSVersions to print for syscall
@@ -1061,6 +1081,7 @@ def clearDisassBytClass():
 	sBy.specialEnd.clear()
 	sBy.comments.clear()
 
+
 def newModule(nameOfType,rawD, name="Name"):
 	global m
 	global peName
@@ -1099,8 +1120,15 @@ def newModule(nameOfType,rawD, name="Name"):
 		print (out)
 		print (gre+"# mods"+res, len(m))
 
-	
+	objBool=foundBooleans(name)
+	if rawHex:
+		o=nameOfType   # shellcode - >  "shellcode", "decoded"  -- only two, not name of shellcode
+		mBool[nameOfType]=objBool
+	else:  #pe file
+		o=name    # name of the pe   #gName   -- e.g. example.dll, example.exe   -- not the full path
+		mBool[name]=objBool   #name of pe file is the key
 
+	
 def newSection():
 	global s
 	global gName
@@ -1507,6 +1535,7 @@ def cleanColors(out):
 	global cya 
 	global whi 
 	global res
+	res = '\u001b[0m'
 	out = out.replace(red, "")	
 	out = out.replace(gre, "")	
 	out = out.replace(yel, "")	
@@ -2199,7 +2228,6 @@ def showBasicInfoSections():
 	cat += gre+"Sha256: "+res+str(m[o].getSha256())+"\n"
 	cat += gre+"Ssdeep: "+res+str(m[o].getSsdeep())+"\n\n"
 
-
 	cat += '\nSection info\n\n'
 	for each in s:	
 		cat +="Section:"+yel+s[t].sectionName.decode()+res+"\n"
@@ -2235,7 +2263,8 @@ def me(mode=None):
 		input()
 
 def toString(input1):
-	res=""
+
+	result=""
 	zz=""
 	for y in input1:
 		zz= "{0:02x}".format(y) #
@@ -2247,8 +2276,9 @@ def toString(input1):
 				zz="."
 		else:
 			zz="."
-		res+=zz
-	return res
+		result+=zz
+	return result
+
 
 def binaryToStr(binary, mode = None):
 	newop=""
@@ -3010,7 +3040,7 @@ def printSavedPEB(): ######################## AUSTIN ###########################
 					adv = str(adv[0])
 			print("OFFSETS: ")
 
-			print("PEBWALKSTART = " + mag +str(hex(item[0])) + res)
+			print("PEB WALKING START = " + mag +str(hex(item[0])) + res)
 			print("TIB = " + mag + str(item[5])+res)
 			print("LDR = " + mag + str(item[6])+res)
 			print("MODS = " + mag + str(mods)+res)
@@ -4851,7 +4881,7 @@ def callPopRawHex_old(address, secNum, data):
 							dprint2("w is ", w)
 							bad = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(int)|(retf)|(db)|(hlt)|(loop)|(ret)|(leave)|(int3)|(insd)|(enter)|(jns)|(call))", item, re.M|re.I)
 							if bad:
-								print ("got bad: ", item)
+								# print ("got bad: ", item)
 								break
 							# dprint2("item: ",item)
 							# if not (distance + orgListOffset[t] > orgListOffset[w]): 
@@ -7156,9 +7186,6 @@ def work_from_directory():
 	global bit32
 
 	clearAll()
-
-	# print("$$$$$$$$$$$$$$$", list_of_pe64, len(list_of_pe64))
-
 
 	readConf()
 
@@ -11141,19 +11168,20 @@ def addEntryPoint():
 	dprint(tempDisassembly[index-1])
 	dprint("done")
 def addDis(address, line=None, mnemonic=None, op_str=None, id2="NA"):
-	# print("addDis", address, line)
+	# print("      [*] addDis", (address), line, "id:", id2)
+	# print (type(address), "address type")
 	# print (mnemonic, op_str, id2, "\n")
-	# global tempDisassembly
+	global tempDisassembly
 	global tempAddresses
 	global tempMnemonic
 	global tempOp_str
 	global tempCodes
 
-	# tempDisassembly.append(line)
-	try:
-		tempAddresses.append(str(hex(address)))
-	except:
-		tempAddresses.append(address)
+	tempDisassembly.append(line)
+	# try:
+	# 	tempAddresses.append(str(hex(address)))
+	# except:
+	tempAddresses.append(address)
 	tempCodes.append(id2)
 	tempMnemonic.append(mnemonic)
 	tempOp_str.append(op_str)
@@ -11178,7 +11206,7 @@ def printTempDis():
 		t+=1
 	print (out)
 
-def createDisassemblyLists():
+def createDisassemblyLists(shellArg, silent=None):
 	global off_Label
 	global labels
 	global tempDisassembly
@@ -11186,60 +11214,46 @@ def createDisassemblyLists():
 	global tempMnemonic
 	global tempOp_str
 	global tempCodes
+	global res
 
 	mode="ascii"
-	# print ("tempAddresses")
 	j=0
 	nada=finalOutput=""
 	for cAddress in tempAddresses:
 		if mode=="ascii":
-			# val =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(hex(int(i.address)), val_b, val_c, val_d))
-			## secret sauce
-
-			startHex=int(cAddress,16)
+			startHex=cAddress
 			try:
-				endHex=int(tempAddresses[j+1],16)
+				endHex=tempAddresses[j+1]
 			except:
 				endHex=len(m[o].rawData2)
-			# print ("val!: ", hex(startHex), hex(endHex), hex(len(m[o].rawData2)))
-			# print(binaryToStr(m[o].rawData2[startHex:endHex]))
-			out='{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(cAddress, tempMnemonic[j] + " " + tempOp_str[j], binaryToStr(m[o].rawData2[startHex:endHex]), toString(m[o].rawData2[startHex:endHex]))
+			out='{:<10s} {:<45s} {:<30s}{:<10s}\n'.format(gre+str(hex(cAddress)), whi+tempMnemonic[j] + " " + tempOp_str[j], red+binaryToStr(m[o].rawData2[startHex:endHex]), cya+toString(m[o].rawData2[startHex:endHex]))
 		else:
-			# val =  hex(int(i.address)) + ":\t" + i.mnemonic + " " + i.op_str+"\n"
 			out=('{:<10s} {:<35s}\n'.format(((cAddress)), tempMnemonic[j] + " " + tempOp_str[j]))
 
-
-		if sBy.comments[int(cAddress,16)] !="":
-			# print ("gotttts one")
-			# val_b=sBy.comments[int(hex(int(i.address)),16)]
-			# val_b=sBy.comments[int(hex(int(pAddress)),16)]
-			val_b2=sBy.comments[int(cAddress,16)]
-			val_comment =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(nada, val_b2, nada, nada))
+		if sBy.comments[cAddress] !="":
+			val_b2=sBy.comments[cAddress]
+			val_comment =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(mag+nada, val_b2, nada, nada))
 			out+=val_comment		
-		truth,res=checkForLabel( cAddress,labels)
+		truth,res=checkForLabel( str(hex(cAddress)),labels)
 		if truth:
 			out=res+out
 		if re.search( r'\bjmp\b|\bje\b|\bjne\b|\bjg\b|\bjge\b|\bja\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bret\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', out, re.M|re.I):
 			out=out+"\n"
-
 		############Stack strings begin
 		try:
-			# cur=i.address
 			cur=cAddress
-			# print (hex(sBy.pushStringEnd[cur]), add, "pushending")
 			if (sBy.pushStringEnd[cur]-2) == cur:
-				# dprint2 ("push match", sBy.pushStringValue[cur])
 				msg="; "+sBy.pushStringValue[cur] + " - Stack string"
 				newVal =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format("", msg, nada, nada))
 				out= newVal+out
-				# dprint2 (val)
 		except Exception as e:
 			# print ("weird error", e)
 			pass
 		finalOutput+=out
 		j+=1		
-	# print(finalOutput)
+	print(finalOutput)
 	
+
 	# pMnemonic= i.mnemonic
 
 	
@@ -11250,6 +11264,7 @@ def createDisassemblyLists():
 
 	# print (len(tempDisassembly), len(tempAddresses))
 
+	return cleanColors(finalOutput)
 
 	if 55==555:
 
@@ -11320,6 +11335,7 @@ def clearTempDis():
 	global tempAddresses
 	global tempMnemonic
 	global tempOp_str
+
 	# print ("clearTempDis", len(tempDisassembly))
 
 	tempDisassembly.clear()
@@ -11341,9 +11357,10 @@ def checkForBad00(data, offset, end):
 		if str(hex(offset)) in tempAddresses:
 			# print("FOUND candidate", str(hex(offset)))
 			index=tempAddresses.index(str(hex(offset)))
-			# print("Index --> ", index, len(tempDisassembly))
-			# input()
-			# dprint2 (index, tempDisassembly[index], tempAddresses[index])
+
+			print (index, len(tempDisassembly), len(tempAddresses))
+			dprint2 (index, tempDisassembly[index], tempAddresses[index])
+
 			findBad00= re.search(sample, tempDisassembly[index], re.M|re.I)
 			if findBad00:
 
@@ -11360,6 +11377,8 @@ def checkForBad00(data, offset, end):
 		dprint2 (ans[0], ans[distance])
 		modifysBySpecial(data, ans[0], end, "al")
 		modifysByRange(data, ans[0], end,  "d")
+	# print ("got bad one")
+	# input()
 
 
 
@@ -11428,6 +11447,9 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 				sVal=""
 				startAddString=str(hex(offset))
 				stringVala=sBy.stringsValue[offset]+" ; string"
+				print ("\t\t\tmaking strings", stringVala)
+
+				# input()
 				dbOut+=(binaryToStr(data[t:t+1]))
 				dprint2 (stringVala)
 				
@@ -11463,6 +11485,8 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 					stringVal=stringVal+res
 				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(startAddString, stringVala,dbOut,nada ))
 				stringVal+=curDisassembly
+				# print ("addy", hex(offset))
+				# print ("startAddString", startAddString, type(startAddString))
 				addDis(int(startAddString, 16),curDisassembly, "string","", "B")
 				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
 				if  sBy.boolspecial[offset]==False:
@@ -11532,7 +11556,10 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 				# stringVal +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
 				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(startAddString, stringVala,dbOut,nada ))
 				stringVal+=curDisassembly
-				addDis(startAddString,curDisassembly, "string", "","E")
+				# print ("findme")
+				# print (stringVala)
+				# print (dbOut)
+				addDis(int(startAddString,16),curDisassembly,stringVala, "", "E")
 				# stringVal= beforeS + stringVal
 				dbOut=""
 				dbFlag=False
@@ -11549,6 +11576,10 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):
 	val=stringVal
 	return val
 
+def dprint4(*args):
+	debugging=True
+	dprint3(*args)
+	debugging=False
 
 # debugging=False
 def dprint(*args):
@@ -11628,21 +11659,30 @@ def analysisFindHiddenCalls(data, startingAddress):
 	start=startingAddress
 	max=len(sBy.bytesType)-1
 	finalPrint=""
-	# dprint (start, "start")
+	
+	mBool[o].bAnaHiddenCnt=mBool[o].bAnaHiddenCnt+1
+	if mBool[o].bAnaHiddenCnt>1:
+		mBool[o].bAnaHiddenCallsDone = True
+	print ("\t\t", gre+"inside analysisFindHiddenCalls!!!!!!!!!!!!!"+res)
+	# print (start, "start")
 	start, current, distance, typeBytes = findRange2(current)
-	# dprint2 (start, "AFTER FIRST")
+	# print (start, "AFTER FIRST")
 	reset = False
 	while current < max:
+	# for each in sBy.bytesType:
 		# dprint (start, "end2")
-		dprint2 ("1ana",  "start", hex(start), "current", hex(current),  hex(distance))
+		# dprint2 ("1ana",  "start", hex(start), "current", hex(current),  hex(distance))
 		if max==current:
 			current+=1
-		dprint2(binaryToStr(data[start:current]))
+		# dprint2(binaryToStr(data[start:current]))
 		if not typeBytes:
 			dprint2 ("AN: above is data")
 			anaFindCalls(data,start, start+distance)
 			anaFindShortJumps(data,start, start+distance)
+		# print ("hidden b4", hex(start), hex(current), hex(distance), typeBytes )
 		start, current, distance, typeBytes = findRange2(current)
+		# print ("hidden AFTER  ", hex(start), hex(current), hex(distance), typeBytes )
+
 		if current==max:
 			# print ("gotme")
 			pass
@@ -11651,6 +11691,7 @@ def analysisFindHiddenCalls(data, startingAddress):
 			reset=True
 			# dprint ("reset")
 			current=0
+	# print ("finished!!!")
 
 
 def anaFindAlign2(data):
@@ -11754,7 +11795,10 @@ def analysisConvertBytes(data, startingAddress):
 		dprint2 ("*************************\n")
 		t+=1
 
-def anaFindCalls(data, start, current):
+
+
+
+def anaFindCalls(data, start, current):   #original
 	global offsets
 	global labels
 	dprint2 ("anna: " + " "  + str(hex(start)) + " " + str(hex(current)) )
@@ -11766,7 +11810,6 @@ def anaFindCalls(data, start, current):
 	searchFor=[]
 	for opcode in data[start:current]:
 		test=int(data[start+t])
-		# print (hex(test), hex(ord(OP_CALL)))
 		if test==ord(OP_CALL):
 			dprint2("FOUND 0xe8!")
 			ans, valb_1, valb_2, num_bytes= disHereTiny(data[start+t:start+t+5])
@@ -11799,16 +11842,23 @@ def anaFindCalls(data, start, current):
 						labels.add(str(hex(destination)))
 				if str(hex(destination)) not in searchFor:
 					searchFor.append(str(hex(destination)))
+					offsets.add(destination)
+					modifysByRange(data, destination-2, destination,"d")
+
 		t+=1
-	for addy in searchFor:
-		if addy in offsets:
-			dprint2("In offsets")
-		else:
-			if int(addy,16) not in offsets:
-				offsets.add(int(addy,16))
-			dprint2("Not in offsets")
-			# removeBadOffsets(addy)
-			modifysByRange(data, int(addy,16)-2, int(addy,16),"d")
+
+	# for addy in searchFor:
+	# 	if addy in offsets:
+	# 		dprint2("In offsets")
+	# 	else:
+	# 		if int(addy,16) not in offsets:
+	# 			offsets.add(int(addy,16))
+	# 		dprint2("Not in offsets")
+	# 		# removeBadOffsets(addy)
+	# 		modifysByRange(data, int(addy,16)-2, int(addy,16),"d")
+	# print ("got anafindcalls")
+	# print ("labels**",  len(labels))
+
 
 def anaFindShortJumps(data, start, current):
 	global offsets
@@ -11875,192 +11925,9 @@ def anaFindShortJumps(data, start, current):
 			# print (type(each))
 			modifysByRange(data, int(addy,16)-1, int(addy,16),"d")
 
-
-
-def disHereAnalysisOLD(data,offset, end, mode, CheckingForDB): #
-	global labels
-	global offsets
-	global off_Label
-	global off_PossibleBad
-	dprint2 ("disHereAnalysis - range  "  + str(offset) + " " + str(end))
-	global o
-	w=0
-
-	address=offset
-	
-	i=0
-	# CheckingForDB=True   ### turns on or off special converting to DB of invalid instructions
-
-	cs.skipdata = True
-	cs.skipdata_setup = ("db", None, None)
-
-	
-	CODED2=data[offset:end]
-	val =""
-	val2 = []
-	val3 = []
-	val5 =[]
-	startAdd=[]
-	nextAdd=[]
-	bytesPerLine=[]
-	cntLines=0
-	bytesEachLine=[]
-	asciiPerLine=[]
-	CODED3 = CODED2
-
-	t=0
-	for i in cs.disasm(CODED3, address):
-		cntLines+=1
-		val=i.mnemonic + " " + i.op_str 
-		offsets.add((int(i.address)))
-		controlFlow= re.match( r'\bcall\b|\bjmp\b|\bje\b|\bjne\b|\bja\b|\bjg\b|\bjge\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bloop\b|\bloopcc\b|\bloope\b|\bloopne\b|\bloopnz\b|\bloopz\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', val, re.M|re.I)
-		if controlFlow:
-			val=i.op_str
-			isHex= re.match( "^[0-9][x]*[A-Fa-f0-9 -]*",val, re.M|re.I)
-			if isHex:
-				dprint2("addlabel:  " + val)
-				is0x=re.match("0x*",val, re.M|re.I)
-				if not is0x:
-					# print ("isnotx")
-					val="0x"+val
-					# print (val)
-
-				# labels.add(val)
-				# print  ("5 appending label ", val, hex(t))
-				# print (i.mnemonic, i.op_str)
-				# off_Label.add(int(i.op_str, 16))
-		t+=1
-
-	current=0
-	for i in cs.disasm(CODED3, address):
-		if current>0:
-			nextAd=sadd1
-			nextAdd.append(nextAd)
-		sadd1=int(i.address )
-
-		startAdd.append(int(sadd1))
-		current+=1
-
-	for labOff in off_Label:
-		if labOff not in offsets:
-			# print ("bad " + str(hex(labOff)))
-			if str(hex(labOff)) not in off_PossibleBad:
-				off_PossibleBad.add((str(hex(labOff))))
-				# modifysByRange(data, labOff,labOff+1,"d")
-	dprint2 (off_PossibleBad)
-	t=0
-	ans=0
-	total=0
-	for each in startAdd:
-		try:
-			ans=int(startAdd[t+1]) - int(each)
-			bytesPerLine.append(ans)
-			total+=ans
-		except:
-			ans2= hex(len(data)-total)
-			bytesPerLine.append(int(ans2,16))
-		t+=1
-	cnt=0
-	t=0
-	for i in cs.disasm(CODED3, address): 
-		ans= binaryToStr(CODED3[cnt:cnt+bytesPerLine[t]]) #+ " " + str(t) + "\n"
-		res=""
-		for y in CODED3[cnt:cnt+bytesPerLine[t]]:
-			yy=ord2(y) 
-			zz=show1(yy) 
-			old="nope"
-			if ((yy > 31) & (yy < 127)):
-				try: 
-					zz=int(zz,16)
-					zz = chr(zz)
-				except:
-					zz = chr(zz)
-			else:
-				zz="."
-			old=zz
-			res += zz # stripWhite(zz)#chr(zz)
-		asciiPerLine.append(res)
-		bytesEachLine.append(ans)
-		cnt+=bytesPerLine[t]
-		t+=1	
-	try:
-		add = hex(int(i.address))
-	except:
-		pass
-	sizeShell=len(CODED2)
-
-	callCS = cs
-	if(bit32):
-		callCS = cs
-	else:
-		callCS = cs64
-	start= time.time()
-	callCS.skipdata = True
-	sizeShell=len(CODED2)
-	pOp_str= pMnemonic=val=""
-	t=prev=pAddress=0
-
-	for i in callCS.disasm(CODED2, address):
-		CantSkip=True
-		addb = hex(int(i.address))
-
-		val_a=addb#"\t"#\t"
-		val_b=i.mnemonic + " " + i.op_str 
-		val_b1=i.mnemonic
-		val_b2=i.op_str
-		num_bytes=0
-		try:
-			val_c= bytesEachLine[t] 
-			val_d=asciiPerLine[t] 
-		except:
-			val_c=""
-			val_d=""
-		if CheckingForDB:
-			try:
-				num_bytes=int(len(val_c)/4)
-			except:
-				num_bytes=1
-			val_b, num_bytes =checkForValidAddress2(val_a,val_b1, val_b2, sizeShell, off_PossibleBad,data,num_bytes)
-		if mode=="ascii":
-			val =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(val_a, val_b, val_c, val_d))
-		else:
-			val = addb + ":\t" + i.mnemonic + " " + i.op_str+"\n"
-			val=('{:<10s} {:<35s}\n'.format(val_a, val_b))
-		truth,res=checkForLabel(addb,labels)
-		if truth:
-			val=res+val
-		valCheck=i.mnemonic + " " + i.op_str 
-		controlFlow= re.match( r'\bjmp\b|\bje\b|\bjne\b|\bjg\b|\bjge\b|\bja\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bret\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', valCheck, re.M|re.I)
-		if controlFlow:
-			val=val+"\n"
-		while (num_bytes>0):	
-			if num_bytes>0:
-				val, num_bytes,val_c =makeDBforUnknownBytes(num_bytes, val_c, addb)
-				dprint2 ("truth check " + addb)
-				truth,res=checkForLabel(addb,labels)
-				if truth:
-					val=res+val
-				valCheck=i.mnemonic + " " + i.op_str 
-				# addb=str(hex(int(addb,16)+1))
-				dprint2("final val_c")
-				dprint2(type(val_c))
-				val2.append(val)
-				val3.append(str(hex(int(i.address))))
-				val5.append(val)
-				CantSkip=False
-		if CantSkip:
-			val2.append(val)
-			val3.append(str(hex(int(i.address))))
-			val5.append(val)
-		t+=1
-		pMnemonic= i.mnemonic
-		pOp_str= i.op_str 
-		prev=val_b
-		pAddress=i.address
-		val5.append(val)
 	
 
-def disHereShellCURRENTGOOD(data,offset, end, mode, CheckingForDB, bit): #   LATESTNEW
+def disHereShellcurrentgood(data,offset, end, mode, CheckingForDB, bit): #   LATESTNEW
 	global labels
 	global offsets
 	global off_Label
@@ -12108,7 +11975,7 @@ def disHereShellCURRENTGOOD(data,offset, end, mode, CheckingForDB, bit): #   LAT
 	CODED3 = CODED2
 
 	end = time.time()
-	# print("\t\t[-] inital ", end-start)
+	print("\t\t[-] inital ", end-start)
 	
 	start = time.time()
 	for i in callCS.disasm(CODED3, address):
@@ -12130,7 +11997,7 @@ def disHereShellCURRENTGOOD(data,offset, end, mode, CheckingForDB, bit): #   LAT
 				off_Label.add(int(i.op_str, 16))
 	current=0
 	end= time.time()
-	# print("\t\t[-] loop 1 ", end-start)
+	print("\t\t[-] loop 1 ", end-start)
 	start = time.time()
 	
 	for i in callCS.disasm(CODED3, address):
@@ -12147,7 +12014,7 @@ def disHereShellCURRENTGOOD(data,offset, end, mode, CheckingForDB, bit): #   LAT
 				off_PossibleBad.add((str(hex(labOff))))
 	
 	end= time.time()
-	# print("\t\t[-] loop 2 ",end-start)
+	print("\t\t[-] loop 2 ",end-start)
 	start= time.time()
 	dprint2 ("possible bad label offsets", off_PossibleBad)
 	t=0
@@ -12165,7 +12032,7 @@ def disHereShellCURRENTGOOD(data,offset, end, mode, CheckingForDB, bit): #   LAT
 	cnt=0
 
 	end= time.time()
-	# print("\t\t[-] loop 3 ", end-start)
+	print("\t\t[-] loop 3 ", end-start)
 	
 	start= time.time()
 
@@ -12192,7 +12059,7 @@ def disHereShellCURRENTGOOD(data,offset, end, mode, CheckingForDB, bit): #   LAT
 		t+=1	
 	t=0
 	end= time.time()
-	# print("\t\t[-] loop 4 ", end-start)
+	print("\t\t[-] loop 4 ", end-start)
 	# try:
 	# 	add = hex(int(i.address))
 	# except Exception as e:
@@ -12276,7 +12143,7 @@ def disHereShellCURRENTGOOD(data,offset, end, mode, CheckingForDB, bit): #   LAT
 		t+=1
 	
 	end= time.time()
-	# print("\t\t[-] loop 5 ", end-start)
+	print("\t\t[-] loop 5 ", end-start)
 
 	returnString="".join(val5)
 
@@ -12316,7 +12183,7 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 	CODED3 = CODED2
 	address=offset
 	end = time.time()
-	# print("\t\t[-] inital ", end-start)
+	print("\t\t[-] inital ", end-start)
 	
 	start = time.time()
 	for i in callCS.disasm(CODED3, address):
@@ -12336,7 +12203,7 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 					if str(hex(int(i.op_str, 16))) not in off_PossibleBad:
 						off_PossibleBad.add(str(hex(int(i.op_str, 16))))		
 	end= time.time()
-	# print("\t\t[-] loop 1 ", end-start)
+	print("\t\t[-] loop 1 ", end-start)
 	start = time.time()
 	
 	#this is only used one place??? just have it be checked there. - comment out - save in case problems.
@@ -12347,7 +12214,7 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 	# 			off_PossibleBad.add((str(hex(labOff))))
 	
 	end= time.time()
-	# print("\t\t[-] loop 2 ",end-start)
+	print("\t\t[-] loop 2 ",end-start)
 	start= time.time()
 	dprint2 ("possible bad label offsets", off_PossibleBad)
 	# t=0
@@ -12365,7 +12232,7 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 	# cnt=0
 
 	end= time.time()
-	# print("\t\t[-] loop 3 ", end-start)
+	print("\t\t[-] loop 3 ", end-start)
 	
 	start= time.time()
 
@@ -12392,7 +12259,7 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 	# 	t+=1	
 	# t=0
 	# end= time.time()
-	# print("\t\t[-] loop 4 ", end-start)
+	print("\t\t[-] loop 4 ", end-start)
 	
 	start= time.time()
 	callCS.skipdata = True
@@ -12465,7 +12332,7 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 	addDis(pAddress, prev, pMnemonic, pOp_str,"main6")
 
 	end= time.time()
-	# print("\t\t[-] loop 5 ", end-start)
+	print("\t\t[-] loop 5 ", end-start)
 	returnString="".join(val5)
 
 	# dprint2 ("off_PossibleBad")
@@ -12474,7 +12341,7 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 	disHereShell_end = time.time()
 	return returnString
 
-def disHereShell(data,offset, end, mode, CheckingForDB, bit): #
+def disHereShell(data,offset, end, mode, CheckingForDB, bit): #current good 1/8/2022
 	global labels
 	global offsets
 	global off_Label
@@ -12500,7 +12367,6 @@ def disHereShell(data,offset, end, mode, CheckingForDB, bit): #
 	start = time.time()
 	
 	start = time.time()
-	#(address, size, mnemonic, op_str)
 	for i in callCS.disasm(CODED2, offset):
 		offsets.add((int(i.address)))
 		if re.match( r'\bcall\b|\bjmp\b|\bje\b|\bjne\b|\bja\b|\bjg\b|\bjge\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bloop\b|\bloopcc\b|\bloope\b|\bloopne\b|\bloopnz\b|\bloopz\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', i.mnemonic, re.M|re.I):	
@@ -12518,16 +12384,214 @@ def disHereShell(data,offset, end, mode, CheckingForDB, bit): #
 
 	sizeShell=len(CODED2)
 	for i in callCS.disasm(CODED2, offset): 
-		val_b, num_bytes =checkForValidAddress2(hex(int(i.address)),i.mnemonic, i.op_str, sizeShell, off_PossibleBad,data,1)
-		addDis(i.address, "deleted", i.mnemonic, i.op_str,"main5")
+		val_b, num_bytes =checkForValidAddress2(hex(int(i.address)),i.mnemonic, i.op_str, sizeShell, off_PossibleBad,data,i.size)
+		addDis(i.address, i.mnemonic + " " + i.op_str, i.mnemonic, i.op_str,"main5")
 	end= time.time()
 	# print("\t\t[-] loop 5 ", end-start)
 	disHereShell_end = time.time()
-	# print ("\t[*]disHereShell:", disHereShell_end- disHereShell_start)
+	print ("\t[*]disHereShell:", disHereShell_end- disHereShell_start)
 	return ""
 
-# def disHereAnalysis(data,offset, end, mode, CheckingForDB):#, bit): #
+def disHereAnalysisOlder(data,offset, end, mode, CheckingForDB): #origianl mostly unedited
+	global labels
+	global offsets
+	global off_Label
+	global off_PossibleBad
+	dprint2 ("disHereAnalysis - range  "  + str(offset) + " " + str(end))
+	global o
+	w=0
+
+	try:
+		address=offset
+	except:
+		address=0
+	i=0
+	# CheckingForDB=True   ### turns on or off special converting to DB of invalid instructions
+
+	cs.skipdata = True
+	cs.skipdata_setup = ("db", None, None)
+
+	if offset==False:
+		offset=0
+	if end==False:
+		end=len(data)-1
+	CODED2=data[offset:end]
+	val =""
+	val2 = []
+	val3 = []
+	val5 =[]
+	startAdd=[]
+	nextAdd=[]
+	bytesPerLine=[]
+	cntLines=0
+	bytesEachLine=[]
+	asciiPerLine=[]
+	CODED3 = CODED2
+
+	t=0
+	for i in cs.disasm(CODED3, address):
+		cntLines+=1
+		val=i.mnemonic + " " + i.op_str 
+		offsets.add((int(i.address)))
+		controlFlow= re.match( r'\bcall\b|\bjmp\b|\bje\b|\bjne\b|\bja\b|\bjg\b|\bjge\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bloop\b|\bloopcc\b|\bloope\b|\bloopne\b|\bloopnz\b|\bloopz\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', val, re.M|re.I)
+		if controlFlow:
+			val=i.op_str
+			isHex= re.match( "^[0-9][x]*[A-Fa-f0-9 -]*",val, re.M|re.I)
+			if isHex:
+				dprint2("addlabel:  " + val)
+				is0x=re.match("0x*",val, re.M|re.I)
+				if not is0x:
+					# print ("isnotx")
+					val="0x"+val
+					# print (val)
+
+				# labels.add(val)
+				# print  ("5 appending label ", val, hex(t))
+				# print (i.mnemonic, i.op_str)
+				# off_Label.append(int(i.op_str, 16))
+		t+=1
+
+	current=0
+	for i in cs.disasm(CODED3, address):
+		if current>0:
+			nextAd=sadd1
+			nextAdd.append(nextAd)
+		sadd1=int(i.address )
+
+		startAdd.append(int(sadd1))
+		current+=1
+
+	for labOff in off_Label:
+		if labOff not in offsets:
+			# print ("bad " + str(hex(labOff)))
+			if str(hex(labOff)) not in off_PossibleBad:
+				off_PossibleBad.append((str(hex(labOff))))
+				# modifysByRange(data, labOff,labOff+1,"d")
+	dprint2 (off_PossibleBad)
+	t=0
+	ans=0
+	total=0
+	for each in startAdd:
+		try:
+			ans=int(startAdd[t+1]) - int(each)
+			bytesPerLine.append(ans)
+			total+=ans
+		except:
+			ans2= hex(len(data)-total)
+			bytesPerLine.append(int(ans2,16))
+		t+=1
+	cnt=0
+	t=0
+	for i in cs.disasm(CODED3, address): 
+		ans= binaryToStr(CODED3[cnt:cnt+bytesPerLine[t]]) #+ " " + str(t) + "\n"
+		res=""
+		for y in CODED3[cnt:cnt+bytesPerLine[t]]:
+			yy=ord2(y) 
+			zz=show1(yy) 
+			old="nope"
+			if ((yy > 31) & (yy < 127)):
+				try: 
+					zz=int(zz,16)
+					zz = chr(zz)
+				except:
+					zz = chr(zz)
+			else:
+				zz="."
+			old=zz
+			res += zz # stripWhite(zz)#chr(zz)
+		asciiPerLine.append(res)
+		bytesEachLine.append(ans)
+		cnt+=bytesPerLine[t]
+		t+=1	
+	t=0
+	try:
+		add = hex(int(i.address))
+	except:
+		pass
+	cs.skipdata = True
+	sizeShell=len(CODED2)
+	for i in cs.disasm(CODED2, address):
+		CantSkip=True
+		add = hex(int(i.address))
+		addb = hex(int(i.address))
+		add2 = str(add)
+		# add3 = hex (int(i.address + section.startLoc	))
+		add3=0
+		add4 = str(add3)
+		#  testing=('{:20s} {:20s} {:20s}'.format(a,b,c))
+		val_a=addb#"\t"#\t"
+		val_b=i.mnemonic + " " + i.op_str 
+		val_b1=i.mnemonic
+		val_b2=i.op_str
+		num_bytes=0
+		try:
+			val_c= bytesEachLine[t] 
+			val_d=asciiPerLine[t] 
+		except:
+			val_c=""
+			val_d=""
+		if CheckingForDB:
+			try:
+				num_bytes=int(len(val_c)/4)
+			except:
+				num_bytes=1
+			val_b, num_bytes =checkForValidAddress2(val_a,val_b1, val_b2, sizeShell, off_PossibleBad,data,num_bytes)
+		if mode=="ascii":
+			val =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(val_a, val_b, val_c, val_d))
+		else:
+			val = addb + ":\t" + i.mnemonic + " " + i.op_str+"\n"
+			val=('{:<10s} {:<35s}\n'.format(val_a, val_b))
+		truth,res=checkForLabel(addb,labels)
+		if truth:
+			val=res+val
+		valCheck=i.mnemonic + " " + i.op_str 
+		controlFlow= re.match( r'\bjmp\b|\bje\b|\bjne\b|\bjg\b|\bjge\b|\bja\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bret\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', valCheck, re.M|re.I)
+		if controlFlow:
+			val=val+"\n"
+		while (num_bytes>0):	
+			if num_bytes>0:
+				val, num_bytes,val_c =makeDBforUnknownBytes(num_bytes, val_c, addb)
+				dprint2 ("truth check " + addb)
+				truth,res=checkForLabel(addb,labels)
+				if truth:
+					val=res+val
+				valCheck=i.mnemonic + " " + i.op_str 
+				addb=str(hex(int(addb,16)+1))
+				dprint2("final val_c")
+				dprint2(type(val_c))
+				val2.append(val)
+				val3.append(add2)
+				val5.append(val)
+				CantSkip=False
+		if CantSkip:
+			val2.append(val)
+			val3.append(add2)
+			val5.append(val)
+		t+=1
+	returnString=""
+	for y in val5:
+		returnString+=y
+	return returnString
+
+
 def disHereAnalysis(data,offset, end, mode, CheckingForDB): #
+	global offsets
+	global off_PossibleBad
+	dprint2 ("disHereAnalysis - range  "  + str(offset) + " " + str(end))
+	global o
+	CODED3=data[offset:end]
+	sizeShell=len(CODED3)
+
+	t=0
+	for i in cs.disasm(CODED3, offset):
+		offsets.add((int(i.address)))
+		val_a=hex(int(i.address))#"\t"#\t"
+		val_b1=i.mnemonic
+		val_b2=i.op_str
+		val_b, num_bytes =checkForValidAddress2(val_a,val_b1, val_b2, sizeShell, off_PossibleBad,data,i.size)
+		t+=1
+
+def disHereAnalysis2(data,offset, end, mode, CheckingForDB): #
 	global labels
 	global offsets
 	global off_Label
@@ -12750,8 +12814,8 @@ def modifysByRangeUser():
 		print (sBy.bytesType)
 
 
-def modifysByRange(data, start,end, dataType):
-	dprint2 ("modRange ", hex(start),hex(end),dataType)
+def modifysByRange(data, start,end, dataType):  # 1/8/2002
+	# print ("modRange ", hex(start),hex(end),dataType)
 	global sBy
 	BytesBool=False
 	t=0
@@ -12769,11 +12833,13 @@ def modifysByRange(data, start,end, dataType):
 			dprint2 ("before", sBy.bytesType[t])
 			sBy.bytesType[t]=BytesBool
 			
-			# dprint2("changing value @ " + str(hex(t)))
+			dprint2("changing value @ " + str(hex(t)))
 			dprint2 (sBy.bytesType[t], " value: ", hex(sBy.values[t]))
 			if BytesBool:
 				sBy.boolspecial[t]=False
 		t+=1
+	# input()
+
 
 
 
@@ -12978,22 +13044,153 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack):
 
 	anaFindFF(shellBytes)
 
-	l1, l2=createDisassemblyLists()
+	# l1, l2=createDisassemblyLists()
 	# print (l2)
 	# saveDB()
 
+	global tempAddresses
+	global tempDisassembly
+
+	tl1=tempAddresses
+	tl2=tempDisassembly
 	clearDisassBytClass()
 
-	truth, tl1, tl2= findTargetAddressReturnPrior(targetAddress, linesGoBack, l1, l2)
-
+	# print ("checking class of temp addresses ORIGINAL")
 	
+	# t=0
+	# for x in tempAddresses:
+	# 	print(t, type(x), x)
+	# 	t+=1
+	# print (tl1)
+	# truth, tl1, tl2= findTargetAddressReturnPrior(targetAddress, linesGoBack, l1, l2)
+
 	# print("\tsizel1 ", len(l1),len(l2))
 	# print (l1)
 	# input()
+
+	# print ("checking class of temp addresses")
+
+	# t=0
+	# for x in tl1:
+	# 	print(t, type(x), x)
+	# 	t+=1
+	if len(tl1)>0:
+		return True, tl1, tl2, tl1, tl2
+	else:
+		return False, tl1, tl2, tl1, tl2
 	return truth, tl1, tl2, l1,l2
 
 
-def takeBytes(shellBytes,startingAddress):
+def takeBytes(shellBytes,startingAddress, silent=None):
+	# print ("takeBytes:", hex(startingAddress))
+	global sBy
+	global FindStringsStatus
+	global shellEntry
+	# print ("take bytes")
+
+	# #FindStringsStatus=False
+	# mBool[o].bAnaFindStrDone=False
+	# mBool[o].tbAnaHiddenCallsDone=False
+	# mBool[o].bAnaHiddenCnt=0
+
+
+	takeBytesS = time.time()
+	
+
+	# print ("shellEntry", shellEntry)
+
+	startingAddress=0
+	i=startingAddress
+	for x in shellBytes:
+		sBy.offsets.append(i)
+		sBy.values.append(x)
+		# sBy.instructions.append(True)
+		# sBy.data.append(False)
+		sBy.bytesType.append(True) # True = instructions
+		sBy.strings.append(False)
+		sBy.stringsStart.append(0xffffffff)
+		sBy.stringsValue.append("")
+		sBy.pushStringEnd.append(-1)
+		sBy.pushStringValue.append("")
+		sBy.boolPushString.append(False)
+		sBy.specialVal.append("")
+		sBy.boolspecial.append(False)
+		sBy.specialStart.append(0)
+		sBy.specialEnd.append(0)
+		sBy.comments.append("")
+			
+		i+=1
+	# print ("shellBytes", len(sBy.comments))
+	#rhere
+	# modifysByRange(data, 0x14, 0x19, "d")
+	# print ("FindStringsStatus", FindStringsStatus)
+	
+
+	start = time.time()
+	if FindStringsStatus:
+		# import sharem
+		dprint4 ("\nfinding strings")
+		findStrings(shellBytes,3)
+		findStringsWide(shellBytes,3)
+		findPushAsciiMixed(shellBytes,3)
+		dprint4 ("\nfound strings")
+
+	end = time.time()
+	print ("\n[*] Find strings", end-start)
+	
+	start = time.time()
+	anaFindFF(shellBytes)
+	addComments()
+	end = time.time()
+	print ("\n[*] anaFindFF", end-start)
+
+	start = time.time()
+	out=findRange(shellBytes, startingAddress,len(sBy.offsets)-1)  #1st time helps do corrections
+	end = time.time()
+	print ("\n[*] findrange #1", end-start)
+	# print ("**Sizes:  ")
+	# print("\t\tlabels, size:",len(labels))
+	# print("\t\tofsets, size:",len(offsets))
+	# print("\t\tlabel offsets, size:",len(off_Label))
+	# print("\t\tpossiblebadlabel offsets, size:",len(off_PossibleBad))
+
+	anaFindFF(shellBytes)
+	clearTempDis()   # we must call this function before making new diassembly
+	
+
+	start2 = time.time()
+	out2=findRange(shellBytes, startingAddress,len(sBy.offsets)-1) # makes sure all corrections fully implemented # this creates final disassembly
+	end = time.time()
+	print ("\n\t[*] findrange 2", end-start2)
+
+	print ("\n\t[*] TakeBytes:", end-takeBytesS)
+	# print ("**Sizes:  ")
+	# print("\t\tlabels, size:",len(labels))
+	# print("\t\tofsets, size:",len(offsets))
+	# print("\t\tlabel offsets, size:",len(off_Label))
+	# print("\t\tpossiblebadlabel offsets, size:",len(off_PossibleBad))
+
+	# printAllsBy()
+	# print ("printing final\n")
+	allowPrint()
+	colorama.init()
+	disassembly=createDisassemblyLists(shellBytes, silent)
+	dontPrint()
+	t=0
+	# if debugging:
+	# 	for x,y, mnemonic, op_str in zip(l1, l2, tempMnemonic, tempOp_str):
+
+	# 		# print (hex(x), y ," [",mnemonic,"] [", op_str ,"]")
+	# 		# print ((x), y ," [",mnemonic,"] [", op_str ,"]")
+	# 		print (hex(x), "\t", y," - ", mnemonic, op_str )
+	assembly=binaryToText(shellBytes)   # this creates the string literal, raw hex, etc.
+	# print ("sizeOfOut:", len(out))
+	dprint ("out:", out)
+	# dp(out2)
+	return disassembly,assembly
+
+
+def takeBytesOLDJan(shellBytes,startingAddress):
 	dprint2 ("takeBytes:", hex(startingAddress))
 	global sBy
 	global FindStringsStatus
@@ -13108,6 +13305,7 @@ def takeBytesOLDJan(shellBytes,startingAddress):
 	#FindStringsStatus=False
 
 
+
 	startingAddress=0
 	i=startingAddress
 	for x in shellBytes:
@@ -13152,7 +13350,7 @@ def takeBytesOLDJan(shellBytes,startingAddress):
 	# printAllsBy()
 	# print ("printing final\n")
 	# addEntryPoint()
-	l1, l2=createDisassemblyLists()
+	disassembly=createDisassemblyLists()
 
 
 	t=0
@@ -13391,118 +13589,39 @@ def findRange(data, startingAddress, end2):
 	
 	return finalPrint
 
-def findRangeOldJan(data, startingAddress, end2):
-	global bit32
-	global FindStringsStatus
-	global shellEntry
-	if bit32:
-		bit=32
-	else:
-		bit=64
-	current=0
-	start=startingAddress
-	current=startingAddress
-	max=len(sBy.bytesType)-1
-	dprint2 ("fr size: ", hex(max))
-	finalPrint0=""
 
-	dprint2("findRange start**", hex(startingAddress))
-	distance=0
+def getNextBool(pattern,test):
+	try:
+		found=test.index(pattern)
+	except:
+		found=len(sBy.bytesType)-1
 
-	end =len(sBy.bytesType)-1
-	analysis= disHereAnalysis(data, startingAddress, end, "ascii", True)
-
-	analysisFindHiddenCalls(data, startingAddress)
-
-	analysisConvertBytes(data, startingAddress)
-
-	analysisFindHiddenCalls(data, startingAddress)
-	shellEntryPassed=False
-	if FindStringsStatus:
-		anaFindStrings(data,startingAddress)
-
-	finalPrint=""
-	dprint2 ("final disprint", len(finalPrint))
-
-	s1 = time.time()
-	s2 = time.time()
-	inside_shell=s2-s1
-
-	s1 = time.time()
-	while current < max:
-		start, current, distance, typeBytes = findRange2(current)
-
-		dprint2 ("start+current+distance+both", hex(start), hex(current), hex(distance), hex(start+distance))
-		if shellEntryPassed==False:
-			if shellEntry != 0:
-				dprint2(start, 1)
-				if current>shellEntry-1:
-					newDis=shellEntry-current-1
-					current=shellEntry
-					distance=newDis
-					shellEntryPassed=True
-					# print("reset to ", current)
-					dprint2("reset to ", current)
-					# print("new", hex(current), hex(distance))
-					# finalPrint=""
-					
-
-				if current==shellEntry:
-					shellEntryPassed=True
-		finalPrint0=""
-		dprint2 ("findrange: max: " + str(hex(max)),  "Current:  "+str(hex(current)))
-		
-
-		if max==current:
-			current+=1
-		dprint2("findrange:", binaryToStr(data[start:current]))
-		
-		if typeBytes:
-
-			dprint2 ("above is instructions")
-			dShell = time.time()
-
-			res= (disHereShell(data, start, current, "ascii", True, bit))
-			dShellEnd=time.time()
-			inside_shell+=dShellEnd-dShell
-
-			finalPrint0+= res
-			dprint2("adding ", len(res), "total", len(finalPrint))
-			dprint2(res)
-
-		if not typeBytes:
-			dprint2 ("above is data")
-
-			res= (disHereMakeDB2(data, start, current, "ascii", True))
-			finalPrint0+= res
-			dprint2("adding ", len(res), "total", len(finalPrint))
-			dprint2(res)
-
-		# dprint2 (finalPrint0)
-		finalPrint+=finalPrint0
-		dprint2("big ", len(finalPrint0), "total", len(finalPrint))
-	
-
-	fr_end = time.time()
-	
-	print ("[*] big loop", fr_end-s1)
-	
-	fr_end = time.time()
-	print ("[*] inside dshell", inside_shell)
-		# analysisFindHiddenCalls(data, startingAddress)
-	dprint2 ("final disprint", len(finalPrint))
-
-	# dprint2 ("\n* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n"+finalPrint)
-	dprint2 ("\n\n")
-	dprint2 (binaryToStr(data))
-	# dp(finalPrint+str(hex(len(m[o].rawData2))))
-	
-	return finalPrint
-
+		pass
+	# print  ("*", hex(found))
+	return found
 
 
 def findRange2(current):
-	dprint2("findrange2 ", hex(current))
+	# print (sBy.bytesType)
+	# print ("findRange2", hex(current))
+	initialBool=sBy.bytesType[current]
+	# print ("initialBool", initialBool)
+	seeking=False
+	if not initialBool:
+		seeking = True
+	# print ("seeking", seeking)
+	# print ("sbytes size", len(sBy.bytesType[current:]))
+	foundStop=getNextBool(seeking, sBy.bytesType[current:])
+
+	foundStop+=current
+	distance=foundStop-current
+	# print ("returning", hex(current), hex(foundStop), hex(distance), (initialBool))
+	return current, foundStop, distance, initialBool
+
+
+
+def findRange2222(current):
+	print("findrange2 ", hex(current))
 	t=0
 	typeBytes=True
 	old=""
@@ -13532,9 +13651,11 @@ def findRange2(current):
 					current=t 
 				if x==True:
 					current+=1
-					dprint2 ("FIN: data done!")
+					print ("FIN: data done!")
 					distance=current-start
-					dprint2 ("r d-:",hex(start), hex(current), hex(distance), typeBytes)
+					print ("r d-:",hex(start), hex(current), hex(distance), typeBytes)
+					print ("returning", hex(start), hex(current), hex(distance), (typeBytes))
+
 					return start, current, distance, typeBytes
 			t+=1
 	t=0
@@ -13550,13 +13671,15 @@ def findRange2(current):
 					current=t 
 				if x==False: # & inProgress:
 					current+=1
-					dprint2("FIN: instructions done!")
+					print("FIN: instructions done!")
 					distance=current-start
-					dprint2 ("r: i-",hex(start), hex(current), hex(distance), typeBytes)
+					print ("r: i-",hex(start), hex(current), hex(distance), typeBytes)
+					print ("returning", hex(start), hex(current), hex(distance), (typeBytes))
+
 					return start, current, distance, typeBytes
 			t+=1
 	distance=current-start
-	dprint2 ("r: -end", hex(start), hex(current), hex(distance), (typeBytes))
+	print ("r: -end", hex(start), hex(current), hex(distance), (typeBytes))
 	return start, current, distance, typeBytes
 
 def findRange2old(current):
@@ -13641,9 +13764,10 @@ def anaFindStrings(data, startingAddress):
 	global stringsTemp
 	global stringsTempWide
 	global pushStringsTemp
-	dprint2("anaFindStrings")
+	print("\t\tinside anaFindStrings")
 	# dprint2 (sharem.stringsTemp)
 	OP_FF=b"\xff"
+	mBool[o].bAnaFindStrDone=True
 
 	for word,offset,distance  in stringsTemp:# and stringsTemp:
 		dprint2 ("\t"+ str(word) + "\t" + str(hex(offset)) + "\t" + str(hex(distance))) 
@@ -14417,6 +14541,7 @@ def init2(filename):
 
 			# readRawData2=readShellcode(filename) 
 			# newModule(o,readRawData2, gName+"--3")
+
 
 
 # Extraction()
@@ -15882,7 +16007,7 @@ def dprint3(*args):
 		dp2 (args)
 
 def shellDisassemblyInit(shellArg, silent=None):
-	# print ("shellDisassemblyInit")
+	print ("shellDisassemblyInit")
 	global filename
 
 	global gDisassemblyText
@@ -15892,6 +16017,8 @@ def shellDisassemblyInit(shellArg, silent=None):
 
 	
 
+
+	# dontPrint()
 	# startAddress=shellEntry
 	startAddress=shellEntry
 
@@ -15937,11 +16064,20 @@ def shellDisassemblyInit(shellArg, silent=None):
 	if 1==2:
 		print ("find peb results:")
 		printSavedPEB()
+
+
+
+	mBool[o].bAnaFindStrDone=False
+	mBool[o].bAnaHiddenCallsDone=False
+	mBool[o].bAnaHiddenCnt=0
+
 	#parameterize
-	disassembly, assemblyBytes=takeBytes(shellArg,startAddress)
+	disassembly, assemblyBytes=takeBytes(shellArg,startAddress, silent)
 	   # main one
 	# dp(disassembly)
 
+	allowPrint()
+	colorama.init()
 	gDisassemblyText = disassembly
 
 	
@@ -15959,11 +16095,6 @@ def shellDisassemblyInit(shellArg, silent=None):
 	dirPath = '\\'.join(filename.split("\\")[:-1])
 	filename = os.path.basename(filename)
 
-
-
-	# input()
-	# print (directory)
-	# print (filename)
 	directory=""
 
 	bytesOutput=shellArg
@@ -16009,6 +16140,11 @@ def shellDisassemblyInit(shellArg, silent=None):
 	txtDis.write(disassembly+assemblyBytes)
 
 	txtDis.close()
+
+	
+	# input()
+	# print (directory)
+	# print (filename)
 	# print("After shell disas init ", shellArg.hex())
 	# input()
 	# binaryToText(rawBytes)
@@ -16619,7 +16755,9 @@ def readConf():
 		for osv in syscallSelection:
 			if osv.code == selected:
 				osv.toggle = True
-	print ("shellEntry init", shellEntry)
+
+	# print ("shellEntry init", shellEntry)
+
 	if not startupBool:
 		return False
 	else:
@@ -16673,8 +16811,8 @@ def discoverUnicodeStrings(max_len=None):
 	if max_len==None:
 		max_len=42
 	bWideStringFound = False
-	print("\n"+yel + " Searching for unicode strings...", end="")
-	curLen = len("Searching for unicode strings")
+	print("\n"+yel + " Finding unicode strings..", end="")
+	curLen = len("Finding unicode strings..")
 
 	if rawHex:
 		findStringsWide(m[o].rawData2,3)
@@ -16693,18 +16831,17 @@ def discoverUnicodeStrings(max_len=None):
 				bWideStringFound = True
 			t+=1
 	if bWideStringFound:
-		print("{:>{x}}[{}]".format("", gre + "Found"+res, x=15+(max_len-curLen)))
+		print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
 	else:
-		print("{:>{x}}[{}]".format("", red + "Not Found"+res, x=15+(max_len-curLen)))
+		print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
 
 def discoverAsciiStrings(max_len=None):
 	global bStringsFound
 	if max_len==None:
 		max_len=42
 
-	# print("o ----> ", o)
-	curLen = len("Searching for Ascii strings")
-	print(yel + " Searching for Ascii strings..."+res, end="")
+	curLen = len("Finding Ascii strings..")
+	print(yel + " Finding Ascii strings.."+res, end="")
 	if rawHex:
 		findStrings(m[o].rawData2,3)
 		if (len(stringsTemp) > 0):
@@ -16721,18 +16858,17 @@ def discoverAsciiStrings(max_len=None):
 				bStringsFound = True
 			t+=1
 	if bStringsFound:
-		# print("{:>{x}}[{}]".format("", gre + "Found" + res, x=15+(maxLen-curLen)))
-
-		print("{:>{x}}[{}]".format("", gre + "Found"+res, x=15+(max_len-curLen)))
+		print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
 	else:
-		print("{:>{x}}[{}]".format("", red + "Not Found"+res, x=15+(max_len-curLen)))
+		print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
 
 def discoverStackStrings(max_len=None):
 	global bPushStringsFound
 	if max_len==None:
 		max_len=42
-	print(yel + " Searching for push stack strings...", end="")
-	curLen = len("Searching for push stack strings")
+
+	print(yel + " Finding push stack strings..", end="")
+	curLen = len("Finding push stack strings..")
 	if rawHex:
 		findPushAsciiMixed(m[o].rawData2,3)
 		if (len(pushStringsTemp) > 0):
@@ -16749,9 +16885,10 @@ def discoverStackStrings(max_len=None):
 				bPushStringsFound = True
 			t+=1
 	if bPushStringsFound:
-		print("{:>{x}}[{}]".format("", gre + "Found"+res, x=15+(max_len-curLen)))
+		print("{:>{x}}{}".format("", gre + "[Found]"+res, x=15+(max_len-curLen)))
 	else:
-		print("{:>{x}}[{}]".format("", red + "Not Found"+res, x=15+(max_len-curLen)))
+		print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
+	
 	
 
 def startupPrint():
@@ -16844,7 +16981,8 @@ def saveConf(con):
 		con.save()
 		print(yel + " Configuration has been Saved.\n" + res)
 	except Exception as e:
-		print(yel + " Could not save configuration." + res, e)
+		print(yel + "Could not save configuration." + res, e)
+
 
 def ui(): #UI menu loop
 	global maxDistance #Max distance that a callpop can call
@@ -16961,6 +17099,7 @@ def ui(): #UI menu loop
 	# 	for item in section.save_PushRet_info:
 	# for item in m[o].save_PushRet_info:
 	# print("Bits: ", shellBit)
+
 
 
 	showOptions(shellBit, rawHex,m[o].name, m[o].getMd5())
@@ -18279,7 +18418,7 @@ def changeRegsFile():
 		# 	break
 	
 
-
+#Jan102022  #December
 def uiFindStrings():
 	global bStringsFound
 	global bPushStringsFound
@@ -18322,7 +18461,8 @@ def uiFindStrings():
 		
 		elif(re.match("^m$", stringIN, re.IGNORECASE)):
 			manualRegisters()
-
+		#jan102022
+		# print ("hello!")
 		elif(re.match("^e$", stringIN, re.IGNORECASE)):
 			chMode = True
 			print("\nEmulation enabled\n")
@@ -18654,13 +18794,16 @@ def findAll():  #Find everything
 	else:
 		runInMem()
 	if not bStringsFound:
-		# print("Finding strings.\n")
+		print("Finding strings.\n")
+
 		discoverAsciiStrings(max_len)
 	if not bWideStringFound:
 		discoverUnicodeStrings(max_len)
 	if not bPushStringsFound:
 		discoverStackStrings(max_len)
+
 	print("\n\n")
+
 	if bFstenv and not bFstenvFound:
 		newTime= discoverFstenv(max_len)
 		elapsed_time += newTime
@@ -20317,6 +20460,7 @@ def printToText(outputData):	#Output data to text doc
 	global filename
 	global sharem_out_dir
 
+
 	data = outputData
 	#Used for section info
 	if (rawHex):
@@ -20786,6 +20930,13 @@ if __name__ == "__main__":
 
 			print (len(m[o].rawData2))
 			# input()
+			if FindStringsStatus:
+		# import sharem
+				print ("finding strings")
+				findStrings(m[o].rawData2,3)
+				findStringsWide(m[o].rawData2,3)
+				findPushAsciiMixed(m[o].rawData2,3)
+				print ("found strings")
 			shellDisassemblyInit(m[o].rawData2)
 			# bramwellStart2()
 
