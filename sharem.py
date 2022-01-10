@@ -11188,7 +11188,7 @@ def createDisassemblyLists():
 	global tempCodes
 
 	mode="ascii"
-	print ("tempAddresses")
+	# print ("tempAddresses")
 	j=0
 	nada=finalOutput=""
 	for cAddress in tempAddresses:
@@ -11238,7 +11238,7 @@ def createDisassemblyLists():
 			pass
 		finalOutput+=out
 		j+=1		
-	print(finalOutput)
+	# print(finalOutput)
 	
 	# pMnemonic= i.mnemonic
 
@@ -11246,9 +11246,9 @@ def createDisassemblyLists():
 	# print ("tempDisassembly")
 	# for each in tempDisassembly:
 	# 	print (each)
-	print (tempDisassembly)
+	# print (tempDisassembly)
 
-	print (len(tempDisassembly), len(tempAddresses))
+	# print (len(tempDisassembly), len(tempAddresses))
 
 
 	if 55==555:
@@ -11334,16 +11334,16 @@ def checkForBad00(data, offset, end):
 	dprint2("checkForBad00")
 	global tempAddresses
 	global tempDisassembly
-	dprint2 (len(tempAddresses), len(tempDisassembly))
+	# dprint2 (len(tempAddresses), len(tempDisassembly))
 	sample="add byte ptr \[eax], al"
 	ans=[]
 	for x in range(4):
 		if str(hex(offset)) in tempAddresses:
 			# print("FOUND candidate", str(hex(offset)))
 			index=tempAddresses.index(str(hex(offset)))
-
-
-			dprint2 (index, tempDisassembly[index], tempAddresses[index])
+			# print("Index --> ", index, len(tempDisassembly))
+			# input()
+			# dprint2 (index, tempDisassembly[index], tempAddresses[index])
 			findBad00= re.search(sample, tempDisassembly[index], re.M|re.I)
 			if findBad00:
 
@@ -12108,7 +12108,7 @@ def disHereShellCURRENTGOOD(data,offset, end, mode, CheckingForDB, bit): #   LAT
 	CODED3 = CODED2
 
 	end = time.time()
-	print("\t\t[-] inital ", end-start)
+	# print("\t\t[-] inital ", end-start)
 	
 	start = time.time()
 	for i in callCS.disasm(CODED3, address):
@@ -12130,7 +12130,7 @@ def disHereShellCURRENTGOOD(data,offset, end, mode, CheckingForDB, bit): #   LAT
 				off_Label.add(int(i.op_str, 16))
 	current=0
 	end= time.time()
-	print("\t\t[-] loop 1 ", end-start)
+	# print("\t\t[-] loop 1 ", end-start)
 	start = time.time()
 	
 	for i in callCS.disasm(CODED3, address):
@@ -12147,7 +12147,7 @@ def disHereShellCURRENTGOOD(data,offset, end, mode, CheckingForDB, bit): #   LAT
 				off_PossibleBad.add((str(hex(labOff))))
 	
 	end= time.time()
-	print("\t\t[-] loop 2 ",end-start)
+	# print("\t\t[-] loop 2 ",end-start)
 	start= time.time()
 	dprint2 ("possible bad label offsets", off_PossibleBad)
 	t=0
@@ -12165,7 +12165,7 @@ def disHereShellCURRENTGOOD(data,offset, end, mode, CheckingForDB, bit): #   LAT
 	cnt=0
 
 	end= time.time()
-	print("\t\t[-] loop 3 ", end-start)
+	# print("\t\t[-] loop 3 ", end-start)
 	
 	start= time.time()
 
@@ -12192,7 +12192,7 @@ def disHereShellCURRENTGOOD(data,offset, end, mode, CheckingForDB, bit): #   LAT
 		t+=1	
 	t=0
 	end= time.time()
-	print("\t\t[-] loop 4 ", end-start)
+	# print("\t\t[-] loop 4 ", end-start)
 	# try:
 	# 	add = hex(int(i.address))
 	# except Exception as e:
@@ -12276,7 +12276,7 @@ def disHereShellCURRENTGOOD(data,offset, end, mode, CheckingForDB, bit): #   LAT
 		t+=1
 	
 	end= time.time()
-	print("\t\t[-] loop 5 ", end-start)
+	# print("\t\t[-] loop 5 ", end-start)
 
 	returnString="".join(val5)
 
@@ -12316,7 +12316,7 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 	CODED3 = CODED2
 	address=offset
 	end = time.time()
-	print("\t\t[-] inital ", end-start)
+	# print("\t\t[-] inital ", end-start)
 	
 	start = time.time()
 	for i in callCS.disasm(CODED3, address):
@@ -12336,7 +12336,7 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 					if str(hex(int(i.op_str, 16))) not in off_PossibleBad:
 						off_PossibleBad.add(str(hex(int(i.op_str, 16))))		
 	end= time.time()
-	print("\t\t[-] loop 1 ", end-start)
+	# print("\t\t[-] loop 1 ", end-start)
 	start = time.time()
 	
 	#this is only used one place??? just have it be checked there. - comment out - save in case problems.
@@ -12347,7 +12347,7 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 	# 			off_PossibleBad.add((str(hex(labOff))))
 	
 	end= time.time()
-	print("\t\t[-] loop 2 ",end-start)
+	# print("\t\t[-] loop 2 ",end-start)
 	start= time.time()
 	dprint2 ("possible bad label offsets", off_PossibleBad)
 	# t=0
@@ -12365,7 +12365,7 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 	# cnt=0
 
 	end= time.time()
-	print("\t\t[-] loop 3 ", end-start)
+	# print("\t\t[-] loop 3 ", end-start)
 	
 	start= time.time()
 
@@ -12392,7 +12392,7 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 	# 	t+=1	
 	# t=0
 	# end= time.time()
-	print("\t\t[-] loop 4 ", end-start)
+	# print("\t\t[-] loop 4 ", end-start)
 	
 	start= time.time()
 	callCS.skipdata = True
@@ -12465,7 +12465,7 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 	addDis(pAddress, prev, pMnemonic, pOp_str,"main6")
 
 	end= time.time()
-	print("\t\t[-] loop 5 ", end-start)
+	# print("\t\t[-] loop 5 ", end-start)
 	returnString="".join(val5)
 
 	# dprint2 ("off_PossibleBad")
@@ -12500,6 +12500,7 @@ def disHereShell(data,offset, end, mode, CheckingForDB, bit): #
 	start = time.time()
 	
 	start = time.time()
+	#(address, size, mnemonic, op_str)
 	for i in callCS.disasm(CODED2, offset):
 		offsets.add((int(i.address)))
 		if re.match( r'\bcall\b|\bjmp\b|\bje\b|\bjne\b|\bja\b|\bjg\b|\bjge\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bloop\b|\bloopcc\b|\bloope\b|\bloopne\b|\bloopnz\b|\bloopz\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', i.mnemonic, re.M|re.I):	
@@ -12512,7 +12513,7 @@ def disHereShell(data,offset, end, mode, CheckingForDB, bit): #
 				if int(i.op_str, 16) not in offsets:
 					off_PossibleBad.add(i.op_str)		
 	end= time.time()
-	print("\t\t[-] loop 1 ", end-start)
+	# print("\t\t[-] loop 1 ", end-start)
 	start = time.time()
 
 	sizeShell=len(CODED2)
@@ -12520,9 +12521,9 @@ def disHereShell(data,offset, end, mode, CheckingForDB, bit): #
 		val_b, num_bytes =checkForValidAddress2(hex(int(i.address)),i.mnemonic, i.op_str, sizeShell, off_PossibleBad,data,1)
 		addDis(i.address, "deleted", i.mnemonic, i.op_str,"main5")
 	end= time.time()
-	print("\t\t[-] loop 5 ", end-start)
+	# print("\t\t[-] loop 5 ", end-start)
 	disHereShell_end = time.time()
-	print ("\t[*]disHereShell:", disHereShell_end- disHereShell_start)
+	# print ("\t[*]disHereShell:", disHereShell_end- disHereShell_start)
 	return ""
 
 # def disHereAnalysis(data,offset, end, mode, CheckingForDB):#, bit): #
@@ -13004,7 +13005,7 @@ def takeBytes(shellBytes,startingAddress):
 	
 	start = time.time()
 	end = time.time()
-	print ("[*] Right before", end-start)
+	# print ("[*] Right before", end-start)
 
 	start = time.time()
 
@@ -13036,7 +13037,7 @@ def takeBytes(shellBytes,startingAddress):
 	# modifysByRange(data, 0x14, 0x19, "d")
 	# print ("FindStringsStatus", FindStringsStatus)
 	end = time.time()
-	print ("[*] Creating class", end-start)
+	# print ("[*] Creating class", end-start)
 	
 
 	start = time.time()
@@ -13046,18 +13047,18 @@ def takeBytes(shellBytes,startingAddress):
 		findStringsWide(shellBytes,3)
 		findPushAsciiMixed(shellBytes,3)
 	end = time.time()
-	print ("[*] Find strings", end-start)
+	# print ("[*] Find strings", end-start)
 	
 	start = time.time()
 	anaFindFF(shellBytes)
 	addComments()
 	end = time.time()
-	print ("[*] anaFindFF", end-start)
+	# print ("[*] anaFindFF", end-start)
 
 	start = time.time()
 	out=findRange(shellBytes, startingAddress,len(sBy.offsets)-1)  #1st time helps do corrections
 	end = time.time()
-	print ("[*] findrange #1", end-start)
+	# print ("[*] findrange #1", end-start)
 	# print ("**Sizes:  ")
 	# print("\t\tlabels, size:",len(labels))
 	# print("\t\tofsets, size:",len(offsets))
@@ -13071,14 +13072,14 @@ def takeBytes(shellBytes,startingAddress):
 	start2 = time.time()
 	out2=findRange(shellBytes, startingAddress,len(sBy.offsets)-1) # makes sure all corrections fully implemented # this creates final disassembly
 	end = time.time()
-	print ("[*] findrange 2", end-start2)
+	# print ("[*] findrange 2", end-start2)
 
-	print ("[*] TakeBytes:", end-takeBytesS)
-	print ("**Sizes:  ")
-	print("\t\tlabels, size:",len(labels))
-	print("\t\tofsets, size:",len(offsets))
-	print("\t\tlabel offsets, size:",len(off_Label))
-	print("\t\tpossiblebadlabel offsets, size:",len(off_PossibleBad))
+	# print ("[*] TakeBytes:", end-takeBytesS)
+	# print ("**Sizes:  ")
+	# print("\t\tlabels, size:",len(labels))
+	# print("\t\tofsets, size:",len(offsets))
+	# print("\t\tlabel offsets, size:",len(off_Label))
+	# print("\t\tpossiblebadlabel offsets, size:",len(off_PossibleBad))
 
 	# printAllsBy()
 	# print ("printing final\n")
@@ -13289,31 +13290,31 @@ def findRange(data, startingAddress, end2):
 	disHereAnalysis(data, startingAddress, end, "ascii", True)
 
 	fr_end = time.time()
-	print ("[*] disHereAnalysis", fr_end-fr1)
+	# print ("[*] disHereAnalysis", fr_end-fr1)
 
 	fr1 = time.time()
 	analysisFindHiddenCalls(data, startingAddress)
 	fr_end = time.time()
-	print ("[*] analysisFindHiddenCalls", fr_end-fr1)
+	# print ("[*] analysisFindHiddenCalls", fr_end-fr1)
 
 	fr1 = time.time()
 
 	analysisConvertBytes(data, startingAddress)
 	fr_end = time.time()
-	print ("[*] analysisConvertBytes", fr_end-fr1)
+	# print ("[*] analysisConvertBytes", fr_end-fr1)
 
 	fr1 = time.time()
 
 	analysisFindHiddenCalls(data, startingAddress)
 	fr_end = time.time()
-	print ("[*] analysisFindHiddenCalls", fr_end-fr1)
+	# print ("[*] analysisFindHiddenCalls", fr_end-fr1)
 	
 	fr12 = time.time()
 	shellEntryPassed=False
 	if FindStringsStatus:
 		anaFindStrings(data,startingAddress)
 	fr_end = time.time()
-	print ("[*] anaFindStrings", fr_end-fr12)
+	# print ("[*] anaFindStrings", fr_end-fr12)
 
 	finalPrint=""
 	dprint2 ("final disprint", len(finalPrint))
@@ -13378,10 +13379,10 @@ def findRange(data, startingAddress, end2):
 
 		# analysisFindHiddenCalls(data, startingAddress)
 	fr_end = time.time()
-	print ("[*] inside dshell", inside_shell)
-	print ("[*] big loop", fr_end-s1)
+	# print ("[*] inside dshell", inside_shell)
+	# print ("[*] big loop", fr_end-s1)
 	
-	dprint2 ("final disprint", len(finalPrint))
+	# dprint2 ("final disprint", len(finalPrint))
 
 	# dprint2 ("\n* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n"+finalPrint)
 	dprint2 ("\n\n")
@@ -13784,7 +13785,7 @@ def anaFindStrings(data, startingAddress):
 def anaFindFF(data):
 	# global FFInstructions
 	dprint2("anaFindFF")
-	OP_FF=b"\xff"
+	OP_FF=b"\xff"	
 	OP_00=b"\x00"
 
 	offset=0
@@ -13843,7 +13844,7 @@ def anaFindFF(data):
 			dprint2 (total2, "00Total2")
 			modifysByRange(data, offset+4, offset+distance+total2, "d")
 			modifysBySpecial(data, offset+4, offset+distance+total2, "al")
-
+			
 			checkForBad00(data, offset, offset+distance+total2)
 			# modifyStringsRange(offset, offset+distance+total, "s", word)
 		if escape:
@@ -14984,7 +14985,7 @@ def decryptUI():
 		decryptFile = filename	
 		decryptBytes = readShellcode(decryptFile) 
 	except:
-		print("Couldn't read command line input file, reverting to default...")
+		print("Couldn't read command line input file, please provide only a shellcode file.")
 		decryptBytes = b''
 		decryptFile = "default.txt"
 
