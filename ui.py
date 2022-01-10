@@ -275,7 +275,7 @@ def printMenu(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bExpor
 	iMenu += cya + "x" + res if bExportAll else " "
 	iMenu += "]\n"
 	iMenu += " {} {} \t\t\t[{}]\n".format(gre + "p" + res, whi + "- Print to screen" + res, cya + p2screen + res)
-	iMenu += " {} {} \t\t{}\n".format(gre + "d" + res, whi + "- Change output directory" + res, cya + outDir + res)
+	# iMenu += " {} {} \t\t{}\n".format(gre + "d" + res, whi + "- Change output directory" + res, cya + outDir + res)
 	iMenu += " {} {}\n".format(gre + "h" + res, whi + "- Show options." + res)
 	iMenu += " {} {}\n".format(gre + "c" + res, whi + "- Clear all print selections." + res)
 	iMenu += " {} {}\n".format(gre + "s" + res, whi + "- Windows syscall submenu." + res)
