@@ -1,0 +1,11 @@
+Metadata-Version: 1.2
+Name: SHAREM
+Version: 0.1
+Summary: Shellcode Analaysis Framework - Emualtor, Disassembler, and More
+Home-page: https://github.com/
+Author: SHAREM
+License: UNKNOWN
+Description: Words
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Requires-Python: >=3.6
