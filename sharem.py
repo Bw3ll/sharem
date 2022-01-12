@@ -13723,6 +13723,7 @@ def bramwellEncodeDecodeWork(shellArg):
 	#	m[shdec] to analyze decoded shellcode
 	# set bools in shellcode obj appropriately
 	# change analyzedecoder stubs to determine WHETHER it has a decoderstub DONE
+	# check w/ bramwell about automation of brute force + checking for success on other things than peb like callpop, ftsenv, etc
 
 #done
 ############## output file complete for decrypt stuff -- still needs formatting maybe
