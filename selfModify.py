@@ -2241,6 +2241,827 @@ def listHelper(each,a,b,c,sample,encodeBytes4):
 	encodeBytes4.append((a,b,c,each))
 	return encodeBytes4
 
+def austinDecodeFast(decodeOps, sample, mode = "default", starts = [], order = [], findAll = False, cpuCount = "auto", stubParams = ([],[])):
+# def austinDecode(*args): asdf
+	global aLimit
+	global bLimit
+	global cLimit
+	global dLimit
+	global eLimit
+	global fLimit
+	global gLimit
+	global hLimit
+	global iLimit
+	global aValue
+	global bValue
+	global cValue
+	global dValue
+	global eValue
+	global fValue
+	global gValue
+	global hValue
+	global iValue
+
+
+	# print("austinDecode")
+	u=0
+	t=0
+
+	# starts = []
+	single = False
+	stub = False
+	# args = list(args)
+	# sample = args.pop()
+	
+	# if(mode == "continue"):
+		# starts = args.pop()
+		# sample = args.pop()
+	if(mode == "single"):
+		# order = args.pop()
+		# starts = args.pop()
+		# sample = args.pop()
+		single = True
+	elif(mode == "stub"):
+		stub = True
+	# starts = args.pop()
+
+	# else:
+	# 	for val in args:
+	# 		starts.append(0)
+	alphaList=[]
+	alpha = 'a'
+	for i in range(0, 26): 
+		alphaList.append(alpha) 
+		alpha = chr(ord(alpha) + 1)  
+
+	args = list(decodeOps)
+	for val in args:
+		lim, res=findObfusMethod(val)
+		if t==0:
+			aLimit, aValue=lim, res
+		elif t==1:
+			bLimit, bValue=lim, res
+		elif t==2:
+			cLimit, cValue=lim, res
+		elif t==3:
+			dLimit, dValue=lim, res
+		elif t==4:
+			eLimit, eValue=lim, res
+		elif t==5:
+			fLimit, fValue=lim, res
+		elif t==6:
+			gLimit, gValue=lim, res
+		elif t==7:
+			hLimit, hValue=lim, res
+		elif t==8:
+			iLimit, iValue=lim, res
+		t+=1
+
+	# tempMax(3, 3,3, 3)
+
+	# print ("aLimit", aLimit, aValue)
+	# print ("bLimit", bLimit, bValue)
+	# print ("cLimit", cLimit, cValue)
+	maxTrue=3
+	Max=maxTrue
+	maxValuU=Max#20
+	maxValuW=Max#4
+	maxValuT=Max#2
+	maxValuR=Max#4
+
+
+	mylist2=[]
+	# for x in args:
+	# 	mylist2.append(x)
+	z=0
+
+	#### TODO --build it out so it only populates with natural max--
+	###populate the maxes for the range func as well with regular expressions. :-)
+	t=0
+
+	for each in args:
+		x = each.replace("VALUE", alphaList[t] )
+		mylist2.append(x)
+		t+=1
+		# print (x)
+
+
+		
+
+		
+
+	sample2=b"\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76\x31\xc9\x64\x8b\x71\x30\x8b\x76"
+
+	numItems=len(mylist2)
+	if len(mylist2)==1:
+		totalPerm=aLimit * (nPr(numItems,numItems-1))
+	elif len(mylist2)==2:
+		totalPerm=aLimit*bLimit * (nPr(numItems,numItems-1))
+	elif len(mylist2)==3:
+		totalPerm=aLimit*bLimit*cLimit * (nPr(numItems,numItems-1))
+	elif len(mylist2)==4:
+		totalPerm=aLimit*bLimit*cLimit * dLimit *(nPr(numItems,numItems-1))
+	elif len(mylist2)==5:
+		totalPerm=aLimit*bLimit*cLimit * dLimit * eLimit*(nPr(numItems,numItems-1))
+
+	# print ("total permutations: ", totalPerm)
+	permPercent=0.1*totalPerm
+	start = timeit.default_timer()
+	encodeBytes=bytearray()
+	
+	# encodeBytes4=bytearray()
+
+	# print("mylist2")
+	# print(mylist2)
+	# print("sample")
+	# print(sample)
+	# input("break")
+
+	# 1-6, 0-3, 0-3, 0-3
+	permutations = list(itertools.permutations(mylist2))
+	# print("NORMALPERMS:")
+	# print((permutations))
+	# doStuff(permutations[1] ,22, 35, 1)
+
+	# for each in (list(itertools.permutations(mylist2))):
+
+
+	tupleStart = timeit.default_timer()
+	### LIST COMPREHENSION ###
+	# 6000 perm time = 0.0019388999999999934
+	# encodeBytes4 = [ (a,b,c,each)
+	# 				for a in range (aLimit)
+	# 				for b in range (bLimit)
+	# 				for c in range (cLimit)
+	# 				for each in (list(itertools.permutations(mylist2)))
+	# 				]
+	### WHILE LOOPS ###
+	# 6000 perm time = 0.001719499999999985
+	encodeBytes4 = []
+	eachLen = len(permutations)
+
+	# print("STARTS HERE")
+	# print(starts)
+	a=0
+	b=0
+	c=0
+	d=0
+	e=0
+	foundMatch = 0
+	if(len(starts) >= 1):
+		a = starts[0]
+	if(len(starts) >= 2):
+		b = starts[1]
+	if(len(starts) >= 3):
+		c = starts[2]
+	if(len(starts) >= 4):
+		d = starts[3]
+	if(len(starts) >= 5):
+		e = starts[4]
+	eachInd = 0
+
+	totalRuns = 0
+	curPerm = 0
+	listLimit = 1000000
+	
+	# print(multiprocessing.cpu_count())
+	if(cpuCount == "auto"):
+		numThreads = multiprocessing.cpu_count()
+	else:
+		numThreads = cpuCount
+
+	# print("CPU COUNT: ", numThreads)
+	out = []
+	startVals = []
+	early = False
+	matched = 0
+	if(single):
+		version = len(mylist2)
+		if(version == 1):
+			encodeBytes4.append((a,order))
+		elif(version == 2):
+			encodeBytes4.append((a,b,order))
+		elif(version == 3):
+			encodeBytes4.append((a,b,c,order))
+		elif(version == 4):
+			encodeBytes4.append((a,b,c,d,order))
+		elif(version == 5):
+			encodeBytes4.append((a,b,c,d,e,order))
+		out = runProcs(encodeBytes4, sample, numThreads,version, findAll = findAll)[0] #the first element returned is the actual output, do not need to worry about the flag
+		return out,early,startVals
+	
+	elif(stub):
+
+		mylist2 = []
+		t=0
+		numVals = stubParams[0]
+		for i in range(len(numVals)):
+			numVals[i] = int(numVals[i],0)
+		opTypes = stubParams[1]
+
+
+
+		strAdd="new=(new +VALUE) & 255\n" 
+		strSub="new=(new -VALUE) & 255\n"
+		strXor="new=(new ^ VALUE) & 255\n"
+		#adding functionality for not using the not operations sometimes
+		strNot="new=(~(new) & 255) if(VALUE != 0) else new\n"
+		strRol="new=rol(new,VALUE,8)\n"
+		strRor="new=ror(new,VALUE,8)\n"
+		strShRight="new=(new << VALUE) & 255\n"
+
+		decodeOps = []
+		# print("OPERATIONS:")
+		for symbol in opTypes:
+			if(symbol == "+"):
+				decodeOps.append(strAdd)
+			elif(symbol == "-"):
+				decodeOps.append(strSub)
+			elif(symbol == "^"):
+				decodeOps.append(strXor)
+			elif(symbol == "~"):
+				decodeOps.append(strNot)
+			elif(symbol == "rl"):
+				decodeOps.append(strRol)
+			elif(symbol == "rr"):
+				decodeOps.append(strRor)
+			elif(symbol == "<"):
+				decodeOps.append(strShRight)
+
+
+
+		# this line below essentially automates trying different setups of operations left out.
+		# for example, when we find an ADD, SUB, and an XOR, we could try all 3 ops, then three different setups of 2 ops:
+		# (add, sub) (add, xor) and (sub, xor)
+		# by appending 0, we have already done this since we will get situations like ADD <num1> -> SUB <num2> -> XOR 0
+		# TODO: fix situation with NOT. since this one is unary, there is no way to use 0 as a value to result in an identity
+		#		fix situation with AND. AND 0 does not result in an identity, it needs to be AND 1111....
+		numVals.append(0)
+
+
+		args = list(decodeOps)
+		# print("got ARGS = ", args)
+		for val in args:
+			lim, res=findObfusMethod(val)
+			if t==0:
+				aLimit, aValue=lim, res
+			elif t==1:
+				bLimit, bValue=lim, res
+			elif t==2:
+				cLimit, cValue=lim, res
+			elif t==3:
+				dLimit, dValue=lim, res
+			elif t==4:
+				eLimit, eValue=lim, res
+			elif t==5:
+				fLimit, fValue=lim, res
+			elif t==6:
+				gLimit, gValue=lim, res
+			elif t==7:
+				hLimit, hValue=lim, res
+			elif t==8:
+				iLimit, iValue=lim, res
+			t+=1
+
+		mylist2=[]
+
+		t=0
+
+		for each in args:
+			x = each.replace("VALUE", alphaList[t] )
+			mylist2.append(x)
+			t+=1
+			# print (x)
+		permutations = list(itertools.permutations(mylist2))
+		# print("STUB PERMUTATIONS HERE: ", permutations	)
+		eachLen = len(permutations)
+
+		eachInd = 0
+		# print("mylist2 here: ", mylist2)
+
+		if (len(args) == 1):
+			for a in numVals:
+				for perm in permutations:
+					if(matched == 1):
+						# print("MATCHED FLAG")
+						return out,early,startVals
+					encodeBytes4.append((a,perm))
+					eachInd += 1
+					curPerm += 1
+					if(curPerm > listLimit):
+						early = True
+						# print("RUNNING PROCS EARLY, TOTALRUNS = ",totalRuns)
+						rpOut = runProcs(encodeBytes4, sample, numThreads, 1, findAll = findAll)
+						out = out + rpOut[0]
+						matched = rpOut[1]
+						# print("CAME BACK FROM RUNPROCS, rpOut = ", rpOut)
+						totalRuns += curPerm
+						curPerm = 0
+						encodeBytes4 = []
+						hitLimit = True
+						startVals.append(a)
+						#if we don't want to find them all and we found one of them, we are done
+						if(matched == 1 and findAll == False):
+							early = False
+						# print("returning an early with early = ", early)
+							return out,early,startVals
+				eachInd = 0
+
+			if(totalRuns < totalPerm):
+				rpOut = runProcs(encodeBytes4, sample, numThreads, 1, findAll = findAll)
+				# print("HERE RPOUT ",rpOut)
+				# print("HERE EB4", encodeBytes4)
+				# print("HERE TOTALRUNS", totalRuns)
+				# for item in rpOut:
+				# 	print("\n\nRP ITEM:\n------------------------------- ")
+				# 	print(item)
+
+				if(len(rpOut) > 0):
+						out = out + rpOut[0]
+						matched = rpOut[1]		
+
+		elif(len(mylist2) == 2):
+				for a in numVals:
+					for b in numVals:
+						eachInd = 0
+						for perm in permutations:
+							if(matched == 1):
+								# print("MATCHED FLAG")
+								return out,early,startVals
+							encodeBytes4.append((a,b,perm))
+							eachInd += 1
+							curPerm += 1
+							if(curPerm > listLimit):
+								early = True
+								# print("RUNNING PROCS EARLY, TOTALRUNS = ",totalRuns)
+								rpOut = runProcs(encodeBytes4, sample, numThreads, 2, findAll = findAll)
+								out = out + rpOut[0]
+								matched = rpOut[1]
+								# print("CAME BACK FROM RUNPROCS, rpOut = ", rpOut)
+								totalRuns += curPerm
+								curPerm = 0
+								encodeBytes4 = []
+								hitLimit = True
+								startVals.append(a)
+								startVals.append(b)
+								#if we don't want to find them all and we found one of them, we are done
+								if(matched == 1 and findAll == False):
+									early = False
+								# print("returning an early with early = ", early)
+									return out,early,startVals
+						eachInd = 0
+
+
+				if(totalRuns < totalPerm):
+					rpOut = runProcs(encodeBytes4, sample, numThreads, 2, findAll = findAll)
+					# print("HERE RPOUT ",rpOut)
+					# print("HERE EB4", encodeBytes4)
+					# print("HERE TOTALRUNS", totalRuns)
+					# for item in rpOut:
+					# 	print("\n\nRP ITEM:\n------------------------------- ")
+					# 	print(item)
+
+					if(len(rpOut) > 0):
+							out = out + rpOut[0]
+							matched = rpOut[1]
+
+
+#		[0, 5, 10]
+#		loop 1 - 0
+#		loop 2 - 0
+#		loop 3 - 0,5,10
+		# elif len(args == 3):
+		elif(len(mylist2) == 3):
+			for a in numVals:
+				for b in numVals:
+					for c in numVals:
+						for perm in permutations:
+							if(matched == 1):
+								# print("MATCHED FLAG")
+								return out,early,startVals
+							encodeBytes4.append((a,b,c,perm))
+							eachInd += 1
+							curPerm += 1
+							if(curPerm > listLimit):
+								early = True
+								# print("RUNNING PROCS EARLY, TOTALRUNS = ",totalRuns)
+								rpOut = runProcs(encodeBytes4, sample, numThreads, findAll = findAll)
+								out = out + rpOut[0]
+								matched = rpOut[1]
+								# print("CAME BACK FROM RUNPROCS, rpOut = ", rpOut)
+								totalRuns += curPerm
+								curPerm = 0
+								encodeBytes4 = []
+								hitLimit = True
+								startVals.append(a)
+								startVals.append(b)
+								startVals.append(c)
+								#if we don't want to find them all and we found one of them, we are done
+								if(matched == 1 and findAll == False):
+									early = False
+								# print("returning an early with early = ", early)
+									return out,early,startVals
+						eachInd = 0
+
+
+			if(totalRuns < totalPerm):
+				rpOut = runProcs(encodeBytes4, sample, numThreads, findAll = findAll)
+				# print("HERE RPOUT ",rpOut)
+				# print("HERE EB4", encodeBytes4)
+				# print("HERE TOTALRUNS", totalRuns)
+				# for item in rpOut:
+				# 	print("\n\nRP ITEM:\n------------------------------- ")
+				# 	print(item)
+
+				if(len(rpOut) > 0):
+						out = out + rpOut[0]
+						matched = rpOut[1]
+		# elif len(args == 4)
+		elif(len(mylist2) == 4):
+		# print("in loop a=", a, "b=", b, "c=", c, "d=", d, "eachInd=", eachInd, "eachLen=", eachLen)
+			for a in numVals:
+				for b in numVals:
+					for c in numVals:
+						for d in numVals:
+							while(eachInd < eachLen):
+								if(matched == 1):
+									# print("MATCHED FLAG")
+									return out,early,startVals
+								encodeBytes4.append((a,b,c,d,perm))
+								eachInd += 1
+								curPerm += 1
+								if(curPerm > listLimit):
+									early = True
+									# print("RUNNING PROCS EARLY, TOTALRUNS = ",totalRuns)
+									rpOut = runProcs(encodeBytes4, sample, numThreads, 4, findAll = findAll)
+									out = out + rpOut[0]
+									matched = rpOut[1]
+									# print("CAME BACK FROM RUNPROCS, rpOut = ", rpOut)
+									totalRuns += curPerm
+									curPerm = 0
+									encodeBytes4 = []
+									hitLimit = True
+									startVals.append(a)
+									startVals.append(b)
+									startVals.append(c)
+									startVals.append(d)
+									#if we don't want to find them all and we found one of them, we are done
+									if(matched == 1 and findAll == False):
+										early = False
+										# print("returning an early with early = ", early)
+										return out,early,startVals
+							eachInd = 0
+
+			if(totalRuns < totalPerm):
+				rpOut = runProcs(encodeBytes4, sample, numThreads, 4, findAll = findAll)
+				# print("HERE RPOUT ",rpOut)
+				# print("HERE EB4", encodeBytes4)
+				# print("HERE TOTALRUNS", totalRuns)
+				# for item in rpOut:
+				# 	print("\n\nRP ITEM:\n------------------------------- ")
+				# 	print(item)
+
+				if(len(rpOut) > 0):
+						out = out + rpOut[0]
+						matched = rpOut[1]
+
+		# elif len(args == 5):
+		elif(len(mylist2) == 5):
+				for a in numVals:
+					for b in numVals:
+						for c in numVals:
+							for d in numVals:
+								for e in numVals:
+									while(eachInd < eachLen):
+										if(matched == 1):
+											# print("MATCHED FLAG")
+											return out,early,startVals
+										encodeBytes4.append((a,b,c,d,e,perm))
+										eachInd += 1
+										curPerm += 1
+										if(curPerm > listLimit):
+											early = True
+											# print("RUNNING PROCS EARLY, TOTALRUNS = ",totalRuns)
+											rpOut = runProcs(encodeBytes4, sample, numThreads, 5, findAll = findAll)
+											out = out + rpOut[0]
+											matched = rpOut[1]
+											# print("CAME BACK FROM RUNPROCS, rpOut = ", rpOut)
+											totalRuns += curPerm
+											curPerm = 0
+											encodeBytes4 = []
+											hitLimit = True
+											startVals.append(a)
+											startVals.append(b)
+											startVals.append(c)
+											startVals.append(d)
+											startVals.append(e)
+											#if we don't want to find them all and we found one of them, we are done
+											if(matched == 1 and findAll == False):
+												early = False
+												# print("returning an early with early = ", early)
+												return out,early,startVals
+									eachInd = 0
+
+				if(totalRuns != totalPerm):
+					rpOut = runProcs(encodeBytes4, sample, numThreads, 5, findAll = findAll)
+					# print("HERE RPOUT ",rpOut)
+					# print("HERE EB4", encodeBytes4)
+					# print("HERE TOTALRUNS", totalRuns)
+					# for item in rpOut:
+					# 	print("\n\nRP ITEM:\n------------------------------- ")
+					# 	print(item)
+
+					if(len(rpOut) > 0):
+							out = out + rpOut[0]
+							matched = rpOut[1]
+
+
+
+
+	else:
+		if(len(mylist2) == 1):
+			while(a < aLimit):
+				for perm in permutations:
+					if(matched == 1):
+						# print("MATCHED FLAG")
+						return out,early,startVals
+					encodeBytes4.append((a,perm))
+					eachInd += 1
+					curPerm += 1
+					if(curPerm > listLimit):
+						early = True
+						# print("RUNNING PROCS EARLY, TOTALRUNS = ",totalRuns)
+						rpOut = runProcs(encodeBytes4, sample, numThreads, 1, findAll = findAll)
+						out = out + rpOut[0]
+						matched = rpOut[1]
+						# print("CAME BACK FROM RUNPROCS, rpOut = ", rpOut)
+						totalRuns += curPerm
+						curPerm = 0
+						encodeBytes4 = []
+						hitLimit = True
+						startVals.append(a)
+						#if we don't want to find them all and we found one of them, we are done
+						if(matched == 1 and findAll == False):
+							early = False
+						# print("returning an early with early = ", early)
+							return out,early,startVals
+				a += 1
+				eachInd = 0
+
+
+			if(totalRuns < totalPerm):
+				rpOut = runProcs(encodeBytes4, sample, numThreads, 1, findAll = findAll)
+				# print("HERE RPOUT ",rpOut)
+				# print("HERE EB4", encodeBytes4)
+				# print("HERE TOTALRUNS", totalRuns)
+				# for item in rpOut:
+				# 	print("\n\nRP ITEM:\n------------------------------- ")
+				# 	print(item)
+
+				if(len(rpOut) > 0):
+						out = out + rpOut[0]
+						matched = rpOut[1]
+
+
+		elif(len(mylist2) == 2):
+			while(a < aLimit):
+				while(b < bLimit):
+					for perm in permutations:
+						if(matched == 1):
+							# print("MATCHED FLAG")
+							return out,early,startVals
+						encodeBytes4.append((a,b,perm))
+						eachInd += 1
+						curPerm += 1
+						if(curPerm > listLimit):
+							early = True
+							# print("RUNNING PROCS EARLY, TOTALRUNS = ",totalRuns)
+							rpOut = runProcs(encodeBytes4, sample, numThreads, 2, findAll = findAll)
+							out = out + rpOut[0]
+							matched = rpOut[1]
+							# print("CAME BACK FROM RUNPROCS, rpOut = ", rpOut)
+							totalRuns += curPerm
+							curPerm = 0
+							encodeBytes4 = []
+							hitLimit = True
+							startVals.append(a)
+							startVals.append(b)
+							#if we don't want to find them all and we found one of them, we are done
+							if(matched == 1 and findAll == False):
+								early = False
+							# print("returning an early with early = ", early)
+								return out,early,startVals
+					b += 1
+					eachInd = 0
+				a += 1
+				b = 0
+
+			if(totalRuns < totalPerm):
+				rpOut = runProcs(encodeBytes4, sample, numThreads, 2, findAll = findAll)
+				# print("HERE RPOUT ",rpOut)
+				# print("HERE EB4", encodeBytes4)
+				# print("HERE TOTALRUNS", totalRuns)
+				# for item in rpOut:
+				# 	print("\n\nRP ITEM:\n------------------------------- ")
+				# 	print(item)
+
+				if(len(rpOut) > 0):
+						out = out + rpOut[0]
+						matched = rpOut[1]
+
+
+		elif(len(mylist2) == 3):
+			while(a < aLimit):
+				while(b < bLimit):
+					while(c < cLimit):
+						for perm in permutations:
+							if(matched == 1):
+								# print("MATCHED FLAG")
+								return out,early,startVals
+							encodeBytes4.append((a,b,c,perm))
+							eachInd += 1
+							curPerm += 1
+							if(curPerm > listLimit):
+								early = True
+								# print("RUNNING PROCS EARLY, TOTALRUNS = ",totalRuns)
+								rpOut = runProcs(encodeBytes4, sample, numThreads, findAll = findAll)
+								out = out + rpOut[0]
+								matched = rpOut[1]
+								# print("CAME BACK FROM RUNPROCS, rpOut = ", rpOut)
+								totalRuns += curPerm
+								curPerm = 0
+								encodeBytes4 = []
+								hitLimit = True
+								startVals.append(a)
+								startVals.append(b)
+								startVals.append(c)
+								#if we don't want to find them all and we found one of them, we are done
+								if(matched == 1 and findAll == False):
+									early = False
+								# print("returning an early with early = ", early)
+									return out,early,startVals
+						c += 1
+						eachInd = 0
+					b += 1
+					c = 0
+				a += 1
+				b = 0
+
+			if(totalRuns < totalPerm):
+				rpOut = runProcs(encodeBytes4, sample, numThreads, findAll = findAll)
+				# print("HERE RPOUT ",rpOut)
+				# print("HERE EB4", encodeBytes4)
+				# print("HERE TOTALRUNS", totalRuns)
+				# for item in rpOut:
+				# 	print("\n\nRP ITEM:\n------------------------------- ")
+				# 	print(item)
+
+				if(len(rpOut) > 0):
+						out = out + rpOut[0]
+						matched = rpOut[1]
+		
+		elif(len(mylist2) == 4):
+			# print("in loop a=", a, "b=", b, "c=", c, "d=", d, "eachInd=", eachInd, "eachLen=", eachLen)
+			while(a < aLimit):
+				while(b < bLimit):
+					while(c < cLimit):
+						while(d < dLimit):
+							while(eachInd < eachLen):
+								if(matched == 1):
+									# print("MATCHED FLAG")
+									return out,early,startVals
+								encodeBytes4.append((a,b,c,d,perm))
+								eachInd += 1
+								curPerm += 1
+								if(curPerm > listLimit):
+									early = True
+									# print("RUNNING PROCS EARLY, TOTALRUNS = ",totalRuns)
+									rpOut = runProcs(encodeBytes4, sample, numThreads, 4, findAll = findAll)
+									out = out + rpOut[0]
+									matched = rpOut[1]
+									# print("CAME BACK FROM RUNPROCS, rpOut = ", rpOut)
+									totalRuns += curPerm
+									curPerm = 0
+									encodeBytes4 = []
+									hitLimit = True
+									startVals.append(a)
+									startVals.append(b)
+									startVals.append(c)
+									startVals.append(d)
+									#if we don't want to find them all and we found one of them, we are done
+									if(matched == 1 and findAll == False):
+										early = False
+										# print("returning an early with early = ", early)
+										return out,early,startVals
+							d += 1
+							eachInd = 0
+						c += 1
+						d = 0
+					b += 1
+					c = 0
+				a += 1
+				b = 0
+			if(totalRuns < totalPerm):
+				rpOut = runProcs(encodeBytes4, sample, numThreads, 4, findAll = findAll)
+				# print("HERE RPOUT ",rpOut)
+				# print("HERE EB4", encodeBytes4)
+				# print("HERE TOTALRUNS", totalRuns)
+				# for item in rpOut:
+				# 	print("\n\nRP ITEM:\n------------------------------- ")
+				# 	print(item)
+
+				if(len(rpOut) > 0):
+						out = out + rpOut[0]
+						matched = rpOut[1]
+
+		elif(len(mylist2) == 5):
+			while(a < aLimit):
+				while(b < bLimit):
+					while(c < cLimit):
+						while(d < dLimit):
+							while(e < eLimit):
+								while(eachInd < eachLen):
+									if(matched == 1):
+										# print("MATCHED FLAG")
+										return out,early,startVals
+									encodeBytes4.append((a,b,c,d,e,perm))
+									eachInd += 1
+									curPerm += 1
+									if(curPerm > listLimit):
+										early = True
+										# print("RUNNING PROCS EARLY, TOTALRUNS = ",totalRuns)
+										rpOut = runProcs(encodeBytes4, sample, numThreads, 5, findAll = findAll)
+										out = out + rpOut[0]
+										matched = rpOut[1]
+										# print("CAME BACK FROM RUNPROCS, rpOut = ", rpOut)
+										totalRuns += curPerm
+										curPerm = 0
+										encodeBytes4 = []
+										hitLimit = True
+										startVals.append(a)
+										startVals.append(b)
+										startVals.append(c)
+										startVals.append(d)
+										startVals.append(e)
+										#if we don't want to find them all and we found one of them, we are done
+										if(matched == 1 and findAll == False):
+											early = False
+											# print("returning an early with early = ", early)
+											return out,early,startVals
+								e += 1
+								eachInd = 0
+							d += 1
+							e = 0
+						c += 1
+						d = 0
+					b += 1
+					c = 0
+				a += 1
+				b = 0
+			if(totalRuns != totalPerm):
+				rpOut = runProcs(encodeBytes4, sample, numThreads, 5, findAll = findAll)
+				# print("HERE RPOUT ",rpOut)
+				# print("HERE EB4", encodeBytes4)
+				# print("HERE TOTALRUNS", totalRuns)
+				# for item in rpOut:
+				# 	print("\n\nRP ITEM:\n------------------------------- ")
+				# 	print(item)
+
+				if(len(rpOut) > 0):
+						out = out + rpOut[0]
+						matched = rpOut[1]
+
+	tupleStop = timeit.default_timer()
+	# print("Tuple time: " + str(tupleStop - tupleStart))
+
+	# print("LISTDONE")
+	# print(encodeBytes4)
+	print(len(encodeBytes4))
+	sortOut = sorted(out)
+	# print("LEN SORT PAR", str(len(sortOut)))
+
+	
+	stop = timeit.default_timer()
+	print("Total time: " + str(stop - start))
+
+
+	# print ("Total number of iterations:", len(encodeBytes4))
+	# for xx in encodeBytes4:
+		
+	# 	print (xx)
+	# 	print ("\n\n")
+	
+
+
+	finTime=stop-start
+	cores=240
+	# print (totalPerm, "Perm")
+	numSeconds=0.00001
+
+	# print ("end time: ", z/finTime )
+	# print ("finTime", finTime)
+	return out, early, startVals
+
 def austinListComp(decodeOps, sample, mode = "default", starts = [], order = [], findAll = False, cpuCount = "auto", stubParams = ([],[])):
 # def austinDecode(*args):
 	global aLimit
@@ -3854,7 +4675,7 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 			eachInd = 0
 
 			curPerm = 0
-			listLimit = 100
+			listLimit = 1000000
 			totalRuns = 0
 			# print("CPU COUNT")
 			# print(multiprocessing.cpu_count())
