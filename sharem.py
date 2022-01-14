@@ -1355,14 +1355,34 @@ def findEvilImports():
 		for i in item.imports:
 			FoundApisName.append(tuple((item.dll, i.name, hex(i.address))))
 
-def showImports():
+def showImports(out2File=None):
+
+
+	apis= []
+	for dll, api, offset in FoundApisName:
+		apis.append(api.decode())
+	maxLen = get_max_length(apis)
+	# print(maxLen)
+
 	cat=""
+	cat += "\n***************\n"
+	cat += "   Imports\n"
+	cat += "***************\n\n"
+
+	catNoClr = cat
+	# print("{:>{x}}[{}]".format("", gre + "Found" + res, x=15+(maxLen-curLen)))
 	for dll, api, offset in FoundApisName:
 		
 		try:
-			cat += api.decode() + "\t" + dll.decode() + "\t"+ str(offset)+"\n"
+			curLen = len(api.decode())
+			# cat += yel +api.decode()  + "\t" + cya + dll.decode() + "\t"+ red + str(offset)+res + "\n"
+			cat += '{}{:>{x}} {}  {}\n'.format(yel + api.decode(), "", cya + dll.decode(), red + str(offset)+res, x=5+(maxLen-curLen))
+			catNoClr += '{}{:>{x}} {}  {}\n'.format(api.decode(), "", dll.decode(), str(offset), x=5+(maxLen-curLen))
+
 		except:
 			pass
+	if out2File:
+		return catNoClr
 	return cat
 def listReducer(dlls):	
 	fun2=  list(OrderedDict.fromkeys(dlls))
@@ -16613,6 +16633,8 @@ def readConf():
 	global bPrintEmulation
 	global emulation_verbose
 	global emulation_multiline
+	global bpEvilImports
+	global bpModules
 	# global os
 
 	con = Configuration(conFile)
@@ -16682,6 +16704,9 @@ def readConf():
 	bPrintEmulation = conr.getboolean('SHAREM SEARCH', 'print_emulation_result')
 	emulation_verbose = conr.getboolean('SHAREM SEARCH', 'emulation_verbose_mode')
 	emulation_multiline = conr.getboolean('SHAREM SEARCH', 'emulation_multiline')
+	bpEvilImports = conr.getboolean('SHAREM SEARCH', 'imports')
+
+
 
 
 	if rawHex and not bit32_argparse:
@@ -16918,7 +16943,9 @@ def startupPrint():
 	global bpEvilImports
 	global bpModules
 	global rawHex
-
+	global bEvilImportsFound
+	global bpEvilImports
+	global modulesMode
 	elapsed_time=0
 
 	bPushRetFound = bCallPopFound = bDisassemblyFound = bFstenvFound = bHeavenFound = bPEBFound = bStringsFound = bWideStringFound = bPushStringsFound = False
@@ -16963,6 +16990,18 @@ def startupPrint():
 	
 	if bDisassembly and not bDisassemblyFound:
 		newTime= discoverDisassembly(max_len)
+
+	if bpEvilImports and not bEvilImportsFound:
+		if not rawHex:
+			findEvilImports()
+
+			print(showImports())
+	if not rawHex:
+		modulesMode = 3
+		runInMem()
+		print(giveLoadedModules())
+		giveLoadedModules("save")
+
 
 	#Saving data
 	bpPushRet = bpSyscall = bpHeaven = bpFstenv = bpPEB = bpStrings = bpCallPop = bpEvilImports = bpModules = True
@@ -17978,7 +18017,8 @@ def uiPrint(): 	#Print instructions
 	global p2screen
 	global bPrintEmulation
 	global sharem_out_dir
-
+	global emulation_verbose
+	global emulation_multiline
 
 
 	if sharem_out_dir == "current_dir":
@@ -17986,7 +18026,7 @@ def uiPrint(): 	#Print instructions
 	else:
 		sh_out_dir = sharem_out_dir
 	print(yel + "\n ..........\n Print Menu\n ..........\n" + res)
-	printMenu(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bExportAll, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisassembly, bpAll, sh_out_dir, p2screen)
+	printMenu(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bExportAll, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisassembly, bpAll, sh_out_dir, emulation_verbose, emulation_multiline, bPrintEmulation, p2screen)
 	if (not bPushRetFound) and (not bFstenvFound) and (not bSyscallFound) and (not bHeavenFound) and (not bPEBFound) and (not bCallPopFound) and (not bStringsFound) and (not bPushStringsFound) and (not bModulesFound) and (not bDisassemblyFound):
 		print(red+" Warning: "+res+ "No selections have been discovered yet. Search first.\n")
 
@@ -18019,6 +18059,9 @@ def uiPrint(): 	#Print instructions
 					print(gDisassemblyText)
 				else:
 					print("\nNo disassembly found.\n")
+			if bpEvilImports and bEvilImportsFound and p2screen:
+				# print(showImports())
+				print(yel + "Imports are saved to file." + res)
 			if bpPushRet and p2screen:
 				if bPushRetFound:
 					print(cya + "\n***********\nPush ret\n***********\n" + res)
@@ -18071,7 +18114,7 @@ def uiPrint(): 	#Print instructions
 				else:
 					print("No heaven's gate instructions found.\n")
 			if bPrintEmulation and p2screen:
-				emulation_txt_out(printTxt=True)
+				emulation_txt_out()
 
 			outputData = generateOutputData()
 
@@ -18081,9 +18124,26 @@ def uiPrint(): 	#Print instructions
 				print("Data saved.")
 		elif(re.match("^h$", listIN, re.IGNORECASE)):
 			print("\n.......\n")
-			printMenu(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bExportAll, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisassembly, bpAll, sh_out_dir, p2screen)
+			printMenu(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bExportAll, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisassembly, bpAll, sh_out_dir,emulation_verbose, emulation_multiline, bPrintEmulation,p2screen)
 		elif(re.match("^s$", listIN, re.IGNORECASE)):
 			uiPrintSyscallSubMenu()
+
+		elif(re.match("^e$", listIN, re.IGNORECASE)):
+			if emulation_verbose: 
+				emulation_verbose = False
+				print(cya + " Emulation verbose mode disabled.\n" + res)
+			else:
+				emulation_verbose = True
+				print(cya + " Emulation verbose mode enabled.\n" + res)
+
+		elif(re.match("^m$", listIN, re.IGNORECASE)):
+			if emulation_multiline: 
+				emulation_multiline = False
+				print(cya + " Emulation multiline format disabled.\n" + res)
+			else:
+				emulation_multiline = True
+				print(cya + " Emulation multiline format enabled.\n" + res)
+
 		elif(re.match("^j$", listIN, re.IGNORECASE)):
 			if(bExportAll):
 				bExportAll = False
@@ -18120,10 +18180,15 @@ def uiPrint(): 	#Print instructions
 				bLM = re.search("( |,|^)lm( |,|$)", printSelectIn, re.IGNORECASE)
 				bIM = re.search("( |,|^)im( |,|$)", printSelectIn, re.IGNORECASE)
 				bFD = re.search("( |,|^)FD( |,|$)", printSelectIn, re.IGNORECASE)
+				bPM = re.search("( |,|^)PM( |,|$)", printSelectIn, re.IGNORECASE)
 
 				print("\n")
 				if bFD:
 					bDisassembly = False if bDisassembly else True
+
+				if bPM:
+					bPrintEmulation = False if bPrintEmulation else True
+
 				if bPR:
 					bpPushRet = False if bpPushRet else True
 				if bFE:
@@ -18150,9 +18215,9 @@ def uiPrint(): 	#Print instructions
 					changePrintGlobals("reset")
 				if bpPushRet and bpFstenv and bpCallPop and bpSyscall and bpPEB and bDisassembly and bpHeaven and bpStrings and bpEvilImports and bpModules and bpPushStrings:
 					bpAll = True
-				if bPR or bFE or bCP or bSy or bPB or bHG or bST or bPS or bIM or bLM or bFD:
+				if bPR or bFE or bCP or bSy or bPB or bHG or bST or bPS or bIM or bLM or bFD or bPM:
 					print("Selections changed.\n")
-					print(displayCurrentSelections(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisassembly, bpAll))
+					print(displayCurrentSelections(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisassembly,bPrintEmulation, bpAll))
 					break
 				else:
 					print("\nInput not recognized.\n")
@@ -18208,6 +18273,7 @@ def uiPrintSyscallSubMenu(): #Printing/settings for syscalls
 
 def uiModulesSubMenu():		#Find and display loaded modules
 	global bModulesFound
+	global bpModules
 	global modulesMode		#1-3, whichever option we want
 	# global gMS_API_MIN_skip
 	print("\n"+yel+"............................\nFind Modules Beyond the IAT\n............................\n"+res)
@@ -18217,8 +18283,9 @@ def uiModulesSubMenu():		#Find and display loaded modules
 	printModulesMenu(modulesMode)
 	x = 'i'
 	while x != 'e':
-		print(yel+".......\nModules\n.......\n"+res)
-		modIn = input("> ")
+		print(yel+" .......\n Modules\n .......\n"+res)
+		print(yel + " Sharem>" + res + cya + "Modules> "+res,end="")
+		modIn = input("")
 		if(re.match("^x$", modIn, re.IGNORECASE)):
 			break
 		elif(re.match("^[1-3]$", modIn, re.IGNORECASE)):
@@ -18638,14 +18705,15 @@ def uiShellcodeStrings():
 
 def uiFindImports():
 	global bEvilImportsFound
-	print("\n............\nFind Imports\n............\n")
+	print("\n ............\n Find Imports\n ............\n")
 	if(rawHex):
 		print(red+"Warning: "+res+"No PE file selected.\n")
 	importsMenu()
 	x=""
 	while x != "e":
-		print("\n............\nFind Imports\n............\n")
-		importsIN = input("> ")
+		print("\n ............\n Find Imports\n ............\n")
+		print(yel + " Sharem>" + cya + "Imports> "+ res, end="")
+		importsIN = input()
 		if(re.match("^x$", importsIN, re.IGNORECASE)):
 			break
 		elif(re.match("^h$", importsIN, re.IGNORECASE)):
@@ -18658,7 +18726,8 @@ def uiFindImports():
 					findEvilImports()
 				if(len(FoundApisName) > 0):
 					bEvilImportsFound = True
-				print(showImports())
+					# print(" {}\t{}".format(yel + "Searching for imports.." + res, gre + "[Found]" + res))
+					print(showImports())
 			else:
 				print("No PE file selected.\n")
 		elif(re.match("^p$", importsIN, re.IGNORECASE)):
@@ -19017,19 +19086,22 @@ def clearImports():
 
 
 def emulation_json_out():
-	api1 = {"api_name": "winexec",
-		"parameters":[{
-		"type":"LPCSTR lpCmdLine",
-		"value":"cmd.exe /c ping google.com > c:\\result.txt",
 
-		}, {
 
-		"type":"UINT uCmdShow",
-		"Value":"0x5"
-		}],
-		"return_value":"INT 0x5"
+	# api1 = {"api_name": "winexec",
+	# 	"parameters":[{
+	# 	"type":"LPCSTR lpCmdLine",
+	# 	"value":"cmd.exe /c ping google.com > c:\\result.txt",
 
-	}		
+	# 	}, {
+
+	# 	"type":"UINT uCmdShow",
+	# 	"Value":"0x5"
+	# 	}],
+	# 	"return_value":"INT 0x5"
+
+	# }
+
 	emu_dlls = ["kernel32", "advapi32", "user32"]
 	artifacts = ["c:\\result.txt", "cmd.exe", "google.com", "result.txt", "user32.dll", "calc.exe", "notepad.exe", "www.msn.com", "http://c2.net", "c:\\windows\system32\mstsc.exe"]
 
@@ -19050,6 +19122,19 @@ def emulation_json_out():
 		if result:
 			file_artifacts.append(i)
 
+	sample = [('WinExec', '0x123123', '0x20', 'INT', ['cmd.exe /c ping google.com > C:\\result.txt', '0x5'], ['LPCSTR', 'UINT'], ['lpCmdLine', 'uCmdShow'], False), ('EncyptFileA', '0x321321', '0x20', 'INT', ['C:\\result.txt'], ['LPCSTR'], ['lpFileName'], False),
+('LoadLibraryA', '0x1337c0de', '0x45664c88', 'HINSTANCE', ['user32.dll'], ['LPCTSTR'], ['lpLibFileName'], False),('MessageBoxA', '0xdeadc0de', '0x20', 'INT', ['0x987987', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', '0x0'], ['HWND', 'LPCSTR', 'LPCSTR', 'UINT'], ['hWnd', 'lpText', 'lpCaption', 'uType'], False)]
+
+	# api_names = []
+	api_params_values = []
+	api_params_types = []
+	api_params_names = []
+	# api_address = []
+	# ret_values = []
+	# ret_type = []
+
+	list_of_apis = []
+
 
 
 	emulation_dict = {"api_calls":[],
@@ -19060,49 +19145,115 @@ def emulation_json_out():
 					  "executable_artifacts":[]
 	}
 
-	emulation_dict["api_calls"].append(api1)
+	for i in sample:
+		api_dict = {}
+		api_name = i[0]
+		api_address = i[1]
+		ret_value = i[2]
+		ret_type = i[3]
+		api_dict["api_name"] = api_name
+		api_dict["return_value"]= ret_value
+		api_dict["address"] = api_address
+		api_dict['parameters'] = []
+
+		api_params_values = i[4]
+		api_params_types = i[5]
+		api_params_names = i[6]
+		for pTyp, pName, pVal in zip(api_params_types, api_params_names, api_params_values):
+			api_dict['parameters'].append({"type":pTyp + " " + pName,
+												"value":pVal})
+		# list_of_apis.append(api_dict)
+		emulation_dict["api_calls"].append(api_dict)
+
+
 	emulation_dict["dlls"].extend(emu_dlls)
 	emulation_dict["artifacts"].extend(artifacts)
 	emulation_dict["executable_artifacts"].extend(exec_artifacts)	
 	emulation_dict["web_artifacts"].extend(web_artifacts)
 	emulation_dict["file_artifacts"].extend(file_artifacts)
+	# print(emulation_dict)
+	# for api in list_of_apis:
+	# 	t = 0
+	# 	for x in api_params_types:
+	# 		pTyp = api_params_types[t]
+	# 		pName = api_params_names[t]
+	# 		pVal = api_params_values[t] 
+	# 		print("---> ", pTyp, pName, pVal)
+			# t += 1
+			# api['parameters'].append({"type":pTyp + " " + pName,
+									  # "value":pVal
+
+			# })
+	# print(list_of_apis)
+	# sys.exit()
+
+	# "api_calls": [
+ #      {
+ #         "api_name": "winexec",
+ #         "parameters": [
+ #            {
+ #               "type": "LPCSTR lpCmdLine",
+ #               "value": "cmd.exe /c ping google.com > c:\\result.txt"
+ #            },
+ #            {
+ #               "type": "UINT uCmdShow",
+ #               "Value": "0x5"
+ #            }
+ #         ],
+ #         "return_value": "INT 0x5"
+ #      }
+ #   ],
+	
+
+	
 
 	return emulation_dict
 
 
-def emulation_txt_out(printTxt=False):
+
+
+
+
+
+
+
+
+
+
+
+	
+def emulation_txt_out():
 	global emulation_verbose
 	global emulation_multiline
+	global bPrintEmulation
+
+	sample = [('WinExec', '0x123123', '0x20', 'INT', ['cmd.exe /c ping google.com > C:\\result.txt', '0x5'], ['LPCSTR', 'UINT'], ['lpCmdLine', 'uCmdShow'], False), ('EncyptFileA', '0x321321', '0x20', 'INT', ['C:\\result.txt'], ['LPCSTR'], ['lpFileName'], False),
+('LoadLibraryA', '0x1337c0de', '0x45664c88', 'HINSTANCE', ['user32.dll'], ['LPCTSTR'], ['lpLibFileName'], False),('MessageBoxA', '0xdeadc0de', '0x20', 'INT', ['0x987987', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', '0x0'], ['HWND', 'LPCSTR', 'LPCSTR', 'UINT'], ['hWnd', 'lpText', 'lpCaption', 'uType'], False)]
+	
+
+	api_names = []
+	api_params_values = []
+	api_params_types = []
+	api_params_names = []
+	api_address = []
+	ret_values = []
+	ret_type = []
 
 
+	for i in sample:
+		api_names.append(i[0])
+		api_address.append(i[1])
+		ret_values.append(i[2])
+		ret_type.append(i[3])
+		api_params_values.append(i[4])
+		api_params_types.append(i[5])
+		api_params_names.append(i[6])
 
-	api1 = [{"api_name": "winexec",
-			"offset":"0x1234",
-			"parameters":[{
-			"type":"LPCSTR lpCmdLine",
-			"value":"cmd.exe /c ping google.com > c:\\result.txt",
-			}, 
-			{"type":"UINT uCmdShow",
-			"value":"0x5"
-			}],
+	api_par_bundle = []
+	# for v, t in zip(api_params_types[0], api_params_types[0]):
+	# 	api_par_bundle.append(v + " " + t)
 
-		"return_value":"INT 0x5"
 
-	},
-	{"api_name": "EncryptFileA",
-			"offset":"0x2222",
-			"parameters":[{
-			"type":"LPCSTR lpFileName",
-			"value":"c:\\result.txt",
-
-		}, 
-		{"type":"UINT uCmdShow",
-		"Value":"0x5"
-		}],
-
-		"return_value":"INT 0x20"
-
-	}]		
 	emu_dlls = ["kernel32", "advapi32", "user32"]
 	artifacts = ["c:\\result.txt", "cmd.exe", "google.com", "result.txt", "user32.dll", "www.msn.com", "http://74.32.123.2:8080", "c:\\windows\\system32\\ipconfig.exe"]
 
@@ -19110,58 +19261,6 @@ def emulation_txt_out(printTxt=False):
 	web_artifacts = ["www.msn.com", "http://74.32.123.2:8080", "google.com"]
 	file_artifacts = ["c:\\result.txt", "cmd.exe", "result.txt"]
 	executables = ["c:\\windows\\system32\\ipconfig.exe", "cmd.exe"]
-
-
-	"""
-	0x2345 WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
-	LPCSTR lpCmdLine: cmd.exe /c ping google.com > c:\result.txt
-	UINT uCmdShow: 0x5
-
-	Return: Int 0x5
-
-	Artifacts --> ["c:\\result.txt", "cmd.exe", "google.com", "result.txt", "user32.dll"]
-	Web Artifacts --> [...]
-	"""
-
-
-	apiText = """
-	|---------[ Api name: <ap> ]---------
-	|
-	|     {}: <ret>	
-	|
-	|
-	|     ++++++ {} ++++++
-	|
-	""".format(red + "Return Value" + res, mag + "Parameters" + res)
-	paramsText = """|
-	|      {} : <type>
-	|      {}: <value>
-	|
-	""".format(cya + "Type" + res, cya + "Value" + res)
-	endParams = """|
-	|
-	|     ++++++ {} ++++++
-	""".format(mag + "End of Parameters" + res)
-	separator = """|
-	|
-	|
-	|"""
-
-	dllTxt = ', '.join(emu_dlls)
-	artifactsTxt = ', '.join(artifacts)
-	dllList = """|
-	|
-	|     ++++++ {} ++++++
-	|
-	|      {}
-	""".format(mag + "DLLS" + res, cya+dllTxt+res)
-
-	artifactsList = """|
-	|
-	|     ++++++ {} ++++++
-	|
-	|      {}
-	""".format(mag + "Artifacts" + res, cya+artifactsTxt+res)
 
 	txt_output = ""
 	no_colors_out = ""
@@ -19178,63 +19277,43 @@ def emulation_txt_out(printTxt=False):
 	
 
 	verbose_mode = emulation_verbose
-
-	for eachApi in api1:
-		apitxtTmp = apiText
-		pTemp = paramsText
-		typeList = []
-		typevalList = []
-		apName = ""
-		retVal = ""
-		offset = ""
-		for api, data in eachApi.items():
-			
-			if api == "api_name":
-
-				apName = data
-				# apitxtTmp = apitxtTmp.replace("<ap>", yel + apName + res)
-			elif api == "offset":
-				offset = data
-			elif api == "parameters":
-				paramsList = data
-				for p in paramsList:
-					for t, val in p.items():
-						
-
-						if t == "type":
-							pType = val
-
-							pTemp = pTemp.replace("<type>", gre + pType + res)
-							# print("Type ---> ", pType)
-							typeList.append(str(pType))
-
-						elif t == "value":
-							pValue = val
-							pTemp = pTemp.replace("<value>",gre + pValue + res)
-							typevalList.append(pValue)
-
-				# pTemp += endParams
-
-			elif api == "return_value":
-				retVal = data
-				apitxtTmp = apitxtTmp.replace("<ret>", gre + retVal + res)
-
+	t = 0
+	for eachApi in api_names:
 		
-
+		apName = api_names[t]
+		offset = api_address[t]
+		pType = api_params_types[t]
+		pName = api_params_names[t]
+		TypeBundle = []
+		retVal = ret_values[t]
+		retType = ret_type[t]
+		paramVal = api_params_values[t]
+		# bundle = [list(zipped) for zipped in zip(pType, pName)]
+		for v, typ in zip(pType, pName):
+			TypeBundle.append(v + " " + typ)
+		joinedBund = ', '.join(TypeBundle)
+		joinedBundclr = joinedBund.replace(",", cya + ","+res)
+		retBundle = retType + " " + retVal
 		if verbose_mode:
-			txt_output += '{} {}({})\n'.format(gre + offset + res, yel + apName+ res, ', '.join(typeList)) # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
-			no_colors_out += '{} {}({})\n'.format(offset , apName, ', '.join(typeList))
+			
+			txt_output += '{} {}{}\n'.format(gre + offset + res, yel + apName+ res, cya + "("+res + joinedBundclr + cya +")"+res) # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
+			no_colors_out += '{} {}({})\n'.format(offset , apName, joinedBund)
 		else:
-			txt_output += '{} {}({}): {}\n'.format(gre + offset + res, yel + apName+ res, ', '.join(typevalList), red + retVal + res) # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
-			no_colors_out += '{} {}({}): {}\n'.format(offset , apName, ', '.join(typevalList), retVal)
+			txt_output += '{} {}{}: {}\n'.format(gre + offset + res, yel + apName+ res, cya + "("+res + joinedBundclr +cya +")"+res , red + retBundle + res) # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
+			no_colors_out += '{} {}({}): {}\n'.format(offset , apName, joinedBund, retBundle)
 
+
+		t += 1
 		if verbose_mode:
-			for p, val in zip(typeList, typevalList):
-				txt_output += '\t{}: {}\n'.format(cya + p + res, val)
-				no_colors_out += '\t{}: {}\n'.format(p, val)
+			for ptyp, pname, pval in zip(pType, pName, paramVal):
+				txt_output += '\t{} {} {}\n'.format(cya + ptyp , pname + ":"+res, pval)
+				no_colors_out += '\t{} {}: {}\n'.format(ptyp, pname, pval)
+
+			# 	txt_output += '\t{}: {}\n'.format(cya + p + res, val)
+			# 	no_colors_out += '\t{}: {}\n'.format(p, val)
 			# txt_output += "\n"
 			# no_colors_out += "\n"
-			txt_output += "\t{} {}\n\n".format( red + "Return:"+res, retVal)
+			txt_output += "\t{} {}\n\n".format( red + "Return:"+res, retBundle)
 
 			no_colors_out += "\t{} {}\n\n".format( "Return:", retVal)
 
@@ -19287,11 +19366,129 @@ def emulation_txt_out(printTxt=False):
 	no_colors_out += "{}{:<8} {}\n".format("File artifacts","", emu_fileartifacts_list)
 	no_colors_out += "{}{:<2} {}\n\n".format("Executable artifacts","", emu_execartifacts_list)
 
+	# print(txt_output)
+	# sys.exit()
 
-	if printTxt:
+	if bPrintEmulation:
 		print(txt_output)
 	else:
 		return no_colors_out
+
+	# for api, data in eachApi.items():
+			
+		# 	if api == "api_name":
+
+		# 		apName = data
+		# 		# apitxtTmp = apitxtTmp.replace("<ap>", yel + apName + res)
+		# 	elif api == "offset":
+		# 		offset = data
+		# 	elif api == "parameters":
+		# 		paramsList = data
+		# 		for p in paramsList:
+		# 			for t, val in p.items():
+						
+
+		# 				if t == "type":
+		# 					pType = val
+
+		# 					pTemp = pTemp.replace("<type>", gre + pType + res)
+		# 					# print("Type ---> ", pType)
+		# 					typeList.append(str(pType))
+
+		# 				elif t == "value":
+		# 					pValue = val
+		# 					pTemp = pTemp.replace("<value>",gre + pValue + res)
+		# 					typevalList.append(pValue)
+
+		# 		# pTemp += endParams
+
+		# 	elif api == "return_value":
+		# 		retVal = data
+		# 		apitxtTmp = apitxtTmp.replace("<ret>", gre + retVal + res)
+	# print("Apis ", api_names)
+	# print("Apis params names ", api_params_names)
+	# print("Api params", api_params)
+
+
+	# api1 = [{"api_name": "winexec",
+	# 		"offset":"0x1234",
+	# 		"parameters":[{
+	# 		"type":"LPCSTR lpCmdLine",
+	# 		"value":"cmd.exe /c ping google.com > c:\\result.txt",
+	# 		}, 
+	# 		{"type":"UINT uCmdShow",
+	# 		"value":"0x5"
+	# 		}],
+
+	# 	"return_value":"INT 0x5"
+
+	# },
+	# {"api_name": "EncryptFileA",
+	# 		"offset":"0x2222",
+	# 		"parameters":[{
+	# 		"type":"LPCSTR lpFileName",
+	# 		"value":"c:\\result.txt",
+
+	# 	}, 
+	# 	{"type":"UINT uCmdShow",
+	# 	"Value":"0x5"
+	# 	}],
+
+	# 	"return_value":"INT 0x20"
+
+	# }]
+	"""
+	0x2345 WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
+	LPCSTR lpCmdLine: cmd.exe /c ping google.com > c:\result.txt
+	UINT uCmdShow: 0x5
+
+	Return: Int 0x5
+
+	Artifacts --> ["c:\\result.txt", "cmd.exe", "google.com", "result.txt", "user32.dll"]
+	Web Artifacts --> [...]
+	"""
+
+
+	# apiText = """
+	# |---------[ Api name: <ap> ]---------
+	# |
+	# |     {}: <ret>	
+	# |
+	# |
+	# |     ++++++ {} ++++++
+	# |
+	# """.format(red + "Return Value" + res, mag + "Parameters" + res)
+	# paramsText = """|
+	# |      {} : <type>
+	# |      {}: <value>
+	# |
+	# """.format(cya + "Type" + res, cya + "Value" + res)
+	# endParams = """|
+	# |
+	# |     ++++++ {} ++++++
+	# """.format(mag + "End of Parameters" + res)
+	# separator = """|
+	# |
+	# |
+	# |"""
+
+	# dllTxt = ', '.join(emu_dlls)
+	# artifactsTxt = ', '.join(artifacts)
+	# dllList = """|
+	# |
+	# |     ++++++ {} ++++++
+	# |
+	# |      {}
+	# """.format(mag + "DLLS" + res, cya+dllTxt+res)
+
+	# artifactsList = """|
+	# |
+	# |     ++++++ {} ++++++
+	# |
+	# |      {}
+	# """.format(mag + "Artifacts" + res, cya+artifactsTxt+res)
+
+	
 	"""
 	|=========[ Api name: EncryptFileA ]=========
 	|
@@ -19356,6 +19553,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 	global rawHex
 	global filename
 	global sharem_out_dir
+	global FoundApisName
 
 	time = datetime.datetime.now()
 	filetime = time.strftime("%Y%m%d_%H%M%S")
@@ -19393,6 +19591,18 @@ def printToJson(bpAll, outputData):	#Output data to json
 
 
 	
+	# importsOut = showImports(out2File=True)
+
+	importsDict = {"imports":[]}
+	# print("length: ", len(FoundApisName), FoundApisName)
+	for dll, api, offset in FoundApisName:
+		dll = dll.decode()
+		api = api.decode()
+		offset = str(offset)
+
+		importsDict["imports"].append({"dll":dll,
+								  "offset":offset,
+								  "api":api})
 
 
 
@@ -19423,6 +19633,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 	if useDirectory and not known_arch:
 		if current_arch == 32:
 			jsonFileName =  output_dir + "\\" + outfile+filler + "\\"  + outfileName +"-32" + "_" + filetime + ".json"
+
 		elif current_arch == 64:
 			jsonFileName =  output_dir + "\\" + outfile +filler+ "\\"  + outfileName + "-64"+ "_" + filetime + ".json"
 
@@ -19433,6 +19644,9 @@ def printToJson(bpAll, outputData):	#Output data to json
 		else:
 			jsonFileName =  output_dir + "\\" + outfile +filler+ "\\" + outfileName + "-64"+"_" + filetime + ".json"
 
+
+
+	jsonImports =  output_dir + "\\" + outfile+filler + "\\"  + outfileName + "-imports"  + ".json"
 
 	# jsonFileName =  os.getcwd() + "\\" + outfile + "\\" + outfileName + "_" + filetime + ".json"
 	# print("outfile: ", outfile, "outfileName", outfileName)
@@ -19463,6 +19677,9 @@ def printToJson(bpAll, outputData):	#Output data to json
 
 	#create the json file, and write our data to it
 	outfile = open(jsonFileName, "w")
+	outimports = open(jsonImports, "w")
+	js_imports = json.dumps(importsDict, indent=3)
+	outimports.write(js_imports)
 	# emufile = open(emulationOut, "w")
 	# emu_ob = json.dumps(emulation_dict, indent=3)
 	js_ob = json.dumps(outputData, indent = 3)
@@ -20459,7 +20676,8 @@ def printToText(outputData):	#Output data to text doc
 	global save_bin_file
 	global filename
 	global sharem_out_dir
-
+	global bEvilImportsFound
+	global bPrintEmulation
 
 	data = outputData
 	#Used for section info
@@ -20526,13 +20744,28 @@ def printToText(outputData):	#Output data to text doc
 
 	# txtDis = open(directory+"disassembly\\"+filename[:-4]+"-disassembly.txt", "w")
 
-	
+# 	red ='\u001b[31;1m'
+# gre = '\u001b[32;1m'
+# yel = '\u001b[33;1m'
+# blu = '\u001b[34;1m'
+# mag = '\u001b[35;1m'
+# cya = '\u001b[36;1m'
+# whi = '\u001b[37m'
+# res = '\u001b[0m'
 	os.makedirs(os.path.dirname(txtFileName), exist_ok=True)
 	text = open(txtFileName, "w")
 
 
 	disFileName = output_dir + "\\" + outfile + filler+"\\" + outfileName + "-disassembly.txt"
 	binFileName = output_dir + "\\" + outfile + filler+"\\" + outfileName + "-disassembly.bin"
+
+	if bEvilImportsFound:
+		importsName =  output_dir + "\\" + outfile + filler+"\\" + outfileName + "-imports.txt"
+		importData = showImports(out2File=True)
+		importFp = open(importsName, "w")
+		importFp.write(importData)
+		importFp.close()
+
 	disasm = open(disFileName, "w")
 	disasm.write(gDisassemblyText)
 	disasm.close()
@@ -20742,7 +20975,9 @@ def printToText(outputData):	#Output data to text doc
 	#print(disassembly)
 	#outString += "\n\n\n-------------------------- Disassembly --------------------------------\n\n"
 	#outString += disassembly
+	bPrintEmulation = False
 	emulation_txt = emulation_txt_out()
+	bPrintEmulation = True
 	text.write (outString)
 	text.write(emulation_txt)
 	text.close()
@@ -20804,10 +21039,13 @@ def testTarek():
 
 if __name__ == "__main__":
 
+	# emu_test()
 	# emulation_txt_out()
-	# sys.exit()		
+	# sys.exit()	
+	# emulation_json_out()	
 	CliParser()
 	init2(filename)
+
 	if rawHex:
 		newModule(o,rawData2, gName)
 	else:

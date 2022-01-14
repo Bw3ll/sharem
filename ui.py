@@ -147,7 +147,7 @@ def displayCurrentInstructions(bPushRet, bCallPop, bFstenv, bEgg, bHeaven, bPEB,
 	return iMenu
 
 # goodone
-def displayCurrentSelections(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisass, bpAll): #Displays current print selections
+def displayCurrentSelections(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisass, bPrintEmulation,bpAll): #Displays current print selections
 	iMenu = " Selections to print:\n"
 	iMenu += cya + "\tpr"+res+" -"+yel+" Push rets\t\t\t"+res+"[" 
 	iMenu += cya + "x" + res if bpPushRet else " "
@@ -183,6 +183,9 @@ def displayCurrentSelections(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven
 	iMenu += cya + "\tfd"+res+" -"+yel+" Find disassembly\t\t"+res+"["
 	iMenu += cya + "x" + res if bDisass else " "
 	iMenu += res +"]\n" 
+	iMenu += cya + "\tpm"+res+" -"+yel+" print emulation\t\t"+res+"["
+	iMenu += cya + "x" + res if bPrintEmulation else " "
+	iMenu += res +"]\n"
 	iMenu += cya + "\tall"+res+" -"+yel+" All selections\t\t"+res+"["
 	iMenu += cya + "x" + res if bpAll else " "
 
@@ -261,7 +264,7 @@ def cpTechMenu(maxDistance):
 
 # def displayCurrentSelections(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisass, bpAll): #Displays current print selections
 
-def printMenu(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bExportAll, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisass, bpAll,outDir, p2screen=None):
+def printMenu(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bExportAll, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisass, bpAll,outDir, emulation_verbose, emulation_multiline, bPrintEmulation, p2screen=None):
 	
 
 	if p2screen:
@@ -269,10 +272,16 @@ def printMenu(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bExpor
 	else:
 		p2screen = " "
 
-	iMenu=displayCurrentSelections(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisass, bpAll)
+	iMenu=displayCurrentSelections(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bpStrings, bpEvilImports, bpModules, bpPushStrings, bDisass, bPrintEmulation,bpAll)
 
 	iMenu += " {} {} \t\t[".format(gre + "j"+ res, whi + "- Export all to JSON." + res)
 	iMenu += cya + "x" + res if bExportAll else " "
+	iMenu += "]\n"
+	iMenu += " {} {} \t\t[".format(gre + "e"+ res, whi + "- Emulation verbose mode." + res)
+	iMenu += cya + "x" + res if emulation_verbose else " "
+	iMenu += "]\n"
+	iMenu += " {} {} \t[".format(gre + "m"+ res, whi + "- Emulation multiline format." + res)
+	iMenu += cya + "x" + res if emulation_multiline else " "
 	iMenu += "]\n"
 	iMenu += " {} {} \t\t\t[{}]\n".format(gre + "p" + res, whi + "- Print to screen" + res, cya + p2screen + res)
 	# iMenu += " {} {} \t\t{}\n".format(gre + "d" + res, whi + "- Change output directory" + res, cya + outDir + res)
