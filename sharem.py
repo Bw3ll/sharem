@@ -250,7 +250,7 @@ bytesBack = 15
 # FindStringsStatus=False
 unencryptedShell=0x0
 decoderShell=0x1
-unecryptedBodyShell=0x3
+unencryptedBodyShell=0x3
 sample=0x4
 allObject=0x5
 gDirectory="" # #used to hold original directory --immutable 
@@ -902,7 +902,7 @@ class shellcode:
 		self.original=rawData # original rawdata2    #0
 		# self.id = 0    # tells which one rawData2 is 
 		self.decryptSuccess=False
-		self.unknownDecoderStub=False
+		self.hasDecoderStub=False
 		self.isEncoded = False
 
 	def setRawData2(self, rawData):
@@ -924,9 +924,9 @@ class shellcode:
 	def isDecrypted(self):
 		return self.decryptSuccess
 	def hasDecStub(self):
-		return self.decryptSuccess
+		return self.hasDecoderStub
 	def isEncoded(self):
-		return self.notEncoded
+		return self.isEncoded
 	# def id():
 		# return self.id
 	# def giveTypeText():
@@ -979,7 +979,7 @@ class shellHash:
 		elif mode==decoderShell:
 			self.decoderStubMd5=md5
 			# print ("self.decoderStubMd5", self.decoderStubMd5)
-		elif mode==unecryptedBodyShell:
+		elif mode==unencryptedBodyShell:
 			self.unecryptedBodyMd5=md5
 			# print ("self.unecryptedBodyMd5", self.unecryptedBodyMd5)
 
@@ -994,7 +994,7 @@ class shellHash:
 		elif mode==decoderShell:
 			self.decoderStubSha256=sha256
 			# print ("self.decoderStubSha256", self.decoderStubSha256)
-		elif mode==unecryptedBodyShell:
+		elif mode==unencryptedBodyShell:
 			self.unecryptedBodySha256=sha256
 			# print ("self.unecryptedBodySha256", self.unecryptedBodySha256)
 			
@@ -1009,7 +1009,7 @@ class shellHash:
 		elif mode==decoderShell:
 			self.decoderStubSsdeep=ssdeepHash
 			# print ("self.decoderStubSsdeep", self.decoderStubSsdeep)
-		elif mode==unecryptedBodyShell:
+		elif mode==unencryptedBodyShell:
 			self.unecryptedBodySsdeep=ssdeepHash
 			# print ("self.unecryptedBodySsdeep", self.unecryptedBodySsdeep)
 
@@ -1020,7 +1020,7 @@ class shellHash:
 			out+=yel+ "\tmd5: " +res +self.md5 + "\n"
 			out+=yel+ "\tsha256: " +res+ self.sha256+ "\n"
 			out+=yel+ "\tssdeep: "+res + self.ssdeep+ "\n"
-		elif mode==unecryptedBodyShell:
+		elif mode==unencryptedBodyShell:
 			out="Decoded shellcode body hashes\n"
 			out+=yel+ "\tmd5: " +res+ self.unecryptedBodyMd5 + "\n"
 			out+=yel+ "\tsha256: " +res+ self.unecryptedBodySha256+ "\n"
@@ -2770,10 +2770,10 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 
 		if mode=="decrypt":
 			dprint2 ("decrypt returning")
-			dprint2 (address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, loadModList_offset, advanceDLL_Offset)
-			return address , NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, loadModList_offset, advanceDLL_Offset
-		#print("Adding item #" + str(len(m[o].save_PEB_info)))
-		# print("saving at sec num = " + str(secNum))
+			dprint2 (address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, (loadModList_offset, listEntryText	), advanceDLL_Offset)
+			return address , NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, (loadModList_offset, listEntryText	), advanceDLL_Offset
+		# print("SAVING PEB SEQUENCE: PEBPOINTS = ", pebPoints, "FOUND ", points, " POINTS")
+		# print(disString)
 		saveBasePEBWalk(address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, (loadModList_offset, listEntryText	), advanceDLL_Offset)
 
 		# if(rawHex):
@@ -10532,7 +10532,7 @@ def AustinTesting2():
 	# austinEncodeDecodeWork("daltonShell2.txt", ["^", "^", "-", "+"])
 	# austinEncodeDecodeWork("daltonShell2.txt", ["^", "^", "-"])
 
-	decryptShellcode(encoded, ["^", "^", "-"], distributed = False, findAll = False, cpuCount = 32, fastMode = False, outputFile = True )
+	decryptShellcode(encoded, ["^", "^", "-"], distributed = False, findAll = False, cpuCount = 32, fastMode = False, outputFile = True,)
 	stop = timeit.default_timer()
 	print("Total time AUSTIN: " + str(stop - start))
 	# rawBytes=readShellcode(shellArg) 
@@ -13172,10 +13172,10 @@ def takeBytes(shellBytes,startingAddress, silent=None):
 
 	# printAllsBy()
 	# print ("printing final\n")
-	allowPrint()
+	# allowPrint()
 	colorama.init()
 	disassembly=createDisassemblyLists(shellBytes, silent)
-	dontPrint()
+	# dontPrint()
 	t=0
 	# if debugging:
 	# 	for x,y, mnemonic, op_str in zip(l1, l2, tempMnemonic, tempOp_str):
@@ -14749,6 +14749,11 @@ def bramwellEncodeDecodeWork(shellArg):
 	# set bools in shellcode obj appropriately
 	# change analyzedecoder stubs to determine WHETHER it has a decoderstub DONE
 	# check w/ bramwell about automation of brute force + checking for success on other things than peb like callpop, ftsenv, etc
+	# for decrypt, covert pebpoints to 3 if below and ask for confirmation
+	# analyzedecoderstubs -- need to check if ops or nums are empty -- split find/analyze into 2 func?
+	# 		try all values if ops but no values
+	# email ip regex to jacob
+	# fix some formatting/wording on decoder stub
 
 #done
 ############## output file complete for decrypt stuff -- still needs formatting maybe
@@ -14763,9 +14768,16 @@ def bramwellEncodeDecodeWork(shellArg):
 ############## various decrypt bug fixes
 ############## fixed testing function for decrypt for accurate
 ############## 
+############## added ability to change sensitivity of decrypt match to prevent false positives
+############## changed analyzedecoderstubs to try to detect whether a stub exists or not -- prone to false positives however 
+############## analyzedecoderstubs also splits up into stub and body if found
+############## when shellcode is decoded a new module is set and appropriate properties of the shellcode class is also set
+############## hashes are generated of encoded/decoded shell
+############## took out setting for number of nodes for distributed, now autofinds
+############## distributed mode sanity checks given IPs and rejects invalid ipv4s with a warning
+############## 
 
-
-def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = False, distributed = False, cpuCount = "auto", nodesFile = "nodes.txt", outputFile = True, mode = "default", stubParams = ([],[]), listComp = False):
+def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = False, distributed = False, cpuCount = "auto", nodesFile = "nodes.txt", outputFile = True, mode = "default", stubParams = ([],[]), listComp = False, successPoints = pebPoints):
 
 	global shellEntry
 	global decodedBytes	
@@ -14827,7 +14839,7 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 			# run decoding func
 			numNodes = len(nodeIPs)
 			# print("setting numNodes = ", numNodes)
-			decodeInfo = doDistr(decodeOps, encodedShell, numNodes, nodeIPs, findAll = findAll)
+			decodeInfo = doDistr(decodeOps, encodedShell, numNodes, nodeIPs, findAll = findAll, successPoints = successPoints)
 
 			if(fastMode):
 				# to get full decrypted shellcode we need to do a single pass with full encodedShell using correct vals we found during fastmode run
@@ -14839,7 +14851,7 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 				# print("GOT SINGLEVALS = ", singleVals)
 				# print("GOT ORDER = ", order)
 
-				outputs,earlyFinish,startVals = austinDecode(decodeOps, originalEncoded	, findAll = findAll, mode = "single", starts = singleVals, order = order)
+				outputs,earlyFinish,startVals = austinDecode(decodeOps, originalEncoded	, findAll = findAll, mode = "single", starts = singleVals, order = order, successPoints = successPoints)
 				decodeInfo = outputs
 				#parse returned data structure
 				
@@ -14930,7 +14942,7 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 	# non-distributed
 	elif(mode == "stub"):
 		if(opsLen >= 1 and opsLen <= 5):
-			outputs,earlyFinish,startVals = austinDecode(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount, mode = "stub", stubParams = stubParams)
+			outputs,earlyFinish,startVals = austinDecode(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount, mode = "stub", stubParams = stubParams, successPoints	= successPoints	)
 			decodeInfo = outputs
 
 			for item in decodeInfo:
@@ -14974,10 +14986,10 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 	else:
 		if(opsLen >= 1 and opsLen <= 5):
 			if(listComp):
-				outputs,earlyFinish,startVals = austinListComp(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount)
+				outputs,earlyFinish,startVals = austinListComp(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount, successPoints = successPoints)
 				decodeInfo = outputs
 			else:
-				outputs,earlyFinish,startVals = austinDecode(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount)
+				outputs,earlyFinish,startVals = austinDecode(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount, successPoints = successPoints)
 				decodeInfo = outputs
 
 			# print("DECODEINFO MANUAL ATTEMPT")
@@ -15001,7 +15013,7 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 					# for val in item[2]:
 					# 	singleVals.append(val)
 					#only save the first output of decode -- it won't end early and startvals doesn't matter either
-					outputs,earlyFinish,startVals = austinDecode(decodeOps, originalEncoded	, findAll = findAll, mode = "single", starts = singleVals, order = order)
+					outputs,earlyFinish,startVals = austinDecode(decodeOps, originalEncoded	, findAll = findAll, mode = "single", starts = singleVals, order = order, successPoints	= successPoints)
 					#parse returned data structure
 					decodeInfo = outputs	
 
@@ -15068,9 +15080,15 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 	if(len(decodeInfo) > 0):
 		sh.setDecodedBody(decodedBytes)
 		sh.decryptSuccess = True
-		hashShellcode(decodedBytes, unencryptedShell)
+		if(mode == "stub"):
+			hashShellcode(decodedBytes, unencryptedBodyShell)
+		else:
+			hashShellcode(decodedBytes, unencryptedShell)
 		#create newModule for decrypted shellcode
 		newModule(shDec, decodedBytes)
+		o = shDec
+		print("Setting default to decoded shellcode...")
+
 
 		if(outputFile):
 			disassembly, assemblyBytes=takeBytes(decodedBytes, shellEntry)
@@ -15416,6 +15434,43 @@ def printDecryptHelpUI():
 
 	
 
+def toggleDecodedModule():
+	global sh
+	global o
+	global m
+
+
+	# hashShellcodeTestShow2()
+
+	if(sh == None or sh.decryptSuccess == False):
+		print("No shellcode has been decoded. To decode an obfuscated shellcode, use the \"b - Brute-force deobfuscation of shellcode.\" option.")
+		# print("o = <<<", o,">>>")
+	else:
+		if(o == shOrg):
+			print("Currently performing operations on obfuscated shellcode. Switch to deobfuscated shellcode?")
+			# print("o = <<<", o,">>>")
+			while(True):
+				userAns = input(" y/n>")
+				if(userAns == "y" or userAns == "Y"):
+					print("Switching to deobfuscated shellcode...")
+					o = shDec
+					return
+				elif(userAns == "n" or userAns == "N"):
+					return
+		elif (o == shDec):
+			print("Currently performing operations on deobfuscated shellcode. Switch back to obfuscated shellcode?")
+			# print("o = <<<", o,">>>")
+			while(True):
+				userAns = input("y/n>")
+				if(userAns == "y" or userAns == "Y"):
+					print("Switching to obfuscated shellcode...")
+					o = shOrg
+					return
+				elif(userAns == "n" or userAns == "N"):
+					return
+
+
+
 #stubEnd goes to end of file by default
 #returns: 1. list of detected values | 2. list of detected operations | 3. offset for the end of the decoder stub portion 
 def analyzeDecoderStubs(shellArg="default", entryPoint = 0, stubEnd = -1):
@@ -15468,12 +15523,13 @@ def analyzeDecoderStubs(shellArg="default", entryPoint = 0, stubEnd = -1):
 
 
 		# print("checking this one: ", i.op_str)
+		#
 		numeric = re.search("(0x)?([0-9a-f]+)$", i.op_str, re.IGNORECASE)
-		bad = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(int)|(retf)|(db)|(hlt)|(loop)|(ret)|(leave)|(int3)|(insd)|(enter)|(jns))", i.mnemonic, re.M|re.I)
+		isLoop = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(loop)|(jns))", i.mnemonic, re.M|re.I)
 		
-		if(numeric and not bad):
+		if(numeric and not isLoop):
 			numVals.append(numeric.group())
-		elif(bad):
+		elif(isLoop):
 			print("Decoder disasm: ")
 			print(disString)
 			#return if we hit a jump -- this is probably the loop portion of our stub
@@ -17145,6 +17201,10 @@ def ui(): #UI menu loop
 
 			elif(re.match("^b$", userIN)):
 				decryptUI()
+
+			elif userIN[0:1] == "U":                  
+				toggleDecodedModule()
+
 			elif userIN[0:1] == "a":	# "change architecture, 32-bit or 64-bit"
 				uiBits()
 				initSysCallSelect()
@@ -18717,10 +18777,10 @@ def hashShellcode(shell=None, mode=None):
 		shHash.setSha256(sha256, decoderShell)
 		shHash.setSsdeep(ssdeepHash, decoderShell)
 		shHash.setMd5(md5sum, decoderShell)
-	if mode == unecryptedBodyShell:
-		shHash.setMd5(md5sum, unecryptedBodyShell)
-		shHash.setSha256(sha256, unecryptedBodyShell)
-		shHash.setSsdeep(ssdeepHash, unecryptedBodyShell)
+	if mode == unencryptedBodyShell:
+		shHash.setMd5(md5sum, unencryptedBodyShell)
+		shHash.setSha256(sha256, unencryptedBodyShell)
+		shHash.setSsdeep(ssdeepHash, unencryptedBodyShell)
 	if shell == None and (mode == allObject or mode == None ):		
 		ssdeepHash = ssdeep.hash(m[o].rawData2)
 		md5sum=(hashlib.md5(m[o].rawData2).hexdigest())
@@ -18746,9 +18806,9 @@ def hashShellcode(shell=None, mode=None):
 		ssdeepHash = ssdeep.hash(sh.decodedBody)
 		md5sum=(hashlib.md5(sh.decodedBody).hexdigest())
 		sha256=(hashlib.sha256(sh.decodedBody).hexdigest())
-		shHash.setMd5(md5sum, unecryptedBodyShell)
-		shHash.setSha256(sha256, unecryptedBodyShell)
-		shHash.setSsdeep(ssdeepHash, unecryptedBodyShell)
+		shHash.setMd5(md5sum, unencryptedBodyShell)
+		shHash.setSha256(sha256, unencryptedBodyShell)
+		shHash.setSsdeep(ssdeepHash, unencryptedBodyShell)
 
 def hashShellcodeTestShow(mode=None):
 	if mode==sample:
@@ -18757,13 +18817,49 @@ def hashShellcodeTestShow(mode=None):
 		print(shHash.show(unencryptedShell))
 	if mode == decoderShell:
 		print(shHash.show(decoderShell))
-	if mode == unecryptedBodyShell:
-		print(shHash.show(unecryptedBodyShell))
+	if mode == unencryptedBodyShell:
+		print(shHash.show(unencryptedBodyShell))
 	if mode == None:		
 		print(shHash.show())
 		print(shHash.show(unencryptedShell))
 		print(shHash.show(decoderShell))
-		print(shHash.show(unecryptedBodyShell))
+		print(shHash.show(unencryptedBodyShell))
+
+def hashShellcodeTestShow2(mode=None):
+	if mode==sample:
+		print(shHash.show())
+	if mode == unencryptedShell:
+		print(shHash.show(unencryptedShell))
+	if mode == decoderShell:
+		print(shHash.show(decoderShell))
+	if mode == unencryptedBodyShell:
+		print(shHash.show(unencryptedBodyShell))
+	if mode == None:	
+		try:	
+			print(shHash.show())
+		except Exception as e:
+			print(e)
+			pass
+
+		try:	
+			print(shHash.show(unencryptedShell))
+		except Exception as e:
+			print(e)
+		pass
+
+		try:	
+			print(shHash.show(decoderShell))
+		except Exception as e:
+			print(e)
+		pass
+
+		try:	
+			print(shHash.show(unencryptedBodyShell))
+		except Exception as e:
+			print(e)
+		pass
+		
+
 
 def useMd5asFilename():
 	global useHash
@@ -18952,10 +19048,10 @@ def clearInstructions(): 	#Clears
 		m[o].save_Callpop_info.clear()
 		m[o].save_PushRet_info.clear()
 		# o+= 1
-	s.clear()
+	# s.clear()
 	# print("S --> after clear", s)
-	m.clear()
-	sections.clear()
+	# m.clear()
+	# sections.clear()
 
 	clearFoundBooleans()
 
@@ -20959,9 +21055,9 @@ if __name__ == "__main__":
 
 
 			print ("results")
-			hashShellcode(m[o].rawData2, unecryptedBodyShell)   ## options (None, unecryptedBodyShell,unencryptedShell, decoderShell )
+			hashShellcode(m[o].rawData2, unencryptedBodyShell)   ## options (None, unencryptedBodyShell,unencryptedShell, decoderShell )
 
-			hashShellcodeTestShow(unecryptedBodyShell)  ## options (None, unecryptedBodyShell,unencryptedShell, decoderShell )
+			hashShellcodeTestShow(unencryptedBodyShell)  ## options (None, unencryptedBodyShell,unencryptedShell, decoderShell )
 
 			X86_CODE32_LOOP = b"\x41\x4a\xeb\xfe"
 			X86_CODE32 = b"\x41\x4a\x66\x0f\xef\xc1" # INC ecx; DEC edx; PXOR xmm0, xmm1
@@ -20979,17 +21075,17 @@ if __name__ == "__main__":
 			sh.setDecoded(X86_CODE32_JUMP)
 			print (binaryToStr(sh.unencrypted))
 
-			hashShellcode()   ## options (sample, unecryptedBodyShell,unencryptedShell, decoderShell )
+			hashShellcode()   ## options (sample, unencryptedBodyShell,unencryptedShell, decoderShell )
 
-			hashShellcodeTestShow(sample)  ## options (sample, unecryptedBodyShell,unencryptedShell, decoderShell )
+			hashShellcodeTestShow(sample)  ## options (sample, unencryptedBodyShell,unencryptedShell, decoderShell )
 			print ("\n\n")
-			hashShellcodeTestShow(unecryptedBodyShell)  ## options (sample, unecryptedBodyShell,unencryptedShell, decoderShell )
+			hashShellcodeTestShow(unencryptedBodyShell)  ## options (sample, unencryptedBodyShell,unencryptedShell, decoderShell )
 			print ("\n\n")
-			hashShellcodeTestShow(unencryptedShell)  ## options (sample, unecryptedBodyShell,unencryptedShell, decoderShell )
+			hashShellcodeTestShow(unencryptedShell)  ## options (sample, unencryptedBodyShell,unencryptedShell, decoderShell )
 			print ("\n\n")
-			hashShellcodeTestShow(decoderShell)  ## options (sample, unecryptedBodyShell,unencryptedShell, decoderShell )
+			hashShellcodeTestShow(decoderShell)  ## options (sample, unencryptedBodyShell,unencryptedShell, decoderShell )
 			print ("\n\n")
-			hashShellcodeTestShow()  ## options (sample, unecryptedBodyShell,unencryptedShell, decoderShell )
+			hashShellcodeTestShow()  ## options (sample, unencryptedBodyShell,unencryptedShell, decoderShell )
 
 		if yes == 3:
 			bramwellEncodeDecodeWork(filename)

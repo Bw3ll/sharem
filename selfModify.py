@@ -14,6 +14,8 @@ import lists
 from capstone import *
 import capstone
 
+pebPoints = 3
+
 def get_PEB_walk_start_decode(mode, NumOpsDis ,bytesToMatch, secNum, data2): 
 	#change to work off of data2 - add param - get rid of secNum
 	global o
@@ -198,7 +200,7 @@ def disherePEB_decrypt(mode, address, NumOpsDis, secNum, data): ############ AUS
 	stop = timeit.default_timer()
 	# print("Time PEB: " + str(stop - start))
 
-	if(points >= 2):
+	if(points >= pebPoints):
 
 		modSecName = "shellcode"
 
@@ -1416,7 +1418,7 @@ def block_size(id, p, n):
 #		  False if you only want to find one
 #stubParams: when being run after analyzing decoder stub, first list in stubParams tuple should be all detected values. The second should be the list of desired operations to try.
 
-def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], findAll = False, cpuCount = "auto", stubParams = ([],[])):
+def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], findAll = False, cpuCount = "auto", stubParams = ([],[]), successPoints = 3):
 # def austinDecode(*args): asdf
 	global aLimit
 	global bLimit
@@ -1436,7 +1438,9 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], f
 	global gValue
 	global hValue
 	global iValue
+	global pebPoints
 
+	pebPoints = successPoints
 
 	# print("austinDecode")
 	u=0
@@ -3923,7 +3927,7 @@ def austinListComp(decodeOps, sample, mode = "default", starts = [], order = [],
 
 
 
-def doDistr(decodeOps, sample, numNodes, nodeIPs, mode = "default", starts = [], order = [], findAll = False):
+def doDistr(decodeOps, sample, numNodes, nodeIPs, mode = "default", starts = [], order = [], findAll = False, successPoints = 3):
     final = []
     finalOutput = []
     # print("in distr")
@@ -3934,7 +3938,7 @@ def doDistr(decodeOps, sample, numNodes, nodeIPs, mode = "default", starts = [],
         print('starting jobs...')
         # schedule execution of 'compute' on a node (running 'dispynode')
         # with a parameter (random number in this case)
-        job = cluster.submit(decodeOps, sample, numNodes, i, mode, starts, order, findAll)
+        job = cluster.submit(decodeOps, sample, numNodes, i, mode, starts, order, findAll, successPoints)
         jobs.append(job)
     # cluster.wait() # wait for all scheduled jobs to finish
     
@@ -4450,7 +4454,7 @@ def austinDecodeDistributed_old(*args):
 	return (out, early, startVals)
 
 
-def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "default", starts = [], order = [], findAll = False):
+def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "default", starts = [], order = [], findAll = False, successPoints = 3):
 	try:
 			import re
 			import itertools
@@ -4712,7 +4716,7 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 						if(curPerm > listLimit):
 							early = True
 							# print("RUNNING PROCS")
-							rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, findAll = findAll, version = 1)
+							rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, successPoints = successPoints,  findAll = findAll, version = 1)
 							
 							if(len(rpOut) > 0):
 								out = out + rpOut[0]
@@ -4735,7 +4739,7 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 					printOut += ("BOTTOM NODE ID = " + str(nodeID)) + "\n"
 					printOut += ("BOTTOM BLOCK LOW = " + str(block_low(nodeID, nodes, len(encodeBytes4)))) + "\n"
 					printOut += ("BOTTOM BLOCK HIGH = " + str(block_high(nodeID, nodes, len(encodeBytes4)))) + "\n"
-					rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, findAll = findAll, version = 1)
+					rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, successPoints = successPoints,  findAll = findAll, version = 1)
 					
 					if(len(rpOut) > 0):
 						out = out + rpOut[0]
@@ -4752,7 +4756,7 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 							if(curPerm > listLimit):
 								early = True
 								# print("RUNNING PROCS")
-								rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, findAll = findAll, version = 2)
+								rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, successPoints = successPoints,  findAll = findAll, version = 2)
 								
 								if(len(rpOut) > 0):
 									out = out + rpOut[0]
@@ -4778,7 +4782,7 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 					printOut += ("BOTTOM NODE ID = " + str(nodeID)) + "\n"
 					printOut += ("BOTTOM BLOCK LOW = " + str(block_low(nodeID, nodes, len(encodeBytes4)))) + "\n"
 					printOut += ("BOTTOM BLOCK HIGH = " + str(block_high(nodeID, nodes, len(encodeBytes4)))) + "\n"
-					rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, findAll = findAll, version = 2)
+					rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, successPoints = successPoints,  findAll = findAll, version = 2)
 					
 					if(len(rpOut) > 0):
 						out = out + rpOut[0]
@@ -4797,7 +4801,7 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 								if(curPerm > listLimit):
 									early = True
 									# print("RUNNING PROCS")
-									rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, findAll = findAll)
+									rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, successPoints = successPoints,  findAll = findAll)
 									
 									if(len(rpOut) > 0):
 										out = out + rpOut[0]
@@ -4826,7 +4830,7 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 					printOut += ("BOTTOM NODE ID = " + str(nodeID)) + "\n"
 					printOut += ("BOTTOM BLOCK LOW = " + str(block_low(nodeID, nodes, len(encodeBytes4)))) + "\n"
 					printOut += ("BOTTOM BLOCK HIGH = " + str(block_high(nodeID, nodes, len(encodeBytes4)))) + "\n"
-					rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, findAll = findAll)
+					rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, successPoints = successPoints,  findAll = findAll)
 					
 					if(len(rpOut) > 0):
 						out = out + rpOut[0]
@@ -4845,7 +4849,7 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 									if(curPerm > listLimit):
 										early = True
 										# print("RUNNING PROCS")
-										rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, findAll = findAll, version = 4)
+										rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, successPoints = successPoints,  findAll = findAll, version = 4)
 										
 										if(len(rpOut) > 0):
 											out = out + rpOut[0]
@@ -4877,7 +4881,7 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 						printOut += ("BOTTOM NODE ID = " + str(nodeID)) + "\n"
 						printOut += ("BOTTOM BLOCK LOW = " + str(block_low(nodeID, nodes, len(encodeBytes4)))) + "\n"
 						printOut += ("BOTTOM BLOCK HIGH = " + str(block_high(nodeID, nodes, len(encodeBytes4)))) + "\n"
-						rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, findAll = findAll, version = 4)
+						rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, successPoints = successPoints,  findAll = findAll, version = 4)
 						
 						if(len(rpOut) > 0):
 							out = out + rpOut[0]
@@ -4896,7 +4900,7 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 										if(curPerm > listLimit):
 											early = True
 											# print("RUNNING PROCS")
-											rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, findAll = findAll, version = 5)
+											rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, successPoints = successPoints,  findAll = findAll, version = 5)
 											
 											if(len(rpOut) > 0):
 												out = out + rpOut[0]
@@ -4931,7 +4935,7 @@ def austinDecodeDistributed_new(decodeOps, sample, nodes, nodeID, mode = "defaul
 						printOut += ("BOTTOM NODE ID = " + str(nodeID)) + "\n"
 						printOut += ("BOTTOM BLOCK LOW = " + str(block_low(nodeID, nodes, len(encodeBytes4)))) + "\n"
 						printOut += ("BOTTOM BLOCK HIGH = " + str(block_high(nodeID, nodes, len(encodeBytes4)))) + "\n"
-						rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, findAll = findAll, version = 5)
+						rpOut = runProcsDistr(encodeBytes4[block_low(nodeID, nodes, len(encodeBytes4)): block_high(nodeID, nodes, len(encodeBytes4))], sample, numThreads, successPoints = successPoints,  findAll = findAll, version = 5)
 						
 						if(len(rpOut) > 0):
 							out = out + rpOut[0]
@@ -5553,7 +5557,7 @@ def runProcs(encodeBytes4, sample, numThreads, version = 3, findAll = False):
 			# print(rets)
 			return rets, endFlag.value
 
-def runProcsDistr(encodeBytes4, sample, numThreads, version = 3, findAll = False):
+def runProcsDistr(encodeBytes4, sample, numThreads, version = 3, findAll = False, successPoints	= 3):
 			from distrFunc import p2EncodeDistr, doStuffP2Distr, doStuffP24Distr, doStuffP25Distr, doStuffP22Distr, doStuffP21Distr
 			endFlag = multiprocessing.Value('i', 0)
 	# if __name__ == '__main__':
@@ -5579,7 +5583,7 @@ def runProcsDistr(encodeBytes4, sample, numThreads, version = 3, findAll = False
 				# print(block_low(rank, numThreads, argsLen))
 				# print("HIGH BLOCK")
 				# print(block_high(rank, numThreads, argsLen))
-				processList.append(multiprocessing.Process(target=p2EncodeDistr, args = (block_low(rank, numThreads, argsLen), block_high(rank, numThreads, argsLen), encodeBytes4, sample, rank, queue, version, endFlag, findAll)))
+				processList.append(multiprocessing.Process(target=p2EncodeDistr, args = (block_low(rank, numThreads, argsLen), block_high(rank, numThreads, argsLen), encodeBytes4, sample, rank, queue, version, endFlag, findAll, successPoints)))
 
 
 			for proc in processList:

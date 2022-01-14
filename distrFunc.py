@@ -13,12 +13,14 @@ import lists
 # from capstone import *
 # from selfModify import findAllPebSequences_decode	
 
-
+pebPoints = 3
 
 def get_PEB_walk_start_decodeDistr(mode, NumOpsDis ,bytesToMatch, secNum, data2): 
 	#change to work off of data2 - add param - get rid of secNum
 
 	global o
+
+
 	foundCount = 0
 	numOps = NumOpsDis
 
@@ -61,6 +63,7 @@ def disHerePEB_decodeDistr(mode, address, NumOpsDis, secNum, data): ############
 	import capstone
 	# print ("disHerePEB", mode)
 	global o
+	global pebPoints
 	w=0
 
 	start = timeit.default_timer()
@@ -201,7 +204,7 @@ def disHerePEB_decodeDistr(mode, address, NumOpsDis, secNum, data): ############
 	stop = timeit.default_timer()
 	# print("Time PEB: " + str(stop - start))
 
-	if(points >= 2):
+	if(points >= pebPoints):
 
 		modSecName = "shellcode"
 
@@ -228,7 +231,9 @@ def findAllPebSequences_decodeDistr(mode, inputBytes): ################## AUSTIN
 
 
 
-def p2EncodeDistr(low, high, encodeBytes4, sample, rank, queue, version, endFlag, findAll = False):
+def p2EncodeDistr(low, high, encodeBytes4, sample, rank, queue, version, endFlag, findAll = False, successPoints = 3):
+	global pebPoints
+	pebPoints = successPoints
 
 	outs = []
 	# if(version == 3):

@@ -80,6 +80,7 @@ def showOptions(shellBit, rawHex, name,hMd5):
    ?		{}
    p		{}
    b		{}
+   U		{}
    q		{}
    k		{}
    m		{}
@@ -97,6 +98,7 @@ def showOptions(shellBit, rawHex, name,hMd5):
 				res+ "Shellcode Emulator"+cya, 
 				res+"Print menu."+cya,
 				res+"Brute-force deobfuscation of shellcode." +cya,
+				res+"Toggle between actions on obfuscated/deobfuscated shellcode." +cya,
 				res+"Quick find all."+cya,
 				res+"Find strings."+cya,
 				res+"Find modules in the IAT and beyond."+cya,
