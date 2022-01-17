@@ -185,7 +185,7 @@ def displayCurrentSelections(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven
 	iMenu += cya + "\tfd"+res+" -"+yel+" Find disassembly\t\t"+res+"["
 	iMenu += cya + "x" + res if bDisass else " "
 	iMenu += res +"]\n" 
-	iMenu += cya + "\tpm"+res+" -"+yel+" print emulation\t\t"+res+"["
+	iMenu += cya + "\tem"+res+" -"+yel+" print emulation\t\t"+res+"["
 	iMenu += cya + "x" + res if bPrintEmulation else " "
 	iMenu += res +"]\n"
 	iMenu += cya + "\tall"+res+" -"+yel+" All selections\t\t"+res+"["

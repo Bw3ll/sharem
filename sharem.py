@@ -18410,20 +18410,8 @@ def uiPrint(): 	#Print instructions
 	global bpStrings
 	global bpPushStrings
 	global bpModules
-	
 	global bpEvilImports
-	
-	
 	global bDisassembly
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	global syscallSelection
 	global shellbit
 	global bpAll
@@ -18489,8 +18477,8 @@ def uiPrint(): 	#Print instructions
 			if bpModules and mBool[o].bModulesFound and p2screen:
 				print(cya + "\n\n*******\nModules\n*******\n\n" + res)
 				print(giveLoadedModules("save"))
-			print ("bpstrings",bpStrings)
-			print ("p2screen", p2screen)
+			# print ("bpstrings",bpStrings)
+			# print ("p2screen", p2screen)
 			if bpStrings and p2screen:
 				uiPrintStrings(mBool[o].bStringsFound)
 			if bpPushStrings and p2screen:
@@ -18600,7 +18588,7 @@ def uiPrint(): 	#Print instructions
 				bLM = re.search("( |,|^)lm( |,|$)", printSelectIn, re.IGNORECASE)
 				bIM = re.search("( |,|^)im( |,|$)", printSelectIn, re.IGNORECASE)
 				bFD = re.search("( |,|^)FD( |,|$)", printSelectIn, re.IGNORECASE)
-				bPM = re.search("( |,|^)PM( |,|$)", printSelectIn, re.IGNORECASE)
+				bPM = re.search("( |,|^)EM( |,|$)", printSelectIn, re.IGNORECASE)
 
 				print("\n")
 				if bFD:
@@ -19688,7 +19676,7 @@ def emulation_txt_out():
 	global bPrintEmulation
 
 	sample = [('WinExec', '0x123123', '0x20', 'INT', ['cmd.exe /c ping google.com > C:\\result.txt', '0x5'], ['LPCSTR', 'UINT'], ['lpCmdLine', 'uCmdShow'], False), ('EncyptFileA', '0x321321', '0x20', 'INT', ['C:\\result.txt'], ['LPCSTR'], ['lpFileName'], False),
-('LoadLibraryA', '0x1337c0de', '0x45664c88', 'HINSTANCE', ['user32.dll'], ['LPCTSTR'], ['lpLibFileName'], False),('MessageBoxA', '0xdeadc0de', '0x20', 'INT', ['0x987987', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', '0x0'], ['HWND', 'LPCSTR', 'LPCSTR', 'UINT'], ['hWnd', 'lpText', 'lpCaption', 'uType'], False)]
+('LoadLibraryA', '0x1337c0de', '0x45664c88', 'HINSTANCE', ['user32.dll'], ['LPCTSTR'], ['lpLibFileName'], False),('MessageBoxA', '0xdeadc0de', '0x20', 'INT', ['0x987987', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', '0x0'], ['HWND', 'LPCSTR', 'LPCSTR', 'UINT'], ['hWnd', 'lpText', 'lpCaption', 'uType'], True)]
 	
 
 	api_names = []
@@ -19698,7 +19686,7 @@ def emulation_txt_out():
 	api_address = []
 	ret_values = []
 	ret_type = []
-
+	api_bruteforce = False
 
 	for i in sample:
 		api_names.append(i[0])
@@ -19708,6 +19696,7 @@ def emulation_txt_out():
 		api_params_values.append(i[4])
 		api_params_types.append(i[5])
 		api_params_names.append(i[6])
+		api_bruteforce = i[7]
 
 	api_par_bundle = []
 	# for v, t in zip(api_params_types[0], api_params_types[0]):
@@ -19759,7 +19748,7 @@ def emulation_txt_out():
 			txt_output += '{} {}{}\n'.format(gre + offset + res, yel + apName+ res, cya + "("+res + joinedBundclr + cya +")"+res) # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
 			no_colors_out += '{} {}({})\n'.format(offset , apName, joinedBund)
 		else:
-			txt_output += '{} {}{}: {}\n'.format(gre + offset + res, yel + apName+ res, cya + "("+res + joinedBundclr +cya +")"+res , red + retBundle + res) # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
+			txt_output += '{} {}{} {}{}\n'.format(gre + offset + res, yel + apName+ res, cya + "("+res + joinedBundclr +cya +")"+res , cya + "Ret: "+res,red + retBundle + res) # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
 			no_colors_out += '{} {}({}): {}\n'.format(offset , apName, joinedBund, retBundle)
 
 
@@ -19773,7 +19762,11 @@ def emulation_txt_out():
 			# 	no_colors_out += '\t{}: {}\n'.format(p, val)
 			# txt_output += "\n"
 			# no_colors_out += "\n"
-			txt_output += "\t{} {}\n\n".format( red + "Return:"+res, retBundle)
+			txt_output += "\t{} {}\n".format( red + "Return:"+res, retBundle)
+			if api_bruteforce:
+				txt_output += "\t{}\n\n".format( whi + "Brute-forced"+res,)
+			else:
+				txt_output+= "\n"
 
 			no_colors_out += "\t{} {}\n\n".format( "Return:", retVal)
 
@@ -20197,14 +20190,6 @@ def formatPrint(i, add4, addb, pe=False, syscall=False):
 
 def generateOutputData(): #Generate the dictionary for json out
 	
-	
-	
-	
-	
-	
-	
-	
-	
 	global shellBit
 	global rawHex
 	global brawHex
@@ -20254,6 +20239,8 @@ def generateOutputData(): #Generate the dictionary for json out
 	jsonData['shellcode'] = {'rawhex':brawHex,
 							 'strlit':bstrLit 
 							}
+	if rawHex:
+		jsonData['decoded_stub'] = ''
 
 	jsonData['emulation'] = emulation_json_out()
 

@@ -1,0 +1,614 @@
+Filename: push6.exe
+File Type: PE
+Architecture: 32-bit
+Date Analyzed: 2022-01-14 12:06:19
+Seconds since last epoch: 1642183579.51301
+push6.exe
+Md5: 7a2ab420cf562f7761c836411c048cf8
+Sha256: f4c59c3009a8994b2a1a1f98aa46ef4523c69e1023f69be956afaa86c150d098
+Ssdeep: 1536:uRf8YIiQgww+z3dnlN31eSI27Ofm37hxdhrYJU1IsWEcdYXvdGpy7:hiQC+z3ZlB1zn7Ou3HfoU2YXvYpw
+
+
+Section info
+
+Section:.text
+Entry point: 0x1637
+Virtual Address: 0x1000
+ImageBase: 0x400000
+VirtualSize: 0xb5e7
+SizeOfRawData: 0xb600
+VirtualAddress: 0x1000
+ImageBase + sec. virtual address: 0x401000
+Actual size of section: 0xb600
+DEP: True
+ASLR: True
+SEH: False
+CFG: False
+Sha256: 2f706eee01afef1050ef7eaf95f294a5
+md5: da8e8ae18bef90f7606f3f4fd044ad4d136fcbab0296e2fae29ac46edeecc744
+
+Section:.rdata
+Entry point: 0x1637
+Virtual Address: 0xd000
+ImageBase: 0x400000
+VirtualSize: 0x584e
+SizeOfRawData: 0x5a00
+VirtualAddress: 0xd000
+ImageBase + sec. virtual address: 0x40d000
+Actual size of section: 0x5a00
+DEP: True
+ASLR: True
+SEH: False
+CFG: False
+Sha256: f490fdda3d0b76624cca63bbb3513b5d
+md5: ae2bd76877debdf56a8cfa7c1bb4a90fa0b98c5954c9ead5fb806c15ffd1e092
+
+Section:.data
+Entry point: 0x1637
+Virtual Address: 0x13000
+ImageBase: 0x400000
+VirtualSize: 0x11e8
+SizeOfRawData: 0x800
+VirtualAddress: 0x13000
+ImageBase + sec. virtual address: 0x413000
+Actual size of section: 0x800
+DEP: True
+ASLR: True
+SEH: False
+CFG: False
+Sha256: ed9be7257f98813caf13dd605a5ee094
+md5: af0314d04dcab15a07ab0228c71f0d1b63b725a74b4411acab87174181e89f72
+
+Section:.gfids
+Entry point: 0x1637
+Virtual Address: 0x15000
+ImageBase: 0x400000
+VirtualSize: 0xb4
+SizeOfRawData: 0x200
+VirtualAddress: 0x15000
+ImageBase + sec. virtual address: 0x415000
+Actual size of section: 0x200
+DEP: True
+ASLR: True
+SEH: False
+CFG: False
+Sha256: 6d1d0c984b982b7f0d32525f74ec9456
+md5: 3eb1c3b369b2a2c1c4040bb05467acd06c351e6a35cb03094dd354ea25a54cf1
+
+Section:.reloc
+Entry point: 0x1637
+Virtual Address: 0x16000
+ImageBase: 0x400000
+VirtualSize: 0xe2c
+SizeOfRawData: 0x1000
+VirtualAddress: 0x16000
+ImageBase + sec. virtual address: 0x416000
+Actual size of section: 0x1000
+DEP: True
+ASLR: True
+SEH: False
+CFG: False
+Sha256: 4b2cd9e9278c3f218a546505bf693dd6
+md5: 614e290de4d5176d6e9b3aa0f2bbe07a037ece4e9ba99e176c7097b47b4b0f81
+
+
+
+*******
+Modules
+*******
+
+[33;1m
+Loaded Modules
+
+[0m[32;1mpush6.exe[0m	
+[32;1mntdll.dll[0m	C:\Windows\SysWOW64\ntdll.dll[33;1m from [36;1mIAT
+[32;1mKERNEL32.dll[0m	C:\Windows\syswow64\kernel32.dll[33;1m from [36;1mIAT
+[32;1mKERNELBASE.dll[0m	C:\Windows\syswow64\KERNELBASE.dll[33;1m from [36;1mIAT
+[32;1mADVAPI32.dll[0m	C:\Windows\syswow64\ADVAPI32.dll
+[32;1mmsvcrt.dll[0m	C:\Windows\syswow64\msvcrt.dll[33;1m from [36;1mADVAPI32.dll
+[32;1msechost.dll[0m	C:\Windows\SysWOW64\sechost.dll[33;1m from [36;1madvapi32.dll
+[32;1mRPCRT4.dll[0m	C:\Windows\syswow64\RPCRT4.dll[33;1m from [36;1mADVAPI32.dll
+[32;1mSspiCli.dll[0m	C:\Windows\syswow64\SspiCli.dll[33;1m from [36;1mRPCRT4.dll
+[32;1mCRYPTBASE.dll[0m	C:\Windows\syswow64\CRYPTBASE.dll[33;1m from [36;1mSspiCli.dll
+[31;1m
+Total: [0m10
+
+
+*****************
+Imports
+*****************
+ KERNEL32.dll   GetCurrentThreadId               0x40d008
+ KERNEL32.dll   GetSystemTimeAsFileTime          0x40d00c
+ KERNEL32.dll   InitializeSListHead              0x40d010
+ KERNEL32.dll   IsDebuggerPresent                0x40d014
+ KERNEL32.dll   UnhandledExceptionFilter         0x40d018
+ KERNEL32.dll   SetUnhandledExceptionFilter      0x40d01c
+ KERNEL32.dll   GetStartupInfoW                  0x40d020
+ KERNEL32.dll   IsProcessorFeaturePresent        0x40d024
+ KERNEL32.dll   GetModuleHandleW                 0x40d028
+ KERNEL32.dll   GetCurrentProcess                0x40d02c
+ KERNEL32.dll   TerminateProcess                 0x40d030
+ KERNEL32.dll   GetLastError                     0x40d034
+ KERNEL32.dll   GetModuleFileNameW               0x40d038
+ KERNEL32.dll   InitializeCriticalSectionAndSpinCount 0x40d03c
+ KERNEL32.dll   TlsAlloc                         0x40d040
+ KERNEL32.dll   TlsGetValue                      0x40d044
+ KERNEL32.dll   TlsSetValue                      0x40d048
+ KERNEL32.dll   TlsFree                          0x40d04c
+ KERNEL32.dll   FreeLibrary                      0x40d050
+ KERNEL32.dll   GetProcAddress                   0x40d054
+ KERNEL32.dll   LoadLibraryExW                   0x40d058
+ KERNEL32.dll   RtlUnwind                        0x40d05c
+ KERNEL32.dll   SetLastError                     0x40d060
+ KERNEL32.dll   EnterCriticalSection             0x40d064
+ KERNEL32.dll   LeaveCriticalSection             0x40d068
+ KERNEL32.dll   DeleteCriticalSection            0x40d06c
+ KERNEL32.dll   GetStdHandle                     0x40d070
+ KERNEL32.dll   WriteFile                        0x40d074
+ KERNEL32.dll   GetModuleFileNameA               0x40d078
+ KERNEL32.dll   MultiByteToWideChar              0x40d07c
+ KERNEL32.dll   WideCharToMultiByte              0x40d080
+ KERNEL32.dll   ExitProcess                      0x40d084
+ KERNEL32.dll   GetModuleHandleExW               0x40d088
+ KERNEL32.dll   GetCommandLineA                  0x40d08c
+ KERNEL32.dll   GetCommandLineW                  0x40d090
+ KERNEL32.dll   GetACP                           0x40d094
+ KERNEL32.dll   HeapFree                         0x40d098
+ KERNEL32.dll   HeapAlloc                        0x40d09c
+ KERNEL32.dll   GetCurrentProcessId              0x40d0a0
+ KERNEL32.dll   CloseHandle                      0x40d0a4
+ KERNEL32.dll   FindClose                        0x40d0a8
+ KERNEL32.dll   FindFirstFileExA                 0x40d0ac
+ KERNEL32.dll   FindNextFileA                    0x40d0b0
+ KERNEL32.dll   IsValidCodePage                  0x40d0b4
+ KERNEL32.dll   GetOEMCP                         0x40d0b8
+ KERNEL32.dll   GetCPInfo                        0x40d0bc
+ KERNEL32.dll   GetEnvironmentStringsW           0x40d0c0
+ KERNEL32.dll   FreeEnvironmentStringsW          0x40d0c4
+ KERNEL32.dll   SetEnvironmentVariableA          0x40d0c8
+ KERNEL32.dll   CompareStringW                   0x40d0cc
+ KERNEL32.dll   LCMapStringW                     0x40d0d0
+ KERNEL32.dll   SetStdHandle                     0x40d0d4
+ KERNEL32.dll   GetFileType                      0x40d0d8
+ KERNEL32.dll   GetStringTypeW                   0x40d0dc
+ KERNEL32.dll   GetProcessHeap                   0x40d0e0
+ KERNEL32.dll   HeapSize                         0x40d0e4
+ KERNEL32.dll   HeapReAlloc                      0x40d0e8
+ KERNEL32.dll   FlushFileBuffers                 0x40d0ec
+ KERNEL32.dll   GetConsoleCP                     0x40d0f0
+ KERNEL32.dll   GetConsoleMode                   0x40d0f4
+ KERNEL32.dll   SetFilePointerEx                 0x40d0f8
+ KERNEL32.dll   WriteConsoleW                    0x40d0fc
+ KERNEL32.dll   DecodePointer                    0x40d100
+ KERNEL32.dll   CreateFileW                      0x40d104
+ KERNEL32.dll   RaiseException                   0x40d108
+ KERNEL32.dll   QueryPerformanceCounter          0x40d10c
+ ADVAPI32.dll   SystemFunction036                0x40d000
+
+
+***********
+Strings
+***********
+
+Note: The offset value is created by adding the offset plus the section virtual address.Strings from PE file:
+Section: .text
+      SWharyAhLoad                     0x401263   Offset: 0x1263   size: 12   Ascii     
+      cthrotehualPhVirt                0x40127d   Offset: 0x127d   size: 17   Ascii     
+      sshddrehrocAhGetP                0x401294   Offset: 0x1294   size: 17   Ascii     
+      lehteFihCrea                     0x4012ab   Offset: 0x12ab   size: 12   Ascii     
+      ectheObjhinglhForShWait          0x4012bc   Offset: 0x12bc   size: 23   Ascii     
+      shoceshtePrhCrea                 0x4012da   Offset: 0x12da   size: 16   Ascii     
+      jsjejcjojrjPjejtjajejrjC         0x4012f5   Offset: 0x12f5   size: 24   Ascii     
+      ectjjjbjOjehingljSjrjojFhWait    0x401316   Offset: 0x1316   size: 29   Ascii     
+      jtjcjej                          0x401337   Offset: 0x1337   size: 7    Ascii     
+      jjjbjOjejljgjnjijSjrjojFjtjijajWjAjA 0x40133f   Offset: 0x133f   size: 36   Ascii     
+      sshddrehrocAjPjtjejGjAjA         0x40136b   Offset: 0x136b   size: 24   Ascii     
+      hddrehrocAjPjtjejGjBjB           0x401391   Offset: 0x1391   size: 22   Ascii     
+      ectheObjPShForShWaitjIjI         0x4013af   Offset: 0x13af   size: 24   Ascii     
+      shocesfPfShtePrhCreajPjP         0x4013ce   Offset: 0x13ce   size: 24   Ascii     
+      PPPh 0A                          0x402097   Offset: 0x2097   size: 7    Ascii     
+      URPQQh0(@                        0x4027af   Offset: 0x27af   size: 9    Ascii     
+      UQPXY]Y[                         0x402b19   Offset: 0x2b19   size: 8    Ascii     
+      QQSWj0j@                         0x405ddd   Offset: 0x5ddd   size: 8    Ascii     
+      PPPPPPPP                         0x407e06   Offset: 0x7e06   size: 8    Ascii     
+      PPPPPWS                          0x407fe6   Offset: 0x7fe6   size: 7    Ascii     
+      PP9E u:PPVWP                     0x4080be   Offset: 0x80be   size: 12   Ascii     
+      Main Invoked.                    0x401174   Offset: 0x1174   size: 13   Ascii     
+      Main Returned.                   0x401184   Offset: 0x1184   size: 14   Ascii     
+      EventRegister                    0x401248   Offset: 0x1248   size: 13   Ascii     
+      EventSetInformation              0x40125c   Offset: 0x125c   size: 19   Ascii     
+      EventUnregister                  0x401274   Offset: 0x1274   size: 15   Ascii     
+      EventWriteTransfer               0x401288   Offset: 0x1288   size: 18   Ascii     
+      FlsAlloc                         0x4012a4   Offset: 0x12a4   size: 8    Ascii     
+      FlsFree                          0x4012b8   Offset: 0x12b8   size: 7    Ascii     
+      FlsGetValue                      0x4012c0   Offset: 0x12c0   size: 11   Ascii     
+      FlsSetValue                      0x4012d4   Offset: 0x12d4   size: 11   Ascii     
+      InitializeCriticalSectionEx      0x4012e8   Offset: 0x12e8   size: 27   Ascii     
+      stdcall                          0x4014ba   Offset: 0x14ba   size: 7    Ascii     
+      thiscall                         0x4014c6   Offset: 0x14c6   size: 8    Ascii     
+      fastcall                         0x4014d2   Offset: 0x14d2   size: 8    Ascii     
+      vectorcall                       0x4014de   Offset: 0x14de   size: 10   Ascii     
+      clrcall                          0x4014ee   Offset: 0x14ee   size: 7    Ascii     
+      restrict                         0x40150a   Offset: 0x150a   size: 8    Ascii     
+      unaligned                        0x401516   Offset: 0x1516   size: 9    Ascii     
+      restrict(                        0x401520   Offset: 0x1520   size: 9    Ascii     
+      operator                         0x401558   Offset: 0x1558   size: 8    Ascii     
+      vftable'                         0x4015e1   Offset: 0x15e1   size: 8    Ascii     
+      vbtable'                         0x4015ed   Offset: 0x15ed   size: 8    Ascii     
+      typeof'                          0x401601   Offset: 0x1601   size: 7    Ascii     
+      local static guard'              0x40160d   Offset: 0x160d   size: 19   Ascii     
+      string'                          0x401625   Offset: 0x1625   size: 7    Ascii     
+      vbase destructor'                0x401631   Offset: 0x1631   size: 17   Ascii     
+      vector deleting destructor'      0x401645   Offset: 0x1645   size: 27   Ascii     
+      default constructor closure'     0x401665   Offset: 0x1665   size: 28   Ascii     
+      scalar deleting destructor'      0x401685   Offset: 0x1685   size: 27   Ascii     
+      vector constructor iterator'     0x4016a5   Offset: 0x16a5   size: 28   Ascii     
+      vector destructor iterator'      0x4016c5   Offset: 0x16c5   size: 27   Ascii     
+      vector vbase constructor iterator' 0x4016e5   Offset: 0x16e5   size: 34   Ascii     
+      virtual displacement map'        0x401709   Offset: 0x1709   size: 25   Ascii     
+      eh vector constructor iterator'  0x401725   Offset: 0x1725   size: 31   Ascii     
+      eh vector destructor iterator'   0x401749   Offset: 0x1749   size: 30   Ascii     
+      eh vector vbase constructor iterator' 0x401769   Offset: 0x1769   size: 37   Ascii     
+      copy constructor closure'        0x401791   Offset: 0x1791   size: 25   Ascii     
+      udt returning'                   0x4017ad   Offset: 0x17ad   size: 14   Ascii     
+      local vftable'                   0x4017c9   Offset: 0x17c9   size: 14   Ascii     
+      local vftable constructor closure' 0x4017d9   Offset: 0x17d9   size: 34   Ascii     
+      delete[]                         0x401805   Offset: 0x1805   size: 8    Ascii     
+      omni callsig'                    0x401811   Offset: 0x1811   size: 13   Ascii     
+      placement delete closure'        0x401821   Offset: 0x1821   size: 25   Ascii     
+      placement delete[] closure'      0x40183d   Offset: 0x183d   size: 27   Ascii     
+      managed vector constructor iterator' 0x40185d   Offset: 0x185d   size: 36   Ascii     
+      managed vector destructor iterator' 0x401885   Offset: 0x1885   size: 35   Ascii     
+      eh vector copy constructor iterator' 0x4018ad   Offset: 0x18ad   size: 36   Ascii     
+      eh vector vbase copy constructor iterator' 0x4018d5   Offset: 0x18d5   size: 42   Ascii     
+      dynamic initializer for '        0x401901   Offset: 0x1901   size: 25   Ascii     
+      dynamic atexit destructor for '  0x40191d   Offset: 0x191d   size: 31   Ascii     
+      vector copy constructor iterator' 0x401941   Offset: 0x1941   size: 33   Ascii     
+      vector vbase copy constructor iterator' 0x401965   Offset: 0x1965   size: 39   Ascii     
+      managed vector copy constructor iterator' 0x401991   Offset: 0x1991   size: 41   Ascii     
+      local static thread guard'       0x4019bd   Offset: 0x19bd   size: 26   Ascii     
+      operator ""                      0x4019d8   Offset: 0x19d8   size: 12   Ascii     
+      Type Descriptor'                 0x4019e9   Offset: 0x19e9   size: 16   Ascii     
+      Base Class Descriptor at (       0x4019fd   Offset: 0x19fd   size: 26   Ascii     
+      Base Class Array'                0x401a19   Offset: 0x1a19   size: 17   Ascii     
+      Class Hierarchy Descriptor'      0x401a2d   Offset: 0x1a2d   size: 27   Ascii     
+      Complete Object Locator'         0x401a4d   Offset: 0x1a4d   size: 24   Ascii     
+      CorExitProcess                   0x401b1c   Offset: 0x1b1c   size: 14   Ascii     
+      CompareStringEx                  0x4021f8   Offset: 0x21f8   size: 15   Ascii     
+      GetCurrentPackageId              0x402230   Offset: 0x2230   size: 19   Ascii     
+      LCMapStringEx                    0x402254   Offset: 0x2254   size: 13   Ascii     
+      LocaleNameToLCID                 0x40226c   Offset: 0x226c   size: 16   Ascii     
+      abcdefghijklmnopqrstuvwxyz[\]^_`abcdefghijklmnopqrstuvwxyz{|}~ 0x402641   Offset: 0x2641   size: 62   Ascii     
+      ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`ABCDEFGHIJKLMNOPQRSTUVWXYZ{|}~ 0x4027c1   Offset: 0x27c1   size: 62   Ascii     
+      Tuesday                          0x4028ac   Offset: 0x28ac   size: 7    Ascii     
+      Wednesday                        0x4028b4   Offset: 0x28b4   size: 9    Ascii     
+      Thursday                         0x4028c0   Offset: 0x28c0   size: 8    Ascii     
+      Saturday                         0x4028d4   Offset: 0x28d4   size: 8    Ascii     
+      January                          0x402910   Offset: 0x2910   size: 7    Ascii     
+      February                         0x402918   Offset: 0x2918   size: 8    Ascii     
+      September                        0x40294c   Offset: 0x294c   size: 9    Ascii     
+      October                          0x402958   Offset: 0x2958   size: 7    Ascii     
+      November                         0x402960   Offset: 0x2960   size: 8    Ascii     
+      December                         0x40296c   Offset: 0x296c   size: 8    Ascii     
+      MM/dd/yy                         0x402980   Offset: 0x2980   size: 8    Ascii     
+      dddd, MMMM dd, yyyy              0x40298c   Offset: 0x298c   size: 19   Ascii     
+      HH:mm:ss                         0x4029a0   Offset: 0x29a0   size: 8    Ascii     
+      nextafter                        0x405919   Offset: 0x5919   size: 9    Ascii     
+      InvokeMainViaCRT                 0x405af0   Offset: 0x5af0   size: 16   Ascii     
+      Main Invoked."                   0x405b02   Offset: 0x5b02   size: 14   Ascii     
+      FileName                         0x405b12   Offset: 0x5b12   size: 8    Ascii     
+      ExitMainViaCRT                   0x405b2c   Offset: 0x5b2c   size: 14   Ascii     
+      Main Returned."                  0x405b3c   Offset: 0x5b3c   size: 15   Ascii     
+      FileName                         0x405b4d   Offset: 0x5b4d   size: 8    Ascii     
+      Microsoft.CRTProvider            0x405b5a   Offset: 0x5b5a   size: 21   Ascii     
+      text$mn                          0x405ba1   Offset: 0x5ba1   size: 7    Ascii     
+      idata$5                          0x405bb5   Offset: 0x5bb5   size: 7    Ascii     
+      CRT$XCA                          0x405bd9   Offset: 0x5bd9   size: 7    Ascii     
+      CRT$XCAA                         0x405bed   Offset: 0x5bed   size: 8    Ascii     
+      CRT$XCZ                          0x405c01   Offset: 0x5c01   size: 7    Ascii     
+      CRT$XIA                          0x405c15   Offset: 0x5c15   size: 7    Ascii     
+      CRT$XIAA                         0x405c29   Offset: 0x5c29   size: 8    Ascii     
+      CRT$XIAC                         0x405c3d   Offset: 0x5c3d   size: 8    Ascii     
+      CRT$XIC                          0x405c51   Offset: 0x5c51   size: 7    Ascii     
+      CRT$XIZ                          0x405c65   Offset: 0x5c65   size: 7    Ascii     
+      CRT$XPA                          0x405c79   Offset: 0x5c79   size: 7    Ascii     
+      CRT$XPX                          0x405c8d   Offset: 0x5c8d   size: 7    Ascii     
+      CRT$XPXA                         0x405ca1   Offset: 0x5ca1   size: 8    Ascii     
+      CRT$XPZ                          0x405cb5   Offset: 0x5cb5   size: 7    Ascii     
+      CRT$XTA                          0x405cc9   Offset: 0x5cc9   size: 7    Ascii     
+      CRT$XTZ                          0x405cdd   Offset: 0x5cdd   size: 7    Ascii     
+      rdata$sxdata                     0x405d01   Offset: 0x5d01   size: 12   Ascii     
+      rdata$zETW0                      0x405d19   Offset: 0x5d19   size: 11   Ascii     
+      rdata$zETW1                      0x405d31   Offset: 0x5d31   size: 11   Ascii     
+      rdata$zETW2                      0x405d49   Offset: 0x5d49   size: 11   Ascii     
+      rdata$zETW9                      0x405d61   Offset: 0x5d61   size: 11   Ascii     
+      rdata$zzzdbg                     0x405d79   Offset: 0x5d79   size: 12   Ascii     
+      rtc$IAA                          0x405d91   Offset: 0x5d91   size: 7    Ascii     
+      rtc$IZZ                          0x405da5   Offset: 0x5da5   size: 7    Ascii     
+      rtc$TAA                          0x405db9   Offset: 0x5db9   size: 7    Ascii     
+      rtc$TZZ                          0x405dcd   Offset: 0x5dcd   size: 7    Ascii     
+      xdata$x                          0x405de1   Offset: 0x5de1   size: 7    Ascii     
+      idata$2                          0x405df5   Offset: 0x5df5   size: 7    Ascii     
+      idata$3                          0x405e09   Offset: 0x5e09   size: 7    Ascii     
+      idata$4                          0x405e1d   Offset: 0x5e1d   size: 7    Ascii     
+      idata$6                          0x405e31   Offset: 0x5e31   size: 7    Ascii     
+      gfids$x                          0x405e65   Offset: 0x5e65   size: 7    Ascii     
+      gfids$y                          0x405e79   Offset: 0x5e79   size: 7    Ascii     
+      QueryPerformanceCounter          0x406356   Offset: 0x6356   size: 23   Ascii     
+      GetCurrentProcessId              0x406370   Offset: 0x6370   size: 19   Ascii     
+      GetCurrentThreadId               0x406386   Offset: 0x6386   size: 18   Ascii     
+      GetSystemTimeAsFileTime          0x40639c   Offset: 0x639c   size: 23   Ascii     
+      InitializeSListHead              0x4063b6   Offset: 0x63b6   size: 19   Ascii     
+      IsDebuggerPresent                0x4063cc   Offset: 0x63cc   size: 17   Ascii     
+      UnhandledExceptionFilter         0x4063e0   Offset: 0x63e0   size: 24   Ascii     
+      SetUnhandledExceptionFilter      0x4063fc   Offset: 0x63fc   size: 27   Ascii     
+      GetStartupInfoW                  0x40641a   Offset: 0x641a   size: 15   Ascii     
+      IsProcessorFeaturePresent        0x40642c   Offset: 0x642c   size: 25   Ascii     
+      GetModuleHandleW                 0x406448   Offset: 0x6448   size: 16   Ascii     
+      GetCurrentProcess                0x40645c   Offset: 0x645c   size: 17   Ascii     
+      TerminateProcess                 0x406470   Offset: 0x6470   size: 16   Ascii     
+      KERNEL32.dll                     0x406482   Offset: 0x6482   size: 12   Ascii     
+      GetLastError                     0x406492   Offset: 0x6492   size: 12   Ascii     
+      GetModuleFileNameW               0x4064a2   Offset: 0x64a2   size: 18   Ascii     
+      InitializeCriticalSectionAndSpinCount 0x4064b8   Offset: 0x64b8   size: 37   Ascii     
+      TlsAlloc                         0x4064e0   Offset: 0x64e0   size: 8    Ascii     
+      TlsGetValue                      0x4064ec   Offset: 0x64ec   size: 11   Ascii     
+      TlsSetValue                      0x4064fa   Offset: 0x64fa   size: 11   Ascii     
+      TlsFree                          0x406508   Offset: 0x6508   size: 7    Ascii     
+      FreeLibrary                      0x406512   Offset: 0x6512   size: 11   Ascii     
+      GetProcAddress                   0x406520   Offset: 0x6520   size: 14   Ascii     
+      LoadLibraryExW                   0x406532   Offset: 0x6532   size: 14   Ascii     
+      RtlUnwind                        0x406544   Offset: 0x6544   size: 9    Ascii     
+      SetLastError                     0x406550   Offset: 0x6550   size: 12   Ascii     
+      EnterCriticalSection             0x406560   Offset: 0x6560   size: 20   Ascii     
+      LeaveCriticalSection             0x406578   Offset: 0x6578   size: 20   Ascii     
+      DeleteCriticalSection            0x406590   Offset: 0x6590   size: 21   Ascii     
+      GetStdHandle                     0x4065a8   Offset: 0x65a8   size: 12   Ascii     
+      WriteFile                        0x4065b8   Offset: 0x65b8   size: 9    Ascii     
+      GetModuleFileNameA               0x4065c4   Offset: 0x65c4   size: 18   Ascii     
+      MultiByteToWideChar              0x4065da   Offset: 0x65da   size: 19   Ascii     
+      WideCharToMultiByte              0x4065f0   Offset: 0x65f0   size: 19   Ascii     
+      ExitProcess                      0x406606   Offset: 0x6606   size: 11   Ascii     
+      GetModuleHandleExW               0x406614   Offset: 0x6614   size: 18   Ascii     
+      GetCommandLineA                  0x40662a   Offset: 0x662a   size: 15   Ascii     
+      GetCommandLineW                  0x40663c   Offset: 0x663c   size: 15   Ascii     
+      HeapFree                         0x406658   Offset: 0x6658   size: 8    Ascii     
+      HeapAlloc                        0x406664   Offset: 0x6664   size: 9    Ascii     
+      CloseHandle                      0x406670   Offset: 0x6670   size: 11   Ascii     
+      FindClose                        0x40667e   Offset: 0x667e   size: 9    Ascii     
+      FindFirstFileExA                 0x40668a   Offset: 0x668a   size: 16   Ascii     
+      FindNextFileA                    0x40669e   Offset: 0x669e   size: 13   Ascii     
+      IsValidCodePage                  0x4066ae   Offset: 0x66ae   size: 15   Ascii     
+      GetOEMCP                         0x4066c0   Offset: 0x66c0   size: 8    Ascii     
+      GetCPInfo                        0x4066cc   Offset: 0x66cc   size: 9    Ascii     
+      GetEnvironmentStringsW           0x4066d8   Offset: 0x66d8   size: 22   Ascii     
+      FreeEnvironmentStringsW          0x4066f2   Offset: 0x66f2   size: 23   Ascii     
+      SetEnvironmentVariableA          0x40670c   Offset: 0x670c   size: 23   Ascii     
+      CompareStringW                   0x406726   Offset: 0x6726   size: 14   Ascii     
+      LCMapStringW                     0x406738   Offset: 0x6738   size: 12   Ascii     
+      SetStdHandle                     0x406748   Offset: 0x6748   size: 12   Ascii     
+      GetFileType                      0x406758   Offset: 0x6758   size: 11   Ascii     
+      GetStringTypeW                   0x406766   Offset: 0x6766   size: 14   Ascii     
+      GetProcessHeap                   0x406778   Offset: 0x6778   size: 14   Ascii     
+      HeapSize                         0x40678a   Offset: 0x678a   size: 8    Ascii     
+      HeapReAlloc                      0x406796   Offset: 0x6796   size: 11   Ascii     
+      FlushFileBuffers                 0x4067a4   Offset: 0x67a4   size: 16   Ascii     
+      GetConsoleCP                     0x4067b8   Offset: 0x67b8   size: 12   Ascii     
+      GetConsoleMode                   0x4067c8   Offset: 0x67c8   size: 14   Ascii     
+      SetFilePointerEx                 0x4067da   Offset: 0x67da   size: 16   Ascii     
+      WriteConsoleW                    0x4067ee   Offset: 0x67ee   size: 13   Ascii     
+      DecodePointer                    0x4067fe   Offset: 0x67fe   size: 13   Ascii     
+      CreateFileW                      0x40680e   Offset: 0x680e   size: 11   Ascii     
+      RaiseException                   0x40681c   Offset: 0x681c   size: 14   Ascii     
+      SystemFunction036                0x40682e   Offset: 0x682e   size: 17   Ascii     
+      ADVAPI32.dll                     0x406840   Offset: 0x6840   size: 12   Ascii     
+      abcdefghijklmnopqrstuvwxyz       0x4012d1   Offset: 0x12d1   size: 26   Ascii     
+      ABCDEFGHIJKLMNOPQRSTUVWXYZ       0x4012f1   Offset: 0x12f1   size: 26   Ascii     
+      abcdefghijklmnopqrstuvwxyz       0x4014ea   Offset: 0x14ea   size: 26   Ascii     
+      ABCDEFGHIJKLMNOPQRSTUVWXYZ       0x40150a   Offset: 0x150a   size: 26   Ascii     
+      A>G>M>S>Y>`>g>n>u>|>             0x4010b6   Offset: 0x10b6   size: 20   Ascii     
+      F7Q7^7t7                         0x401174   Offset: 0x1174   size: 8    Ascii     
+      F4]4d4p4                         0x401222   Offset: 0x1222   size: 8    Ascii     
+      L5T5^5g5x5                       0x40123c   Offset: 0x123c   size: 10   Ascii     
+      l6q6w6|6                         0x401254   Offset: 0x1254   size: 8    Ascii     
+      H<N<\<e<j<w<|<                   0x4012ae   Offset: 0x12ae   size: 14   Ascii     
+      R4@5J5W5                         0x401314   Offset: 0x1314   size: 8    Ascii     
+      Y0^0i0}0                         0x401378   Offset: 0x1378   size: 8    Ascii     
+      Z8a8l8z8                         0x4013c2   Offset: 0x13c2   size: 8    Ascii     
+      A;];h;m;r;                       0x401418   Offset: 0x1418   size: 10   Ascii     
+      B=G=L=n=|=                       0x401452   Offset: 0x1452   size: 10   Ascii     
+      C:J:T:c:                         0x4014e8   Offset: 0x14e8   size: 8    Ascii     
+      R7h7u7z7                         0x4015bc   Offset: 0x15bc   size: 8    Ascii     
+      D1H1L1`1d1h1                     0x4017aa   Offset: 0x17aa   size: 12   Ascii     
+      D3H3L3P3T3X3\3`3d3h3l3p3t3x3|3   0x4017dc   Offset: 0x17dc   size: 30   Ascii     
+      D4H4L4P4T4X4\4`4d4h4l4p4t4x4|4   0x40185c   Offset: 0x185c   size: 30   Ascii     
+      D;H;L;P;T;X;\;d;h;l;p;t;x;|;     0x40188c   Offset: 0x188c   size: 28   Ascii     
+      P=T=X=\=`=d=h=l=p=t=x=|=         0x4018be   Offset: 0x18be   size: 24   Ascii     
+      D<H<L<P<T<X<\<`<d<h<l<p<t<x<|<   0x401922   Offset: 0x1922   size: 30   Ascii     
+      T=\=d=l=t=|=                     0x40199e   Offset: 0x199e   size: 12   Ascii     
+      D>L>T>\>d>l>t>|>                 0x4019da   Offset: 0x19da   size: 16   Ascii     
+      D?L?T?\?d?l?t?|?                 0x401a1a   Offset: 0x1a1a   size: 16   Ascii     
+      D0L0T0\0d0l0t0|0                 0x401a64   Offset: 0x1a64   size: 16   Ascii     
+      D1L1T1\1d1l1t1|1                 0x401aa4   Offset: 0x1aa4   size: 16   Ascii     
+      D2L2T2\2d2l2t2|2                 0x401ae4   Offset: 0x1ae4   size: 16   Ascii     
+      D3L3T3\3d3l3t3|3                 0x401b24   Offset: 0x1b24   size: 16   Ascii     
+      D4L4T4\4d4l4p>x>                 0x401b64   Offset: 0x1b64   size: 16   Ascii     
+      H?P?X?`?h?p?x?                   0x401ba6   Offset: 0x1ba6   size: 14   Ascii     
+      H0P0X0`0h0p0x0                   0x401bee   Offset: 0x1bee   size: 14   Ascii     
+      H1P1X1`1h1p1x1                   0x401c2e   Offset: 0x1c2e   size: 14   Ascii     
+      H2P2X2`2h2p2x2                   0x401c6e   Offset: 0x1c6e   size: 14   Ascii     
+      H3P3X3`3h3p3x3                   0x401cae   Offset: 0x1cae   size: 14   Ascii     
+      H4P4X4`4h4p4x4                   0x401cee   Offset: 0x1cee   size: 14   Ascii     
+      H5P5X5`5h5p5x5                   0x401d2e   Offset: 0x1d2e   size: 14   Ascii     
+      D9L9T9\9d9l9t9|9                 0x401d56   Offset: 0x1d56   size: 16   Ascii     
+      L6P6T6p6t6                       0x401dfc   Offset: 0x1dfc   size: 10   Ascii     
+
+
+**Push Stack Strings**
+
+      LoadaryA                         0x401dfc   Offset: 0x1267   size: 8    Stack String
+      VirtualProtect                   0x401dfc   Offset: 0x127c   size: 14   Stack String
+      GetProcAddress                   0x401dfc   Offset: 0x1293   size: 14   Stack String
+      CreateFile                       0x401dfc   Offset: 0x12aa   size: 10   Stack String
+      WaitForSingleObject              0x401dfc   Offset: 0x12bc   size: 19   Stack String
+      CreateProcess                    0x401dfc   Offset: 0x12d8   size: 13   Stack String
+      CreateProces                     0x401dfc   Offset: 0x12f7   size: 12   Stack String
+      WaitForSingleObject              0x401dfc   Offset: 0x1316   size: 19   Stack String
+      AAWaitForSingleObj               0x401dfc   Offset: 0x1341   size: 18   Stack String
+      AAGetProcAddress                 0x401dfc   Offset: 0x136a   size: 16   Stack String
+      BBGetProcAddre                   0x401dfc   Offset: 0x1393   size: 14   Stack String
+      IIWaitForS^^^^^^^^eObject        0x401dfc   Offset: 0x13af   size: 25   Stack String
+      PPCreatePr````ocess              0x401dfc   Offset: 0x13cc   size: 19   Stack String
+      LoadaryA                         0x401dfc   Offset: 0x13ed   size: 8    Stack String
+
+Section: .rdata
+      api-ms-win-core-fibers-l1-1-1    0x40d1b8   Offset: 0xd1b8   size: 58   Unicode   
+      api-ms-win-core-synch-l1-2-0     0x40d1f4   Offset: 0xd1f4   size: 56   Unicode   
+      kernel32                         0x40d230   Offset: 0xd230   size: 16   Unicode   
+      mscoreedll                       0x40db04   Offset: 0xdb04   size: 22   Unicode   
+      api-ms-win-core-datetime-l1-1-1  0x40dde8   Offset: 0xdde8   size: 62   Unicode   
+      api-ms-win-core-file-l2-1-1      0x40de28   Offset: 0xde28   size: 54   Unicode   
+      api-ms-win-core-localization-l1-2-1 0x40de60   Offset: 0xde60   size: 70   Unicode   
+      api-ms-win-core-localization-obsolete-l1-2-0 0x40dea8   Offset: 0xdea8   size: 88   Unicode   
+      api-ms-win-core-processthreads-l1-1-2 0x40df08   Offset: 0xdf08   size: 74   Unicode   
+      api-ms-win-core-string-l1-1-0    0x40df54   Offset: 0xdf54   size: 58   Unicode   
+      api-ms-win-core-sysinfo-l1-2-1   0x40df90   Offset: 0xdf90   size: 60   Unicode   
+      api-ms-win-core-winrt-l1-1-0     0x40dfd0   Offset: 0xdfd0   size: 56   Unicode   
+      api-ms-win-core-xstate-l2-1-0    0x40e00c   Offset: 0xe00c   size: 58   Unicode   
+      api-ms-win-rtcore-ntuser-window-l1-1-0 0x40e048   Offset: 0xe048   size: 76   Unicode   
+      api-ms-win-security-systemfunctions-l1-1-0 0x40e098   Offset: 0xe098   size: 84   Unicode   
+      ext-ms-win-kernel32-package-current-l1-1-0 0x40e0f0   Offset: 0xe0f0   size: 84   Unicode   
+      ext-ms-win-ntuser-dialogbox-l1-1-0 0x40e148   Offset: 0xe148   size: 68   Unicode   
+      ext-ms-win-ntuser-windowstation-l1-1-0 0x40e190   Offset: 0xe190   size: 76   Unicode   
+      Tuesday                          0x40ea04   Offset: 0xea04   size: 14   Unicode   
+      Wednesday                        0x40ea14   Offset: 0xea14   size: 18   Unicode   
+      Thursday                         0x40ea28   Offset: 0xea28   size: 16   Unicode   
+      Saturday                         0x40ea4c   Offset: 0xea4c   size: 16   Unicode   
+      January                          0x40eac0   Offset: 0xeac0   size: 14   Unicode   
+      February                         0x40ead0   Offset: 0xead0   size: 16   Unicode   
+      September                        0x40eb24   Offset: 0xeb24   size: 18   Unicode   
+      October                          0x40eb38   Offset: 0xeb38   size: 14   Unicode   
+      November                         0x40eb48   Offset: 0xeb48   size: 16   Unicode   
+      December                         0x40eb5c   Offset: 0xeb5c   size: 16   Unicode   
+      MM/dd/yy                         0x40eb80   Offset: 0xeb80   size: 16   Unicode   
+      dddd, MMMM                       0x40eb94   Offset: 0xeb94   size: 22   Unicode   
+      dd, yyyy                         0x40ebaa   Offset: 0xebaa   size: 16   Unicode   
+      HH:mm:ss                         0x40ebbc   Offset: 0xebbc   size: 16   Unicode   
+      az-AZ-Latn                       0x40f830   Offset: 0xf830   size: 20   Unicode   
+      uz-UZ-Latn                       0x40f8fc   Offset: 0xf8fc   size: 20   Unicode   
+      sr-SP-Latn                       0x40fa74   Offset: 0xfa74   size: 20   Unicode   
+      az-AZ-Cyrl                       0x40fa98   Offset: 0xfa98   size: 20   Unicode   
+      uz-UZ-Cyrl                       0x40fac8   Offset: 0xfac8   size: 20   Unicode   
+      sr-SP-Cyrl                       0x40fb38   Offset: 0xfb38   size: 20   Unicode   
+      bs-BA-Latn                       0x40fc18   Offset: 0xfc18   size: 20   Unicode   
+      sr-BA-Latn                       0x40fc70   Offset: 0xfc70   size: 20   Unicode   
+      sr-BA-Cyrl                       0x40fcbc   Offset: 0xfcbc   size: 20   Unicode   
+      az-az-cyrl                       0x41065c   Offset: 0x1065c  size: 20   Unicode   
+      az-az-latn                       0x410674   Offset: 0x10674  size: 20   Unicode   
+      bs-ba-latn                       0x4106b0   Offset: 0x106b0  size: 20   Unicode   
+      sr-ba-cyrl                       0x410c1c   Offset: 0x10c1c  size: 20   Unicode   
+      sr-ba-latn                       0x410c34   Offset: 0x10c34  size: 20   Unicode   
+      sr-sp-cyrl                       0x410c4c   Offset: 0x10c4c  size: 20   Unicode   
+      sr-sp-latn                       0x410c64   Offset: 0x10c64  size: 20   Unicode   
+      uz-uz-cyrl                       0x410d10   Offset: 0x10d10  size: 20   Unicode   
+      uz-uz-latn                       0x410d28   Offset: 0x10d28  size: 20   Unicode   
+
+
+**Push Stack Strings**
+
+none
+
+
+
+***********
+Push ret
+***********
+
+********************************************************************************************************
+Push ret Item: 0 | Module: .text | PUSH Offset: 0x9dd7, ebx | RET Offset: 0x9dd8
+0x409dd7   push ebx                            (offset 0x9dd7)
+0x409dd8   ret                                 (offset 0x9dd8)
+********************************************************************************************************
+Push ret Item: 1 | Module: .text | PUSH Offset: 0x9b03, esi | RET Offset: 0x9b04
+0x409b03   push esi                            (offset 0x9b03)
+0x409b04   ret                                 (offset 0x9b04)
+********************************************************************************************************
+Push ret Item: 2 | Module: .text | PUSH Offset: 0xc240, eax | RET Offset: 0xc241
+0x40c240   push eax                            (offset 0xc240)
+0x40c241   ret  0x40                           (offset 0xc241)
+********************************************************************************************************
+Push ret Item: 3 | Module: .text | PUSH Offset: 0x9c5c, esi | RET Offset: 0x9c5d
+0x409c5c   push esi                            (offset 0x9c5c)
+0x409c5d   ret  0xff2                          (offset 0x9c5d)
+********************************************************************************************************
+Push ret Item: 4 | Module: .rdata | PUSH Offset: 0x11205, ecx | RET Offset: 0x11206
+0x411205   push ecx                            (offset 0x11205)
+0x411206   ret  0xc03f                         (offset 0x11206)
+
+No fstenv instructions found.
+
+No call pop instructions found.
+
+No syscall instructions found.
+
+No peb walking instructions found.
+
+No heaven's gate instructions found.
+
+**************************
+     Emulation
+**************************
+
+
+************* APIs *************
+
+0x123123 WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
+	LPCSTR lpCmdLine: cmd.exe /c ping google.com > C:\result.txt
+	UINT uCmdShow: 0x5
+	Return: 0x20
+
+0x321321 EncyptFileA(LPCSTR lpFileName)
+	LPCSTR lpFileName: C:\result.txt
+	Return: 0x20
+
+0x1337c0de LoadLibraryA(LPCTSTR lpLibFileName)
+	LPCTSTR lpLibFileName: user32.dll
+	Return: 0x45664c88
+
+0xdeadc0de MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType)
+	HWND hWnd: 0x987987
+	LPCSTR lpText: You have been hacked by an elite haxor. Your IP address is now stored in C:\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\result.txt
+	LPCSTR lpCaption: You have been hacked by an elite haxor. Your IP address is now stored in C:\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\result.txt
+	UINT uType: 0x0
+	Return: 0x20
+
+
+************* DLLs *************
+DLLs                   kernel32,advapi32,user32
+
+************* Artifacts *************
+Artifacts              
+c:\result.txt
+cmd.exe
+google.com
+result.txt
+user32.dll
+www.msn.com
+http://74.32.123.2:8080
+c:\windows\system32\ipconfig.exe
+
+Web artifacts          
+www.msn.com
+http://74.32.123.2:8080
+google.com
+
+File artifacts         
+c:\result.txt
+cmd.exe
+result.txt
+
+Executable artifacts   
+c:\windows\system32\ipconfig.exe
+cmd.exe
+
+
