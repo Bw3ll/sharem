@@ -59,7 +59,7 @@ res2 = '\u001b[0m'
 
 
 oldsysOut=sys.stdout
-my_stdout = open( 1, "w", buffering = 400000 )
+my_stdout = open( 1, "w", buffering = 300000 )
 
 sys.stdout = my_stdout
 sys.stdout=oldsysOut
@@ -209,19 +209,16 @@ stubFile = "stub.txt"
 sameFile = True
 stubEntry = 0
 stubEnd = 0
-ignoreDisDiscovery=False
+# mBool[o].ignoreDisDiscovery=False
 shellSizeLimit=120
-StringValsPresent=True
 conFile = "config.cfg" 
 workDir = False
 bit32_argparse = False
-FindStringsStatus=True
 save_bin_file = True
 linesForward = 7
 linesBack = 10
 bytesForward = 15
 bytesBack = 15
-# FindStringsStatus=False
 unencryptedShell=0x0
 decoderShell=0x1
 unencryptedBodyShell=0x3
@@ -762,9 +759,17 @@ class foundBooleans():
 		self.bAnaHiddenCallsDone=False
 		self.bAnaHiddenCnt=0
 		self.bAnaConvertBytesDone=False
+		self.bDoFindHiddenCalls=True
+		self.bDoEnableComments=True
+		self.bDoShowAscii=True
+		self.bDoFindStrings=True
+		self.ignoreDisDiscovery=False
 		self.bAnaFindStrDone=False
 		self.bPreSysDisDone=False
 		self.disAnalysisDone=False
+		self.maxOpDisplay=8
+		self.btsV=3     # value/option for binary to string function. #3 is default - this is just to be used so users can change how disassembly is printed.
+
 
 		self.name=name
 		self.bPushRetFound = False
@@ -3577,7 +3582,7 @@ def disHerePushRet64(address, NumOpsDis, secNum, data): ########################
 def PushRetrawhex(address, secNum, data):
 	# print ("PushRetrawhex", len(data))
 	global bit32
-	global ignoreDisDiscovery
+	
 	global linesForward
 	address = hex(address)
 	# linesGoBack = 10
@@ -3588,7 +3593,7 @@ def PushRetrawhex(address, secNum, data):
 	
 	# print("------------>", orgListOffset,orgListDisassembly)
 	# input()
-	if(ignoreDisDiscovery):
+	if(mBool[o].ignoreDisDiscovery):
 		truth = False
 
 	if (truth):
@@ -3655,7 +3660,7 @@ def PushRetrawhex(address, secNum, data):
 
 def PushRetrawhex2(address, secNum, data):
 	global bit32
-	global ignoreDisDiscovery
+	
 	global linesForward
 	address = hex(address)
 	linesGoBack = 10
@@ -3663,7 +3668,7 @@ def PushRetrawhex2(address, secNum, data):
 	truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, 0x0, linesGoBack, "PushRetrawhex2")  # arg: starting offset/entry point - leave 0 generally
 	# print("------------>", orgListOffset,orgListDisassembly)
 	# input()
-	if(ignoreDisDiscovery):
+	if(mBool[o].ignoreDisDiscovery):
 		truth = False
 
 	if (truth):
@@ -4191,7 +4196,7 @@ def disHereFSTENV(address, NumOpsDis, NumOpsBack, secNum, data): ############ AU
 
 def FSTENVrawhex(address, linesBack2, secNum, data):
 	global bit32
-	global ignoreDisDiscovery
+	
 	global linesBack
 	# linesBack = 10
 	linesBack = linesBack2
@@ -4207,7 +4212,7 @@ def FSTENVrawhex(address, linesBack2, secNum, data):
 	# for line in orgListDisassembly:
 	# 	dprint2(hex(orgListOffset[t]), "   ", orgListDisassembly[t])
 	# 	t+=1
-	if(ignoreDisDiscovery):
+	if(mBool[o].ignoreDisDiscovery):
 		truth = False
 	t = 0
 	chunk = ""
@@ -4871,7 +4876,7 @@ def disHereCallpop64(address, NumOpsDis, secNum, data, distance):
 		t+=1
 def callPopRawHex_old(address, secNum, data):
 	global bit32
-	global ignoreDisDiscovery
+	
 	global maxDistance
 	global linesForward
 
@@ -4889,7 +4894,7 @@ def callPopRawHex_old(address, secNum, data):
 
 
 
-	if(ignoreDisDiscovery):
+	if(mBool[o].ignoreDisDiscovery):
 		truth = False
 	t = 0
 	if(truth):
@@ -4971,7 +4976,7 @@ def callPopRawHex_old(address, secNum, data):
 
 def callPopRawHex(address, linesForward2, secNum, data):
 	global bit32
-	global ignoreDisDiscovery
+	
 	global maxDistance
 	global linesForward
 
@@ -4981,7 +4986,7 @@ def callPopRawHex(address, linesForward2, secNum, data):
 	address = int(address)
 	linesGoBack = 10
 	truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(address, 0x0, linesGoBack, "callPopRawHex")
-	if(ignoreDisDiscovery):
+	if(mBool[o].ignoreDisDiscovery):
 		truth = False
 
 	t = 0
@@ -6708,7 +6713,7 @@ def getSyscallRawHex(address, linesBack, secNum, data):
 
 		addressInt = int(address,16)
 		truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(addressInt, 0x0, linesGoBack, "getSyscallRawHex")  # arg: starting offset/entry point - leave 0 generally
-		if(ignoreDisDiscovery):
+		if(mBool[o].ignoreDisDiscovery):
 			truth = False
 
 		if truth:
@@ -7784,12 +7789,12 @@ def disHereHeavenPE(address, NumOpsDis, NumOpsBack, secNum, data): ############ 
 			# 	return
 
 def getHeavenRawHex(address, linesBack, secNum, data):
-		global ignoreDisDiscovery
+		
 		address = hex(address)
 		linesGoBack = linesBack
 		t = 0
 		truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, 0x0, linesGoBack, "getHeavenRawHex")  # arg: starting offset/entry point - leave 0 generally
-		if(ignoreDisDiscovery):
+		if(mBool[o].ignoreDisDiscovery):
 			truth = False
 
 		# dprint2("TESTING PRESYSCAL")
@@ -11279,20 +11284,22 @@ def createDisassemblyLists(Colors=True, caller=None):
 	global off_Label
 	global labels
 	global res
-	global StringValsPresent
-	# global maxOpDisplay
-	maxOpDisplay=8
-	btsV=3
+	
+	maxOpDisplay=mBool[o].maxOpDisplay
+
+	btsV=mBool[o].btsV
 	
 
-	if caller=="final":
+	if caller=="final" and mBool[o].bDoEnableComments:
 		addComments()
 
 	# print ("size", len(sBy.shAddresses))
 	mode="ascii"
 	j=0
-	nada=finalOutput=""
-
+	nada=""
+	finalOutput="\n"
+	myStrOut=""
+	myHex=""
 	# print ("By.pushStringEnd")
 	# new=[]
 	# for each in  sBy.pushStringEnd:
@@ -11308,19 +11315,22 @@ def createDisassemblyLists(Colors=True, caller=None):
 			except:
 				endHex=len(m[o].rawData2)
 			sizeDisplay=endHex-startHex
-			if sizeDisplay > maxOpDisplay:
-				myHex=red+binaryToStr(m[o].rawData2[startHex:startHex+maxOpDisplay],btsV)+"..."+res2+""
-				# myStrOut=cya+" "+toString(m[o].rawData2[startHex:startHex+maxOpDisplay])+res2+""
-			else:
-				myHex=red+binaryToStr(m[o].rawData2[startHex:endHex],btsV)+res2+""
-				if StringValsPresent:
+			try:
+				if sizeDisplay > maxOpDisplay:
+					myHex=red+binaryToStr(m[o].rawData2[startHex:startHex+maxOpDisplay],btsV)+"..."+res2+""
 					myStrOut=cya+" "+toString(m[o].rawData2[startHex:endHex])+res2+""
 				else:
-					myStrOut=""
+					myHex=red+binaryToStr(m[o].rawData2[startHex:endHex],btsV)+res2+""
+					if mBool[o].bDoShowAscii:
+						myStrOut=cya+" "+toString(m[o].rawData2[startHex:endHex])+res2+""
+					else:
+						myStrOut=""
+			except Exception as e:
+				print (e, "------------------------------------------------)")
 			out='{:<12s} {:<45s} {:<33s}{:<10s}\n'.format(gre+str(hex(cAddress)), whi+sBy.shMnemonic[j] + " " + sBy.shOp_str[j], myHex,myStrOut )
 			if re.search( r'align|db 0xff x', sBy.shMnemonic[j], re.M|re.I):
 				myHex=red+binaryToStr(m[o].rawData2[startHex:startHex+4],btsV)+"..."+res2+""
-				if StringValsPresent:
+				if mBool[o].bDoShowAscii:
 					myStrOut=cya+" "+toString(m[o].rawData2[startHex:startHex+4])+"..."+res2+""
 				else:
 					myStrOut=""
@@ -11352,7 +11362,7 @@ def createDisassemblyLists(Colors=True, caller=None):
 			cur=cAddress
 			if (sBy.pushStringEnd[cur]-2) == cur:
 				msg="; "+sBy.pushStringValue[cur] + " - Stack string"
-				newVal =('{:<12} {:<45s} {:<26s}{:<10s}\n'.format("", msg, nada, nada))
+				newVal =('{:<12} {:<45s} {:<33}{:<10s}\n'.format("", msg, nada, nada))
 				out= newVal+out
 		except Exception as e:
 			# print ("weird error", e)
@@ -11683,7 +11693,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 			# dprint2("FoundSTRING", hex(stringStart), hex(offset),"off")
 			if stringStart==offset:
 				startAddString=str(hex(offset))
-				stringVala=sBy.stringsValue[offset]+" ; string"
+				stringVala=sBy.stringsValue[offset]+mag+" ; string"+res2+"\t\t"
 				# bprint ("\t\t\tmaking strings", stringVala)
 		elif (sBy.strings[offset]==False):#  and sBy.boolspecial[offset]==False:
 			# dprint2("FoundNOTSTRING", hex(stringStart), hex(offset),"off")
@@ -13775,10 +13785,10 @@ def preSyscalDiscoverold(startingAddress, targetAddress, linesGoBack, caller=Non
 	global m
 	global sBy
 	bprint ("preSyscalDiscovery", caller)
-	global FindStringsStatus
-	FindStringsStatus2 =	FindStringsStatus 
+	
+	# mBool[o].bDoFindStrings2 =	mBool[o].bDoFindStrings 
 
-	FindStringsStatus2 = False
+	# mBool[o].bDoFindStrings2 = False
 	clearTempDis()
 	shellBytes=m[o].rawData2
 	# print (hex(len(shellBytes)), "myshell")
@@ -13801,7 +13811,7 @@ def preSyscalDiscoverold(startingAddress, targetAddress, linesGoBack, caller=Non
 		sBy.specialEnd.append(0)
 		sBy.comments.append("")
 		i+=1
-	if FindStringsStatus2 and not mBool[o].bPreSysDisDone:
+	if mBool[o].bDoFindStrings and not mBool[o].bPreSysDisDone:
 		findStrings(shellBytes,3)
 		findStringsWide(shellBytes,3)
 		findPushAsciiMixed(shellBytes,3)
@@ -13863,9 +13873,9 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None)
 	# print ("takeBytes:", hex(startingAddress))
 
 	# print ("inside preSyscalDiscovery now")
-	shellSizeLimit=150
+	# shellSizeLimit=150
 	shellSize=len(shellBytes)/1000
-	if shellSize>  shellSizeLimit or ignoreDisDiscovery:
+	if shellSize>  shellSizeLimit or mBool[o].ignoreDisDiscovery:
 		print ("Too big")
 		print ("preSyscalDiscovery size1", shellSize )
 		return False, [], [], [],[]
@@ -13875,7 +13885,7 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None)
 	# print ("preSyscalDiscovery size2", shellSize )
 
 	global sBy
-	global FindStringsStatus
+	
 	global shellEntry
 
 
@@ -13904,7 +13914,7 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None)
 		i+=1
 
 	start = time.time()
-	if FindStringsStatus and not mBool[o].bPreSysDisDone:
+	if mBool[o].bDoFindStrings and not mBool[o].bPreSysDisDone:
 		# import sharem
 		dprint4 ("\nfinding strings")
 		findStrings(shellBytes,3)
@@ -13916,7 +13926,7 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None)
 	bprint ("\n[*] Find strings", end-start)
 	
 	start = time.time()
-	anaFindFF(shellBytes)
+	# anaFindFF(shellBytes)
 	# addComments()
 	end = time.time()
 	bprint ("\n[*] anaFindFF", end-start)
@@ -13971,7 +13981,7 @@ def takeBytes(shellBytes,startingAddress, silent=None):
 	
 	# bprint ("takeBytes:", hex(startingAddress))
 	global sBy
-	global FindStringsStatus
+	
 	global shellEntry
 
 
@@ -13983,7 +13993,7 @@ def takeBytes(shellBytes,startingAddress, silent=None):
 	# bprint  ("mBool[o].bPreSysDisDone",  mBool[o].bPreSysDisDone)
 
 	if not mBool[o].bPreSysDisDone:
-		print ("still entering it???")
+		print ("takeBytes: still entering it???")
 		clearDisassemblyBytesClass()
 		for x in shellBytes:
 			sBy.offsets.append(i)
@@ -14006,7 +14016,7 @@ def takeBytes(shellBytes,startingAddress, silent=None):
 			i+=1
 
 		start = time.time()
-		if FindStringsStatus:
+		if mBool[o].bDoFindStrings:
 			# import sharem
 			dprint4 ("\nfinding strings")
 			findStrings(shellBytes,3)
@@ -14151,7 +14161,7 @@ def findInList(listPeb, address):
 def findRange(data, startingAddress, end2, caller=None):
 
 	global bit32
-	global FindStringsStatus
+	
 	global shellEntry
 	if bit32:
 		bit=32
@@ -14216,25 +14226,23 @@ def findRange(data, startingAddress, end2, caller=None):
 	
 	fr1 = time.time()
 	# print ("bAnaHiddenCallsDone2", mBool[o].bAnaHiddenCallsDone)
-
 	if not mBool[o].bAnaHiddenCallsDone and "preSyscalDiscovery" in caller:
 		# print ("inside hc")
 		analysisFindHiddenCalls(data, startingAddress, caller + " PS")
-	elif caller=="takeBytes":
-		# print ("inside hctb")
+	elif caller=="takeBytes" and mBool[o].bDoFindHiddenCalls:
 		analysisFindHiddenCalls(data, startingAddress, caller)
 	fr_end = time.time()
 	bprint ("\n\t[*] analysisFindHiddenCalls", fr_end-fr1)
 
 	fr12 = time.time()
 	shellEntryPassed=False
-	# if FindStringsStatus:
+	# if mBool[o].bDoFindStrings:
 	# 	anaFindStrings(data,startingAddress)
 	# fr_end = time.time()
 	# print ("[*] anaFindStrings", fr_end-fr12)
 
 	shellEntryPassed=False
-	if FindStringsStatus and not mBool[o].bAnaFindStrDone:
+	if mBool[o].bDoFindStrings and not mBool[o].bAnaFindStrDone:
 		anaFindStrings(data,startingAddress)
 	fr_end = time.time()
 	bprint ("\n\t[*] anaFindStrings", fr_end-fr12)
@@ -16920,7 +16928,7 @@ def disassembleSubMenu():
 		elif choice == "m":
 			modifysByRangeUser()
 		elif choice == "h" or choice == "help":
-			disToggleMenu(shellEntry,shellSizeLimit,StringValsPresent,mBool[o].bPreSysDisDone, toggList) 
+			disToggleMenu(shellEntry,shellSizeLimit,mBool[o].bPreSysDisDone, mBool[o].bDoFindHiddenCalls, mBool[o].bDoEnableComments, mBool[o].bDoShowAscii, mBool[o].bDoFindStrings, mBool[o].ignoreDisDiscovery, mBool[o].maxOpDisplay, mBool[o].btsV, toggList) 
 			# disassembleUiMenu(shellEntry)
 		elif choice == "g":
 
@@ -17050,7 +17058,7 @@ def disassembleToggles():
 
 
 
-		disToggleMenu(shellEntry,shellSizeLimit,StringValsPresent, mBool[o].bPreSysDisDone, toggList) 
+		disToggleMenu(shellEntry,shellSizeLimit,mBool[o].bPreSysDisDone, mBool[o].bDoFindHiddenCalls, mBool[o].bDoEnableComments, mBool[o].bDoShowAscii, mBool[o].bDoFindStrings, mBool[o].ignoreDisDiscovery, mBool[o].maxOpDisplay, mBool[o].btsV, toggList) 
 		return
 		
 
@@ -17785,7 +17793,7 @@ def ui(): #UI menu loop
 	global stringReadability #What % of string should be letters, numbers, or spaces
 	global checkGoodStrings #Whether or not we check if a string is good
 	global shellEntry
-	global StringValsPresent
+	
 	global configOptions
 	global rawhex
 	bStrings = True
@@ -17843,7 +17851,7 @@ def ui(): #UI menu loop
 					shellDisassemblyInit(rawData2)
 					# bramwellStart2()
 			elif userIN[0:1] == "d":
-				disToggleMenu(shellEntry, shellSizeLimit,StringValsPresent, mBool[o].bPreSysDisDone)
+				disToggleMenu(shellEntry,shellSizeLimit,mBool[o].bPreSysDisDone, mBool[o].bDoFindHiddenCalls, mBool[o].bDoEnableComments, mBool[o].bDoShowAscii, mBool[o].bDoFindStrings, mBool[o].ignoreDisDiscovery, mBool[o].maxOpDisplay, mBool[o].btsV) 
 				# disassembleUiMenu(shellEntry)
 				disassembleSubMenu()
 			elif userIN[0:1] == "s":	# "find assembly instrucitons associated with shellcode"
@@ -19195,7 +19203,7 @@ def uiFindStrings():
 	global stringsTemp
 	global stringsTempWide
 	global pushStringsTemp
-	global FindStringsStatus
+	
 	global useStringsFile
 	global chMode
 	
@@ -21904,7 +21912,7 @@ if __name__ == "__main__":
 
 			print (len(m[o].rawData2))
 			# input()
-			if FindStringsStatus:
+			if mBool[o].bDoFindStrings:
 		# import sharem
 				print ("finding strings")
 				findStrings(m[o].rawData2,3)
