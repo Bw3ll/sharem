@@ -632,7 +632,7 @@ def stringMenu(bAsciiStrings, bWideCharStrings, bPushStackStrings, bAllStrings, 
 	print(iMenu)
 
 
-def disToggleMenu(toggList=None):
+def disToggleMenu(shellEntry, shellSizeLimit, StringValsPresent, disassemblyFound, toggList=None):
 
 	if toggList != None:
 		string = toggList['findString']
@@ -664,16 +664,29 @@ def disToggleMenu(toggList=None):
 	else:
 		commentsTogg = " "
 
+	if StringValsPresent:
+		strValTog="x"
+	else:
+		strValTog=" "
+
 	text = """
   Selections:
 
   """
-	text += "\t{}      [{}]\n".format(cya + "  s"+res+" -"+yel+"  Find strings in shellcode"+ res, cya + strTogg + res)
-	text += "\t{}     [{}]\n".format(cya + "  d"+res+" -"+yel+"  Use deobfuscated shellcode"+ res, cya + deobfTogg + res)
-	text += "\t{} [{}]\n".format(cya + "  p"+res+" -"+yel+"  Find all shellcode insructions"+ res, cya + findshellTogg+ res)
-	text += "\t{} [{}]\n".format(cya + "  c"+res+" -"+yel+"  Enable comments in disassembly"+ res, cya + commentsTogg+ res)
+	text += "\t{}       [{}]\n".format(cya + "  s"+res+" -"+yel+"  Find strings in shellcode"+ res, cya + strTogg + res)
+	text += "\t{}      [{}]\n".format(cya + "  d"+res+" -"+yel+"  Use deobfuscated shellcode"+ res, cya + deobfTogg + res)
+	text += "\t{} [{}]\n".format(cya + "  p"+res+" -"+yel+"  Find all shellcode instructions"+ res, cya + findshellTogg+ res)
+	text +="\t\tE.g. Push Ret, GetPC, etc.\n"
+	text += "\t{}  [{}]\n".format(cya + "  c"+res+" -"+yel+"  Enable comments in disassembly"+ res, cya + commentsTogg+ res)
+	text += "\t{}    [{}]\n".format(cya + "  a"+res+" -"+yel+"  Display ASCII representation"+ res, cya + strValTog+ res)
+	text += "\t{}     [{}]\n".format(cya + "  l"+res+" -"+yel+"  Find lost/hidden calls/jmps"+ res, cya + ""+ res)
+	
+	
+
+
 
 	print(text)
+	disassembleUiMenu(shellEntry, shellSizeLimit, disassemblyFound)
   	# s - Find strings in shellcode      [{}]
   	# d - Use deobfuscated shellcode     [{}]
   	# p - Find all shellcode insructions [{}]
@@ -685,10 +698,15 @@ def disToggleMenu(toggList=None):
 	
 
 
-def disassembleUiMenu(shellEntry):
+def disassembleUiMenu(shellEntry, shellSizeLimit, disassemblyFound ):
 	
 	# leave this here
 	#    {}:		Modify shellcode range. (Not functional)
+
+	dfOut=""
+	if disassemblyFound:
+		dfOut=whi+"["+cya+"Found"+whi+"]"+res
+
 	menu = """
   ......................
    Disassembly Options
@@ -697,12 +715,16 @@ def disassembleUiMenu(shellEntry):
    {}:		Display options.
    {}:		Toggle selections.
    {}:		Output raw shellcode to Json format.
-   {}:		Change entry point ({})
+   {}:		Change entry point ({}).
    {}:		Use md5 hash as shellcode filename.
-   {}:		Generate disassembly.
+   {}:		Generate disassembly.{}
+   {}:		Print found disassembly to screen.
    {}:		Return to main menu.
+   {}:		Maximum size of shellcode to disassemble ({}).
+	           More than 150 kb is not recommended.\n"
+
  
-	""".format(gre +"h"+res, gre+"g"+res, gre+"j"+res, gre+"e"+res, cya + hex(shellEntry) + res, gre+"u"+res, gre+"D"+res, gre+"x"+res)
+	""".format(gre +"h"+res, gre+"g"+res, gre+"j"+res, gre+"e"+res, cya + hex(shellEntry) + res, gre+"u"+res, gre+"D"+res, dfOut, gre+"p"+res, gre+"x"+res, gre+"m"+res, cya+str(shellSizeLimit) +" kb"+res)
 
 	print (menu)
 def shellcodeStringMenu(bAsciiStrings, bWideCharStrings, bPushStackStrings, bAllStrings, s):
