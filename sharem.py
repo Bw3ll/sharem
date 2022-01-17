@@ -15340,9 +15340,40 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 
 	# non-distributed
 	elif(mode == "stub"):
-		if(opsLen >= 1 and opsLen <= 5):
-			outputs,earlyFinish,startVals = austinDecode(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount, mode = "stub", stubParams = stubParams, successPoints	= successPoints	)
-			decodeInfo = outputs
+		stubNums = stubParams[0]
+		stubOps = stubParams[1]
+		if(len(stubOps) <= 0):
+			print("No operations found within stub, returning...")
+			return
+		else:
+			if(len(stubNums) > 0):		
+				outputs,earlyFinish,startVals = austinDecode(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount, mode = "stub", stubParams = stubParams, successPoints	= successPoints	)
+				decodeInfo = outputs
+			else:
+				decodeOps = []
+				# print("OPERATIONS:")
+				# print(operations)
+				for symbol in stubOps:
+					if(symbol == "+"):
+						decodeOps.append(strAdd)
+					elif(symbol == "-"):
+						decodeOps.append(strSub)
+					elif(symbol == "^"):
+						decodeOps.append(strXor)
+					elif(symbol == "~"):
+						decodeOps.append(strNot)
+					elif(symbol == "rl"):
+						decodeOps.append(strRol)
+					elif(symbol == "rr"):
+						decodeOps.append(strRor)
+					elif(symbol == "<"):
+						decodeOps.append(strShRight)
+					else:
+						print("Operation \"" + symbol + "\" not recognized. Returning.")
+						return
+
+				outputs,earlyFinish,startVals = austinDecode(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount, successPoints = successPoints)
+				decodeInfo = outputs
 
 			for item in decodeInfo:
 					print("############# DECODED ################")
@@ -15384,12 +15415,8 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 					print("\n\n")
 	else:
 		if(opsLen >= 1 and opsLen <= 5):
-			if(listComp):
-				outputs,earlyFinish,startVals = austinListComp(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount, successPoints = successPoints)
-				decodeInfo = outputs
-			else:
-				outputs,earlyFinish,startVals = austinDecode(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount, successPoints = successPoints)
-				decodeInfo = outputs
+			outputs,earlyFinish,startVals = austinDecode(decodeOps, encodedShell, findAll = findAll, cpuCount = cpuCount, successPoints = successPoints)
+			decodeInfo = outputs
 
 			# print("DECODEINFO MANUAL ATTEMPT")
 			# print("STARTVALS: ",decodeInfo[0][2])
@@ -15890,13 +15917,13 @@ def analyzeDecoderStubs(shellArg="default", entryPoint = 0, stubEnd = -1):
 			rawBytes=readShellcode(shellArg)
 		except:
 			print(red + " Error: Couldn't read file."+res)
-			return -1, -1
+			return -1, -1, -1
 	else:
 		try:
 			rawBytes=readShellcode(shellArg)
 		except:
 			print(red + " Error: Couldn't read file." + res)
-			return -1, -1
+			return -1, -1, -1
 	if(stubEnd == -1):
 		stubEnd = len(rawBytes)
 	CODED3 = rawBytes[entryPoint:stubEnd]
