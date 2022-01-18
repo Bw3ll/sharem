@@ -636,8 +636,9 @@ def stringMenu(bAsciiStrings, bWideCharStrings, bPushStackStrings, bAllStrings, 
 
 	# disToggleMenu(shellEntry,shellSizeLimit,mBool[o].bPreSysDisDone, mBool[o].bDoFindHiddenCalls, mBool[o].bDoEnableComments, mBool[o].bDoShowAscii, mBool[o].bDoFindStrings, mBool[o].ignoreDisDiscovery, mBool[o].maxOpDisplay, mBool[o].btsV, toggList) 
 			# disassembleUiMenu(shellEntry)
-def disToggleMenu(shellEntry, shellSizeLimit, disassemblyFound, bDoFindHiddenCalls, bDoEnableComments, bDoShowAscii, bDoFindStrings, ignoreDisDiscovery, maxOpDisplay, btsV, toggList=None):
+def disToggleMenu(shellEntry, shellSizeLimit, disassemblyFound, bDoFindHiddenCalls, bDoEnableComments, bDoShowAscii, bDoFindStrings, ignoreDisDiscovery, maxOpDisplay, btsV,bDoShowOffsets, bDoshowOpcodes,bShowLabels, toggList=None):
 
+	deobfuscatedSuccessfully=False    # NEED TO GET THIS FROM AUSTIN
 	if toggList != None:
 		deobfcode = toggList['deobfCode']
 		findshell = toggList['findShell']
@@ -682,23 +683,57 @@ def disToggleMenu(shellEntry, shellSizeLimit, disassemblyFound, bDoFindHiddenCal
 	else:
 		AsciiTogg=" "
 
-	# if ignoreDisDiscovery:
-	# 	ignDiscTogg="x"
-	# else:
-	# 	ignDiscTogg=" "
+	if bDoShowOffsets:
+		offsetTogg="x"
+	else:
+		offsetTogg=" "
+		
+	if bShowLabels:
+		labelTogg="x"
+	else:
+		labelTogg=" "
+
+	if bDoshowOpcodes:
+		opcodeTogg="x"
+	else:
+		opcodeTogg=" "
+
+	if deobfuscatedSuccessfully:
+		deobSucTogg=cya+"DEOBFUSCATED"+res
+	else:
+		deobSucTogg=cya+"NOT DEOBFUSCATED"+res
+	tCol=whi
+	maxOpval= tCol+"["+cya+str(maxOpDisplay)+tCol+"]"+res2
+	printStyleVal= tCol+"["+cya+str(btsV)+tCol+"]"+res2
 
 
-	text = """
-  Selections:
+	text = gre+ """
+  Disassembly Creation:
 
-  """
-	text += "\t{}       [{}]\n".format(cya + "  s"+res+" -"+yel+"  Find strings in shellcode"+ res, cya + strTogg + res)
-	text += "\t{}      [{}]\n".format(cya + "  d"+res+" -"+yel+"  Use deobfuscated shellcode"+ res, cya + deobfTogg + res)
+  """+res
+	text += "\t{}       [{}]\n".format(cya + "  s"+res+" -"+yel+"  Use found strings in shellcode"+ res, cya + strTogg + res)
+	text += "\t{}       [{}]\n".format(cya + "  d"+res+" -"+yel+"  Utilize deobfuscated shellcode"+ res, cya + deobfTogg + res)
+	text +="\t\t\t[" + deobSucTogg + "]\n"
+	text += "\t{}          [{}]\n".format(cya + "  l"+res+" -"+yel+"  Find lost/hidden calls/jmps"+ res, cya + HiddenTogg+ res)
 	# text += "\t{} [{}]\n".format(cya + "  p"+res+" -"+yel+"  Find all shellcode instructions"+ res, cya + findshellTogg+ res)
 	# text +="\t\tE.g. Push Ret, GetPC, etc.\n"
-	text += "\t{}  [{}]\n".format(cya + "  c"+res+" -"+yel+"  Enable comments in disassembly"+ res, cya + commentsTogg+ res)
-	text += "\t{}     [{}]\n".format(cya + "  a"+res+" -"+yel+"  Display ASCII alongside Hex"+ res, cya + AsciiTogg+ res)
-	text += "\t{}     [{}]\n".format(cya + "  l"+res+" -"+yel+"  Find lost/hidden calls/jmps"+ res, cya + HiddenTogg+ res)
+
+
+
+
+	##### PLEASE put these all in a disassembly print style submenu. Top ones are a toggle. Bottom ones are not.
+	text+="\n\n" +gre + "  Disassembly Print Style\n" + res2
+	text += "\t{}     [{}]\n".format(cya + "  c"+res+" -"+yel+"  Enable comments in disassembly"+ res, cya + commentsTogg+ res)
+	text += "\t{}        [{}]\n".format(cya + "  a"+res+" -"+yel+"  Display ASCII alongside Hex"+ res, cya + AsciiTogg+ res)
+	text += "\t{}                    [{}]\n".format(cya + "  ?"+res+" -"+yel+"  Display opcodes"+ res, cya + opcodeTogg+ res)
+	text += "\t{}      [{}]\n".format(cya + "  ?"+res+" -"+yel+"  Display labels in disassembly"+ res, cya + labelTogg+ res)
+	text += "\t{}     [{}]\n".format(cya + "  ?"+res+" -"+yel+"  Display offsets in disassembly"+ res, cya + offsetTogg+ res)
+	text += "\n{}	Maximum opcodes to display as hex {}\n".format("?",maxOpval)
+	text += "{}	Opcode print style (1-3) {}\n".format("?",printStyleVal)
+	text += "{}	Regenerate disassembly with new settings\n".format("?")
+	
+	####  TAREK: this uses regenerateDisassemblyForPrint()  -- it will save it to gDisassemblyText --- print that to screen after it regenerates it
+	
 
 
 
@@ -742,10 +777,9 @@ def disassembleUiMenu(shellEntry, shellSizeLimit, disassemblyFound, maxOpDisplay
 	if disassemblyFound:
 		printDis=tCol+"["+cya+"FOUND"+tCol+"]"+res
 	else:
-		printDis=tCol+"["+cya+" NOT FOUND"+tCol+"]"+res
+		printDis=tCol+"["+cya+" NOT DISASSEMBLED"+tCol+"]"+res
 
-	maxOpval= tCol+"["+cya+str(maxOpDisplay)+tCol+"]"+res2
-	printStyleVal= tCol+"["+cya+str(btsV)+tCol+"]"+res2
+
 	menu = """
   ......................
    Disassembly Options
@@ -758,17 +792,16 @@ def disassembleUiMenu(shellEntry, shellSizeLimit, disassemblyFound, maxOpDisplay
    {}:		Use md5 hash as shellcode filename.
 
    {}:		Generate disassembly.{}
-   {}:		Print found disassembly to screen. {}
+   {}:		Print disassembly to screen. {}
    {}:		Maximum size of shellcode to disassemble [{}].
                    More than 150 kb is not recommended.
    {}:		Do not use generated disassembly to find shellcode instructions {}
                    Should be unchecked except with very large shellcodes.
-   {}:		Maximum opcodes to display as hex {}
-   {}:		Opcode print style (1-3) {}
+   {}:		Disassembly print style submenu
    {}:		Return to main menu.
             
  
-	""".format(gre +"h"+res, gre+"g"+res, gre+"j"+res, gre+"e"+res, cya + hex(shellEntry) + res, gre+"u"+res, gre+"D"+res, dfOut, gre+"p"+res, printDis, gre+"m"+res, shellsize, gre+"i"+res2, ignDiscTogg, gre+"o"+res, maxOpval, gre+"s"+res2, printStyleVal, gre+"x"+res)
+	""".format(gre +"h"+res, gre+"g"+res, gre+"j"+res, gre+"e"+res, cya + hex(shellEntry) + res, gre+"u"+res, gre+"D"+res, dfOut, gre+"p"+res, printDis, gre+"m"+res, shellsize, gre+"i"+res2, ignDiscTogg,  gre+"?"+res, gre+"x"+res)
 
 	print (menu)
 def shellcodeStringMenu(bAsciiStrings, bWideCharStrings, bPushStackStrings, bAllStrings, s):
