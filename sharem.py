@@ -59,7 +59,7 @@ res2 = '\u001b[0m'
 
 
 oldsysOut=sys.stdout
-my_stdout = open( 1, "w", buffering = 300000 )
+my_stdout = open( 1, "w", buffering = 400000 )
 
 sys.stdout = my_stdout
 sys.stdout=oldsysOut
@@ -770,7 +770,6 @@ class foundBooleans():
 		self.maxOpDisplay=8
 		self.btsV=3     # value/option for binary to string function. #3 is default - this is just to be used so users can change how disassembly is printed.
 
-		self.justadumtest
 		self.name=name
 		self.bPushRetFound = False
 		self.bDisassemblyFound = False
