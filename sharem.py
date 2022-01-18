@@ -762,7 +762,10 @@ class foundBooleans():
 		self.bDoFindHiddenCalls=True
 		self.bDoEnableComments=True
 		self.bDoShowAscii=True
+		self.bDoShowOffsets=True
+		self.bDoshowOpcodes=True
 		self.bDoFindStrings=True
+		self.bShowLabels=True
 		self.ignoreDisDiscovery=False
 		self.bAnaFindStrDone=False
 		self.bPreSysDisDone=False
@@ -770,7 +773,6 @@ class foundBooleans():
 		self.maxOpDisplay=8
 		self.btsV=3     # value/option for binary to string function. #3 is default - this is just to be used so users can change how disassembly is printed.
 
-		self.justadumtest
 		self.name=name
 		self.bPushRetFound = False
 		self.bDisassemblyFound = False
@@ -11289,32 +11291,36 @@ def createDisassemblyLists(Colors=True, caller=None):
 
 	btsV=mBool[o].btsV
 	
-
+	showOpcodes = mBool[o].bDoshowOpcodes
+	showLabels = mBool[o].bShowLabels
 	if caller=="final" and mBool[o].bDoEnableComments:
 		addComments()
 
-	# print ("size", len(sBy.shAddresses))
 	mode="ascii"
+	if not mBool[o].bDoShowOffsets:
+		mode="NoOffsets"
 	j=0
 	nada=""
 	finalOutput="\n"
 	myStrOut=""
 	myHex=""
+
 	# print ("By.pushStringEnd")
 	# new=[]
 	# for each in  sBy.pushStringEnd:
 	# 	each =hex(each)
 	# 	new.append(each)
 	# print (new)
-	for cAddress in sBy.shAddresses:
-		if mode=="ascii":
-			startHex=cAddress
 
-			try:
-				endHex=sBy.shAddresses[j+1]
-			except:
-				endHex=len(m[o].rawData2)
-			sizeDisplay=endHex-startHex
+	for cAddress in sBy.shAddresses:
+		pAddress= gre+str(hex(cAddress))+res2  #print address
+		startHex=cAddress
+		try:
+			endHex=sBy.shAddresses[j+1]
+		except:
+			endHex=len(m[o].rawData2)
+		sizeDisplay=endHex-startHex
+		if mode=="ascii":
 			try:
 				if sizeDisplay > maxOpDisplay:
 					myHex=red+binaryToStr(m[o].rawData2[startHex:startHex+maxOpDisplay],btsV)+"..."+res2+""
@@ -11326,28 +11332,70 @@ def createDisassemblyLists(Colors=True, caller=None):
 					else:
 						myStrOut=""
 			except Exception as e:
-				print (e, "------------------------------------------------)")
-			out='{:<12s} {:<45s} {:<33s}{:<10s}\n'.format(gre+str(hex(cAddress)), whi+sBy.shMnemonic[j] + " " + sBy.shOp_str[j], myHex,myStrOut )
+				print ("ERROR: ", e)
+
+
+			if not showOpcodes:	 # If no hex, then move ASCII to left
+				myHex=myStrOut
+				myStrOut=""
+			out='{:<12s} {:<45s} {:<33s}{:<10s}\n'.format(pAddress, whi+sBy.shMnemonic[j] + " " + sBy.shOp_str[j], myHex,myStrOut )
 			if re.search( r'align|db 0xff x', sBy.shMnemonic[j], re.M|re.I):
 				myHex=red+binaryToStr(m[o].rawData2[startHex:startHex+4],btsV)+"..."+res2+""
 				if mBool[o].bDoShowAscii:
 					myStrOut=cya+" "+toString(m[o].rawData2[startHex:startHex+4])+"..."+res2+""
 				else:
 					myStrOut=""
-				out='{:<12s} {:<45s} {:<33s}{:<10s}\n'.format(gre+str(hex(cAddress)), whi+sBy.shMnemonic[j] + " " + sBy.shOp_str[j], myHex, myStrOut)
+
+				if not showOpcodes:   # If no hex, then move ASCII to left
+					myHex=myStrOut
+					myStrOut=""
+				out='{:<12s} {:<45s} {:<33s}{:<10s}\n'.format(pAddress, whi+sBy.shMnemonic[j] + " " + sBy.shOp_str[j], myHex, myStrOut)
 				pass
 
 			# out=out+"\n"
-		else:
-			out=('{:<12s} {:<35s}\n'.format(((cAddress)), sBy.shMnemonic[j] + " " + sBy.shOp_str[j]))
+		elif mode=="NoOffsets":
+			try:
+				if sizeDisplay > maxOpDisplay:
+					myHex=red+binaryToStr(m[o].rawData2[startHex:startHex+maxOpDisplay],btsV)+"..."+res2+""
+					myStrOut=cya+" "+toString(m[o].rawData2[startHex:endHex])+res2+""
+				else:
+					myHex=red+binaryToStr(m[o].rawData2[startHex:endHex],btsV)+res2+""
+					if mBool[o].bDoShowAscii:
+						myStrOut=cya+" "+toString(m[o].rawData2[startHex:endHex])+res2+""
+					else:
+						myStrOut=""
+			except Exception as e:
+				print ("Error:",e)
 
-		if sBy.comments[cAddress] !="":
-			val_b2=sBy.comments[cAddress]
-			val_comment =('{:<10s} {:<45s} {:<33s}{:<10s}\n'.format(mag+nada, val_b2, nada, nada))
-			out+=val_comment		
-		truth,myLabel=checkForLabel( str(hex(cAddress)),labels)
-		if truth:
-			out=yel+myLabel+res2+out
+			if not showOpcodes: # If no hex, then move ASCII to left
+				myHex=myStrOut
+				myStrOut=""
+			out='   {:<45s} {:<33s}{:<10s}\n'.format(whi+sBy.shMnemonic[j] + " " + sBy.shOp_str[j], myHex,myStrOut )
+			if re.search( r'align|db 0xff x', sBy.shMnemonic[j], re.M|re.I):
+				myHex=red+binaryToStr(m[o].rawData2[startHex:startHex+4],btsV)+"..."+res2+""
+				if mBool[o].bDoShowAscii:
+					myStrOut=cya+" "+toString(m[o].rawData2[startHex:startHex+4])+"..."+res2+""
+				else:
+					myStrOut=""
+
+				if not showOpcodes: # If no hex, then move ASCII to left
+					myHex=myStrOut
+					myStrOut=""
+				out='   {:<45s} {:<33s}{:<10s}\n'.format(pAddress, whi+sBy.shMnemonic[j] + " " + sBy.shOp_str[j], myHex, myStrOut)
+				pass
+		else:	
+			out=('{:<12s} {:<35s}\n'.format(pAddress, sBy.shMnemonic[j] + " " + sBy.shOp_str[j]))
+
+		if mBool[o].bDoEnableComments:
+			if sBy.comments[cAddress] !="":
+				val_b2=sBy.comments[cAddress]
+				val_comment =('{:<10s} {:<45s} {:<33s}{:<10s}\n'.format(mag+nada, val_b2, nada, nada))
+				out+=val_comment		
+		
+		if showLabels:
+			truth,myLabel=checkForLabel( str(hex(cAddress)),labels)
+			if truth:
+				out=yel+myLabel+res2+out
 		if re.search( r'\bjmp\b|\bje\b|\bjne\b|\bjg\b|\bjge\b|\bja\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bret\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', sBy.shMnemonic[j], re.M|re.I):
 			out=out+"\n"
 
@@ -13862,8 +13910,6 @@ def preSyscalDiscoverold(startingAddress, targetAddress, linesGoBack, caller=Non
 	return truth, tl1, tl2, l1,l2
 
 
-
-# def preSyscalDiscovery(shellBytes,startingAddress, silent=None):   #new PSD
 def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None):
 	global shellSizeLimit
 	shellBytes=m[o].rawData2
@@ -13873,21 +13919,16 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None)
 	# print ("takeBytes:", hex(startingAddress))
 
 	# print ("inside preSyscalDiscovery now")
-	# shellSizeLimit=150
+	# shellSizeLimit=0
 	shellSize=len(shellBytes)/1000
 	if shellSize>  shellSizeLimit or mBool[o].ignoreDisDiscovery:
 		print ("Too big")
 		print ("preSyscalDiscovery size1", shellSize )
 		return False, [], [], [],[]
 
-
-
 	# print ("preSyscalDiscovery size2", shellSize )
-
 	global sBy
-	
 	global shellEntry
-
 
 	takeBytesS = time.time()
 
@@ -13962,10 +14003,7 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None)
 	disassembly, disassemblyC =createDisassemblyLists(True, "preSyscalDiscovery")
 	# dontPrint()
 	t=0
-
 	assembly=binaryToText(shellBytes)   # this creates the string literal, raw hex, etc.
-
-	
 	tl1=sBy.shAddresses
 	tl2=sBy.shDisassemblyLine
 
@@ -13977,16 +14015,11 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None)
 
 
 def takeBytes(shellBytes,startingAddress, silent=None):
-
-	
 	# bprint ("takeBytes:", hex(startingAddress))
 	global sBy
-	
 	global shellEntry
-
-
+	global gDisassemblyText
 	takeBytesS = time.time()
-
 	startingAddress=0
 	i=startingAddress
 
@@ -14060,7 +14093,7 @@ def takeBytes(shellBytes,startingAddress, silent=None):
 	colorama.init()
 	# print ("final!!!!!")
 	disassembly, disassemblyC=createDisassemblyLists(True,"final")
-
+	gDisassemblyText =disassemblyC
 	print (disassemblyC)
 	# print (disassembly)
 	# dontPrint()
@@ -14070,6 +14103,10 @@ def takeBytes(shellBytes,startingAddress, silent=None):
 
 	return disassemblyC, disassembly,assembly
 
+def regenerateDisassemblyForPrint():
+	global gDisassemblyText
+	disassembly, disassemblyC=createDisassemblyLists(True,"final")
+	gDisassemblyText =disassemblyC
 def addComments():
 	# print("addcomments:", hex(len(sBy.comments)), hex(len(sBy.bytesType)))
 
@@ -14138,7 +14175,7 @@ def addComments():
 		except:
 			pass
 	cur=sBy.comments[shellEntry]
-	sBy.comments[shellEntry] = cur + " ; ***Shellcode Entry Point, offset " + str(hex(shellEntry)) +"***" +res2+""
+	sBy.comments[shellEntry] = cur + comC+" ; ***Shellcode Entry Point, offset " + str(hex(shellEntry)) +"***" +res2+""
 	
 	cur=sBy.comments[shellEntry-1]
 
@@ -16928,7 +16965,7 @@ def disassembleSubMenu():
 		elif choice == "m":
 			modifysByRangeUser()
 		elif choice == "h" or choice == "help":
-			disToggleMenu(shellEntry,shellSizeLimit,mBool[o].bPreSysDisDone, mBool[o].bDoFindHiddenCalls, mBool[o].bDoEnableComments, mBool[o].bDoShowAscii, mBool[o].bDoFindStrings, mBool[o].ignoreDisDiscovery, mBool[o].maxOpDisplay, mBool[o].btsV, toggList) 
+			disToggleMenu(shellEntry,shellSizeLimit,mBool[o].bPreSysDisDone, mBool[o].bDoFindHiddenCalls, mBool[o].bDoEnableComments, mBool[o].bDoShowAscii, mBool[o].bDoFindStrings, mBool[o].ignoreDisDiscovery, mBool[o].maxOpDisplay, mBool[o].btsV,mBool[o].bDoShowOffsets, mBool[o].bDoshowOpcodes,mBool[o].bShowLabels, toggList) 
 			# disassembleUiMenu(shellEntry)
 		elif choice == "g":
 
@@ -17058,7 +17095,7 @@ def disassembleToggles():
 
 
 
-		disToggleMenu(shellEntry,shellSizeLimit,mBool[o].bPreSysDisDone, mBool[o].bDoFindHiddenCalls, mBool[o].bDoEnableComments, mBool[o].bDoShowAscii, mBool[o].bDoFindStrings, mBool[o].ignoreDisDiscovery, mBool[o].maxOpDisplay, mBool[o].btsV, toggList) 
+		disToggleMenu(shellEntry,shellSizeLimit,mBool[o].bPreSysDisDone, mBool[o].bDoFindHiddenCalls, mBool[o].bDoEnableComments, mBool[o].bDoShowAscii, mBool[o].bDoFindStrings, mBool[o].ignoreDisDiscovery, mBool[o].maxOpDisplay, mBool[o].btsV, mBool[o].bDoShowOffsets, mBool[o].bDoshowOpcodes,mBool[o].bShowLabels, toggList) 
 		return
 		
 
@@ -17851,7 +17888,7 @@ def ui(): #UI menu loop
 					shellDisassemblyInit(rawData2)
 					# bramwellStart2()
 			elif userIN[0:1] == "d":
-				disToggleMenu(shellEntry,shellSizeLimit,mBool[o].bPreSysDisDone, mBool[o].bDoFindHiddenCalls, mBool[o].bDoEnableComments, mBool[o].bDoShowAscii, mBool[o].bDoFindStrings, mBool[o].ignoreDisDiscovery, mBool[o].maxOpDisplay, mBool[o].btsV) 
+				disToggleMenu(shellEntry,shellSizeLimit,mBool[o].bPreSysDisDone, mBool[o].bDoFindHiddenCalls, mBool[o].bDoEnableComments, mBool[o].bDoShowAscii, mBool[o].bDoFindStrings, mBool[o].ignoreDisDiscovery, mBool[o].maxOpDisplay, mBool[o].btsV, mBool[o].bDoShowOffsets, mBool[o].bDoshowOpcodes,mBool[o].bShowLabels) 
 				# disassembleUiMenu(shellEntry)
 				disassembleSubMenu()
 			elif userIN[0:1] == "s":	# "find assembly instrucitons associated with shellcode"
