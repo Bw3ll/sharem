@@ -233,7 +233,15 @@ GoodStrings={"cmd",  "net","add", "win", "http", "dll", "sub", "calc", "https"}
 toggList = {'findString':True, 
 			'deobfCode':False,
 			'findShell':False,
-			'comments':True}
+			'comments':True,
+			'hidden_calls':True,
+			'show_ascii':True,
+			'ignore_dis_discovery':False,
+			'opcodes':True,
+			'labels':True,
+			'offsets':True,
+			'max_opcodes':8,
+			'binary_to_string':3}
 
 brawHex = ''
 bstrLit = ''
@@ -753,6 +761,8 @@ def clearConsole():
     if os.name in ('nt', 'dos'):  # If Machine is running on Windows, use cls
         command = 'cls'
     os.system(command)
+
+
 
 class foundBooleans():
 	def __init__(self, name):
@@ -12027,7 +12037,7 @@ def dprint2(*args):
 
 
 def bprint(*args):
-	brDebugging=False
+	brDebugging=True
 	if brDebugging:
 		try:
 			if  (len(args) == 1):
@@ -16947,14 +16957,135 @@ def bramwellDisassembly():
 	# shellDisassemblyStart(shellcode4)
 
 
+
+def disPrintStyleMenu():
+
+	while True:
+		print(yel + " Sharem>" + cya + "Disasm>" + res + whi + "PrintStyle> " + res, end="")
+
+		choice = input()
+		if choice == "g":
+			disPrintStyleTogg()
+		elif choice == "x":
+			break
+		elif choice == "h":
+			disPrintStyle(mBool[o].bPreSysDisDone, toggList)
+		elif choice == "m":
+			opnum = input(" Enter maximum opcodes number: ")
+			try:
+				opnum = int(opnum)
+				mBool[o].maxOpDisplay = opnum
+				toggList['max_opcodes'] = opnum
+
+			except:
+				print(red + "\tPlease enter integer, not string." + res)
+				continue
+		elif choice == "p":
+			pstyle = input(" Enter opcode print style [1-3]: ")
+			try:
+				pstyle = int(pstyle)
+				if pstyle > 3 or pstyle <1:
+					print(red +"\t Please enter number between 1 and 3." +res)
+					continue
+
+				mBool[o].btsV = pstyle
+				toggList['binary_to_string'] = pstyle
+
+			except:
+				print(red + "\tPlease enter integer, not string." + res)
+				continue
+
+		elif choice == "r":
+			
+			if gDisassemblyText != "":
+				regenerateDisassemblyForPrint()
+				print(gDisassemblyText)
+			else:
+
+				print(red + "\tDisassembly is not generated."+res)
+				mchoice = input(" Do you want to generate the disassembly first [y/n] ? ")
+				mchoice = mchoice.lower()
+				if mchoice == "y":
+					if rawHex:
+						if bfindShell:
+
+							# print ("hello??")
+							# dontPrint()
+							shellDisassemblyInit(m[o].rawData2, "silent")
+							# allowPrint()
+
+							if gDisassemblyText == "":
+								print("\nUnable to find any disassembly.\n")
+							else:
+								# print("\nFound disassembly instructions.\n")
+								mBool[o].bDisassemblyFound = True
+				else:
+					continue
+
+
+		else:
+			print("Invalid input.")
+
+
+def disPrintStyleTogg():
+	print("Enter input delimited by commas or spaces. (x to exit)")
+	print("\tE.g. c, a, o, l, f\n")
+	while True:
+		print(yel + " Sharem>" + cya + "Disasm>" + res + whi + "PrintStyle> " + res, end="")
+
+		togg = input()
+		togg = togg.lower()
+		if togg == "x":
+			break
+		elif togg =="h":
+			print("Enter input delimited by commas or spaces. (x to exit)\n")
+			continue
+		togg = togg.replace(",", " ")
+		togg = re.sub(' +', ' ', togg)
+		toggOptions = togg.split(" ")
+
+
+		for t in toggOptions:
+			
+					
+			if t == "d":
+				toggList['deobfCode'] = not toggList['deobfCode']
+				bdeobfCode = not bdeobfCode
+
+			elif t == "c":
+
+				toggList['comments'] = not toggList['comments']
+				mBool[o].bDoEnableComments = not mBool[o].bDoEnableComments
+			
+			elif t == "o":
+				toggList['opcodes'] = not toggList['opcodes']
+				mBool[o].bDoShowOpcodes = not mBool[o].bDoShowOpcodes
+
+			elif t == "a":
+				toggList['show_ascii'] = not toggList['show_ascii']
+				mBool[o].bDoShowAscii = not mBool[o].bDoShowAscii
+
+			elif t=="l":
+				toggList['labels'] = not toggList['labels']
+				mBool[o].bShowLabels = not mBool[o].bShowLabels
+
+			elif t == "f":
+				toggList['offsets'] = not toggList['offsets']
+				mBool[o].bDoShowOffsets = not mBool[o].bDoShowOffsets
+
+			elif t == "x":
+				return
+
+		disPrintStyle(mBool[o].bPreSysDisDone, toggList) 
+		return
+
 def disassembleSubMenu():
 
 	#disToggleMenu()
-
 	global shellSizeLimit
 	global shellEntry
 	while True:
-		print(cya + " Sharem>" + yel + "Disasm> " + res, end="")
+		print(yel + " Sharem>" + cya + "Disasm> " + res, end="")
 		choice = input()
 		choice = choice.lower()
 		if choice == "":
@@ -16963,13 +17094,27 @@ def disassembleSubMenu():
 			#print("\nGoing back to main menu..\n")
 			break
 		elif choice == "m":
-			modifysByRangeUser()
+			tmp = input(" Enter new shellcode size: ")
+			try:
+				tmp = int(tmp)
+			except:
+				print(red + " Please enter integer only." + res)
+				continue
+
+			print(yel + " Shellcode size has been changed." + res)
+			shellSizeLimit = tmp
+
+			# modifysByRangeUser()
 		elif choice == "h" or choice == "help":
-			disToggleMenu(shellEntry,shellSizeLimit,mBool[o].bPreSysDisDone, mBool[o].bDoFindHiddenCalls, mBool[o].bDoEnableComments, mBool[o].bDoShowAscii, mBool[o].bDoFindStrings, mBool[o].ignoreDisDiscovery, mBool[o].maxOpDisplay, mBool[o].btsV,mBool[o].bDoShowOffsets, mBool[o].bDoshowOpcodes,mBool[o].bShowLabels, toggList) 
+			disToggleMenu(shellEntry,shellSizeLimit,mBool[o].bPreSysDisDone, toggList) 
 			# disassembleUiMenu(shellEntry)
 		elif choice == "g":
 
 			disassembleToggles()
+
+		elif choice == "r":
+			disPrintStyle(mBool[o].bPreSysDisDone, toggList)
+			disPrintStyleMenu()
 		elif choice == "e":
 			changeEntryPoint()
 		elif choice == "j":
@@ -16977,6 +17122,13 @@ def disassembleSubMenu():
 			Text2Json(raw_shellcode)
 		elif choice == "u":
 			useMd5asFilename()
+		elif choice == "p":
+			if gDisassemblyText != "":
+				print(gDisassemblyText)
+
+		elif choice == "i":
+			mBool[o].ignoreDisDiscovery = not mBool[o].ignoreDisDiscovery
+			toggList['ignore_dis_discovery'] = not toggList['ignore_dis_discovery']
 		elif choice == "z" or choice =="d":
 			if rawHex:
 				if bfindShell:
@@ -17031,9 +17183,18 @@ def disassembleToggles():
 	global bComments
 	global bfindShell
 
-
-	#toggList = {'string':True, 
-	#			'deobfcode':False}
+# toggList = {'findString':True, 
+# 			'deobfCode':False,
+# 			'findShell':False,
+# 			'comments':True,
+# 			'hidden_calls':True,
+# 			'show_ascii':True,
+# 			'ignore_dis_discovery':False,
+# 			'opcodes':True,
+# 			'labels':True,
+# 			'offsets':True,
+# 			'max_opcodes':8,
+# 			'binary_to_string':3}
 
 	print("Enter input delimited by commas or spaces. (x to exit)")
 	print("\tE.g. s, d, p\n")
@@ -17052,50 +17213,29 @@ def disassembleToggles():
 
 		for t in toggOptions:
 			if t == "s":
-				temp = toggList['findString']
-				if temp == True:
-					toggList['findString'] = False
-
-				else:
-					toggList['findString'] = True
-					bfindString = True
+				toggList['findString'] = not toggList['findString']
+				mBool[o].bDoFindStrings = not mBool[o].bDoFindStrings
 					
 			elif t == "d":
-				if bdeobfCode == False:
-					bdeobfCode = True
-					
-				else:
-					bdeobfCode = False
+				toggList['deobfCode'] = not toggList['deobfCode']
+				bdeobfCode = not bdeobfCode
+				
 
-				temp = toggList['deobfCode']
-				if temp == True:
-					toggList['deobfCode'] = False
-				else:
-					toggList['deobfCode'] = True
+			
+
 			elif t == "c":
-
-				temp = toggList['comments']
-				if temp == True:
-					toggList['comments'] = False
-					bComments = False
-					
-
-				else:
-					toggList['comments'] = True
-					
-					bComments = True
-					
-			elif t == "p":
-				temp = toggList['findShell']
-				if temp == True:
-					toggList['findShell'] = False
-				else:
-					toggList['findShell'] = True
-					bfindShell = True
+				toggList['hidden_calls'] = not toggList['hidden_calls']
+				mBool[o].bDoFindHiddenCalls = not mBool[o].bDoFindHiddenCalls
 
 
+			
 
-		disToggleMenu(shellEntry,shellSizeLimit,mBool[o].bPreSysDisDone, mBool[o].bDoFindHiddenCalls, mBool[o].bDoEnableComments, mBool[o].bDoShowAscii, mBool[o].bDoFindStrings, mBool[o].ignoreDisDiscovery, mBool[o].maxOpDisplay, mBool[o].btsV, mBool[o].bDoShowOffsets, mBool[o].bDoshowOpcodes,mBool[o].bShowLabels, toggList) 
+			elif t == "i":
+				toggList['ignore_dis_discovery'] = not toggList['ignore_dis_discovery']
+				mBool[o].ignoreDisDiscovery = not mBool[o].ignoreDisDiscovery
+
+
+		disToggleMenu(shellEntry,shellSizeLimit,mBool[o].bPreSysDisDone,  toggList) 
 		return
 		
 
@@ -17399,6 +17539,7 @@ def readConf():
 	global emulation_multiline
 	global bpEvilImports
 	global bpModules
+	global shellSizeLimit
 	# global os
 
 	con = Configuration(conFile)
@@ -17446,6 +17587,29 @@ def readConf():
 
 
 	# print(dFastMode, dFindAll, dDistr, dCPUcount, dNodesFile, dOutputFile, decryptOpTypes, decryptFile, stubFile, sameFile, stubEntry, stubEnd)
+
+
+#===============================================
+
+	mBool[o].bDoFindHiddenCalls = conr.getboolean('SHAREM DISASSEMBLY','enable_hidden_calls')
+	mBool[o].bDoEnableComments = conr.getboolean('SHAREM DISASSEMBLY','enable_assembly_comments')
+	mBool[o].bDoShowAscii = conr.getboolean('SHAREM DISASSEMBLY','enable_assembly_ascii')
+	mBool[o].bDoFindStrings = conr.getboolean('SHAREM DISASSEMBLY','enable_find_strings')
+	mBool[o].ignoreDisDiscovery = conr.getboolean('SHAREM DISASSEMBLY','ignore_dis_discovery')
+	mBool[o].maxOpDisplay = int(conr['SHAREM DISASSEMBLY']['max_disassembly_operands'])
+	mBool[o].btsV = int(conr['SHAREM DISASSEMBLY']['binary_to_string'])
+	shellSizeLimit = int(conr['SHAREM DISASSEMBLY']['shellcode_size_limit'])
+	mBool[o].bDoShowOffsets = conr.getboolean('SHAREM DISASSEMBLY','show_disassembly_offsets')
+	mBool[o].bDoShowOpcodes = conr.getboolean('SHAREM DISASSEMBLY','show_disassembly_opcodes')
+	mBool[o].bDoShowLabels = conr.getboolean('SHAREM DISASSEMBLY','show_disassembly_labels')
+
+
+
+
+
+
+
+
 
 
 
@@ -17674,21 +17838,83 @@ def discoverStackStrings(max_len=None):
 	else:
 		print("{:>{x}}{}".format("", red + "[Not Found]"+res, x=15+(max_len-curLen)))
 	
-	
+
+class emulationOptons:
+	def __init__(self):
+		self.verbose = True
+		self.maxEmuInstr = 500000
+		self.cpuArch = 32
+		self.breakLoop = True
+		self.numOfIter = 500000
+
+
+def emulationSubmenu():
+
+
+	while True:
+		print(yel + " Sharem>" + cya + "Emulator> " +res, end="")
+		choice = input()
+		if choice == "z":
+			pass # Initiate emulator
+		elif choice == "x":
+			return
+		elif choice == "h":
+			emulatorUI(emuObj)
+		elif choice == "v":
+			
+			emuObj.verbose = not emuObj.verbose
+		elif choice == "b":
+			emuObj.breakLoop = not emuObj.breakLoop
+		elif choice == "m":
+			while True:
+				try:
+					minst = input(" Enter maximum instructions number: ")
+					if minst == "x":
+						break
+					minst = int(minst)
+					emuObj.maxEmuInstr = minst
+					break
+				except:
+					print(red + "\tPlease enter only a number." + res)
+					break
+		elif choice == "n":
+			while True:
+				try:
+					minst = input(" Enter maximum number of iterations: ")
+					if minst == "x":
+						break
+					minst = int(minst)
+					emuObj.numOfIter = minst
+					break
+				except:
+					print(red + "\tPlease enter only a number." + res)
+					break
+		elif choice == "a":
+			while True:
+				try:
+					minst = input(" Enter cpu architecture: ")
+					if minst == "x":
+						break
+					minst = int(minst)
+					if minst == 32 or minst == 64:
+						emuObj.numOfIter = minst
+						break
+					else:
+						print(red + "\tInvalid cpu architecture.\n" + res)
+						continue
+					
+				except:
+					print(red + "\tPlease enter only a number." + res)
+					break
+			# emulatorUI(emuObj)
+
+
+
 
 def startupPrint():
-	
-	
-	
-	
-	
-	
-	
 	global bAsciiStrings
 	global bWideCharStrings
 	global bPushStackStrings
-	
-	
 	
 	global minStrLen
 	global bpAll
@@ -17888,12 +18114,17 @@ def ui(): #UI menu loop
 					shellDisassemblyInit(rawData2)
 					# bramwellStart2()
 			elif userIN[0:1] == "d":
-				disToggleMenu(shellEntry,shellSizeLimit,mBool[o].bPreSysDisDone, mBool[o].bDoFindHiddenCalls, mBool[o].bDoEnableComments, mBool[o].bDoShowAscii, mBool[o].bDoFindStrings, mBool[o].ignoreDisDiscovery, mBool[o].maxOpDisplay, mBool[o].btsV, mBool[o].bDoShowOffsets, mBool[o].bDoshowOpcodes,mBool[o].bShowLabels) 
+				disToggleMenu(shellEntry,shellSizeLimit,mBool[o].bPreSysDisDone,  toggList) 
+
+				# disToggleMenu(shellEntry,shellSizeLimit,mBool[o].bPreSysDisDone, mBool[o].bDoFindHiddenCalls, mBool[o].bDoEnableComments, mBool[o].bDoShowAscii, mBool[o].bDoFindStrings, mBool[o].ignoreDisDiscovery, mBool[o].maxOpDisplay, mBool[o].btsV, mBool[o].bDoShowOffsets, mBool[o].bDoshowOpcodes,mBool[o].bShowLabels) 
 				# disassembleUiMenu(shellEntry)
 				disassembleSubMenu()
 			elif userIN[0:1] == "s":	# "find assembly instrucitons associated with shellcode"
 				uiDiscover()
 
+			elif userIN[0:1] == "l":
+				emulatorUI(emuObj)
+				emulationSubmenu()
 			elif(re.match("^b$", userIN)):
 				decryptUI()
 
@@ -21824,7 +22055,7 @@ if __name__ == "__main__":
 	sh=shellcode(rawData2)
 	IATs = FoundIATs()
 	sBy=DisassemblyBytes()
-
+	emuObj = emulationOptons()
 	if rawHex:
 		hashShellcode(m[o].rawData2, sample)  # if comes after args parser
 		if useHash:

