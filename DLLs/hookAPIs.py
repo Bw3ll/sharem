@@ -6,7 +6,7 @@ dlls = {'ndtll.dll': 0x44100000, 'kernel32.dll': 0x44253138, 'advapi32.dll': 0x4
 
 # Custom hook for GetProcAddress. Loops through the export dictionary we created, 
 # # then returns the address of the indicated function into eax
-def hook_GetProcAddress(uc, eip, esp, export_dict, extraAddr):
+def hook_GetProcAddress(uc, eip, esp, export_dict, callAddr):
     arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
     arg1 = unpack('<I', arg1)[0]
     arg2 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
@@ -21,16 +21,15 @@ def hook_GetProcAddress(uc, eip, esp, export_dict, extraAddr):
 
     print("Using custom API function...")
 
-    # print("Using custom written API function...")
     uc.reg_write(UC_X86_REG_EAX, retVal)
-    logged_calls = (hex(retVal), 'FARPROC', [hex(arg1), arg2], ['HMODULE', 'LPCSTR'], ['hModule', 'lpProcName'])
+    logged_calls = ("GetProcAddress", hex(callAddr), hex(retVal), 'FARPROC', [hex(arg1), arg2], ['HMODULE', 'LPCSTR'], ['hModule', 'lpProcName'], False)
 
     cleanBytes = 8
 
     return logged_calls, cleanBytes
 
 # Make sure WinExec returns 32, then add it to created process log
-def hook_WinExec(uc, eip, esp, export_dict, extraAddr):
+def hook_WinExec(uc, eip, esp, export_dict, callAddr):
     # print("Using custom function...")
     arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
     arg1 = unpack('<I', arg1)[0]
@@ -39,72 +38,74 @@ def hook_WinExec(uc, eip, esp, export_dict, extraAddr):
     arg2 = unpack('<I', arg2)[0]
     retVal = 32
 
- #    uc.reg_write(UC_X86_REG_EAX, retVal)
-	# logged_calls = (hex(retVal), 'UINT', [arg1, hex(arg2)], ['lpCmdLine', 'uCmdShow'], ['lpCmdLine', 'uCmdShow'])
- #    cleanBytes = 8
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+    logged_calls = ("WinExec", hex(callAddr), hex(retVal), 'UINT', [arg1, hex(arg2)], ['lpCmdLine', 'uCmdShow'], ['lpCmdLine', 'uCmdShow'])
+    cleanBytes = 8
 
- #    return logged_calls, cleanBytes
+    return logged_calls, cleanBytes
 
-def hook_LoadLibraryA(uc, eip, esp, export_dict, extraAddr):
+def hook_LoadLibraryA(uc, eip, esp, export_dict, callAddr):
     # print("Using custom function... LoadLibraryA")
-	arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
-	arg1 = unpack('<I', arg1)[0]
-	arg1 = read_string(uc, arg1)
+    arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
+    arg1 = unpack('<I', arg1)[0]
+    arg1 = read_string(uc, arg1)
 
-	# Return base address of passed library
-	try:
-		retVal = dlls[arg1]
-	except:
-		print("Error: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
-		retVal = 0
+    # Return base address of passed library
+    try:
+        retVal = dlls[arg1]
+    except:
+        print("Error: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
+        retVal = 0
 
-	uc.reg_write(UC_X86_REG_EAX, retVal)
-	logged_calls = (hex(retVal), 'HINSTANCE', [arg1], ['LPCTSTR'], ['lpLibFileName'])
+    uc.reg_write(UC_X86_REG_EAX, retVal)
 
-	cleanBytes = 4
-	return logged_calls, cleanBytes
+    logged_calls = ("LoadLibraryA", hex(callAddr), hex(retVal), 'HINSTANCE', [arg1], ['LPCTSTR'], ['lpLibFileName'], False)
 
-def hook_LoadLibraryW(uc, eip, esp, export_dict, extraAddr):
-	# print("Using custom function...")
-	arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
-	arg1 = unpack('<I', arg1)[0]
-	arg1 = read_string(uc, arg1)
+    cleanBytes = 4
+    return logged_calls, cleanBytes
 
-	# Return base address of passed library
-	try:
-		retVal = dlls[arg1]
-	except:
-		print("Error: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
-		retVal = 0
+def hook_LoadLibraryW(uc, eip, esp, export_dict, callAddr):
+    # print("Using custom function...")
+    arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
+    arg1 = unpack('<I', arg1)[0]
+    arg1 = read_string(uc, arg1)
 
-	uc.reg_write(UC_X86_REG_EAX, retVal)
-	logged_calls = (hex(retVal), 'HINSTANCE', [arg1], ['LPCTSTR'], ['lpLibFileName'])
+    # Return base address of passed library
+    try:
+        retVal = dlls[arg1]
+    except:
+        print("Error: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
+        retVal = 0
 
-	cleanBytes = 4
-	return logged_calls, cleanBytes
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+    # ("FuncName", hex(callAddr), hex(retVal), 'returnType', [paramValues], [paramTypes], [paramNames], False)
+    logged_calls = ("LoadLibraryW", hex(callAddr), hex(retVal), 'HINSTANCE', [arg1], ['LPCTSTR'], ['lpLibFileName'], False)
 
-def hook_LoadLibraryExW(uc, eip, esp, export_dict, extraAddr):
-	# print("Using custom function...")
-	arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
-	arg1 = unpack('<I', arg1)[0]
-	arg1 = read_string(uc, arg1)
-	arg2 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
-	arg3 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+12, 4)
+    cleanBytes = 4
+    return logged_calls, cleanBytes
 
-	# Return base address of passed library
-	try:
-		retVal = dlls[arg1]
-	except:
-		print("Error: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
-		retVal = 0
+def hook_LoadLibraryExW(uc, eip, esp, export_dict, callAddr):
+    # print("Using custom function...")
+    arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
+    arg1 = unpack('<I', arg1)[0]
+    arg1 = read_string(uc, arg1)
+    arg2 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
+    arg3 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+12, 4)
 
-	uc.reg_write(UC_X86_REG_EAX, retVal)
-	logged_calls = (hex(retVal), 'HINSTANCE', [arg1, arg2, arg3], ['LPCTSTR', 'HANDLE', 'DWORD'], ['lpLibFileName', 'hFile', 'dwFlags'])
+    # Return base address of passed library
+    try:
+        retVal = dlls[arg1]
+    except:
+        print("Error: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
+        retVal = 0
 
-	cleanBytes = 12
-	return logged_calls, cleanBytes
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+    logged_calls = ("LoadLibraryExW", hex(callAddr), hex(retVal), 'HINSTANCE', [arg1, arg2, arg3], ['LPCTSTR', 'HANDLE', 'DWORD'], ['lpLibFileName', 'hFile', 'dwFlags'], False)
 
-def hook_VirtualAlloc(uc, eip, esp, export_dict, extraAddr):
+    cleanBytes = 12
+    return logged_calls, cleanBytes
+
+def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
     print("Using custom function...")
     lpAddress = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
     lpAddress = unpack('<I', lpAddress)[0]
@@ -118,79 +119,43 @@ def hook_VirtualAlloc(uc, eip, esp, export_dict, extraAddr):
     success = True
 
     try:
-    	uc.mem_map(lpAddress, dwSize)
-	    # if flProtect == 0x2:
-	    #     uc.mem_map(lpAddress, dwSize, UC_PROT_READ)
-	    # elif flProtect == 0x4:
-	    # 	uc.mem_map(lpAddress, dwSize, UC_PROT_READ|UC_PROT_WRITE)
-	    # elif flProtect == 0x10:
-	    #     uc.mem_map(lpAddress, dwSize, UC_PROT_EXEC)
-	    # elif flProtect == 0x20:
-	    #     uc.mem_map(lpAddress, dwSize, UC_PROT_READ|UC_PROT_EXEC)
-	    # elif flProtect == 0x40:
-	    #     uc.mem_map(0x80000000, 0x2000)
-	    #     print("hi")
-	    # else:
-	    # 	success = False
+        uc.mem_map(lpAddress, dwSize)
+        # if flProtect == 0x2:
+        #     uc.mem_map(lpAddress, dwSize, UC_PROT_READ)
+        # elif flProtect == 0x4:
+        # 	uc.mem_map(lpAddress, dwSize, UC_PROT_READ|UC_PROT_WRITE)
+        # elif flProtect == 0x10:
+        #     uc.mem_map(lpAddress, dwSize, UC_PROT_EXEC)
+        # elif flProtect == 0x20:
+        #     uc.mem_map(lpAddress, dwSize, UC_PROT_READ|UC_PROT_EXEC)
+        # elif flProtect == 0x40:
+        #     uc.mem_map(0x80000000, 0x2000)
+        #     print("hi")
+        # else:
+        # 	success = False
     except:
             success = False
 
     if success == True:
-    	retVal = lpAddress
-    	uc.reg_write(UC_X86_REG_EAX, retVal)
+        retVal = lpAddress
+        uc.reg_write(UC_X86_REG_EAX, retVal)
     else:
-    	retVal = 0
-    	uc.reg_write(UC_X86_REG_EAX, retVal)
+        retVal = 0
+        uc.reg_write(UC_X86_REG_EAX, retVal)
 
-    uc.mem_write(0x80000000, b'\x90\x90\x90\x90')
-
-    logged_calls = (hex(retVal), 'LPVOIDlol', [lpAddress, dwSize, flAllocationType, flProtect], ['LPVOID', 'SIZE_T', 'DWORD', 'DWORD'], ['lpAddress', 'dwSize', 'flAllocationType', 'flProtect'])
+    logged_calls = ("VirtualAlloc", hex(callAddr), hex(retVal), 'LPVOID', [lpAddress, dwSize, flAllocationType, flProtect], ['LPVOID', 'SIZE_T', 'DWORD', 'DWORD'], ['lpAddress', 'dwSize', 'flAllocationType', 'flProtect'], False)
     cleanBytes = 16
 
     return logged_calls, cleanBytes
 
-def hook_WriteProcessMemory(uc, eip, esp, export_dict, extraAddr):
-    hProcess = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
-    hProcess = unpack('<I', hProcess)[0]
-    lpBaseAddress = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
-    lpBaseAddress = unpack('<I', lpBaseAddress)[0]
-    lpBuffer = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+12, 4)
-    lpBuffer = unpack('<I', lpBuffer)[0]
-    nSize = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+16, 4)
-    nSize = unpack('<I', nSize)[0]
-    lpNumberOfBytesWritten = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+16, 4)
-    lpNumberOfBytesWritten = unpack('<I', lpNumberOfBytesWritten)[0]
+def hook_ExitProcess(uc, eip, esp, export_dict, callAddr):
+    # print("Using custom function...")
+    uExitCode = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
+    uExitCode = unpack('<I', uExitCode)[0]
 
-
-    writeData = uc.mem_read(lpBuffer, nSize)
-    uc.mem_write(lpBaseAddress, writeData)
-
-    #Note: finish this
-
-def hook_ExitProcess(uc, eip, esp, export_dict, extraAddr):
-	# print("Using custom function...")
-	uExitCode = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
-	uExitCode = unpack('<I', uExitCode)[0]
-
-	cleanBytes = 4
-	logged_calls = ('NONE', 'NONE', [uExitCode], ['UINT'],  ['uExitCode'])
-	return logged_calls, cleanBytes
-
-# def hook_CreateProcessA (uc, eip, esp, export_dict, extraAddr):
-# 	print("Using custom function...")
-# 	arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
-# 	arg1 = unpack('<I', arg1)[0]
-# 	arg2 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
-# 	arg2 = unpack('<I', arg2)[0]
-# 	arg3 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+12, 4)
-# 	arg3 = unpack('<I', arg3)[0]
-
-# 	cleanBytes = 12
-# 	retVal = 1
-# 	uc.reg_write(UC_X86_REG_EAX, retVal)
-# 	logged_calls = (hex(retVal), 'INT', [arg1, arg2, arg3], ['BOOL', 'DWORD', 'LPSTARTUPINFOA'], ['bInheritHandles', 'dwCreationFlags', 'lpStartupInfo'])
-
-# 	return logged_calls, cleanBytes
+    cleanBytes = 4
+    logged_calls = ("ExitProcess", hex(callAddr), None, None, [uExitCode], ['UINT'],  ['uExitCode'], False)
+    return logged_calls, cleanBytes
 
 def read_string(uc, address):
     ret = ""

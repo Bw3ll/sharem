@@ -644,7 +644,7 @@ def hook_code(uc, address, size, user_data):
         funcName = export_dict[funcAddress][0]
 
         try:
-            funcInfo, cleanBytes = globals()['hook_'+funcName](uc, eip, esp, export_dict, EXTRA_ADDR)
+            funcInfo, cleanBytes = globals()['hook_'+funcName](uc, eip, esp, export_dict, addr)
             logCall(funcName, funcInfo)
 
             dll = export_dict[funcAddress][1]
@@ -786,7 +786,7 @@ def hook_default(uc, eip, esp, funcAddress, funcName, callLoc):
     retVal = 32
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
-    funcInfo = (funcName, callLoc, hex(retVal), 'INT', paramVals, paramTypes, paramNames)
+    funcInfo = (funcName, callLoc, hex(retVal), 'INT', paramVals, paramTypes, paramNames, False)
     logCall(funcName, funcInfo)
 
 def read_string(uc, address):
@@ -828,10 +828,10 @@ def findArtifacts():
     exec_artifacts = []
 
     for p in paramValues:
-        artifacts += re.findall(r"[a-zA-Z0-9_.-]+\.\S+", p)
-        net_artifacts += re.findall(r"http|ftp|https:\/\/?|www\.?[a-zA-Z]+\.com|eg|net|org", p)
-        file_artifacts += re.findall(r"[a-zA-z]:\\[^\\]*?\.\S+", p)
-        exec_artifacts += re.findall(r"\S+\.exe", p)
+        artifacts += re.findall(r"[a-zA-Z0-9_.-]+\.\S+", str(p))
+        net_artifacts += re.findall(r"http|ftp|https:\/\/?|www\.?[a-zA-Z]+\.com|eg|net|org", str(p))
+        file_artifacts += re.findall(r"[a-zA-z]:\\[^\\]*?\.\S+", str(p))
+        exec_artifacts += re.findall(r"\S+\.exe", str(p))
 
     artifacts += net_artifacts + file_artifacts
     return list(dict.fromkeys(artifacts)), list(dict.fromkeys(net_artifacts)), list(dict.fromkeys(file_artifacts)), list(dict.fromkeys(exec_artifacts))
