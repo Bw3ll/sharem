@@ -859,7 +859,7 @@ def test_i386(mode, code):
         # Initialize emulator
         mu = Uc(UC_ARCH_X86, mode)
 
-        mu.mem_map(0x00000000, 0x60000000)
+        mu.mem_map(0x00000000, 0x50050000)
 
         # write machine code to be emulated to memory
         mu.mem_write(CODE_ADDR, code)
