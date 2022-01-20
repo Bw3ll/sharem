@@ -535,6 +535,7 @@ def controlFlow(uc, mnemonic, op_str):
             expr = re.sub('e[abcdsipx]+', callback, expr)
 
             address = eval(expr)
+            # print ("address", hex(address))
             address = unpack("<I", uc.mem_read(address, 4))[0]
         elif re.match('e[abcdsipx]+', op_str):
             regs = re.findall('e[abcdsipx]+', op_str)
