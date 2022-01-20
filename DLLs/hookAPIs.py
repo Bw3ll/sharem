@@ -19,7 +19,7 @@ def hook_GetProcAddress(uc, eip, esp, export_dict, callAddr):
         if export_dict[api][0] == arg2:
             retVal = api
 
-    print("Using custom API function...")
+    # print("Using custom API function...")
 
     uc.reg_write(UC_X86_REG_EAX, retVal)
     logged_calls = ("GetProcAddress", hex(callAddr), hex(retVal), 'FARPROC', [hex(arg1), arg2], ['HMODULE', 'LPCSTR'], ['hModule', 'lpProcName'], False)
@@ -39,7 +39,7 @@ def hook_WinExec(uc, eip, esp, export_dict, callAddr):
     retVal = 32
 
     uc.reg_write(UC_X86_REG_EAX, retVal)
-    logged_calls = ("WinExec", hex(callAddr), hex(retVal), 'UINT', [arg1, hex(arg2)], ['lpCmdLine', 'uCmdShow'], ['lpCmdLine', 'uCmdShow'])
+    logged_calls = ("WinExec", hex(callAddr), hex(retVal), 'UINT', [arg1, hex(arg2)], ['lpCmdLine', 'uCmdShow'], ['lpCmdLine', 'uCmdShow'], False)
     cleanBytes = 8
 
     return logged_calls, cleanBytes
@@ -106,7 +106,7 @@ def hook_LoadLibraryExW(uc, eip, esp, export_dict, callAddr):
     return logged_calls, cleanBytes
 
 def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
-    print("Using custom function...")
+    # print("Using custom function...")
     lpAddress = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
     lpAddress = unpack('<I', lpAddress)[0]
     dwSize = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
@@ -154,7 +154,7 @@ def hook_ExitProcess(uc, eip, esp, export_dict, callAddr):
     uExitCode = unpack('<I', uExitCode)[0]
 
     cleanBytes = 4
-    logged_calls = ("ExitProcess", hex(callAddr), None, None, [uExitCode], ['UINT'],  ['uExitCode'], False)
+    logged_calls = ("ExitProcess", hex(callAddr), 'None', 'None', [uExitCode], ['UINT'],  ['uExitCode'], False)
     return logged_calls, cleanBytes
 
 def read_string(uc, address):

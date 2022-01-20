@@ -1,5 +1,5 @@
 from capstone import *
-
+from sharemu import *
 import re
 import pefile
 import sys
@@ -17841,20 +17841,42 @@ def discoverStackStrings(max_len=None):
 
 class emulationOptons:
 	def __init__(self):
-		self.verbose = True
+		self.verbose = False
 		self.maxEmuInstr = 500000
 		self.cpuArch = 32
 		self.breakLoop = True
 		self.numOfIter = 500000
 
 
+def under_dev_function():
+	print(red + "\tThis feature is under development.\n" + res)
+	
+
+def emu_max_instruction():
+	while True:
+		try:
+			minst = input(" Enter maximum instructions number: ")
+			if minst == "x":
+				break
+			minst = int(minst)
+			emuObj.maxEmuInstr = minst
+			break
+		except:
+			print(red + "\tPlease enter only a number." + res)
+			break
+
+
+
+
 def emulationSubmenu():
-
-
+	em.maxCounter=emuObj.maxEmuInstr
 	while True:
 		print(yel + " Sharem>" + cya + "Emulator> " +res, end="")
 		choice = input()
 		if choice == "z":
+			emuArch = emuObj.cpuArch
+			startEmu(emuArch, m[o].rawData2, emuObj.verbose)
+			emulation_txt_out(loggedList)
 			pass # Initiate emulator
 		elif choice == "x":
 			return
@@ -17864,8 +17886,10 @@ def emulationSubmenu():
 			
 			emuObj.verbose = not emuObj.verbose
 		elif choice == "b":
-			emuObj.breakLoop = not emuObj.breakLoop
+			under_dev_function()
+			# emuObj.breakLoop = not emuObj.breakLoop
 		elif choice == "m":
+
 			while True:
 				try:
 					minst = input(" Enter maximum instructions number: ")
@@ -17873,39 +17897,43 @@ def emulationSubmenu():
 						break
 					minst = int(minst)
 					emuObj.maxEmuInstr = minst
+					em.maxCounter=minst
+					# sharemu.maxCounter = minst
 					break
 				except:
 					print(red + "\tPlease enter only a number." + res)
 					break
 		elif choice == "n":
-			while True:
-				try:
-					minst = input(" Enter maximum number of iterations: ")
-					if minst == "x":
-						break
-					minst = int(minst)
-					emuObj.numOfIter = minst
-					break
-				except:
-					print(red + "\tPlease enter only a number." + res)
-					break
+			under_dev_function()
+			# while True:
+			# 	try:
+			# 		minst = input(" Enter maximum number of iterations: ")
+			# 		if minst == "x":
+			# 			break
+			# 		minst = int(minst)
+			# 		emuObj.numOfIter = minst
+			# 		break
+			# 	except:
+			# 		print(red + "\tPlease enter only a number." + res)
+			# 		break
 		elif choice == "a":
-			while True:
-				try:
-					minst = input(" Enter cpu architecture: ")
-					if minst == "x":
-						break
-					minst = int(minst)
-					if minst == 32 or minst == 64:
-						emuObj.numOfIter = minst
-						break
-					else:
-						print(red + "\tInvalid cpu architecture.\n" + res)
-						continue
+			under_dev_function()
+			# while True:
+			# 	try:
+			# 		minst = input(" Enter cpu architecture: ")
+			# 		if minst == "x":
+			# 			break
+			# 		minst = int(minst)
+			# 		if minst == 32 or minst == 64:
+			# 			emuObj.numOfIter = minst
+			# 			break
+			# 		else:
+			# 			print(red + "\tInvalid cpu architecture.\n" + res)
+			# 			continue
 					
-				except:
-					print(red + "\tPlease enter only a number." + res)
-					break
+			# 	except:
+			# 		print(red + "\tPlease enter only a number." + res)
+			# 		break
 			# emulatorUI(emuObj)
 
 
@@ -18085,7 +18113,7 @@ def ui(): #UI menu loop
 	showDisassembly = True
 	stringReadability = .65
 	# initSysCallSelect()
-	clearConsole()
+	# clearConsole()
 
 	x = ""
 	con = Configuration(conFile)
@@ -19074,7 +19102,7 @@ def uiPrint(): 	#Print instructions
 				else:
 					print("No heaven's gate instructions found.\n")
 			if bPrintEmulation and p2screen:
-				emulation_txt_out()
+				emulation_txt_out(loggedList)
 
 			outputData = generateOutputData()
 
@@ -20085,7 +20113,7 @@ def clearImports():
 
 
 
-def emulation_json_out():
+def emulation_json_out(apiList):
 
 
 	# api1 = {"api_name": "winexec",
@@ -20101,13 +20129,14 @@ def emulation_json_out():
 	# 	"return_value":"INT 0x5"
 
 	# }
+	artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
 
-	emu_dlls = ["kernel32", "advapi32", "user32"]
-	artifacts = ["c:\\result.txt", "cmd.exe", "google.com", "result.txt", "user32.dll", "calc.exe", "notepad.exe", "www.msn.com", "http://c2.net", "c:\\windows\system32\mstsc.exe"]
 
-	web_artifacts = []
-	file_artifacts = []
-	exec_artifacts = []
+
+	# emu_dlls = ["kernel32", "advapi32", "user32"]
+	# artifacts = ["c:\\result.txt", "cmd.exe", "google.com", "result.txt", "user32.dll", "calc.exe", "notepad.exe", "www.msn.com", "http://c2.net", "c:\\windows\system32\mstsc.exe"]
+
+	
 	r = "(http|ftp|https):\/\/?|(www\.)?[a-zA-Z]+\.(com|eg|net|org)"
 	rfile = ".*(\\.*)$"
 	for i in artifacts:
@@ -20122,8 +20151,8 @@ def emulation_json_out():
 		if result:
 			file_artifacts.append(i)
 
-	sample = [('WinExec', '0x123123', '0x20', 'INT', ['cmd.exe /c ping google.com > C:\\result.txt', '0x5'], ['LPCSTR', 'UINT'], ['lpCmdLine', 'uCmdShow'], False), ('EncyptFileA', '0x321321', '0x20', 'INT', ['C:\\result.txt'], ['LPCSTR'], ['lpFileName'], False),
-('LoadLibraryA', '0x1337c0de', '0x45664c88', 'HINSTANCE', ['user32.dll'], ['LPCTSTR'], ['lpLibFileName'], False),('MessageBoxA', '0xdeadc0de', '0x20', 'INT', ['0x987987', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', '0x0'], ['HWND', 'LPCSTR', 'LPCSTR', 'UINT'], ['hWnd', 'lpText', 'lpCaption', 'uType'], False)]
+	# sample = [('WinExec', '0x123123', '0x20', 'INT', ['cmd.exe /c ping google.com > C:\\result.txt', '0x5'], ['LPCSTR', 'UINT'], ['lpCmdLine', 'uCmdShow'], False), ('EncyptFileA', '0x321321', '0x20', 'INT', ['C:\\result.txt'], ['LPCSTR'], ['lpFileName'], False),
+# ('LoadLibraryA', '0x1337c0de', '0x45664c88', 'HINSTANCE', ['user32.dll'], ['LPCTSTR'], ['lpLibFileName'], False),('MessageBoxA', '0xdeadc0de', '0x20', 'INT', ['0x987987', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', '0x0'], ['HWND', 'LPCSTR', 'LPCSTR', 'UINT'], ['hWnd', 'lpText', 'lpCaption', 'uType'], False)]
 
 	# api_names = []
 	api_params_values = []
@@ -20145,7 +20174,7 @@ def emulation_json_out():
 					  "executable_artifacts":[]
 	}
 
-	for i in sample:
+	for i in apiList:
 		api_dict = {}
 		api_name = i[0]
 		api_address = i[1]
@@ -20166,10 +20195,10 @@ def emulation_json_out():
 		emulation_dict["api_calls"].append(api_dict)
 
 
-	emulation_dict["dlls"].extend(emu_dlls)
+	emulation_dict["dlls"].extend(logged_dlls)
 	emulation_dict["artifacts"].extend(artifacts)
 	emulation_dict["executable_artifacts"].extend(exec_artifacts)	
-	emulation_dict["web_artifacts"].extend(web_artifacts)
+	emulation_dict["web_artifacts"].extend(net_artifacts)
 	emulation_dict["file_artifacts"].extend(file_artifacts)
 	# print(emulation_dict)
 	# for api in list_of_apis:
@@ -20222,14 +20251,15 @@ def emulation_json_out():
 
 
 	
-def emulation_txt_out():
-	global emulation_verbose
-	global emulation_multiline
-	global bPrintEmulation
-
+def emulation_txt_out(apiList):
+	
+	# for each in apiList:
+		# print (type(each), each, "\n\n")
 	sample = [('WinExec', '0x123123', '0x20', 'INT', ['cmd.exe /c ping google.com > C:\\result.txt', '0x5'], ['LPCSTR', 'UINT'], ['lpCmdLine', 'uCmdShow'], False), ('EncyptFileA', '0x321321', '0x20', 'INT', ['C:\\result.txt'], ['LPCSTR'], ['lpFileName'], False),
 ('LoadLibraryA', '0x1337c0de', '0x45664c88', 'HINSTANCE', ['user32.dll'], ['LPCTSTR'], ['lpLibFileName'], False),('MessageBoxA', '0xdeadc0de', '0x20', 'INT', ['0x987987', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', '0x0'], ['HWND', 'LPCSTR', 'LPCSTR', 'UINT'], ['hWnd', 'lpText', 'lpCaption', 'uType'], True)]
 	
+
+	artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
 
 	api_names = []
 	api_params_values = []
@@ -20240,10 +20270,10 @@ def emulation_txt_out():
 	ret_type = []
 	api_bruteforce = False
 
-	for i in sample:
+	for i in apiList:
 		api_names.append(i[0])
 		api_address.append(i[1])
-		ret_values.append(i[2])
+		ret_values.append(i[2])	
 		ret_type.append(i[3])
 		api_params_values.append(i[4])
 		api_params_types.append(i[5])
@@ -20254,14 +20284,12 @@ def emulation_txt_out():
 	# for v, t in zip(api_params_types[0], api_params_types[0]):
 	# 	api_par_bundle.append(v + " " + t)
 
-
-	emu_dlls = ["kernel32", "advapi32", "user32"]
-	artifacts = ["c:\\result.txt", "cmd.exe", "google.com", "result.txt", "user32.dll", "www.msn.com", "http://74.32.123.2:8080", "c:\\windows\\system32\\ipconfig.exe"]
+	# artifacts = ["c:\\result.txt", "cmd.exe", "google.com", "result.txt", "user32.dll", "www.msn.com", "http://74.32.123.2:8080", "c:\\windows\\system32\\ipconfig.exe"]
 
 
-	web_artifacts = ["www.msn.com", "http://74.32.123.2:8080", "google.com"]
-	file_artifacts = ["c:\\result.txt", "cmd.exe", "result.txt"]
-	executables = ["c:\\windows\\system32\\ipconfig.exe", "cmd.exe"]
+	# web_artifacts = ["www.msn.com", "http://74.32.123.2:8080", "google.com"]
+	# file_artifacts = ["c:\\result.txt", "cmd.exe", "result.txt"]
+	# executables = ["c:\\windows\\system32\\ipconfig.exe", "cmd.exe"]
 
 	txt_output = ""
 	no_colors_out = ""
@@ -20294,6 +20322,10 @@ def emulation_txt_out():
 			TypeBundle.append(v + " " + typ)
 		joinedBund = ', '.join(TypeBundle)
 		joinedBundclr = joinedBund.replace(",", cya + ","+res)
+		# print(type(joinedBundclr), type(apName), type(offset), "---->", offset)
+
+		# try: 
+		# 	offset= int((str(offset)),16 )
 		retBundle = retType + " " + retVal
 		if verbose_mode:
 			
@@ -20324,14 +20356,14 @@ def emulation_txt_out():
 
 	if emulation_multiline:
 		emu_dll_list = "\n"
-		emu_dll_list += '\n'.join(emu_dlls)
+		emu_dll_list += '\n'.join(logged_dlls)
 
 		emu_artifacts_list = "\n"
 		emu_artifacts_list += "\n".join(artifacts)
 		emu_artifacts_list += "\n"
 
 		emu_webartifacts_list = "\n"
-		emu_webartifacts_list += "\n".join(web_artifacts)
+		emu_webartifacts_list += "\n".join(net_artifacts)
 		emu_webartifacts_list += "\n"
 
 
@@ -20340,23 +20372,23 @@ def emulation_txt_out():
 		emu_fileartifacts_list += "\n"
 
 
-		emu_execartifacts_list = "\n"
-		emu_execartifacts_list += "\n".join(executables)
-		emu_execartifacts_list += "\n"
+		# emu_execartifacts_list = "\n"
+		# emu_execartifacts_list += "\n".join(executables)
+		# emu_execartifacts_list += "\n"
 
 	else:
-		emu_dll_list= ', '.join(emu_dlls)
+		emu_dll_list= ', '.join(logged_dlls)
 		emu_artifacts_list= ', '.join(artifacts)
-		emu_webartifacts_list = ", ".join(web_artifacts)
+		emu_webartifacts_list = ", ".join(net_artifacts)
 		emu_fileartifacts_list = ", ".join(file_artifacts)
-		emu_execartifacts_list = ", ".join(executables)
+		# emu_execartifacts_list = ", ".join(executables)
 
 
 	txt_output += mag + "\n************* DLLs *************\n" + res
 	no_colors_out += "\n************* DLLs *************\n"
 
 	txt_output += "{}{:<18} {}\n".format(cya + "DLLs" + res, "",emu_dll_list)
-	no_colors_out += "{}{:<18} {}\n".format("DLLs", "",','.join(emu_dlls))
+	no_colors_out += "{}{:<18} {}\n".format("DLLs", "",','.join(logged_dlls))
 
 	txt_output += mag + "\n************* Artifacts *************\n" + res
 	no_colors_out += "\n************* Artifacts *************\n"
@@ -20364,12 +20396,12 @@ def emulation_txt_out():
 	txt_output += "{}{:<13} {}\n".format(cya + "Artifacts" + res,"", emu_artifacts_list)
 	txt_output += "{}{:<9} {}\n".format(cya + "Web artifacts" + res,"", emu_webartifacts_list)
 	txt_output += "{}{:<8} {}\n".format(cya + "File artifacts" + res,"", emu_fileartifacts_list)
-	txt_output += "{}{:<2} {}\n\n".format(cya + "Executable artifacts" + res,"", emu_execartifacts_list)
+	# txt_output += "{}{:<2} {}\n\n".format(cya + "Executable artifacts" + res,"", emu_execartifacts_list)
 
 	no_colors_out += "{}{:<13} {}\n".format("Artifacts","", emu_artifacts_list)
 	no_colors_out += "{}{:<9} {}\n".format("Web artifacts","", emu_webartifacts_list)
 	no_colors_out += "{}{:<8} {}\n".format("File artifacts","", emu_fileartifacts_list)
-	no_colors_out += "{}{:<2} {}\n\n".format("Executable artifacts","", emu_execartifacts_list)
+	# no_colors_out += "{}{:<2} {}\n\n".format("Executable artifacts","", emu_execartifacts_list)
 
 	# print(txt_output)
 	# sys.exit()
@@ -20794,7 +20826,7 @@ def generateOutputData(): #Generate the dictionary for json out
 	if rawHex:
 		jsonData['decoded_stub'] = ''
 
-	jsonData['emulation'] = emulation_json_out()
+	jsonData['emulation'] = emulation_json_out(loggedList)
 
 	#We grab the saved info, and loop through it, adding an object to the respective category's list and add a new object for each. The method is the same as the printsaved____() functions
 	if(bit32):
@@ -21975,7 +22007,7 @@ def printToText(outputData):	#Output data to text doc
 	#outString += "\n\n\n-------------------------- Disassembly --------------------------------\n\n"
 	#outString += disassembly
 	bPrintEmulation = False
-	emulation_txt = emulation_txt_out()
+	emulation_txt = emulation_txt_out(loggedList)
 	bPrintEmulation = True
 	text.write (outString)
 	text.write(emulation_txt)

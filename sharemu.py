@@ -19,6 +19,20 @@ import re
 import os
 import argparse
 
+# artifacts2= [] 
+# net_artifacts = []
+# file_artifacts = []
+# exec_artifacts = []
+
+class EMU():
+    def __init__(self):
+        self.maxCounter=500000
+
+# maxCounter = 100
+artifacts = []
+net_artifacts = []
+file_artifacts = []
+exec_artifacts = []
 programCounter = 0
 addrTracker = 0x44100000
 
@@ -55,7 +69,7 @@ loadModsFromFile = True
 foundDLLAddresses="foundDLLAddresses.txt"    # address for files - later we can provide an option to change this in UI
 cleanStackFlag = False
 stopProcess = False
-outFile = open('emulationLog.txt', 'a')
+outFile = open('emulationLog.txt', 'w')
 cleanBytes = 0
 prevInstruct = []
 expandedDLLsPath = "DLLs\\"
@@ -373,6 +387,7 @@ def loadDLLsFromFile(mu):
     global expandedDLLsPath
     path = 'C:\\Windows\\SysWOW64\\'
 
+    runOnce=False
     for m in mods:
         # Inflate dlls so PE offsets are correct
 
@@ -381,6 +396,16 @@ def loadDLLsFromFile(mu):
             # Unicorn line to dump the DLL in our memory
             mu.mem_write(mods[m].base, dll)
         else:
+            if not runOnce:
+                print("Warning: DLLs must be parsed and inflated from a Windows OS.\n\tThis may take several minutes to generate the initial emulation files.\n\tThis initial step must be completed only once from a Windows machine.\n\tThe emulation will not work without these.")
+                runOnce=True
+            pe=pefile.PE(mods[m].d32)
+            for exp in pe.DIRECTORY_ENTRY_EXPORT.symbols:
+                try:
+                    export_dict[mods[m].base + exp.address] = (exp.name.decode(), mods[m].name)
+                except:
+                    export_dict[mods[m].base + exp.address] = "unknown_function"
+
             dllPath = path + mods[m].name
             rawDll = padDLL(dllPath, mods[m].name)
 
@@ -600,12 +625,13 @@ def hook_code(uc, address, size, user_data):
     global prevInstructs
     global loopInstructs
     global loopCounter
+    # global maxCounter
 
     if stopProcess == True:
         uc.emu_stop()
 
     programCounter += 1
-    if programCounter > 500000:
+    if programCounter > em.maxCounter:
         uc.emu_stop()
 
     instructLine = ""
@@ -786,7 +812,7 @@ def hook_default(uc, eip, esp, funcAddress, funcName, callLoc):
     retVal = 32
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
-    funcInfo = (funcName, callLoc, hex(retVal), 'INT', paramVals, paramTypes, paramNames, False)
+    funcInfo = (funcName, hex(callLoc), hex(retVal), 'INT', paramVals, paramTypes, paramNames, False)
     logCall(funcName, funcInfo)
 
 def read_string(uc, address):
@@ -830,36 +856,66 @@ def findArtifacts():
     for p in paramValues:
         artifacts += re.findall(r"[a-zA-Z0-9_.-]+\.\S+", str(p))
         net_artifacts += re.findall(r"http|ftp|https:\/\/?|www\.?[a-zA-Z]+\.com|eg|net|org", str(p))
-        file_artifacts += re.findall(r"[a-zA-z]:\\[^\\]*?\.\S+", str(p))
-        exec_artifacts += re.findall(r"\S+\.exe", str(p))
+        net_artifacts += re.findall(r"^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$", str(p))
+        # file_artifacts += re.findall(r"[a-zA-z]:\\[^\\]*?\.\S+|.*(\\.*)$|.exe|.dll", str(p))
+        rFile = ".*(\\.*)$"
+        # print(p, type(p))
+        # result = re.search(rFile, str(p))
+        # if result:
+        #     file_artifacts.append(str(p))
+        # print(file_artifacts)
 
-    artifacts += net_artifacts + file_artifacts
+        # file_artifacts 
+        exec_artifacts += re.findall(r"\S+\.exe", str(p))
+        artifacts += net_artifacts + file_artifacts
+
+
+    # result = re.search(r, i)
+
+    #     if result:
+    #         web_artifacts.append(i)
+    #     if i[-4:] == ".exe":
+    #         exec_artifacts.append(i)
+
+    #     result = re.search(rfile,i)
+    #     if result:
+    #         file_artifacts.append(i)
+
+    # print (net_artifacts)
+
     return list(dict.fromkeys(artifacts)), list(dict.fromkeys(net_artifacts)), list(dict.fromkeys(file_artifacts)), list(dict.fromkeys(exec_artifacts))
 
-def printCalls():
-    print("[*] All API Calls: ")
-    print(loggedList)
 
-    print("[*] All DLLs Used: ")
-    for dll in logged_dlls:
-        print("\t\t", dll)
-
+def getArtifacts():
     artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
-    print("[*] Artifacts")
-    for a in artifacts:
-        print("\t\t", a)
-    print("[*] Network Artifacts")
-    for n in net_artifacts:
-        print("\t\t", n)
-    print("[*] File Artifacts")
-    for f in file_artifacts:
-        print("\t\t", f)
-    print("[*] Executable Artifacts")
-    for e in exec_artifacts:
-        print("\t\t", e)
+
+
+def printCalls():
+    if 2==3:
+        print("[*] All API Calls: ")
+        # print(loggedList)
+
+        print("[*] All DLLs Used: ")
+        for dll in logged_dlls:
+            print("\t\t", dll)
+
+        artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
+        print("[*] Artifacts")
+        for a in artifacts:
+            print("\t\t", a)
+        print("[*] Network Artifacts")
+        for n in net_artifacts:
+            print("\t\t", n)
+        print("[*] File Artifacts")
+        for f in file_artifacts:
+            print("\t\t", f)
+        print("[*] Executable Artifacts")
+        for e in exec_artifacts:
+            print("\t\t", e)
 
 # Test X86 32 bit
 def test_i386(mode, code):
+    global artifacts2
     try:
         # Initialize emulator
         mu = Uc(UC_ARCH_X86, mode)
@@ -879,12 +935,12 @@ def test_i386(mode, code):
 
         global cs
         if mode == UC_MODE_32:
-            print("[*] Emulating x86_32 code")
+            print("\t[*] Emulating x86_32 shellcode")
             cs = Cs(CS_ARCH_X86, CS_MODE_32)
             allocateWinStructs32(mu)
 
         elif mode == UC_MODE_64:
-            print("[*] Emulating x86_64 code")
+            print("\t[*] Emulating x86_64 shellcode")
             cs = Cs(CS_ARCH_X86, CS_MODE_64)
             allocateWinStructs64(mu)
 
@@ -900,11 +956,23 @@ def test_i386(mode, code):
             pass
 
         # now print out some registers
-        print("[*] Emulation done")
+        artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
+
+        print("\t[*] CPU counter:", programCounter)
+        print("\t[*] Emulation complete")
         printCalls()
 
     except UcError as e:
         print("ERROR: %s" % e)
+
+def startEmu(arch, data, vb):
+    global verbose
+    verbose = vb
+    # print("here", arch)
+    if arch == 32:
+        test_i386(UC_MODE_32, data)
+
+em=EMU()
 
 if __name__ == '__main__':
     global verbose
