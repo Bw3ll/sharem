@@ -1,0 +1,566 @@
+{
+   "dateAnalyzed": "2022-01-14 12:00:59",
+   "secondsSinceEpoch": 1642183259.266058,
+   "fileType": "PE",
+   "bits": 32,
+   "modules": [],
+   "imports": [
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetCurrentThreadId",
+         "address": "0x40d008"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetSystemTimeAsFileTime",
+         "address": "0x40d00c"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "InitializeSListHead",
+         "address": "0x40d010"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "IsDebuggerPresent",
+         "address": "0x40d014"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "UnhandledExceptionFilter",
+         "address": "0x40d018"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "SetUnhandledExceptionFilter",
+         "address": "0x40d01c"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetStartupInfoW",
+         "address": "0x40d020"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "IsProcessorFeaturePresent",
+         "address": "0x40d024"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetModuleHandleW",
+         "address": "0x40d028"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetCurrentProcess",
+         "address": "0x40d02c"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "TerminateProcess",
+         "address": "0x40d030"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetLastError",
+         "address": "0x40d034"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetModuleFileNameW",
+         "address": "0x40d038"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "InitializeCriticalSectionAndSpinCount",
+         "address": "0x40d03c"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "TlsAlloc",
+         "address": "0x40d040"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "TlsGetValue",
+         "address": "0x40d044"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "TlsSetValue",
+         "address": "0x40d048"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "TlsFree",
+         "address": "0x40d04c"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "FreeLibrary",
+         "address": "0x40d050"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetProcAddress",
+         "address": "0x40d054"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "LoadLibraryExW",
+         "address": "0x40d058"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "RtlUnwind",
+         "address": "0x40d05c"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "SetLastError",
+         "address": "0x40d060"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "EnterCriticalSection",
+         "address": "0x40d064"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "LeaveCriticalSection",
+         "address": "0x40d068"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "DeleteCriticalSection",
+         "address": "0x40d06c"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetStdHandle",
+         "address": "0x40d070"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "WriteFile",
+         "address": "0x40d074"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetModuleFileNameA",
+         "address": "0x40d078"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "MultiByteToWideChar",
+         "address": "0x40d07c"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "WideCharToMultiByte",
+         "address": "0x40d080"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "ExitProcess",
+         "address": "0x40d084"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetModuleHandleExW",
+         "address": "0x40d088"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetCommandLineA",
+         "address": "0x40d08c"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetCommandLineW",
+         "address": "0x40d090"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetACP",
+         "address": "0x40d094"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "HeapFree",
+         "address": "0x40d098"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "HeapAlloc",
+         "address": "0x40d09c"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetCurrentProcessId",
+         "address": "0x40d0a0"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "CloseHandle",
+         "address": "0x40d0a4"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "FindClose",
+         "address": "0x40d0a8"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "FindFirstFileExA",
+         "address": "0x40d0ac"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "FindNextFileA",
+         "address": "0x40d0b0"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "IsValidCodePage",
+         "address": "0x40d0b4"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetOEMCP",
+         "address": "0x40d0b8"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetCPInfo",
+         "address": "0x40d0bc"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetEnvironmentStringsW",
+         "address": "0x40d0c0"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "FreeEnvironmentStringsW",
+         "address": "0x40d0c4"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "SetEnvironmentVariableA",
+         "address": "0x40d0c8"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "CompareStringW",
+         "address": "0x40d0cc"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "LCMapStringW",
+         "address": "0x40d0d0"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "SetStdHandle",
+         "address": "0x40d0d4"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetFileType",
+         "address": "0x40d0d8"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetStringTypeW",
+         "address": "0x40d0dc"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetProcessHeap",
+         "address": "0x40d0e0"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "HeapSize",
+         "address": "0x40d0e4"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "HeapReAlloc",
+         "address": "0x40d0e8"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "FlushFileBuffers",
+         "address": "0x40d0ec"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetConsoleCP",
+         "address": "0x40d0f0"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "GetConsoleMode",
+         "address": "0x40d0f4"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "SetFilePointerEx",
+         "address": "0x40d0f8"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "WriteConsoleW",
+         "address": "0x40d0fc"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "DecodePointer",
+         "address": "0x40d100"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "CreateFileW",
+         "address": "0x40d104"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "RaiseException",
+         "address": "0x40d108"
+      },
+      {
+         "dll": "KERNEL32.dll",
+         "api": "QueryPerformanceCounter",
+         "address": "0x40d10c"
+      },
+      {
+         "dll": "ADVAPI32.dll",
+         "api": "SystemFunction036",
+         "address": "0x40d000"
+      }
+   ],
+   "peInfo": [
+      {
+         "sectionName": ".text",
+         "entryPoint": {
+            "offset": "0x1637",
+            "imageBasePlusVirtualAdd": "0x401000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0x1000",
+         "virtualSize": "0xb5e7",
+         "sectionSizeOfRawData": "0xb600",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "True",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "2f706eee01afef1050ef7eaf95f294a5",
+            "md5": "da8e8ae18bef90f7606f3f4fd044ad4d136fcbab0296e2fae29ac46edeecc744"
+         }
+      },
+      {
+         "sectionName": ".rdata",
+         "entryPoint": {
+            "offset": "0x1637",
+            "imageBasePlusVirtualAdd": "0x40d000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0xd000",
+         "virtualSize": "0x584e",
+         "sectionSizeOfRawData": "0x5a00",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "True",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "f490fdda3d0b76624cca63bbb3513b5d",
+            "md5": "ae2bd76877debdf56a8cfa7c1bb4a90fa0b98c5954c9ead5fb806c15ffd1e092"
+         }
+      },
+      {
+         "sectionName": ".data",
+         "entryPoint": {
+            "offset": "0x1637",
+            "imageBasePlusVirtualAdd": "0x413000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0x13000",
+         "virtualSize": "0x11e8",
+         "sectionSizeOfRawData": "0x800",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "True",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "ed9be7257f98813caf13dd605a5ee094",
+            "md5": "af0314d04dcab15a07ab0228c71f0d1b63b725a74b4411acab87174181e89f72"
+         }
+      },
+      {
+         "sectionName": ".gfids",
+         "entryPoint": {
+            "offset": "0x1637",
+            "imageBasePlusVirtualAdd": "0x415000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0x15000",
+         "virtualSize": "0xb4",
+         "sectionSizeOfRawData": "0x200",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "True",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "6d1d0c984b982b7f0d32525f74ec9456",
+            "md5": "3eb1c3b369b2a2c1c4040bb05467acd06c351e6a35cb03094dd354ea25a54cf1"
+         }
+      },
+      {
+         "sectionName": ".reloc",
+         "entryPoint": {
+            "offset": "0x1637",
+            "imageBasePlusVirtualAdd": "0x416000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0x16000",
+         "virtualSize": "0xe2c",
+         "sectionSizeOfRawData": "0x1000",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "True",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "4b2cd9e9278c3f218a546505bf693dd6",
+            "md5": "614e290de4d5176d6e9b3aa0f2bbe07a037ece4e9ba99e176c7097b47b4b0f81"
+         }
+      }
+   ],
+   "pushret": [],
+   "callpop": [],
+   "PEB": [],
+   "fstenv": [],
+   "heavensGate": [],
+   "syscall": [],
+   "strings": {},
+   "shellcode": {
+      "rawhex": "",
+      "strlit": ""
+   },
+   "emulation": {
+      "api_calls": [
+         {
+            "api_name": "WinExec",
+            "return_value": "0x20",
+            "address": "0x123123",
+            "parameters": [
+               {
+                  "type": "LPCSTR lpCmdLine",
+                  "value": "cmd.exe /c ping google.com > C:\\result.txt"
+               },
+               {
+                  "type": "UINT uCmdShow",
+                  "value": "0x5"
+               }
+            ]
+         },
+         {
+            "api_name": "EncyptFileA",
+            "return_value": "0x20",
+            "address": "0x321321",
+            "parameters": [
+               {
+                  "type": "LPCSTR lpFileName",
+                  "value": "C:\\result.txt"
+               }
+            ]
+         },
+         {
+            "api_name": "LoadLibraryA",
+            "return_value": "0x45664c88",
+            "address": "0x1337c0de",
+            "parameters": [
+               {
+                  "type": "LPCTSTR lpLibFileName",
+                  "value": "user32.dll"
+               }
+            ]
+         },
+         {
+            "api_name": "MessageBoxA",
+            "return_value": "0x20",
+            "address": "0xdeadc0de",
+            "parameters": [
+               {
+                  "type": "HWND hWnd",
+                  "value": "0x987987"
+               },
+               {
+                  "type": "LPCSTR lpText",
+                  "value": "You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt"
+               },
+               {
+                  "type": "LPCSTR lpCaption",
+                  "value": "You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt"
+               },
+               {
+                  "type": "UINT uType",
+                  "value": "0x0"
+               }
+            ]
+         }
+      ],
+      "dlls": [
+         "kernel32",
+         "advapi32",
+         "user32"
+      ],
+      "artifacts": [
+         "c:\\result.txt",
+         "cmd.exe",
+         "google.com",
+         "result.txt",
+         "user32.dll",
+         "calc.exe",
+         "notepad.exe",
+         "www.msn.com",
+         "http://c2.net",
+         "c:\\windows\\system32\\mstsc.exe"
+      ],
+      "web_artifacts": [
+         "google.com",
+         "www.msn.com",
+         "http://c2.net"
+      ],
+      "file_artifacts": [
+         "c:\\result.txt",
+         "cmd.exe",
+         "google.com",
+         "result.txt",
+         "user32.dll",
+         "calc.exe",
+         "notepad.exe",
+         "www.msn.com",
+         "http://c2.net",
+         "c:\\windows\\system32\\mstsc.exe"
+      ],
+      "executable_artifacts": [
+         "cmd.exe",
+         "calc.exe",
+         "notepad.exe",
+         "c:\\windows\\system32\\mstsc.exe"
+      ]
+   }
+}

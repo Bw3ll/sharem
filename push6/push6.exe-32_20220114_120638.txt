@@ -1,0 +1,165 @@
+Filename: push6.exe
+File Type: PE
+Architecture: 32-bit
+Date Analyzed: 2022-01-14 12:06:38
+Seconds since last epoch: 1642183598.309036
+push6.exe
+Md5: 7a2ab420cf562f7761c836411c048cf8
+Sha256: f4c59c3009a8994b2a1a1f98aa46ef4523c69e1023f69be956afaa86c150d098
+Ssdeep: 1536:uRf8YIiQgww+z3dnlN31eSI27Ofm37hxdhrYJU1IsWEcdYXvdGpy7:hiQC+z3ZlB1zn7Ou3HfoU2YXvYpw
+
+
+Section info
+
+Section:.text
+Entry point: 0x1637
+Virtual Address: 0x1000
+ImageBase: 0x400000
+VirtualSize: 0xb5e7
+SizeOfRawData: 0xb600
+VirtualAddress: 0x1000
+ImageBase + sec. virtual address: 0x401000
+Actual size of section: 0xb600
+DEP: True
+ASLR: True
+SEH: False
+CFG: False
+Sha256: 2f706eee01afef1050ef7eaf95f294a5
+md5: da8e8ae18bef90f7606f3f4fd044ad4d136fcbab0296e2fae29ac46edeecc744
+
+Section:.rdata
+Entry point: 0x1637
+Virtual Address: 0xd000
+ImageBase: 0x400000
+VirtualSize: 0x584e
+SizeOfRawData: 0x5a00
+VirtualAddress: 0xd000
+ImageBase + sec. virtual address: 0x40d000
+Actual size of section: 0x5a00
+DEP: True
+ASLR: True
+SEH: False
+CFG: False
+Sha256: f490fdda3d0b76624cca63bbb3513b5d
+md5: ae2bd76877debdf56a8cfa7c1bb4a90fa0b98c5954c9ead5fb806c15ffd1e092
+
+Section:.data
+Entry point: 0x1637
+Virtual Address: 0x13000
+ImageBase: 0x400000
+VirtualSize: 0x11e8
+SizeOfRawData: 0x800
+VirtualAddress: 0x13000
+ImageBase + sec. virtual address: 0x413000
+Actual size of section: 0x800
+DEP: True
+ASLR: True
+SEH: False
+CFG: False
+Sha256: ed9be7257f98813caf13dd605a5ee094
+md5: af0314d04dcab15a07ab0228c71f0d1b63b725a74b4411acab87174181e89f72
+
+Section:.gfids
+Entry point: 0x1637
+Virtual Address: 0x15000
+ImageBase: 0x400000
+VirtualSize: 0xb4
+SizeOfRawData: 0x200
+VirtualAddress: 0x15000
+ImageBase + sec. virtual address: 0x415000
+Actual size of section: 0x200
+DEP: True
+ASLR: True
+SEH: False
+CFG: False
+Sha256: 6d1d0c984b982b7f0d32525f74ec9456
+md5: 3eb1c3b369b2a2c1c4040bb05467acd06c351e6a35cb03094dd354ea25a54cf1
+
+Section:.reloc
+Entry point: 0x1637
+Virtual Address: 0x16000
+ImageBase: 0x400000
+VirtualSize: 0xe2c
+SizeOfRawData: 0x1000
+VirtualAddress: 0x16000
+ImageBase + sec. virtual address: 0x416000
+Actual size of section: 0x1000
+DEP: True
+ASLR: True
+SEH: False
+CFG: False
+Sha256: 4b2cd9e9278c3f218a546505bf693dd6
+md5: 614e290de4d5176d6e9b3aa0f2bbe07a037ece4e9ba99e176c7097b47b4b0f81
+
+
+No strings found.
+
+No push ret instructions found.
+
+No fstenv instructions found.
+
+No call pop instructions found.
+
+No syscall instructions found.
+
+No peb walking instructions found.
+
+No heaven's gate instructions found.
+
+**************************
+     Emulation
+**************************
+
+
+************* APIs *************
+
+0x123123 WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
+	LPCSTR lpCmdLine: cmd.exe /c ping google.com > C:\result.txt
+	UINT uCmdShow: 0x5
+	Return: 0x20
+
+0x321321 EncyptFileA(LPCSTR lpFileName)
+	LPCSTR lpFileName: C:\result.txt
+	Return: 0x20
+
+0x1337c0de LoadLibraryA(LPCTSTR lpLibFileName)
+	LPCTSTR lpLibFileName: user32.dll
+	Return: 0x45664c88
+
+0xdeadc0de MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType)
+	HWND hWnd: 0x987987
+	LPCSTR lpText: You have been hacked by an elite haxor. Your IP address is now stored in C:\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\result.txt
+	LPCSTR lpCaption: You have been hacked by an elite haxor. Your IP address is now stored in C:\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\result.txt
+	UINT uType: 0x0
+	Return: 0x20
+
+
+************* DLLs *************
+DLLs                   kernel32,advapi32,user32
+
+************* Artifacts *************
+Artifacts              
+c:\result.txt
+cmd.exe
+google.com
+result.txt
+user32.dll
+www.msn.com
+http://74.32.123.2:8080
+c:\windows\system32\ipconfig.exe
+
+Web artifacts          
+www.msn.com
+http://74.32.123.2:8080
+google.com
+
+File artifacts         
+c:\result.txt
+cmd.exe
+result.txt
+
+Executable artifacts   
+c:\windows\system32\ipconfig.exe
+cmd.exe
+
+
