@@ -186,6 +186,7 @@ mESP = ''
 
 
 gDisassemblyText=""
+gDisassemblyTextNoC=""
 emulation_multiline = False
 # Moved from viewBool's work area
 linesForward = 40
@@ -1077,8 +1078,8 @@ class DisassemblyBytes:
 		self.shMnemonic = []
 		self.shOp_str = []
 		self.shCodes = []
-			
-
+		self.gDisassemblyTextNoC = 	''
+		self.gDisassemblyTextNoC = ''
 
 
 		# self.PreSysOffsets = []   # starting offsets of bytes - may not always be 0 or 1
@@ -1376,6 +1377,7 @@ def Extraction():
 	m[o].SizeOfRawData  =pe.sections[0].SizeOfRawData
 	m[o].Hash_sha256_section=	 pe.sections[0].get_hash_md5()
 	m[o].Hash_md5_section =   pe.sections[0].get_hash_sha256()
+
 	o=old
 	tem =0
 
@@ -2251,20 +2253,41 @@ def extractDLL_MinNew(dll):
 	m[o].endAddy = m[o].startLoc + m[o].vSize
 	m[o].data2  = pe.sections[0].get_data()[m[o].VirtualAdd:m[o].VirtualAdd+m[o].vSize]
 
+def hashesText():
+	global o 
+	global sh
+
+	txt = ""
+	txt += "md5: " + m[o].getMd5() + "\n"
+	txt += "sha256: " + m[o].getSha256() + "\n"
+	txt += "ssdeep: " + m[o].getSsdeep() + "\n\n"
+	
+	if sh != None: 
+		if sh.decryptSuccess == True:
+			o = shOrg
+			txt += "Deobfuscated Shellcode:\n"
+			txt += "\tmd5: " + m[o].getMd5() + "\n"
+			txt += "\tsha256: " + m[o].getSha256() + "\n"
+			txt += "\tssdeep: " + m[o].getSsdeep() + "\n\n"
+			txt += "Note: data below is from  deobfuscated shellcode.\n"
+
+	return txt
+
 def showBasicInfo():
 	global shellEntry
 	cat=""
 	# o=0
 	dprint2 ("# m: " + str(len(m)))
-	for o in m:
-		if rawHex:
-			try:
-				cat+=gre+"Shellcode Entry point: " + res+str(hex(shellEntry)) +"\n"
-			except:
-				cat+=gre+"Shellcode Entry point: " + res+str(shellEntry) +"\n"
-
-
-		else:
+	
+	if rawHex:
+		try:
+			cat+=gre+"Shellcode Entry point: " + res+str(hex(shellEntry)) +"\n"
+			cat += hashesText()
+		except:
+			cat+=gre+"Shellcode Entry point: " + res+str(shellEntry) +"\n"
+			cat += hashesText()
+	else:
+		for o in m:
 			cat +=m[o].modName.decode()+"\n"
 			cat +gre+"Section: "+ res + str(m[0].sectionName) +"\n"
 			cat+=gre+"Entry point: "+ res + str(hex(m[o].entryPoint)) +"\n"
@@ -2431,6 +2454,9 @@ def Text2Json(shell, jsonOut=None):
 	# 	print("Invalid shellcode format")
 	# 	print(e)
 
+
+def binaryToLiteral(hexBytes):
+	pass
 
 
 def binaryToText(binary, json=None):
@@ -14031,6 +14057,7 @@ def takeBytes(shellBytes,startingAddress, silent=None):
 	global sBy
 	global shellEntry
 	global gDisassemblyText
+	global gDisassemblyTextNoC
 	takeBytesS = time.time()
 	startingAddress=0
 	i=startingAddress
@@ -14105,6 +14132,7 @@ def takeBytes(shellBytes,startingAddress, silent=None):
 	colorama.init()
 	# print ("final!!!!!")
 	disassembly, disassemblyC=createDisassemblyLists(True,"final")
+	gDisassemblyTextNoC = disassembly
 	gDisassemblyText =disassemblyC
 	print (disassemblyC)
 	# print (disassembly)
@@ -14117,8 +14145,11 @@ def takeBytes(shellBytes,startingAddress, silent=None):
 
 def regenerateDisassemblyForPrint():
 	global gDisassemblyText
+	global gDisassemblyTextNoC
+
 	disassembly, disassemblyC=createDisassemblyLists(True,"final")
 	gDisassemblyText =disassemblyC
+	gDisassemblyTextNoC = disassembly
 def addComments():
 	# print("addcomments:", hex(len(sBy.comments)), hex(len(sBy.bytesType)))
 
@@ -15925,7 +15956,7 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 			newBin.write(rawBytes)
 			newBin.close()
 			newDis = open(directory+"outputs\\decrypted-"+filename+"-disassembly.txt", "w")
-			newDis.write(disassembly)
+			newDis.write(disassemblyNoC)
 			newDis.close()
 
 decryptInput = "default"
@@ -17572,7 +17603,10 @@ def readConf():
 	dFastMode = conr.getboolean('SHAREM DECRYPT','fast_mode')
 	dFindAll = conr.getboolean('SHAREM DECRYPT','find_all')
 	dDistr = conr.getboolean('SHAREM DECRYPT','dist_mode')
-	dCPUcount = int(conr['SHAREM DECRYPT']['cpu_count'])
+	try:
+		dCPUcount = int(conr['SHAREM DECRYPT']['cpu_count'])
+	except:
+		dCPUcount = "auto"
 	dNodesFile = conr['SHAREM DECRYPT']['nodes_file']
 	if not (os.path.exists(dNodesFile)):
 		print(red +"\n\nConfig file Error:", yel + dNodesFile + res, red + "doesn't exist!" + res)
@@ -20626,13 +20660,6 @@ def printToJson(bpAll, outputData):	#Output data to json
 	global bpModules
 	global bpEvilImports
 	global bpStrings
-	
-	
-	
-	
-	
-	
-	
 	global shellBit
 	global rawHex
 	global filename
@@ -20819,6 +20846,34 @@ def formatPrint(i, add4, addb, pe=False, syscall=False):
 		print("Error: format style is not correct, it should be either right, or left.")
 		sys.exit()
 
+
+def hashesJson():
+	global o
+	global sh
+
+	binLit = ''
+	tmpDict = {}
+
+	if sh.decryptSuccess == True:
+		for i in sh.decoderStub:
+			binLit += '\\x' + '{:02x}'.format(i) +""
+		tmpDict['deobfuscated'] = True
+
+		tmpDict['decoded_stub'] = binLit
+		tmpDict['md5'] = m[o].getMd5()
+		tmpDict['sha256'] = m[o].getSha256()
+		tmpDict['ssdeep'] = m[o].getSsdeep()
+
+	else:
+		tmpDict['deobfuscated'] = False 
+		tmpDict['decoded_stub'] = 'N/A'
+		tmpDict['md5'] = 'N/A'
+		tmpDict['sha256'] = 'N/A'
+		tmpDict['ssdeep'] = 'N/A'
+
+	return tmpDict
+
+
 def generateOutputData(): #Generate the dictionary for json out
 	
 	global shellBit
@@ -20841,14 +20896,26 @@ def generateOutputData(): #Generate the dictionary for json out
 	jsonData['fileType'] = ''
 	jsonData['bits'] = shellBit
 	if not rawHex:
+		jsonData['md5'] = m[o].getMd5()
+		jsonData['sha256'] = m[o].getSha256()
+		jsonData['ssdeep'] = m[o].getSsdeep()
+
+	if not rawHex:
 		jsonData['modules']=[]
 		jsonData['imports']=[]
 	if rawHex:
 		try:
 			jsonData['entryPoint'] = str(hex(shellEntry))
+			jsonData['md5'] = m[shOrg].getMd5()
+			jsonData['sha256'] = m[shOrg].getSha256()
+			jsonData['ssdeep'] = m[shOrg].getSsdeep()
+
+
 		except:
 			jsonData['entryPoint'] = str(shellEntry)
-
+			jsonData['md5'] = m[shOrg].getMd5()
+			jsonData['sha256'] = m[shOrg].getSha256()
+			jsonData['ssdeep'] = m[shOrg].getSsdeep()
 	else:
 		jsonData['peInfo'] = []
 	if rawHex:
@@ -20870,8 +20937,10 @@ def generateOutputData(): #Generate the dictionary for json out
 	jsonData['shellcode'] = {'rawhex':brawHex,
 							 'strlit':bstrLit 
 							}
-	if rawHex:
-		jsonData['decoded_stub'] = ''
+
+	jsonData['deobfuscation'] = hashesJson()
+		
+
 
 	jsonData['emulation'] = emulation_json_out(loggedList)
 
@@ -20884,6 +20953,11 @@ def generateOutputData(): #Generate the dictionary for json out
 	if(rawHex):
 		entryPoint = str(hex(m[o].entryPoint))
 		jsonData['entryPoint'] = entryPoint
+		jsonData['md5'] = m[shOrg].getMd5()
+		jsonData['sha256'] = m[shOrg].getSha256()
+		jsonData['ssdeep'] = m[shOrg].getSsdeep()
+
+
 	else:
 		t = 0
 		# print("Sections --> ", s)
@@ -20904,7 +20978,8 @@ def generateOutputData(): #Generate the dictionary for json out
 			CFG = str(s[t].CFGstatus)
 			Sha256 =s[t].Hash_sha256_section
 			md5 = s[t].Hash_md5_section
-			jsonData['peInfo'].append({"sectionName":secName, "entryPoint":{"offset":entryPoint, "imageBasePlusVirtualAdd":imageBasePlusVirtualAdd, "imageBase":imageBase}, "virtualAddress":virtualAddress, "virtualSize":virtualSize, "sectionSizeOfRawData":secSize, "mitigations":{"DEP":DEP, "ASLR":ASLR, "SEH":SEH, "CFG":CFG}, "hashes":{"Sha256":Sha256, "md5":md5}})
+			jsonData['peInfo'].append({"sectionName":secName, "entryPoint":{"offset":entryPoint, "imageBasePlusVirtualAdd":imageBasePlusVirtualAdd, "imageBase":imageBase}, "virtualAddress":virtualAddress, "virtualSize":virtualSize, "sectionSizeOfRawData":secSize, "mitigations":{"DEP":DEP, "ASLR":ASLR, "SEH":SEH, "CFG":CFG}, "hashes":{"Sha256":Sha256, 
+															"md5":md5}})
 			t+=1
 
 
@@ -21736,13 +21811,7 @@ def printToText(outputData):	#Output data to text doc
 	
 	
 	global bDisassembly
-	
-	
-	
-	
-	
-	
-	
+	global gDisassemblyTextNoC
 	global bpModules
 	global bpEvilImports
 	global shellBit
@@ -22041,7 +22110,7 @@ def printToText(outputData):	#Output data to text doc
 	if bDisassembly:
 		if mBool[o].bDisassemblyFound:
 			outString += "\n\n****************\nDisassembly\n****************\n\n"
-			outString += gDisassemblyText
+			outString += gDisassemblyTextNoC
 	else:
 		outString += "\nNo Disassembly found.\n"
 	#disassembly = shellDisassemblyStart(filename, "txt")
