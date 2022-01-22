@@ -18,7 +18,7 @@ from DLLs.hookAPIs import *
 import re
 import os
 import argparse
-
+import colorama
 # artifacts2= [] 
 # net_artifacts = []
 # file_artifacts = []
@@ -79,6 +79,51 @@ loopInstructs = []
 loopCounter = 0
 verOut = ""
 bVerbose = True
+
+def bprint(*args):
+    brDebugging2=False
+    if brDebugging2:
+        try:
+            if  (len(args) == 1):
+                if(type(args[0]) == list):
+                    print(args[0])
+                    return
+
+            if  (len(args) > 1):
+                strList = ""
+                for each in args:
+                    try:
+                        strList += each + " "
+                    except:
+                        strList += str(each) + " "
+                print(strList)
+
+            else:
+                for each in args:
+                    try:
+                        print (str(each) + " ")
+                    except:
+                        print ("dprint error: 1")
+                        print (each + " ")
+        except Exception as e:
+            print ("dprint error: 3")
+            print (e)
+            print(traceback.format_exc())
+            print (args)
+colorama.init()
+# readRegs()
+# testingAssembly()
+
+
+red ='\u001b[31;1m'
+gre = '\u001b[32;1m'
+yel = '\u001b[33;1m'
+blu = '\u001b[34;1m'
+mag = '\u001b[35;1m'
+cya = '\u001b[36;1m'
+whi = '\u001b[37m'
+res = '\u001b[0m'
+res2 = '\u001b[0m'
 
 def readRaw(appName):
     f = open(appName, "rb")
@@ -576,8 +621,14 @@ def hook_code(uc, address, size, user_data):
     instructLine = ""
 
     # read this instruction code from memory
+    if address == 0x42000103:
+        instructLine +=  ("address " + str(hex(address)))
+        instructLine +=  ("size "+ str(size))
+
+
     if verbose == True:
         instructLine += "0x%x" % address + '\t'
+    
     shells = uc.mem_read(address, size)
     ret = address
     address = 0
@@ -606,6 +657,7 @@ def hook_code(uc, address, size, user_data):
 
         eip = uc.reg_read(UC_X86_REG_EIP)
         esp = uc.reg_read(UC_X86_REG_ESP)
+        bprint ("funcAddress", hex(funcAddress))
         funcName = export_dict[funcAddress][0]
 
         try:
@@ -661,38 +713,55 @@ def checkDups(uc):
             break
 
 # Get the parameters off the stack
-def findDict(funcAddress, funcName):
+def findDict(funcAddress, funcName, dll=None):
     # Dict3 #####      'GetProcAddress': (2, ['HMODULE', 'LPCSTR']
     # Dict2 #####      'GetProcAddress': (2, ['HMODULE', 'LPCSTR']
     # Dict1 #####      'GetProcAddress': (2, 8, '.', True)
+    try:
+        global cleanBytes
+        if dll == None:
+            dll = export_dict[funcAddress][1]
+            dll = dll[0:-4]
+        paramVals = []
+        dict4 = globals()['dict4_' + dll]
+        dict2 = globals()['dict2_' + dll]
+        dict1 = globals()['dict_' + dll]
 
-    global cleanBytes
-    dll = export_dict[funcAddress][1]
-    dll = dll[0:-4]
-    paramVals = []
-    dict4 = globals()['dict4_' + dll]
-    dict2 = globals()['dict2_' + dll]
-    dict1 = globals()['dict_' + dll]
+        bprint ("dll", dll)
+        # Log usage of DLL
+        if dll not in logged_dlls:
+            logged_dlls.append(dll)
 
-    # Log usage of DLL
-    if dll not in logged_dlls:
-        logged_dlls.append(dll)
+        # Use dict three if we find a record for it
+        if funcName in dict3_w32:
+            # print ("1")
+            return dict3_w32[funcName], 'dict3', dll
 
-    # Use dict three if we find a record for it
-    if funcName in dict3_w32:
-        return dict3_w32[funcName], 'dict3'
+        # Use dict2 if we can't find the API in dict1
+        elif funcName in dict2:
+            # print ("2")  
+            # print (dict2[funcName])
+            return dict2[funcName], 'dict2', dll
 
-    # Use dict2 if we can't find the API in dict1
-    elif funcName in dict2:
-        return dict2[funcName], 'dict2'
+        # Use dict four (WINE) if we find a record for it
+        elif funcName in dict4:
+            # print ("3")
 
-    # Use dict four (WINE) if we find a record for it
-    elif funcName in dict4:
-        return dict4[funcName], 'dict4'
+            return dict4[funcName], 'dict4', dll
 
-    # If all else fails, use dict 1
-    elif funcName in dict1:
-        return dict1[funcName], 'dict1'
+        # If all else fails, use dict 1
+        elif funcName in dict1:
+            # print ("4")
+
+            return dict1[funcName], 'dict1', dll
+        else:
+            bprint ("NOT FOUND!")
+            return "none", "none", dll
+            # if dll.lower()=="wsock32":
+            #     findDict(funcAddress, funcName, "ws2_32")
+    except Exception as e:
+        bprint("Oh no!!!", e)
+        bprint(traceback.format_exc())
 
 def getParams(uc, esp, apiDict, dictName):
     global cleanBytes
@@ -738,21 +807,32 @@ def getParams(uc, esp, apiDict, dictName):
 # If we haven't manually implemented the function, we send it to this function
 # This function will simply find parameters, then log the call in our dictionary
 def hook_default(uc, eip, esp, funcAddress, funcName, callLoc):
-    apiDict, dictName = findDict(funcAddress, funcName)
-    paramVals = getParams(uc, esp, apiDict, dictName)
+    try:
+        dictName =apiDict=""
+        bprint (hex(funcAddress), funcName)
+        apiDict, dictName, dll = findDict(funcAddress, funcName)
+        bprint ("", apiDict, dictName, dll)
+        if apiDict=="none" and dll=="wsock32":
 
-    if dictName != 'dict1':
-        paramTypes = apiDict[1]
-        paramNames = apiDict[2]
-    else:
-        paramTypes = ['dword'] * len(paramVals)
-        paramNames = ['arg'] * len(paramVals)
+            apiDict, dictName, dll = findDict(funcAddress, funcName, "ws2_32")
+            bprint ("", apiDict, dictName, dll)
 
-    retVal = 32
-    uc.reg_write(UC_X86_REG_EAX, retVal)
+        paramVals = getParams(uc, esp, apiDict, dictName)
 
-    funcInfo = (funcName, hex(callLoc), hex(retVal), 'INT', paramVals, paramTypes, paramNames, False)
-    logCall(funcName, funcInfo)
+        if dictName != 'dict1':
+            paramTypes = apiDict[1]
+            paramNames = apiDict[2]
+        else:
+            paramTypes = ['dword'] * len(paramVals)
+            paramNames = ['arg'] * len(paramVals)
+
+        retVal = 32
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        funcInfo = (funcName, hex(callLoc), hex(retVal), 'INT', paramVals, paramTypes, paramNames, False)
+        logCall(funcName, funcInfo)
+    except Exception as e:
+        print ("Error!", e)
 
 def read_string(uc, address):
     ret = ""
@@ -872,12 +952,12 @@ def test_i386(mode, code):
 
         global cs
         if mode == UC_MODE_32:
-            print("\t[*] Emulating x86_32 shellcode")
+            print(cya+"\n\t[*]"+res2+" Emulating x86_32 shellcode")
             cs = Cs(CS_ARCH_X86, CS_MODE_32)
             allocateWinStructs32(mu)
 
         elif mode == UC_MODE_64:
-            print("\t[*] Emulating x86_64 shellcode")
+            print(cya+"\n\t[*]"+res2+" Emulating x86_64 shellcode")
             cs = Cs(CS_ARCH_X86, CS_MODE_64)
             allocateWinStructs64(mu)
 
@@ -895,8 +975,8 @@ def test_i386(mode, code):
         # now print out some registers
         artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
 
-        print("\t[*] CPU counter:", programCounter)
-        print("\t[*] Emulation complete")
+        print(cya+"\t[*]"+res2+" CPU counter: " + str(programCounter))
+        print(cya+"\t[*]"+res2+" Emulation complete")
         printCalls()
 
     except UcError as e:

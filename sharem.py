@@ -797,6 +797,8 @@ class foundBooleans():
 		self.bPushStringsFound = False
 		self.bAsciiStrings=False
 		self.bStringsFound=False
+		self.bEmulationFound=False
+
 
 class OSVersion:
 	#Used for list of OSVersions to print for syscall
@@ -12037,7 +12039,7 @@ def dprint2(*args):
 
 
 def bprint(*args):
-	brDebugging=True
+	brDebugging=False
 	if brDebugging:
 		try:
 			if  (len(args) == 1):
@@ -14124,11 +14126,11 @@ def addComments():
 	for each in loggedList:
 		api=each[0]
 		apiAddress=int(each[1],16)
-		print (hex(apiAddress), 42000000, each[1])
+		# print (hex(apiAddress), 42000000, each[1])
 		apiAddress=apiAddress-0x42000000
-		print (hex(apiAddress))
+		# print (hex(apiAddress))
 		sBy.comments[apiAddress]=mag+"; call to " + api +res +" "
-		print (api, apiAddress, each[1])
+		# print (api, apiAddress, each[1])
 # 	input()
 # 1107296317 
 
@@ -17899,7 +17901,7 @@ def emulationSubmenu():
 		elif choice == "h":
 			emulatorUI(emuObj)
 		elif choice == "v":
-			
+			print ("\tVerbosity changed.\n")
 			emuObj.verbose = not emuObj.verbose
 		elif choice == "b":
 			under_dev_function()
@@ -17972,6 +17974,7 @@ def startupPrint():
 	global bpPushStrings
 	global bpEvilImports
 	global bpModules
+	global bPrintEmulation
 	global rawHex
 	global bEvilImportsFound
 	global bpEvilImports
@@ -18017,6 +18020,11 @@ def startupPrint():
 	if bPEB and not mBool[o].bPEBFound:
 		newTime	= discoverPEB(max_len)
 		elapsed_time += newTime
+
+	if bPrintEmulation and not mBool[o].bEmulationFound:
+		newTime	= discoverEmulation(max_len)
+		elapsed_time += newTime
+
 	
 	if bDisassembly and not mBool[o].bDisassemblyFound:
 		newTime= discoverDisassembly(max_len)
@@ -18259,7 +18267,30 @@ def get_max_length(list_of_strings):
 			max_len = len(i)
 			res = len(i)
 	return res
+def discoverEmulation(maxLen=None):
+	global shellBit
+	if maxLen==None:
+		maxLen=42
+	
+	start = time.time()
+	curLen = len("  Emulation of shellcode...")
+	print(cya + " Starting emulation of shellcode..."+res, end="", flush=True)
+	
 
+	emuArch = emuObj.cpuArch										# temporary way of invoking emulator - may change later
+	startEmu(emuArch, m[o].rawData2, emuObj.verbose)
+	mBool[o].bEmulationFound=True									# if we run it, it is done - if we have not objective way of quantifying how successful it issues
+																	# depending on shellcode, could miss some, a lot, or be perfect. We just run it.
+
+	print(cya + " Emulation of shellcode..."+res, end="", flush=True)
+
+	if(mBool[o].bEmulationFound):
+		print("{:>{x}}[{}]".format("", gre + "COMPLETED" + res, x=15+(maxLen-curLen)))
+	else:
+		print("{:>{x}}[{}]".format("", red + "NOT COMPLETED" + res, x=15+(maxLen-curLen)))
+	end = time.time()
+	# elapsed_time += end - start
+	return end-start
 
 def discoverPEB(maxLen=None):
 		

@@ -697,7 +697,7 @@ def emulatorUI(emuObj):
 
 
 	text += "  {}{:>22}[{}]\n".format(cya + "v"+res+" -"+yel+"  Verbose mode."+ res, "", cya + vmodeTog+ res)
-	text += "\t{}\n".format(gre + "Log execution output to "+cya +"emulationLog.txt" + res)
+	text += "\t{}\n".format(gre + "Log all Assembly executed to "+cya +"emulationLog.txt" + res)
 
 	text += "  {}{:>13}      [{}]\n".format(cya + "a"+res+" -"+yel+"  CPU Architecture"+ res, "", cya + str(arch)+ res)
 	text += "\t{}\n".format(whi + "* 64 Bit"+whi + " Under Development" + res)
