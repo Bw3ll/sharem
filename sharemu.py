@@ -46,7 +46,7 @@ GDT_ENTRY_SIZE = 0x8
 
 SEGMENT_ADDR = 0x41010000
 SEGMENT_SIZE = 0x4000
-TIB_ADDR = 0x41015000
+TIB_ADDR = 0x00000000
 TIB_SIZE = 0x100
 PEB_ADDR = 0x41017000
 PEB_LIMIT = 0x208
@@ -79,31 +79,6 @@ loopInstructs = []
 loopCounter = 0
 verOut = ""
 bVerbose = True
-
-
-F_GRANULARITY = 0x8
-F_PROT_32 = 0x4
-F_LONG = 0x2
-F_AVAILABLE = 0x1
-A_PRESENT = 0x80
-A_PRIV_3 = 0x60
-A_PRIV_2 = 0x40
-A_PRIV_1 = 0x20
-A_PRIV_0 = 0x0
-A_CODE = 0x10
-A_DATA = 0x10
-A_TSS = 0x0
-A_GATE = 0x0
-A_EXEC = 0x8
-A_DATA_WRITABLE = 0x2
-A_CODE_READABLE = 0x2
-A_DIR_CON_BIT = 0x4
-S_GDT = 0x0
-S_LDT = 0x4
-S_PRIV_3 = 0x3
-S_PRIV_2 = 0x2
-S_PRIV_1 = 0x1
-S_PRIV_0 = 0x0
 
 def readRaw(appName):
     f = open(appName, "rb")
@@ -210,28 +185,8 @@ class LDR_Module64():
         mu.mem_write(self.Addr+0x60, pack("<Q", self.Full_Dll_Name))
         mu.mem_write(self.Addr+0x70, pack("<Q", self.Base_Dll_Name))
 
-def config_GDT(mu, code):
-    # Create the GDT entries
-    gdt = [buildEntry(0,0,0,0) for i in range(31)]
-    gdt[2] = buildEntry(0x0, 0xfffff000, A_PRESENT | A_DATA | A_DATA_WRITABLE | A_PRIV_0, F_PROT_32)
-    gdt[15] = buildEntry(TIB_ADDR, TIB_SIZE, A_PRESENT | A_DATA | A_DATA_WRITABLE | A_PRIV_3 | A_DIR_CON_BIT, F_PROT_32)
-
-    buildGdt(mu, gdt, GDT_ADDR)
-
-    # Fill the GDTR register
-    mu.reg_write(UC_X86_REG_GDTR, (0, GDT_ADDR, len(gdt)*GDT_ENTRY_SIZE-1, 0x0))
-
-    # Set the FS Register
-    selector = buildSegmentSelector(15, S_GDT | S_PRIV_3)
-    mu.reg_write(UC_X86_REG_FS, selector)
-
-    # Set the SS Register
-    selector = buildSegmentSelector(2, S_GDT | S_PRIV_0)
-    mu.reg_write(UC_X86_REG_SS, selector)
-
 def allocateWinStructs32(mu):
     # Put location of PEB at FS:30
-
     mu.mem_write((PEB_ADDR-10), b'\x4a\x41\x43\x4f\x42\x41\x41\x41\x41\x42')
 
     mu.mem_write(TIB_ADDR, b'\x00\x00\x00' + b'\x90'*0x2d + pack("<Q", PEB_ADDR))
@@ -270,6 +225,8 @@ def allocateWinStructs32(mu):
             currentDLL.allocate(mu, nextDLL.ILO_entry, prevDLL.ILO_entry, nextDLL.IMO_entry, prevDLL.IMO_entry, nextDLL.IIO_entry, prevDLL.IIO_entry)
 
 def allocateWinStructs64(mu):
+    mu.reg_write(UC_X86_REG_FS_BASE, TIB_ADDR)
+
     # Put location of PEB at GS:60
     mu.mem_write(TIB_ADDR, b'\x00'*0x60 + pack("<Q", PEB_ADDR))
 
@@ -290,25 +247,6 @@ def allocateWinStructs64(mu):
     # initialize stack
     mu.reg_write(UC_X86_REG_ESP, STACK_ADDR)
     mu.reg_write(UC_X86_REG_EBP, STACK_ADDR)
-
-def buildSegmentSelector(val, flg):
-    out = flg
-    out |= val << 3
-    return out
-
-def buildEntry(bottom, maxVal, accessVal, flg):
-    out = maxVal & 0xffff
-    out |= (bottom & 0xffffff) << 16
-    out |= (accessVal & 0xff) << 40
-    out |= ((maxVal >> 16) & 0xf) << 48
-    out |= (flg & 0xff) << 52
-    out |= ((bottom >> 24) & 0xff) << 56
-    return pack('<Q',out)
-
-def buildGdt(uc, gdt, loc):
-    for idx, val in enumerate(gdt):
-        offset = idx * GDT_ENTRY_SIZE
-        uc.mem_write(loc + offset, val)
 
 def padDLL(dllPath, dllName):
     global addrTracker
@@ -535,6 +473,7 @@ def controlFlow(uc, mnemonic, op_str):
             expr = re.sub('e[abcdsipx]+', callback, expr)
 
             address = eval(expr)
+            # print ("address", hex(address))
             address = unpack("<I", uc.mem_read(address, 4))[0]
         elif re.match('e[abcdsipx]+', op_str):
             regs = re.findall('e[abcdsipx]+', op_str)
@@ -920,7 +859,7 @@ def test_i386(mode, code):
         # Initialize emulator
         mu = Uc(UC_ARCH_X86, mode)
 
-        mu.mem_map(0x40000000, 0x20000000)
+        mu.mem_map(0x00000000, 0x50050000)
 
         # write machine code to be emulated to memory
         mu.mem_write(CODE_ADDR, code)
@@ -930,8 +869,6 @@ def test_i386(mode, code):
         # initialize stack
         mu.reg_write(UC_X86_REG_ESP, STACK_ADDR)
         mu.reg_write(UC_X86_REG_EBP, STACK_ADDR)
-
-        config_GDT(mu, code)
 
         global cs
         if mode == UC_MODE_32:

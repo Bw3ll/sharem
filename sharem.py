@@ -1132,7 +1132,7 @@ def newModule(nameOfType,rawD, name="Name"):
 	global gName
 	global rawHex
 
-	show=True
+	show=False
 	if show:
 		out= (mag+"new module " + name+res )
 		if rawHex:
@@ -14151,6 +14151,21 @@ def regenerateDisassemblyForPrint():
 def addComments():
 	# print("addcomments:", hex(len(sBy.comments)), hex(len(sBy.bytesType)))
 
+	# print (loggedList)
+	for each in loggedList:
+		api=each[0]
+		apiAddress=int(each[1],16)
+		print (hex(apiAddress), 42000000, each[1])
+		apiAddress=apiAddress-0x42000000
+		print (hex(apiAddress))
+		sBy.comments[apiAddress]=mag+"; call to " + api +res +" "
+		print (api, apiAddress, each[1])
+# 	input()
+# 1107296317 
+
+
+# 42000000 
+# 4200003d
 	comC=mag
 	for item in m[o].save_PEB_info:
 		# print("ITEMS HERE")
@@ -17879,7 +17894,7 @@ class emulationOptons:
 		self.maxEmuInstr = 500000
 		self.cpuArch = 32
 		self.breakLoop = True
-		self.numOfIter = 500000
+		self.numOfIter = 30000
 
 
 def under_dev_function():
@@ -17904,6 +17919,7 @@ def emu_max_instruction():
 
 def emulationSubmenu():
 	em.maxCounter=emuObj.maxEmuInstr
+	
 	while True:
 		print(yel + " Sharem>" + cya + "Emulator> " +res, end="")
 		choice = input()

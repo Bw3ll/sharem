@@ -76,10 +76,10 @@ def showOptions(shellBit, rawHex, name,hMd5):
 	optionsLabel = yel + optionsLabel + res
 	options = cya+"""
    h		{}
+   l		{}
    s		{}
    d		{}
    D		{}
-   l		{}
    p		{}
    b		{}
    U		{}
@@ -94,11 +94,11 @@ def showOptions(shellBit, rawHex, name,hMd5):
    z		{}
    x		{}
 	""".format( res +"Display options."+cya, 
+				res+ "Shellcode Emulator"+cya, 
 				res+"Find Assembly instructions associated with shellcode."+cya,
 				res+ "Disassembly of shellcode submenu"+cya, 
 				res+ "Disassemble shellcode"+cya, 
-				res+ "Shellcode Emulator"+cya, 
-				res+"Print menu."+cya,
+				res+"Print Menu - print outputs to file"+cya,
 				res+"Brute-force deobfuscation of shellcode." +cya,
 				res+"Toggle between actions on obfuscated/deobfuscated shellcode." +cya,
 				res+"Quick find all."+cya,
@@ -656,13 +656,25 @@ def stringMenu(bAsciiStrings, bWideCharStrings, bPushStackStrings, bAllStrings, 
 
 def emulatorUI(emuObj):
 
+	# print(mag+"\tPlease note the setup.py MUST be run first before emulation will work!"+res)
 
+	# text = """
+ #   ....................
+ #    Shellcode Emulator 
+ #   ....................\n\n
+ #  """
+	text=""
+	text+=gre+"""
+	 _____       SHAREM   _       _             
+	|  ___|              | |     | |            
+	| |__ _ __ ___  _   _| | __ _| |_ ___  _ __ 
+	|  __| '_ ` _ \| | | | |/ _` | __/ _ \| '__|
+	| |__| | | | | | |_| | | (_| | || (_) | |   
+	\____/_| |_| |_|\__,_|_|\__,_|\__\___/|_|   
+	                                            
+	\n"""+res
 
-	text = """
-   ....................
-    Shellcode Emulator 
-   ....................\n\n
-  """
+	text+=cya+	"\tPlease note the"+gre+" em_setup.py"+cya+" MUST be run first before emulation will work!\n\n"+res
 
 	vmode = emuObj.verbose
 	maxinst = emuObj.maxEmuInstr
@@ -680,7 +692,7 @@ def emulatorUI(emuObj):
 	else:
 		bloopTog = " "
 
-	text += "{}        \n".format(cya + "z"+res+" -"+yel+"  Initiate emulation."+ res)
+	text += "  {}        \n".format(cya + "z"+res+" -"+yel+"  Initiate emulation."+ res)
 	text += "  {}{:>3}[{}]\n".format(cya + "m"+res+" -"+yel+"  Maximum instructions to emulate."+ res, "", cya + str(maxinst)+ res)
 
 
@@ -688,7 +700,7 @@ def emulatorUI(emuObj):
 	text += "\t{}\n".format(gre + "Log execution output to "+cya +"emulationLog.txt" + res)
 
 	text += "  {}{:>13}      [{}]\n".format(cya + "a"+res+" -"+yel+"  CPU Architecture"+ res, "", cya + str(arch)+ res)
-	text += "\t{}\n".format(cya + "* 64 Bit"+whi + " Under Development" + res)
+	text += "\t{}\n".format(whi + "* 64 Bit"+whi + " Under Development" + res)
 	text += "  {}{:>7}[{}]\n".format(cya + "b"+res+" -"+yel+"  Break out of infinite loops."+ res, "", cya + bloopTog+ res)
 	text += "\t{}\n".format(cya + "*"+whi + "Under Development" + res)
 
