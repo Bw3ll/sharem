@@ -18,7 +18,7 @@ try:
 	import _win32sysloader
 
 except:
-	print ("Pywin32 needs to be installed.\nhttps://pypi.org/project/pywin32/\n\t")
+	print ("Pywin32 needs to be installed.\nhttps://pypi.org/project/pywin32/\n\tThe setup.py is not always effective at installing Pywin32, so it may need to be manually done.\n")
 	
 import ctypes
 from ctypes import windll
@@ -10306,16 +10306,16 @@ def getPushStrings(Num):
 	# 	t+=1
 	# print "\n"
 
-	print ("**MIXED************")
+	# print ("**MIXED************")
 	# global t
 	t=0
 	for sec in pe.sections:
-		print("here")
+		# print("here")
 		findPushAsciiMixed(s[t].data2,Num, t)
 		t+=1
 	t=0
 	for x,rawOffset, y, offsetPlusImagebase, length, instructionsLength in s[0].pushStrings:
-		print ("\t"+str(t)+"  "+ str(x) + "\t" + str(hex(y)) + " (" + str(hex(offsetPlusImagebase)) + ")") #+"  iL: " + str(hex(instructionsLength))  +"\n"#+" length: " + str(length)
+		# print ("\t"+str(t)+"  "+ str(x) + "\t" + str(hex(y)) + " (" + str(hex(offsetPlusImagebase)) + ")") #+"  iL: " + str(hex(instructionsLength))  +"\n"#+" length: " + str(length)
 		if mode==asciiMode:
 			print (disHereStrings(y, instructionsLength, 0, mode))
 		t+=1
@@ -10325,7 +10325,7 @@ def getPushStrings(Num):
 	print ("\n")
 
 	for x,rawOffset, y, offsetPlusImagebase, length, instructionsLength in s[0].pushStrings:
-		print ("\t"+str(t)+"  "+ str(x) + "\t" + str(hex(y)) + " (" + str(hex(offsetPlusImagebase)) + ")") #+"  iL: " + str(hex(instructionsLength))  +"\n"#+" length: " + str(length)
+		# print ("\t"+str(t)+"  "+ str(x) + "\t" + str(hex(y)) + " (" + str(hex(offsetPlusImagebase)) + ")") #+"  iL: " + str(hex(instructionsLength))  +"\n"#+" length: " + str(length)
 		if mode==asciiMode:
 			print (disHereStrings(y, instructionsLength, 0, mode))
 		t+=1
@@ -10333,11 +10333,12 @@ def getPushStrings(Num):
 
 		ans = disCheckStrings(y, instructionsLength, 0, "basic")
 
-		print ("checkstrings", ans+'\n*************************\n')
+		# print ("checkstrings", ans+'\n*************************\n')
 
 	for word, offset, offsetVA,offsetPlusImagebase, wordLength,instructionsLength in s[0].pushStrings:
-		print ("word", word, "starting offset:", hex(offset), "; ending offset:", hex(offset+instructionsLength))
-	print ("\n")
+		pass
+		# print ("word", word, "starting offset:", hex(offset), "; ending offset:", hex(offset+instructionsLength))
+	# print ("\n")
 def getStringsOnSections(x):
 	global t
 	t=0
@@ -14699,10 +14700,11 @@ def anaFindStrings(data, startingAddress):
 	for word, offset, wordLength,instructionsLength in pushStringsTemp:
 		# offset=ofset-2
 		try:
-			print ("word", word, "starting offset", hex(offset), "ending offset", hex(offset+instructionsLength))
+			# print ("word", word, "starting offset", hex(offset), "ending offset", hex(offset+instructionsLength))
+			pass
 		except:
 			word="error"
-			print ("pushmixed error2")
+			# print ("pushmixed error2")
 		distance=instructionsLength
 		dprint2 ("instructionsLength", instructionsLength, type(instructionsLength))
 		if goodString(data,word,6):
@@ -17076,17 +17078,17 @@ def disPrintStyleMenu():
 
 
 def disPrintStyleTogg():
-	print("Enter input delimited by commas or spaces. (x to exit)")
+	print("  Enter input delimited by commas or spaces. (x to exit)")
 	print("\tE.g. c, a, o, l, f\n")
 	while True:
-		print(yel + " Sharem>" + cya + "Disasm>" + res + whi + "PrintStyle> " + res, end="")
+		print(yel + " Sharem>" + cya + "Disasm>" + res + whi + "PrintStyle>" + gre + "Toggles> "+ res, end="")
 
 		togg = input()
 		togg = togg.lower()
 		if togg == "x":
 			break
 		elif togg =="h":
-			print("Enter input delimited by commas or spaces. (x to exit)\n")
+			print("  Enter input delimited by commas or spaces. (x to exit)\n")
 			continue
 		togg = togg.replace(",", " ")
 		togg = re.sub(' +', ' ', togg)
@@ -17244,7 +17246,7 @@ def disassembleToggles():
 # 			'max_opcodes':8,
 # 			'binary_to_string':3}
 
-	print("Enter input delimited by commas or spaces. (x to exit)")
+	print("  Enter input delimited by commas or spaces. (x to exit)")
 	print("\tE.g. s, d, p\n")
 	while True:
 		togg = input("Sharem>Disasm> ")
@@ -17252,7 +17254,7 @@ def disassembleToggles():
 		if togg == "x":
 			break
 		elif togg =="h":
-			print("Enter input delimited by commas or spaces. (x to exit)\n")
+			print("  Enter input delimited by commas or spaces. (x to exit)\n")
 			continue
 		togg = togg.replace(",", " ")
 		togg = re.sub(' +', ' ', togg)
@@ -18906,7 +18908,7 @@ def uiPebTechMenu():
 	# global pointsLimit
 	pebTechMenu(pebPoints)
 	x = ""
-	print("Enter number of PEB features below.\n")
+	print("  Enter number of PEB features below.\n")
 	while True:
 		print (yel+ " Sharem>" + cya + "Shell>" + res+ red + "Tech>" + res + whi + "PEB> " + res, end="")
 
@@ -19231,7 +19233,7 @@ def uiPrint(): 	#Print instructions
 
 
 		elif(re.match("^g$", listIN, re.IGNORECASE)):
-			print("Enter input delimited by commas or spaces. (x to exit)\n\tE.g. pr, pb, hg\n")
+			print("  Enter input delimited by commas or spaces. (x to exit)\n\tE.g. pr, pb, hg\n")
 			while x != 'e':
 				printSelectIn = input("> ")
 				if (re.match("^x$", printSelectIn, re.IGNORECASE)):
@@ -19429,7 +19431,7 @@ def manualRegisters():
 	global regsTemp
 	
 	eax = ebx = ecx = edx = edi = esi = ebp = esp = False
-	print("Enter register values, Ctrl+C to exit")
+	print("  Enter register values, Ctrl+C to exit")
 	print("   *Note: recent strings found will be cleared\n")
 	validatipon = True
 	while True:
@@ -19516,7 +19518,7 @@ def changeRegsFile():
 	while True:
 		try:
 			
-			print("Enter registers file. Ctrl+C to exit\n")
+			print("  Enter registers file. Ctrl+C to exit\n")
 			regFilePath = input("> ")
 			tmpFile = open(regFilePath, "r")
 			regsFile = regFilePath
@@ -19629,7 +19631,7 @@ def uiFindStrings():
 	
 		elif(re.match("^p$", stringIN, re.IGNORECASE)):
 			printStrings()
-			# print("Enter path to register file: (x to exit)\n")
+			# print("  Enter path to register file: (x to exit)\n")
 			# while x != "e":
 			# 	regFilePath = input("> ")
 			# 	if (re.match("^x$", regFilePath, re.IGNORECASE)):
@@ -19662,7 +19664,7 @@ def uiFindStrings():
 			# 		print("Input file format not recognized.\n")
 
 		elif(re.match("^g$", stringIN, re.IGNORECASE)):
-			print("Enter input delimited by commas or spaces. (x to exit)\n\tE.g. as, wc\n")
+			print("  Enter input delimited by commas or spaces. (x to exit)\n\tE.g. as, wc\n")
 			while x != 'e':
 				sSelectIn = input("> ")
 				if (re.match("^x$", sSelectIn, re.IGNORECASE)):
@@ -19941,13 +19943,7 @@ def findAll():  #Find everything
 	
 	
 	global bDisassembly
-	
-	
-	
-	
-	
-	
-	
+	global bPrintEmulation
 	
 	global modulesMode
 	global minStrLen
@@ -20001,6 +19997,10 @@ def findAll():  #Find everything
 
 	if bPEB and not mBool[o].bPEBFound:
 		newTime	= discoverPEB(max_len)
+		elapsed_time += newTime
+
+	if bPrintEmulation and not mBool[o].bEmulationFound:
+		newTime	= discoverEmulation(max_len)
 		elapsed_time += newTime
 	
 	if bDisassembly and not mBool[o].bDisassemblyFound:
@@ -20261,8 +20261,9 @@ def emulation_json_out(apiList):
 		api_address = i[1]
 		ret_value = i[2]
 		ret_type = i[3]
+		# ret_val=getRetVal(ret_value,ret_type)
 		api_dict["api_name"] = api_name
-		api_dict["return_value"]= ret_value
+		api_dict["return_value"]= ret_type+" " + ret_value
 		api_dict["address"] = api_address
 		api_dict['parameters'] = []
 
@@ -20330,8 +20331,22 @@ def emulation_json_out(apiList):
 
 
 
+def getRetVal(retVal, retType=""):
+	print ("retVal in sharem: ", retVal)
+	global rsReverseLookUp
+	retBundle=""
+	if retVal != "None":
+		rIndex=int(retVal,16)
+		if rIndex in rsReverseLookUp:
+			retBundle=rsReverseLookUp[rIndex]
+		else:
+			retBundle = retType + " " + retVal
+	else: 
+			retBundle = retType + " " + retVal
+	if retBundle=="None None":
+		retBundle="None"
+	return retBundle
 
-	
 def emulation_txt_out(apiList):
 	
 	# for each in apiList:
@@ -20407,7 +20422,22 @@ def emulation_txt_out(apiList):
 
 		# try: 
 		# 	offset= int((str(offset)),16 )
+		
+		# global rsReverseLookUp
+
+		# retBundle=""
+		# if retVal != "None":
+		# 	rIndex=int(retVal,16)
+		# 	if rIndex in rsReverseLookUp:
+		# 		print ("IN HERE!")
+		# 		retBundle=rsReverseLookUp[rIndex]
+		# 	else:
+		# 		retBundle = retType + " " + retVal
+		# else: 
+		# 		retBundle = retType + " " + retVal
+		# retBundle=getRetVal(retVal, retType)
 		retBundle = retType + " " + retVal
+
 		if verbose_mode:
 			
 			txt_output += '{} {}{}\n'.format(gre + offset + res, yel + apName+ res, cya + "("+res + joinedBundclr + cya +")"+res) # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
@@ -20433,7 +20463,7 @@ def emulation_txt_out(apiList):
 			else:
 				txt_output+= "\n"
 
-			no_colors_out += "\t{} {}\n\n".format( "Return:", retVal)
+			no_colors_out += "\t{} {}\n\n".format( "Return:", retBundle)
 
 	if emulation_multiline:
 		emu_dll_list = "\n"
@@ -20486,6 +20516,9 @@ def emulation_txt_out(apiList):
 
 	# print(txt_output)
 	# sys.exit()
+	# global traversedAdds
+	# for each in traversedAdds:
+	# 	print (hex(each))
 
 	if bPrintEmulation:
 		print(txt_output)
