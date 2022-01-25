@@ -764,8 +764,9 @@ def disPrintStyle(disassemblyFound, toggList):
 	text += """
    ....................
       Style Toggles
-   ....................\n\n
+   ....................\n
   """
+	text += "   Use"+gre+" toggle"+res2+" to make your selections.\n\n"
 	text += "\t{}       [{}]\n".format(cya + "c"+res+" -"+yel+"  Display comments in disassembly"+ res, cya + commentsTogg+ res)
 	text += "\t{}           [{}]\n".format(cya + "a"+res+" -"+yel+"  Display ASCII alongside Hex"+ res, cya + asciiTogg+ res)
 	text += "\t{}                       [{}]\n".format(cya + "o"+res+" -"+yel+"  Display opcodes"+ res, cya + opcodeTogg+ res)
@@ -778,10 +779,10 @@ def disPrintStyle(disassemblyFound, toggList):
       Style Options
    ....................\n\n
   """
-	text += "  {} {}         {}\n".format(gre + "m" + whi + ":" + res, whi + "  Maximum opcodes to display as hex"+res,maxOpval)
+	text += "  {} {}              \n".format(gre + "g" + whi + ":"+ res, whi + "  Toggle selections."+res)
+	text += "    {} {}         {}\n".format(gre + "m" + whi + ":" + res, whi + "  Maximum opcodes to display as hex"+res,maxOpval)
 	text += "    {} {}                  {}\n".format(gre + "p" + whi + ":" + res,whi + "  Opcode print style (1-3)"+res,printStyleVal)
 	text += "    {} {}  [{}]              \n".format(gre + "r" + whi + ":" +res, whi + "  Regenerate disassembly with new settings"+res, cya + generated + res)
-	text += "    {} {}              \n".format(gre + "g" + whi + ":"+ res, whi + "  Toggle selections."+res)
 	text += "    {} {}              \n".format(gre + "h" + whi + ":" +res, whi + "  Print this menu."+res)
 
 	# text += "\t{}	Opcode print style (1-3) {}\n".format("?",printStyleVal)

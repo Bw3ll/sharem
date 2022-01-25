@@ -4,6 +4,14 @@ import sys
 
 dlls = {'ndtll.dll': 0x44100000, 'kernel32.dll': 0x44253138, 'advapi32.dll': 0x44364138, 'comctl32.dll': 0x44403138, 'comdlg32.dll': 0x44486538, 'gdi32.dll': 0x444feb38, 'imm32.dll': 0x4455bf38, 'mscoree.dll': 0x44589f38, 'msvcrt.dll': 0x445d4688, 'netapi.dll': 0x4467e888, 'ole32.dll': 0x4468e288, 'oleaut32.dll': 0x447ec088, 'shell32.dll': 0x4487c488, 'shlwapi.dll': 0x454c6a88, 'urlmon.dll': 0x4551de88, 'user32.dll': 0x45664c88, 'wininet.dll': 0x45741488, 'winmm.dll': 0x45b72488, 'ws2_32.dll': 0x45ba3688, 'wsock32.dll': 0x45bd7888}
 
+
+rsLookUp={'S_OK': 0x00000000, 'E_ABORT': 0x80004004, 'E_ACCESSDENIED':  0x80070005, 'E_FAIL': 0x80004005, 'E_HANDLE': 0x80070006, 'E_INVALIDARG': 0x80070057, 'E_NOINTERFACE': 0x80004002, 'E_NOTIMPL': 0x80004001, 'E_OUTOFMEMORY': 0x8007000E, 'E_POINTER': 0x80004003, 'E_UNEXPECTED': 0x8000FFFF}
+
+rsReverseLookUp={0x00000000:'S_OK', 0x80004001:'E_NOTIMPL', 0x80004002:'E_NOINTERFACE', 0x80004003:'E_POINTER', 0x80004004:'E_ABORT', 0x80004005:'E_FAIL', 0x8000FFFF:'E_UNEXPECTED', 0x80070005:'E_ACCESSDENIED', 0x80070006:'E_HANDLE', 0x8007000E:'E_OUTOFMEMORY', 0x80070057:'E_INVALIDARG'}
+MemLookUp = {'MEM_COMMIT | MEM_RESERVE':'0x3000', 'MEM_COMMIT': '0x1000', 'MEM_FREE': '0x10000', 'MEM_RESERVE': '0x2000', 'MEM_IMAGE': '0x1000000', 'MEM_MAPPED': '0x40000', 'MEM_PRIVATE': '0x20000', 'PAGE_EXECUTE': '0x10', 'PAGE_EXECUTE_READ': '0x20', 'PAGE_EXECUTE_READWRITE': '0x40', 'PAGE_EXECUTE_WRITECOPY': '0x80', 'PAGE_NOACCESS': '0x01', 'PAGE_READONLY': '0x02', 'PAGE_READWRITE': '0x04', 'PAGE_TARGETS_INVALID': '0x40000000', 'PAGE_TARGETS_NO_UPDATE': '0x40000000'}
+MemReverseLookUp = {0x3000:'MEM_COMMIT | MEM_RESERVE', 4096: 'MEM_COMMIT', 65536: 'MEM_FREE', 8192: 'MEM_RESERVE', 16777216: 'MEM_IMAGE', 262144: 'MEM_MAPPED', 131072: 'MEM_PRIVATE', 16: 'PAGE_EXECUTE', 32: 'PAGE_EXECUTE_READ', 64: 'PAGE_EXECUTE_READWRITE', 128: 'PAGE_EXECUTE_WRITECOPY', 1: 'PAGE_NOACCESS', 2: 'PAGE_READONLY', 4: 'PAGE_READWRITE', 1073741824: 'PAGE_TARGETS_NO_UPDATE'}
+
+
 # Custom hook for GetProcAddress. Loops through the export dictionary we created, 
 # # then returns the address of the indicated function into eax
 def hook_GetProcAddress(uc, eip, esp, export_dict, callAddr):
@@ -54,8 +62,13 @@ def hook_LoadLibraryA(uc, eip, esp, export_dict, callAddr):
     try:
         retVal = dlls[arg1]
     except:
-        print("Error: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
-        retVal = 0
+        try:
+            arg1L=arg1.lower()
+            retVal=dlls[arg1L]
+        except:
+            print("\tError: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
+            print (hex(eip), (len(arg1)))
+            retVal = 0
 
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -118,6 +131,8 @@ def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
 
     success = True
 
+    if lpAddress==0:
+        lpAddress=0x90050000  # bramwell added--still not working for 0  # maybe because not on main emu page?
     try:
         uc.mem_map(lpAddress, dwSize)
         # if flProtect == 0x2:
@@ -142,8 +157,17 @@ def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
     else:
         retVal = 0
         uc.reg_write(UC_X86_REG_EAX, retVal)
+    if flAllocationType in MemReverseLookUp:
+        flAllocationType=MemReverseLookUp[flAllocationType]
+    else:
+        flAllocationType = hex(flAllocationType)
 
-    logged_calls = ("VirtualAlloc", hex(callAddr), hex(retVal), 'LPVOID', [lpAddress, dwSize, flAllocationType, flProtect], ['LPVOID', 'SIZE_T', 'DWORD', 'DWORD'], ['lpAddress', 'dwSize', 'flAllocationType', 'flProtect'], False)
+    if flProtect in MemReverseLookUp:
+        flProtect=MemReverseLookUp[flProtect]
+    else:
+        flProtect = hex(flProtect)
+
+    logged_calls = ("VirtualAlloc", hex(callAddr), hex(retVal), 'INT', [hex(lpAddress), hex(dwSize), (flAllocationType), (flProtect)], ['LPVOID', 'SIZE_T', 'DWORD', 'DWORD'], ['lpAddress', 'dwSize', 'flAllocationType', 'flProtect'], False)
     cleanBytes = 16
 
     return logged_calls, cleanBytes
@@ -154,7 +178,7 @@ def hook_ExitProcess(uc, eip, esp, export_dict, callAddr):
     uExitCode = unpack('<I', uExitCode)[0]
 
     cleanBytes = 4
-    logged_calls = ("ExitProcess", hex(callAddr), 'None', 'None', [uExitCode], ['UINT'],  ['uExitCode'], False)
+    logged_calls = ("ExitProcess", hex(callAddr), 'None', '', [uExitCode], ['UINT'],  ['uExitCode'], False)
     return logged_calls, cleanBytes
 
 def read_string(uc, address):

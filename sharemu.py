@@ -19,6 +19,7 @@ import re
 import os
 import argparse
 import colorama
+import traceback
 # artifacts2= [] 
 # net_artifacts = []
 # file_artifacts = []
@@ -65,6 +66,7 @@ createdProcesses = []
 paramValues = []
 network_activity = {}
 
+traversedAdds=set()
 loadModsFromFile = True
 foundDLLAddresses="foundDLLAddresses.txt"    # address for files - later we can provide an option to change this in UI
 cleanStackFlag = False
@@ -499,8 +501,11 @@ def getJmpFlag(mnemonic, op_str, eflags):
 
 
 def controlFlow(uc, mnemonic, op_str):
+    # print ("cf", mnemonic, op_str)
     controlFlow = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(jns)|(call))", mnemonic, re.M|re.I)
 
+
+    which=0
     address = 0
     if controlFlow:
         ptr = re.match("d*word ptr \\[.*\\]", op_str)
@@ -520,6 +525,7 @@ def controlFlow(uc, mnemonic, op_str):
             address = eval(expr)
             # print ("address", hex(address))
             address = unpack("<I", uc.mem_read(address, 4))[0]
+            which=1
         elif re.match('e[abcdsipx]+', op_str):
             regs = re.findall('e[abcdsipx]+', op_str)
             for i in range(0, len(regs)):
@@ -527,9 +533,14 @@ def controlFlow(uc, mnemonic, op_str):
 
             callback.v=iter(regs)
             address = int(re.sub('e[abcdsipx]+', callback, op_str))
-
+            which=2
         elif re.match('0x[(0-9)|(a-f)]+', op_str):
             address = int(op_str, 16)
+            which=3
+
+    if str(hex(address))=="0x44370b7b":
+        print (mnemonic, op_str, which)
+
     return address
 
 def ord2(x):
@@ -600,6 +611,20 @@ def breakLoop(uc, eflags, jmpFlag):
         uc.reg_write(UC_X86_REG_EFLAGS, 0x46)
 
 # callback for tracing instructions
+
+
+def giveRegs(uc):
+    EAX = uc.reg_read(UC_X86_REG_EAX)   # do not delete!
+    EBX = uc.reg_read(UC_X86_REG_EBX)
+    ECX = uc.reg_read(UC_X86_REG_ECX)
+    EDX = uc.reg_read(UC_X86_REG_EDX)
+    ESI = uc.reg_read(UC_X86_REG_ESI)
+    EDI = uc.reg_read(UC_X86_REG_EDI)
+    ESP = uc.reg_read(UC_X86_REG_ESP)
+    EBP = uc.reg_read(UC_X86_REG_EBP)
+    instructLine=("\n\t>>> EAX: 0x%x\tEBX: 0x%x\tECX: 0x%x\tEDX: 0x%x\tEDI: 0x%x\tESI: 0x%x\tEBP: 0x%x\tESP: 0x%x\n" %(EAX, EBX, ECX, EDX, EDI,ESI, EBP, ESP))
+    return instructLine
+
 def hook_code(uc, address, size, user_data):
     global cleanBytes
     global programCounter
@@ -609,10 +634,12 @@ def hook_code(uc, address, size, user_data):
     global prevInstructs
     global loopInstructs
     global loopCounter
+    global traversedAdds
     # global maxCounter
 
-    if stopProcess == True:
-        uc.emu_stop()
+    # traversedAdds.add(address) # do not delete
+    # if stopProcess == True:
+    #     uc.emu_stop()
 
     programCounter += 1
     if programCounter > em.maxCounter:
@@ -621,15 +648,31 @@ def hook_code(uc, address, size, user_data):
     instructLine = ""
 
     # read this instruction code from memory
-    if address == 0x42000103:
-        instructLine +=  ("address " + str(hex(address)))
-        instructLine +=  ("size "+ str(size))
+    # if address == 0x42000103:
+    #     instructLine +=  ("address " + str(hex(address)))
+    #     instructLine +=  ("size "+ str(size))
+
+    # if address == 0x4200010e:
+        #      instructLine+=giveRegs(uc)
+
+
 
 
     if verbose == True:
+        instructLine+=giveRegs(uc)
         instructLine += "0x%x" % address + '\t'
-    
-    shells = uc.mem_read(address, size)
+
+    try:
+        shells = uc.mem_read(address, size)
+    except Exception as e:
+        print ("Error: ", e)
+        print(traceback.format_exc())
+        instructLine += " size: 0x%x" % size + '\t'   # size is overflow - why so big?
+        outFile.write("abrupt end:  " + instructLine)
+        print (instructLine)
+        # shells = uc.mem_read(address, 1)
+        return # terminate func early   --don't comment - we want to see the earlyrror
+
     ret = address
     address = 0
 
@@ -644,13 +687,16 @@ def hook_code(uc, address, size, user_data):
             op_str=i.op_str
 
         if verbose == True:
-            outFile.write(instructLine + val + '\n')
+            instructLine += val + '\n'
+            outFile.write(instructLine)
         t+=1
 
     addr = ret
 
     # Hook usage of Windows API function
     funcAddress = controlFlow(uc, mnemonic, op_str)
+    # print ("-   ", hex(address), mnemonic, op_str)
+
     if funcAddress > KERNEL32_BASE and funcAddress < WSOCK32_TOP:
         ret += size
         push(uc, ret)
@@ -660,6 +706,11 @@ def hook_code(uc, address, size, user_data):
         bprint ("funcAddress", hex(funcAddress))
         funcName = export_dict[funcAddress][0]
 
+        try:
+            funcName = export_dict[funcAddress][0]
+        except:
+            funcName="DIDNOTFIND- " + str(hex((funcAddress))) 
+            print (funcName)
         try:
             funcInfo, cleanBytes = globals()['hook_'+funcName](uc, eip, esp, export_dict, addr)
             logCall(funcName, funcInfo)
@@ -673,8 +724,10 @@ def hook_code(uc, address, size, user_data):
 
         except:
             # hook_backup(uc, eip, esp, funcAddress, export_dict[funcAddress])
-            hook_default(uc, eip, esp, funcAddress, export_dict[funcAddress][0], addr)
-
+            try:
+                hook_default(uc, eip, esp, funcAddress, export_dict[funcAddress][0], addr)
+            except:
+                print ("\n\tHook failed at " + str(hex(funcAddress))+".")
         if funcName == 'ExitProcess':
             stopProcess = True
         if 'LoadLibrary' in funcName and uc.reg_read(UC_X86_REG_EAX) == 0:
@@ -711,7 +764,33 @@ def checkDups(uc):
         if j == 100:
             uc.emu_stop()
             break
+def getRetVal2(retVal, retType=""):
+    global rsReverseLookUp
+    retBundle=""
+    if retVal != "None":
+        rIndex=retVal
+        if rIndex in rsReverseLookUp:
+            retBundle=rsReverseLookUp[rIndex]
+        else:
+            retBundle =  retVal
+    else: 
+            retBundle =  retVal
+    if retBundle=="None None":
+        retBundle="None"
+    return retBundle
 
+def findRetVal(funcName, dll):
+    global rsLookUp
+    dictR1 = globals()['dictRS_'+dll]
+    if funcName in dictR1:
+        retValStr= dictR1[funcName]
+        if retValStr in rsLookUp:
+            retVal=rsLookUp[retValStr]
+            return retVal
+        else: 
+            return 32
+    else:
+        return 32
 # Get the parameters off the stack
 def findDict(funcAddress, funcName, dll=None):
     # Dict3 #####      'GetProcAddress': (2, ['HMODULE', 'LPCSTR']
@@ -811,7 +890,7 @@ def hook_default(uc, eip, esp, funcAddress, funcName, callLoc):
         dictName =apiDict=""
         bprint (hex(funcAddress), funcName)
         apiDict, dictName, dll = findDict(funcAddress, funcName)
-        bprint ("", apiDict, dictName, dll)
+        # bprint ("", apiDict, dictName, dll, funcName)
         if apiDict=="none" and dll=="wsock32":
 
             apiDict, dictName, dll = findDict(funcAddress, funcName, "ws2_32")
@@ -826,13 +905,20 @@ def hook_default(uc, eip, esp, funcAddress, funcName, callLoc):
             paramTypes = ['dword'] * len(paramVals)
             paramNames = ['arg'] * len(paramVals)
 
-        retVal = 32
+        retVal=findRetVal(funcName, dll)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        funcInfo = (funcName, hex(callLoc), hex(retVal), 'INT', paramVals, paramTypes, paramNames, False)
+        retValStr=getRetVal2(retVal)
+        # print (retValStr, type(retValStr))
+        if retValStr==32:
+            funcInfo = (funcName, hex(callLoc), hex(retValStr), 'INT', paramVals, paramTypes, paramNames, False)
+        else:
+            funcInfo = (funcName, hex(callLoc), (retValStr), '', paramVals, paramTypes, paramNames, False)
         logCall(funcName, funcInfo)
     except Exception as e:
         print ("Error!", e)
+        print(traceback.format_exc())
+
 
 def read_string(uc, address):
     ret = ""

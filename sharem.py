@@ -18,7 +18,7 @@ try:
 	import _win32sysloader
 
 except:
-	print ("Pywin32 needs to be installed.\nhttps://pypi.org/project/pywin32/\n\t")
+	print ("Pywin32 needs to be installed.\nhttps://pypi.org/project/pywin32/\n\tThe setup.py is not always effective at installing Pywin32, so it may need to be manually done.\n")
 	
 import ctypes
 from ctypes import windll
@@ -10306,16 +10306,16 @@ def getPushStrings(Num):
 	# 	t+=1
 	# print "\n"
 
-	print ("**MIXED************")
+	# print ("**MIXED************")
 	# global t
 	t=0
 	for sec in pe.sections:
-		print("here")
+		# print("here")
 		findPushAsciiMixed(s[t].data2,Num, t)
 		t+=1
 	t=0
 	for x,rawOffset, y, offsetPlusImagebase, length, instructionsLength in s[0].pushStrings:
-		print ("\t"+str(t)+"  "+ str(x) + "\t" + str(hex(y)) + " (" + str(hex(offsetPlusImagebase)) + ")") #+"  iL: " + str(hex(instructionsLength))  +"\n"#+" length: " + str(length)
+		# print ("\t"+str(t)+"  "+ str(x) + "\t" + str(hex(y)) + " (" + str(hex(offsetPlusImagebase)) + ")") #+"  iL: " + str(hex(instructionsLength))  +"\n"#+" length: " + str(length)
 		if mode==asciiMode:
 			print (disHereStrings(y, instructionsLength, 0, mode))
 		t+=1
@@ -10325,7 +10325,7 @@ def getPushStrings(Num):
 	print ("\n")
 
 	for x,rawOffset, y, offsetPlusImagebase, length, instructionsLength in s[0].pushStrings:
-		print ("\t"+str(t)+"  "+ str(x) + "\t" + str(hex(y)) + " (" + str(hex(offsetPlusImagebase)) + ")") #+"  iL: " + str(hex(instructionsLength))  +"\n"#+" length: " + str(length)
+		# print ("\t"+str(t)+"  "+ str(x) + "\t" + str(hex(y)) + " (" + str(hex(offsetPlusImagebase)) + ")") #+"  iL: " + str(hex(instructionsLength))  +"\n"#+" length: " + str(length)
 		if mode==asciiMode:
 			print (disHereStrings(y, instructionsLength, 0, mode))
 		t+=1
@@ -10333,11 +10333,12 @@ def getPushStrings(Num):
 
 		ans = disCheckStrings(y, instructionsLength, 0, "basic")
 
-		print ("checkstrings", ans+'\n*************************\n')
+		# print ("checkstrings", ans+'\n*************************\n')
 
 	for word, offset, offsetVA,offsetPlusImagebase, wordLength,instructionsLength in s[0].pushStrings:
-		print ("word", word, "starting offset:", hex(offset), "; ending offset:", hex(offset+instructionsLength))
-	print ("\n")
+		pass
+		# print ("word", word, "starting offset:", hex(offset), "; ending offset:", hex(offset+instructionsLength))
+	# print ("\n")
 def getStringsOnSections(x):
 	global t
 	t=0
@@ -11338,7 +11339,6 @@ def createDisassemblyLists(Colors=True, caller=None):
 	showLabels = mBool[o].bShowLabels
 	if caller=="final" and mBool[o].bDoEnableComments:
 		addComments()
-
 	mode="ascii"
 	if not mBool[o].bDoShowOffsets:
 		mode="NoOffsets"
@@ -13336,6 +13336,57 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 	disHereShell_end = time.time()
 	return returnString
 
+def disHereShellLimited(data, offset): #current good 1/8/2022
+	# bprint ("------------dshell", len(data),hex(offset))
+	# global labels
+	# global offsets
+	# global off_Label
+	# global off_PossibleBad
+	# global bit32
+	# global o
+
+	disHereShell_start = time.time()
+	
+	# printAllsByRange(offset,end)
+	# dprint2 ("dis: dishereshell - range  "  + str(hex(offset)) + " " + str(hex(end)))
+	# dprint2(binaryToStr(data[offset:end]))
+	# dprint2(binaryToStr(data))
+	callCS = cs
+	if(bit32):
+		callCS = cs
+	else:
+		callCS = cs64
+	callCS.skipdata = True
+	callCS.skipdata_setup = ("db", None, None)
+	CODED2=data
+	val =""
+	# start = time.time()
+	
+	# start = time.time()
+	# for i in callCS.disasm(CODED2, offset):
+	# 	offsets.add((int(i.address)))
+	# 	if re.match( r'\bcall\b|\bjmp\b|\bje\b|\bjne\b|\bja\b|\bjg\b|\bjge\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bloop\b|\bloopcc\b|\bloope\b|\bloopne\b|\bloopnz\b|\bloopz\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', i.mnemonic, re.M|re.I):	
+	# 		val=i.op_str
+	# 		if re.match( "^[0-9][x]*[A-Fa-f0-9 -]*",val, re.M|re.I):
+	# 			if "x" not in val:
+	# 				val="0x"+val
+	# 			labels.add(val)
+	# 			off_Label.add(int(i.op_str, 16))
+	# 			if int(i.op_str, 16) not in offsets:
+	# 				off_PossibleBad.add(i.op_str)		
+	# end= time.time()
+	# print("\t\t[-] loop 1 ", end-start)
+	# start = time.time()
+
+	sizeShell=len(CODED2)
+	for i in callCS.disasm(CODED2, offset): 
+		# val_b, num_bytes =checkForValidAddress2(hex(int(i.address)),i.mnemonic, i.op_str, sizeShell, off_PossibleBad,data,i.size)
+		addDis(i.address, i.mnemonic + " " + i.op_str, i.mnemonic, i.op_str,"limited")
+	# print("\t\t[-] loop 5 ", end-start)
+	# disHereShell_end = time.time()
+	# print ("\t[*]disHereShell:", disHereShell_end- disHereShell_start)
+	return ""
+
 def disHereShell(data,offset, end, mode, CheckingForDB, bit, caller=None): #current good 1/8/2022
 	bprint ("------------dshell", len(data),hex(offset), hex(end), "caller: ", caller)
 	global labels
@@ -14114,9 +14165,10 @@ def preSyscalDiscoverold(startingAddress, targetAddress, linesGoBack, caller=Non
 		return False, tl1, tl2, tl1, tl2
 	return truth, tl1, tl2, l1,l2
 
-
+printOnce=False
 def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None):
 	global shellSizeLimit
+	global printOnce
 	shellBytes=m[o].rawData2
 	silent=None
 	if not mBool[o].bPreSysDisDone:
@@ -14127,8 +14179,10 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None)
 	# shellSizeLimit=0
 	shellSize=len(shellBytes)/1000
 	if shellSize>  shellSizeLimit or mBool[o].ignoreDisDiscovery:
-		print ("Too big")
-		print ("preSyscalDiscovery size1", shellSize )
+		if not printOnce:
+			print (red+"\n\t[*]This shellcode size is large. Output will be generated in a different way."+res2)
+			print ("\t[*]Shellcode size: ", shellSize )
+			printOnce=True
 		return False, [], [], [],[]
 
 	# print ("preSyscalDiscovery size2", shellSize )
@@ -14231,9 +14285,17 @@ def takeBytes(shellBytes,startingAddress, silent=None):
 
 	# bprint  ("mBool[o].bPreSysDisDone",  mBool[o].bPreSysDisDone)
 
+	tooBig=False
+	shellSize=len(shellBytes)/1000
+	if shellSize>  shellSizeLimit or mBool[o].ignoreDisDiscovery:
+		tooBig=True
+		print ("\n\t[*]Generating a simpler disassembly -- file size too big.")
+		# return "No disassembly produced", "No disassembly produced",""
 	if not mBool[o].bPreSysDisDone:
-		print ("takeBytes: still entering it???")
+		
+		# print ("takeBytes: still entering it???")
 		clearDisassemblyBytesClass()
+
 		for x in shellBytes:
 			sBy.offsets.append(i)
 			sBy.values.append(x)
@@ -14254,39 +14316,44 @@ def takeBytes(shellBytes,startingAddress, silent=None):
 				
 			i+=1
 
-		start = time.time()
-		if mBool[o].bDoFindStrings:
-			# import sharem
-			dprint4 ("\nfinding strings")
-			findStrings(shellBytes,3)
-			findStringsWide(shellBytes,3)
-			findPushAsciiMixed(shellBytes,3)
-			dprint4 ("\nfound strings")
+		if not tooBig:
+			start = time.time()
+			if mBool[o].bDoFindStrings:
+				# import sharem
+				dprint4 ("\nfinding strings")
+				findStrings(shellBytes,3)
+				findStringsWide(shellBytes,3)
+				findPushAsciiMixed(shellBytes,3)
+				dprint4 ("\nfound strings")
 
-		end = time.time()
-		bprint ("\n[*] Find strings", end-start)
+			end = time.time()
+			bprint ("\n[*] Find strings", end-start)
+			
+			start = time.time()
+			anaFindFF(shellBytes)
+			# addComments()
+			end = time.time()
+			bprint ("\n[*] anaFindFF", end-start)
+
+			start = time.time()
+			out=findRange(shellBytes, startingAddress,len(sBy.offsets)-1, "takeBytes")  #1st time helps do corrections
+			end = time.time()
+			bprint ("\n[*] findrange #1b", end-start)
+
+			anaFindFF(shellBytes)
+			clearTempDis()   # we must call this function before making new diassembly
+			
+
+			start2 = time.time()
+			out2=findRange(shellBytes, startingAddress,len(sBy.offsets)-1, "takeBytes") # makes sure all corrections fully implemented # this creates final disassembly
+			end = time.time()
+			bprint ("\n\t[*] findrange 2b", end-start2)
+
+			bprint ("\n\t[*] TakeBytes:", end-takeBytesS)
+		elif tooBig:
+			disHereShellLimited(shellBytes, startingAddress)
 		
-		start = time.time()
-		anaFindFF(shellBytes)
-		# addComments()
-		end = time.time()
-		bprint ("\n[*] anaFindFF", end-start)
 
-		start = time.time()
-		out=findRange(shellBytes, startingAddress,len(sBy.offsets)-1, "takeBytes")  #1st time helps do corrections
-		end = time.time()
-		bprint ("\n[*] findrange #1b", end-start)
-
-		anaFindFF(shellBytes)
-		clearTempDis()   # we must call this function before making new diassembly
-		
-
-		start2 = time.time()
-		out2=findRange(shellBytes, startingAddress,len(sBy.offsets)-1, "takeBytes") # makes sure all corrections fully implemented # this creates final disassembly
-		end = time.time()
-		bprint ("\n\t[*] findrange 2b", end-start2)
-
-		bprint ("\n\t[*] TakeBytes:", end-takeBytesS)
 	# print ("**Sizes:  ")
 	# print("\t\tlabels, size:",len(labels))
 	# print("\t\tofsets, size:",len(offsets))
@@ -14296,12 +14363,19 @@ def takeBytes(shellBytes,startingAddress, silent=None):
 	# printAllsBy()
 	# print ("printing final\n")
 	# allowPrint()
+
+
 	colorama.init()
 	# print ("final!!!!!")
 	disassembly, disassemblyC=createDisassemblyLists(True,"final")
 	gDisassemblyTextNoC = disassembly
 	gDisassemblyText =disassemblyC
-	print (disassemblyC)
+
+	if silent != "silent":
+		if len(m[o].rawData2)/1000 < 15:
+			print(gDisassemblyText)
+		else:
+			print ("\n\t[*]Disassembly is too large to print to screen.	")
 	# print (disassembly)
 	# dontPrint()
 	t=0
@@ -14394,7 +14468,7 @@ def addComments():
 	for item in m[o].save_Egg_info:
 		eax = item[5]
 		c0_offset = item[6]
-		print (hex(int(c0_offset,16)), hex(len(sBy.comments)))
+		# print (hex(int(c0_offset,16)), hex(len(sBy.comments)))
 		try:
 			sBy.comments[int(c0_offset	,16)] = comC + " ; Calling Windows syscall - value: " + eax  + res2 + ""
 		except:
@@ -14866,10 +14940,11 @@ def anaFindStrings(data, startingAddress):
 	for word, offset, wordLength,instructionsLength in pushStringsTemp:
 		# offset=ofset-2
 		try:
-			print ("word", word, "starting offset", hex(offset), "ending offset", hex(offset+instructionsLength))
+			# print ("word", word, "starting offset", hex(offset), "ending offset", hex(offset+instructionsLength))
+			pass
 		except:
 			word="error"
-			print ("pushmixed error2")
+			# print ("pushmixed error2")
 		distance=instructionsLength
 		dprint2 ("instructionsLength", instructionsLength, type(instructionsLength))
 		if goodString(data,word,6):
@@ -16805,7 +16880,7 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 						newBin.write(rawBytes)
 						newBin.close()
 						newDis = open(directory+"outputs\\decrypted-"+filename[:-4]+"-disassembly.txt", "w")
-						newDis.write(disassembly)
+						newDis.write(disassemblyNoC)
 						newDis.close()
 					
 
@@ -16889,7 +16964,7 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 					newBin.write(rawBytes)
 					newBin.close()
 					newDis = open(directory+"outputs\\decrypted-"+filename[:-4]+"-disassembly.txt", "w")
-					newDis.write(disassembly)
+					newDis.write(disassemblyNoC)
 					newDis.close()
 
 
@@ -17060,6 +17135,7 @@ def shellDisassemblyInit(shellArg, silent=None):
 	global filename
 
 	global gDisassemblyText
+	global gDisassemblyTextNoC
 	global save_bin_file
 	global shellEntry
 
@@ -17095,9 +17171,11 @@ def shellDisassemblyInit(shellArg, silent=None):
 	   # main one
 	# dp(disassembly)
 
+
 	allowPrint()
 	colorama.init()
 	gDisassemblyText = disassembly
+	gDisassemblyTextNoC=disassemblyNoC
 
 	### Saving disassembly and .bin
 
@@ -17143,7 +17221,7 @@ def shellDisassemblyInit(shellArg, silent=None):
 			binDis.close()
 			("\tRaw binary saved to disassembly\\"+filename2+"-disassembly.bin")
 
-	if not silent=="silent":
+	if silent!="silent":
 		print (printOUT)
 
 	txtDis.write(disassemblyNoC+assemblyBytes)
@@ -17243,17 +17321,17 @@ def disPrintStyleMenu():
 
 
 def disPrintStyleTogg():
-	print("Enter input delimited by commas or spaces. (x to exit)")
+	print("  Enter input delimited by commas or spaces. (x to exit)")
 	print("\tE.g. c, a, o, l, f\n")
 	while True:
-		print(yel + " Sharem>" + cya + "Disasm>" + res + whi + "PrintStyle> " + res, end="")
+		print(yel + " Sharem>" + cya + "Disasm>" + res + whi + "PrintStyle>" + gre + "Toggles> "+ res, end="")
 
 		togg = input()
 		togg = togg.lower()
 		if togg == "x":
 			break
 		elif togg =="h":
-			print("Enter input delimited by commas or spaces. (x to exit)\n")
+			print("  Enter input delimited by commas or spaces. (x to exit)\n")
 			continue
 		togg = togg.replace(",", " ")
 		togg = re.sub(' +', ' ', togg)
@@ -17411,7 +17489,7 @@ def disassembleToggles():
 # 			'max_opcodes':8,
 # 			'binary_to_string':3}
 
-	print("Enter input delimited by commas or spaces. (x to exit)")
+	print("  Enter input delimited by commas or spaces. (x to exit)")
 	print("\tE.g. s, d, p\n")
 	while True:
 		togg = input("Sharem>Disasm> ")
@@ -17419,7 +17497,7 @@ def disassembleToggles():
 		if togg == "x":
 			break
 		elif togg =="h":
-			print("Enter input delimited by commas or spaces. (x to exit)\n")
+			print("  Enter input delimited by commas or spaces. (x to exit)\n")
 			continue
 		togg = togg.replace(",", " ")
 		togg = re.sub(' +', ' ', togg)
@@ -19074,7 +19152,7 @@ def uiPebTechMenu():
 	# global pointsLimit
 	pebTechMenu(pebPoints)
 	x = ""
-	print("Enter number of PEB features below.\n")
+	print("  Enter number of PEB features below.\n")
 	while True:
 		print (yel+ " Sharem>" + cya + "Shell>" + res+ red + "Tech>" + res + whi + "PEB> " + res, end="")
 
@@ -19291,7 +19369,10 @@ def uiPrint(): 	#Print instructions
 			if bDisassembly and p2screen:
 				if mBool[o].bDisassemblyFound:
 					print(cya + "\n***********\nDisassembly\n***********" + res)
-					print(gDisassemblyText)
+					if len(m[o].rawData2)/1000 < 15:
+						print(gDisassemblyText)
+					else:
+						print ("\n\tDisassembly to large to print to screen. It has been printed to file.")
 				else:
 					print("\nNo disassembly found.\n")
 			if bpEvilImports and mBool[o].bEvilImportsFound and p2screen:
@@ -19351,7 +19432,10 @@ def uiPrint(): 	#Print instructions
 				else:
 					print("No heaven's gate instructions found.\n")
 			if bPrintEmulation and p2screen:
-				emulation_txt_out(loggedList)
+				if len(loggedList) >0:
+					emulation_txt_out(loggedList)
+				else:
+					print ("\nNo emulation results.")
 
 			outputData = generateOutputData()
 
@@ -19399,7 +19483,7 @@ def uiPrint(): 	#Print instructions
 
 
 		elif(re.match("^g$", listIN, re.IGNORECASE)):
-			print("Enter input delimited by commas or spaces. (x to exit)\n\tE.g. pr, pb, hg\n")
+			print("  Enter input delimited by commas or spaces. (x to exit)\n\tE.g. pr, pb, hg\n")
 			while x != 'e':
 				printSelectIn = input("> ")
 				if (re.match("^x$", printSelectIn, re.IGNORECASE)):
@@ -19597,7 +19681,7 @@ def manualRegisters():
 	global regsTemp
 	
 	eax = ebx = ecx = edx = edi = esi = ebp = esp = False
-	print("Enter register values, Ctrl+C to exit")
+	print("  Enter register values, Ctrl+C to exit")
 	print("   *Note: recent strings found will be cleared\n")
 	validatipon = True
 	while True:
@@ -19684,7 +19768,7 @@ def changeRegsFile():
 	while True:
 		try:
 			
-			print("Enter registers file. Ctrl+C to exit\n")
+			print("  Enter registers file. Ctrl+C to exit\n")
 			regFilePath = input("> ")
 			tmpFile = open(regFilePath, "r")
 			regsFile = regFilePath
@@ -19797,7 +19881,7 @@ def uiFindStrings():
 	
 		elif(re.match("^p$", stringIN, re.IGNORECASE)):
 			printStrings()
-			# print("Enter path to register file: (x to exit)\n")
+			# print("  Enter path to register file: (x to exit)\n")
 			# while x != "e":
 			# 	regFilePath = input("> ")
 			# 	if (re.match("^x$", regFilePath, re.IGNORECASE)):
@@ -19830,7 +19914,7 @@ def uiFindStrings():
 			# 		print("Input file format not recognized.\n")
 
 		elif(re.match("^g$", stringIN, re.IGNORECASE)):
-			print("Enter input delimited by commas or spaces. (x to exit)\n\tE.g. as, wc\n")
+			print("  Enter input delimited by commas or spaces. (x to exit)\n\tE.g. as, wc\n")
 			while x != 'e':
 				sSelectIn = input("> ")
 				if (re.match("^x$", sSelectIn, re.IGNORECASE)):
@@ -20109,13 +20193,7 @@ def findAll():  #Find everything
 	
 	
 	global bDisassembly
-	
-	
-	
-	
-	
-	
-	
+	global bPrintEmulation
 	
 	global modulesMode
 	global minStrLen
@@ -20169,6 +20247,10 @@ def findAll():  #Find everything
 
 	if bPEB and not mBool[o].bPEBFound:
 		newTime	= discoverPEB(max_len)
+		elapsed_time += newTime
+
+	if bPrintEmulation and not mBool[o].bEmulationFound:
+		newTime	= discoverEmulation(max_len)
 		elapsed_time += newTime
 	
 	if bDisassembly and not mBool[o].bDisassemblyFound:
@@ -20429,8 +20511,9 @@ def emulation_json_out(apiList):
 		api_address = i[1]
 		ret_value = i[2]
 		ret_type = i[3]
+		# ret_val=getRetVal(ret_value,ret_type)
 		api_dict["api_name"] = api_name
-		api_dict["return_value"]= ret_value
+		api_dict["return_value"]= ret_type+" " + ret_value
 		api_dict["address"] = api_address
 		api_dict['parameters'] = []
 
@@ -20498,8 +20581,22 @@ def emulation_json_out(apiList):
 
 
 
+def getRetVal(retVal, retType=""):
+	print ("retVal in sharem: ", retVal)
+	global rsReverseLookUp
+	retBundle=""
+	if retVal != "None":
+		rIndex=int(retVal,16)
+		if rIndex in rsReverseLookUp:
+			retBundle=rsReverseLookUp[rIndex]
+		else:
+			retBundle = retType + " " + retVal
+	else: 
+			retBundle = retType + " " + retVal
+	if retBundle=="None None":
+		retBundle="None"
+	return retBundle
 
-	
 def emulation_txt_out(apiList):
 	
 	# for each in apiList:
@@ -20577,7 +20674,22 @@ def emulation_txt_out(apiList):
 
 		# try: 
 		# 	offset= int((str(offset)),16 )
+		
+		# global rsReverseLookUp
+
+		# retBundle=""
+		# if retVal != "None":
+		# 	rIndex=int(retVal,16)
+		# 	if rIndex in rsReverseLookUp:
+		# 		print ("IN HERE!")
+		# 		retBundle=rsReverseLookUp[rIndex]
+		# 	else:
+		# 		retBundle = retType + " " + retVal
+		# else: 
+		# 		retBundle = retType + " " + retVal
+		# retBundle=getRetVal(retVal, retType)
 		retBundle = retType + " " + retVal
+
 		if verbose_mode:
 			
 			# txt_output += '{} {}{} {}\n'.format(gre + offset + res, yel + apName+ res, cya + "("+res + joinedBundclr + cya +")"+res, yel + DLL + res) # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
@@ -20660,9 +20772,16 @@ def emulation_txt_out(apiList):
 	no_colors_out = cleanColors(txt_output)
 	# print(txt_output)
 	# sys.exit()
+	# global traversedAdds
+	# for each in traversedAdds:
+	# 	print (hex(each))
 
 	if bPrintEmulation:
-		print(txt_output)
+		if len(logged_dlls)>0:
+			print(txt_output)
+		else:
+			print (gre+"\n\t[*]No APIs discovered through emulation."+res2)
+		
 	else:
 		return no_colors_out
 
@@ -22123,9 +22242,6 @@ def printToText(outputData):	#Output data to text doc
 			except:
 				pass
 
-	if bpStrings:
-		outString+=printToTextStrings(mBool[o].bStringsFound)
-		
 	if bpPushRet:
 		outString+=printToTextPushRet(mBool[o].bStringsFound,data)
 
@@ -22285,6 +22401,9 @@ def printToText(outputData):	#Output data to text doc
 		else:
 			outString+="\nNo heaven's gate instructions found.\n"
 
+	if bpStrings:
+		outString+=printToTextStrings(mBool[o].bStringsFound)
+		
 	if bDisassembly:
 		if mBool[o].bDisassemblyFound:
 			outString += "\n\n****************\nDisassembly\n****************\n\n"
@@ -22301,10 +22420,14 @@ def printToText(outputData):	#Output data to text doc
 	#outString += "\n\n\n-------------------------- Disassembly --------------------------------\n\n"
 	#outString += disassembly
 	bPrintEmulation = False
-	emulation_txt = emulation_txt_out(loggedList)
+
+	if len(loggedList) > 0:
+		outString += emulation_txt_out(loggedList)
+	else:
+		outString += "\nNo APIs or artifacts discovered through emulation.\n"
 	bPrintEmulation = True
 	text.write (outString)
-	text.write(emulation_txt)
+	# text.write(emulation_txt)
 	text.close()
 
 def returnSyscalls(callNum, bit = 64):
