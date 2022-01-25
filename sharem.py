@@ -11319,6 +11319,11 @@ def printTempDis():
 		t+=1
 	print (out)
 
+
+
+
+
+
 def createDisassemblyLists(Colors=True, caller=None):
 	# print ("createDisassemblyLists")
 	global off_Label
@@ -11455,6 +11460,7 @@ def createDisassemblyLists(Colors=True, caller=None):
 			pass
 		finalOutput+=out
 		j+=1		
+
 	finalOutput= finalOutput+res2+""
 	# print(finalOutput)
 
@@ -11471,6 +11477,167 @@ def createDisassemblyLists(Colors=True, caller=None):
 
 	return finalOutputNoColors, finalOutput
 
+
+def testDict(k):
+
+	js_test = json.dumps(k, indent=3)
+	return js_test
+	# input()
+
+def createDisassemblyJson(Colors=True, caller=None):
+	# print ("createDisassemblyLists")
+	global off_Label
+	global labels
+	global res
+	
+	maxOpDisplay=mBool[o].maxOpDisplay
+
+	btsV=mBool[o].btsV
+	
+	showOpcodes = mBool[o].bDoshowOpcodes
+	showLabels = mBool[o].bShowLabels
+	if caller=="final" and mBool[o].bDoEnableComments:
+		addComments()
+
+	mode="ascii"
+	if not mBool[o].bDoShowOffsets:
+		mode="NoOffsets"
+	j=0
+	nada=""
+	finalOutput="\n"
+	myStrOut=""
+	myHex=""
+
+	# print ("By.pushStringEnd")
+	# new=[]
+	# for each in  sBy.pushStringEnd:
+	# 	each =hex(each)
+	# 	new.append(each)
+	# print (new)
+	disList = []
+	disFullDict = {}
+	for cAddress in sBy.shAddresses:
+		disDict = {}
+		
+
+		pAddress= gre+str(hex(cAddress))+res2  #print address
+		startHex=cAddress
+		try:
+			endHex=sBy.shAddresses[j+1]
+		except:
+			endHex=len(m[o].rawData2)
+		sizeDisplay=endHex-startHex
+		if mode=="ascii":
+			try:
+				if sizeDisplay > maxOpDisplay:
+					myHex=red+binaryToStr(m[o].rawData2[startHex:startHex+maxOpDisplay],btsV)+"..."+res2+""
+					myStrOut=cya+" "+toString(m[o].rawData2[startHex:endHex])+res2+""
+				else:
+					myHex=red+binaryToStr(m[o].rawData2[startHex:endHex],btsV)+res2+""
+					if mBool[o].bDoShowAscii:
+						myStrOut=cya+" "+toString(m[o].rawData2[startHex:endHex])+res2+""
+					else:
+						myStrOut=""
+			except Exception as e:
+				print ("ERROR: ", e)
+
+
+			if not showOpcodes:	 # If no hex, then move ASCII to left
+				myHex=myStrOut
+				myStrOut=""
+			pAddress = cleanColors(pAddress)
+			disDict["address"] = pAddress.strip()
+			disDict["instruction"] = cleanColors(sBy.shMnemonic[j] + " " + sBy.shOp_str[j]).strip()
+			disDict["hex"] = cleanColors(myHex).strip()
+
+
+			# pAddressInt = int(pAddress, 16)
+			# print(type(pAddress), pAddress, int(pAddress, 16))
+			out='{:<12s} {:<45s} {:<33s}{:<10s}\n'.format(pAddress, whi+sBy.shMnemonic[j] + " " + sBy.shOp_str[j], myHex,myStrOut )
+			if re.search( r'align|db 0xff x', sBy.shMnemonic[j], re.M|re.I):
+				myHex=red+binaryToStr(m[o].rawData2[startHex:startHex+4],btsV)+"..."+res2+""
+				if mBool[o].bDoShowAscii:
+					myStrOut=cya+" "+toString(m[o].rawData2[startHex:startHex+4])+"..."+res2+""
+				else:
+					myStrOut=""
+
+				if not showOpcodes:   # If no hex, then move ASCII to left
+					myHex=myStrOut
+					myStrOut=""
+				out='{:<12s} {:<45s} {:<33s}{:<10s}\n'.format(pAddress, whi+sBy.shMnemonic[j] + " " + sBy.shOp_str[j], myHex, myStrOut)
+				pass
+			disDict["string"] = cleanColors(myStrOut).strip()
+
+
+			# out=out+"\n"
+		
+		if mBool[o].bDoEnableComments:
+			if sBy.comments[cAddress] !="":
+				val_b2=sBy.comments[cAddress]
+				val_comment =('{:<10s} {:<45s} {:<33s}{:<10s}\n'.format(mag+nada, val_b2, nada, nada))
+				out+=val_comment
+				disDict["comment"] = cleanColors(val_comment).strip()	
+			else:
+				disDict["comment"] = ""
+
+		if showLabels:
+			truth,myLabel=checkForLabel(str(hex(cAddress)),labels)
+			if truth:
+				out=yel+myLabel+res2+out
+				disDict["label"] = cleanColors(myLabel).strip()
+			else:
+				disDict["label"] = ""
+
+
+
+		if re.search( r'\bjmp\b|\bje\b|\bjne\b|\bjg\b|\bjge\b|\bja\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bret\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', sBy.shMnemonic[j], re.M|re.I):
+			out=out+"\n"
+			# disList[1] = disList[1] + "\n"
+		
+		
+
+		
+		# valCheck=i.mnemonic + " " + i.op_str 
+		# controlFlow= re.match( r'\bjmp\b|\bje\b|\bjne\b|\bjg\b|\bjge\b|\bja\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bret\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', valCheck, re.M|re.I)
+		# if controlFlow:
+		# 	val=val+"\n"	
+		############Stack strings begin
+		try:
+			cur=cAddress
+			if (sBy.pushStringEnd[cur]-2) == cur:
+				msg="; "+sBy.pushStringValue[cur] + " - Stack string"
+				# disList[4] = cleanColors(disList[4] + "; "+sBy.pushStringValue[cur] + " - Stack string")
+				disDict["comment"] = disDict["comment"] + cleanColors("; "+sBy.pushStringValue[cur] + " - Stack string")
+				newVal =('{:<12} {:<45s} {:<33}{:<10s}\n'.format("", msg, nada, nada))
+				out= newVal+out
+		except Exception as e:
+			# print ("weird error", e)
+			pass
+
+		# disTuple = tuple(disList)
+		disList.append(disDict)
+		# disDict[pAddressInt] = disTuple
+
+		finalOutput+=out
+		j+=1		
+	
+	disFullDict["disassembly"] = disList
+	# print(testDict(disFullDict))
+	return testDict(disFullDict)
+	finalOutput= finalOutput+res2+""
+	# print(finalOutput)
+
+	finalOutputNoColors=cleanColors(finalOutput)
+	# pMnemonic= i.mnemonic
+
+	
+	# print ("sBy.shDisassemblyLine")
+	# for each in sBy.shDisassemblyLine:
+	# 	print (each)
+	# print (sBy.shDisassemblyLine)
+
+	# print (len(sBy.shDisassemblyLine), len(sBy.shAddresses))
+	return finalOutputNoColors, finalOutput
 
 def clearTempDis():
 	# print ("clearTempDis", len(sBy.shDisassemblyLine))
@@ -18198,6 +18365,7 @@ def ui(): #UI menu loop
 					print("\nThis option is for shellcode only.\n")
 				else:
 					shellDisassemblyInit(rawData2)
+					createDisassemblyJson()
 					# bramwellStart2()
 			elif userIN[0:1] == "d":
 				disToggleMenu(shellEntry,shellSizeLimit,mBool[o].bPreSysDisDone,  toggList) 
@@ -20218,19 +20386,19 @@ def emulation_json_out(apiList):
 	# artifacts = ["c:\\result.txt", "cmd.exe", "google.com", "result.txt", "user32.dll", "calc.exe", "notepad.exe", "www.msn.com", "http://c2.net", "c:\\windows\system32\mstsc.exe"]
 
 	
-	r = "(http|ftp|https):\/\/?|(www\.)?[a-zA-Z]+\.(com|eg|net|org)"
-	rfile = ".*(\\.*)$"
-	for i in artifacts:
-		result = re.search(r, i)
+	# r = "(http|ftp|https):\/\/?|(www\.)?[a-zA-Z]+\.(com|eg|net|org)"
+	# rfile = ".*(\\.*)$"
+	# for i in artifacts:
+	# 	result = re.search(r, i)
 
-		if result:
-			web_artifacts.append(i)
-		if i[-4:] == ".exe":
-			exec_artifacts.append(i)
+	# 	if result:
+	# 		net_artifacts.append(i)
+	# 	if i[-4:] == ".exe":
+	# 		exec_artifacts.append(i)
 
-		result = re.search(rfile,i)
-		if result:
-			file_artifacts.append(i)
+	# 	result = re.search(rfile,i)
+	# 	if result:
+	# 		file_artifacts.append(i)
 
 	# sample = [('WinExec', '0x123123', '0x20', 'INT', ['cmd.exe /c ping google.com > C:\\result.txt', '0x5'], ['LPCSTR', 'UINT'], ['lpCmdLine', 'uCmdShow'], False), ('EncyptFileA', '0x321321', '0x20', 'INT', ['C:\\result.txt'], ['LPCSTR'], ['lpFileName'], False),
 # ('LoadLibraryA', '0x1337c0de', '0x45664c88', 'HINSTANCE', ['user32.dll'], ['LPCTSTR'], ['lpLibFileName'], False),('MessageBoxA', '0xdeadc0de', '0x20', 'INT', ['0x987987', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', '0x0'], ['HWND', 'LPCSTR', 'LPCSTR', 'UINT'], ['hWnd', 'lpText', 'lpCaption', 'uType'], False)]
@@ -20336,8 +20504,8 @@ def emulation_txt_out(apiList):
 	
 	# for each in apiList:
 		# print (type(each), each, "\n\n")
-	sample = [('WinExec', '0x123123', '0x20', 'INT', ['cmd.exe /c ping google.com > C:\\result.txt', '0x5'], ['LPCSTR', 'UINT'], ['lpCmdLine', 'uCmdShow'], False), ('EncyptFileA', '0x321321', '0x20', 'INT', ['C:\\result.txt'], ['LPCSTR'], ['lpFileName'], False),
-('LoadLibraryA', '0x1337c0de', '0x45664c88', 'HINSTANCE', ['user32.dll'], ['LPCTSTR'], ['lpLibFileName'], False),('MessageBoxA', '0xdeadc0de', '0x20', 'INT', ['0x987987', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', '0x0'], ['HWND', 'LPCSTR', 'LPCSTR', 'UINT'], ['hWnd', 'lpText', 'lpCaption', 'uType'], True)]
+	sample = [('WinExec', '0x123123', '0x20', 'INT', ['cmd.exe /c ping google.com > C:\\result.txt', '0x5'], ['LPCSTR', 'UINT'], ['lpCmdLine', 'uCmdShow'], False, "kernel32.dll"), ('EncyptFileA', '0x321321', '0x20', 'INT', ['C:\\result.txt'], ['LPCSTR'], ['lpFileName'], False, "kernel32.dll"),
+('LoadLibraryA', '0x1337c0de', '0x45664c88', 'HINSTANCE', ['user32.dll'], ['LPCTSTR'], ['lpLibFileName'], False,"kernel32.dll"),('MessageBoxA', '0xdeadc0de', '0x20', 'INT', ['0x987987', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', '0x0'], ['HWND', 'LPCSTR', 'LPCSTR', 'UINT'], ['hWnd', 'lpText', 'lpCaption', 'uType'], True,"user32.dll")]
 	
 
 	artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
@@ -20349,8 +20517,8 @@ def emulation_txt_out(apiList):
 	api_address = []
 	ret_values = []
 	ret_type = []
-	api_bruteforce = False
-
+	api_bruteforce = []
+	dll_name = []
 	for i in apiList:
 		api_names.append(i[0])
 		api_address.append(i[1])
@@ -20360,6 +20528,7 @@ def emulation_txt_out(apiList):
 		api_params_types.append(i[5])
 		api_params_names.append(i[6])
 		api_bruteforce = i[7]
+		# dll_name.append(i[8])
 
 	api_par_bundle = []
 	# for v, t in zip(api_params_types[0], api_params_types[0]):
@@ -20373,17 +20542,17 @@ def emulation_txt_out(apiList):
 	# executables = ["c:\\windows\\system32\\ipconfig.exe", "cmd.exe"]
 
 	txt_output = ""
-	no_colors_out = ""
+	# no_colors_out = ""
 
 	txt_output += "\n**************************\n"
 	txt_output += "     Emulation\n"
 	txt_output += "**************************\n\n"
 
-	no_colors_out += txt_output
+	# no_colors_out += txt_output
 
 
 	txt_output += mag + "\n************* APIs *************\n\n" + res
-	no_colors_out += "\n************* APIs *************\n\n"
+	# no_colors_out += "\n************* APIs *************\n\n"
 	
 
 	verbose_mode = emulation_verbose
@@ -20398,6 +20567,7 @@ def emulation_txt_out(apiList):
 		retVal = ret_values[t]
 		retType = ret_type[t]
 		paramVal = api_params_values[t]
+		# DLL = dll_name[t]
 		# bundle = [list(zipped) for zipped in zip(pType, pName)]
 		for v, typ in zip(pType, pName):
 			TypeBundle.append(v + " " + typ)
@@ -20410,18 +20580,20 @@ def emulation_txt_out(apiList):
 		retBundle = retType + " " + retVal
 		if verbose_mode:
 			
+			# txt_output += '{} {}{} {}\n'.format(gre + offset + res, yel + apName+ res, cya + "("+res + joinedBundclr + cya +")"+res, yel + DLL + res) # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
 			txt_output += '{} {}{}\n'.format(gre + offset + res, yel + apName+ res, cya + "("+res + joinedBundclr + cya +")"+res) # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
-			no_colors_out += '{} {}({})\n'.format(offset , apName, joinedBund)
+
+			# no_colors_out += '{} {}({}) {}\n'.format(offset , apName, joinedBund, DLL)
 		else:
 			txt_output += '{} {}{} {}{}\n'.format(gre + offset + res, yel + apName+ res, cya + "("+res + joinedBundclr +cya +")"+res , cya + "Ret: "+res,red + retBundle + res) # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
-			no_colors_out += '{} {}({}): {}\n'.format(offset , apName, joinedBund, retBundle)
+			# no_colors_out += '{} {}({}): {}\n'.format(offset , apName, joinedBund, retBundle)
 
 
 		t += 1
 		if verbose_mode:
 			for ptyp, pname, pval in zip(pType, pName, paramVal):
 				txt_output += '\t{} {} {}\n'.format(cya + ptyp , pname + ":"+res, pval)
-				no_colors_out += '\t{} {}: {}\n'.format(ptyp, pname, pval)
+				# no_colors_out += '\t{} {}: {}\n'.format(ptyp, pname, pval)
 
 			# 	txt_output += '\t{}: {}\n'.format(cya + p + res, val)
 			# 	no_colors_out += '\t{}: {}\n'.format(p, val)
@@ -20433,7 +20605,7 @@ def emulation_txt_out(apiList):
 			else:
 				txt_output+= "\n"
 
-			no_colors_out += "\t{} {}\n\n".format( "Return:", retVal)
+			# no_colors_out += "\t{} {}\n\n".format( "Return:", retVal)
 
 	if emulation_multiline:
 		emu_dll_list = "\n"
@@ -20466,24 +20638,26 @@ def emulation_txt_out(apiList):
 
 
 	txt_output += mag + "\n************* DLLs *************\n" + res
-	no_colors_out += "\n************* DLLs *************\n"
-
 	txt_output += "{}{:<18} {}\n".format(cya + "DLLs" + res, "",emu_dll_list)
-	no_colors_out += "{}{:<18} {}\n".format("DLLs", "",','.join(logged_dlls))
+
+	# no_colors_out += "\n************* DLLs *************\n"
+
+	# no_colors_out += "{}{:<18} {}\n".format("DLLs", "",emu_dll_list)
 
 	txt_output += mag + "\n************* Artifacts *************\n" + res
-	no_colors_out += "\n************* Artifacts *************\n"
+	# no_colors_out += "\n************* Artifacts *************\n"
 
 	txt_output += "{}{:<13} {}\n".format(cya + "Artifacts" + res,"", emu_artifacts_list)
 	txt_output += "{}{:<9} {}\n".format(cya + "Web artifacts" + res,"", emu_webartifacts_list)
 	txt_output += "{}{:<8} {}\n".format(cya + "File artifacts" + res,"", emu_fileartifacts_list)
 	# txt_output += "{}{:<2} {}\n\n".format(cya + "Executable artifacts" + res,"", emu_execartifacts_list)
 
-	no_colors_out += "{}{:<13} {}\n".format("Artifacts","", emu_artifacts_list)
-	no_colors_out += "{}{:<9} {}\n".format("Web artifacts","", emu_webartifacts_list)
-	no_colors_out += "{}{:<8} {}\n".format("File artifacts","", emu_fileartifacts_list)
+	# no_colors_out += "{}{:<13} {}\n".format("Artifacts","", emu_artifacts_list)
+	# no_colors_out += "{}{:<9} {}\n".format("Web artifacts","", emu_webartifacts_list)
+	# no_colors_out += "{}{:<8} {}\n".format("File artifacts","", emu_fileartifacts_list)
 	# no_colors_out += "{}{:<2} {}\n\n".format("Executable artifacts","", emu_execartifacts_list)
 
+	no_colors_out = cleanColors(txt_output)
 	# print(txt_output)
 	# sys.exit()
 
@@ -20758,7 +20932,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 
 
 	jsonImports =  output_dir + "\\" + outfile+filler + "\\"  + outfileName + "-imports"  + ".json"
-
+	jsonFp =  output_dir + "\\" + outfile+filler + "\\"  + outfileName + "-disassembly"  + ".json"
 	# jsonFileName =  os.getcwd() + "\\" + outfile + "\\" + outfileName + "_" + filetime + ".json"
 	# print("outfile: ", outfile, "outfileName", outfileName)
 	# input()
@@ -20786,9 +20960,12 @@ def printToJson(bpAll, outputData):	#Output data to json
 			outputData['modules'] = []
 
 
+	disJsonOut = str(createDisassemblyJson())
 	#create the json file, and write our data to it
 	outfile = open(jsonFileName, "w")
 	outimports = open(jsonImports, "w")
+	disFile = open(jsonFp, "w")
+	disFile.write(disJsonOut)
 	js_imports = json.dumps(importsDict, indent=3)
 	outimports.write(js_imports)
 	# emufile = open(emulationOut, "w")
@@ -21825,7 +22002,8 @@ def printToText(outputData):	#Output data to text doc
 	global sharem_out_dir
 	global bEvilImportsFound
 	global bPrintEmulation
-
+	global gDisassemblyTextNoC
+	
 	data = outputData
 	#Used for section info
 	if (rawHex):
@@ -21914,7 +22092,7 @@ def printToText(outputData):	#Output data to text doc
 		importFp.close()
 
 	disasm = open(disFileName, "w")
-	disasm.write(gDisassemblyText)
+	disasm.write(gDisassemblyTextNoC)
 	disasm.close()
 
 	# print("Type --> ", type(m[o].rawData2), m[o].rawData2)
