@@ -281,10 +281,10 @@ def printMenu(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bExpor
 	iMenu += " {} {} \t\t[".format(gre + "j"+ res, whi + "- Export all to JSON." + res)
 	iMenu += cya + "x" + res if bExportAll else " "
 	iMenu += "]\n"
-	iMenu += " {} {} \t\t[".format(gre + "e"+ res, whi + "- Emulation verbose mode." + res)
+	iMenu += " {} {} \t\t[".format(gre + "e"+ res, whi + "- Emulation verbose print style." + res)
 	iMenu += cya + "x" + res if emulation_verbose else " "
 	iMenu += "]\n"
-	iMenu += " {} {} \t[".format(gre + "m"+ res, whi + "- Emulation multiline format." + res)
+	iMenu += " {} {} \t[".format(gre + "m"+ res, whi + "- Multiline print style of artifacts." + res)
 	iMenu += cya + "x" + res if emulation_multiline else " "
 	iMenu += "]\n"
 	iMenu += " {} {} \t\t\t[{}]\n".format(gre + "p" + res, whi + "- Print to screen" + res, cya + p2screen + res)
@@ -654,7 +654,7 @@ def stringMenu(bAsciiStrings, bWideCharStrings, bPushStackStrings, bAllStrings, 
 # 		self.breakLoop = True
 # 		self.numOfIter = 500000
 
-def emulatorUI(emuObj):
+def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 
 	# print(mag+"\tPlease note the setup.py MUST be run first before emulation will work!"+res)
 
@@ -692,12 +692,31 @@ def emulatorUI(emuObj):
 	else:
 		bloopTog = " "
 
+	if emulation_verbose:
+		emuVerbose = "x"
+	else:
+		emuVerbose = " "
+
+
+	if emulation_multiline:
+		emuMultiLine = "x"
+	else:
+		emuMultiLine = " "
+
+	# iMenu += " {} {} \t\t[".format(gre + "e"+ res, whi + "- Emulation verbose print style." + res)
+	# iMenu += cya + "x" + res if emulation_verbose else " "
+	# iMenu += "]\n"
+	# iMenu += " {} {} \t[".format(gre + "m"+ res, whi + "- Emulation multiline print style." + res)
+	# iMenu += cya + "x" + res if emulation_multiline else " "
+	# iMenu += "]\n"
+
+
 	text += "  {}        \n".format(cya + "z"+res+" -"+yel+"  Initiate emulation."+ res)
 	text += "  {}{:>3}[{}]\n".format(cya + "m"+res+" -"+yel+"  Maximum instructions to emulate."+ res, "", cya + str(maxinst)+ res)
 
 
 	text += "  {}{:>22}[{}]\n".format(cya + "v"+res+" -"+yel+"  Verbose mode."+ res, "", cya + vmodeTog+ res)
-	text += "\t{}\n".format(gre + "Log execution output to "+cya +"emulationLog.txt" + res)
+	text += "\t{}\n".format(gre + "Log all Assembly executed to "+cya +"emulationLog.txt" + res)
 
 	text += "  {}{:>13}      [{}]\n".format(cya + "a"+res+" -"+yel+"  CPU Architecture"+ res, "", cya + str(arch)+ res)
 	text += "\t{}\n".format(whi + "* 64 Bit"+whi + " Under Development" + res)
@@ -706,6 +725,14 @@ def emulatorUI(emuObj):
 
 	text += "  {}{:>1}[{}]\n".format(cya + "n"+res+" -"+yel+"  Number of iterations before break."+ res, "", cya + str(iternum)+ res)
 	text += "\t{}\n".format(cya + "*"+whi + "Under Development" + res)
+
+
+	text += "  {}{:>1}[{}]\n".format(cya + "n"+res+" -"+yel+"  Emulation verbose print style."+ res, "", cya + str(emuVerbose)+ res)
+	text += "  {}{:>1}[{}]\n".format(cya + "n"+res+" -"+yel+"  Multiline print style of artifacts."+ res, "", cya + str(emuMultiLine)+ res)
+
+	
+
+
 	text += "  {}        \n".format(cya + "h"+res+" -"+yel+"  Print this menu."+ res)
 
 	text += "  {}        \n".format(cya + "x"+res+" -"+yel+"  Exit."+ res)
@@ -764,8 +791,9 @@ def disPrintStyle(disassemblyFound, toggList):
 	text += """
    ....................
       Style Toggles
-   ....................\n\n
+   ....................\n
   """
+	text += "   Use"+gre+" toggle"+res2+" to make your selections.\n\n"
 	text += "\t{}       [{}]\n".format(cya + "c"+res+" -"+yel+"  Display comments in disassembly"+ res, cya + commentsTogg+ res)
 	text += "\t{}           [{}]\n".format(cya + "a"+res+" -"+yel+"  Display ASCII alongside Hex"+ res, cya + asciiTogg+ res)
 	text += "\t{}                       [{}]\n".format(cya + "o"+res+" -"+yel+"  Display opcodes"+ res, cya + opcodeTogg+ res)
@@ -778,10 +806,10 @@ def disPrintStyle(disassemblyFound, toggList):
       Style Options
    ....................\n\n
   """
-	text += "  {} {}         {}\n".format(gre + "m" + whi + ":" + res, whi + "  Maximum opcodes to display as hex"+res,maxOpval)
+	text += "  {} {}              \n".format(gre + "g" + whi + ":"+ res, whi + "  Toggle selections."+res)
+	text += "    {} {}         {}\n".format(gre + "m" + whi + ":" + res, whi + "  Maximum opcodes to display as hex"+res,maxOpval)
 	text += "    {} {}                  {}\n".format(gre + "p" + whi + ":" + res,whi + "  Opcode print style (1-3)"+res,printStyleVal)
 	text += "    {} {}  [{}]              \n".format(gre + "r" + whi + ":" +res, whi + "  Regenerate disassembly with new settings"+res, cya + generated + res)
-	text += "    {} {}              \n".format(gre + "g" + whi + ":"+ res, whi + "  Toggle selections."+res)
 	text += "    {} {}              \n".format(gre + "h" + whi + ":" +res, whi + "  Print this menu."+res)
 
 	# text += "\t{}	Opcode print style (1-3) {}\n".format("?",printStyleVal)
