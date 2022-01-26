@@ -6733,7 +6733,7 @@ def disHereSyscall(address, NumOpsDis, NumOpsBack, secNum, data): ############ A
 				c0_match = True
 				c0_offset = line.split()[-1]
 				c0_offset = c0_offset[:-1]
-				print ("got one syscall", line)
+				# print ("got one syscall", line)
 
 			byte = re.search("byte ptr", line, re.IGNORECASE)
 			insd = re.search("insd", line, re.IGNORECASE)
@@ -6780,7 +6780,7 @@ def disHereSyscall(address, NumOpsDis, NumOpsBack, secNum, data): ############ A
 
 					# if(eax != "unknown"):
 					# 	dprint2("TrackRegs found eax = " + str(eax))
-					print ("saveBaseEgg",address, NumOpsDis, (NumOpsBack - back), modSecName, secNum, eax, c0_offset )
+					# print ("saveBaseEgg",address, NumOpsDis, (NumOpsBack - back), modSecName, secNum, eax, c0_offset )
 					saveBaseEgg(address, NumOpsDis, (NumOpsBack - back), modSecName, secNum, eax, c0_offset)
 					return
 				else:
@@ -6799,7 +6799,7 @@ def getSyscallRawHex(address, linesBack, secNum, data):
 		truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(addressInt, 0x0, linesGoBack, "getSyscallRawHex")  # arg: starting offset/entry point - leave 0 generally
 		if(mBool[o].ignoreDisDiscovery):
 			truth = False
-		# truth = False
+		truth = False
 		if truth:
 		####the FULL disassembly of the shellcode
 			# print ("Full disassembly of shellcode EGG")
@@ -22243,8 +22243,8 @@ def generateOutputData(): #Generate the dictionary for json out
 				# 		converted[idx] = val[:val.find("offset")-18]
 				val5 = []
 				jsonList = []
-				print(converted)
-				input()
+				# print(converted)
+				# input()
 				for i in converted:
 				# print(converted, type(converted))
 					if i != "":
