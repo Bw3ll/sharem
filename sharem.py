@@ -229,6 +229,13 @@ gDirectory="" # #used to hold original directory --immutable
 debugging=False
 
 
+syscallRawHexOverride = False
+heavRawHexOverride = False
+fstenvRawHexOverride = False
+
+
+
+
 GoodStrings={"cmd",  "net","add", "win", "http", "dll", "sub", "calc", "https"}
 toggList = {'findString':True, 
 			'deobfCode':False,
@@ -6649,8 +6656,8 @@ def disHereSyscall(address, NumOpsDis, NumOpsBack, secNum, data): ############ A
 
 			#	dprint2("i = " + str(i) + " i.mnemonic = " + str(i.mnemonic))
 				# add = hex(int(i.address))
-				add4 = hex(int(i.address))
-				addb = hex(int(i.address))
+				add4 = hex(int(i.address - (NumOpsBack-back)))
+				addb = hex(int(i.address - (NumOpsBack-back)))
 			else:
 				add = hex(int(i.address))
 				addb = hex(int(i.address +  section.VirtualAdd  - (NumOpsBack - back) ))
@@ -6697,27 +6704,45 @@ def disHereSyscall(address, NumOpsDis, NumOpsBack, secNum, data): ############ A
 				# dprint2("unlikely: ", unlikely, "c0: ", c0_match)
 
 			if(c0_match and (unlikely < 3)):
-				# dprint2("c0 match")
-				# dprint2("SAVING THIS ONE")
-				# input("> ")
-				if(rawHex):
-					modSecName = peName
+				if(secNum == "noSec"):
+					structure = m[o]
 				else:
-					modSecName = section.sectionName
+					structure = s[secNum]
+				found = False
 
-				startStates = ("unknown","unknown","unknown","unknown","unknown","unknown","unknown","unknown")
-				eax = trackRegs(disString, startStates, [])[0][0]
-				# eax = trackRegs(disString, regsVals, [])[0][0]
 
-				# if(eax != "unknown"):
-				# 	dprint2("TrackRegs found eax = " + str(eax))
-				print ("saveBaseEgg",address, NumOpsDis, (NumOpsBack - back), modSecName, secNum, eax, c0_offset )
-				saveBaseEgg(address, NumOpsDis, (NumOpsBack - back), modSecName, secNum, eax, c0_offset)
-				return
+				for i in structure.save_Egg_info:
+					if c0_offset == i[6]:
+						found = True
+						# print("found")
+				#dprint2("heavensave")
+				# print("--> ", saving)
+				# input()
+				if not found:
+					# dprint2("c0 match")
+					# dprint2("SAVING THIS ONE")
+					# input("> ")
+					if(rawHex):
+						modSecName = peName
+					else:
+						modSecName = section.sectionName
+
+					startStates = ("unknown","unknown","unknown","unknown","unknown","unknown","unknown","unknown")
+					eax = trackRegs(disString, startStates, [])[0][0]
+					# eax = trackRegs(disString, regsVals, [])[0][0]
+
+					# if(eax != "unknown"):
+					# 	dprint2("TrackRegs found eax = " + str(eax))
+					print ("saveBaseEgg",address, NumOpsDis, (NumOpsBack - back), modSecName, secNum, eax, c0_offset )
+					saveBaseEgg(address, NumOpsDis, (NumOpsBack - back), modSecName, secNum, eax, c0_offset)
+					return
+				else:
+					c0_match = False
 
 #generates entire disassembley and finds all instances of syscalls
 def getSyscallRawHex(address, linesBack, secNum, data):
 		global regsVals
+		global syscallRawHexOverride
 		dprint2("DISEGG2")
 		address = hex(address)
 		linesGoBack = linesBack
@@ -6727,7 +6752,7 @@ def getSyscallRawHex(address, linesBack, secNum, data):
 		truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(addressInt, 0x0, linesGoBack, "getSyscallRawHex")  # arg: starting offset/entry point - leave 0 generally
 		if(mBool[o].ignoreDisDiscovery):
 			truth = False
-
+		# truth = False
 		if truth:
 		####the FULL disassembly of the shellcode
 			# print ("Full disassembly of shellcode EGG")
@@ -6789,7 +6814,8 @@ def getSyscallRawHex(address, linesBack, secNum, data):
 			# clearTempDis()
 			# print ("\n\n\n")
 		if(not truth):
-			print ("syscall fail")
+			# print ("syscall fail")
+			syscallRawHexOverride = True
 			findAllSyscall(m[o].rawData2, "noSec")
 		# if(rawHex):
 		# 	m[o].save_Egg_info = helperListToSet(m[o].save_Egg_info)
@@ -7592,7 +7618,7 @@ def disHereHeavenPE(address, NumOpsDis, NumOpsBack, secNum, data): ############ 
 		callCS = cs64
 	disString = []
 	destLocation = -1
-	push_offset = -1
+	push_offset = 0xBADDBADD
 
 
 	op_const = 16
@@ -7655,8 +7681,8 @@ def disHereHeavenPE(address, NumOpsDis, NumOpsBack, secNum, data): ############ 
 
 			#	dprint2("i = " + str(i) + " i.mnemonic = " + str(i.mnemonic))
 				# add = hex(int(i.address))
-				add4 = hex(int(i.address))
-				addb = hex(int(i.address))
+				add4 = hex(int(i.address - (NumOpsBack - back)))
+				addb = hex(int(i.address - (NumOpsBack - back)))
 			else:
 				add = hex(int(i.address))
 				addb = hex(int(i.address +  section.VirtualAdd  - (NumOpsBack - back) ))
@@ -7763,7 +7789,7 @@ def disHereHeavenPE(address, NumOpsDis, NumOpsBack, secNum, data): ############ 
 					destRegex = "push " + str(destLocation)
 
 				dprint2("DESTREGEX = ", destRegex)
-				pushOffset = -1
+				pushOffset = 0xBADDBADD
 				for line in disString:
 						pushLine = re.match(destRegex, line, re.IGNORECASE)
 						if pushLine:
@@ -7801,24 +7827,26 @@ def disHereHeavenPE(address, NumOpsDis, NumOpsBack, secNum, data): ############ 
 			# 	return
 
 def getHeavenRawHex(address, linesBack, secNum, data):
-		
+		global heavRawHexOverride	
+
+
 		address = hex(address)
 		linesGoBack = linesBack
 		t = 0
 		truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, 0x0, linesGoBack, "getHeavenRawHex")  # arg: starting offset/entry point - leave 0 generally
 		if(mBool[o].ignoreDisDiscovery):
 			truth = False
-
+		# truth = False
 		# dprint2("TESTING PRESYSCAL")
 		if truth:
-			push_offset = -1
+			push_offset = 0xBADDBADD
 			destLocation = -1
 		####the FULL disassembly of the shellcode
 			# dprint2("Full disassembly of shellcode EGG")
 			for e in orgListDisassembly:
 				#account for if we're at the very beginning of the code
 
-				push_offset = -1
+				push_offset = 0xBADDBADD
 				dprint2(str(hex(orgListOffset[t])) + "\t" + e)
 				
 
@@ -7939,8 +7967,8 @@ def getHeavenRawHex(address, linesBack, secNum, data):
 				t+=1
 
 		else:
-			print ("heaven's gate false")
-
+			# print ("heaven's gate false")
+			heavRawHexOverride = True
 			findAllHeaven(m[o].rawData2, "noSec")
 			# clearTempDis()
 
@@ -7950,7 +7978,7 @@ def getHeavenRawHex(address, linesBack, secNum, data):
 		# 	s[secNum].save_Heaven_info =helperListToSet(s[secNum].save_Heaven_info)
 			# print ("\n\n\n")
 
-def saveBaseHeaven(address, NumOpsDis, linesBack, modSecName, secNum, offset, pivottype, pushOffset = -1, destLocation = -1, converted = ""):
+def saveBaseHeaven(address, NumOpsDis, linesBack, modSecName, secNum, offset, pivottype, pushOffset = 0xBADDBADD, destLocation = -1, converted = ""):
 	if(secNum != "noSec"):
 		found = False
 		# saving = tuple((address,NumOpsDis,linesBack,modSecName,secNum, offset, pushOffset, destLocation, pivottype))
@@ -7992,60 +8020,138 @@ def printSavedHeaven(bit = 32): ######################## AUSTIN ################
 
 	j = 0
 	if(rawHex):
-		for item in m[o].save_Heaven_info:
+		# print("in rawhex")
+		if(heavRawHexOverride):
+			# print("in override")
+			for item in m[o].save_Heaven_info:
+				CODED2 = ""
 
-			address = item[0]
-			NumOpsDis = item[1]
-			NumOpsBack = item[2]
-			modSecName = item[3]
-			secNum = item[4]
-			offset = item[5]
-			pushOffset = item[6]
-			destLocation = item[7]
-			converted = item[8]
-			pivottype = item[9]
-			# print("here is pushOffset in print: ", pushOffset)
 
-			outString = "\n\nHeaven Item: " + str(j)
-			if(secNum != -1):
+				address = item[0]
+				NumOpsDis = item[1]
+				NumOpsBack = item[2]
+				modSecName = item[3]
+				secNum = item[4]
+				offset = item[5]
+				pushOffset = item[6]
+				destLocation = item[7]
+				converted = item[8]
+				pivottype = item[9]
 
-				outString += " | Section: " + str(secNum) + " | Section name: " + modSecName.decode() + " | Heaven's Gate offset: " + str(offset) 
-				# if(secNum != 0):
-				# 	trash = raw_input("enter...")
-				
-			else:
-				outString += " | Module: " + modSecName + " | Heaven's Gate offset: " + str(offset) + " | Push dest. addr offset: " + hex(pushOffset) + " | Dest. Address: " + str(destLocation)
+				# print("NUMBACK = " + str(NumOpsBack))
 
-			print ("\n********************************************************")
-			print (yel + outString + res)
-			print ("\n")
-			if(pivottype == "ljmp/lcall"):
-				converted = converted[-1:]
-			elif(pivottype == "retf"):
-				converted = converted[-5:]
+				outString = "\nHeaven Item: " + str(j)
+				if(secNum != -1):
+					outString += " | Section: " + str(secNum) + " | Section name: " + modSecName.decode() + " | Heaven's Gate offset: " + str(offset) + " | Push dest. addr offset: " + hex(pushOffset) + " | Dest. Address: " + str(destLocation) + "\n"
 
-			# converted = [string.replace("\t", "") for string in converted]
-
-			for line in converted:
-				if line != "":
-					mnemonic, op_str, add4, addb = cleanOutput(line)
-					convOut = formatPrint(mnemonic + "|" + op_str, add4, addb, syscall=True)
-
-					print(gre + convOut + res)
-					# allInstr = line.split(" ")
-					# # print("Everything ---> ", allInstr)
-					# mnemonic = allInstr[0]
-					# add4 = allInstr[-3]
-					# addb = allInstr[-2:]
-					# op_str = ' '.join(allInstr[1:-3])
-
-					# print("----> mnemonic" , mnemonic, type(mnemonic))
-					# print("-----> op_str", op_str, type(op_str))
-					# input()
+					# if(secNum != 0):
+					# 	trash = raw_input("enter...")
 					
-	#return val5
-			print ("\n")
-			j += 1
+				else:
+					outString += " | Module: " + modSecName + " | Heaven's Gate offset: " + str(offset) + " | Push dest. addr offset: " + hex(pushOffset) + " | Dest. Address: " + str(destLocation) + "\n"
+
+
+
+				print ("\n********************************************************")
+				print (yel + outString + res)
+				# print ("\n")
+				val =""
+				val2 = []
+				val3 = []
+				# address2 = address + section.ImageBase + section.VirtualAdd
+				val5 =[]
+				# CODED2 = section.data2[(address-NumOpsBack):(address+NumOpsDis)]
+				bytesCompensation = 18
+				if(pivottype == "ljmp/lcall"):
+					start = int(offset, 16) #- section.VirtualAdd
+					#The 7 is for the ljmp assembly mnemonic
+					CODED2 = m[o].rawData2[(start):(start+7)]
+				elif(pivottype == "retf"):
+					start = int(offset, 16) #- section.VirtualAdd
+					#The two bytes is for the retf
+					CODED2 = m[o].rawData2[(start - bytesCompensation):start + 2]
+
+				CODED3 = CODED2
+
+				# for i in callCS.disasm(CODED3, address):
+				if(pivottype == "ljmp/lcall"):
+					bytesCompensation = 0
+				elif(pivottype == "retf"):
+					bytesCompensation = 18
+				for i in callCS.disasm(CODED3, start - bytesCompensation):
+
+					add = hex(int(i.address))
+					# addb = hex(int(i.address +  section.VirtualAdd - NumOpsBack))
+					addb = hex(int(i.address))
+					add2 = str(add)
+					# add3 = hex (int(i.address + section.startLoc	- NumOpsBack))
+					add3 = hex (int(i.address))
+					add4 = str(add3)
+					val = formatPrint(i, add4, addb, pe=True)
+
+					# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+					val2.append(val)
+					val3.append(add2)
+					val5.append(val)
+					print (gre + val + res)
+				j += 1
+
+
+		else:
+			for item in m[o].save_Heaven_info:
+
+				address = item[0]
+				NumOpsDis = item[1]
+				NumOpsBack = item[2]
+				modSecName = item[3]
+				secNum = item[4]
+				offset = item[5]
+				pushOffset = item[6]
+				destLocation = item[7]
+				converted = item[8]
+				pivottype = item[9]
+				# print("here is pushOffset in print: ", pushOffset)
+
+				outString = "\n\nHeaven Item: " + str(j)
+				if(secNum != -1):
+
+					outString += " | Section: " + str(secNum) + " | Section name: " + modSecName.decode() + " | Heaven's Gate offset: " + str(offset) 
+					# if(secNum != 0):
+					# 	trash = raw_input("enter...")
+					
+				else:
+					outString += " | Module: " + modSecName + " | Heaven's Gate offset: " + str(offset) + " | Push dest. addr offset: " + hex(pushOffset) + " | Dest. Address: " + str(destLocation)
+
+				print ("\n********************************************************")
+				print (yel + outString + res)
+				print ("\n")
+				if(pivottype == "ljmp/lcall"):
+					converted = converted[-1:]
+				elif(pivottype == "retf"):
+					converted = converted[-5:]
+
+				# converted = [string.replace("\t", "") for string in converted]
+
+				for line in converted:
+					if line != "":
+						mnemonic, op_str, add4, addb = cleanOutput(line)
+						convOut = formatPrint(mnemonic + "|" + op_str, add4, addb, syscall=True)
+
+						print(gre + convOut + res)
+						# allInstr = line.split(" ")
+						# # print("Everything ---> ", allInstr)
+						# mnemonic = allInstr[0]
+						# add4 = allInstr[-3]
+						# addb = allInstr[-2:]
+						# op_str = ' '.join(allInstr[1:-3])
+
+						# print("----> mnemonic" , mnemonic, type(mnemonic))
+						# print("-----> op_str", op_str, type(op_str))
+						# input()
+						
+		#return val5
+				print ("\n")
+				j += 1
 
 	else:
 		h = 0
@@ -8274,53 +8380,115 @@ def printSavedSyscall(bit = 32, showDisassembly = True): #######################
 	else:
 		callCS = cs
 	if(rawHex):
-		for item in m[o].save_Egg_info:
 
-			address = item[0]
-			NumOpsDis = item[1]
-			NumOpsBack = item[2]
-			modSecName = item[3]
-			secNum = item[4]
-			eax = item[5]
-			c0_offset = item[6]
-			converted = item[7]
+		if(syscallRawHexOverride):
+			for item in m[o].save_Egg_info:
+				CODED2 = ""
 
-			
 
-			outString = "\n\nItem: " + str(j)
-			if(secNum != -1):
+				address = item[0]
+				NumOpsDis = item[1]
+				NumOpsBack = item[2]
+				modSecName = item[3]
+				secNum = item[4]
+				eax = item[5]
+				c0_offset = item[6]
 
-				# outString += " | Section number: " + str(secNum) + " | Section name: " + str(modSecName)
-				outString += " | Section name: " + str(modSecName)
-				# if(secNum != 0):
-				# 	trash = raw_input("enter...")
+				# print("NUMBACK = " + str(NumOpsBack))
+				outString = "\n\nItem: " + str(j)
+				if(secNum != -1):
 
-				
-			else:
-				outString += " | Module: " + modSecName
+					outString += " | Section: " + modSecName.decode()
+					# if(secNum != 0):
+					# 	trash = raw_input("enter...")
+					
+				else:
+					outString += " | Module: " + modSecName
 
-			outString += " | EAX: " + eax + " | Syscall Offset: " + c0_offset
+				outString += " | EAX: " + eax + " | Syscall Offset: " + c0_offset
 
-			print ("\n******************************************************************************")
-			print (yel + outString + res)
-			print ("\n")
-			if(showDisassembly):
-				for line in converted:
-					if line != "":
-						# print("Line --> ", line)
-						# input()
-						mnemonic, op_str, add4, addb = cleanOutput(line)
-						convOut = formatPrint(mnemonic + "|" + op_str, add4, addb, syscall=True)
-						print(gre + convOut + res)
+				print ("\n******************************************************************************")
+				print (yel + outString + res)
+				print ("\n")
+				if(showDisassembly):
+					val =""
+					val2 = []
+					val3 = []
+					val5 =[]
 
-	#return val5
-			print ("\n")
-			j += 1
-			if(eax != "unknown"):
-				getSyscallRecent(int(eax, 0))
+					CODED2 = m[o].rawData2[(address-NumOpsBack):(address+NumOpsDis)]
+
+					CODED3 = CODED2
+					for i in callCS.disasm(CODED3, address):
+						add = hex(int(i.address))
+						addb = hex(int(i.address - NumOpsBack))
+						add2 = str(add)
+						add3 = hex (int(i.address - NumOpsBack))
+						add4 = str(add3)
+						val = formatPrint(i, add4, addb, pe=True)
+
+						# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+						val2.append(val)
+						val3.append(add2)
+						val5.append(val)
+						print (gre + val + res)
+						if c0_offset == addb:
+							break
+					print ("\n")
+				j += 1
+				if(eax != "unknown"):
+					getSyscallRecent(int(eax, 0))
+		else:
+
+				for item in m[o].save_Egg_info:
+
+					address = item[0]
+					NumOpsDis = item[1]
+					NumOpsBack = item[2]
+					modSecName = item[3]
+					secNum = item[4]
+					eax = item[5]
+					c0_offset = item[6]
+					converted = item[7]
+
+					
+
+					outString = "\n\nItem: " + str(j)
+					if(secNum != -1):
+
+						# outString += " | Section number: " + str(secNum) + " | Section name: " + str(modSecName)
+						outString += " | Section name: " + str(modSecName)
+						# if(secNum != 0):
+						# 	trash = raw_input("enter...")
+
+						
+					else:
+						outString += " | Module: " + modSecName
+
+					outString += " | EAX: " + eax + " | Syscall Offset: " + c0_offset
+
+					print ("\n******************************************************************************")
+					print (yel + outString + res)
+					print ("\n")
+					if(showDisassembly):
+						for line in converted:
+							if line != "":
+								# print("Line --> ", line)
+								# input()
+								mnemonic, op_str, add4, addb = cleanOutput(line)
+								convOut = formatPrint(mnemonic + "|" + op_str, add4, addb, syscall=True)
+								print(gre + convOut + res)
+
+			#return val5
+					print ("\n")
+					j += 1
+					if(eax != "unknown"):
+						getSyscallRecent(int(eax, 0))
 
 	else:
+		print("in else")
 		h = 0
+
 		for section in s:
 			h += 1
 			# print("PRINTING SECTION " + str(h))
@@ -15929,12 +16097,18 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 		sh.decryptSuccess = True
 		if(mode == "stub"):
 			hashShellcode(decodedBytes, unencryptedBodyShell)
+			orgStub = sh.decoderStub
+			decodedBytes = orgStub + decodedBytes
+			sh.setDecoded(decodedBytes)
+			newModule(shDec, decodedBytes)
+			o = shDec
+			print("Setting default to decoded shellcode...")
 		else:
 			hashShellcode(decodedBytes, unencryptedShell)
 		#create newModule for decrypted shellcode
-		newModule(shDec, decodedBytes)
-		o = shDec
-		print("Setting default to decoded shellcode...")
+			newModule(shDec, decodedBytes)
+			o = shDec
+			print("Setting default to decoded shellcode...")
 
 
 		if(outputFile):
