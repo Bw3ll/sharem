@@ -7828,7 +7828,7 @@ def disHereHeavenPE(address, NumOpsDis, NumOpsBack, secNum, data): ############ 
 					if(stack[i] == hex(0x33)):
 						flag33 = True
 
-				print (destLocation, "destLocation", type(destLocation))
+				# print (destLocation, "destLocation", type(destLocation))
 
 				try:
 					destRegex = "push " + destLocation  #this one was the one giving the error

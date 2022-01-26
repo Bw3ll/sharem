@@ -1,0 +1,258 @@
+{
+   "dateAnalyzed": "2022-01-26 13:44:10",
+   "secondsSinceEpoch": 1643226250.555769,
+   "fileType": "PE",
+   "bits": 32,
+   "md5": "b966b0d1503aff6eabe1d8a15fbbf13e",
+   "sha256": "d644a031a5847d7f00ce26681d7f15dd20c812d89498b507b17d9698ec2585e2",
+   "ssdeep": "3072:gFRxHmWy5lwUeAQ0mfGZ65JZwMRE7xPZ0fNfJfPKbUbefZsUyVGxr7:k/SJQ0Yl5DKxPZbxr7",
+   "modules": [],
+   "imports": [],
+   "peInfo": [
+      {
+         "sectionName": ".text",
+         "entryPoint": {
+            "offset": "0xc441",
+            "imageBasePlusVirtualAdd": "0x401000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0x1000",
+         "virtualSize": "0x26aed",
+         "sectionSizeOfRawData": "0x26c00",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "True",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "3f5080136487063440aefbeaeedb3a72",
+            "md5": "0ce5d9a989239f178be521d8f6ad512811caf6cadcaf5cdf1ebc8a6f2bccea8c"
+         }
+      },
+      {
+         "sectionName": ".rdata",
+         "entryPoint": {
+            "offset": "0xc441",
+            "imageBasePlusVirtualAdd": "0x428000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0x28000",
+         "virtualSize": "0xb23c",
+         "sectionSizeOfRawData": "0xb400",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "True",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "1a94e419f3b1baf401fdab1000ce3be0",
+            "md5": "060f311e293d8a2b495d997689c05480d1a1048658aeff33e1f095444c9b506d"
+         }
+      },
+      {
+         "sectionName": ".data",
+         "entryPoint": {
+            "offset": "0xc441",
+            "imageBasePlusVirtualAdd": "0x434000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0x34000",
+         "virtualSize": "0x2000",
+         "sectionSizeOfRawData": "0x1200",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "True",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "c0b080e08b073f9048e62174c0f7f4c2",
+            "md5": "a14a65aa6ee2d6c6c9e5c81f41e10c71af5b67c5c33df5574f9dbe74a3e8826b"
+         }
+      },
+      {
+         "sectionName": ".gfids",
+         "entryPoint": {
+            "offset": "0xc441",
+            "imageBasePlusVirtualAdd": "0x436000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0x36000",
+         "virtualSize": "0x1cc",
+         "sectionSizeOfRawData": "0x200",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "True",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "f214671c8912352305fa7fed9292a344",
+            "md5": "4c1686c1babc327bc9456df3ebb937f1c10350108dad57b578a69377383b9f4f"
+         }
+      },
+      {
+         "sectionName": ".tls",
+         "entryPoint": {
+            "offset": "0xc441",
+            "imageBasePlusVirtualAdd": "0x437000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0x37000",
+         "virtualSize": "0x9",
+         "sectionSizeOfRawData": "0x200",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "True",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "1f354d76203061bfdd5a53dae48d5435",
+            "md5": "4c6474903705cb450bb6434c29e8854f17d8324efca1fdb9ee9008599060883a"
+         }
+      },
+      {
+         "sectionName": ".reloc",
+         "entryPoint": {
+            "offset": "0xc441",
+            "imageBasePlusVirtualAdd": "0x438000",
+            "imageBase": "0x400000"
+         },
+         "virtualAddress": "0x38000",
+         "virtualSize": "0x2234",
+         "sectionSizeOfRawData": "0x2400",
+         "mitigations": {
+            "DEP": "True",
+            "ASLR": "True",
+            "SEH": "False",
+            "CFG": "False"
+         },
+         "hashes": {
+            "Sha256": "bdf7c3910f62be4e6b1707e4fd539fb8",
+            "md5": "f0bd010734aa9f879817f97c429607e1fe8eb10fe81ee4f2b0a83d3f932dc963"
+         }
+      }
+   ],
+   "pushret": [],
+   "callpop": [],
+   "PEB": [],
+   "fstenv": [],
+   "heavensGate": [
+      {
+         "address": "0x573",
+         "modSecName": ".text",
+         "pushOffset": "0x156c",
+         "heaven_offset": "0x1573",
+         "destLocation": "0x1234",
+         "disassembly": [
+            "0x401561   or   al, 0x8b                       (offset 0x1561)",
+            "0x401563   inc  eax                            (offset 0x1563)",
+            "0x401564   adc  al, 0x8b                       (offset 0x1564)",
+            "0x401566   add  byte ptr [ebx + 0x10408b00], cl (offset 0x1566)",
+            "0x40156c   push 0x1234                         (offset 0x156c)",
+            "0x401571   push 0x33                           (offset 0x1571)",
+            "0x401573   retf                                (offset 0x1573)"
+         ],
+         "internalData": {
+            "secNum": 0,
+            "NumOpsDis": 4,
+            "NumOpsBack": 36,
+            "pivottype": "retf"
+         }
+      },
+      {
+         "address": "0x5f8",
+         "modSecName": ".text",
+         "pushOffset": "0x15f1",
+         "heaven_offset": "0x15f8",
+         "destLocation": "0x12345678",
+         "disassembly": [
+            "0x4015e6   or   al, 0x8b                       (offset 0x15e6)",
+            "0x4015e8   pop  ebx                            (offset 0x15e8)",
+            "0x4015e9   adc  al, 0x8b                       (offset 0x15e9)",
+            "0x4015eb   sbb  ecx, dword ptr [ebx + 0x105b8b1b] (offset 0x15eb)",
+            "0x4015f1   push 0x12345678                     (offset 0x15f1)",
+            "0x4015f6   push 0x33                           (offset 0x15f6)",
+            "0x4015f8   retf                                (offset 0x15f8)"
+         ],
+         "internalData": {
+            "secNum": 0,
+            "NumOpsDis": 4,
+            "NumOpsBack": 36,
+            "pivottype": "retf"
+         }
+      },
+      {
+         "address": "0x1f5",
+         "modSecName": ".rdata",
+         "pushOffset": "0xbaddbadd",
+         "heaven_offset": "0x281f0",
+         "destLocation": "0x123457",
+         "disassembly": [
+            "0x4281f0   lcall 0x33:0x1234578                 (offset 0x281f0)"
+         ],
+         "internalData": {
+            "secNum": 1,
+            "NumOpsDis": 4,
+            "NumOpsBack": 9,
+            "pivottype": "ljmp/lcall"
+         }
+      },
+      {
+         "address": "0x249",
+         "modSecName": ".rdata",
+         "pushOffset": "0xbaddbadd",
+         "heaven_offset": "0x28244",
+         "destLocation": "0x123457",
+         "disassembly": [
+            "0x428244   ljmp 0x33:0x1234578                 (offset 0x28244)"
+         ],
+         "internalData": {
+            "secNum": 1,
+            "NumOpsDis": 4,
+            "NumOpsBack": 7,
+            "pivottype": "ljmp/lcall"
+         }
+      },
+      {
+         "address": "0x2cd",
+         "modSecName": ".rdata",
+         "pushOffset": "0xbaddbadd",
+         "heaven_offset": "0x282c8",
+         "destLocation": "0x123457",
+         "disassembly": [
+            "0x4282c8   lcall 0x33:0x1234578                 (offset 0x282c8)"
+         ],
+         "internalData": {
+            "secNum": 1,
+            "NumOpsDis": 4,
+            "NumOpsBack": 7,
+            "pivottype": "ljmp/lcall"
+         }
+      }
+   ],
+   "syscall": [],
+   "strings": {},
+   "shellcode": {
+      "rawhex": "",
+      "strlit": ""
+   },
+   "deobfuscation": {
+      "deobfuscated": false,
+      "decoded_stub": "N/A",
+      "md5": "N/A",
+      "sha256": "N/A",
+      "ssdeep": "N/A"
+   },
+   "emulation": {
+      "api_calls": [],
+      "dlls": [],
+      "artifacts": [],
+      "web_artifacts": [],
+      "file_artifacts": [],
+      "executable_artifacts": []
+   }
+}
