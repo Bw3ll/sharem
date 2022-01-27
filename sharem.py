@@ -7883,7 +7883,7 @@ def getHeavenRawHex(address, linesBack, secNum, data):
 		truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, 0x0, linesGoBack, "getHeavenRawHex")  # arg: starting offset/entry point - leave 0 generally
 		if(mBool[o].ignoreDisDiscovery):
 			truth = False
-		# truth = False
+		truth = False
 		# dprint2("TESTING PRESYSCAL")
 		if truth:
 			push_offset = 0xBADDBADD
@@ -16023,6 +16023,13 @@ def bramwellEncodeDecodeWork(shellArg):
 	# 		try all values if ops but no values
 	# email ip regex to jacob
 	# fix some formatting/wording on decoder stub
+	# fix trackregs issue running processhacker.exe w/ s option
+	# issue in generateoutputdata syscall line 22343 val5[-1] index error
+	#investigate other weird errors/issues with syscall etc when running processhacker
+	# try to eliminate more false positives
+	# write about brute force capabilities when bram sends emails
+	# compile ~50 runs of encoded shellcode w 1 op and 2 ops and record times in spreadsheet
+
 
 #done
 ############## output file complete for decrypt stuff -- still needs formatting maybe
@@ -21969,52 +21976,132 @@ def generateOutputData(): #Generate the dictionary for json out
 	#jsonheav
 	if (mBool[o].bHeavenFound):
 		if(rawHex):
+			if(heavRawHexOverride):
+				# print("in override")
+				j=0
+				for item in m[o].save_Heaven_info:
+					CODED2 = ""
 
-			for item in m[o].save_Heaven_info:
-				address = hex(item[0])
-				NumOpsDis = item[1]
-				NumOpsBack = item[2]
-				modSecName = item[3]
-				secNum = item[4]
-				offset = item[5]
-				pushOffset = item[6]
-				destLocation = item[7]
-				converted = item[8]
-				pivottype = item[9]
-				if(pivottype == "ljmp/lcall"):
-					converted = converted[-1:]
-				elif(pivottype == "retf"):
-					converted = converted[-5:]
-				converted2 = []
-				jsonList = []
-				val5 = []
-				for line in converted:
-					line = line.replace("\t", " ")
-					jsonDis = {}
-					allInstr = line.split(" ")
-					# print("Everything ---> ", allInstr)
-					mnemonic = allInstr[0]
-					add4 = allInstr[-3]
-					addb = allInstr[-2:]
-					op_str = ' '.join(allInstr[1:-3])
 
-						# print("----> mnemonic" , mnemonic, type(mnemonic))
-						# print("-----> op_str", op_str, type(op_str))
-						# input()
-					convOut = formatPrint(mnemonic + "|" + op_str, add4, addb, syscall=True)
-					val5.append(convOut.strip())
-					jsonDis = {}
-					# print("Line: ", line, type(line), repr(line))
-					# instr =  ' '.join(line.split(" ")[:-3]).strip()
-					# off = line.split(" ")[-3]
-					jsonDis["offset"] = add4
-					jsonDis["instruction"] = (mnemonic + " " + op_str).strip()
-					jsonList.append(jsonDis)
-					converted2.append(line)
-				converted = converted2
+					address = item[0]
+					NumOpsDis = item[1]
+					NumOpsBack = item[2]
+					modSecName = item[3]
+					secNum = item[4]
+					offset = item[5]
+					pushOffset = item[6]
+					destLocation = item[7]
+					if(destLocation	!= -1):
+						for char in range(len(destLocation)):
+							if (destLocation[char] == '\t'):
+								destLocation = destLocation[0:char-1]
+								break
+					converted = item[8]
+					pivottype = item[9]
 
-				jsonData['heavensGate'].append({'address':address, 'modSecName':modSecName, 'pushOffset':pushOffset, 'heaven_offset':offset, 'destLocation':destLocation, "disassembly":val5, "disasm":jsonList, "internalData" : {'secNum':secNum, 'NumOpsDis':NumOpsDis, 'NumOpsBack':NumOpsBack, 'pivottype':pivottype}})
-				#Heaven Item: 0 | Section: -1 | Section name: rawHex | Heaven's Gate offset: 0x1ad
+
+					# for char in range(len(destLocation)):
+					# 	if (destLocation[char] == '\t'):
+					# 		destLocation = destLocation[0:char-1]
+					# 		break
+					# print("NUMBACK = " + str(NumOpsBack))
+
+					val =""
+					val2 = []
+					val3 = []
+					# address2 = address + section.ImageBase + section.VirtualAdd
+					jsonList = []
+					val5 =[]
+					# CODED2 = section.data2[(address-NumOpsBack):(address+NumOpsDis)]
+					bytesCompensation = 18
+					if(pivottype == "ljmp/lcall"):
+						start = int(offset, 16) #- section.VirtualAdd
+						#The 7 is for the ljmp assembly mnemonic
+						CODED2 = m[o].rawData2[(start):(start+7)]
+					elif(pivottype == "retf"):
+						start = int(offset, 16) #- section.VirtualAdd
+						#The two bytes is for the retf
+						CODED2 = m[o].rawData2[(start - bytesCompensation):start + 2]
+
+					CODED3 = CODED2
+
+					# for i in callCS.disasm(CODED3, address):
+					if(pivottype == "ljmp/lcall"):
+						bytesCompensation = 0
+					elif(pivottype == "retf"):
+						bytesCompensation = 18
+					for i in callCS.disasm(CODED3, start - bytesCompensation):
+						add = hex(int(i.address))
+						addb = hex(int(i.address))
+						add2 = str(add)
+						add3 = hex (int(i.address))
+						add4 = str(add3)
+						val = formatPrint(i, add4, addb, pe=True)
+
+						# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+						val2.append(val)
+						val3.append(add2)
+						val5.append(val)
+						jsonDis = {}
+						# print("Line: ", line, type(line), repr(line))
+						# instr =  ' '.join(line.split(" ")[:-3]).strip()
+						# off = line.split(" ")[-3]
+						jsonDis["offset"] = add4
+						jsonDis["instruction"] = (i.mnemonic + " " + i.op_str).strip()
+						jsonList.append(jsonDis)
+						# print (gre + val + res)
+					j += 1
+
+					pushOffset = str(hex(pushOffset))
+					# print("Offset", pushOffset)
+					jsonData['heavensGate'].append({'address':hex(address), 'modSecName':modSecName, 'pushOffset':pushOffset, 'heaven_offset':offset, 'destLocation':destLocation, "disassembly":val5, "disasm":jsonList, "internalData" : {'secNum':secNum, 'NumOpsDis':NumOpsDis, 'NumOpsBack':NumOpsBack, 'pivottype':pivottype}})
+
+			else:
+				for item in m[o].save_Heaven_info:
+					address = hex(item[0])
+					NumOpsDis = item[1]
+					NumOpsBack = item[2]
+					modSecName = item[3]
+					secNum = item[4]
+					offset = item[5]
+					pushOffset = item[6]
+					destLocation = item[7]
+					converted = item[8]
+					pivottype = item[9]
+					if(pivottype == "ljmp/lcall"):
+						converted = converted[-1:]
+					elif(pivottype == "retf"):
+						converted = converted[-5:]
+					converted2 = []
+					jsonList = []
+					val5 = []
+					for line in converted:
+						line = line.replace("\t", " ")
+						jsonDis = {}
+						allInstr = line.split(" ")
+						# print("Everything ---> ", allInstr)
+						mnemonic = allInstr[0]
+						add4 = allInstr[-3]
+						addb = allInstr[-2:]
+						op_str = ' '.join(allInstr[1:-3])
+
+							# print("----> mnemonic" , mnemonic, type(mnemonic))
+							# print("-----> op_str", op_str, type(op_str))
+							# input()
+						convOut = formatPrint(mnemonic + "|" + op_str, add4, addb, syscall=True)
+						val5.append(convOut.strip())
+						jsonDis = {}
+						# print("Line: ", line, type(line), repr(line))
+						# instr =  ' '.join(line.split(" ")[:-3]).strip()
+						# off = line.split(" ")[-3]
+						jsonDis["offset"] = add4
+						jsonDis["instruction"] = (mnemonic + " " + op_str).strip()
+						jsonList.append(jsonDis)
+						converted2.append(line)
+					converted = converted2
+
+					jsonData['heavensGate'].append({'address':address, 'modSecName':modSecName, 'pushOffset':pushOffset, 'heaven_offset':offset, 'destLocation':destLocation, "disassembly":val5, "disasm":jsonList, "internalData" : {'secNum':secNum, 'NumOpsDis':NumOpsDis, 'NumOpsBack':NumOpsBack, 'pivottype':pivottype}})
+					#Heaven Item: 0 | Section: -1 | Section name: rawHex | Heaven's Gate offset: 0x1ad
 		else:
 			for section in s:
 				for item in section.save_Heaven_info:
@@ -22195,83 +22282,140 @@ def generateOutputData(): #Generate the dictionary for json out
 	#jsonsys
 	if (mBool[o].bSyscallFound):
 		if(rawHex):
-			for item in m[o].save_Egg_info:
-				address = item[0]
-				NumOpsDis = item[1]
-				NumOpsBack = item[2]
-				modSecName = item[3]
-				secNum = item[4]
-				eax = item[5]
-				c0_offset = item[6]
-				converted = item[7]
-				syscalls = "not found"
-				# CODED2 = m[o].rawData2[address:(printEnd)]
+			if(syscallRawHexOverride):
+				j=0
+				for item in m[o].save_Egg_info:
+					CODED2 = ""
 
-				# print(NumOpsDis)
-				CODED2 = m[o].rawData2[address:(address+20)]
-				converted = [string.replace("\t", "") for string in converted]
-				if(eax != "unknown"):
-					# syscalls = returnSyscalls(int(eax, 0))
-					# print(syscalls)
-					# input()
-					syscalls = getSyscallRecent(int(eax, 0), 64, "print2Json", jsonFormat=True)
 
-				# CODED3 = CODED2
-				# val5 = []
-				# for i in callCS.disasm(CODED3, address):
+					address = item[0]
+					NumOpsDis = item[1]
+					NumOpsBack = item[2]
+					modSecName = item[3]
+					secNum = item[4]
+					eax = item[5]
+					c0_offset = item[6]
 
-				# 	add4 = hex(int(i.address))
-				# 	addb = hex(int(i.address))
-				# 	val = formatPrint(i, add4, addb)
-				# 	val5.append(val)
-					# print(i.mnemonic, i.op_str, add4, addb)
-					# val = formatPrint(i, add4, addb, pe=True)
 
-					# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
-					# val2.append(val)
-					# val3.append(add2)
-					# val5.append(val)
+					val =""
+					val2 = []
+					val3 = []
+					val5 =[]
+					jsonList = []
+					CODED2 = m[o].rawData2[(address-NumOpsBack):(address+NumOpsDis)]
 
-					# if c0_offset == addb:
-					# 	break
-				# print(val5)
-				# input()
+					CODED3 = CODED2
+					for i in callCS.disasm(CODED3, address):
+						add = hex(int(i.address))
+						addb = hex(int(i.address - NumOpsBack))
+						add2 = str(add)
+						add3 = hex (int(i.address - NumOpsBack))
+						add4 = str(add3)
+						val = formatPrint(i, add4, addb, pe=True)
 
-				# for idx, val in enumerate(converted):
-				# 	if val.find("(offset") != -1:
-						
-				# 		converted[idx] = val[:val.find("offset")-18]
-				val5 = []
-				jsonList = []
-				# print(converted)
-				# input()
-				for i in converted:
-				# print(converted, type(converted))
-					if i != "":
 						jsonDis = {}
-						allInstr = i.split(" ")
-						# print("Everything ---> ", allInstr)
-						mnemonic = allInstr[0]
-						add4 = allInstr[-3]
-						addb = allInstr[-2:]
-						op_str = ' '.join(allInstr[1:-3])
-
-						# print("----> mnemonic" , mnemonic, type(mnemonic))
-						# print("-----> op_str", op_str, type(op_str))
-						# input()
-						convOut = formatPrint(mnemonic + "|" + op_str, add4, addb, syscall=True)
-						val5.append(convOut.strip())
+						# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+						val2.append(val)
+						val3.append(add2)
+						val5.append(val)
 						jsonDis["offset"] = add4
-						jsonDis["instruction"] = mnemonic + " " + op_str
+						jsonDis["instruction"] = (i.mnemonic + " " + i.op_str).strip()
 						jsonList.append(jsonDis)
+						# print (gre + val + res)
+						if c0_offset == addb:
+							break
+					# print ("\n")
+					j += 1
+					syscalls = "not found"
+					if(eax != "unknown"):
+						# syscalls = returnSyscalls(int(eax, 0))
+						syscalls = getSyscallRecent(int(eax, 0), 64, "print2Json")
+					if 'syscall' in val5[-1]:
+						offsetLabel = 'syscall offset'
+					elif 'int' in val5[-1]:
+						offsetLabel = 'int offset'
+					else:
+						offsetLabel = 'c0_offset'
+					jsonData['syscall'].append({'address':hex(address), 'modSecName':modSecName, 'eax':eax, offsetLabel:c0_offset,"disassembly":val5, "disasm":jsonList, "syscalls":syscalls, "internalData":{'NumOpsDis':NumOpsDis, 'NumOpsBack':NumOpsBack, 'secNum':secNum}})
+
+			else:
+				for item in m[o].save_Egg_info:
+					address = item[0]
+					NumOpsDis = item[1]
+					NumOpsBack = item[2]
+					modSecName = item[3]
+					secNum = item[4]
+					eax = item[5]
+					c0_offset = item[6]
+					converted = item[7]
+					syscalls = "not found"
+					# CODED2 = m[o].rawData2[address:(printEnd)]
+
+					# print(NumOpsDis)
+					CODED2 = m[o].rawData2[address:(address+20)]
+					converted = [string.replace("\t", "") for string in converted]
+					if(eax != "unknown"):
+						# syscalls = returnSyscalls(int(eax, 0))
+						# print(syscalls)
+						# input()
+						syscalls = getSyscallRecent(int(eax, 0), 64, "print2Json", jsonFormat=True)
+
+					# CODED3 = CODED2
+					# val5 = []
+					# for i in callCS.disasm(CODED3, address):
+
+					# 	add4 = hex(int(i.address))
+					# 	addb = hex(int(i.address))
+					# 	val = formatPrint(i, add4, addb)
+					# 	val5.append(val)
+						# print(i.mnemonic, i.op_str, add4, addb)
+						# val = formatPrint(i, add4, addb, pe=True)
+
+						# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+						# val2.append(val)
+						# val3.append(add2)
+						# val5.append(val)
+
+						# if c0_offset == addb:
+						# 	break
+					# print(val5)
+					# input()
+
+					# for idx, val in enumerate(converted):
+					# 	if val.find("(offset") != -1:
+							
+					# 		converted[idx] = val[:val.find("offset")-18]
+					val5 = []
+					jsonList = []
+					# print(converted)
+					# input()
+					for i in converted:
+					# print(converted, type(converted))
+						if i != "":
+							jsonDis = {}
+							allInstr = i.split(" ")
+							# print("Everything ---> ", allInstr)
+							mnemonic = allInstr[0]
+							add4 = allInstr[-3]
+							addb = allInstr[-2:]
+							op_str = ' '.join(allInstr[1:-3])
+
+							# print("----> mnemonic" , mnemonic, type(mnemonic))
+							# print("-----> op_str", op_str, type(op_str))
+							# input()
+							convOut = formatPrint(mnemonic + "|" + op_str, add4, addb, syscall=True)
+							val5.append(convOut.strip())
+							jsonDis["offset"] = add4
+							jsonDis["instruction"] = mnemonic + " " + op_str
+							jsonList.append(jsonDis)
 
 
-				# print(converted)
-				# input()
+					# print(converted)
+					# input()
 
-				# print(val5)
+					# print(val5)
 
-				jsonData['syscall'].append({'address':hex(address), 'modSecName':modSecName, 'eax':eax, 'c0_offset':c0_offset, "disassembly":val5, "disasm":jsonList, "syscalls":syscalls,"internalData":{'NumOpsDis':NumOpsDis, 'NumOpsBack':NumOpsBack, 'secNum':secNum}})
+					jsonData['syscall'].append({'address':hex(address), 'modSecName':modSecName, 'eax':eax, 'c0_offset':c0_offset, "disassembly":val5, "disasm":jsonList, "syscalls":syscalls,"internalData":{'NumOpsDis':NumOpsDis, 'NumOpsBack':NumOpsBack, 'secNum':secNum}})
 		else:
 			for section in s:
 				for item in section.save_Egg_info:
@@ -22742,7 +22886,7 @@ def printToText(outputData):	#Output data to text doc
 				outString+="********************************************************************************************************\n"
 
 				outString += "Heaven Item: " + str(itemNum) 
-				if(rawHex):
+				if(rawHex and not heavRawHexOverride):
 					outString += " | Section: " + str(item['internalData']['secNum']) + " | Section name: " + item['modSecName'] + " | PushOffset: "+ hex(item['pushOffset']) + " | Heaven's Gate offset: " + str(item['heaven_offset']) 
 				else:
 					outString += " | Module: " + item['modSecName'] + " | Heaven's Gate offset: " + str(item['heaven_offset']) + " | Push dest. addr offset: " + item['pushOffset'] + " | Dest. Address: " + str(item['destLocation'])
