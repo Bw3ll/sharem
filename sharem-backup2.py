@@ -102,7 +102,7 @@ PEsList_Index = 0
 skipZero = False
 numPE = 1
 skipPath = False
-FoundApisAddress = []
+FoundApaddress = []
 FoundApisName = []
 saveAPI=0x00
 
@@ -1401,11 +1401,11 @@ def Extraction():
 
 	# print ("extraction end")
 def findEvilImports():
-	global FoundApisAddress
+	global FoundApaddress
 	for item in pe.DIRECTORY_ENTRY_IMPORT:
 		# print item.dll
 		for i in item.imports:
-			FoundApisName.append(tuple((item.dll, i.name, hex(i.address))))
+			FoundApisName.append(tuple((item.dll, i.name, hex(address))))
 	mBool[o].bEvilImportsFound=True
 
 def showImports(out2File=None):
@@ -2703,7 +2703,10 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 	global o
 	global pebPoints
 	w=0
-
+	if(bit32):
+		callCS = cs
+	else:
+		callCS = cs64
 	start = timeit.default_timer()
 	foundAdv = False
 	foundPEB = False
@@ -2749,21 +2752,21 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 	#CODED3 = CODED2.encode()
 	# print("BINARY2STR")
 	# print(binaryToStr(CODED3))
-	for i in cs.disasm(CODED3, address):
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 		#print('address in for = ' + str(address))
 		if(secNum == "noSec"):
 
-		#	print("i = " + str(i) + " i.mnemonic = " + str(i.mnemonic))
-			# add = hex(int(i.address))
-			add4 = hex(int(i.address))
-			addb = hex(int(i.address))
+		#	print("i = " + str(i) + " mnemonic = " + str(mnemonic))
+			# add = hex(int(address))
+			add4 = hex(int(address))
+			addb = hex(int(address))
 		else:
-			add = hex(int(i.address))
-			addb = hex(int(i.address +  section.VirtualAdd))
+			add = hex(int(address))
+			addb = hex(int(address +  section.VirtualAdd))
 			add2 = str(add)
-			add3 = hex (int(i.address + section.startLoc	))
+			add3 = hex (int(address + section.startLoc	))
 			add4 = str(add3)
-		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+		val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 		# val2.append(val)
 		# val3.append(add2)
 
@@ -2926,21 +2929,21 @@ def disHerePEB_64(address, NumOpsDis, secNum, data): ############## AUSTIN #####
 	#CODED3 = CODED2.encode()
 	CODED3 = CODED2
 
-	for i in callCS.disasm(CODED3, address):
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 
 		if(secNum == "noSec"):
 
-			dprint2("i = " + str(i) + " i.mnemonic = " + str(i.mnemonic))
-			# add = hex(int(i.address))
-			add4 = hex(int(i.address))
-			addb = hex(int(i.address))
+			dprint2("i = " + str(i) + " mnemonic = " + str(mnemonic))
+			# add = hex(int(address))
+			add4 = hex(int(address))
+			addb = hex(int(address))
 		else:
-			add = hex(int(i.address))
-			addb = hex(int(i.address +  section.VirtualAdd))
+			add = hex(int(address))
+			addb = hex(int(address +  section.VirtualAdd))
 			add2 = str(add)
-			add3 = hex (int(i.address + section.startLoc	))
+			add3 = hex (int(address + section.startLoc	))
 			add4 = str(add3)
-		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+		val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 		# val2.append(val)
 		# val3.append(add2)
 		val5.append(val)
@@ -3173,19 +3176,19 @@ def printSavedPEB(): ######################## AUSTIN ###########################
 			val3 = []
 			#address2 = address + section.ImageBase + section.VirtualAdd
 			val5 =[]
-			for i in cs.disasm(CODED2, address):
+			for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, address):
 				if(rawHex):
-					add4 = hex(int(i.address))
-					addb = hex(int(i.address))
+					add4 = hex(int(address))
+					addb = hex(int(address))
 				else:
-					add = hex(int(i.address))
-					addb = hex(int(i.address +  section.VirtualAdd))
+					add = hex(int(address))
+					addb = hex(int(address +  section.VirtualAdd))
 					add2 = str(add)
-					add3 = hex (int(i.address + section.startLoc	))
+					add3 = hex (int(address + section.startLoc	))
 					add4 = str(add3)
 				val = formatPrint(i, add4, addb)
 
-				# val =  gre + i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + cya + " (offset " + addb + ")\n" + res
+				# val =  gre + mnemonic + " " + op_str + "\t\t\t\t"  + add4 + cya + " (offset " + addb + ")\n" + res
 				print (val)
 	#return val5
 			print ("\n")
@@ -3248,15 +3251,15 @@ def printSavedPEB(): ######################## AUSTIN ###########################
 				CODED2 = section.data2[address:(address+NumOpsDis)]
 
 				CODED3 = CODED2
-				for i in cs.disasm(CODED3, address):
-					add = hex(int(i.address))
-					addb = hex(int(i.address +  section.VirtualAdd))
+				for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
+					add = hex(int(address))
+					addb = hex(int(address +  section.VirtualAdd))
 					add2 = str(add)
-					add3 = hex (int(i.address + section.startLoc	))
+					add3 = hex (int(address + section.startLoc	))
 					add4 = str(add3)
 					val = formatPrint(i, add4, addb, pe=True)
 
-					# val =  gre + i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + cya + " (offset " + addb + ")" + res
+					# val =  gre + mnemonic + " " + op_str + "\t\t\t\t"  + add4 + cya + " (offset " + addb + ")" + res
 					val2.append(val)
 					val3.append(add2)
 					val5.append(val)
@@ -3302,19 +3305,19 @@ def printSavedPEB_64(): ############## AUSTIN ####################
 			val5 =[]
 
 
-			for i in cs64.disasm(CODED2, address):
+			for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, address):
 				if(rawHex):
-					add4 = hex(int(i.address))
-					addb = hex(int(i.address))
+					add4 = hex(int(address))
+					addb = hex(int(address))
 				else:
-					add = hex(int(i.address))
-					addb = hex(int(i.address +  section.VirtualAdd))
+					add = hex(int(address))
+					addb = hex(int(address +  section.VirtualAdd))
 					add2 = str(add)
-					add3 = hex (int(i.address + section.startLoc	))
+					add3 = hex (int(address + section.startLoc	))
 					add4 = str(add3)
 				val = formatPrint(i, add4, addb)
 
-				# val =  gre + i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + cya + " (offset " + addb + ")\n" + res
+				# val =  gre + mnemonic + " " + op_str + "\t\t\t\t"  + add4 + cya + " (offset " + addb + ")\n" + res
 				# val2.append(val)
 		# val3.append(add2)
 		# val5.append(val)
@@ -3363,15 +3366,15 @@ def printSavedPEB_64(): ############## AUSTIN ####################
 				CODED2 = section.data2[address:(address+NumOpsDis)]
 
 				CODED3 = CODED2
-				for i in cs64.disasm(CODED3, address):
-					add = hex(int(i.address))
-					addb = hex(int(i.address +  section.VirtualAdd))
+				for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
+					add = hex(int(address))
+					addb = hex(int(address +  section.VirtualAdd))
 					add2 = str(add)
-					add3 = hex (int(i.address + section.startLoc	))
+					add3 = hex (int(address + section.startLoc	))
 					add4 = str(add3)
 					val = formatPrint(i, add4, addb, pe=True)
 
-					# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+					# val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 					val2.append(val)
 					val3.append(add2)
 					val5.append(val)
@@ -3453,24 +3456,24 @@ def disHerePushRet(address, NumOpsDis, secNum, data): ##########################
 	pushReg = ""
 	# start = timeit.default_timer()
 	CODED3 = CODED2
-	for i in cs.disasm(CODED3, address):
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 		if(secNum == "noSec"):
-			# add = hex(int(i.address))
-			add4 = hex(int(i.address))
-			addb = hex(int(i.address))
+			# add = hex(int(address))
+			add4 = hex(int(address))
+			addb = hex(int(address))
 		else:
-			add = hex(int(i.address))
-			addb = hex(int(i.address +  section.VirtualAdd))
+			add = hex(int(address))
+			addb = hex(int(address +  section.VirtualAdd))
 			add2 = str(add)
-			add3 = hex (int(i.address + section.startLoc	))
+			add3 = hex (int(address + section.startLoc	))
 			add4 = str(add3)
-		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+		val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 		val5.append(val)
 
 		push = re.match("^push ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)|(8|9|(1([0-5])))))", val, re.IGNORECASE)
 		#print("-->", val)
 		if(push):
-			pushReg = i.op_str
+			pushReg = op_str
 			# print("Push found", pushReg)
 			
 			foundPush = True
@@ -3556,24 +3559,24 @@ def disHerePushRet64(address, NumOpsDis, secNum, data): ########################
 	pushReg = ""
 	# start = timeit.default_timer()
 	CODED3 = CODED2
-	for i in cs64.disasm(CODED3, address):
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 		if(secNum == "noSec"):
-			# add = hex(int(i.address))
-			add4 = hex(int(i.address))
-			addb = hex(int(i.address))
+			# add = hex(int(address))
+			add4 = hex(int(address))
+			addb = hex(int(address))
 		else:
 			# print("heree")
-			add = hex(int(i.address))
-			addb = hex(int(i.address +  section.VirtualAdd))
+			add = hex(int(address))
+			addb = hex(int(address +  section.VirtualAdd))
 			add2 = str(add)
-			add3 = hex (int(i.address + section.startLoc	))
+			add3 = hex (int(address + section.startLoc	))
 			add4 = str(add3)
-		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+		val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 		val5.append(val)
 		# if not push:
 		push = re.match("^push ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)|(8|9|(1([0-5])))))", val, re.IGNORECASE)
 		if(push):
-			pushReg = i.op_str
+			pushReg = op_str
 			# points += 1
 			foundPush = True
 			pushOffset = addb
@@ -3848,33 +3851,33 @@ def printSavedPushRet(bit = 32): ############################## AUSTIN #########
 			val5 =[]
 
 			# if bit == 32:
-			for i in callCS.disasm(CODED2, address):
+			for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, address):
 				if(rawHex):
-					add4 = hex(int(i.address))
-					addb = hex(int(i.address))
+					add4 = hex(int(address))
+					addb = hex(int(address))
 				else:
-					add = hex(int(i.address))
-					addb = hex(int(i.address +  section.VirtualAdd))
+					add = hex(int(address))
+					addb = hex(int(address +  section.VirtualAdd))
 					add2 = str(add)
-					add3 = hex (int(i.address + section.startLoc))
+					add3 = hex (int(address + section.startLoc))
 					add4 = str(add3)
 				val = formatPrint(i, add4, addb)
-				# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+				# val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 				print (gre + val + res)
 				if(addb == retOffset):
 					break
 			# if bit == 64:
-			# 	for i in cs64.disasm(CODED2, address):
+			# 	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, address):
 			# 		if(rawHex):
-			# 			add4 = hex(int(i.address))
-			# 			addb = hex(int(i.address))
+			# 			add4 = hex(int(address))
+			# 			addb = hex(int(address))
 			# 		else:
-			# 			add = hex(int(i.address))
-			# 			addb = hex(int(i.address +  section.VirtualAdd))
+			# 			add = hex(int(address))
+			# 			addb = hex(int(address +  section.VirtualAdd))
 			# 			add2 = str(add)
-			# 			add3 = hex (int(i.address + section.startLoc	))
+			# 			add3 = hex (int(address + section.startLoc	))
 			# 			add4 = str(add3)
-			# 		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+			# 		val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 			# 		print (gre + val + res)
 			# 		if(addb == retOffset):
 			# 			break
@@ -3935,15 +3938,15 @@ def printSavedPushRet(bit = 32): ############################## AUSTIN #########
 				CODED3 = CODED2
 				stopRet = False
 				# print("pushret print function", CODED3.hex())
-				for i in callCS.disasm(CODED3, address):
-					add = hex(int(i.address))
-					addb = hex(int(i.address +  section.VirtualAdd))
+				for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
+					add = hex(int(address))
+					addb = hex(int(address +  section.VirtualAdd))
 					add2 = str(add)
-					add3 = hex (int(i.address + section.startLoc))
+					add3 = hex (int(address + section.startLoc))
 					add4 = str(add3)
 					val = formatPrint(i, add4, addb, pe=True)
 
-					# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+					# val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 					val2.append(val)
 					val3.append(add2)
 					# val5.append(val)
@@ -3970,13 +3973,13 @@ def printSavedPushRet(bit = 32): ############################## AUSTIN #########
 					# 	val5.append(val)
 					# val5.append(val)
 				# if bit == 64:
-				# 	for i in cs64.disasm(CODED3, address):
-				# 		add = hex(int(i.address))
-				# 		addb = hex(int(i.address +  section.VirtualAdd))
+				# 	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
+				# 		add = hex(int(address))
+				# 		addb = hex(int(address +  section.VirtualAdd))
 				# 		add2 = str(add)
-				# 		add3 = hex (int(i.address + section.startLoc	))
+				# 		add3 = hex (int(address + section.startLoc	))
 				# 		add4 = str(add3)
-				# 		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+				# 		val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 				# 		val2.append(val)
 				# 		val3.append(add2)
 				# 		val5.append(val)
@@ -4161,24 +4164,24 @@ def disHereFSTENV(address, NumOpsDis, NumOpsBack, secNum, data): ############ AU
 		# dprint2("******************************************")
 
 		t = 0
-		for i in callCS.disasm(CODED3, (address -(NumOpsBack-back))):
+		for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, (address -(NumOpsBack-back))):
 
 			#dprint2('address in for = ' + str(address))
 			if(secNum == "noSec"):
 
-			#	dprint2("i = " + str(i) + " i.mnemonic = " + str(i.mnemonic))
-				# add = hex(int(i.address))
-				add4 = hex(int(i.address))
-				addb = hex(int(i.address))
+			#	dprint2("i = " + str(i) + " mnemonic = " + str(mnemonic))
+				# add = hex(int(address))
+				add4 = hex(int(address))
+				addb = hex(int(address))
 			else:
-				add = hex(int(i.address))
-				# addb = hex(int(i.address +  section.VirtualAdd  - (NumOpsBack - back) ))
-				addb = hex(int(i.address +  section.VirtualAdd))
+				add = hex(int(address))
+				# addb = hex(int(address +  section.VirtualAdd  - (NumOpsBack - back) ))
+				addb = hex(int(address +  section.VirtualAdd))
 				add2 = str(add)
-				# add3 = hex (int(i.address + section.startLoc	- (NumOpsBack - back) ))
-				add3 = hex (int(i.address + section.startLoc))
+				# add3 = hex (int(address + section.startLoc	- (NumOpsBack - back) ))
+				add3 = hex (int(address + section.startLoc))
 				add4 = str(add3)
-			val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+			val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 			# val2.append(val)
 			# val3.append(add2)
 			val5.append(val)
@@ -4429,38 +4432,38 @@ def printSavedFSTENV(bit = 32): ######################## AUSTIN ################
 			val5 =[]
 
 			# if bit==32:
-			for i in callCS.disasm(CODED2, (address - NumOpsBack)):
+			for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, (address - NumOpsBack)):
 				if(rawHex):
-					add4 = hex(int(i.address))
-					addb = hex(int(i.address))
+					add4 = hex(int(address))
+					addb = hex(int(address))
 				else:
-					add = hex(int(i.address))
-					addb = hex(int(i.address +  section.VirtualAdd))
+					add = hex(int(address))
+					addb = hex(int(address +  section.VirtualAdd))
 					add2 = str(add)
-					add3 = hex (int(i.address + section.startLoc	))
+					add3 = hex (int(address + section.startLoc	))
 					add4 = str(add3)
 				val = formatPrint(i, add4, addb)
-				# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+				# val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 				val5.append(val)
 				print(gre + val + res)
 
 
 			# print (gre + val + res)
 			# if bit==64:
-			# 	for i in cs64.disasm(CODED2, (address - NumOpsBack)):
+			# 	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, (address - NumOpsBack)):
 			# 		if(rawHex):
-			# 			add4 = hex(int(i.address))
-			# 			addb = hex(int(i.address))
+			# 			add4 = hex(int(address))
+			# 			addb = hex(int(address))
 			# 		else:
-			# 			add = hex(int(i.address))
-			# 			addb = hex(int(i.address +  section.VirtualAdd))
+			# 			add = hex(int(address))
+			# 			addb = hex(int(address +  section.VirtualAdd))
 			# 			add2 = str(add)
-			# 			add3 = hex (int(i.address + section.startLoc	))
+			# 			add3 = hex (int(address + section.startLoc	))
 			# 			add4 = str(add3)
 
-			# 	# if(hex(i.address) == printEnd):
+			# 	# if(hex(address) == printEnd):
 			# 	# 	break
-			# 		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+			# 		val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 			# 		val5.append(val)
 
 			# # print (gre + val + res)
@@ -4514,14 +4517,14 @@ def printSavedFSTENV(bit = 32): ######################## AUSTIN ################
 
 				CODED3 = CODED2
 				# if bit == 32:
-				for i in callCS.disasm(CODED3, address):
-					add = hex(int(i.address))
-					addb = hex(int(i.address +  section.VirtualAdd - NumOpsBack))
+				for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
+					add = hex(int(address))
+					addb = hex(int(address +  section.VirtualAdd - NumOpsBack))
 					add2 = str(add)
-					add3 = hex (int(i.address + section.startLoc	- NumOpsBack))
+					add3 = hex (int(address + section.startLoc	- NumOpsBack))
 					add4 = str(add3)
 					val = formatPrint(i, add4, addb, pe=True)
-					# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+					# val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 					val2.append(val)
 					val3.append(add2)
 					val5.append(val)
@@ -4532,13 +4535,13 @@ def printSavedFSTENV(bit = 32): ######################## AUSTIN ################
 						print (gre + val + res)
 
 				# if bit == 64:
-				# 	for i in cs64.disasm(CODED3, address):
-				# 		add = hex(int(i.address))
-				# 		addb = hex(int(i.address +  section.VirtualAdd - NumOpsBack))
+				# 	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
+				# 		add = hex(int(address))
+				# 		addb = hex(int(address +  section.VirtualAdd - NumOpsBack))
 				# 		add2 = str(add)
-				# 		add3 = hex (int(i.address + section.startLoc	- NumOpsBack))
+				# 		add3 = hex (int(address + section.startLoc	- NumOpsBack))
 				# 		add4 = str(add3)
-				# 		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+				# 		val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 				# 		val2.append(val)
 				# 		val3.append(add2)
 				# 		val5.append(val)
@@ -4654,18 +4657,18 @@ def disHereCallpop(address, NumOpsDis, secNum, data, distance):
 	# dprint2("HERE IS THE CALL LINE")
 	# start = timeit.default_timer()
 	CODED3 = CODED2
-	for i in cs.disasm(CODED3, address):
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 		if(secNum == "noSec"):
-			# add = hex(int(i.address))
-			add4 = hex(int(i.address))
-			addb = hex(int(i.address))
+			# add = hex(int(address))
+			add4 = hex(int(address))
+			addb = hex(int(address))
 		else:
-			add = hex(int(i.address))
-			addb = hex(int(i.address +  section.VirtualAdd))
+			add = hex(int(address))
+			addb = hex(int(address +  section.VirtualAdd))
 			add2 = str(add)
-			add3 = hex (int(i.address + section.startLoc	))
+			add3 = hex (int(address + section.startLoc	))
 			add4 = str(add3)
-		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+		val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 		val5.append(val)
 
 		valOffsets.append(addb)
@@ -4704,18 +4707,18 @@ def disHereCallpop(address, NumOpsDis, secNum, data, distance):
 	# dprint2("2ND CHUNK")
 	# start = timeit.default_timer()
 	CODED3 = CODED2
-	for i in cs.disasm(CODED3, address):
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 		if(secNum == "noSec"):
-			# add = hex(int(i.address))
-			add4 = hex(int(i.address))
-			addb = hex(int(i.address))
+			# add = hex(int(address))
+			add4 = hex(int(address))
+			addb = hex(int(address))
 		else:
-			add = hex(int(i.address))
-			addb = hex(int(i.address +  section.VirtualAdd))
+			add = hex(int(address))
+			addb = hex(int(address +  section.VirtualAdd))
 			add2 = str(add)
-			add3 = hex (int(i.address + section.startLoc	))
+			add3 = hex (int(address + section.startLoc	))
 			add4 = str(add3)
-		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+		val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 		val5.append(val)
 
 		valOffsets.append(addb)
@@ -4785,19 +4788,19 @@ def disHereCallpop64(address, NumOpsDis, secNum, data, distance):
 	CODED3 = CODED2
 
 	# print ("test1")
-	for i in cs64.disasm(CODED3, address):
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 		if(secNum == "noSec"):
-			# add = hex(int(i.address))
-			add4 = hex(int(i.address))
-			addb = hex(int(i.address))
+			# add = hex(int(address))
+			add4 = hex(int(address))
+			addb = hex(int(address))
 		else:
-			add = hex(int(i.address))
-			addb = hex(int(i.address +  section.VirtualAdd))
+			add = hex(int(address))
+			addb = hex(int(address +  section.VirtualAdd))
 			add2 = str(add)
-			add3 = hex (int(i.address + section.startLoc	))
+			add3 = hex (int(address + section.startLoc	))
 			add4 = str(add3)
-		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
-		valOpstr.append(i.op_str)
+		val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+		valOpstr.append(op_str)
 		val5.append(val)
 
 		valOffsets.append(addb)
@@ -4843,18 +4846,18 @@ def disHereCallpop64(address, NumOpsDis, secNum, data, distance):
 	# dprint2("2ND CHUNK")
 	# start = timeit.default_timer()
 	CODED3 = CODED2
-	for i in cs64.disasm(CODED3, address):
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 		if(secNum == "noSec"):
-			# add = hex(int(i.address))
-			add4 = hex(int(i.address))
-			addb = hex(int(i.address))
+			# add = hex(int(address))
+			add4 = hex(int(address))
+			addb = hex(int(address))
 		else:
-			add = hex(int(i.address))
-			addb = hex(int(i.address +  section.VirtualAdd))
+			add = hex(int(address))
+			addb = hex(int(address +  section.VirtualAdd))
 			add2 = str(add)
-			add3 = hex (int(i.address + section.startLoc	))
+			add3 = hex (int(address + section.startLoc	))
 			add4 = str(add3)
-		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+		val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 		val5.append(val)
 
 		dprint2(val)
@@ -5177,19 +5180,19 @@ def printSavedCallPop(bit = 32): ######################## AUSTIN ###############
 			#address2 = address + section.ImageBase + section.VirtualAdd
 			val5 =[]
 			
-			for i in callCS.disasm(CODED2, origAddr):
+			for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, origAddr):
 				if(rawHex):
-					add4 = hex(int(i.address))
-					addb = hex(int(i.address))
+					add4 = hex(int(address))
+					addb = hex(int(address))
 				else:
-					add = hex(int(i.address))
-					addb = hex(int(i.address +  section.VirtualAdd))
+					add = hex(int(address))
+					addb = hex(int(address +  section.VirtualAdd))
 					add2 = str(add)
-					add3 = hex (int(i.address + section.startLoc	))
+					add3 = hex (int(address + section.startLoc	))
 					add4 = str(add3)
 				val = formatPrint(i, add4, addb)
 
-				# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+				# val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 				print (gre + val + res)
 				if(addb == pop_offset):
 					break
@@ -5252,15 +5255,15 @@ def printSavedCallPop(bit = 32): ######################## AUSTIN ###############
 				# print("origAddr: ", origAddr, "CODED3", CODED3, "Address", address)
 				# print("print output", CODED3.hex())
 
-				for i in callCS.disasm(CODED3, origAddr):
-					add = hex(int(i.address))
-					addb = hex(int(i.address +  section.VirtualAdd))
+				for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, origAddr):
+					add = hex(int(address))
+					addb = hex(int(address +  section.VirtualAdd))
 					add2 = str(add)
-					add3 = hex (int(i.address + section.startLoc))
+					add3 = hex (int(address + section.startLoc))
 					add4 = str(add3)
 					val = formatPrint(i, add4, add, pe=True)
 
-					# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+					# val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 					val2.append(val)
 					val3.append(add2)
 					val5.append(val)
@@ -6697,21 +6700,21 @@ def disHereSyscall(address, NumOpsDis, NumOpsBack, secNum, data): ############ A
 		# dprint2("BINARY2STR")
 		# dprint2(binaryToStr(CODED3))
 		# dprint2("******************************************")
-		for i in cs.disasm(CODED3, address):
+		for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 			#dprint2('address in for = ' + str(address))
 			if(secNum == "noSec"):
 
-			#	dprint2("i = " + str(i) + " i.mnemonic = " + str(i.mnemonic))
-				# add = hex(int(i.address))
-				add4 = hex(int(i.address - (NumOpsBack-back)))
-				addb = hex(int(i.address - (NumOpsBack-back)))
+			#	dprint2("i = " + str(i) + " mnemonic = " + str(mnemonic))
+				# add = hex(int(address))
+				add4 = hex(int(address - (NumOpsBack-back)))
+				addb = hex(int(address - (NumOpsBack-back)))
 			else:
-				add = hex(int(i.address))
-				addb = hex(int(i.address +  section.VirtualAdd  - (NumOpsBack - back) ))
+				add = hex(int(address))
+				addb = hex(int(address +  section.VirtualAdd  - (NumOpsBack - back) ))
 				add2 = str(add)
-				add3 = hex (int(i.address + section.startLoc	- (NumOpsBack - back) ))
+				add3 = hex (int(address + section.startLoc	- (NumOpsBack - back) ))
 				add4 = str(add3)
-			val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+			val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 			# val2.append(val)
 			# val3.append(add2)
 			val5.append(val)
@@ -6933,23 +6936,23 @@ def disHereHeavenPE_old(address, NumOpsDis, NumOpsBack, secNum, data): #########
 		# dprint2(binaryToStr(CODED3))
 		# dprint2("******************************************")
 		disString = []
-		for i in cs.disasm(CODED3, address):
+		for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 			#dprint2('address in for = ' + str(address))
 
 			if(secNum == "noSec"):
 
-			#	dprint2("i = " + str(i) + " i.mnemonic = " + str(i.mnemonic))
-				# add = hex(int(i.address))
-				add4 = hex(int(i.address))
-				addb = hex(int(i.address))
+			#	dprint2("i = " + str(i) + " mnemonic = " + str(mnemonic))
+				# add = hex(int(address))
+				add4 = hex(int(address))
+				addb = hex(int(address))
 			else:
-				add = hex(int(i.address))
-				addb = hex(int(i.address +  section.VirtualAdd  - (NumOpsBack - back) ))
+				add = hex(int(address))
+				addb = hex(int(address +  section.VirtualAdd  - (NumOpsBack - back) ))
 				add2 = str(add)
-				add3 = hex (int(i.address + section.startLoc	- (NumOpsBack - back) ))
+				add3 = hex (int(address + section.startLoc	- (NumOpsBack - back) ))
 				add4 = str(add3)
 			offsets.append(addb)
-			val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+			val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 			# val2.append(val)
 			# val3.append(add2)
 			val5.append(val)
@@ -7722,22 +7725,22 @@ def disHereHeavenPE(address, NumOpsDis, NumOpsBack, secNum, data): ############ 
 		# dprint2(binaryToStr(CODED3))
 		# dprint2("******************************************")
 		offsets = []
-		for i in callCS.disasm(CODED3, address):
+		for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 			# dprint2('address in for = ' + str(address))
 			if(secNum == "noSec"):
 
-			#	dprint2("i = " + str(i) + " i.mnemonic = " + str(i.mnemonic))
-				# add = hex(int(i.address))
-				add4 = hex(int(i.address - (NumOpsBack - back)))
-				addb = hex(int(i.address - (NumOpsBack - back)))
+			#	dprint2("i = " + str(i) + " mnemonic = " + str(mnemonic))
+				# add = hex(int(address))
+				add4 = hex(int(address - (NumOpsBack - back)))
+				addb = hex(int(address - (NumOpsBack - back)))
 			else:
-				add = hex(int(i.address))
-				addb = hex(int(i.address +  section.VirtualAdd  - (NumOpsBack - back) ))
+				add = hex(int(address))
+				addb = hex(int(address +  section.VirtualAdd  - (NumOpsBack - back) ))
 				add2 = str(add)
-				add3 = hex (int(i.address + section.startLoc	- (NumOpsBack - back) ))
+				add3 = hex (int(address + section.startLoc	- (NumOpsBack - back) ))
 				add4 = str(add3)
 			offsets.append(addb)
-			val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+			val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 			# val2.append(val)
 			# val3.append(add2)
 			val5.append(val)
@@ -8120,23 +8123,23 @@ def printSavedHeaven(bit = 32): ######################## AUSTIN ################
 
 				CODED3 = CODED2
 
-				# for i in callCS.disasm(CODED3, address):
+				# for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 				if(pivottype == "ljmp/lcall"):
 					bytesCompensation = 0
 				elif(pivottype == "retf"):
 					bytesCompensation = 18
-				for i in callCS.disasm(CODED3, start - bytesCompensation):
+				for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, start - bytesCompensation):
 
-					add = hex(int(i.address))
-					# addb = hex(int(i.address +  section.VirtualAdd - NumOpsBack))
-					addb = hex(int(i.address))
+					add = hex(int(address))
+					# addb = hex(int(address +  section.VirtualAdd - NumOpsBack))
+					addb = hex(int(address))
 					add2 = str(add)
-					# add3 = hex (int(i.address + section.startLoc	- NumOpsBack))
-					add3 = hex (int(i.address))
+					# add3 = hex (int(address + section.startLoc	- NumOpsBack))
+					add3 = hex (int(address))
 					add4 = str(add3)
 					val = formatPrint(i, add4, addb, pe=True)
 
-					# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+					# val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 					val2.append(val)
 					val3.append(add2)
 					val5.append(val)
@@ -8256,23 +8259,23 @@ def printSavedHeaven(bit = 32): ######################## AUSTIN ################
 
 				CODED3 = CODED2
 
-				# for i in callCS.disasm(CODED3, address):
+				# for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 				if(pivottype == "ljmp/lcall"):
 					bytesCompensation = 0
 				elif(pivottype == "retf"):
 					bytesCompensation = 18
-				for i in callCS.disasm(CODED3, start - bytesCompensation):
+				for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, start - bytesCompensation):
 
-					add = hex(int(i.address))
-					# addb = hex(int(i.address +  section.VirtualAdd - NumOpsBack))
-					addb = hex(int(i.address +  section.VirtualAdd))
+					add = hex(int(address))
+					# addb = hex(int(address +  section.VirtualAdd - NumOpsBack))
+					addb = hex(int(address +  section.VirtualAdd))
 					add2 = str(add)
-					# add3 = hex (int(i.address + section.startLoc	- NumOpsBack))
-					add3 = hex (int(i.address + section.startLoc))
+					# add3 = hex (int(address + section.startLoc	- NumOpsBack))
+					add3 = hex (int(address + section.startLoc))
 					add4 = str(add3)
 					val = formatPrint(i, add4, addb, pe=True)
 
-					# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+					# val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 					val2.append(val)
 					val3.append(add2)
 					val5.append(val)
@@ -8367,13 +8370,13 @@ def printSavedHeaven_old(bit = 32): ######################## AUSTIN ############
 				CODED2 = section.data2[(address-NumOpsBack):(address+NumOpsDis)]
 
 				CODED3 = CODED2
-				for i in cs.disasm(CODED3, address):
-					add = hex(int(i.address))
-					addb = hex(int(i.address +  section.VirtualAdd - NumOpsBack))
+				for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
+					add = hex(int(address))
+					addb = hex(int(address +  section.VirtualAdd - NumOpsBack))
 					add2 = str(add)
-					add3 = hex (int(i.address + section.startLoc	- NumOpsBack))
+					add3 = hex (int(address + section.startLoc	- NumOpsBack))
 					add4 = str(add3)
-					val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+					val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 					val2.append(val)
 					val3.append(add2)
 					val5.append(val)
@@ -8392,7 +8395,7 @@ def convertStringToTrack(dis, offsets):
 	dprint2(offsets)
 	t = 0
 	result = [""]
-	#val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+	#val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(mnemonic, op_str, add4, "(offset " + addb + ")"))
 	for item in dis:
 		# outstr = '{:<35s} {:<20s} {:<20s}'.format(item, hex(offsets[t]), " (offset " + hex(offsets[t]) + ")")
 		outstr = item + "\t\t\t\t" + " " + hex(offsets[t]) + " (offset " + hex(offsets[t]) + ")"
@@ -8466,15 +8469,15 @@ def printSavedSyscall(bit = 32, showDisassembly = True): #######################
 					CODED2 = m[o].rawData2[(address-NumOpsBack):(address+NumOpsDis)]
 
 					CODED3 = CODED2
-					for i in callCS.disasm(CODED3, address):
-						add = hex(int(i.address))
-						addb = hex(int(i.address - NumOpsBack))
+					for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
+						add = hex(int(address))
+						addb = hex(int(address - NumOpsBack))
 						add2 = str(add)
-						add3 = hex (int(i.address - NumOpsBack))
+						add3 = hex (int(address - NumOpsBack))
 						add4 = str(add3)
 						val = formatPrint(i, add4, addb, pe=True)
 
-						# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+						# val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 						val2.append(val)
 						val3.append(add2)
 						val5.append(val)
@@ -8580,15 +8583,15 @@ def printSavedSyscall(bit = 32, showDisassembly = True): #######################
 					CODED2 = section.data2[(address-NumOpsBack):(address+NumOpsDis)]
 
 					CODED3 = CODED2
-					for i in callCS.disasm(CODED3, address):
-						add = hex(int(i.address))
-						addb = hex(int(i.address +  section.VirtualAdd - NumOpsBack))
+					for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
+						add = hex(int(address))
+						addb = hex(int(address +  section.VirtualAdd - NumOpsBack))
 						add2 = str(add)
-						add3 = hex (int(i.address + section.startLoc	- NumOpsBack))
+						add3 = hex (int(address + section.startLoc	- NumOpsBack))
 						add4 = str(add3)
 						val = formatPrint(i, add4, addb, pe=True)
 
-						# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+						# val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
 						val2.append(val)
 						val3.append(add2)
 						val5.append(val)
@@ -8760,8 +8763,8 @@ def optimized_find(numOps, match, secNum, data2, funcName = None):
 					CODED3 = data2[start - (20-back):(start+numOps)]
 			# CODED3 = data2[start:(start+numOps)]
 					instr=""
-					for i in cs.disasm(CODED3, start):
-						instr+=  i.mnemonic + " "
+					for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, start):
+						instr+=  mnemonic + " "
 					# print("intr", instr)
 					# input()
 					if "retf" in instr:
@@ -9774,14 +9777,14 @@ def disHereStrings(address, NumOpsDis, secNum, mode): #
 	asciiPerLine=[]
 	
 	CODED3 = CODED2.encode()
-	for i in cs.disasm(CODED3, address):
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 		cntLines+=1
 	current=0
-	for i in cs.disasm(CODED3, address):
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 		if current>0:
 			nextAd=sadd1
 			nextAdd.append(nextAd)
-		sadd1=hex(int(i.address ))
+		sadd1=hex(int(address ))
 		startAdd.append(int(sadd1, 16))
 		current+=1
 
@@ -9812,7 +9815,7 @@ def disHereStrings(address, NumOpsDis, secNum, mode): #
 
 	cnt=0
 	t=0
-	for i in cs.disasm(CODED3, address): 
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address): 
 		ans= binaryToStr(CODED3[cnt:cnt+bytesPerLine[t]]) #+ " " + str(t) + "\n"
 		res=""
 		for y in CODED3[cnt+1:cnt+bytesPerLine[t]]:
@@ -9841,16 +9844,16 @@ def disHereStrings(address, NumOpsDis, secNum, mode): #
 		t+=1	
 
 	t=0
-	for i in cs.disasm(CODED3, address):
-		add = hex(int(i.address))
-		addb = hex(int(i.address +  section.VirtualAdd))
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
+		add = hex(int(address))
+		addb = hex(int(address +  section.VirtualAdd))
 		add2 = str(add)
-		add3 = hex (int(i.address + section.startLoc	))
+		add3 = hex (int(address + section.startLoc	))
 		add4 = str(add3)
 		if mode=="ascii":
-			val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (" + addb + ") \t\t" + bytesEachLine[t] + " ; \t" + asciiPerLine[t] +"\n"# + str(cntLines)
+			val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (" + addb + ") \t\t" + bytesEachLine[t] + " ; \t" + asciiPerLine[t] +"\n"# + str(cntLines)
 		else:
-			val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+			val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 		val2.append(val)
 		val3.append(add2)
 		val5.append(val)
@@ -9940,14 +9943,14 @@ def disCheckStrings(address, NumOpsDis, secNum, mode): #
 	asciiPerLine=[]
 	
 	CODED2 = CODED2.encode()
-	for i in cs.disasm(CODED2, address):
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, address):
 		cntLines+=1
 	current=0
-	for i in cs.disasm(CODED2, address):
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, address):
 		if current>0:
 			nextAd=sadd1
 			nextAdd.append(nextAd)
-		sadd1=hex(int(i.address ))
+		sadd1=hex(int(address ))
 		startAdd.append(int(sadd1, 16))
 		current+=1
 	t=0
@@ -9972,7 +9975,7 @@ def disCheckStrings(address, NumOpsDis, secNum, mode): #
 
 	cnt=0
 	t=0
-	for i in cs.disasm(CODED2, address): 
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, address): 
 		ans= binaryToStr(CODED2[cnt:cnt+bytesPerLine[t]]) #+ " " + str(t) + "\n"
 		res=""
 		for y in CODED2[cnt+1:cnt+bytesPerLine[t]]:
@@ -10001,18 +10004,18 @@ def disCheckStrings(address, NumOpsDis, secNum, mode): #
 		t+=1	
 
 	t=0
-	for i in cs.disasm(CODED2, address):
-		add = hex(int(i.address))
-		addb = hex(int(i.address +  section.VirtualAdd))
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, address):
+		add = hex(int(address))
+		addb = hex(int(address +  section.VirtualAdd))
 		add2 = str(add)
-		add3 = hex (int(i.address + section.startLoc	))
+		add3 = hex (int(address + section.startLoc	))
 		add4 = str(add3)
 		if mode=="ascii":
-			val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (" + addb + ") \t\t" + bytesEachLine[t] + " ; \t" + asciiPerLine[t] +"\n"# + str(cntLines)
+			val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (" + addb + ") \t\t" + bytesEachLine[t] + " ; \t" + asciiPerLine[t] +"\n"# + str(cntLines)
 		elif mode=="basic":
-			val =  i.mnemonic + " " + i.op_str +"\n" #+ "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+			val =  mnemonic + " " + op_str +"\n" #+ "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 		else:
-			val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+			val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 		val2.append(val)
 		val3.append(add2)
 		val5.append(val)
@@ -11190,7 +11193,7 @@ def signedNegHexTo(signedVal):
 	new = (int.from_bytes(ba, byteorder='big', signed=True))
 	return new
 
-def checkForValidAddress(val_a,val_b1, val_b2, sizeShell):
+def checkForValaddress(val_a,val_b1, val_b2, sizeShell):
 	val_b=val_b1+ " " +  val_b2 
 	# print ("comparing: " + val_b2 + " > " + str(hex(sizeShell)) )
 	try:
@@ -11204,9 +11207,9 @@ def checkForValidAddress(val_a,val_b1, val_b2, sizeShell):
 		pass
 	return val_b
 
-def checkForValidAddress2(val_a,val_b1, val_b2, sizeShell, off_PossibleBad,data, num_bytes):
-	# print ("checkForValidAddress2")
-	# val_b=checkForValidAddress(val_a,val_b1, val_b2, sizeShell, off_PossibleBad)
+def checkForValaddress2(val_a,val_b1, val_b2, sizeShell, off_PossibleBad,data, num_bytes):
+	# print ("checkForValaddress2")
+	# val_b=checkForValaddress(val_a,val_b1, val_b2, sizeShell, off_PossibleBad)
 	val_b=val_b1+ " " +  val_b2 
 	try:
 		if str(val_b2) in off_PossibleBad:
@@ -11215,7 +11218,7 @@ def checkForValidAddress2(val_a,val_b1, val_b2, sizeShell, off_PossibleBad,data,
 			# res=specialDisDB(data, int(val_a,16))
 			# val_b=res
 			addy=int(val_a,16)
-			modifysByRange(data, addy,addy+num_bytes,"d","checkForValidAddress2")
+			modifysByRange(data, addy,addy+num_bytes,"d","checkForValaddress2")
 			# val_b =  val_b+ " (??)"
 			
 			# dprint2 ("check2: valb: "  + val_b + " " + str(num_bytes) )
@@ -11246,8 +11249,8 @@ def specialDisDB(data,addy):  #//takes bytes
 	dprint2 (binaryToStr(data[addy:addy+1]))
 	address=0
 	val_b=""
-	for i in cs.disasm(data[addy:addy+1], address):
-		val_b=i.mnemonic + " " + i.op_str 
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(data[addy:addy+1], address):
+		val_b=mnemonic + " " + op_str 
 		dprint2 ("hi2")
 		try:
 			dprint2 (val_b)
@@ -11311,15 +11314,15 @@ def disHereMakeDB(data,offset, end, mode, CheckingForDB):
 	asciiPerLine=[]
 	CODED3 = CODED2
 
-	for i in cs.disasm(CODED3, address):
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 		cntLines+=1
-		val=i.mnemonic + " " + i.op_str 
+		val=mnemonic + " " + op_str 
 	current=0
-	for i in cs.disasm(CODED3, address):
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 		if current>0:
 			nextAd=sadd1
 			nextAdd.append(nextAd)
-		sadd1=int(i.address )
+		sadd1=int(address )
 		startAdd.append(int(sadd1))
 		current+=1
 	t=0
@@ -11337,7 +11340,7 @@ def disHereMakeDB(data,offset, end, mode, CheckingForDB):
 	cnt=0
 	t=0
 
-	for i in cs.disasm(CODED3, address): 
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address): 
 		ans= binaryToStr(CODED3[cnt:cnt+bytesPerLine[t]]) #+ " " + str(t) + "\n"
 		res=""
 		for y in CODED3[cnt:cnt+bytesPerLine[t]]:
@@ -11359,20 +11362,20 @@ def disHereMakeDB(data,offset, end, mode, CheckingForDB):
 		cnt+=bytesPerLine[t]
 		t+=1	
 	t=0
-	add = hex(int(i.address))
+	add = hex(int(address))
 	sizeShell=len(CODED2)
-	for i in cs.disasm(CODED2, address):
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, address):
 		CantSkip=True
-		add = hex(int(i.address))
-		addb = hex(int(i.address))
+		add = hex(int(address))
+		addb = hex(int(address))
 		add2 = str(add)
-		# add3 = hex (int(i.address + section.startLoc	))
+		# add3 = hex (int(address + section.startLoc	))
 		add3=0
 		add4 = str(add3)
 		val_a=addb#"\t"#\t"
-		val_b=i.mnemonic + " " + i.op_str 
-		val_b1=i.mnemonic
-		val_b2=i.op_str
+		val_b=mnemonic + " " + op_str 
+		val_b1=mnemonic
+		val_b2=op_str
 		num_bytes=0
 		try:
 			val_c= bytesEachLine[t] 
@@ -11384,22 +11387,22 @@ def disHereMakeDB(data,offset, end, mode, CheckingForDB):
 			num_bytes=int(len(val_c)/4)
 		except:
 			num_bytes=1
-		val_b, num_bytes =checkForValidAddress2(val_a,val_b1, val_b2, sizeShell, off_PossibleBad,data,num_bytes)
+		val_b, num_bytes =checkForValaddress2(val_a,val_b1, val_b2, sizeShell, off_PossibleBad,data,num_bytes)
 		if mode=="ascii":
 			val =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(val_a, val_b, val_c, val_d))
 		else:
-			val = addb + ":\t" + i.mnemonic + " " + i.op_str+"\n"
+			val = addb + ":\t" + mnemonic + " " + op_str+"\n"
 			val=('{:<10s} {:<35s}\n'.format(val_a, val_b))
 		truth,res=checkForLabel(addb,labels)
 		if truth:
 			val=res+val
-		valCheck=i.mnemonic + " " + i.op_str 
+		valCheck=mnemonic + " " + op_str 
 		val, num_bytes,val_c =makeDBforUnknownBytes(num_bytes, val_c, addb)
 		dprint2 ("truth check " + addb)
 		truth,res=checkForLabel(addb,labels)
 		if truth:
 			val=res+val
-		valCheck=i.mnemonic + " " + i.op_str 
+		valCheck=mnemonic + " " + op_str 
 		addb=str(hex(int(addb,16)+1))
 		dprint2("final val_c")
 		dprint2(type(val_c))
@@ -11631,7 +11634,7 @@ def createDisassemblyLists(Colors=True, caller=None):
 
 
 
-		# valCheck=i.mnemonic + " " + i.op_str 
+		# valCheck=mnemonic + " " + op_str 
 		# controlFlow= re.match( r'\bjmp\b|\bje\b|\bjne\b|\bjg\b|\bjge\b|\bja\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bret\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', valCheck, re.M|re.I)
 		# if controlFlow:
 		# 	val=val+"\n"	
@@ -11652,7 +11655,7 @@ def createDisassemblyLists(Colors=True, caller=None):
 	# print(finalOutput)
 
 	finalOutputNoColors=cleanColors(finalOutput)
-	# pMnemonic= i.mnemonic
+	# pMnemonic= mnemonic
 
 	
 	# print ("sBy.shDisassemblyLine")
@@ -11784,7 +11787,7 @@ def createDisassemblyJson(Colors=True, caller=None):
 		
 
 		
-		# valCheck=i.mnemonic + " " + i.op_str 
+		# valCheck=mnemonic + " " + op_str 
 		# controlFlow= re.match( r'\bjmp\b|\bje\b|\bjne\b|\bjg\b|\bjge\b|\bja\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bret\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', valCheck, re.M|re.I)
 		# if controlFlow:
 		# 	val=val+"\n"	
@@ -12455,7 +12458,7 @@ def removeBadOffsets(notBad):
 def removeLabels(notLabel, val):
 	# dprint2("remove labels ", notLabel)
 	# labels.add(str(hex(destination)))
-	# off_Label.add(int(i.op_str, 16))
+	# off_Label.add(int(op_str, 16))
 	global labels
 
 	if val in labels.copy():
@@ -13147,13 +13150,13 @@ def disHereShellcurrentgood(data,offset, end, mode, CheckingForDB, bit): #   LAT
 	print("\t\t[-] inital ", end-start)
 	
 	start = time.time()
-	for i in callCS.disasm(CODED3, address):
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 		cntLines+=1
-		val=i.mnemonic + " " + i.op_str 
-		offsets.add((int(i.address)))
+		val=mnemonic + " " + op_str 
+		offsets.add((int(address)))
 		controlFlow= re.match( r'\bcall\b|\bjmp\b|\bje\b|\bjne\b|\bja\b|\bjg\b|\bjge\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bloop\b|\bloopcc\b|\bloope\b|\bloopne\b|\bloopnz\b|\bloopz\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', val, re.M|re.I)
 		if controlFlow:
-			val=i.op_str
+			val=op_str
 			isHex= re.match( "^[0-9][x]*[A-Fa-f0-9 -]*",val, re.M|re.I)
 			if isHex:
 				dprint2("addlabel: shell call " + val)
@@ -13163,17 +13166,17 @@ def disHereShellcurrentgood(data,offset, end, mode, CheckingForDB, bit): #   LAT
 				dprint2  ("6 appending label " + val)
 
 				labels.add(val)
-				off_Label.add(int(i.op_str, 16))
+				off_Label.add(int(op_str, 16))
 	current=0
 	end= time.time()
 	print("\t\t[-] loop 1 ", end-start)
 	start = time.time()
 	
-	for i in callCS.disasm(CODED3, address):
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 		if current>0:
 			nextAd=sadd1
 			nextAdd.append(nextAd)
-		sadd1=int(i.address )
+		sadd1=int(address )
 		startAdd.append(int(sadd1))
 		current+=1
 	for labOff in off_Label:
@@ -13206,7 +13209,7 @@ def disHereShellcurrentgood(data,offset, end, mode, CheckingForDB, bit): #   LAT
 	start= time.time()
 
 	t=0
-	for i in callCS.disasm(CODED3, address): 
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address): 
 		ans= binaryToStr(CODED3[cnt:cnt+bytesPerLine[t]]) #+ " " + str(t) + "\n"
 		res=""
 		for y in CODED3[cnt:cnt+bytesPerLine[t]]:
@@ -13230,7 +13233,7 @@ def disHereShellcurrentgood(data,offset, end, mode, CheckingForDB, bit): #   LAT
 	end= time.time()
 	print("\t\t[-] loop 4 ", end-start)
 	# try:
-	# 	add = hex(int(i.address))
+	# 	add = hex(int(address))
 	# except Exception as e:
 	# 	dprint2 ("weird error - investigate")
 	# 	dprint (e)
@@ -13241,8 +13244,8 @@ def disHereShellcurrentgood(data,offset, end, mode, CheckingForDB, bit): #   LAT
 	
 	callCS.skipdata = True
 	sizeShell=len(CODED2)
-	for i in callCS.disasm(CODED2, address):
-		val_b=i.mnemonic + " " + i.op_str 
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, address):
+		val_b=mnemonic + " " + op_str 
 		num_bytes=0
 		try:
 			val_c= bytesEachLine[t] 
@@ -13255,25 +13258,25 @@ def disHereShellcurrentgood(data,offset, end, mode, CheckingForDB, bit): #   LAT
 				num_bytes=int(len(val_c)/4)
 			except:
 				num_bytes=1
-			val_b, num_bytes =checkForValidAddress2(hex(int(i.address)),i.mnemonic, i.op_str, sizeShell, off_PossibleBad,data,num_bytes)
+			val_b, num_bytes =checkForValaddress2(hex(int(address)),mnemonic, op_str, sizeShell, off_PossibleBad,data,num_bytes)
 		if mode=="ascii":
-			val =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(hex(int(i.address)), val_b, val_c, val_d))
-			addDis(i.address, val, i.mnemonic, i.op_str,"Main2")
+			val =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(hex(int(address)), val_b, val_c, val_d))
+			addDis(address, val, mnemonic, op_str,"Main2")
 		else:
-			val =  hex(int(i.address)) + ":\t" + i.mnemonic + " " + i.op_str+"\n"
-			val=('{:<10s} {:<35s}\n'.format(hex(int(i.address)), val_b))
-			addDis(i.address, val, i.mnemonic, i.op_str,"Main3")
+			val =  hex(int(address)) + ":\t" + mnemonic + " " + op_str+"\n"
+			val=('{:<10s} {:<35s}\n'.format(hex(int(address)), val_b))
+			addDis(address, val, mnemonic, op_str,"Main3")
 
 		####ADD COMMENTS
-		if sBy.comments[i.address] !="":
-			val_b=sBy.comments[int(hex(int(i.address)),16)]
+		if sBy.comments[address] !="":
+			val_b=sBy.comments[int(hex(int(address)),16)]
 			val_comment =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(nada, val_b, nada, nada))
 			val+=val_comment
 		#### ADD COMENTS END
-		truth,res=checkForLabel( hex(int(i.address)),labels)
+		truth,res=checkForLabel( hex(int(address)),labels)
 		if truth:
 			val=res+val
-		valCheck=i.mnemonic + " " + i.op_str 
+		valCheck=mnemonic + " " + op_str 
 		controlFlow= re.match( r'\bjmp\b|\bje\b|\bjne\b|\bjg\b|\bjge\b|\bja\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bret\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', valCheck, re.M|re.I)
 		if controlFlow:
 			val=val+"\n"
@@ -13284,7 +13287,7 @@ def disHereShellcurrentgood(data,offset, end, mode, CheckingForDB, bit): #   LAT
 		# 		truth,res=checkForLabel(addb,labels)
 		# 		if truth:
 		# 			val=res+val
-		# 		valCheck=i.mnemonic + " " + i.op_str 
+		# 		valCheck=mnemonic + " " + op_str 
 		# 		addb=str(hex(int(addb,16)+1))
 		# 		dprint("final val_c")
 		# 		dprint(type(val_c))
@@ -13295,7 +13298,7 @@ def disHereShellcurrentgood(data,offset, end, mode, CheckingForDB, bit): #   LAT
 
 		############Stack strings begin
 		try:
-			cur=i.address
+			cur=address
 			# print (hex(sBy.pushStringEnd[cur]), add, "pushending")
 			if (sBy.pushStringEnd[cur]-2) == cur:
 				# dprint2 ("push match", sBy.pushStringValue[cur])
@@ -13355,10 +13358,10 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 	print("\t\t[-] inital ", end-start)
 	
 	start = time.time()
-	for i in callCS.disasm(CODED3, address):
-		offsets.add((int(i.address)))
-		if re.match( r'\bcall\b|\bjmp\b|\bje\b|\bjne\b|\bja\b|\bjg\b|\bjge\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bloop\b|\bloopcc\b|\bloope\b|\bloopne\b|\bloopnz\b|\bloopz\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', i.mnemonic, re.M|re.I):	
-			val=i.op_str
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
+		offsets.add((int(address)))
+		if re.match( r'\bcall\b|\bjmp\b|\bje\b|\bjne\b|\bja\b|\bjg\b|\bjge\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bloop\b|\bloopcc\b|\bloope\b|\bloopne\b|\bloopnz\b|\bloopz\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', mnemonic, re.M|re.I):	
+			val=op_str
 			isHex= re.match( "^[0-9][x]*[A-Fa-f0-9 -]*",val, re.M|re.I)
 			if isHex:
 				# dprint2("addlabel: shell call " + val)
@@ -13367,10 +13370,10 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 					val="0x"+val
 				# dprint2  ("6 appending label " + val)
 				labels.add(val)
-				off_Label.add(int(i.op_str, 16))
-				if int(i.op_str, 16) not in offsets:
-					if str(hex(int(i.op_str, 16))) not in off_PossibleBad:
-						off_PossibleBad.add(str(hex(int(i.op_str, 16))))		
+				off_Label.add(int(op_str, 16))
+				if int(op_str, 16) not in offsets:
+					if str(hex(int(op_str, 16))) not in off_PossibleBad:
+						off_PossibleBad.add(str(hex(int(op_str, 16))))		
 	end= time.time()
 	print("\t\t[-] loop 1 ", end-start)
 	start = time.time()
@@ -13406,7 +13409,7 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 	start= time.time()
 
 	# t=0
-	# for i in callCS.disasm(CODED3, address): 
+	# for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address): 
 	# 	ans= binaryToStr(CODED3[cnt:cnt+bytesPerLine[t]]) #+ " " + str(t) + "\n"
 	# 	res=""
 	# 	for y in CODED3[cnt:cnt+bytesPerLine[t]]:
@@ -13436,32 +13439,32 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 	pOp_str= pMnemonic=val=""
 	t=prev=pAddress=0
 	###this is it!
-	for i in callCS.disasm(CODED2, address):
-		val_b=i.mnemonic + " " + i.op_str 
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, address):
+		val_b=mnemonic + " " + op_str 
 		num_bytes=0
 		val_d=val_c=""
 		# if CheckingForDB:    # CheckingForDB=False
 		# 	num_bytes=1   
-		# 	val_b, num_bytes =checkForValidAddress2(hex(int(i.address)),i.mnemonic, i.op_str, sizeShell, off_PossibleBad,data,num_bytes)
+		# 	val_b, num_bytes =checkForValaddress2(hex(int(address)),mnemonic, op_str, sizeShell, off_PossibleBad,data,num_bytes)
 		if t>0:
 			if CheckingForDB:    # CheckingForDB=False
 				num_bytes= 1
 			#current here -- do not use prev
-				val_b, num_bytes =checkForValidAddress2(hex(int(i.address)),i.mnemonic, i.op_str, sizeShell, off_PossibleBad,data,num_bytes)
+				val_b, num_bytes =checkForValaddress2(hex(int(address)),mnemonic, op_str, sizeShell, off_PossibleBad,data,num_bytes)
 			
 			if mode=="ascii":
-				# val =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(hex(int(i.address)), val_b, val_c, val_d))
+				# val =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(hex(int(address)), val_b, val_c, val_d))
 				## secret sauce
-				val=('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(hex((pAddress)), prev, binaryToStr(m[o].rawData2[pAddress:i.address]), toString(m[o].rawData2[pAddress:i.address])))
+				val=('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(hex((pAddress)), prev, binaryToStr(m[o].rawData2[pAddress:address]), toString(m[o].rawData2[pAddress:address])))
 				addDis(pAddress, prev, pMnemonic, pOp_str,"main5")
 				print ("prev", prev)
 			else:
-				# val =  hex(int(i.address)) + ":\t" + i.mnemonic + " " + i.op_str+"\n"
+				# val =  hex(int(address)) + ":\t" + mnemonic + " " + op_str+"\n"
 				val=('{:<10s} {:<35s}\n'.format(hex((pAddress)), val_b))
 				addDis(pAddress, prev, pMnemonic, pOp_str,"main6")
 			####ADD COMMENTS
 			if sBy.comments[pAddress] !="":
-				# val_b=sBy.comments[int(hex(int(i.address)),16)]
+				# val_b=sBy.comments[int(hex(int(address)),16)]
 				# val_b=sBy.comments[int(hex(int(pAddress)),16)]
 				val_b2=sBy.comments[pAddress]
 				val_comment =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(nada, val_b2, nada, nada))
@@ -13475,7 +13478,7 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 
 			############Stack strings begin
 			try:
-				# cur=i.address
+				# cur=address
 				cur=pAddress
 				# print (hex(sBy.pushStringEnd[cur]), add, "pushending")
 				if (sBy.pushStringEnd[cur]-2) == cur:
@@ -13487,10 +13490,10 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 			except Exception as e:
 				# print ("weird error", e)
 				pass
-		pMnemonic= i.mnemonic
-		pOp_str= i.op_str 
+		pMnemonic= mnemonic
+		pOp_str= op_str 
 		prev=val_b
-		pAddress=i.address
+		pAddress=address
 		val5.append(val)
 		t+=1
 	val=('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(hex((pAddress)),"*"+ prev, binaryToStr(CODED2[pAddress:len(CODED2)]), toString(CODED2[pAddress:len(CODED2)])))
@@ -13537,25 +13540,25 @@ def disHereShellLimited(data, offset): #current good 1/8/2022
 	# start = time.time()
 	
 	# start = time.time()
-	# for i in callCS.disasm(CODED2, offset):
-	# 	offsets.add((int(i.address)))
-	# 	if re.match( r'\bcall\b|\bjmp\b|\bje\b|\bjne\b|\bja\b|\bjg\b|\bjge\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bloop\b|\bloopcc\b|\bloope\b|\bloopne\b|\bloopnz\b|\bloopz\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', i.mnemonic, re.M|re.I):	
-	# 		val=i.op_str
+	# for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, offset):
+	# 	offsets.add((int(address)))
+	# 	if re.match( r'\bcall\b|\bjmp\b|\bje\b|\bjne\b|\bja\b|\bjg\b|\bjge\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bloop\b|\bloopcc\b|\bloope\b|\bloopne\b|\bloopnz\b|\bloopz\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', mnemonic, re.M|re.I):	
+	# 		val=op_str
 	# 		if re.match( "^[0-9][x]*[A-Fa-f0-9 -]*",val, re.M|re.I):
 	# 			if "x" not in val:
 	# 				val="0x"+val
 	# 			labels.add(val)
-	# 			off_Label.add(int(i.op_str, 16))
-	# 			if int(i.op_str, 16) not in offsets:
-	# 				off_PossibleBad.add(i.op_str)		
+	# 			off_Label.add(int(op_str, 16))
+	# 			if int(op_str, 16) not in offsets:
+	# 				off_PossibleBad.add(op_str)		
 	# end= time.time()
 	# print("\t\t[-] loop 1 ", end-start)
 	# start = time.time()
 
 	sizeShell=len(CODED2)
-	for i in callCS.disasm(CODED2, offset): 
-		# val_b, num_bytes =checkForValidAddress2(hex(int(i.address)),i.mnemonic, i.op_str, sizeShell, off_PossibleBad,data,i.size)
-		addDis(i.address, i.mnemonic + " " + i.op_str, i.mnemonic, i.op_str,"limited")
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, offset): 
+		# val_b, num_bytes =checkForValaddress2(hex(int(address)),mnemonic, op_str, sizeShell, off_PossibleBad,data,size)
+		addDis(address, mnemonic + " " + op_str, mnemonic, op_str,"limited")
 	# print("\t\t[-] loop 5 ", end-start)
 	# disHereShell_end = time.time()
 	# print ("\t[*]disHereShell:", disHereShell_end- disHereShell_start)
@@ -13588,28 +13591,31 @@ def disHereShell(data,offset, end, mode, CheckingForDB, bit, caller=None): #curr
 	start = time.time()
 	
 	start = time.time()
-	for i in callCS.disasm(CODED2, offset):
-		offsets.add((int(i.address)))
-		if re.match( r'\bcall\b|\bjmp\b|\bje\b|\bjne\b|\bja\b|\bjg\b|\bjge\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bloop\b|\bloopcc\b|\bloope\b|\bloopne\b|\bloopnz\b|\bloopz\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', i.mnemonic, re.M|re.I):	
-			val=i.op_str
+	sizeShell=len(CODED2)
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, offset):
+		val_b, num_bytes =checkForValaddress2(hex(int(address)),mnemonic, op_str, sizeShell, off_PossibleBad,data,size)
+		addDis(address, mnemonic + " " + op_str, mnemonic, op_str,"main5")
+		offsets.add((int(address)))
+		if re.match( r'\bcall\b|\bjmp\b|\bje\b|\bjne\b|\bja\b|\bjg\b|\bjge\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bloop\b|\bloopcc\b|\bloope\b|\bloopne\b|\bloopnz\b|\bloopz\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', mnemonic, re.M|re.I):	
+			val=op_str
 			if re.match( "^[0-9][x]*[A-Fa-f0-9 -]*",val, re.M|re.I):
 				if "x" not in val:
 					val="0x"+val
 				labels.add(val)
-				off_Label.add(int(i.op_str, 16))
-				if int(i.op_str, 16) not in offsets:
-					off_PossibleBad.add(i.op_str)		
+				off_Label.add(int(op_str, 16))
+				if int(op_str, 16) not in offsets:
+					off_PossibleBad.add(op_str)		
 	end= time.time()
 	# print("\t\t[-] loop 1 ", end-start)
 	start = time.time()
 
-	sizeShell=len(CODED2)
-	for i in callCS.disasm(CODED2, offset): 
-		val_b, num_bytes =checkForValidAddress2(hex(int(i.address)),i.mnemonic, i.op_str, sizeShell, off_PossibleBad,data,i.size)
-		addDis(i.address, i.mnemonic + " " + i.op_str, i.mnemonic, i.op_str,"main5")
-	end= time.time()
-	# print("\t\t[-] loop 5 ", end-start)
-	disHereShell_end = time.time()
+	# sizeShell=len(CODED2)
+	# for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, offset): 
+	# 	val_b, num_bytes =checkForValaddress2(hex(int(address)),mnemonic, op_str, sizeShell, off_PossibleBad,data,size)
+	# 	addDis(address, mnemonic + " " + op_str, mnemonic, op_str,"main5")
+	# end= time.time()
+	# # print("\t\t[-] loop 5 ", end-start)
+	# disHereShell_end = time.time()
 	# print ("\t[*]disHereShell:", disHereShell_end- disHereShell_start)
 	return ""
 
@@ -13650,13 +13656,13 @@ def disHereAnalysisOlder(data,offset, end, mode, CheckingForDB): #origianl mostl
 	CODED3 = CODED2
 
 	t=0
-	for i in cs.disasm(CODED3, address):
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 		cntLines+=1
-		val=i.mnemonic + " " + i.op_str 
-		offsets.add((int(i.address)))
+		val=mnemonic + " " + op_str 
+		offsets.add((int(address)))
 		controlFlow= re.match( r'\bcall\b|\bjmp\b|\bje\b|\bjne\b|\bja\b|\bjg\b|\bjge\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bloop\b|\bloopcc\b|\bloope\b|\bloopne\b|\bloopnz\b|\bloopz\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', val, re.M|re.I)
 		if controlFlow:
-			val=i.op_str
+			val=op_str
 			isHex= re.match( "^[0-9][x]*[A-Fa-f0-9 -]*",val, re.M|re.I)
 			if isHex:
 				dprint2("addlabel:  " + val)
@@ -13668,16 +13674,16 @@ def disHereAnalysisOlder(data,offset, end, mode, CheckingForDB): #origianl mostl
 
 				# labels.add(val)
 				# print  ("5 appending label ", val, hex(t))
-				# print (i.mnemonic, i.op_str)
-				# off_Label.append(int(i.op_str, 16))
+				# print (mnemonic, op_str)
+				# off_Label.append(int(op_str, 16))
 		t+=1
 
 	current=0
-	for i in cs.disasm(CODED3, address):
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 		if current>0:
 			nextAd=sadd1
 			nextAdd.append(nextAd)
-		sadd1=int(i.address )
+		sadd1=int(address )
 
 		startAdd.append(int(sadd1))
 		current+=1
@@ -13703,7 +13709,7 @@ def disHereAnalysisOlder(data,offset, end, mode, CheckingForDB): #origianl mostl
 		t+=1
 	cnt=0
 	t=0
-	for i in cs.disasm(CODED3, address): 
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address): 
 		ans= binaryToStr(CODED3[cnt:cnt+bytesPerLine[t]]) #+ " " + str(t) + "\n"
 		res=""
 		for y in CODED3[cnt:cnt+bytesPerLine[t]]:
@@ -13726,24 +13732,24 @@ def disHereAnalysisOlder(data,offset, end, mode, CheckingForDB): #origianl mostl
 		t+=1	
 	t=0
 	try:
-		add = hex(int(i.address))
+		add = hex(int(address))
 	except:
 		pass
 	cs.skipdata = True
 	sizeShell=len(CODED2)
-	for i in cs.disasm(CODED2, address):
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, address):
 		CantSkip=True
-		add = hex(int(i.address))
-		addb = hex(int(i.address))
+		add = hex(int(address))
+		addb = hex(int(address))
 		add2 = str(add)
-		# add3 = hex (int(i.address + section.startLoc	))
+		# add3 = hex (int(address + section.startLoc	))
 		add3=0
 		add4 = str(add3)
 		#  testing=('{:20s} {:20s} {:20s}'.format(a,b,c))
 		val_a=addb#"\t"#\t"
-		val_b=i.mnemonic + " " + i.op_str 
-		val_b1=i.mnemonic
-		val_b2=i.op_str
+		val_b=mnemonic + " " + op_str 
+		val_b1=mnemonic
+		val_b2=op_str
 		num_bytes=0
 		try:
 			val_c= bytesEachLine[t] 
@@ -13756,16 +13762,16 @@ def disHereAnalysisOlder(data,offset, end, mode, CheckingForDB): #origianl mostl
 				num_bytes=int(len(val_c)/4)
 			except:
 				num_bytes=1
-			val_b, num_bytes =checkForValidAddress2(val_a,val_b1, val_b2, sizeShell, off_PossibleBad,data,num_bytes)
+			val_b, num_bytes =checkForValaddress2(val_a,val_b1, val_b2, sizeShell, off_PossibleBad,data,num_bytes)
 		if mode=="ascii":
 			val =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(val_a, val_b, val_c, val_d))
 		else:
-			val = addb + ":\t" + i.mnemonic + " " + i.op_str+"\n"
+			val = addb + ":\t" + mnemonic + " " + op_str+"\n"
 			val=('{:<10s} {:<35s}\n'.format(val_a, val_b))
 		truth,res=checkForLabel(addb,labels)
 		if truth:
 			val=res+val
-		valCheck=i.mnemonic + " " + i.op_str 
+		valCheck=mnemonic + " " + op_str 
 		controlFlow= re.match( r'\bjmp\b|\bje\b|\bjne\b|\bjg\b|\bjge\b|\bja\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bret\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', valCheck, re.M|re.I)
 		if controlFlow:
 			val=val+"\n"
@@ -13776,7 +13782,7 @@ def disHereAnalysisOlder(data,offset, end, mode, CheckingForDB): #origianl mostl
 				truth,res=checkForLabel(addb,labels)
 				if truth:
 					val=res+val
-				valCheck=i.mnemonic + " " + i.op_str 
+				valCheck=mnemonic + " " + op_str 
 				addb=str(hex(int(addb,16)+1))
 				dprint2("final val_c")
 				dprint2(type(val_c))
@@ -13803,14 +13809,17 @@ def disHereAnalysis(data,offset, end, mode, CheckingForDB): #
 	global o
 	CODED3=data[offset:end]
 	sizeShell=len(CODED3)
-
+	if(bit32):
+		callCS = cs
+	else:
+		callCS = cs64
 	t=0
-	for i in cs.disasm(CODED3, offset):
-		offsets.add((int(i.address)))
-		val_a=hex(int(i.address))#"\t"#\t"
-		val_b1=i.mnemonic
-		val_b2=i.op_str
-		val_b, num_bytes =checkForValidAddress2(val_a,val_b1, val_b2, sizeShell, off_PossibleBad,data,i.size)
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, offset):
+		offsets.add((int(address)))
+		val_a=hex(int(address))#"\t"#\t"
+		val_b1=mnemonic
+		val_b2=op_str
+		val_b, num_bytes =checkForValaddress2(val_a,val_b1, val_b2, sizeShell, off_PossibleBad,data,size)
 		t+=1
 
 def disHereAnalysis2(data,offset, end, mode, CheckingForDB): #
@@ -13818,6 +13827,10 @@ def disHereAnalysis2(data,offset, end, mode, CheckingForDB): #
 	global offsets
 	global off_Label
 	global off_PossibleBad
+	if(bit32):
+		callCS = cs
+	else:
+		callCS = cs64
 	dprint2 ("disHereAnalysis - range  "  + str(offset) + " " + str(end))
 	global o
 	address=offset
@@ -13831,15 +13844,15 @@ def disHereAnalysis2(data,offset, end, mode, CheckingForDB): #
 	sizeShell=len(CODED2)
 
 	current=0
-	for i in cs.disasm(CODED3, address):
-		offsets.add((int(i.address)))
-		if (int(i.address)) not in offsets:
-			if str(hex((int(i.address)))) not in off_PossibleBad:
-				off_PossibleBad.add(hex((int(i.address))))
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
+		offsets.add((int(address)))
+		if (int(address)) not in offsets:
+			if str(hex((int(address)))) not in off_PossibleBad:
+				off_PossibleBad.add(hex((int(address))))
 		if current>0:
 			nextAd=sadd1
 			nextAdd.append(nextAd)
-		sadd1=int(i.address )
+		sadd1=int(address )
 		startAdd.append(int(sadd1))
 		current+=1
 
@@ -13857,14 +13870,14 @@ def disHereAnalysis2(data,offset, end, mode, CheckingForDB): #
 		t+=1
 	
 	t=0
-	for i in cs.disasm(CODED2, address):
-		add = hex(int(i.address))
-		addb = hex(int(i.address))
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, address):
+		add = hex(int(address))
+		addb = hex(int(address))
 		add2 = str(add)
 		val_a=addb#"\t"#\t"
-		val_b=i.mnemonic + " " + i.op_str 
-		val_b1=i.mnemonic
-		val_b2=i.op_str
+		val_b=mnemonic + " " + op_str 
+		val_b1=mnemonic
+		val_b2=op_str
 		num_bytes=0
 		val_c= bytesEachLine[t] 
 		if CheckingForDB:
@@ -13872,7 +13885,7 @@ def disHereAnalysis2(data,offset, end, mode, CheckingForDB): #
 				num_bytes=int(len(val_c)/4)
 			except:
 				num_bytes=1
-			val_b, num_bytes =checkForValidAddress2(val_a,val_b1, val_b2, sizeShell, off_PossibleBad,data,num_bytes)
+			val_b, num_bytes =checkForValaddress2(val_a,val_b1, val_b2, sizeShell, off_PossibleBad,data,num_bytes)
 		truth,res=checkForLabel(addb,labels)
 		while (num_bytes>0):	
 			if num_bytes>0:
@@ -13900,16 +13913,20 @@ def disHereTiny(data): #
 	nop="90"
 	nop1=fromhexToBytes(nop)
 	dprint2 (binaryToStr(nop1))
-	for i in cs.disasm(CODED2 + nop1, address):
-		add = hex(int(i.address))
-		addb = hex(int(i.address))
+	if(bit32):
+		callCS = cs
+	else:
+		callCS = cs64
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2 + nop1, address):
+		add = hex(int(address))
+		addb = hex(int(address))
 		add2 = str(add)
 		add3=0
 		add4 = str(add3)
 		val_a=addb#"\t"#\t"
-		val_b=i.mnemonic + " " + i.op_str 
-		val_b1=i.mnemonic
-		val_b2=i.op_str
+		val_b=mnemonic + " " + op_str 
+		val_b1=mnemonic
+		val_b2=op_str
 		num_bytes=0
 		val2.append(val)
 		val3.append(add2)
@@ -13921,7 +13938,7 @@ def disHereTiny(data): #
 			first_val_b2=val_b2
 		second+=1
 		if second == 2:
-			num_bytesLine1=int(i.address)
+			num_bytesLine1=int(address)
 			dprint2 ("num_bytes", num_bytesLine1)
 	if num_bytesLine1==0:
 		pass
@@ -13953,18 +13970,18 @@ def disHereCheck(data): #
 	nop="90"
 	nop1=fromhexToBytes(nop)
 	dprint2 (binaryToStr(nop1))
-	for i in cs.disasm(CODED2 + nop1, address):
-		add = hex(int(i.address))
-		addb = hex(int(i.address))
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2 + nop1, address):
+		add = hex(int(address))
+		addb = hex(int(address))
 		add2 = str(add)
 		add3=0
 		add4 = str(add3)
 		val_a=addb#"\t"#\t"
-		val_b=i.mnemonic + " " + i.op_str 
+		val_b=mnemonic + " " + op_str 
 
 		controlFlow= re.match( r'\bcall\b|\bjmp\b|\bje\b|\bjne\b|\bja\b|\bjg\b|\bjge\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bloop\b|\bloopcc\b|\bloope\b|\bloopne\b|\bloopnz\b|\bloopz\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', val_b, re.M|re.I)
 		if controlFlow:
-			val=i.op_str
+			val=op_str
 			isHex= re.match( "^[0-9][x]*[A-Fa-f0-9 -]*",val, re.M|re.I)
 			if isHex:
 				dprint2("removLab:  " + val)
@@ -13972,8 +13989,8 @@ def disHereCheck(data): #
 				removeLabels(val_b, val)
 				dprint2("done")
 
-		val_b1=i.mnemonic
-		val_b2=i.op_str
+		val_b1=mnemonic
+		val_b2=op_str
 		num_bytes=0
 		val2.append(val)
 		val3.append(add2)
@@ -16813,21 +16830,21 @@ def analyzeDecoderStubs(shellArg="default", entryPoint = 0, stubEnd = -1):
 	numVals = []
 	opTypes = []
 
-	for i in cs.disasm(CODED3, entryPoint):
+	for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, entryPoint):
 
-		add4 = hex(int(i.address))
-		addb = hex(int(i.address))
-		size = hex(int(i.size))
-		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+		add4 = hex(int(address))
+		addb = hex(int(address))
+		size = hex(int(size))
+		val =  mnemonic + " " + op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
 		# val2.append(val)
 		# val3.append(add2)
 		disString += val
 
 
-		# print("checking this one: ", i.op_str)
+		# print("checking this one: ", op_str)
 		#
-		numeric = re.search("(0x)?([0-9a-f]+)$", i.op_str, re.IGNORECASE)
-		isLoop = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(loop)|(jns))", i.mnemonic, re.M|re.I)
+		numeric = re.search("(0x)?([0-9a-f]+)$", op_str, re.IGNORECASE)
+		isLoop = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(loop)|(jns))", mnemonic, re.M|re.I)
 		
 		if(numeric and not isLoop):
 			numVals.append(numeric.group())
@@ -16846,13 +16863,13 @@ def analyzeDecoderStubs(shellArg="default", entryPoint = 0, stubEnd = -1):
 			# print(binaryToStr(sh.decoderStub))
 			return (numVals, opTypes, (int(addb, 16) + int(size, 16)))
 
-		isXor = re.search("^(xor)", i.mnemonic, re.IGNORECASE)
-		isAdd = re.search("^(add)|(adc)", i.mnemonic, re.IGNORECASE)
-		isSub = re.search("^(sub)|(sbb)", i.mnemonic, re.IGNORECASE)
-		isRol = re.search("^(rol)", i.mnemonic, re.IGNORECASE)
-		isRor = re.search("^(ror)", i.mnemonic, re.IGNORECASE)
-		isNot = re.search("^(not)", i.mnemonic, re.IGNORECASE)
-		isShr = re.search("^(shr)", i.mnemonic, re.IGNORECASE)
+		isXor = re.search("^(xor)", mnemonic, re.IGNORECASE)
+		isAdd = re.search("^(add)|(adc)", mnemonic, re.IGNORECASE)
+		isSub = re.search("^(sub)|(sbb)", mnemonic, re.IGNORECASE)
+		isRol = re.search("^(rol)", mnemonic, re.IGNORECASE)
+		isRor = re.search("^(ror)", mnemonic, re.IGNORECASE)
+		isNot = re.search("^(not)", mnemonic, re.IGNORECASE)
+		isShr = re.search("^(shr)", mnemonic, re.IGNORECASE)
 
 		if(isXor):
 			opTypes.append("^")
@@ -18034,39 +18051,7 @@ def modConf():
 
 
 
-
-def disassemblyConf(conr):
-	global shellSizeLimit
-
-	mBool[o].bDoFindHiddenCalls = conr.getboolean('SHAREM DISASSEMBLY','enable_hidden_calls')
-	mBool[o].bDoEnableComments = conr.getboolean('SHAREM DISASSEMBLY','enable_assembly_comments')
-	mBool[o].bDoShowAscii = conr.getboolean('SHAREM DISASSEMBLY','enable_assembly_ascii')
-	mBool[o].bDoFindStrings = conr.getboolean('SHAREM DISASSEMBLY','enable_find_strings')
-	mBool[o].ignoreDisDiscovery = conr.getboolean('SHAREM DISASSEMBLY','ignore_dis_discovery')
-	mBool[o].maxOpDisplay = int(conr['SHAREM DISASSEMBLY']['max_disassembly_operands'])
-	mBool[o].btsV = int(conr['SHAREM DISASSEMBLY']['binary_to_string'])
-	shellSizeLimit = int(conr['SHAREM DISASSEMBLY']['shellcode_size_limit'])
-	mBool[o].bDoShowOffsets = conr.getboolean('SHAREM DISASSEMBLY','show_disassembly_offsets')
-	mBool[o].bDoShowOpcodes = conr.getboolean('SHAREM DISASSEMBLY','show_disassembly_opcodes')
-	mBool[o].bDoShowLabels = conr.getboolean('SHAREM DISASSEMBLY','show_disassembly_labels')
-
-
-def emulationConf(conr):
-	global bPrintEmulation
-	global emulation_verbose
-	global emulation_multiline
-
-	bPrintEmulation = conr.getboolean('SHAREM EMULATION', 'print_emulation_result')
-	emulation_verbose = conr.getboolean('SHAREM EMULATION', 'emulation_verbose_mode')
-	emulation_multiline = conr.getboolean('SHAREM EMULATION', 'emulation_multiline')
-	emuObj.maxEmuInstr = int(conr['SHAREM EMULATION']['max_num_of_instr'])
-	emuObj.numOfIter = int(conr['SHAREM EMULATION']['iterations_before_break'])
-	emuObj.breakLoop = conr.getboolean('SHAREM EMULATION', 'break_infinite_loops')
-	emuObj.verbose = conr.getboolean('SHAREM EMULATION', 'timeless_debugging')
-
-
-
-def SharemSearchConfig(conr):
+def readConf():
 	global bPushRet
 	global bCallPop
 	global bFstenv
@@ -18082,83 +18067,12 @@ def SharemSearchConfig(conr):
 	global bytesBack
 	global linesForward
 	global linesBack
-	global shellBit
-	global print_style
-	global save_bin_file
-	global shellEntry
-	global sharem_out_dir
-	global maxDistance
-	global bpEvilImports
-
-	sharem_out_dir = conr['SHAREM SEARCH']['default_outdir']
-	maxDistance = int(conr['SHAREM SEARCH']['max_callpop_distance'])
-	bPushRet= conr.getboolean('SHAREM SEARCH','pushret')
-	bCallPop= conr.getboolean('SHAREM SEARCH','callpop')
-	bFstenv= conr.getboolean('SHAREM SEARCH','fstenv')
-	bSyscall= conr.getboolean('SHAREM SEARCH','syscall')
-	bHeaven= conr.getboolean('SHAREM SEARCH','heaven')
-	bPEB= conr.getboolean('SHAREM SEARCH','peb')
-	save_bin_file = conr.getboolean('SHAREM SEARCH','save_bin_file')
-	bDisassembly= conr.getboolean('SHAREM SEARCH','disassembly')
-	pebPresent = conr.getboolean('SHAREM SEARCH','pebpresent')
-	
-	bpEvilImports = conr.getboolean('SHAREM SEARCH', 'imports')
-
-	if rawHex and not bit32_argparse:
-		bit32 = conr.getboolean('SHAREM SEARCH','bit32')
-
-		if bit32:
-			shellBit = 32
-		else:
-			shellBit = 64
-
-
-	p2screen =  conr.getboolean('SHAREM SEARCH','print_to_screen')
-	pebPoints = int(conr['SHAREM SEARCH']['pebpoints'])
-	if pebPoints > 4:
-		pebPoints=4
-	try:
-		shellEntry = int(conr['SHAREM SEARCH']['shellEntry'])
-	except:
-		shellEntry = int(conr['SHAREM SEARCH']['shellEntry'], 16)
-	try:
-		bytesForward = int(conr['SHAREM SEARCH']['max_bytes_forward'])
-	except:
-		bytesForward = int(conr['SHAREM SEARCH']['max_bytes_forward'],16)
-
-	try:
-		bytesBack = int(conr['SHAREM SEARCH']['max_lines_backward'])
-	except:
-		bytesBack = int(conr['SHAREM SEARCH']['max_lines_backward'],16)
-
-	try:
-		linesForward = int(conr['SHAREM SEARCH']['max_lines_forward'])
-	except:
-		linesForward = int(conr['SHAREM SEARCH']['max_lines_forward'],16)
-
-	try:
-		linesBack = int(conr['SHAREM SEARCH']['max_lines_backward'])
-	except:
-		linesBack = int(conr['SHAREM SEARCH']['max_lines_backward'],16)
-
-	print_style = conr['SHAREM SEARCH']['print_format_style']
-
-
-def stringsConf(conr):
 	global bPushStackStrings
 	global bWideCharStrings
 	global bAsciiStrings
-	global minStrLen
-
-	bPushStackStrings =  conr.getboolean('SHAREM STRINGS','push_stack_strings')
-
-	bAsciiStrings =  conr.getboolean('SHAREM STRINGS','ascii_strings')
-	bWideCharStrings =  conr.getboolean('SHAREM STRINGS','wide_char_strings')
-	minStrLen = int(conr['SHAREM STRINGS']['minimum_str_length'])
-
-
-
-def decryptConf(conr):
+	global syscallSelection
+	global shellBit
+	global print_style
 	global dFastMode
 	global dFindAll
 	global dDistr
@@ -18171,6 +18085,28 @@ def decryptConf(conr):
 	global sameFile
 	global stubEntry
 	global stubEnd
+	global save_bin_file
+	global shellEntry
+	global minStrLen
+	global sharem_out_dir
+	global maxDistance
+	global bPrintEmulation
+	global emulation_verbose
+	global emulation_multiline
+	global bpEvilImports
+	global bpModules
+	global shellSizeLimit
+	# global os
+
+	con = Configuration(conFile)
+	conr = con.readConf()
+	initSysCallSelect()
+
+	
+	startupBool = conr.getboolean('SHAREM STARTUP','startup_enabled')
+
+
+# Reading decryption variables from config
 
 	dFastMode = conr.getboolean('SHAREM DECRYPT','fast_mode')
 	dFindAll = conr.getboolean('SHAREM DECRYPT','find_all')
@@ -18209,64 +18145,146 @@ def decryptConf(conr):
 
 
 
-def syscallsConf(conr):
 
-	global syscallSelection
+#===============================================================================
+
+	bPrintEmulation = conr.getboolean('SHAREM EMULATION', 'print_emulation_result')
+	emulation_verbose = conr.getboolean('SHAREM EMULATION', 'emulation_verbose_mode')
+	emulation_multiline = conr.getboolean('SHAREM EMULATION', 'emulation_multiline')
+	emuObj.maxEmuInstr = int(conr['SHAREM EMULATION']['max_num_of_instr'])
+	emuObj.numOfIter = int(conr['SHAREM EMULATION']['iterations_before_break'])
+	emuObj.breakLoop = conr.getboolean('SHAREM EMULATION', 'break_infinite_loops')
+	emuObj.verbose = conr.getboolean('SHAREM EMULATION', 'timeless_debugging')
+
+
+
+
+
+
+#===============================================
+
+	mBool[o].bDoFindHiddenCalls = conr.getboolean('SHAREM DISASSEMBLY','enable_hidden_calls')
+	mBool[o].bDoEnableComments = conr.getboolean('SHAREM DISASSEMBLY','enable_assembly_comments')
+	mBool[o].bDoShowAscii = conr.getboolean('SHAREM DISASSEMBLY','enable_assembly_ascii')
+	mBool[o].bDoFindStrings = conr.getboolean('SHAREM DISASSEMBLY','enable_find_strings')
+	mBool[o].ignoreDisDiscovery = conr.getboolean('SHAREM DISASSEMBLY','ignore_dis_discovery')
+	mBool[o].maxOpDisplay = int(conr['SHAREM DISASSEMBLY']['max_disassembly_operands'])
+	mBool[o].btsV = int(conr['SHAREM DISASSEMBLY']['binary_to_string'])
+	shellSizeLimit = int(conr['SHAREM DISASSEMBLY']['shellcode_size_limit'])
+	mBool[o].bDoShowOffsets = conr.getboolean('SHAREM DISASSEMBLY','show_disassembly_offsets')
+	mBool[o].bDoShowOpcodes = conr.getboolean('SHAREM DISASSEMBLY','show_disassembly_opcodes')
+	mBool[o].bDoShowLabels = conr.getboolean('SHAREM DISASSEMBLY','show_disassembly_labels')
+
+
+
+
+
+
+
+
+
+
+
+
+
+#===============================================
+
+	sharem_out_dir = conr['SHAREM SEARCH']['default_outdir']
+	maxDistance = int(conr['SHAREM SEARCH']['max_callpop_distance'])
+	bPushRet= conr.getboolean('SHAREM SEARCH','pushret')
+	bCallPop= conr.getboolean('SHAREM SEARCH','callpop')
+	bFstenv= conr.getboolean('SHAREM SEARCH','fstenv')
+	bSyscall= conr.getboolean('SHAREM SEARCH','syscall')
+	bHeaven= conr.getboolean('SHAREM SEARCH','heaven')
+	bPEB= conr.getboolean('SHAREM SEARCH','peb')
+	save_bin_file = conr.getboolean('SHAREM SEARCH','save_bin_file')
+	bDisassembly= conr.getboolean('SHAREM SEARCH','disassembly')
+	pebPresent = conr.getboolean('SHAREM SEARCH','pebpresent')
 	
-	initSysCallSelect()
+	bpEvilImports = conr.getboolean('SHAREM SEARCH', 'imports')
 
+
+
+
+	if rawHex and not bit32_argparse:
+		bit32 = conr.getboolean('SHAREM SEARCH','bit32')
+
+		if bit32:
+			shellBit = 32
+		else:
+			shellBit = 64
+
+
+
+	p2screen =  conr.getboolean('SHAREM SEARCH','print_to_screen')
+
+
+	#==================== Strings ================================
+	bPushStackStrings =  conr.getboolean('SHAREM STRINGS','push_stack_strings')
+
+	bAsciiStrings =  conr.getboolean('SHAREM STRINGS','ascii_strings')
+	bWideCharStrings =  conr.getboolean('SHAREM STRINGS','wide_char_strings')
+	minStrLen = int(conr['SHAREM STRINGS']['minimum_str_length'])
+	#============================================================
+
+
+	# malformed = "print('malformed')"
+	pebPoints = int(conr['SHAREM SEARCH']['pebpoints'])
+	if pebPoints > 4:
+		pebPoints=4
+	try:
+		shellEntry = int(conr['SHAREM SEARCH']['shellEntry'])
+	except:
+		shellEntry = int(conr['SHAREM SEARCH']['shellEntry'], 16)
+	try:
+		bytesForward = int(conr['SHAREM SEARCH']['max_bytes_forward'])
+	except:
+		bytesForward = int(conr['SHAREM SEARCH']['max_bytes_forward'],16)
+
+	try:
+		bytesBack = int(conr['SHAREM SEARCH']['max_lines_backward'])
+	except:
+		bytesBack = int(conr['SHAREM SEARCH']['max_lines_backward'],16)
+
+	try:
+		linesForward = int(conr['SHAREM SEARCH']['max_lines_forward'])
+	except:
+		linesForward = int(conr['SHAREM SEARCH']['max_lines_forward'],16)
+
+	try:
+		linesBack = int(conr['SHAREM SEARCH']['max_lines_backward'])
+	except:
+		linesBack = int(conr['SHAREM SEARCH']['max_lines_backward'],16)
+
+	print_style = conr['SHAREM SEARCH']['print_format_style']
+	if print_style != "right" and print_style != "left":
+		print(yel + "\n\nError: format style in config file is not correct."+ res, red + print_style+res , yel +"<-- should be either right, or left." +res)
+		sys.exit()
 	list_of_syscalls = str(conr['SHAREM SYSCALLS']['selected_syscalls'])
 
 	try:
 		list_of_syscalls = ast.literal_eval(list_of_syscalls)
 		if(type(list_of_syscalls) != list):
 			print("Error:", list_of_syscalls, "<-- this should be a list.")
+		# print(list_of_syscalls)
 
 	except:
 		print(yel + "The value of", red + list_of_syscalls, yel + "is not correct or malformed!!"+ res)
 		sys.exit()
+	# list_of_syscalls = list_of_syscalls[1:-1].replace(" ", "").replace("'", "").split(",")
 
 	for selected in list_of_syscalls:
 		for osv in syscallSelection:
 			if osv.code == selected:
 				osv.toggle = True
 
-
-def printStyleConf(conr):
-	global print_style
-
-
-	#print_format_style = left
-	print_style = str(conr['SHAREM SEARCH']['print_format_style'])
-	if print_style != "right" and print_style != "left":
-		print(yel + "\n\nError: format style in config file is not correct."+ res, red + print_style+res , yel +"<-- should be either right, or left." +res)
-		sys.exit()
-
-
-
-def readConf():
-	
-	
-	
-	con = Configuration(conFile)
-	conr = con.readConf()
-
-	decryptConf(conr)
-	SharemSearchConfig(conr)
-	disassemblyConf(conr)
-	emulationConf(conr)
-	stringsConf(conr)
-	syscallsConf(conr)
-	printStyleConf(conr)
-
-	startupBool = conr.getboolean('SHAREM STARTUP','startup_enabled')
-
-	
+	# print ("shellEntry init", shellEntry)
 
 	if not startupBool:
 		return False
 	else:
 		return True
+			# print(os.code, os.name, os.category, os.toggle)
 
 
 
@@ -20756,7 +20774,7 @@ def emulation_json_out(apiList):
 	api_params_values = []
 	api_params_types = []
 	api_params_names = []
-	# api_address = []
+	# apaddress = []
 	# ret_values = []
 	# ret_type = []
 
@@ -20775,7 +20793,7 @@ def emulation_json_out(apiList):
 	for i in apiList:
 		api_dict = {}
 		api_name = i[0]
-		api_address = i[1]
+		apaddress = i[1]
 		ret_value = i[2]
 		ret_type = i[3]
 		try:
@@ -20787,7 +20805,7 @@ def emulation_json_out(apiList):
 		api_dict["api_name"] = api_name
 		api_dict["dll_name"] = dll_name
 		api_dict["return_value"]= ret_type+" " + ret_value
-		api_dict["address"] = api_address
+		api_dict["address"] = apaddress
 		api_dict['parameters'] = []
 
 		api_params_values = i[4]
@@ -20884,14 +20902,14 @@ def emulation_txt_out(apiList):
 	api_params_values = []
 	api_params_types = []
 	api_params_names = []
-	api_address = []
+	apaddress = []
 	ret_values = []
 	ret_type = []
 	api_bruteforce = []
 	dll_name = []
 	for i in apiList:
 		api_names.append(i[0])
-		api_address.append(i[1])
+		apaddress.append(i[1])
 		ret_values.append(i[2])	
 		ret_type.append(i[3])
 		api_params_values.append(i[4])
@@ -20934,7 +20952,7 @@ def emulation_txt_out(apiList):
 	for eachApi in api_names:
 		
 		apName = api_names[t]
-		offset = api_address[t]
+		offset = apaddress[t]
 		pType = api_params_types[t]
 		pName = api_params_names[t]
 		TypeBundle = []
@@ -21386,7 +21404,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 
 def formatPrint(i, add4, addb, pe=False, syscall=False):
 	#print('{1:>{0}}'.format(length, string))
-	# print("---------> ", len(i.op_str))
+	# print("---------> ", len(op_str))
 
 
 	if print_style == "right":
@@ -21395,7 +21413,7 @@ def formatPrint(i, add4, addb, pe=False, syscall=False):
 		if not pe:
 			if not syscall:
 
-				val =('{0:<6s} {1:<{2}s} {3:<8s}'.format(i.mnemonic, i.op_str, length, add4))
+				val =('{0:<6s} {1:<{2}s} {3:<8s}'.format(mnemonic, op_str, length, add4))
 				return val
 			else:
 				monic = i.split("|")[0]
@@ -21405,13 +21423,13 @@ def formatPrint(i, add4, addb, pe=False, syscall=False):
 				return val
 
 		else:
-			val =('{0:<6s} {1:<{2}s} {3:<12s} {4:<10}'.format(i.mnemonic, i.op_str, length, add4, "(offset " + addb + ")"))
+			val =('{0:<6s} {1:<{2}s} {3:<12s} {4:<10}'.format(mnemonic, op_str, length, add4, "(offset " + addb + ")"))
 			return val
 	elif print_style == "left":
 		length = 30
 		if not pe:
 			if not syscall:
-				val =('{0:<10s} {1:<4s} {2} '.format(add4, i.mnemonic, i.op_str ))
+				val =('{0:<10s} {1:<4s} {2} '.format(add4, mnemonic, op_str ))
 				return val
 			else:
 				monic = i.split("|")[0]
@@ -21423,9 +21441,9 @@ def formatPrint(i, add4, addb, pe=False, syscall=False):
 				return val
 
 		else:
-			val =('{0:<10s} {1:<4s} {2:<{3}s} {4}'.format(add4, i.mnemonic, i.op_str , length, "(offset " + addb + ")"))
+			val =('{0:<10s} {1:<4s} {2:<{3}s} {4}'.format(add4, mnemonic, op_str , length, "(offset " + addb + ")"))
 
-			# val =('{0:<6s} {1:<{2}s} {3:<12s} {4:<10}'.format(i.mnemonic, i.op_str, length, add4, "(offset " + addb + ")"))
+			# val =('{0:<6s} {1:<{2}s} {3:<12s} {4:<10}'.format(mnemonic, op_str, length, add4, "(offset " + addb + ")"))
 			return val
 	else:
 		print("Error: format style is not correct, it should be either right, or left.")
@@ -21695,55 +21713,55 @@ def generateOutputData(): #Generate the dictionary for json out
 				jsonDis = {}
 				jsonList = []
 				stopRet=False
-				for i in callCS.disasm(CODED2, address):
+				for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, address):
 					
 
 					if(rawHex):
-						add4 = hex(int(i.address))
-						addb = hex(int(i.address))
+						add4 = hex(int(address))
+						addb = hex(int(address))
 					else:
-						add = hex(int(i.address))
-						addb = hex(int(i.address +  section.VirtualAdd))
+						add = hex(int(address))
+						addb = hex(int(address +  section.VirtualAdd))
 						add2 = str(add)
-						add3 = hex (int(i.address + section.startLoc	))
+						add3 = hex (int(address + section.startLoc	))
 						add4 = str(add3)
 
 					val = formatPrint(i, add4, addb).strip()
-					# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+					# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(mnemonic, op_str, add4, "(offset " + addb + ")"))
 					checkRet= re.search( retOffset, val, re.M|re.I)
 					# if str(retOffset) == addb:
 					# 	val5.append(val)
 					# 	break
 					# else:
 					# 	val5.append(val)
-					#i.mnemonic, i.op_str, length, add4
+					#mnemonic, op_str, length, add4
 					jsonDis = {}
 					if checkRet:
 						if not stopRet:
 							jsonDis["offset"] = add4
-							jsonDis["instruction"] = (i.mnemonic + " " +i.op_str).strip()
+							jsonDis["instruction"] = (mnemonic + " " +op_str).strip()
 							val5.append(val)
 							stopRet = True
 						
 					if not stopRet:
 						jsonDis["offset"] = add4
-						jsonDis["instruction"] = i.mnemonic + " " +i.op_str
+						jsonDis["instruction"] = mnemonic + " " +op_str
 						val5.append(val)
 
 					if jsonDis != {}:
 						jsonList.append(jsonDis)
 
-				# for i in callCS.disasm(CODED2, address):
+				# for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, address):
 				# 	if(rawHex):
-				# 		add4 = hex(int(i.address))
-				# 		addb = hex(int(i.address))
+				# 		add4 = hex(int(address))
+				# 		addb = hex(int(address))
 				# 	else:
-				# 		add = hex(int(i.address))
-				# 		addb = hex(int(i.address +  section.VirtualAdd))
+				# 		add = hex(int(address))
+				# 		addb = hex(int(address +  section.VirtualAdd))
 				# 		add2 = str(add)
-				# 		add3 = hex (int(i.address + section.startLoc	))
+				# 		add3 = hex (int(address + section.startLoc	))
 				# 		add4 = str(add3)
-				# 	val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+				# 	val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(mnemonic, op_str, add4, "(offset " + addb + ")"))
 				# 	val5.append(val)
 
 				jsonData['pushret'].append({'address': hex(address), 'pushOffset':pushOffset, 'retOffset': retOffset, "modSecName": modSecName, "disassembly":val5, "internalData" : {'secNum': secNum, 'NumOpsDis': NumOpsDis,'points': points}, "disasm":jsonList })
@@ -21768,15 +21786,15 @@ def generateOutputData(): #Generate the dictionary for json out
 					CODED3 = CODED2
 					stopRet = False
 					# print("pushret generat function", CODED3.hex())
-					for i in callCS.disasm(CODED3, address):
-						add = hex(int(i.address))
-						addb = hex(int(i.address +  section.VirtualAdd))
+					for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
+						add = hex(int(address))
+						addb = hex(int(address +  section.VirtualAdd))
 						add2 = str(add)
-						add3 = hex (int(i.address + section.startLoc))
+						add3 = hex (int(address + section.startLoc))
 						add4 = str(add3)
 						val = formatPrint(i, add4, addb, pe=True)
 
-						# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+						# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(mnemonic, op_str, add4, "(offset " + addb + ")"))
 						val2.append(val)
 						val3.append(add2)
 						checkRet= re.search( retOffset, val, re.M|re.I)
@@ -21833,22 +21851,22 @@ def generateOutputData(): #Generate the dictionary for json out
 				val3 = []
 				val5 =[]
 
-				for i in callCS.disasm(CODED2, address):
+				for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, address):
 					jsonDis = {}
 
 					if(rawHex):
-						add4 = hex(int(i.address))
-						addb = hex(int(i.address))
+						add4 = hex(int(address))
+						addb = hex(int(address))
 					# else:
-					# 	add = hex(int(i.address))
-					# 	addb = hex(int(i.address +  section.VirtualAdd))
+					# 	add = hex(int(address))
+					# 	addb = hex(int(address +  section.VirtualAdd))
 					# 	add2 = str(add)
-					# 	add3 = hex (int(i.address + section.startLoc))
+					# 	add3 = hex (int(address + section.startLoc))
 					# 	add4 = str(add3)
 					jsonDis["offset"] = add4
-					jsonDis["instruction"] = (i.mnemonic + " " + i.op_str).strip()
+					jsonDis["instruction"] = (mnemonic + " " + op_str).strip()
 					val = formatPrint(i, add4, addb)
-					# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+					# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(mnemonic, op_str, add4, "(offset " + addb + ")"))
 					val5.append(val)
 					jsonList.append(jsonDis)
 				jsonData['callpop'].append({'address':hex(address), 'modSecName':modSecName, 'pop_offset':pop_offset, 'distance':distance,"disassembly":val5, "disasm":jsonList, "internalData" : {'secNum':secNum,'NumOpsDis':NumOpsDis}})
@@ -21880,15 +21898,15 @@ def generateOutputData(): #Generate the dictionary for json out
 					# print("origAddr: ", address, "CODED3", CODED3)
 					# print("origAddr: ", origAddr, "CODED3", CODED3, "Address", address)
 					# print("Generate output", CODED3.hex())
-					for i in callCS.disasm(CODED3, origAddr):
-						add = hex(int(i.address))
-						addb = hex(int(i.address +  section.VirtualAdd))
+					for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, origAddr):
+						add = hex(int(address))
+						addb = hex(int(address +  section.VirtualAdd))
 						add2 = str(add)
-						add3 = hex (int(i.address + section.startLoc	))
+						add3 = hex (int(address + section.startLoc	))
 						add4 = str(add3)
 						val = formatPrint(i, add4, addb, pe=True)
 
-						# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+						# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(mnemonic, op_str, add4, "(offset " + addb + ")"))
 						val2.append(val)
 						val3.append(add2)
 						val5.append(val)
@@ -21915,17 +21933,17 @@ def generateOutputData(): #Generate the dictionary for json out
 				val3 = []
 				val5 =[]
 				jsonList = []
-				for i in callCS.disasm(CODED2, (int(FPU_offset,16))):
+				for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, (int(FPU_offset,16))):
 					jsonDis = {}
-					add4 = hex(int(i.address))
-					addb = hex(int(i.address))
+					add4 = hex(int(address))
+					addb = hex(int(address))
 
 					val = formatPrint(i, add4, addb).strip()
 
-					# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+					# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(mnemonic, op_str, add4, "(offset " + addb + ")"))
 					val5.append(val)
 					jsonDis["offset"] = add4
-					jsonDis["instruction"] = (i.mnemonic + " " + i.op_str).strip()
+					jsonDis["instruction"] = (mnemonic + " " + op_str).strip()
 					jsonList.append(jsonDis)
 
 				jsonData['fstenv'].append({'address':hex(address), 'modSecName':modSecName, 'FPU_offset':FPU_offset, 'FSTENV_offset':FSTENV_offset,"disassembly":val5, "disasm":jsonList, "internalData":{'secNum':secNum, 'NumOpsDis':NumOpsDis, 'NumOpsBack':NumOpsBack, 'printEnd':printEnd}})
@@ -21947,15 +21965,15 @@ def generateOutputData(): #Generate the dictionary for json out
 					val2 = []
 					val3 = []
 					val5 =[]
-					for i in callCS.disasm(CODED3, address):
-						add = hex(int(i.address))
-						addb = hex(int(i.address +  section.VirtualAdd - NumOpsBack))
+					for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
+						add = hex(int(address))
+						addb = hex(int(address +  section.VirtualAdd - NumOpsBack))
 						add2 = str(add)
-						add3 = hex (int(i.address + section.startLoc - NumOpsBack))
+						add3 = hex (int(address + section.startLoc - NumOpsBack))
 						add4 = str(add3)
 						val = formatPrint(i, add4, addb, pe=True)
 
-						# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+						# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(mnemonic, op_str, add4, "(offset " + addb + ")"))
 						val2.append(val)
 						val3.append(add2)
 						val5.append(val)
@@ -22049,15 +22067,15 @@ def generateOutputData(): #Generate the dictionary for json out
 						bytesCompensation = 0
 					elif(pivottype == "retf"):
 						bytesCompensation = 18
-					for i in callCS.disasm(CODED3, start - bytesCompensation):
-						add = hex(int(i.address))
-						addb = hex(int(i.address +  section.VirtualAdd))
+					for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, start - bytesCompensation):
+						add = hex(int(address))
+						addb = hex(int(address +  section.VirtualAdd))
 						add2 = str(add)
-						add3 = hex (int(i.address + section.startLoc))
+						add3 = hex (int(address + section.startLoc))
 						add4 = str(add3)
 						val = formatPrint(i, add4, addb, pe=True)
 
-						# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+						# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(mnemonic, op_str, add4, "(offset " + addb + ")"))
 						val2.append(val)
 						val3.append(add2)
 						val5.append(val)
@@ -22087,26 +22105,26 @@ def generateOutputData(): #Generate the dictionary for json out
 				val5 =[]
 				CODED2 = m[o].rawData2[address:(address+NumOpsDis)]
 
-				for i in callCS.disasm(CODED2, address):
+				for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED2, address):
 					jsonDis = {}
 					if(rawHex):
-						add4 = hex(int(i.address))
-						addb = hex(int(i.address))
+						add4 = hex(int(address))
+						addb = hex(int(address))
 					else:
-						add = hex(int(i.address))
-						addb = hex(int(i.address +  section.VirtualAdd))
+						add = hex(int(address))
+						addb = hex(int(address +  section.VirtualAdd))
 						add2 = str(add)
-						add3 = hex (int(i.address + section.startLoc	))
+						add3 = hex (int(address + section.startLoc	))
 						add4 = str(add3)
 					val = formatPrint(i, add4, addb)
 
-					# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+					# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(mnemonic, op_str, add4, "(offset " + addb + ")"))
 					if "db" in val:
 						break
 
 					val5.append(val)
 					jsonDis["offset"] = add4
-					jsonDis["instruction"] = i.mnemonic + " " + i.op_str
+					jsonDis["instruction"] = mnemonic + " " + op_str
 					jsonList.append(jsonDis)
 					if "ret" in val:
 						break
@@ -22127,15 +22145,15 @@ def generateOutputData(): #Generate the dictionary for json out
 						val5 =[]
 						CODED2 = section.data2[address:(address+NumOpsDis)]
 						CODED3 = CODED2
-						for i in cs64.disasm(CODED3, address):
-							add = hex(int(i.address))
-							addb = hex(int(i.address +  section.VirtualAdd))
+						for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
+							add = hex(int(address))
+							addb = hex(int(address +  section.VirtualAdd))
 							add2 = str(add)
-							add3 = hex (int(i.address + section.startLoc))
+							add3 = hex (int(address + section.startLoc))
 							add4 = str(add3)
 							val = formatPrint(i, add4, addb, pe=True)
 
-							# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+							# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(mnemonic, op_str, add4, "(offset " + addb + ")"))
 							val2.append(val)
 							val3.append(add2)
 							val5.append(val)
@@ -22171,15 +22189,15 @@ def generateOutputData(): #Generate the dictionary for json out
 						val5 =[]
 						CODED2 = section.data2[address:(address+NumOpsDis)]
 						CODED3 = CODED2
-						for i in callCS.disasm(CODED3, address):
-							add = hex(int(i.address))
-							addb = hex(int(i.address +  section.VirtualAdd))
+						for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
+							add = hex(int(address))
+							addb = hex(int(address +  section.VirtualAdd))
 							add2 = str(add)
-							add3 = hex (int(i.address + section.startLoc	))
+							add3 = hex (int(address + section.startLoc	))
 							add4 = str(add3)
 							val = formatPrint(i, add4, addb, pe=True)
 
-							# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+							# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(mnemonic, op_str, add4, "(offset " + addb + ")"))
 							val2.append(val)
 							val3.append(add2)
 							val5.append(val)
@@ -22217,16 +22235,16 @@ def generateOutputData(): #Generate the dictionary for json out
 
 				# CODED3 = CODED2
 				# val5 = []
-				# for i in callCS.disasm(CODED3, address):
+				# for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
 
-				# 	add4 = hex(int(i.address))
-				# 	addb = hex(int(i.address))
+				# 	add4 = hex(int(address))
+				# 	addb = hex(int(address))
 				# 	val = formatPrint(i, add4, addb)
 				# 	val5.append(val)
-					# print(i.mnemonic, i.op_str, add4, addb)
+					# print(mnemonic, op_str, add4, addb)
 					# val = formatPrint(i, add4, addb, pe=True)
 
-					# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+					# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(mnemonic, op_str, add4, "(offset " + addb + ")"))
 					# val2.append(val)
 					# val3.append(add2)
 					# val5.append(val)
@@ -22285,15 +22303,15 @@ def generateOutputData(): #Generate the dictionary for json out
 					val5 =[]
 					CODED2 = section.data2[(address-NumOpsBack):(address+NumOpsDis)]
 					CODED3 = CODED2
-					for i in callCS.disasm(CODED3, address):
-						add = hex(int(i.address))
-						addb = hex(int(i.address +  section.VirtualAdd - NumOpsBack))
+					for (address, size, mnemonic, op_str) in callCS.disasm_lite(CODED3, address):
+						add = hex(int(address))
+						addb = hex(int(address +  section.VirtualAdd - NumOpsBack))
 						add2 = str(add)
-						add3 = hex (int(i.address + section.startLoc	- NumOpsBack))
+						add3 = hex (int(address + section.startLoc	- NumOpsBack))
 						add4 = str(add3)
 						val = formatPrint(i, add4, addb, pe=True)
 
-						# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(i.mnemonic, i.op_str, add4, "(offset " + addb + ")"))
+						# val =('{:<6s} {:<32s} {:<8s} {:<10}'.format(mnemonic, op_str, add4, "(offset " + addb + ")"))
 						val2.append(val)
 						val3.append(add2)
 						val5.append(val)
@@ -23021,8 +23039,8 @@ if __name__ == "__main__":
 			myTest="89 c3"
 			shells=fromhexToBytes(myTest)
 			address=0
-			for i in cs.disasm(shells, address):
-				val =  i.mnemonic + " " + i.op_str 
+			for (address, size, mnemonic, op_str) in callCS.disasm_lite(shells, address):
+				val =  mnemonic + " " + op_str 
 				print(val)
 		# val2.append(val)
 		# val3.append(add2)

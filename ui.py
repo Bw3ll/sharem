@@ -281,10 +281,10 @@ def printMenu(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bExpor
 	iMenu += " {} {} \t\t[".format(gre + "j"+ res, whi + "- Export all to JSON." + res)
 	iMenu += cya + "x" + res if bExportAll else " "
 	iMenu += "]\n"
-	iMenu += " {} {} \t\t[".format(gre + "e"+ res, whi + "- Emulation verbose print style." + res)
+	iMenu += " {} {} \t[".format(gre + "e"+ res, whi + "- Emulation verbose print style." + res)
 	iMenu += cya + "x" + res if emulation_verbose else " "
 	iMenu += "]\n"
-	iMenu += " {} {} \t[".format(gre + "m"+ res, whi + "- Multiline print style of artifacts." + res)
+	iMenu += " {} {}[".format(gre + "m"+ res, whi + "- Multiline print style of artifacts." + res)
 	iMenu += cya + "x" + res if emulation_multiline else " "
 	iMenu += "]\n"
 	iMenu += " {} {} \t\t\t[{}]\n".format(gre + "p" + res, whi + "- Print to screen" + res, cya + p2screen + res)
@@ -727,8 +727,8 @@ def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 	text += "\t{}\n".format(cya + "*"+whi + "Under Development" + res)
 
 
-	text += "  {}{:>1}[{}]\n".format(cya + "n"+res+" -"+yel+"  Emulation verbose print style."+ res, "", cya + str(emuVerbose)+ res)
-	text += "  {}{:>1}[{}]\n".format(cya + "n"+res+" -"+yel+"  Multiline print style of artifacts."+ res, "", cya + str(emuMultiLine)+ res)
+	text += "  {}{:>5}[{}]\n".format(cya + "e"+res+" -"+yel+"  Emulation verbose print style."+ res, "", cya + str(emuVerbose)+ res)
+	text += "  {}{:>0}[{}]\n".format(cya + "m"+res+" -"+yel+"  Multiline print style of artifacts."+ res, "", cya + str(emuMultiLine)+ res)
 
 	
 
