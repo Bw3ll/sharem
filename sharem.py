@@ -6799,7 +6799,7 @@ def getSyscallRawHex(address, linesBack, secNum, data):
 		truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(addressInt, 0x0, linesGoBack, "getSyscallRawHex")  # arg: starting offset/entry point - leave 0 generally
 		if(mBool[o].ignoreDisDiscovery):
 			truth = False
-		truth = False
+		# truth = False
 		if truth:
 		####the FULL disassembly of the shellcode
 			# print ("Full disassembly of shellcode EGG")
@@ -7883,7 +7883,7 @@ def getHeavenRawHex(address, linesBack, secNum, data):
 		truth, tl1, tl2, orgListOffset,orgListDisassembly = preSyscalDiscovery(0, 0x0, linesGoBack, "getHeavenRawHex")  # arg: starting offset/entry point - leave 0 generally
 		if(mBool[o].ignoreDisDiscovery):
 			truth = False
-		truth = False
+		# truth = False
 		# dprint2("TESTING PRESYSCAL")
 		if truth:
 			push_offset = 0xBADDBADD
