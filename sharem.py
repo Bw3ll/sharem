@@ -11821,9 +11821,18 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 		offset +=1
 		# t+=1
 		w+=1
+		print(startAddString)
+		print(type(startAddString))
 		if w==(length):
+			
 			if dbFlag==True:
-				addDis(int(startAddString,16),"",stringVala, "", "EndStringMaker")
+				try:
+					addDis(int(startAddString,16),"",stringVala, "", "EndStringMaker")
+				except:
+					try:
+						addDis(int(startAddString),"",stringVala, "", "EndStringMaker")
+					except:
+						pass
 				dbFlag=False
 			w=0
 	return ""
