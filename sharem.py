@@ -11447,7 +11447,7 @@ def createDisassemblyLists(Colors=True, caller=None):
 		try:
 			cur=cAddress
 			if (sBy.pushStringEnd[cur]-2) == cur:
-				msg="; "+sBy.pushStringValue[cur] + " - Stack string"
+				msg=mag+"; "+sBy.pushStringValue[cur] + " - Stack string"+res2
 				newVal =('{:<12} {:<45s} {:<33}{:<10s}\n'.format("", msg, nada, nada))
 				out= newVal+out
 		except Exception as e:
