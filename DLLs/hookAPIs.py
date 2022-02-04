@@ -1,9 +1,7 @@
 from unicorn.x86_const import *
 from struct import pack, unpack
+from modules import allDllsDict
 import sys
-
-dlls = {'ndtll.dll': 0x44100000, 'kernel32.dll': 0x44253138, 'advapi32.dll': 0x44364138, 'comctl32.dll': 0x44403138, 'comdlg32.dll': 0x44486538, 'gdi32.dll': 0x444feb38, 'imm32.dll': 0x4455bf38, 'mscoree.dll': 0x44589f38, 'msvcrt.dll': 0x445d4688, 'netapi.dll': 0x4467e888, 'ole32.dll': 0x4468e288, 'oleaut32.dll': 0x447ec088, 'shell32.dll': 0x4487c488, 'shlwapi.dll': 0x454c6a88, 'urlmon.dll': 0x4551de88, 'user32.dll': 0x45664c88, 'wininet.dll': 0x45741488, 'winmm.dll': 0x45b72488, 'ws2_32.dll': 0x45ba3688, 'wsock32.dll': 0x45bd7888}
-
 
 rsLookUp={'S_OK': 0x00000000, 'E_ABORT': 0x80004004, 'E_ACCESSDENIED':  0x80070005, 'E_FAIL': 0x80004005, 'E_HANDLE': 0x80070006, 'E_INVALIDARG': 0x80070057, 'E_NOINTERFACE': 0x80004002, 'E_NOTIMPL': 0x80004001, 'E_OUTOFMEMORY': 0x8007000E, 'E_POINTER': 0x80004003, 'E_UNEXPECTED': 0x8000FFFF}
 
@@ -60,11 +58,11 @@ def hook_LoadLibraryA(uc, eip, esp, export_dict, callAddr):
 
     # Return base address of passed library
     try:
-        retVal = dlls[arg1]
+        retVal = allDllsDict[arg1]
     except:
         try:
             arg1L=arg1.lower()
-            retVal=dlls[arg1L]
+            retVal=allDllsDict[arg1L]
         except:
             print("\tError: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
             print (hex(eip), (len(arg1)))
@@ -85,7 +83,7 @@ def hook_LoadLibraryW(uc, eip, esp, export_dict, callAddr):
 
     # Return base address of passed library
     try:
-        retVal = dlls[arg1]
+        retVal = allDllsDict[arg1]
     except:
         print("Error: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
         retVal = 0
@@ -107,7 +105,7 @@ def hook_LoadLibraryExW(uc, eip, esp, export_dict, callAddr):
 
     # Return base address of passed library
     try:
-        retVal = dlls[arg1]
+        retVal = allDllsDict[arg1]
     except:
         print("Error: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
         retVal = 0

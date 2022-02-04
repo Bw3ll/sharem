@@ -19,6 +19,7 @@ import re
 import os
 import argparse
 import colorama
+import binascii
 import traceback
 # artifacts2= [] 
 # net_artifacts = []
@@ -35,26 +36,27 @@ net_artifacts = []
 file_artifacts = []
 exec_artifacts = []
 programCounter = 0
-addrTracker = 0x44100000
+addrTracker = 0x14100000
+verbose = True
 
 
-CODE_ADDR = 0x42000000
+CODE_ADDR = 0x12000000
 CODE_SIZE = 0x1000
 
-GDT_ADDR = 0x41000000
+GDT_ADDR = 0x11000000
 GDT_LIMIT = 0x1000
 GDT_ENTRY_SIZE = 0x8
 
-SEGMENT_ADDR = 0x41010000
+SEGMENT_ADDR = 0x11010000
 SEGMENT_SIZE = 0x4000
 TIB_ADDR = 0x00000000
 TIB_SIZE = 0x100
-PEB_ADDR = 0x41017000
+PEB_ADDR = 0x11017000
 PEB_LIMIT = 0x208
 
-STACK_ADDR = 0x47000000
-EXTRA_ADDR = 0x48000000
-CONST_ADDR = 0x50000000
+STACK_ADDR = 0x17000000
+EXTRA_ADDR = 0x18000000
+CONST_ADDR = 0x20000000
 
 export_dict = {}
 logged_calls = defaultdict(list)
@@ -65,6 +67,7 @@ logged_dlls = []
 createdProcesses = []
 paramValues = []
 network_activity = {}
+jmpInstructs = {}
 
 traversedAdds=set()
 loadModsFromFile = True
@@ -81,6 +84,7 @@ loopInstructs = []
 loopCounter = 0
 verOut = ""
 bVerbose = True
+MAX_LOOP = 5000000
 
 def bprint(*args):
     brDebugging2=False
@@ -489,13 +493,23 @@ def constConvert(uc, string):
 def callback(match):
     return next(callback.v)
 
-def getJmpFlag(mnemonic, op_str, eflags):
+def getJmpFlag(mnemonic):
     if re.match("^(je)|(jz)|(jne)|(jnz)", mnemonic, re.M|re.I):
         return "zf"
     elif re.match("^(jg)|(jnle)|(jle)|(jng)", mnemonic, re.M|re.I):
         return "osz"
     elif re.match("^(jge)|(jnl)|(jl)|(jnge)", mnemonic, re.M|re.I):
         return "os"
+    elif re.match("^(jae)|(jnb)|(jb)|(jnae)|(jc)|(jnc)", mnemonic, re.M|re.I):
+        return "cf"
+    elif re.match("^(jo)|(jno)", mnemonic, re.M|re.I):
+        return "of"
+    elif re.match("^(jp)|(jpe)|(jnp)|(jpo)", mnemonic, re.M|re.I):
+        return "pf"
+    elif re.match("^(js)|(jns)", mnemonic, re.M|re.I):
+        return "sf"
+    elif re.match("^(ja)|(jnbe)", mnemonic, re.M|re.I):
+        return "cz"
     else:
         return ""
 
@@ -605,13 +619,150 @@ def getBit (value, pos):
 def flipBit(val, pos):
     return val ^ (1 << pos)
 
-def breakLoop(uc, eflags, jmpFlag):
+def signedNegHexTo(signedVal):
+    strSigned=str(signedVal)
+    ba = binascii.a2b_hex(strSigned[2:])
+    new = (int.from_bytes(ba, byteorder='big', signed=True))
+    return new
+
+def boolFollowJump(jmpFlag, jmpType, eflags):
+    # ZF Flag
     if jmpFlag == "zf":
-        newEflags = flipBit(eflags, 6)
-        uc.reg_write(UC_X86_REG_EFLAGS, 0x46)
+        zf = getBit(eflags, 6)
+        if zf == 0:
+            if jmpType == 'jne' or jmpType == 'jnz':
+                return False
+            else:
+                return True
+        else:
+            if jmpType == 'jne' or jmpType == 'jnz':
+                return True
+            else:
+                return False
 
-# callback for tracing instructions
+    # OF, SF, and ZF Flags
+    elif jmpFlag == "osz":
+        zf = getBit(eflags, 6)
+        sf = getBit(eflags, 7)
+        of = getBit(eflags, 11)
 
+        if zf == 0 and sf == of:
+            if jmpType == 'jg' or jmpType == 'jnle':
+                return False
+            else:
+                return True
+        else:
+            if jmpType == 'jg' or jmpType == 'jnle':
+                return True
+            else:
+                return False
+
+    # OF and SF Flags
+    elif jmpFlag == "os":
+        sf = getBit(eflags, 7)
+        of = getBit(eflags, 11)
+
+        if sf == of:
+            if jmpType == 'jge' or jmpType == 'jnl':
+                return False
+            else:
+                return True
+        else:
+            if jmpType == 'jge' or jmpType == 'jnl':
+                return True
+            else:
+                return False
+
+    # CF Flag
+    elif jmpFlag == "cf":
+        cf = getBit(eflags, 0)
+
+        if cf == 0:
+            if jmpType == 'jnb' or jmpType == 'jae' or jmpType == 'jnc':
+                return False
+            else:
+                return True
+
+        else:
+            if jmpType == 'jb' or jmpType == 'jnae' or jmpType == 'jc':
+                return True
+            else:
+                return False
+
+    elif jmpFlag == "of":
+        of = getBit(eflags, 11)
+
+        if of == 0:
+            if jmpType == 'jno':
+                return False
+            else:
+                return True
+        else:
+            if jmpType == 'jno':
+                return True
+            else:
+                return False
+
+    elif jmpFlag == "pf":
+        of = getBit(eflags, 2)
+
+        if of == 0:
+            if jmpType == 'jnp' or jmpType == 'jpo':
+                return False
+            else:
+                return True
+        else:
+            if jmpType == 'jnp' or jmpType == 'jpo':
+                return True
+            else:
+                return False
+
+    elif jmpFlag == "sf":
+        sf = getBit(eflags, 7)
+
+        if sf == 0:
+            if jmpType == 'jns':
+                return False
+            else:
+                return True
+        else:
+            if jmpType == 'jns':
+                return True
+            else:
+                return False
+
+    elif jmpFlag == "cz":
+        cf = getBit(eflags, 0)
+        zf = getBit(eflags, 6)
+
+
+        if cf == 0 and zf == 0:
+            if jmpType == 'ja' and jmpType == 'jnbe':
+                return False
+            else:
+                return True
+        else:
+            if jmpType == 'ja' and jmpType == 'jnbe':
+                return True
+            else:
+                return False
+
+
+def breakLoop(uc, jmpFlag, jmpType, op_str, addr, size):
+    print("Jmp Flag: ", jmpFlag)
+    eflags = uc.reg_read(UC_X86_REG_EFLAGS)
+
+    # False = continue, True = jump
+    if boolFollowJump(jmpFlag, jmpType, eflags):
+        print("[*] TAKING THE JUMP")
+        if "0x" in op_str:
+            jmpLoc = addr + signedNegHexTo(op_str)
+        else:
+            jmpLoc = addr + int(op_str)
+        uc.reg_write(UC_X86_REG_EIP, jmpLoc)
+    else:
+        print("[*] SKIPPING THE JUMP")
+        uc.reg_write(UC_X86_REG_EIP, addr + size)
 
 def giveRegs(uc):
     EAX = uc.reg_read(UC_X86_REG_EAX)   # do not delete!
@@ -626,7 +777,7 @@ def giveRegs(uc):
     return instructLine
 
 def hook_code(uc, address, size, user_data):
-    global cleanBytes
+    global cleanBytes, verbose
     global programCounter
     global cleanStackFlag
     global stopProcess
@@ -638,8 +789,12 @@ def hook_code(uc, address, size, user_data):
     # global maxCounter
 
     # traversedAdds.add(address) # do not delete
-    # if stopProcess == True:
-    #     uc.emu_stop()
+    if stopProcess == True:
+        uc.emu_stop()
+
+    # Make sure current address is in proper range
+    if address < 0x12000000 or address > 0x18000000:
+        uc.emu_stop()
 
     programCounter += 1
     if programCounter > em.maxCounter:
@@ -647,18 +802,7 @@ def hook_code(uc, address, size, user_data):
 
     instructLine = ""
 
-    # read this instruction code from memory
-    # if address == 0x42000103:
-    #     instructLine +=  ("address " + str(hex(address)))
-    #     instructLine +=  ("size "+ str(size))
-
-    # if address == 0x4200010e:
-        #      instructLine+=giveRegs(uc)
-
-
-
-
-    if verbose == True:
+    if verbose:
         instructLine+=giveRegs(uc)
         instructLine += "0x%x" % address + '\t'
 
@@ -669,7 +813,7 @@ def hook_code(uc, address, size, user_data):
         print(traceback.format_exc())
         instructLine += " size: 0x%x" % size + '\t'   # size is overflow - why so big?
         outFile.write("abrupt end:  " + instructLine)
-        print (instructLine)
+        # print (instructLine)
         # shells = uc.mem_read(address, 1)
         return # terminate func early   --don't comment - we want to see the earlyrror
 
@@ -686,16 +830,32 @@ def hook_code(uc, address, size, user_data):
             mnemonic=i.mnemonic
             op_str=i.op_str
 
-        if verbose == True:
+        if verbose:
+            shells = uc.mem_read(address, size)
             instructLine += val + '\n'
             outFile.write(instructLine)
+            loc = 0
+            for i in cs.disasm(shells, loc):
+                val = i.mnemonic + " " + i.op_str
         t+=1
 
     addr = ret
 
+    # If jmp instruction, increment jmp counter to track for infinite loop
+    jmpFlag = getJmpFlag(mnemonic)
+    if jmpFlag != "":
+        if addr not in jmpInstructs:
+            jmpInstructs[addr] = 1
+        else:
+            jmpInstructs[addr] += 1
+
+        if jmpInstructs[addr] >= MAX_LOOP:
+            breakLoop(uc, jmpFlag, mnemonic, op_str, addr, len(shells))
+            jmpInstructs[addr] = 0
+
+
     # Hook usage of Windows API function
     funcAddress = controlFlow(uc, mnemonic, op_str)
-    # print ("-   ", hex(address), mnemonic, op_str)
 
     if funcAddress > KERNEL32_BASE and funcAddress < WSOCK32_TOP:
         ret += size
@@ -734,6 +894,9 @@ def hook_code(uc, address, size, user_data):
             stopProcess = True
 
         uc.reg_write(UC_X86_REG_EIP, EXTRA_ADDR)
+
+    if addr == 0x1000:
+        stopProcess = True
 
     if cleanStackFlag == True:
         cleanStack(uc, cleanBytes)
@@ -1018,6 +1181,9 @@ def printCalls():
         for e in exec_artifacts:
             print("\t\t", e)
 
+def hook_intr(uc, intno, user_data):
+    print("WOW, WE HOOKED IT!!!!")
+
 # Test X86 32 bit
 def test_i386(mode, code):
     global artifacts2
@@ -1025,7 +1191,13 @@ def test_i386(mode, code):
         # Initialize emulator
         mu = Uc(UC_ARCH_X86, mode)
 
-        mu.mem_map(0x00000000, 0x50050000)
+        mu.mem_map(0x00000000, 0x20050000)
+
+        # remove this later
+        # code = b"\xBE\x0A\x00\x00\x00\x4E\x83\xFE\x00\x75\xFA\x89\xF0\x83\xC0\x06"
+        # code = b"\xBE\x0A\x00\x00\x00\x4E\x83\xFE\x00\x74\x02\xEB\xF3\x89\xF0\x83\xC0\x06"
+        code = b"\xb8\xd0\x00\x00\x00\x0f\x05\x90"
+
 
         # write machine code to be emulated to memory
         mu.mem_write(CODE_ADDR, code)
@@ -1052,35 +1224,82 @@ def test_i386(mode, code):
         # tracing all instructions with customized callback
         mu.hook_add(UC_HOOK_CODE, hook_code)
 
+        # Hook for syscall
+        mu.hook_add(UC_HOOK_INTR, hook_intr)
+
         # emulate machine code in infinite time
-        try:
-            mu.emu_start(CODE_ADDR, CODE_ADDR + len(code))
-        except:
-            pass
+        mu.emu_start(CODE_ADDR, CODE_ADDR + len(code))
+    except:
+        pass
 
-        # now print out some registers
-        artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
+    # now print out some registers
+    artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
 
-        print(cya+"\t[*]"+res2+" CPU counter: " + str(programCounter))
-        print(cya+"\t[*]"+res2+" Emulation complete")
-        printCalls()
+    print(cya+"\t[*]"+res2+" CPU counter: " + str(programCounter))
+    print(cya+"\t[*]"+res2+" Emulation complete")
+    printCalls()
 
-    except UcError as e:
-        print("ERROR: %s" % e)
+# Test X86 32 bit
+def debugEmu(mode, code):
+    global artifacts2
+    # Initialize emulator
+    mu = Uc(UC_ARCH_X86, mode)
+
+    mu.mem_map(0x00000000, 0x20050000)
+
+    #SHIL shellcode
+    # code = b"\xEB\x5E\x6A\x30\x5E\x64\x8B\x06\x8B\x40\x0C\x8B\x70\x1C\xAD\x96\xAD\x8B\x78\x08\xC3\x60\x89\xFD\x8B\x45\x3C\x8B\x7C\x05\x78\x01\xEF\x8B\x4F\x18\x8B\x5F\x20\x01\xEB\xE3\x33\x49\x8B\x34\x8B\x01\xEE\x31\xC0\x99\xFC\xAC\x84\xC0\x74\x07\xC1\xCA\x0D\x01\xC2\xEB\xF4\x3B\x54\x24\x28\x75\xE2\x8B\x5F\x24\x01\xEB\x66\x8B\x0C\x4B\x8B\x5F\x1C\x01\xEB\x8B\x04\x8B\x01\xE8\x89\x44\x24\x1C\x61\xC3\x83\xEC\x14\xE8\x9A\xFF\xFF\xFF\x31\xDB\x53\x68\x50\x77\x6E\x64\x54\x5B\x89\x5D\xFC\x31\xDB\x53\x68\x72\x6C\x64\x21\x68\x6F\x20\x77\x6F\x68\x48\x65\x6C\x6C\x54\x5B\x89\x5D\xF8\x31\xDB\x53\x68\x2E\x64\x6C\x6C\x68\x65\x72\x33\x32\x66\xBB\x75\x73\x66\x53\x54\x5B\x68\x8E\x4E\x0E\xEC\x57\xE8\x69\xFF\xFF\xFF\x53\xFF\xD0\x89\x45\xF4\x68\xAA\xFC\x0D\x7C\x57\xE8\x58\xFF\xFF\xFF\x31\xDB\x53\x68\x42\x6F\x78\x41\x68\x73\x61\x67\x65\xBB\x7A\x23\x0B\x1D\x81\xF3\x7A\x6E\x6E\x6E\x53\x89\xE3\x43\x53\x8B\x5D\xF4\x53\xFF\xD0\x89\x45\xF0\x8B\x45\xF0\x31\xDB\x53\x8B\x5D\xF8\x53\x8B\x5D\xFC\x53\x31\xDB\x53\xFF\xD0\x68\x7E\xD8\xE2\x73\x57\xE8\x14\xFF\xFF\xFF\x31\xC9\x51\xFF\xD0"
+
+    loadDlls(mu)
+
+    # write machine code to be emulated to memory
+    mu.mem_write(CODE_ADDR, code)
+    mu.mem_write(EXTRA_ADDR, b'\xC3')
+
+    # initialize stack
+    mu.reg_write(UC_X86_REG_ESP, STACK_ADDR)
+    mu.reg_write(UC_X86_REG_EBP, STACK_ADDR)
+
+    # Push entry point addr to top of stack. Represents calling of entry point.
+    for i in range(0,10):
+        push(mu, ENTRY_ADDR)
+    mu.mem_write(ENTRY_ADDR, b'\x90\x90\x90\x90')
+
+    global cs
+    if mode == UC_MODE_32:
+        print(cya+"\n\t[*]"+res2+" Emulating x86_32 shellcode")
+        cs = Cs(CS_ARCH_X86, CS_MODE_32)
+        allocateWinStructs32(mu)
+
+    elif mode == UC_MODE_64:
+        print(cya+"\n\t[*]"+res2+" Emulating x86_64 shellcode")
+        cs = Cs(CS_ARCH_X86, CS_MODE_64)
+        allocateWinStructs64(mu)
+
+    # tracing all instructions with customized callback
+    mu.hook_add(UC_HOOK_CODE, hook_code)
+
+    # emulate machine code in infinite time
+    mu.emu_start(CODE_ADDR, CODE_ADDR + len(code))
+
+    # now print out some registers
+    artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
+
+    print(cya+"\t[*]"+res2+" CPU counter: " + str(programCounter))
+    print(cya+"\t[*]"+res2+" Emulation complete")
+    printCalls()
 
 def startEmu(arch, data, vb):
     global verbose
     verbose = vb
-    # print("here", arch)
+
     if arch == 32:
-        test_i386(UC_MODE_32, data)
+        debugEmu(UC_MODE_32, data)
 
 em=EMU()
 
 if __name__ == '__main__':
-    global verbose
     code = b""
-    verbose = True
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', '--mode')
     parser.add_argument('-f', '--file')
@@ -1095,4 +1314,4 @@ if __name__ == '__main__':
         code = readRaw(args.file)
 
     if args.mode == '32':
-        test_i386(UC_MODE_32, code)
+        debugEmu(UC_MODE_32, code)
