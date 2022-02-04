@@ -681,13 +681,14 @@ def hook_code(uc, address, size, user_data):
     op_str=""
     t=0
     for i in cs.disasm(shells, address):
-        val = i.mnemonic + " " + i.op_str
+        val = i.mnemonic + " " + i.op_str + " " + shells.hex()
         if t==0:
             mnemonic=i.mnemonic
             op_str=i.op_str
 
         if verbose == True:
             instructLine += val + '\n'
+            # print (instructLine)
             outFile.write(instructLine)
         t+=1
 
@@ -700,7 +701,8 @@ def hook_code(uc, address, size, user_data):
     if funcAddress > KERNEL32_BASE and funcAddress < WSOCK32_TOP:
         ret += size
         push(uc, ret)
-
+        bprint ("in range", hex(funcAddress))
+        bprint (instructLine)
         eip = uc.reg_read(UC_X86_REG_EIP)
         esp = uc.reg_read(UC_X86_REG_ESP)
         bprint ("funcAddress", hex(funcAddress))
@@ -710,10 +712,13 @@ def hook_code(uc, address, size, user_data):
             funcName = export_dict[funcAddress][0]
         except:
             funcName="DIDNOTFIND- " + str(hex((funcAddress))) 
-            print (funcName)
+            bprint ("did not find:", funcName)
         try:
+            bprint ("funcName", hex(funcAddress), funcName)
             funcInfo, cleanBytes = globals()['hook_'+funcName](uc, eip, esp, export_dict, addr)
+            bprint("funcName2", funcName)
             logCall(funcName, funcInfo)
+            bprint ("log done")
 
             dll = export_dict[funcAddress][1]
             dll = dll[0:-4]
@@ -725,12 +730,14 @@ def hook_code(uc, address, size, user_data):
         except:
             # hook_backup(uc, eip, esp, funcAddress, export_dict[funcAddress])
             try:
+                bprint ("hook_default", hex(funcAddress))
                 hook_default(uc, eip, esp, funcAddress, export_dict[funcAddress][0], addr)
             except:
                 print ("\n\tHook failed at " + str(hex(funcAddress))+".")
         if funcName == 'ExitProcess':
             stopProcess = True
         if 'LoadLibrary' in funcName and uc.reg_read(UC_X86_REG_EAX) == 0:
+            print ("\t[*] LoadLibrary failed. Emulation ceasing.")
             stopProcess = True
 
         uc.reg_write(UC_X86_REG_EIP, EXTRA_ADDR)
@@ -780,7 +787,9 @@ def getRetVal2(retVal, retType=""):
     return retBundle
 
 def findRetVal(funcName, dll):
+    bprint ("findRetVal - funcName", dll)
     global rsLookUp
+    retValStr=""
     dictR1 = globals()['dictRS_'+dll]
     if funcName in dictR1:
         retValStr= dictR1[funcName]
@@ -788,7 +797,11 @@ def findRetVal(funcName, dll):
             retVal=rsLookUp[retValStr]
             return retVal
         else: 
-            return 32
+            test=isinstance(retValStr,int)
+            if test:
+                return retValStr
+            else:
+                return 32
     else:
         return 32
 # Get the parameters off the stack
@@ -902,10 +915,11 @@ def hook_default(uc, eip, esp, funcAddress, funcName, callLoc):
             paramTypes = apiDict[1]
             paramNames = apiDict[2]
         else:
-            paramTypes = ['dword'] * len(paramVals)
+            paramTypes = ['DWORD'] * len(paramVals)
             paramNames = ['arg'] * len(paramVals)
 
         retVal=findRetVal(funcName, dll)
+        bprint ("returnVal", funcName, retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         retValStr=getRetVal2(retVal)
@@ -1073,6 +1087,8 @@ def startEmu(arch, data, vb):
     verbose = vb
     # print("here", arch)
     if arch == 32:
+        tmp=data
+        data=tmp
         test_i386(UC_MODE_32, data)
 
 em=EMU()
