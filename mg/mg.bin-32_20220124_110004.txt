@@ -1,0 +1,66 @@
+Filename: mg.bin
+File Type: rawHex
+Architecture: 32-bit
+Date Analyzed: 2022-01-24 11:00:04
+Seconds since last epoch: 1643043604.241495
+Shellcode Entry point: 0x0
+md5: 878722b7c9786193919661dbb9105529
+sha256: 1d8f706a8f8697499b09f25deae28f4e9a009434a79031425aa9e09e6667f319
+ssdeep: 12:KMHlKml21Y/X2Yao1Mrt3J6srDmJxa7e66v5EemFNpeScoW4B21gQE252:3HwmM1Y/X2Yao1MZ6+ixwe66vanpD52k
+
+
+No strings found.
+
+No push ret instructions found.
+
+No fstenv instructions found.
+
+No call pop instructions found.
+
+No syscall instructions found.
+
+No peb walking instructions found.
+
+No heaven's gate instructions found.
+
+**************************
+     Emulation
+**************************
+
+
+************* APIs *************
+
+0x123123 WinExec(LPCSTR lpCmdLine, UINT uCmdShow) kernel32.dll
+	LPCSTR lpCmdLine: cmd.exe /c ping google.com > C:\result.txt
+	UINT uCmdShow: 0x5
+	Return: 0x20
+
+0x321321 EncyptFileA(LPCSTR lpFileName) kernel32.dll
+	LPCSTR lpFileName: C:\result.txt
+	Return: 0x20
+
+0x1337c0de LoadLibraryA(LPCTSTR lpLibFileName) kernel32.dll
+	LPCTSTR lpLibFileName: user32.dll
+	Return: 0x45664c88
+
+0xdeadc0de MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType) user32.dll
+	HWND hWnd: 0x987987
+	LPCSTR lpText: You have been hacked by an elite haxor. Your IP address is now stored in C:\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\result.txt
+	LPCSTR lpCaption: You have been hacked by an elite haxor. Your IP address is now stored in C:\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\result.txt
+	UINT uType: 0x0
+	Return: 0x20
+
+
+************* DLLs *************
+DLLs                   
+
+************* Artifacts *************
+Artifacts              
+
+
+Web artifacts          
+
+
+File artifacts         
+
+
