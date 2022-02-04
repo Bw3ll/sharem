@@ -281,10 +281,10 @@ def printMenu(bpPushRet, bpCallPop, bpFstenv, bpSyscall, bpHeaven, bpPEB, bExpor
 	iMenu += " {} {} \t\t[".format(gre + "j"+ res, whi + "- Export all to JSON." + res)
 	iMenu += cya + "x" + res if bExportAll else " "
 	iMenu += "]\n"
-	iMenu += " {} {} \t\t[".format(gre + "e"+ res, whi + "- Emulation verbose mode." + res)
+	iMenu += " {} {} \t\t[".format(gre + "e"+ res, whi + "- Emulation verbose print style." + res)
 	iMenu += cya + "x" + res if emulation_verbose else " "
 	iMenu += "]\n"
-	iMenu += " {} {} \t[".format(gre + "m"+ res, whi + "- Emulation multiline format." + res)
+	iMenu += " {} {} \t[".format(gre + "m"+ res, whi + "- Multiline print style of artifacts." + res)
 	iMenu += cya + "x" + res if emulation_multiline else " "
 	iMenu += "]\n"
 	iMenu += " {} {} \t\t\t[{}]\n".format(gre + "p" + res, whi + "- Print to screen" + res, cya + p2screen + res)
@@ -654,7 +654,7 @@ def stringMenu(bAsciiStrings, bWideCharStrings, bPushStackStrings, bAllStrings, 
 # 		self.breakLoop = True
 # 		self.numOfIter = 500000
 
-def emulatorUI(emuObj):
+def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 
 	# print(mag+"\tPlease note the setup.py MUST be run first before emulation will work!"+res)
 
@@ -692,6 +692,25 @@ def emulatorUI(emuObj):
 	else:
 		bloopTog = " "
 
+	if emulation_verbose:
+		emuVerbose = "x"
+	else:
+		emuVerbose = " "
+
+
+	if emulation_multiline:
+		emuMultiLine = "x"
+	else:
+		emuMultiLine = " "
+
+	# iMenu += " {} {} \t\t[".format(gre + "e"+ res, whi + "- Emulation verbose print style." + res)
+	# iMenu += cya + "x" + res if emulation_verbose else " "
+	# iMenu += "]\n"
+	# iMenu += " {} {} \t[".format(gre + "m"+ res, whi + "- Emulation multiline print style." + res)
+	# iMenu += cya + "x" + res if emulation_multiline else " "
+	# iMenu += "]\n"
+
+
 	text += "  {}        \n".format(cya + "z"+res+" -"+yel+"  Initiate emulation."+ res)
 	text += "  {}{:>3}[{}]\n".format(cya + "m"+res+" -"+yel+"  Maximum instructions to emulate."+ res, "", cya + str(maxinst)+ res)
 
@@ -706,6 +725,14 @@ def emulatorUI(emuObj):
 
 	text += "  {}{:>1}[{}]\n".format(cya + "n"+res+" -"+yel+"  Number of iterations before break."+ res, "", cya + str(iternum)+ res)
 	text += "\t{}\n".format(cya + "*"+whi + "Under Development" + res)
+
+
+	text += "  {}{:>1}[{}]\n".format(cya + "n"+res+" -"+yel+"  Emulation verbose print style."+ res, "", cya + str(emuVerbose)+ res)
+	text += "  {}{:>1}[{}]\n".format(cya + "n"+res+" -"+yel+"  Multiline print style of artifacts."+ res, "", cya + str(emuMultiLine)+ res)
+
+	
+
+
 	text += "  {}        \n".format(cya + "h"+res+" -"+yel+"  Print this menu."+ res)
 
 	text += "  {}        \n".format(cya + "x"+res+" -"+yel+"  Exit."+ res)

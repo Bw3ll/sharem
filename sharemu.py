@@ -825,7 +825,7 @@ def hook_code(uc, address, size, user_data):
     op_str=""
     t=0
     for i in cs.disasm(shells, address):
-        val = i.mnemonic + " " + i.op_str
+        val = i.mnemonic + " " + i.op_str + " " + shells.hex()
         if t==0:
             mnemonic=i.mnemonic
             op_str=i.op_str
@@ -833,6 +833,7 @@ def hook_code(uc, address, size, user_data):
         if verbose:
             shells = uc.mem_read(address, size)
             instructLine += val + '\n'
+            # print (instructLine)
             outFile.write(instructLine)
             loc = 0
             for i in cs.disasm(shells, loc):
@@ -860,7 +861,8 @@ def hook_code(uc, address, size, user_data):
     if funcAddress > KERNEL32_BASE and funcAddress < WSOCK32_TOP:
         ret += size
         push(uc, ret)
-
+        bprint ("in range", hex(funcAddress))
+        bprint (instructLine)
         eip = uc.reg_read(UC_X86_REG_EIP)
         esp = uc.reg_read(UC_X86_REG_ESP)
         bprint ("funcAddress", hex(funcAddress))
@@ -870,10 +872,13 @@ def hook_code(uc, address, size, user_data):
             funcName = export_dict[funcAddress][0]
         except:
             funcName="DIDNOTFIND- " + str(hex((funcAddress))) 
-            print (funcName)
+            bprint ("did not find:", funcName)
         try:
+            bprint ("funcName", hex(funcAddress), funcName)
             funcInfo, cleanBytes = globals()['hook_'+funcName](uc, eip, esp, export_dict, addr)
+            bprint("funcName2", funcName)
             logCall(funcName, funcInfo)
+            bprint ("log done")
 
             dll = export_dict[funcAddress][1]
             dll = dll[0:-4]
@@ -885,12 +890,14 @@ def hook_code(uc, address, size, user_data):
         except:
             # hook_backup(uc, eip, esp, funcAddress, export_dict[funcAddress])
             try:
+                bprint ("hook_default", hex(funcAddress))
                 hook_default(uc, eip, esp, funcAddress, export_dict[funcAddress][0], addr)
             except:
                 print ("\n\tHook failed at " + str(hex(funcAddress))+".")
         if funcName == 'ExitProcess':
             stopProcess = True
         if 'LoadLibrary' in funcName and uc.reg_read(UC_X86_REG_EAX) == 0:
+            print ("\t[*] LoadLibrary failed. Emulation ceasing.")
             stopProcess = True
 
         uc.reg_write(UC_X86_REG_EIP, EXTRA_ADDR)
@@ -943,7 +950,9 @@ def getRetVal2(retVal, retType=""):
     return retBundle
 
 def findRetVal(funcName, dll):
+    bprint ("findRetVal - funcName", dll)
     global rsLookUp
+    retValStr=""
     dictR1 = globals()['dictRS_'+dll]
     if funcName in dictR1:
         retValStr= dictR1[funcName]
@@ -951,7 +960,11 @@ def findRetVal(funcName, dll):
             retVal=rsLookUp[retValStr]
             return retVal
         else: 
-            return 32
+            test=isinstance(retValStr,int)
+            if test:
+                return retValStr
+            else:
+                return 32
     else:
         return 32
 # Get the parameters off the stack
@@ -1065,10 +1078,11 @@ def hook_default(uc, eip, esp, funcAddress, funcName, callLoc):
             paramTypes = apiDict[1]
             paramNames = apiDict[2]
         else:
-            paramTypes = ['dword'] * len(paramVals)
+            paramTypes = ['DWORD'] * len(paramVals)
             paramNames = ['arg'] * len(paramVals)
 
         retVal=findRetVal(funcName, dll)
+        bprint ("returnVal", funcName, retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         retValStr=getRetVal2(retVal)
@@ -1150,6 +1164,7 @@ def findArtifacts():
     #         file_artifacts.append(i)
 
     # print (net_artifacts)
+    # print (net_artifacts)
 
     return list(dict.fromkeys(artifacts)), list(dict.fromkeys(net_artifacts)), list(dict.fromkeys(file_artifacts)), list(dict.fromkeys(exec_artifacts))
 
@@ -1193,12 +1208,6 @@ def test_i386(mode, code):
 
         mu.mem_map(0x00000000, 0x20050000)
 
-        # remove this later
-        # code = b"\xBE\x0A\x00\x00\x00\x4E\x83\xFE\x00\x75\xFA\x89\xF0\x83\xC0\x06"
-        # code = b"\xBE\x0A\x00\x00\x00\x4E\x83\xFE\x00\x74\x02\xEB\xF3\x89\xF0\x83\xC0\x06"
-        code = b"\xb8\xd0\x00\x00\x00\x0f\x05\x90"
-
-
         # write machine code to be emulated to memory
         mu.mem_write(CODE_ADDR, code)
 
@@ -1207,6 +1216,11 @@ def test_i386(mode, code):
         # initialize stack
         mu.reg_write(UC_X86_REG_ESP, STACK_ADDR)
         mu.reg_write(UC_X86_REG_EBP, STACK_ADDR)
+
+        # Push entry point addr to top of stack. Represents calling of entry point.
+        for i in range(0, 10):
+            push(mu, ENTRY_ADDR)
+        mu.mem_write(ENTRY_ADDR, b'\x90\x90\x90\x90')
 
         global cs
         if mode == UC_MODE_32:
@@ -1246,9 +1260,6 @@ def debugEmu(mode, code):
     mu = Uc(UC_ARCH_X86, mode)
 
     mu.mem_map(0x00000000, 0x20050000)
-
-    #SHIL shellcode
-    # code = b"\xEB\x5E\x6A\x30\x5E\x64\x8B\x06\x8B\x40\x0C\x8B\x70\x1C\xAD\x96\xAD\x8B\x78\x08\xC3\x60\x89\xFD\x8B\x45\x3C\x8B\x7C\x05\x78\x01\xEF\x8B\x4F\x18\x8B\x5F\x20\x01\xEB\xE3\x33\x49\x8B\x34\x8B\x01\xEE\x31\xC0\x99\xFC\xAC\x84\xC0\x74\x07\xC1\xCA\x0D\x01\xC2\xEB\xF4\x3B\x54\x24\x28\x75\xE2\x8B\x5F\x24\x01\xEB\x66\x8B\x0C\x4B\x8B\x5F\x1C\x01\xEB\x8B\x04\x8B\x01\xE8\x89\x44\x24\x1C\x61\xC3\x83\xEC\x14\xE8\x9A\xFF\xFF\xFF\x31\xDB\x53\x68\x50\x77\x6E\x64\x54\x5B\x89\x5D\xFC\x31\xDB\x53\x68\x72\x6C\x64\x21\x68\x6F\x20\x77\x6F\x68\x48\x65\x6C\x6C\x54\x5B\x89\x5D\xF8\x31\xDB\x53\x68\x2E\x64\x6C\x6C\x68\x65\x72\x33\x32\x66\xBB\x75\x73\x66\x53\x54\x5B\x68\x8E\x4E\x0E\xEC\x57\xE8\x69\xFF\xFF\xFF\x53\xFF\xD0\x89\x45\xF4\x68\xAA\xFC\x0D\x7C\x57\xE8\x58\xFF\xFF\xFF\x31\xDB\x53\x68\x42\x6F\x78\x41\x68\x73\x61\x67\x65\xBB\x7A\x23\x0B\x1D\x81\xF3\x7A\x6E\x6E\x6E\x53\x89\xE3\x43\x53\x8B\x5D\xF4\x53\xFF\xD0\x89\x45\xF0\x8B\x45\xF0\x31\xDB\x53\x8B\x5D\xF8\x53\x8B\x5D\xFC\x53\x31\xDB\x53\xFF\xD0\x68\x7E\xD8\xE2\x73\x57\xE8\x14\xFF\xFF\xFF\x31\xC9\x51\xFF\xD0"
 
     loadDlls(mu)
 
@@ -1295,6 +1306,9 @@ def startEmu(arch, data, vb):
 
     if arch == 32:
         debugEmu(UC_MODE_32, data)
+        tmp=data
+        data=tmp
+        test_i386(UC_MODE_32, data)
 
 em=EMU()
 

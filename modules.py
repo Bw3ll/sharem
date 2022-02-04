@@ -63,6 +63,40 @@ WS2_32_BASE = 0x15ba3688
 WS2_32_TOP = 0x15b8d688
 WSOCK32_BASE = 0x15bd7888
 WSOCK32_TOP = 0x15bdc088
+LDR_ADVPACK_ADDR=0xdeadc0de
+LDR_BCRYPT_ADDR=0xdeadc0de
+LDR_CRYPT32_ADDR=0xdeadc0de
+LDR_DNSAPI_ADDR=0xdeadc0de
+LDR_MPR_ADDR=0xdeadc0de
+LDR_NCRYPT_ADDR=0xdeadc0de
+LDR_NETUTILS_ADDR=0xdeadc0de
+LDR_SAMCLI_ADDR=0xdeadc0de
+LDR_SECUR32_ADDR=0xdeadc0de
+LDR_WKSCLI_ADDR=0xdeadc0de
+LDR_WTSAPI32_ADDR=0xdeadc0de
+
+ADVPACK_BASE=0xdeadc0de
+ADVPACK_TOP=0xdeadc0de
+BCRYPT_BASE=0xdeadc0de
+BCRYPT_TOP=0xdeadc0de
+CRYPT32_BASE=0xdeadc0de
+CRYPT32_TOP=0xdeadc0de
+DNSAPI_BASE=0xdeadc0de
+DNSAPI_TOP=0xdeadc0de
+MPR_BASE=0xdeadc0de
+MPR_TOP=0xdeadc0de
+NCRYPT_BASE=0xdeadc0de
+NCRYPT_TOP=0xdeadc0de
+NETUTILS_BASE=0xdeadc0de
+NETUTILS_TOP=0xdeadc0de
+SAMCLI_BASE=0xdeadc0de
+SAMCLI_TOP=0xdeadc0de
+SECUR32_BASE=0xdeadc0de
+SECUR32_TOP=0xdeadc0de
+WKSCLI_BASE=0xdeadc0de
+WKSCLI_TOP=0xdeadc0de
+WTSAPI32_BASE=0xdeadc0de
+WTSAPI32_TOP=0xdeadc0de
 
 path32 = 'C:\\Windows\\SysWOW64\\'
 path64 = 'C:\\Windows\\System32\\'
@@ -74,6 +108,25 @@ sysCallTable={0xb9: 'NTCreateProcess'}
 allDlls=["ntdll", "kernel32",  "advapi32",  "comctl32",  "comdlg32",  "gdi32",  "imm32",  "mscoree",  "msvcrt",  "netapi32",  "ole32",  "oleaut32",  "shell32",  "shlwapi",  "urlmon",  "user32",  "wininet",  "winmm",  "ws2_32",  "wsock32"]
 allDllsDict = {'ntdll.dll': NTDLL_BASE, 'kernel32.dll': KERNEL32_BASE, 'advapi32.dll': ADVAPI32_BASE, 'comctl32.dll': COMCTL32_BASE, 'comdlg32.dll': COMDLG32_BASE, 'gdi32.dll': GDI32_BASE, 'imm32.dll': IMM32_BASE, 'mscoree.dll': MSCOREE_BASE, 'msvcrt.dll': MSVCRT_BASE, 'netapi32.dll': NETAPI32_BASE, 'ole32.dll': OLE32_BASE, 'oleaut32.dll': OLEAUT32_BASE, 'shell32.dll': SHELL32_BASE, 'shlwapi.dll': SHLWAPI_BASE, 'urlmon.dll': URLMON_BASE, 'user32.dll': USER32_BASE, 'wininet.dll': WININET_BASE, 'winmm.dll': WINMM_BASE, 'ws2_32.dll': WS2_32_BASE, 'wsock32.dll': WSOCK32_BASE}
 ldrDict = {'ntdll.dll': LDR_NTDLL_ADDR, 'kernel32.dll': LDR_KERNEL32_ADDR, 'advapi32.dll': LDR_ADVAPI32_ADDR, 'comctl32.dll': LDR_COMCTL32_ADDR, 'comdlg32.dll': LDR_COMDLG32_ADDR, 'gdi32.dll': LDR_GDI32_ADDR, 'imm32.dll': LDR_IMM32_ADDR, 'mscoree.dll': LDR_MSCOREE_ADDR, 'msvcrt.dll': LDR_MSVCRT_ADDR, 'netapi32.dll': LDR_NETAPI32_ADDR, 'ole32.dll': LDR_OLE32_ADDR, 'oleaut32.dll': LDR_OLEAUT32_ADDR, 'shell32.dll': LDR_SHELL32_ADDR, 'shlwapi.dll': LDR_SHLWAPI_ADDR, 'urlmon.dll': LDR_URLMON_ADDR, 'user32.dll': LDR_USER32_ADDR, 'wininet.dll': LDR_WININET_ADDR, 'winmm.dll': LDR_WINMM_ADDR, 'ws2_32.dll': LDR_WS2_32_ADDR, 'wsock32.dll': LDR_WSOCK32_ADDR}
+
+
+advpack="advpack"
+bcrypt="bcrypt"
+crypt32="crypt32"
+dnsapi="dnsapi"
+mpr="mpr"
+ncrypt="ncrypt"
+netutils="netutils"
+samcli="samcli"
+secur32="secur32"
+wkscli="wkscli"
+wtsapi32="wtsapi32"
+
+allDlls2=["advpack", "bcrypt", "crypt32", "dnsapi", "mpr", "ncrypt", "netutils", "samcli", "secur32", "wkscli", "wtsapi32"]
+
+allDllsDict2={'advpack.dll':ADVPACK_BASE, 'bcrypt.dll':BCRYPT_BASE, 'crypt32.dll':CRYPT32_BASE, 'dnsapi.dll':DNSAPI_BASE, 'mpr.dll':MPR_BASE, 'ncrypt.dll':NCRYPT_BASE, 'netutils.dll':NETUTILS_BASE, 'samcli.dll':SAMCLI_BASE, 'secur32.dll':SECUR32_BASE, 'wkscli.dll':WKSCLI_BASE, 'wtsapi32.dll':WTSAPI32_BASE}
+
+ldrDict2={'advpack.dll':LDR_ADVPACK_ADDR, 'bcrypt.dll':LDR_BCRYPT_ADDR, 'crypt32.dll':LDR_CRYPT32_ADDR, 'dnsapi.dll':LDR_DNSAPI_ADDR, 'mpr.dll':LDR_MPR_ADDR, 'ncrypt.dll':LDR_NCRYPT_ADDR, 'netutils.dll':LDR_NETUTILS_ADDR, 'samcli.dll':LDR_SAMCLI_ADDR, 'secur32.dll':LDR_SECUR32_ADDR, 'wkscli.dll':LDR_WKSCLI_ADDR, 'wtsapi32.dll':LDR_WTSAPI32_ADDR}
 
 ntdll="ntdll"
 kernel32="kernel32"
