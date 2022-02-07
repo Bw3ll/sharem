@@ -11672,7 +11672,7 @@ def createDisassemblyLists(Colors=True, caller=None):
 		try:
 			cur=cAddress
 			if (sBy.pushStringEnd[cur]-2) == cur:
-				msg="; "+sBy.pushStringValue[cur] + " - Stack string"
+				msg=mag+"; "+sBy.pushStringValue[cur] + " - Stack string"+res2
 				newVal =('{:<12} {:<45s} {:<33}{:<10s}\n'.format("", msg, nada, nada))
 				out= newVal+out
 		except Exception as e:
@@ -12196,6 +12196,8 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 		offset +=1
 		# t+=1
 		w+=1
+		print(startAddString)
+		print(type(startAddString))
 		if w==(length):
 			# sBy.shMnemonic.append(mnemonic)
 			# sBy.shOp_str.append(op_str)
@@ -12210,6 +12212,15 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 
 				# print("-->", startAddString, stringVala)
 				addDis(int(startAddString,16),"",stringVala, "", "EndStringMaker")
+			
+			# if dbFlag==True:
+			# 	try:
+			# 		addDis(int(startAddString,16),"",stringVala, "", "EndStringMaker")
+			# 	except:
+			# 		try:
+			# 			addDis(int(startAddString),"",stringVala, "", "EndStringMaker")
+			# 		except:
+			# 			pass
 				dbFlag=False
 			w=0
 	return ""
