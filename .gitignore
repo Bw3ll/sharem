@@ -1,6 +1,10 @@
-
+**/__pycache__
+.DS_Store
+*.egg-info
 *.pyc
 work2.bin
+DLLS/**
+logs/**
 out.txt
 outputs/shellcode-disassembly.txt
 outputs/shellcode.bin
@@ -29,8 +33,5 @@ sharem_austin.py
 *.pyc
 test2.txt
 work.asm
-__pycache__/lists.cpython-38.pyc
-*.pyc
-__pycache__/lists.cpython-38.pyc
-*.pyc
-__pycache__/lists.cpython-38.pyc
+
+sharem/sharem/sharem/logs/logging.txt
