@@ -15,6 +15,7 @@ from .DLLs.dict2_signatures import *
 from .DLLs.dict3_w32 import *
 from .DLLs.dict4_ALL import *
 from .DLLs.hookAPIs import *
+from .helper import emuHelpers
 import re
 import os
 import argparse
@@ -844,7 +845,7 @@ def hook_code(uc, address, size, user_data):
     global loopCounter
     global traversedAdds
     # global maxCounter
-
+    funcName = ""
     # traversedAdds.add(address) # do not delete
     if stopProcess == True:
         uc.emu_stop()
@@ -914,7 +915,7 @@ def hook_code(uc, address, size, user_data):
     # Hook usage of Windows API function
     funcAddress = controlFlow(uc, mnemonic, op_str)
 
-    if funcAddress > KERNEL32_BASE and funcAddress < WSOCK32_TOP:
+    if funcAddress > NTDLL_BASE and funcAddress < WTSAPI32_TOP:
         ret += size
         push(uc, ret)
         bprint ("in range", hex(funcAddress))
@@ -1159,28 +1160,7 @@ def hook_default(uc, eip, esp, funcAddress, funcName, callLoc):
         print(traceback.format_exc())
 
 
-def read_string(uc, address):
-    ret = ""
-    c = uc.mem_read(address, 1)[0]
-    read_bytes = 1
 
-    while c != 0x0:
-        ret += chr(c)
-        c = uc.mem_read(address + read_bytes, 1)[0]
-        read_bytes += 1
-    return ret
-
-def read_unicode(uc, address):
-    ret = ""
-    c = uc.mem_read(address, 1)[0]
-    read_bytes = 0
-
-    while c != 0x0:
-        c = uc.mem_read(address + read_bytes, 1)[0]
-        ret += chr(c)
-        read_bytes += 2
-
-    return ret
 
 def logCall(funcName, funcInfo):
     global paramValues
@@ -1264,39 +1244,44 @@ def hook_intr(uc, intno, user_data):
 # Test X86 32 bit
 def test_i386(mode, code):
     global artifacts2
-    # try:
+    try:
     # Initialize emulator
-    mu = Uc(UC_ARCH_X86, mode)
 
-    mu.mem_map(0x00000000, 0x20050000)
+        mu = Uc(UC_ARCH_X86, mode)
 
-    loadDlls(mu)
+        mu.mem_map(0x00000000, 0x20050000)
 
-    # write machine code to be emulated to memory
-    mu.mem_write(CODE_ADDR, code)
-    mu.mem_write(EXTRA_ADDR, b'\xC3')
+        loadDlls(mu)
 
-    # initialize stack
-    mu.reg_write(UC_X86_REG_ESP, STACK_ADDR)
-    mu.reg_write(UC_X86_REG_EBP, STACK_ADDR)
+        # write machine code to be emulated to memory
+        mu.mem_write(CODE_ADDR, code)
+        mu.mem_write(EXTRA_ADDR, b'\xC3')
 
-    # Push entry point addr to top of stack. Represents calling of entry point.
-    push(mu, ENTRY_ADDR)
-    mu.mem_write(ENTRY_ADDR, b'\x90\x90\x90\x90')
+        # initialize stack
+        mu.reg_write(UC_X86_REG_ESP, STACK_ADDR)
+        mu.reg_write(UC_X86_REG_EBP, STACK_ADDR)
 
-    global cs
-    if mode == UC_MODE_32:
-        print(cya + "\n\t[*]" + res2 + " Emulating x86_32 shellcode")
-        cs = Cs(CS_ARCH_X86, CS_MODE_32)
-        allocateWinStructs32(mu)
+        # Push entry point addr to top of stack. Represents calling of entry point.
+        push(mu, ENTRY_ADDR)
+        mu.mem_write(ENTRY_ADDR, b'\x90\x90\x90\x90')
 
-    elif mode == UC_MODE_64:
-        print(cya + "\n\t[*]" + res2 + " Emulating x86_64 shellcode")
-        cs = Cs(CS_ARCH_X86, CS_MODE_64)
-        allocateWinStructs64(mu)
+        global cs
+        if mode == UC_MODE_32:
+            print(cya + "\n\t[*]" + res2 + " Emulating x86_32 shellcode")
+            cs = Cs(CS_ARCH_X86, CS_MODE_32)
+            allocateWinStructs32(mu)
 
-    # tracing all instructions with customized callback
-    mu.hook_add(UC_HOOK_CODE, hook_code)
+        elif mode == UC_MODE_64:
+            print(cya + "\n\t[*]" + res2 + " Emulating x86_64 shellcode")
+            cs = Cs(CS_ARCH_X86, CS_MODE_64)
+            allocateWinStructs64(mu)
+
+        # tracing all instructions with customized callback
+        mu.hook_add(UC_HOOK_CODE, hook_code)
+    except Exception as e:
+        print(e)
+
+
 
     # emulate machine code in infinite time
     try:    
@@ -1386,4 +1371,4 @@ if __name__ == '__main__':
         code = readRaw(args.file)
 
     if args.mode == '32':
-        debugEmu(UC_MODE_32, code)
+        test_i386(UC_MODE_32, code)

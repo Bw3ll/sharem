@@ -5597,8 +5597,8 @@ def runProcsDistr(encodeBytes4, sample, numThreads, version = 3, findAll = False
 			for proc in processList:
 				proc.join()
 
-			for proc in processList:
-				proc.terminate()
+			# for proc in processList:
+			# 	proc.terminate()
 
 			# print("rets here")
 			# print(rets)

@@ -7,6 +7,7 @@ import binascii
 import copy
 import os
 from collections import OrderedDict
+import random
 
 try:
 	import win32api
@@ -5592,7 +5593,7 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 
 			
 			variable = re.search(" ?(e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
-			numeric = re.search(" ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
+			numeric = re.search("^ ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
 			ptr = re.search(" ?(ptr)", line, re.IGNORECASE)
 
 			if(ptr):
@@ -5673,7 +5674,7 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 			line = line.replace(' ', '')
 
 			variable = re.search(" ?(e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
-			numeric = re.search(" ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
+			numeric = re.search("^ ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
 
 			ptr = re.search(" ?(ptr)", line, re.IGNORECASE)
 			
@@ -5830,7 +5831,7 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 			line = line.replace(' ', '')
 
 			variable = re.search(" ?(e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
-			numeric = re.search(" ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
+			numeric = re.search("^ ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
 
 			ptr = re.search(" ?(ptr)", line, re.IGNORECASE)
 			
@@ -6008,7 +6009,7 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 			line = line.replace(' ', '')
 
 			variable = re.search(" ?(e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
-			numeric = re.search(" ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
+			numeric = re.search("^ ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
 			ptr = re.search(" ?(ptr)", line, re.IGNORECASE)
 			
 			if(ptr):
@@ -6363,7 +6364,7 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 			# print("PUSH LINE IS")
 			# print(line)
 			variable = re.search(" ?(e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
-			numeric = re.search(" ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
+			numeric = re.search("^ ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
 			ptr = re.search(" ?(ptr)", line, re.IGNORECASE)
 			
 			if(ptr):
@@ -6429,7 +6430,7 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 			# print("PUSH LINE IS")
 			# print(line)
 			variable = re.search(" ?(e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
-			numeric = re.search(" ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
+			numeric = re.search("^ ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
 
 
 			ptr = re.search(" ?(ptr)", line, re.IGNORECASE)
@@ -15552,7 +15553,158 @@ def encodeShellcodeTesting(data, values):
 	return data
 
 
+def batchDecodeShellcode():
 
+
+	path = "encodedTests\\"
+	for filename in os.listdir(path):
+		failed = False
+		pathFile = path + filename
+		decryptBytes = readShellcode(pathFile)
+		print(filename)
+
+		decryptOpTypes = []
+		minus1 = re.search("_minus", filename, re.IGNORECASE)
+		plus1 = re.search("_plus", filename, re.IGNORECASE)
+		xor1 = re.search("_xor", filename, re.IGNORECASE)
+		if(minus1):
+			print("minus")
+			decryptOpTypes.append('+')
+		if(plus1):
+			print("plus")
+			decryptOpTypes.append('-')
+		if(xor1):
+			print("xor")
+			decryptOpTypes.append('^')
+
+		# minus2 = re.search("TWOminusTWO", filename, re.IGNORECASE)
+		# plus2 = re.search("TWOplusTWO", filename, re.IGNORECASE)
+		# xor2 = re.search("TWOxorTWO", filename, re.IGNORECASE)
+		# if(minus2):
+		# 	print("minus")
+		# 	decryptOpTypes.append('+')
+		# if(plus2):
+		# 	print("plus")
+		# 	decryptOpTypes.append('-')
+		# if(xor2):
+		# 	print("xor")
+		# 	decryptOpTypes.append('^')
+
+		# print(decryptOpTypes)
+		# input()
+
+
+		dDistr=True
+		start = time.time()
+		try:
+			decodedBytes = decryptShellcode(decryptBytes, decryptOpTypes, findAll = dFindAll, fastMode = dFastMode, distributed = dDistr, cpuCount = dCPUcount, nodesFile = dNodesFile, outputFile = dOutputFile)
+		except:
+			failed = True
+		end = time.time()
+		totalTime = end - start
+
+		timeFile = open("decodeTimes.txt", "a")
+		# print (directory+"outputs\\"+"decoded"+".bin")
+		timeFile.write("\n")
+		if(failed):
+			timeFile.write("failed")
+		else:
+			timeFile.write(str(totalTime))
+		timeFile.close()
+
+		# input()
+
+
+
+def batchEncodeShellcode():
+	print ("encodeShellcode")
+
+	j = 0
+	path = "unencodedShells\\"
+	for filename in os.listdir(path):
+		pathFile = path + filename
+		print(pathFile)
+		data = b""
+		with open(pathFile, mode='rb') as file:
+			data = file.read()
+		file.close()
+
+		print("read this data: ", data)
+
+
+
+
+		ops = ['^', '-', '+']
+		operation = random.choice(ops)
+		operation2 = random.choice(ops)
+
+		nums = range(255)
+		print("here nums", nums)
+		number = random.choice(nums)
+		number2 = random.choice(nums)
+
+
+		data = bytearray(data)
+		for i in range(len(data)):
+			if(operation == '+'):
+				fileOp = "plus"
+				data[i]=(data[i]+number)&255
+			if(operation == '-'):
+				fileOp = "minus"
+				data[i]=(data[i]-number)&255
+			if(operation == '^'):
+				fileOp = "xor"
+				data[i]=(data[i]^number)&255
+
+		for i in range(len(data)):
+			if(operation2 == '+'):
+				fileOp2 = "plus"
+				data[i]=(data[i]+number2)&255
+			if(operation2 == '-'):
+				fileOp2 = "minus"
+				data[i]=(data[i]-number2)&255
+			if(operation2 == '^'):
+				fileOp2 = "xor"
+				data[i]=(data[i]^number2)&255
+
+
+		directory = ".\\"
+		print ("saving new file...")
+		# print (disassembly)
+		if not os.path.exists(directory+'encodedTests2op'):
+			os.makedirs(directory+'encodedTests2op')
+		# print (directory+"outputs\\"+"decoded"+".bin")
+		newBin = open(directory+"encodedTests2op\\"+str(j)+"_"+fileOp+str(number)+"TWO"+fileOp2+"TWO"+str(number2)+".txt", "w")
+		newBin.write(binaryToStr(data))
+		newBin.close()
+		j += 1
+
+		print(binaryToStr(data))
+		print("\n\n")
+
+
+
+	# # print (binaryToStr(m[o].rawData2))
+	# shells=""
+	# data = bytearray(data)
+	# for i in range(len(data)):
+	# 	data[i]=(data[i]+a)&255
+
+		# shells+=str(hex(new)) +" "
+
+	# 	if len(str(hex(new))) % 2 !=0:
+	# 		# print ("got one")
+	# 		new2=str(hex(new))
+	# 		new2="0x0"+new2[2:]
+	# 		shells+=new2 + " "
+	# 	else:
+	# 		shells+=str(hex(new)) + " "
+	# shells=split0x(shells)
+	# # print(shells)
+	# shells=fromhexToBytes(shells)
+	# print("ENCODE BYTES")
+	# print (binaryToStr(data))
+	# return data
 
 
 def encodeShellcode(data):
@@ -16306,6 +16458,7 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 	global decodedBytes	
 	global filename
 	global sh
+	global dOutputFile
 	# print("ENCODED HERE: \n", encodedShell)
 
 	strAdd="new=(new +VALUE) & 255\n" 
@@ -16370,7 +16523,7 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 				# print("TESTD IS =", testd)
 				# print("DECODEINFO IS = ", decodeInfo)
 				singleVals = decodeInfo[2]
-				or7der = decodeInfo[3]
+				order = decodeInfo[3]
 				# print("GOT SINGLEVALS = ", singleVals)
 				# print("GOT ORDER = ", order)
 
@@ -16422,10 +16575,13 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 			#only runs if we didn't do fastmode
 			else:
 				for item in decodeInfo:
+					if(item == []):
+						return
 					c = 0
 					print("############# DECODED ################")
 					for x in item:
 						try:
+
 							# x[0] = binaryToStr(x[0])
 							# print("Decoded item info:")
 							# for i in range(len(x)):
@@ -16697,10 +16853,16 @@ def decryptUI():
 	global decryptFile
 	global filename
 	global stubFile
+	global pebPoints
+
+	successPoints = pebPoints
 
 	try:
 		decryptFile = filename	
-		decryptBytes = readShellcode(decryptFile) 
+		if(decryptFile[-4:] == ".txt"):
+			decryptBytes = readShellcode(decryptFile) 
+		else:
+			decryptBytes = rawData2		 
 	except:
 		print("Couldn't read command line input file, please provide only a shellcode file.")
 		decryptBytes = b''
@@ -16842,12 +17004,17 @@ def decryptUI():
 			print(cya + " Nodes File: ", yel + str(dNodesFile) + res)
 			print(cya + " OutputFile: ", gre + str(dOutputFile) + res)
 
+			if(successPoints < 3):
+
+				print(yel + "\npebPoints for shellcode detection is currently set to: [" + res + cya + str(successPoints) + yel + "] \nSet to recommended value of 3 to avoid false positives?" + gre + "[y/n] ? " + res, end="")
+				pebConfirm = input()
+				if(pebConfirm == "y"):
+					successPoints = 3
 			confirm = print(yel + "\n Run decryption with these settings "+ res + gre + "[y/n] ? "+res, end="")
 
 			confirm = input()
 			if(confirm == "y"):
-				decodedBytes = decryptShellcode(decryptBytes, decryptOpTypes, findAll = dFindAll, fastMode = dFastMode, distributed = dDistr, cpuCount = dCPUcount, nodesFile = dNodesFile, outputFile = dOutputFile)
-				print(m[shDec])
+				decodedBytes = decryptShellcode(decryptBytes, decryptOpTypes, findAll = dFindAll, fastMode = dFastMode, distributed = dDistr, cpuCount = dCPUcount, nodesFile = dNodesFile, outputFile = dOutputFile, successPoints = successPoints)
 				return
 
 		elif(entry == "l"):
@@ -18435,6 +18602,7 @@ def decryptConf(conr):
 	dFastMode = conr.getboolean('SHAREM DECRYPT','fast_mode')
 	dFindAll = conr.getboolean('SHAREM DECRYPT','find_all')
 	dDistr = conr.getboolean('SHAREM DECRYPT','dist_mode')
+	dOutputFile = conr.getboolean('SHAREM DECRYPT','output_file')
 	try:
 		dCPUcount = int(conr['SHAREM DECRYPT']['cpu_count'])
 	except:
@@ -18443,7 +18611,6 @@ def decryptConf(conr):
 	if not (os.path.exists(dNodesFile)):
 		print(red +"\n\nConfig file Error:", yel + dNodesFile + res, red + "doesn't exist!" + res)
 		
-	dOutputFile =  conr['SHAREM DECRYPT']['output_file']
 	decryptOpTypes = conr['SHAREM DECRYPT']['dec_operation_type']
 	try:
 		 decryptOpTypes = ast.literal_eval(decryptOpTypes)
@@ -22639,12 +22806,16 @@ def generateOutputData(): #Generate the dictionary for json out
 					if(eax != "unknown"):
 						# syscalls = returnSyscalls(int(eax, 0))
 						syscalls = getSyscallRecent(int(eax, 0), 64, "print2Json")
-					if 'syscall' in val5[-1]:
-						offsetLabel = 'syscall offset'
-					elif 'int' in val5[-1]:
-						offsetLabel = 'int offset'
-					else:
-						offsetLabel = 'c0_offset'
+					try:
+						if 'syscall' in val5[-1]:
+							offsetLabel = 'syscall offset'
+						elif 'int' in val5[-1]:
+							offsetLabel = 'int offset'
+						else:
+							offsetLabel = 'c0_offset'
+					except Exception as e:
+						pass
+						#print(e)
 					jsonData['syscall'].append({'address':hex(address), 'modSecName':modSecName, 'eax':eax, offsetLabel:c0_offset,"disassembly":val5, "disasm":jsonList, "syscalls":syscalls, "internalData":{'NumOpsDis':NumOpsDis, 'NumOpsBack':NumOpsBack, 'secNum':secNum}})
 
 			else:
