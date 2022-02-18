@@ -15,6 +15,7 @@ from DLLs.dict2_signatures import *
 from DLLs.dict3_w32 import *
 from DLLs.dict4_ALL import *
 from DLLs.hookAPIs import *
+from emuHelpers import *
 import re
 import os
 import argparse
@@ -28,8 +29,8 @@ import traceback
 
 class EMU():
     def __init__(self):
-        self.maxCounter=500000
-        self.entryOffset=0
+        self.maxCounter= 0x1000 #500000
+        self.entryOffset= 0x0 # 0xe5d
 
 # maxCounter = 100
 artifacts = []
@@ -81,7 +82,7 @@ loopInstructs = []
 loopCounter = 0
 verOut = ""
 bVerbose = True
-MAX_LOOP = 5000000
+MAX_LOOP = 500000000
 
 def bprint(*args):
     brDebugging2=False
@@ -152,7 +153,6 @@ class PEB_LDR_DATA32():
         self.IMO_entry = addr + 0x14
         self.IIO_entry = addr + 0x1c
     def allocate(self, mu, ilo_flink, ilo_blink, imo_flink, imo_blink, iio_flink, iio_blink):
-        mu.mem_write(self.Addr, pack("<Q", self.Length))
         mu.mem_write(self.Addr+0x4, pack("<Q", self.Initialized))
         mu.mem_write(self.Addr+0x8, pack("<Q", self.Sshandle))
         mu.mem_write(self.Addr+0xc, pack("<Q", ilo_flink) + pack("<Q", ilo_blink))
@@ -368,7 +368,7 @@ def saveDLLsToFile():       #help function called by loaddllsfromPE
         dllName=export_dict[address][1]
 
         output+=str(hex(address)) +", " + apiName+ ", "  + dllName + "\n"
-    with open(foundDLLAddresses, 'w') as out:
+    with open(foundDLLAddresses, 'a') as out:
         out.write(output)
         out.close()
 
@@ -382,7 +382,6 @@ def loadDlls(mu):
         if os.path.exists(mods[m].d32) == False:
             print("[*] Unable to locate ", mods[m].d32, ". It is likely that this file is not included in your version of Windows.")
             continue
-
         if os.path.exists("%s%s" % (expandedDLLsPath, mods[m].name)):
             dll=readRaw(expandedDLLsPath+mods[m].name)
             # Unicorn line to dump the DLL in our memory
@@ -399,13 +398,13 @@ def loadDlls(mu):
                 except:
                     export_dict[mods[m].base + exp.address] = "unknown_function"
 
-            saveDLLsToFile()
-
             dllPath = path + mods[m].name
             rawDll = padDLL(dllPath, mods[m].name)
 
             # Dump the dll into unicorn memory
             mu.mem_write(mods[m].base, rawDll)
+
+    saveDLLsToFile()
 
     with open(foundDLLAddresses, "r") as f:
         data = f.read()
@@ -792,6 +791,8 @@ def hook_code(uc, address, size, user_data):
     global loopCounter
     global traversedAdds
     # global maxCounter
+    
+    funcName = ""
 
     # traversedAdds.add(address) # do not delete
     if stopProcess == True:
@@ -814,7 +815,7 @@ def hook_code(uc, address, size, user_data):
     try:
         shells = uc.mem_read(address, size)
     except Exception as e:
-        print ("Error: ", e)
+        print("Error: ", e)
         print(traceback.format_exc())
         instructLine += " size: 0x%x" % size + '\t'   # size is overflow - why so big?
         outFile.write("abrupt end:  " + instructLine)
@@ -830,7 +831,7 @@ def hook_code(uc, address, size, user_data):
     op_str=""
     t=0
     for i in cs.disasm(shells, address):
-        val = i.mnemonic + " " + i.op_str + " " + shells.hex()
+        val = i.mnemonic + " " + i.op_str + " " # + shells.hex()
         if t==0:
             mnemonic=i.mnemonic
             op_str=i.op_str
@@ -839,13 +840,14 @@ def hook_code(uc, address, size, user_data):
             shells = uc.mem_read(address, size)
             instructLine += val + '\n'
             outFile.write(instructLine)
+            # print(instructLine)
             loc = 0
             for i in cs.disasm(shells, loc):
                 val = i.mnemonic + " " + i.op_str
         t+=1
 
     addr = ret
-
+    
     # If jmp instruction, increment jmp counter to track for infinite loop
     jmpFlag = getJmpFlag(mnemonic)
     if jmpFlag != "":
@@ -862,7 +864,7 @@ def hook_code(uc, address, size, user_data):
     # Hook usage of Windows API function
     funcAddress = controlFlow(uc, mnemonic, op_str)
 
-    if funcAddress > KERNEL32_BASE and funcAddress < WSOCK32_TOP:
+    if funcAddress > NTDLL_BASE and funcAddress < WTSAPI32_TOP:
         ret += size
         push(uc, ret)
         bprint ("in range", hex(funcAddress))
@@ -870,6 +872,7 @@ def hook_code(uc, address, size, user_data):
         eip = uc.reg_read(UC_X86_REG_EIP)
         esp = uc.reg_read(UC_X86_REG_ESP)
         bprint ("funcAddress", hex(funcAddress))
+
         funcName = export_dict[funcAddress][0]
 
         try:
@@ -880,9 +883,10 @@ def hook_code(uc, address, size, user_data):
         try:
             bprint ("funcName", hex(funcAddress), funcName)
             funcInfo, cleanBytes = globals()['hook_'+funcName](uc, eip, esp, export_dict, addr)
+
             bprint("funcName2", funcName)
             logCall(funcName, funcInfo)
-            bprint ("log done")
+            bprint("log done")
 
             dll = export_dict[funcAddress][1]
             dll = dll[0:-4]
@@ -891,7 +895,10 @@ def hook_code(uc, address, size, user_data):
             if dll not in logged_dlls:
                 logged_dlls.append(dll)
 
-        except:
+        except Exception as e:
+            print("look here")
+            print(e)
+            print(traceback.format_exc())
             # hook_backup(uc, eip, esp, funcAddress, export_dict[funcAddress])
             try:
                 bprint ("hook_default", hex(funcAddress))
@@ -1027,7 +1034,6 @@ def getParams(uc, esp, apiDict, dictName):
 
     paramVals = []
 
-
     if dictName == 'dict1':
         numParams = apiDict[0]
         for i in range(0, numParams):
@@ -1100,30 +1106,6 @@ def hook_default(uc, eip, esp, funcAddress, funcName, callLoc):
         print ("Error!", e)
         print(traceback.format_exc())
 
-
-def read_string(uc, address):
-    ret = ""
-    c = uc.mem_read(address, 1)[0]
-    read_bytes = 1
-
-    while c != 0x0:
-        ret += chr(c)
-        c = uc.mem_read(address + read_bytes, 1)[0]
-        read_bytes += 1
-    return ret
-
-def read_unicode(uc, address):
-    ret = ""
-    c = uc.mem_read(address, 1)[0]
-    read_bytes = 0
-
-    while c != 0x0:
-        c = uc.mem_read(address + read_bytes, 1)[0]
-        ret += chr(c)
-        read_bytes += 2
-
-    return ret
-
 def logCall(funcName, funcInfo):
     global paramValues
     logged_calls[funcName].append(funcInfo)
@@ -1178,9 +1160,9 @@ def getArtifacts():
 
 
 def printCalls():
-    if 2==3:
+    if 2==2:
         print("[*] All API Calls: ")
-        # print(loggedList)
+        print(loggedList)
 
         print("[*] All DLLs Used: ")
         for dll in logged_dlls:
@@ -1201,55 +1183,52 @@ def printCalls():
             print("\t\t", e)
 
 def hook_intr(uc, intno, user_data):
-    print("WOW, WE HOOKED IT!!!!")
+    print("Hooked system call")
 
 # Test X86 32 bit
 def test_i386(mode, code):
     global artifacts2
-    # try:
-    # Initialize emulator
-    mu = Uc(UC_ARCH_X86, mode)
+    try:
+        # Initialize emulator
+        mu = Uc(UC_ARCH_X86, mode)
 
-    mu.mem_map(0x00000000, 0x20050000)
+        mu.mem_map(0x00000000, 0x20050000)
 
-    loadDlls(mu)
+        loadDlls(mu)
 
-    # write machine code to be emulated to memory
-    mu.mem_write(CODE_ADDR, code)
-    mu.mem_write(EXTRA_ADDR, b'\xC3')
+        # write machine code to be emulated to memory
+        mu.mem_write(CODE_ADDR, code)
+        mu.mem_write(EXTRA_ADDR, b'\xC3')
 
-    # initialize stack
-    mu.reg_write(UC_X86_REG_ESP, STACK_ADDR)
-    mu.reg_write(UC_X86_REG_EBP, STACK_ADDR)
+        # initialize stack
+        mu.reg_write(UC_X86_REG_ESP, STACK_ADDR)
+        mu.reg_write(UC_X86_REG_EBP, STACK_ADDR)
 
-    # Push entry point addr to top of stack. Represents calling of entry point.
-    push(mu, ENTRY_ADDR)
-    mu.mem_write(ENTRY_ADDR, b'\x90\x90\x90\x90')
+        # Push entry point addr to top of stack. Represents calling of entry point.
+        push(mu, ENTRY_ADDR)
+        mu.mem_write(ENTRY_ADDR, b'\x90\x90\x90\x90')
 
-    global cs
-    if mode == UC_MODE_32:
-        print(cya + "\n\t[*]" + res2 + " Emulating x86_32 shellcode")
-        cs = Cs(CS_ARCH_X86, CS_MODE_32)
-        allocateWinStructs32(mu)
+        global cs
+        if mode == UC_MODE_32:
+            print(cya + "\n\t[*]" + res2 + " Emulating x86_32 shellcode")
+            cs = Cs(CS_ARCH_X86, CS_MODE_32)
+            allocateWinStructs32(mu)
 
-    elif mode == UC_MODE_64:
-        print(cya + "\n\t[*]" + res2 + " Emulating x86_64 shellcode")
-        cs = Cs(CS_ARCH_X86, CS_MODE_64)
-        allocateWinStructs64(mu)
+        elif mode == UC_MODE_64:
+            print(cya + "\n\t[*]" + res2 + " Emulating x86_64 shellcode")
+            cs = Cs(CS_ARCH_X86, CS_MODE_64)
+            allocateWinStructs64(mu)
 
-    # tracing all instructions with customized callback
-    mu.hook_add(UC_HOOK_CODE, hook_code)
+        # tracing all instructions with customized callback
+        mu.hook_add(UC_HOOK_CODE, hook_code)
 
-    # emulate machine code in infinite time
-    mu.emu_start(CODE_ADDR + em.entryOffset, CODE_ADDR + len(code))
+        # emulate machine code in infinite time
+        mu.emu_start(CODE_ADDR + em.entryOffset, CODE_ADDR + len(code))
 
-    # now print out some registers
-    artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
-    # except:
-    #     pass
-
-    # now print out some registers
-    artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
+        # now print out some registers
+        artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
+    except:
+        pass
 
     print(cya+"\t[*]"+res2+" CPU counter: " + str(programCounter))
     print(cya+"\t[*]"+res2+" Emulation complete")
@@ -1265,7 +1244,9 @@ def debugEmu(mode, code):
 
     loadDlls(mu)
 
-    # write machine code to be emulated to memory
+    # VirtualAlloc Test
+    # code = b"\x6A\x40\x68\x00\x01\x00\x00\x68\x00\x10\x00\x00\x68\x00\x00\x00\x40\xE8\x59\x3D\x26\x14\xE9\xFC\xFF\xFF\x27"
+
     mu.mem_write(CODE_ADDR, code)
     mu.mem_write(EXTRA_ADDR, b'\xC3')
 
@@ -1306,7 +1287,7 @@ def startEmu(arch, data, vb):
     verbose = vb
 
     if arch == 32:
-        test_i386(UC_MODE_32, data)
+        debugEmu(UC_MODE_32, data)
 
 em=EMU()
 

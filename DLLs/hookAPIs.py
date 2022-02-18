@@ -1,6 +1,7 @@
 from unicorn.x86_const import *
 from struct import pack, unpack
 from modules import allDllsDict
+from emuHelpers import *
 import sys
 FakeProcess=0xbadd0000
 
@@ -37,6 +38,27 @@ def hook_GetProcAddress(uc, eip, esp, export_dict, callAddr):
 
     return logged_calls, cleanBytes
 
+def hook_GetProcedureAddress(uc, eip, esp, export_dict, callAddr):
+    arg1 = uc.mem_read(esp+4, 4)
+    arg2 = uc.mem_read(esp+8, 4)
+    arg2 = unpack('<I', arg2)[0]
+    arg2 = read_string(uc, arg2)
+    arg3 = uc.mem_read(esp+12, 4)
+    arg4 = uc.mem_read(esp+16, 4)
+
+    retVal = 0
+
+    for api in export_dict:
+        if export_dict[api][0] == arg2:
+            retVal = api
+
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+    logged_calls = ("LdrGetProcedureAddress", hex(callAddr), hex(retVal), 'FARPROC', [hex(arg1), arg2], ['HMODULE', 'LPCSTR'], ['hModule', 'lpProcName'], False)
+
+    cleanBytes = 8
+
+    return logged_calls, cleanBytes
+
 # Make sure WinExec returns 32, then add it to created process log
 def hook_WinExec(uc, eip, esp, export_dict, callAddr):
     # print("Using custom function...")
@@ -67,7 +89,7 @@ def hook_LoadLibraryA(uc, eip, esp, export_dict, callAddr):
             arg1L=arg1.lower()
             retVal=allDllsDict[arg1L]
         except:
-            print("\tError: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
+            print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", arg1)
             print (hex(eip), (len(arg1)))
             retVal = 0
 
@@ -88,7 +110,7 @@ def hook_LoadLibraryW(uc, eip, esp, export_dict, callAddr):
     try:
         retVal = allDllsDict[arg1]
     except:
-        print("Error: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
+        print("Error: The shellcode tried to load a DLL that isn't handled by this tool: ", arg1)
         retVal = 0
 
     uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -110,7 +132,7 @@ def hook_LoadLibraryExW(uc, eip, esp, export_dict, callAddr):
     try:
         retVal = allDllsDict[arg1]
     except:
-        print("Error: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
+        print("Error: The shellcode tried to load a DLL that isn't handled by this tool: ", arg1)
         retVal = 0
 
     uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -119,8 +141,50 @@ def hook_LoadLibraryExW(uc, eip, esp, export_dict, callAddr):
     cleanBytes = 12
     return logged_calls, cleanBytes
 
+def hook_LdrLoadDll(uc, eip, esp, export_dict, callAddr):
+    print("Doing manual function")
+    arg1 = uc.mem_read(esp+4, 4)
+    arg1 = unpack('<I', arg1)[0]
+    arg1 = read_string(uc, arg1)
+
+    arg2 = uc.mem_read(esp+8, 4)
+    arg2 = hex(unpack('<I', arg2)[0])
+
+    arg3 = uc.mem_read(esp+12, 4)
+    arg3 = unpack('<I', arg3)[0]
+    arg3 = uc.mem_read(arg3+4, 4)
+    arg3 = unpack('<I', arg3)[0]
+    arg3 = read_unicode(uc, arg3)
+
+    arg4 = uc.mem_read(esp+16, 4)
+    arg4 = unpack('<I', arg4)[0]
+
+    # Return base address of passed library
+    try:
+        retVal = allDllsDict[arg1]
+    except:
+        try:
+            arg3=arg3.lower()
+            retVal=allDllsDict[arg3]
+        except:
+            print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", arg1)
+            print(hex(eip), (len(arg1)))
+            retVal = 0
+
+    # uc.reg_write(UC_X86_REG_EAX, retVal)
+    uc.mem_write(arg4, pack("<Q", retVal))
+
+    check = uc.mem_read(arg4, 4)
+    check = unpack('<I', arg4)[0]
+    print("Check: ", check)
+
+    logged_calls = ("LdrLoadDll", hex(callAddr), hex(retVal), 'ModuleHandle', [arg1, arg2, arg3, arg4], ['PWCHAR', 'ULONG', 'PUNICODE_STRING', 'PHANDLE'], ['PathToFile', 'Flags', 'ModuleFileName', 'ModuleHandle'], False)
+
+    cleanBytes = 16
+    return logged_calls, cleanBytes
+
 def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
-    # print("Using custom function...")
+    print("Using custom function... VirtualAlloc")
     lpAddress = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
     lpAddress = unpack('<I', lpAddress)[0]
     dwSize = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
@@ -135,8 +199,9 @@ def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
     if lpAddress==0:
         lpAddress=0x90050000  # bramwell added--still not working for 0  # maybe because not on main emu page?
     try:
+        lol = 2
         # print (lpAddress, type(lpAddress))
-        uc.mem_map(lpAddress, dwSize)
+        # uc.mem_map(lpAddress, dwSize)
         # if flProtect == 0x2:
         #     uc.mem_map(lpAddress, dwSize, UC_PROT_READ)
         # elif flProtect == 0x4:
@@ -151,8 +216,8 @@ def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
         # else:
         # 	success = False
     except:
-            # print ("va fail")
-            success = False
+        # print ("va fail")
+        success = False
 
     if success == True:
         retVal = lpAddress
@@ -459,17 +524,3 @@ def hook_WSASocketA(uc, eip, esp, export_dict, callAddr):
 
     logged_calls= ("WSASocketA", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
-
-
-
-
-def read_string(uc, address):
-    ret = ""
-    c = uc.mem_read(address, 1)[0]
-    read_bytes = 1
-
-    while c != 0x0:
-        ret += chr(c)
-        c = uc.mem_read(address + read_bytes, 1)[0]
-        read_bytes += 1
-    return ret
