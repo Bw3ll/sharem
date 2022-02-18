@@ -3,6 +3,7 @@
 *.egg-info
 *.pyc
 work2.bin
+DLLS/**
 out.txt
 outputs/shellcode-disassembly.txt
 outputs/shellcode.bin
