@@ -1,4 +1,5 @@
-!**/__pycache__
+**/__pycache__
+.DS_Store
 *.egg-info
 *.pyc
 work2.bin
