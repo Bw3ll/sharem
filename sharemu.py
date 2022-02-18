@@ -15,10 +15,12 @@ from DLLs.dict2_signatures import *
 from DLLs.dict3_w32 import *
 from DLLs.dict4_ALL import *
 from DLLs.hookAPIs import *
+from emuHelpers import *
 import re
 import os
 import argparse
 import colorama
+import binascii
 import traceback
 # artifacts2= [] 
 # net_artifacts = []
@@ -27,7 +29,8 @@ import traceback
 
 class EMU():
     def __init__(self):
-        self.maxCounter=500000
+        self.maxCounter= 0x1000 #500000
+        self.entryOffset= 0x0 # 0xe5d
 
 # maxCounter = 100
 artifacts = []
@@ -35,26 +38,23 @@ net_artifacts = []
 file_artifacts = []
 exec_artifacts = []
 programCounter = 0
-addrTracker = 0x44100000
+addrTracker = 0x14100000
+verbose = True
 
 
-CODE_ADDR = 0x42000000
+CODE_ADDR = 0x12000000
 CODE_SIZE = 0x1000
 
-GDT_ADDR = 0x41000000
-GDT_LIMIT = 0x1000
-GDT_ENTRY_SIZE = 0x8
-
-SEGMENT_ADDR = 0x41010000
+SEGMENT_ADDR = 0x11010000
 SEGMENT_SIZE = 0x4000
 TIB_ADDR = 0x00000000
 TIB_SIZE = 0x100
-PEB_ADDR = 0x41017000
+PEB_ADDR = 0x11017000
 PEB_LIMIT = 0x208
 
-STACK_ADDR = 0x47000000
-EXTRA_ADDR = 0x48000000
-CONST_ADDR = 0x50000000
+STACK_ADDR = 0x17000000
+EXTRA_ADDR = 0x18000000
+CONST_ADDR = 0x20000000
 
 export_dict = {}
 logged_calls = defaultdict(list)
@@ -65,6 +65,7 @@ logged_dlls = []
 createdProcesses = []
 paramValues = []
 network_activity = {}
+jmpInstructs = {}
 
 traversedAdds=set()
 loadModsFromFile = True
@@ -81,6 +82,7 @@ loopInstructs = []
 loopCounter = 0
 verOut = ""
 bVerbose = True
+MAX_LOOP = 500000000
 
 def bprint(*args):
     brDebugging2=False
@@ -151,7 +153,6 @@ class PEB_LDR_DATA32():
         self.IMO_entry = addr + 0x14
         self.IIO_entry = addr + 0x1c
     def allocate(self, mu, ilo_flink, ilo_blink, imo_flink, imo_blink, iio_flink, iio_blink):
-        mu.mem_write(self.Addr, pack("<Q", self.Length))
         mu.mem_write(self.Addr+0x4, pack("<Q", self.Initialized))
         mu.mem_write(self.Addr+0x8, pack("<Q", self.Sshandle))
         mu.mem_write(self.Addr+0xc, pack("<Q", ilo_flink) + pack("<Q", ilo_blink))
@@ -244,7 +245,7 @@ def allocateWinStructs32(mu):
     # Create PEB_LDR_DATA structure
     peb_ldr = PEB_LDR_DATA32(LDR_ADDR, 0x24, 0x00000000, 0x00000000)
 
-    dlls_obj = [0]*21
+    dlls_obj = [0]*(len(allDlls)+1)
 
     # Create ldr modules for the rest of the DLLs
     dlls_obj[0] = LDR_Module32(mu, LDR_PROG_ADDR, PROCESS_BASE, PROCESS_BASE, 0x00000000, "C:\\shellcode.exe", "shellcode.exe")
@@ -254,7 +255,7 @@ def allocateWinStructs32(mu):
         dlls_obj[i] = LDR_Module32(mu, mods[dll].ldrAddr, mods[dll].base, mods[dll].base, 0x00000000, mods[dll].d32, mods[dll].name)
         i += 1
 
-    peb_ldr.allocate(mu, dlls_obj[0].ILO_entry, dlls_obj[20].ILO_entry, dlls_obj[0].IMO_entry, dlls_obj[20].IMO_entry, dlls_obj[1].IIO_entry, dlls_obj[20].IIO_entry)
+    peb_ldr.allocate(mu, dlls_obj[0].ILO_entry, dlls_obj[-1].ILO_entry, dlls_obj[0].IMO_entry, dlls_obj[-1].IMO_entry, dlls_obj[1].IIO_entry, dlls_obj[-1].IIO_entry)
 
     # Allocate the record in memory for program, ntdll, and kernel32
     for i in range(0, len(dlls_obj)):
@@ -262,8 +263,8 @@ def allocateWinStructs32(mu):
 
         if i == 0:
             nextDLL = dlls_obj[i+1]
-            currentDLL.allocate(mu, nextDLL.ILO_entry, dlls_obj[20].ILO_entry, nextDLL.IMO_entry, dlls_obj[20].IMO_entry, nextDLL.IIO_entry, dlls_obj[20].IIO_entry)
-        elif i == 20:
+            currentDLL.allocate(mu, nextDLL.ILO_entry, dlls_obj[-1].ILO_entry, nextDLL.IMO_entry, dlls_obj[-1].IMO_entry, nextDLL.IIO_entry, dlls_obj[-1].IIO_entry)
+        elif i == len(dlls_obj) - 1:
             prevDLL = dlls_obj[i-1]
             currentDLL.allocate(mu, dlls_obj[0].ILO_entry, prevDLL.ILO_entry, dlls_obj[0].IMO_entry, prevDLL.IMO_entry, dlls_obj[1].IIO_entry, prevDLL.IIO_entry)
         else:
@@ -339,23 +340,27 @@ def padDLL(dllPath, dllName):
     return rawDll
 
 
-def loadDLLsFromPE(mu):
-    path = 'C:\\Windows\\SysWOW64\\'
-
-    for m in mods:
-        dll=readRaw(mods[m].d32)
-
-        # Unicorn line to dump the DLL in our memory
-        mu.mem_write(mods[m].base, dll)
-
-        pe=pefile.PE(mods[m].d32)
-        for exp in pe.DIRECTORY_ENTRY_EXPORT.symbols:
-            try:
-                export_dict[mods[m].base + exp.address] = (exp.name.decode(), mods[m].name)
-            except:
-                export_dict[mods[m].base + exp.address] = "unknown_function"
-    saveDLLsToFile()        # saving the output to disc by default
-
+# def loadDLLsFromPE(mu):
+#     path = 'C:\\Windows\\SysWOW64\\'
+#
+#     for m in mods:
+#         try:
+#             dll=readRaw(mods[m].d32)
+#         except:
+#             print("[*] Unable to locate ", mods[m].d32, ". It is likely that this file is not included in your version of Windows.")
+#             continue
+#
+#         # Unicorn line to dump the DLL in our memory
+#         mu.mem_write(mods[m].base, dll)
+#
+#         pe=pefile.PE(mods[m].d32)
+#         for exp in pe.DIRECTORY_ENTRY_EXPORT.symbols:
+#             try:
+#                 export_dict[mods[m].base + exp.address] = (exp.name.decode(), mods[m].name)
+#             except:
+#                 export_dict[mods[m].base + exp.address] = "unknown_function"
+#     saveDLLsToFile()        # saving the output to disc by default
+#
 def saveDLLsToFile():       #help function called by loaddllsfromPE
     output=""
     for address in export_dict:
@@ -363,23 +368,25 @@ def saveDLLsToFile():       #help function called by loaddllsfromPE
         dllName=export_dict[address][1]
 
         output+=str(hex(address)) +", " + apiName+ ", "  + dllName + "\n"
-    with open(foundDLLAddresses, 'w') as out:
+    with open(foundDLLAddresses, 'a') as out:
         out.write(output)
         out.close()
 
-def loadDLLsFromFile(mu):
+def loadDlls(mu):
     global export_dict
     global expandedDLLsPath
     path = 'C:\\Windows\\SysWOW64\\'
 
     runOnce=False
     for m in mods:
-        # Inflate dlls so PE offsets are correct
-
+        if os.path.exists(mods[m].d32) == False:
+            print("[*] Unable to locate ", mods[m].d32, ". It is likely that this file is not included in your version of Windows.")
+            continue
         if os.path.exists("%s%s" % (expandedDLLsPath, mods[m].name)):
             dll=readRaw(expandedDLLsPath+mods[m].name)
             # Unicorn line to dump the DLL in our memory
             mu.mem_write(mods[m].base, dll)
+        # Inflate dlls so PE offsets are correct
         else:
             if not runOnce:
                 print("Warning: DLLs must be parsed and inflated from a Windows OS.\n\tThis may take several minutes to generate the initial emulation files.\n\tThis initial step must be completed only once from a Windows machine.\n\tThe emulation will not work without these.")
@@ -397,6 +404,8 @@ def loadDLLsFromFile(mu):
             # Dump the dll into unicorn memory
             mu.mem_write(mods[m].base, rawDll)
 
+    saveDLLsToFile()
+
     with open(foundDLLAddresses, "r") as f:
         data = f.read()
     APIs = data.split("\n")
@@ -412,13 +421,13 @@ def loadDLLsFromFile(mu):
         except:
             pass
 
-def loadDlls(mu):   # we can keep your function here and then call whichever one it needs. This was easier for me than trying to combine the two in one. :-)
-    global loadModsFromFile
-
-    if loadModsFromFile==False:
-        loadDLLsFromPE(mu)
-    else:
-        loadDLLsFromFile(mu)
+# def loadDlls(mu):   # we can keep your function here and then call whichever one it needs. This was easier for me than trying to combine the two in one. :-)
+#     global loadModsFromFile
+#
+#     if loadModsFromFile==False:
+#         loadDLLsFromPE(mu)
+#     else:
+#         loadDLLsFromFile(mu)
 
 def push(uc, val):
     # read and subtract 4 from esp
@@ -489,13 +498,23 @@ def constConvert(uc, string):
 def callback(match):
     return next(callback.v)
 
-def getJmpFlag(mnemonic, op_str, eflags):
+def getJmpFlag(mnemonic):
     if re.match("^(je)|(jz)|(jne)|(jnz)", mnemonic, re.M|re.I):
         return "zf"
     elif re.match("^(jg)|(jnle)|(jle)|(jng)", mnemonic, re.M|re.I):
         return "osz"
     elif re.match("^(jge)|(jnl)|(jl)|(jnge)", mnemonic, re.M|re.I):
         return "os"
+    elif re.match("^(jae)|(jnb)|(jb)|(jnae)|(jc)|(jnc)", mnemonic, re.M|re.I):
+        return "cf"
+    elif re.match("^(jo)|(jno)", mnemonic, re.M|re.I):
+        return "of"
+    elif re.match("^(jp)|(jpe)|(jnp)|(jpo)", mnemonic, re.M|re.I):
+        return "pf"
+    elif re.match("^(js)|(jns)", mnemonic, re.M|re.I):
+        return "sf"
+    elif re.match("^(ja)|(jnbe)", mnemonic, re.M|re.I):
+        return "cz"
     else:
         return ""
 
@@ -605,13 +624,149 @@ def getBit (value, pos):
 def flipBit(val, pos):
     return val ^ (1 << pos)
 
-def breakLoop(uc, eflags, jmpFlag):
+def signedNegHexTo(signedVal):
+    strSigned=str(signedVal)
+    ba = binascii.a2b_hex(strSigned[2:])
+    new = (int.from_bytes(ba, byteorder='big', signed=True))
+    return new
+
+def boolFollowJump(jmpFlag, jmpType, eflags):
+    # ZF Flag
     if jmpFlag == "zf":
-        newEflags = flipBit(eflags, 6)
-        uc.reg_write(UC_X86_REG_EFLAGS, 0x46)
+        zf = getBit(eflags, 6)
+        if zf == 0:
+            if jmpType == 'jne' or jmpType == 'jnz':
+                return False
+            else:
+                return True
+        else:
+            if jmpType == 'jne' or jmpType == 'jnz':
+                return True
+            else:
+                return False
 
-# callback for tracing instructions
+    # OF, SF, and ZF Flags
+    elif jmpFlag == "osz":
+        zf = getBit(eflags, 6)
+        sf = getBit(eflags, 7)
+        of = getBit(eflags, 11)
 
+        if zf == 0 and sf == of:
+            if jmpType == 'jg' or jmpType == 'jnle':
+                return False
+            else:
+                return True
+        else:
+            if jmpType == 'jg' or jmpType == 'jnle':
+                return True
+            else:
+                return False
+
+    # OF and SF Flags
+    elif jmpFlag == "os":
+        sf = getBit(eflags, 7)
+        of = getBit(eflags, 11)
+
+        if sf == of:
+            if jmpType == 'jge' or jmpType == 'jnl':
+                return False
+            else:
+                return True
+        else:
+            if jmpType == 'jge' or jmpType == 'jnl':
+                return True
+            else:
+                return False
+
+    # CF Flag
+    elif jmpFlag == "cf":
+        cf = getBit(eflags, 0)
+
+        if cf == 0:
+            if jmpType == 'jnb' or jmpType == 'jae' or jmpType == 'jnc':
+                return False
+            else:
+                return True
+
+        else:
+            if jmpType == 'jb' or jmpType == 'jnae' or jmpType == 'jc':
+                return True
+            else:
+                return False
+
+    elif jmpFlag == "of":
+        of = getBit(eflags, 11)
+
+        if of == 0:
+            if jmpType == 'jno':
+                return False
+            else:
+                return True
+        else:
+            if jmpType == 'jno':
+                return True
+            else:
+                return False
+
+    elif jmpFlag == "pf":
+        of = getBit(eflags, 2)
+
+        if of == 0:
+            if jmpType == 'jnp' or jmpType == 'jpo':
+                return False
+            else:
+                return True
+        else:
+            if jmpType == 'jnp' or jmpType == 'jpo':
+                return True
+            else:
+                return False
+
+    elif jmpFlag == "sf":
+        sf = getBit(eflags, 7)
+
+        if sf == 0:
+            if jmpType == 'jns':
+                return False
+            else:
+                return True
+        else:
+            if jmpType == 'jns':
+                return True
+            else:
+                return False
+
+    elif jmpFlag == "cz":
+        cf = getBit(eflags, 0)
+        zf = getBit(eflags, 6)
+
+        if cf == 0 and zf == 0:
+            if jmpType == 'ja' and jmpType == 'jnbe':
+                return False
+            else:
+                return True
+        else:
+            if jmpType == 'ja' and jmpType == 'jnbe':
+                return True
+            else:
+                return False
+
+
+def breakLoop(uc, jmpFlag, jmpType, op_str, addr, size):
+    print("Jmp Flag: ", jmpFlag)
+    eflags = uc.reg_read(UC_X86_REG_EFLAGS)
+
+    # False = continue, True = jump
+    if boolFollowJump(jmpFlag, jmpType, eflags):
+        print("[*] TAKING THE JUMP")
+        if "0x" in op_str:
+            jmpLoc = addr + signedNegHexTo(op_str)
+        else:
+            jmpLoc = addr + int(op_str)
+        uc.reg_write(UC_X86_REG_EIP, jmpLoc)
+    else:
+        print("[*] SKIPPING THE JUMP")
+        uc.reg_write(UC_X86_REG_EIP, addr + size)
 
 def giveRegs(uc):
     EAX = uc.reg_read(UC_X86_REG_EAX)   # do not delete!
@@ -626,7 +781,7 @@ def giveRegs(uc):
     return instructLine
 
 def hook_code(uc, address, size, user_data):
-    global cleanBytes
+    global cleanBytes, verbose
     global programCounter
     global cleanStackFlag
     global stopProcess
@@ -636,10 +791,16 @@ def hook_code(uc, address, size, user_data):
     global loopCounter
     global traversedAdds
     # global maxCounter
+    
+    funcName = ""
 
     # traversedAdds.add(address) # do not delete
-    # if stopProcess == True:
-    #     uc.emu_stop()
+    if stopProcess == True:
+        uc.emu_stop()
+
+    # Make sure current address is in proper range
+    if address < 0x12000000 or address > 0x18000000:
+        uc.emu_stop()
 
     programCounter += 1
     if programCounter > em.maxCounter:
@@ -647,29 +808,18 @@ def hook_code(uc, address, size, user_data):
 
     instructLine = ""
 
-    # read this instruction code from memory
-    # if address == 0x42000103:
-    #     instructLine +=  ("address " + str(hex(address)))
-    #     instructLine +=  ("size "+ str(size))
-
-    # if address == 0x4200010e:
-        #      instructLine+=giveRegs(uc)
-
-
-
-
-    if verbose == True:
+    if verbose:
         instructLine+=giveRegs(uc)
         instructLine += "0x%x" % address + '\t'
 
     try:
         shells = uc.mem_read(address, size)
     except Exception as e:
-        print ("Error: ", e)
+        print("Error: ", e)
         print(traceback.format_exc())
         instructLine += " size: 0x%x" % size + '\t'   # size is overflow - why so big?
         outFile.write("abrupt end:  " + instructLine)
-        print (instructLine)
+        # print (instructLine)
         # shells = uc.mem_read(address, 1)
         return # terminate func early   --don't comment - we want to see the earlyrror
 
@@ -681,39 +831,62 @@ def hook_code(uc, address, size, user_data):
     op_str=""
     t=0
     for i in cs.disasm(shells, address):
-        val = i.mnemonic + " " + i.op_str
+        val = i.mnemonic + " " + i.op_str + " " # + shells.hex()
         if t==0:
             mnemonic=i.mnemonic
             op_str=i.op_str
 
-        if verbose == True:
+        if verbose:
+            shells = uc.mem_read(address, size)
             instructLine += val + '\n'
             outFile.write(instructLine)
+            # print(instructLine)
+            loc = 0
+            for i in cs.disasm(shells, loc):
+                val = i.mnemonic + " " + i.op_str
         t+=1
 
     addr = ret
+    
+    # If jmp instruction, increment jmp counter to track for infinite loop
+    jmpFlag = getJmpFlag(mnemonic)
+    if jmpFlag != "":
+        if addr not in jmpInstructs:
+            jmpInstructs[addr] = 1
+        else:
+            jmpInstructs[addr] += 1
+
+        if jmpInstructs[addr] >= MAX_LOOP:
+            breakLoop(uc, jmpFlag, mnemonic, op_str, addr, len(shells))
+            jmpInstructs[addr] = 0
+
 
     # Hook usage of Windows API function
     funcAddress = controlFlow(uc, mnemonic, op_str)
-    # print ("-   ", hex(address), mnemonic, op_str)
 
-    if funcAddress > KERNEL32_BASE and funcAddress < WSOCK32_TOP:
+    if funcAddress > NTDLL_BASE and funcAddress < WTSAPI32_TOP:
         ret += size
         push(uc, ret)
-
+        bprint ("in range", hex(funcAddress))
+        bprint (instructLine)
         eip = uc.reg_read(UC_X86_REG_EIP)
         esp = uc.reg_read(UC_X86_REG_ESP)
         bprint ("funcAddress", hex(funcAddress))
+
         funcName = export_dict[funcAddress][0]
 
         try:
             funcName = export_dict[funcAddress][0]
         except:
             funcName="DIDNOTFIND- " + str(hex((funcAddress))) 
-            print (funcName)
+            bprint ("did not find:", funcName)
         try:
+            bprint ("funcName", hex(funcAddress), funcName)
             funcInfo, cleanBytes = globals()['hook_'+funcName](uc, eip, esp, export_dict, addr)
+
+            bprint("funcName2", funcName)
             logCall(funcName, funcInfo)
+            bprint("log done")
 
             dll = export_dict[funcAddress][1]
             dll = dll[0:-4]
@@ -722,18 +895,26 @@ def hook_code(uc, address, size, user_data):
             if dll not in logged_dlls:
                 logged_dlls.append(dll)
 
-        except:
+        except Exception as e:
+            print("look here")
+            print(e)
+            print(traceback.format_exc())
             # hook_backup(uc, eip, esp, funcAddress, export_dict[funcAddress])
             try:
+                bprint ("hook_default", hex(funcAddress))
                 hook_default(uc, eip, esp, funcAddress, export_dict[funcAddress][0], addr)
             except:
                 print ("\n\tHook failed at " + str(hex(funcAddress))+".")
         if funcName == 'ExitProcess':
             stopProcess = True
         if 'LoadLibrary' in funcName and uc.reg_read(UC_X86_REG_EAX) == 0:
+            print ("\t[*] LoadLibrary failed. Emulation ceasing.")
             stopProcess = True
 
         uc.reg_write(UC_X86_REG_EIP, EXTRA_ADDR)
+
+    if addr == 0x1000:
+        stopProcess = True
 
     if cleanStackFlag == True:
         cleanStack(uc, cleanBytes)
@@ -780,7 +961,9 @@ def getRetVal2(retVal, retType=""):
     return retBundle
 
 def findRetVal(funcName, dll):
+    bprint ("findRetVal - funcName", dll)
     global rsLookUp
+    retValStr=""
     dictR1 = globals()['dictRS_'+dll]
     if funcName in dictR1:
         retValStr= dictR1[funcName]
@@ -788,7 +971,11 @@ def findRetVal(funcName, dll):
             retVal=rsLookUp[retValStr]
             return retVal
         else: 
-            return 32
+            test=isinstance(retValStr,int)
+            if test:
+                return retValStr
+            else:
+                return 32
     else:
         return 32
 # Get the parameters off the stack
@@ -847,7 +1034,6 @@ def getParams(uc, esp, apiDict, dictName):
 
     paramVals = []
 
-
     if dictName == 'dict1':
         numParams = apiDict[0]
         for i in range(0, numParams):
@@ -902,10 +1088,11 @@ def hook_default(uc, eip, esp, funcAddress, funcName, callLoc):
             paramTypes = apiDict[1]
             paramNames = apiDict[2]
         else:
-            paramTypes = ['dword'] * len(paramVals)
+            paramTypes = ['DWORD'] * len(paramVals)
             paramNames = ['arg'] * len(paramVals)
 
         retVal=findRetVal(funcName, dll)
+        bprint ("returnVal", funcName, retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         retValStr=getRetVal2(retVal)
@@ -918,30 +1105,6 @@ def hook_default(uc, eip, esp, funcAddress, funcName, callLoc):
     except Exception as e:
         print ("Error!", e)
         print(traceback.format_exc())
-
-
-def read_string(uc, address):
-    ret = ""
-    c = uc.mem_read(address, 1)[0]
-    read_bytes = 1
-
-    while c != 0x0:
-        ret += chr(c)
-        c = uc.mem_read(address + read_bytes, 1)[0]
-        read_bytes += 1
-    return ret
-
-def read_unicode(uc, address):
-    ret = ""
-    c = uc.mem_read(address, 1)[0]
-    read_bytes = 0
-
-    while c != 0x0:
-        c = uc.mem_read(address + read_bytes, 1)[0]
-        ret += chr(c)
-        read_bytes += 2
-
-    return ret
 
 def logCall(funcName, funcInfo):
     global paramValues
@@ -987,6 +1150,7 @@ def findArtifacts():
     #         file_artifacts.append(i)
 
     # print (net_artifacts)
+    # print (net_artifacts)
 
     return list(dict.fromkeys(artifacts)), list(dict.fromkeys(net_artifacts)), list(dict.fromkeys(file_artifacts)), list(dict.fromkeys(exec_artifacts))
 
@@ -996,9 +1160,9 @@ def getArtifacts():
 
 
 def printCalls():
-    if 2==3:
+    if 2==2:
         print("[*] All API Calls: ")
-        # print(loggedList)
+        print(loggedList)
 
         print("[*] All DLLs Used: ")
         for dll in logged_dlls:
@@ -1018,6 +1182,9 @@ def printCalls():
         for e in exec_artifacts:
             print("\t\t", e)
 
+def hook_intr(uc, intno, user_data):
+    print("Hooked system call")
+
 # Test X86 32 bit
 def test_i386(mode, code):
     global artifacts2
@@ -1025,62 +1192,107 @@ def test_i386(mode, code):
         # Initialize emulator
         mu = Uc(UC_ARCH_X86, mode)
 
-        mu.mem_map(0x00000000, 0x50050000)
+        mu.mem_map(0x00000000, 0x20050000)
+
+        loadDlls(mu)
 
         # write machine code to be emulated to memory
         mu.mem_write(CODE_ADDR, code)
-
         mu.mem_write(EXTRA_ADDR, b'\xC3')
 
         # initialize stack
         mu.reg_write(UC_X86_REG_ESP, STACK_ADDR)
         mu.reg_write(UC_X86_REG_EBP, STACK_ADDR)
 
+        # Push entry point addr to top of stack. Represents calling of entry point.
+        push(mu, ENTRY_ADDR)
+        mu.mem_write(ENTRY_ADDR, b'\x90\x90\x90\x90')
+
         global cs
         if mode == UC_MODE_32:
-            print(cya+"\n\t[*]"+res2+" Emulating x86_32 shellcode")
+            print(cya + "\n\t[*]" + res2 + " Emulating x86_32 shellcode")
             cs = Cs(CS_ARCH_X86, CS_MODE_32)
             allocateWinStructs32(mu)
 
         elif mode == UC_MODE_64:
-            print(cya+"\n\t[*]"+res2+" Emulating x86_64 shellcode")
+            print(cya + "\n\t[*]" + res2 + " Emulating x86_64 shellcode")
             cs = Cs(CS_ARCH_X86, CS_MODE_64)
             allocateWinStructs64(mu)
-
-        loadDlls(mu)
 
         # tracing all instructions with customized callback
         mu.hook_add(UC_HOOK_CODE, hook_code)
 
         # emulate machine code in infinite time
-        try:
-            mu.emu_start(CODE_ADDR, CODE_ADDR + len(code))
-        except:
-            pass
+        mu.emu_start(CODE_ADDR + em.entryOffset, CODE_ADDR + len(code))
 
         # now print out some registers
         artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
+    except:
+        pass
 
-        print(cya+"\t[*]"+res2+" CPU counter: " + str(programCounter))
-        print(cya+"\t[*]"+res2+" Emulation complete")
-        printCalls()
+    print(cya+"\t[*]"+res2+" CPU counter: " + str(programCounter))
+    print(cya+"\t[*]"+res2+" Emulation complete")
+    printCalls()
 
-    except UcError as e:
-        print("ERROR: %s" % e)
+# Test X86 32 bit
+def debugEmu(mode, code):
+    global artifacts2
+    # Initialize emulator
+    mu = Uc(UC_ARCH_X86, mode)
+
+    mu.mem_map(0x00000000, 0x20050000)
+
+    loadDlls(mu)
+
+    # VirtualAlloc Test
+    # code = b"\x6A\x40\x68\x00\x01\x00\x00\x68\x00\x10\x00\x00\x68\x00\x00\x00\x40\xE8\x59\x3D\x26\x14\xE9\xFC\xFF\xFF\x27"
+
+    mu.mem_write(CODE_ADDR, code)
+    mu.mem_write(EXTRA_ADDR, b'\xC3')
+
+    # initialize stack
+    mu.reg_write(UC_X86_REG_ESP, STACK_ADDR)
+    mu.reg_write(UC_X86_REG_EBP, STACK_ADDR)
+
+    # Push entry point addr to top of stack. Represents calling of entry point.
+    push(mu, ENTRY_ADDR)
+    mu.mem_write(ENTRY_ADDR, b'\x90\x90\x90\x90')
+
+    global cs
+    if mode == UC_MODE_32:
+        print(cya+"\n\t[*]"+res2+" Emulating x86_32 shellcode")
+        cs = Cs(CS_ARCH_X86, CS_MODE_32)
+        allocateWinStructs32(mu)
+
+    elif mode == UC_MODE_64:
+        print(cya+"\n\t[*]"+res2+" Emulating x86_64 shellcode")
+        cs = Cs(CS_ARCH_X86, CS_MODE_64)
+        allocateWinStructs64(mu)
+
+    # tracing all instructions with customized callback
+    mu.hook_add(UC_HOOK_CODE, hook_code)
+
+    # emulate machine code in infinite time
+    mu.emu_start(CODE_ADDR + em.entryOffset, CODE_ADDR + len(code))
+
+    # now print out some registers
+    artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
+
+    print(cya+"\t[*]"+res2+" CPU counter: " + str(programCounter))
+    print(cya+"\t[*]"+res2+" Emulation complete")
+    printCalls()
 
 def startEmu(arch, data, vb):
     global verbose
     verbose = vb
-    # print("here", arch)
+
     if arch == 32:
-        test_i386(UC_MODE_32, data)
+        debugEmu(UC_MODE_32, data)
 
 em=EMU()
 
 if __name__ == '__main__':
-    global verbose
     code = b""
-    verbose = True
     parser = argparse.ArgumentParser()
     parser.add_argument('-m', '--mode')
     parser.add_argument('-f', '--file')
@@ -1095,4 +1307,4 @@ if __name__ == '__main__':
         code = readRaw(args.file)
 
     if args.mode == '32':
-        test_i386(UC_MODE_32, code)
+        debugEmu(UC_MODE_32, code)

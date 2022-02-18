@@ -10,7 +10,6 @@ from collections import OrderedDict
 from lists import *
 import assemblyx86
 from assemblyx86 import *
-import random
 
 try:
 	import win32api
@@ -22,8 +21,7 @@ except:
 	print ("Pywin32 needs to be installed.\nhttps://pypi.org/project/pywin32/\n\tThe setup.py is not always effective at installing Pywin32, so it may need to be manually done.\n")
 	
 import ctypes
-from ctypes import windll
-from ctypes import wintypes
+from ctypes import *
 from sorting import *
 import timeit
 import string
@@ -37,6 +35,14 @@ from parseconf import Configuration
 import ast
 import argparse
 import hashlib
+import platform
+platformType = platform.uname()[0]
+
+slash = ""
+if platformType == "Windows":
+	slash = "\\"
+else:
+	slash = "/"
 try:
 	import ssdeep
 except:
@@ -109,7 +115,7 @@ saveAPI=0x00
 
 shellEntry=0x00
 decodedBytes=b''
-
+maxZeroes = 0
 shellEntry=0x0
 useDirectory = False
 
@@ -400,7 +406,33 @@ def CliParser():
 	global bit32_argparse
 	global known_arch
 
-	parser = argparse.ArgumentParser()
+	parser = argparse.ArgumentParser(prog='Sharem',
+      formatter_class=argparse.RawDescriptionHelpFormatter,
+      epilog='''
+         \rExamples:
+  python sharem.py -r32 shellcode.bin
+  python sharem.py -r64 shellcode.txt
+  python sharem.py -r shellcode.txt
+  python sharem.py -pe revshell.exe
+  python sharem.py -d c:\\shellcodedirectory
+  python sharem.py -c c:\\configpath\\config.cfg -r32 shellcode.bin
+
+
+Arguments information:
+  -r32	This reads 32bit shellcode only.
+  -r64	This reads 64bit shellcode only.
+  -r	This will auto detect shellcode architecture from the config file.
+  -pe	This reads PE file only.
+  -c	This reads config file from given path.
+  -d	This will arse shellcodes or pe files from given directory.
+
+Additional information:
+  PE architecture is auto detected on Windows. But on Linux it's 32bit only.
+  Shellcodes could be .txt, .bin, or without extension.
+  The .txt is an ascii representation of raw bytes.
+  If -d argument is used, the shellcode will be processed as 32 and 64 bit since the architecture is unknown.
+
+         ''')
 	group = parser.add_mutually_exclusive_group(required=True)
 	group.add_argument('--pe', '-pe', type=str)
 	group.add_argument('--r', '-r',type=str)
@@ -471,18 +503,25 @@ def CliParser():
 
 			gName = os.path.basename(args.pe)
 			peName = args.pe
+			print("--------------> ", peName)
+			if platformType == "Windows":
 			# print("PE path is: ", args.pe)
-			if win32file.GetBinaryType(args.pe) == 6:
-				# print("64 bit file", args.pe)
-				bit32 = False
+				if win32file.GetBinaryType(args.pe) == 6:
+					# print("64 bit file", args.pe)
+					bit32 = False
+				else:
+					# print("32 bit")
+					bit32 = True
 			else:
-				# print("32 bit")
 				bit32 = True
 			gDirectory, tail = os.path.split(peName)  # keave this here
 			PE_path=gDirectory
 		else:
 			print(args.pe, "file doesn't exist3")
 			sys.exit()
+		
+			# print("PE files run only on Windows platform for now..")
+			# sys.exit()
 
 
 	if args.c:
@@ -503,47 +542,37 @@ def CliParser():
 			workDir = True
 			for path in os.listdir(workingDir):
 				full_path = os.path.join(workingDir, path)
-
 				if os.path.isfile(full_path):
 					# print("Found file", full_path, isPE(full_path))
 					if isPE(full_path):
-						print("is pe file", full_path)
 						# print("isPE returned", isPE(full_path), full_path)
-						if win32file.GetBinaryType(full_path) == 6:
-							bit32 = False
+						if platformType == "Windows":
+							if win32file.GetBinaryType(full_path) == 6:
+								bit32 = False
+								list_of_pe64.append(full_path)
+
+							else:
+								bit32 = True
+								list_of_pe32.append(full_path)
+
 							peName = full_path
-							list_of_pe64.append(full_path)
-							# print("Found 64", full_path)
-							# print("-----------------> ", list_of_pe64)
+							gName = path
 
 						else:
 							bit32 = True
 							list_of_pe32.append(full_path)
+							peName = full_path
+							gName = path
+
 					else:
 						if not known_arch:
-							# ext = f[-3:]
-							# if ext == "txt":
-							# 	rawHex = True
-							# 	rawBin = False
-							# 	filename = f
-							# 	bit32 = True
-							# full_file_path = os.path.join(full_path, f)
+							rawHex = True
+							gName = path
+							filename = full_path
 							list_of_unk_files.append(full_path)
-							# else:
-							# 	rawHex = True
-							# 	rawBin = True
-							# 	filename = f
-							# 	bit32 = True
-							# 	fp = open(f, "rb")
-							# 	rawData2 = fp.read()
-							# 	fp.close()
-							# 	full_file_path = os.path.join(full_path, f)
-							# 	list_of_unk_files.append(full_file_path)
 
 
-
-				elif isDir(full_path) and known_arch:
-					print("here <------------")
+				elif isDir(full_path):
 					dirName = os.path.basename(full_path)
 					# print("isDir Directory: ", dirName)
 					if "32" in dirName:
@@ -552,20 +581,24 @@ def CliParser():
 							if ext == "txt":
 								rawHex = True
 								rawBin = False
-								filename = f
+								
 								bit32 = True
 								full_file_path = os.path.join(full_path, f)
+								filename = full_file_path
+								gName = f
 								# print("full_file_path", full_file_path)
 								list_of_files32.append(full_file_path)
 							else:
 								rawHex = True
 								rawBin = True
-								filename = f
 								bit32 = True
 								fp = open(f, "rb")
 								rawData2 = fp.read()
 								fp.close()
 								full_file_path = os.path.join(full_path, f)
+								filename = full_file_path
+								gName = f
+
 								# print("full_file_path BIN", full_file_path)
 
 								list_of_files32.append(full_file_path)
@@ -1246,7 +1279,7 @@ def getLast(absoluteAddress):
 		pass
 
 	absoluteAddress = str(absoluteAddress)
-	array = absoluteAddress.split("\\")
+	array = absoluteAddress.split(slash)
 	new = ""
 	for word in array:
 		new =  word
@@ -1657,7 +1690,7 @@ def giveLoadedModules(mode=None):
 		# out = cleanColors(out)
 		if mode =="save":
 			out2 = cleanColors(out)
-			txtFileName =  os.getcwd() + "\\" + outfile + "\\" + outfileName + "_" + "loaded_Modules" + ".txt"
+			txtFileName =  os.getcwd() + slash + outfile + slash + outfileName + "_" + "loaded_Modules" + ".txt"
 			os.makedirs(os.path.dirname(txtFileName), exist_ok=True)
 			text = open(txtFileName, "w")
 			text.write(out2)
@@ -1859,21 +1892,22 @@ def digDeeper(PE_DLL):
 			# print("APPENDING SOMETHING NEW: " + dll)
 			#input("enter...")
 			peFound=True
-			newpath = extractDLLNew(dll)
-			# print("Newpath", newpath)
-			# input()
-			# print(newpath)
-			# input("newpath")
-			doneAlready0.append(dll)
-			paths.append(newpath)
-			try:
-				pe = pefile.PE(newpath)
-			except:
-				# print ("Invalid path found for " + dll + "\nResults, thus, will be inaccurate.")
-				peFound=False
-				name = "Invalid path for " + dll + " " 
-				iatList[c].entries.append(name)
-				PE_DLLS.append(name)
+			if platformType == "Windows":
+				newpath = extractDLLNew(dll)
+                # print("Newpath", newpath)
+                # input()
+                # print(newpath)
+                # input("newpath")
+				doneAlready0.append(dll)
+				paths.append(newpath)
+				try:
+					pe = pefile.PE(newpath)
+				except:
+                        # print ("Invalid path found for " + dll + "\nResults, thus, will be inaccurate.")
+					peFound=False
+					name = "Invalid path for " + dll + " " 
+					iatList[c].entries.append(name)
+					PE_DLLS.append(name)
 		name = ""
 		name = ""
 		try:
@@ -2428,7 +2462,7 @@ def Text2Json(shell, jsonOut=None):
 	if jsonOut != None:
 		return shellcode_dict
 	fileName = "rawhex" + "_" + inputFile + "_" + filetime + ".json"
-	outDir = os.getcwd() + "\\outputs\\" 
+	outDir = os.getcwd() + slash+outputs+slash
 	fullPath = outDir + fileName
 	os.makedirs(os.path.dirname(outDir), exist_ok=True)
 
@@ -3693,7 +3727,6 @@ def PushRetrawhex(address, secNum, data):
 			t+=1	 
 
 	else:
-		print ("PushRetrawhex false" )
 		for match in PUSH_RET.values():
 			if bit32:
 				get_PushRet_start(4, match, secNum, data)
@@ -4310,7 +4343,6 @@ def FSTENVrawhex(address, linesBack2, secNum, data):
 
 
 	else:
-		print ("fstenv false")
 		for match in FSTENV_GET_BASE.values(): #iterate through all opcodes representing combinations of registers
 			get_FSTENV(10, 15, match, secNum, data)
 
@@ -5072,7 +5104,6 @@ def callPopRawHex(address, linesForward2, secNum, data):
 			t += 1
 
 	else:
-		print ("callpop false")
 		for match in CALLPOP_START.values(): #iterate through all opcodes representing combinations of registers
 			get_Callpop(10, match[0], secNum, data, match[1])
 
@@ -5686,12 +5717,11 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 		elif(add):
 			reg = add.group().split(' ')[1].replace(',','').lower()
 
-			origLine = line
 			line = line.split(',',1)[-1]
 			line = line.replace(' ', '')
 
 			variable = re.search(" ?(e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
-			numeric = re.search("^ ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
+			numeric = re.search(" ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
 
 			ptr = re.search(" ?(ptr)", line, re.IGNORECASE)
 			
@@ -5742,7 +5772,8 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 
 			elif(numeric):
 				found = int(numeric.group(), 0)
-				
+				# print("here is what i found:")
+				# print(found)
 
 				found = hex(found)
 
@@ -5847,7 +5878,7 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 			line = line.replace(' ', '')
 
 			variable = re.search(" ?(e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
-			numeric = re.search("^ ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
+			numeric = re.search(" ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
 
 			ptr = re.search(" ?(ptr)", line, re.IGNORECASE)
 			
@@ -6021,12 +6052,11 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 				espOffset = 0
 
 
-			origLine = line
 			line = line.split(',',1)[-1]
 			line = line.replace(' ', '')
 
 			variable = re.search(" ?(e((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp)|(sp)))", line, re.IGNORECASE)
-			numeric = re.search("^ ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
+			numeric = re.search(" ?(0x)?([0-9A-F])+", line, re.IGNORECASE)
 			ptr = re.search(" ?(ptr)", line, re.IGNORECASE)
 			
 			if(ptr):
@@ -6081,10 +6111,6 @@ def trackRegs(disAsm, startStates, stack): #disAsm: disassembly string | startSt
 
 
 			elif(numeric):
-				# print("PART2 line here: ")
-				# print(line)
-				# print("PART2 origline here: ")
-				# print(origLine)
 				found = int(numeric.group(), 0)
 				# print("here is what i found:")
 				# print(found)
@@ -7085,8 +7111,8 @@ def disHereHeavenPE_old(address, NumOpsDis, NumOpsBack, secNum, data): #########
 
 def print_from_directory(fName, arch=None):
 
-	dirName = '\\'.join(fName.split("\\")[:-1])
-	fileName = fName.split("\\")[-1]
+	dirName = slash.join(fName.split(slash)[:-1])
+	fileName = fName.split(slash)[-1]
 	output = "******************************\n"
 	output += yel + "\nFile      : " + gre + fileName + res + "\n"
 
@@ -7466,8 +7492,8 @@ def work_from_directory():
 
 
 	# for i in list_of_files:
-	# 	dirName = '\\'.join(i.split("\\")[:-1])
-	# 	fileName = i.split("\\")[-1]
+	# 	dirName = '\\'.join(i.split(slash)[:-1])
+	# 	fileName = i.split(slash)[-1]
 	# 	output = "******************************\n"
 	# 	output += yel + "\nFile      : " + gre + fileName +res + "\n"
 	# 	output += yel + "Directory : " + gre + dirName + res + "\n\n"
@@ -10428,10 +10454,10 @@ def pushStringsOutput(Num):
 		outfileName = filename
 
 
-	# txtFileName =  os.getcwd() + "\\" + outfile + "\\output_" + outfileName + "_" + filetime + ".txt"
+	# txtFileName =  os.getcwd() + slash + outfile + "\\output_" + outfileName + "_" + filetime + ".txt"
 
 
-	txtFileName =  os.getcwd() + "\\" + outfile + "\\" + "pushStrings_validation" +".txt"
+	txtFileName =  os.getcwd() + slash + outfile + slash + "pushStrings_validation" +".txt"
 	os.makedirs(os.path.dirname(txtFileName), exist_ok=True)
 
 	t=0
@@ -10638,10 +10664,11 @@ def runIt():
 			zy = 0
 			index = 0
 			for dll in PE_DLLS:
-				o = zy + 1
-				extractDLL_MinNew(PE_DLLS[zy])
-				zy+=1
-				print ("PE: " + str(peName))
+				if platformType == "Windows":
+					o = zy + 1
+					extractDLL_MinNew(PE_DLLS[zy])
+					zy+=1
+					print ("PE: " + str(peName))
 			modName = peName
 			o = 0
 
@@ -11645,7 +11672,7 @@ def createDisassemblyLists(Colors=True, caller=None):
 		try:
 			cur=cAddress
 			if (sBy.pushStringEnd[cur]-2) == cur:
-				msg="; "+sBy.pushStringValue[cur] + " - Stack string"
+				msg=mag+"; "+sBy.pushStringValue[cur] + " - Stack string"+res2
 				newVal =('{:<12} {:<45s} {:<33}{:<10s}\n'.format("", msg, nada, nada))
 				out= newVal+out
 		except Exception as e:
@@ -12070,7 +12097,7 @@ def disHereMakeDB2Edited(data,offset, end, mode, CheckingForDB):  #### new one
 		stop += 1
 		t+=1
 		w+=1
-		# print ("t-eof", hex(w), hex(length))
+		# print ("t-eof", he)x(w), hex(length))
 		if w==(length):
 			if dbFlag==True:
 				nada=""
@@ -12097,7 +12124,8 @@ def disHereMakeDB2Edited(data,offset, end, mode, CheckingForDB):  #### new one
 	val=stringVal
 	return val
 def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
-	bprint("dis: disHereMakeDB2 - range " + str(hex(offset)) + " " + str(hex(end)) )
+	# bprint("dis: disHereMakeDB2 - range " + str(hex(offset)) + " " + str(hex(end)) )
+	# print ("start of function --------------------------------?>>>>>>>>>>>>>>>>>>>")
 	# dprint2 (num_bytes)
 	# printAllsByRange(offset,offset+num_bytes)
 	global labels
@@ -12123,6 +12151,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 			dbFlag=True
 			stringInProgress=True
 			stringStart, stringDistance=sBy.stringsStart[offset]
+			startAddString=hex(stringStart)
 			# dprint2("FoundSTRING", hex(stringStart), hex(offset),"off")
 			if stringStart==offset:
 				startAddString=str(hex(offset))
@@ -12167,9 +12196,31 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 		offset +=1
 		# t+=1
 		w+=1
+		print(startAddString)
+		print(type(startAddString))
 		if w==(length):
+			# sBy.shMnemonic.append(mnemonic)
+			# sBy.shOp_str.append(op_str)
+			t=0
+			# for each in sBy.shMnemonic:
+			# 	print (sBy.shMnemonic[t] + sBy.shOp_str[t])
+			# 	t+=1
+			# print(data[offset-2:offset+1].hex())
+			# print(data.hex())
 			if dbFlag==True:
+				stringVala=sBy.stringsValue[offset-1]+mag+" ; string"+res2+"\t\t"
+
+				# print("-->", startAddString, stringVala)
 				addDis(int(startAddString,16),"",stringVala, "", "EndStringMaker")
+			
+			# if dbFlag==True:
+			# 	try:
+			# 		addDis(int(startAddString,16),"",stringVala, "", "EndStringMaker")
+			# 	except:
+			# 		try:
+			# 			addDis(int(startAddString),"",stringVala, "", "EndStringMaker")
+			# 		except:
+			# 			pass
 				dbFlag=False
 			w=0
 	return ""
@@ -14564,6 +14615,114 @@ def takeBytes(shellBytes,startingAddress, silent=None):
 
 	return disassemblyC, disassembly,assembly
 
+
+
+
+def checkZeroes():
+
+	
+
+	count = 0
+	for i in m[o].rawData2:
+		# print(i, type(i))
+		if count == maxZeroes:
+			break
+		if i != 0:
+			count = 0
+		if i == 0:
+			count += 1
+	if count >=maxZeroes:
+		return True
+	return False
+
+
+def isShellcode():
+
+	p = mBool[o].bPEBFound
+	f = mBool[o].bFstenvFound
+	s = mBool[o].bSyscallFound
+	c = mBool[o].bCallPopFound
+	h = mBool[o].bHeavenFound
+	st = mBool[o].bStringsFound
+	l = loggedList
+
+	regExPattern = ''
+
+	dosPatterns = {"This program cannot be run in DOS mode", "This program must be run under Win32", "This program requires Microsoft Windows", "This program cannot be run in a DOS session", "This program must be run under Microsoft Windows", "This is a Windows", "This program cannot run in DOS mode", "This program must be run under Win64", "This program requires OS/2 Presentation Manager", "this is a Windows NT (own RTL) dynamic link library", "this is a Windows NT dynamic link library", "This program must be run under OS/2", "this is an OS/2 16-bit dynamic link library", "This is a Win32 program", "This program cannot be run in DOS mode", "this is an OS/2 32-bit dynamic link library", "this is a Windows 16-bit dynamic link library", "this is a Windows NT character-mode executable", "This is a Windows program, you cannot run it in DOS", "this is an OS/2 32-bit executable", "this is a Windows NT windowed executable", "this is an OS/2 linear extended dynamic link library", "this is a DOS/4G dynamic link library", "this is an OS/2 and eComStation dynamic link library", "this is a Windows NT character-mode dynamic link lib", "this is a Windows 16-bit executable", "This program cannot run in DOS mode", "This program cannot be run in DOS", "This www.verypdf.combe run in DOS mode", "this is an OS/2 dynamic link library", "this is a Windows dynamic link library", "This is a Windows 95 dynamic link library", "this is an OS/2 linear extended executable", "This program requires Phar Lap’s 286|DOS-Extender", "this is a PE dynamic link library", "this is a Windows 95 executable", "This program requires Microsoft Windows", "This is a TrueType font, not a program", "This program requires OS/2", "this is a Windows executable", "this is a Windows NT windowed dynamic link library", "This www.verypdf.com e run in DOS mode", "This is an OS/2 executable module", "this is a PE executable", "this is a 32 bit OS/2 Configurator executable", "This program requires OS/2", "This program must be run under Win32", "This program cannot be ran in DOS mode", "This is a Windows font file", "This Salford program requires Win32 or Win32s", "This program runs under Win32/win64", "this is a win32 executable", "this is a Windows NT executable", "This program requires Microsoft Windows", "This is a SNAP binary portable dynamic link library"}
+	dosPatterns2 = {"this program cannot be run in dos mode", "this program must be run under win32", "this program requires microsoft windows", "this program cannot be run in a dos session", "this program must be run under microsoft windows", "this is a windows", "this program cannot run in dos mode", "this program must be run under win64", "this program requires os/2 presentation manager", "this is a windows nt (own rtl) dynamic link library", "this is a windows nt dynamic link library", "this program must be run under os/2", "this is an os/2 16-bit dynamic link library", "this is a win32 program", "this program cannot be run in dos mode", "this is an os/2 32-bit dynamic link library", "this is a windows 16-bit dynamic link library", "this is a windows nt character-mode executable", "this is a windows program, you cannot run it in dos", "this is an os/2 32-bit executable", "this is a windows nt windowed executable", "this is an os/2 linear extended dynamic link library", "this is a dos/4g dynamic link library", "this is an os/2 and ecomstation dynamic link library", "this is a windows nt character-mode dynamic link lib", "this is a windows 16-bit executable", "this program cannot run in dos mode", "this program cannot be run in dos", "this www.verypdf.combe run in dos mode", "this is an os/2 dynamic link library", "this is a windows dynamic link library", "this is a windows 95 dynamic link library", "this is an os/2 linear extended executable", "this program requires phar lap’s 286|dos-extender", "this is a pe dynamic link library", "this is a windows 95 executable", "this program requires microsoft windows", "this is a truetype font, not a program", "this program requires os/2", "this is a windows executable", "this is a windows nt windowed dynamic link library", "this www.verypdf.com e run in dos mode", "this is an os/2 executable module", "this is a pe executable", "this is a 32 bit os/2 configurator executable", "this program requires os/2", "this program must be run under win32", "this program cannot be ran in dos mode", "this is a windows font file", "this salford program requires win32 or win32s", "this program runs under win32/win64", "this is a win32 executable", "this is a windows nt executable", "this program requires microsoft windows", "this is a snap binary portable dynamic link library"}
+#for x,y,z  in stringsTemp:
+# if (len(stringsTemp) > 0):
+# 			mBool[o].bStringsFound = True
+	# classTxt = ""
+	classTxt = "Possibly encoded shellcode."
+	reasonTxt = ""
+
+
+	if l:
+		classTxt = "Very likely shellcode."
+		reasonTxt = "Found shellcode APIs."
+
+
+	elif p:
+		classTxt = "Likely shellcode."
+		reasonTxt = "Found PEB walking."
+
+
+	elif f or c or s or h:
+		# input("here")
+		if f:
+			reasonTxt = "Found fstenv instructions."
+		if c:
+			reasonTxt = "Found callpop instructions."
+		if s:
+			reasonTxt = "Found syscall instructions."
+		if h:
+			reasonTxt = "Found heaven's gate instructions."
+
+
+
+		classTxt = "Some shellcode characteristics."
+
+	
+	else:
+		# input("here2")
+		classTxt = "Possibly encoded shellcode."
+
+
+	if st and not l and not p:
+		if stringsTemp:
+			for x, y, z in stringsTemp:
+				tmp = x.lower()
+				regEx = 'this.*(program)?.*(DOS|run|OS|32|16|NT|PE|dynamic|95|executable|windows|requires).*'
+				reFound = re.search(regEx, tmp)
+				if reFound:
+					dos=x.lower()
+					if dos[-1]=="." or dos[-1]=="$":
+						dos=dos[:-1]
+					if dos in dosPatterns2:
+						# if checkZeroes() ==200:
+						classTxt = "Not shellcode."
+						reasonTxt = "DOS stub pattern found."
+						break
+				# elif not reFound:
+					# classTxt = "Possibly encoded shellcode"
+
+	if checkZeroes():
+		classTxt = "Not shellcode."
+		reasonTxt = "Excessive amount of contiguous zeroes."
+	# else:
+
+	# 	classTxt = "Possibly encoded shellcode"
+
+	
+	
+
+					
+					
+
+	return classTxt, reasonTxt
+
+
 def regenerateDisassemblyForPrint():
 	global gDisassemblyText
 	global gDisassemblyTextNoC
@@ -14641,10 +14800,12 @@ def addComments():
 		pushOffset=item[6]
 		destLocation=item[7]
 		sBy.comments[int(heaven_offset,16)]=  comC +" ; invoking Heaven's Gate technique" + res2 + ""
-		try:
-			sBy.comments[(pushOffset)]= comC + " ; Heaven's gate destination address: " + str(destLocation) + res2 + ""
-		except:
-			sBy.comments[int(pushOffset,16)]= comC + " ; Heaven's gate destination address: " + str(destLocation) + res2 + ""
+
+		if hex(pushOffset) != "0xbaddbadd":
+			try:
+				sBy.comments[(pushOffset)]= comC + " ; Heaven's gate destination address: " + str(destLocation) + res2 + ""
+			except:
+				sBy.comments[int(pushOffset,16)]= comC + " ; Heaven's gate destination address: " + str(destLocation) + res2 + ""
 	for item in m[o].save_Egg_info:
 		eax = item[5]
 		c0_offset = item[6]
@@ -15327,159 +15488,6 @@ def encodeShellcodeTesting(data, values):
 
 
 
-def batchDecodeShellcode():
-
-
-	path = "encodedTests\\"
-	for filename in os.listdir(path):
-		failed = False
-		pathFile = path + filename
-		decryptBytes = readShellcode(pathFile)
-		print(filename)
-
-		decryptOpTypes = []
-		minus1 = re.search("_minus", filename, re.IGNORECASE)
-		plus1 = re.search("_plus", filename, re.IGNORECASE)
-		xor1 = re.search("_xor", filename, re.IGNORECASE)
-		if(minus1):
-			print("minus")
-			decryptOpTypes.append('+')
-		if(plus1):
-			print("plus")
-			decryptOpTypes.append('-')
-		if(xor1):
-			print("xor")
-			decryptOpTypes.append('^')
-
-		# minus2 = re.search("TWOminusTWO", filename, re.IGNORECASE)
-		# plus2 = re.search("TWOplusTWO", filename, re.IGNORECASE)
-		# xor2 = re.search("TWOxorTWO", filename, re.IGNORECASE)
-		# if(minus2):
-		# 	print("minus")
-		# 	decryptOpTypes.append('+')
-		# if(plus2):
-		# 	print("plus")
-		# 	decryptOpTypes.append('-')
-		# if(xor2):
-		# 	print("xor")
-		# 	decryptOpTypes.append('^')
-
-		# print(decryptOpTypes)
-		# input()
-
-
-		dDistr=True
-		start = time.time()
-		try:
-			decodedBytes = decryptShellcode(decryptBytes, decryptOpTypes, findAll = dFindAll, fastMode = dFastMode, distributed = dDistr, cpuCount = dCPUcount, nodesFile = dNodesFile, outputFile = dOutputFile)
-		except:
-			failed = True
-		end = time.time()
-		totalTime = end - start
-
-		timeFile = open("decodeTimes.txt", "a")
-		# print (directory+"outputs\\"+"decoded"+".bin")
-		timeFile.write("\n")
-		if(failed):
-			timeFile.write("failed")
-		else:
-			timeFile.write(str(totalTime))
-		timeFile.close()
-
-		# input()
-
-
-
-def batchEncodeShellcode():
-	print ("encodeShellcode")
-
-	j = 0
-	path = "unencodedShells\\"
-	for filename in os.listdir(path):
-		pathFile = path + filename
-		print(pathFile)
-		data = b""
-		with open(pathFile, mode='rb') as file:
-			data = file.read()
-		file.close()
-
-		print("read this data: ", data)
-
-
-
-
-		ops = ['^', '-', '+']
-		operation = random.choice(ops)
-		operation2 = random.choice(ops)
-
-		nums = range(255)
-		print("here nums", nums)
-		number = random.choice(nums)
-		number2 = random.choice(nums)
-
-
-		data = bytearray(data)
-		for i in range(len(data)):
-			if(operation == '+'):
-				fileOp = "plus"
-				data[i]=(data[i]+number)&255
-			if(operation == '-'):
-				fileOp = "minus"
-				data[i]=(data[i]-number)&255
-			if(operation == '^'):
-				fileOp = "xor"
-				data[i]=(data[i]^number)&255
-
-		for i in range(len(data)):
-			if(operation2 == '+'):
-				fileOp2 = "plus"
-				data[i]=(data[i]+number2)&255
-			if(operation2 == '-'):
-				fileOp2 = "minus"
-				data[i]=(data[i]-number2)&255
-			if(operation2 == '^'):
-				fileOp2 = "xor"
-				data[i]=(data[i]^number2)&255
-
-
-		directory = ".\\"
-		print ("saving new file...")
-		# print (disassembly)
-		if not os.path.exists(directory+'encodedTests2op'):
-			os.makedirs(directory+'encodedTests2op')
-		# print (directory+"outputs\\"+"decoded"+".bin")
-		newBin = open(directory+"encodedTests2op\\"+str(j)+"_"+fileOp+str(number)+"TWO"+fileOp2+"TWO"+str(number2)+".txt", "w")
-		newBin.write(binaryToStr(data))
-		newBin.close()
-		j += 1
-
-		print(binaryToStr(data))
-		print("\n\n")
-
-
-
-	# # print (binaryToStr(m[o].rawData2))
-	# shells=""
-	# data = bytearray(data)
-	# for i in range(len(data)):
-	# 	data[i]=(data[i]+a)&255
-
-		# shells+=str(hex(new)) +" "
-
-	# 	if len(str(hex(new))) % 2 !=0:
-	# 		# print ("got one")
-	# 		new2=str(hex(new))
-	# 		new2="0x0"+new2[2:]
-	# 		shells+=new2 + " "
-	# 	else:
-	# 		shells+=str(hex(new)) + " "
-	# shells=split0x(shells)
-	# # print(shells)
-	# shells=fromhexToBytes(shells)
-	# print("ENCODE BYTES")
-	# print (binaryToStr(data))
-	# return data
-
 
 def encodeShellcode(data):
 	print ("encodeShellcode")
@@ -15837,11 +15845,11 @@ def splitDirectory(filename):
 	array=[]
 	
 	try:
-		array = filename.split("\\")
+		array = filename.split(slash)
 	except Exception as e:
 		print(e)
 		# filename=filename.decode()
-		# array = filename.split("\\")
+		# array = filename.split(slash)
 		filename="shellcode.txt"
 	new = ""
 	
@@ -15850,7 +15858,7 @@ def splitDirectory(filename):
 		array.pop()
 		for word in array:
 			new +=  word
-		return new+"\\", relFilename
+		return new+slash, relFilename
 	else:
 		filename="shellcode.txt"
 		return "", filename
@@ -15995,7 +16003,7 @@ def saveBinAscii():
 	if not os.path.exists(directory+'bins'):
 		os.makedirs(directory+'bins')
 	assembly=binaryToText(m[o].rawData2)
-	newBin = open(directory+"bins\\"+filename[:-4]+".bin", "wb")
+	newBin = open(directory+"bins"+slash+filename[:-4]+".bin", "wb")
 	newBin.write(m[o].rawData2)
 	newBin.close()
 	newDis = open(directory+"bins\\ascii-"+filename[:-4]+".txt", "w")
@@ -16177,29 +16185,17 @@ def bramwellEncodeDecodeWork(shellArg):
 	# set bools in shellcode obj appropriately
 	# change analyzedecoder stubs to determine WHETHER it has a decoderstub DONE
 	# check w/ bramwell about automation of brute force + checking for success on other things than peb like callpop, ftsenv, etc
-	# for decrypt, covert pebpoints to 3 if below and ask for confirmation DONE
+	# for decrypt, covert pebpoints to 3 if below and ask for confirmation
 	# analyzedecoderstubs -- need to check if ops or nums are empty -- split find/analyze into 2 func?
 	# 		try all values if ops but no values
 	# email ip regex to jacob
 	# fix some formatting/wording on decoder stub
-	# fix trackregs issue running processhacker.exe w/ s option DONE
+	# fix trackregs issue running processhacker.exe w/ s option
 	# issue in generateoutputdata syscall line 22343 val5[-1] index error
 	#investigate other weird errors/issues with syscall etc when running processhacker
 	# try to eliminate more false positives
 	# write about brute force capabilities when bram sends emails
 	# compile ~50 runs of encoded shellcode w 1 op and 2 ops and record times in spreadsheet
-	# fix .bin issue with decoding DONE
-	# fix error when no decoded found DONE
-	# fix doutputfile bool reading in as string
-	# weird error with path: 
-		# [WinError 123] The filename, directory name, or volume label syntax is incorrect: 'C:\\Users\\RenAdmin\\Documents\\GitHub\\sharem\\C:'
-		# Traceback (most recent call last):
-		#   File "sharem.py", line 18940, in ui
-		#     uiPrint()
-		#   File "sharem.py", line 19899, in uiPrint
-		#     printToJson(bpAll, outputData)
-		#   File "sharem.py", line 21537, in printToJson
-		#     os.makedirs(os.path.dirname(jsonFileName), exist_ok=True)
 
 
 #done
@@ -16230,7 +16226,6 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 	global decodedBytes	
 	global filename
 	global sh
-	global dOutputFile
 	# print("ENCODED HERE: \n", encodedShell)
 
 	strAdd="new=(new +VALUE) & 255\n" 
@@ -16295,7 +16290,7 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 				# print("TESTD IS =", testd)
 				# print("DECODEINFO IS = ", decodeInfo)
 				singleVals = decodeInfo[2]
-				order = decodeInfo[3]
+				or7der = decodeInfo[3]
 				# print("GOT SINGLEVALS = ", singleVals)
 				# print("GOT ORDER = ", order)
 
@@ -16347,9 +16342,6 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 			#only runs if we didn't do fastmode
 			else:
 				for item in decodeInfo:
-					#fix for edge case... need to find root cause of empty list being returned but this fix works for now
-					if(item == []):
-						return
 					c = 0
 					print("############# DECODED ################")
 					for x in item:
@@ -16573,24 +16565,20 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 			o = shDec
 			print("Setting default to decoded shellcode...")
 
-		#FIX THIS, THIS IS A BANDAID
-		if(dOutputFile == "False"):
-			dOutputFile = False
-		if(dOutputFile):
-			print("here doutop", dOutputFile)
-			input("in outputfile")
+
+		if(outputFile):
 			disassembly, disassemblyNoC, assemblyBytes=takeBytes(decodedBytes, shellEntry)
 			rawBytes = decodedBytes	
-			directory = ".\\"
+			directory = "."+slash
 			print ("decrypted disassembly")
 			print (disassembly)
 			if not os.path.exists(directory+'outputs'):
 				os.makedirs(directory+'outputs')
-			print (directory+"outputs\\"+"decoded"+".bin")
-			newBin = open(directory+"outputs\\decrypted-"+filename+".bin", "wb")
+			print (directory+"outputs"+slash+"decoded"+".bin")
+			newBin = open(directory+"outputs"+slash+"decrypted-"+filename+".bin", "wb")
 			newBin.write(rawBytes)
 			newBin.close()
-			newDis = open(directory+"outputs\\decrypted-"+filename+"-disassembly.txt", "w")
+			newDis = open(directory+"outputs"+slash+"decrypted-"+filename+"-disassembly.txt", "w")
 			newDis.write(disassemblyNoC)
 			newDis.close()
 
@@ -16629,16 +16617,10 @@ def decryptUI():
 	global decryptFile
 	global filename
 	global stubFile
-	global pebPoints
-
-	successPoints = pebPoints
 
 	try:
 		decryptFile = filename	
-		if(decryptFile[-4:] == ".txt"):
-			decryptBytes = readShellcode(decryptFile) 
-		else:
-			decryptBytes = rawData2
+		decryptBytes = readShellcode(decryptFile) 
 	except:
 		print("Couldn't read command line input file, please provide only a shellcode file.")
 		decryptBytes = b''
@@ -16780,18 +16762,12 @@ def decryptUI():
 			print(cya + " Nodes File: ", yel + str(dNodesFile) + res)
 			print(cya + " OutputFile: ", gre + str(dOutputFile) + res)
 
-			if(successPoints < 3):
-				
-				print(yel + "\npebPoints for shellcode detection is currently set to: [" + res + cya + str(successPoints) + yel + "] \nSet to recommended value of 3 to avoid false positives?" + gre + "[y/n] ? " + res, end="")
-				pebConfirm = input()
-				if(pebConfirm == "y"):
-					successPoints = 3
-			confirm = print(yel + "\nRun decryption with these settings "+ res + gre + "[y/n] ? "+res, end="")
+			confirm = print(yel + "\n Run decryption with these settings "+ res + gre + "[y/n] ? "+res, end="")
 
 			confirm = input()
 			if(confirm == "y"):
-				decodedBytes = decryptShellcode(decryptBytes, decryptOpTypes, findAll = dFindAll, fastMode = dFastMode, distributed = dDistr, cpuCount = dCPUcount, nodesFile = dNodesFile, outputFile = dOutputFile, successPoints = successPoints)
-				# print(m[shDec])
+				decodedBytes = decryptShellcode(decryptBytes, decryptOpTypes, findAll = dFindAll, fastMode = dFastMode, distributed = dDistr, cpuCount = dCPUcount, nodesFile = dNodesFile, outputFile = dOutputFile)
+				print(m[shDec])
 				return
 
 		elif(entry == "l"):
@@ -17280,11 +17256,11 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 						print (disassembly)
 						if not os.path.exists(directory+'outputs'):
 							os.makedirs(directory+'outputs')
-						print (directory+"outputs\\"+filename[:-4]+".bin")
-						newBin = open(directory+"outputs\\decrypted-"+filename[:-4]+".bin", "wb")
+						print (directory+"outputs"+slash+filename[:-4]+".bin")
+						newBin = open(directory+"outputs"+slash+"decrypted-"+filename[:-4]+".bin", "wb")
 						newBin.write(rawBytes)
 						newBin.close()
-						newDis = open(directory+"outputs\\decrypted-"+filename[:-4]+"-disassembly.txt", "w")
+						newDis = open(directory+"outputs"+slash+"decrypted-"+filename[:-4]+"-disassembly.txt", "w")
 						newDis.write(disassemblyNoC)
 						newDis.close()
 					
@@ -17364,11 +17340,11 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 					print (disassembly)
 					if not os.path.exists(directory+'outputs'):
 						os.makedirs(directory+'outputs')
-					print (directory+"outputs\\"+filename[:-4]+".bin")
-					newBin = open(directory+"outputs\\decrypted-"+filename[:-4]+".bin", "wb")
+					print (directory+"outputs"+slash+filename[:-4]+".bin")
+					newBin = open(directory+"outputs"+slash+"decrypted-"+filename[:-4]+".bin", "wb")
 					newBin.write(rawBytes)
 					newBin.close()
-					newDis = open(directory+"outputs\\decrypted-"+filename[:-4]+"-disassembly.txt", "w")
+					newDis = open(directory+"outputs"+slash+"decrypted-"+filename[:-4]+"-disassembly.txt", "w")
 					newDis.write(disassemblyNoC)
 					newDis.close()
 
@@ -17467,7 +17443,7 @@ def austinEncodeDecodeWork(shellArg, operations = []):
 
 		# ##### end example
 
-
+		
 		# yes=5
 		# if yes==3:
 
@@ -17584,7 +17560,7 @@ def shellDisassemblyInit(shellArg, silent=None):
 
 	### Saving disassembly and .bin
 
-	dirPath = '\\'.join(filename.split("\\")[:-1])
+	dirPath = slash.join(filename.split(slash)[:-1])
 	filename = os.path.basename(filename)
 
 	directory=""
@@ -17608,23 +17584,23 @@ def shellDisassemblyInit(shellArg, silent=None):
 	colorama.init()
 
 	if not useHash:
-		txtDis = open(directory+"disassembly\\"+filename[:-4]+"-disassembly.txt", "w")
-		printOUT= ("\tDisassembly printed to disassembly\\"+filename[:-4]+"-disassembly.txt")
+		txtDis = open(directory+"disassembly"+slash+filename[:-4]+"-disassembly.txt", "w")
+		printOUT= ("\tDisassembly printed to disassembly"+slash+filename[:-4]+"-disassembly.txt")
 		if save_bin_file:
-			binDis = open(directory+"disassembly\\"+filename[:-4]+"-disassembly.bin", "wb")
+			binDis = open(directory+"disassembly"+slash+filename[:-4]+"-disassembly.bin", "wb")
 			binDis.write(bytesOutput)
 			binDis.close()
-			("\tRaw binary saved to disassembly\\"+filename[:-4]+"-disassembly.bin")
+			("\tRaw binary saved to disassembly"+slash+filename[:-4]+"-disassembly.bin")
 
 	else:
 		
-		txtDis = open(directory+"disassembly\\"+filename2+"-disassembly.txt", "w")
-		printOUT= ("\tDisassembly printed to disassembly\\"+filename2+"-disassembly.txt")
+		txtDis = open(directory+"disassembly"+slash+filename2+"-disassembly.txt", "w")
+		printOUT= ("\tDisassembly printed to disassembly"+slash+filename2+"-disassembly.txt")
 		if save_bin_file:
-			binDis = open(directory+"disassembly\\"+filename2+"-disassembly.bin", "wb")
+			binDis = open(directory+"disassembly"+slash+filename2+"-disassembly.bin", "wb")
 			binDis.write(bytesOutput)
 			binDis.close()
-			("\tRaw binary saved to disassembly\\"+filename2+"-disassembly.bin")
+			("\tRaw binary saved to disassembly"+slash+filename2+"-disassembly.bin")
 
 	if silent!="silent":
 		print (printOUT)
@@ -18231,8 +18207,38 @@ def modConf():
 # 	emuObj.verbose = conr.getboolean('SHAREM EMULATION', 'timeless_debugging')
 
 
+def disassemblyConf(conr):
+	global shellSizeLimit
 
-def readConf():
+	mBool[o].bDoFindHiddenCalls = conr.getboolean('SHAREM DISASSEMBLY','enable_hidden_calls')
+	mBool[o].bDoEnableComments = conr.getboolean('SHAREM DISASSEMBLY','enable_assembly_comments')
+	mBool[o].bDoShowAscii = conr.getboolean('SHAREM DISASSEMBLY','enable_assembly_ascii')
+	mBool[o].bDoFindStrings = conr.getboolean('SHAREM DISASSEMBLY','enable_find_strings')
+	mBool[o].ignoreDisDiscovery = conr.getboolean('SHAREM DISASSEMBLY','ignore_dis_discovery')
+	mBool[o].maxOpDisplay = int(conr['SHAREM DISASSEMBLY']['max_disassembly_operands'])
+	mBool[o].btsV = int(conr['SHAREM DISASSEMBLY']['binary_to_string'])
+	shellSizeLimit = int(conr['SHAREM DISASSEMBLY']['shellcode_size_limit'])
+	mBool[o].bDoShowOffsets = conr.getboolean('SHAREM DISASSEMBLY','show_disassembly_offsets')
+	mBool[o].bDoShowOpcodes = conr.getboolean('SHAREM DISASSEMBLY','show_disassembly_opcodes')
+	mBool[o].bDoShowLabels = conr.getboolean('SHAREM DISASSEMBLY','show_disassembly_labels')
+
+
+def emulationConf(conr):
+	global bPrintEmulation
+	global emulation_verbose
+	global emulation_multiline
+
+	bPrintEmulation = conr.getboolean('SHAREM EMULATION', 'print_emulation_result')
+	emulation_verbose = conr.getboolean('SHAREM EMULATION', 'emulation_verbose_mode')
+	emulation_multiline = conr.getboolean('SHAREM EMULATION', 'emulation_multiline')
+	emuObj.maxEmuInstr = int(conr['SHAREM EMULATION']['max_num_of_instr'])
+	emuObj.numOfIter = int(conr['SHAREM EMULATION']['iterations_before_break'])
+	emuObj.breakLoop = conr.getboolean('SHAREM EMULATION', 'break_infinite_loops')
+	emuObj.verbose = conr.getboolean('SHAREM EMULATION', 'timeless_debugging')
+
+
+
+def SharemSearchConfig(conr):
 	global bPushRet
 	global bCallPop
 	global bFstenv
@@ -18248,130 +18254,18 @@ def readConf():
 	global bytesBack
 	global linesForward
 	global linesBack
-	global bPushStackStrings
-	global bWideCharStrings
-	global bAsciiStrings
-	global syscallSelection
 	global shellBit
 	global print_style
-	global dFastMode
-	global dFindAll
-	global dDistr
-	global dCPUcount
-	global dNodesFile
-	global dOutputFile
-	global decryptOpTypes
-	global decryptFile
-	global stubFile
-	global sameFile
-	global stubEntry
-	global stubEnd
 	global save_bin_file
 	global shellEntry
-	global minStrLen
 	global sharem_out_dir
 	global maxDistance
-	global bPrintEmulation
-	global emulation_verbose
-	global emulation_multiline
 	global bpEvilImports
-	global bpModules
-	global shellSizeLimit
-	# global os
-
-	con = Configuration(conFile)
-	conr = con.readConf()
-	initSysCallSelect()
-
-	
-	startupBool = conr.getboolean('SHAREM STARTUP','startup_enabled')
-
-
-# Reading decryption variables from config
-
-	dFastMode = conr.getboolean('SHAREM DECRYPT','fast_mode')
-	dFindAll = conr.getboolean('SHAREM DECRYPT','find_all')
-	dDistr = conr.getboolean('SHAREM DECRYPT','dist_mode')
-	try:
-		dCPUcount = int(conr['SHAREM DECRYPT']['cpu_count'])
-	except:
-		dCPUcount = "auto"
-	dNodesFile = conr['SHAREM DECRYPT']['nodes_file']
-	if not (os.path.exists(dNodesFile)):
-		print(red +"\n\nConfig file Error:", yel + dNodesFile + res, red + "doesn't exist!" + res)
-	dOutputFile = conr.getboolean('SHAREM DECRYPT','output_file')
-	decryptOpTypes = conr['SHAREM DECRYPT']['dec_operation_type']
-	try:
-		 decryptOpTypes = ast.literal_eval(decryptOpTypes)
-	except:
-		print(yel + "The value of", red + decryptOpTypes, yel + "is not correct or malformed!!"+ res)
-		sys.exit()
-	decryptFile = conr['SHAREM DECRYPT']['decrypt_file']
-	if not (os.path.exists(decryptFile)):
-		print(red +"\n\nConfig file Error:", yel + decryptFile + res, red + "doesn't exist!" + res)
-	stubFile = conr['SHAREM DECRYPT']['stub_file']
-	if not (os.path.exists(stubFile)):
-		print(red +"\n\nConfig file Error:", yel + stubFile + res, red + "doesn't exist!" + res)
-
-	sameFile = conr.getboolean('SHAREM DECRYPT','use_same_file')
-	try:
-		stubEntry = int(conr['SHAREM DECRYPT']['stub_entry_point'])
-	except:
-		stubEntry = int(conr['SHAREM DECRYPT']['stub_entry_point'],16)
-
-	try:
-		stubEnd = int(conr['SHAREM DECRYPT']['stub_end'])
-	except:
-		stubEnd = int(conr['SHAREM DECRYPT']['stub_end'],16)
-
-
-
-
-#===============================================================================
-
-	bPrintEmulation = conr.getboolean('SHAREM EMULATION', 'print_emulation_result')
-	emulation_verbose = conr.getboolean('SHAREM EMULATION', 'emulation_verbose_mode')
-	emulation_multiline = conr.getboolean('SHAREM EMULATION', 'emulation_multiline')
-	emuObj.maxEmuInstr = int(conr['SHAREM EMULATION']['max_num_of_instr'])
-	emuObj.numOfIter = int(conr['SHAREM EMULATION']['iterations_before_break'])
-	emuObj.breakLoop = conr.getboolean('SHAREM EMULATION', 'break_infinite_loops')
-	emuObj.verbose = conr.getboolean('SHAREM EMULATION', 'timeless_debugging')
-
-
-
-
-
-
-#===============================================
-
-	mBool[o].bDoFindHiddenCalls = conr.getboolean('SHAREM DISASSEMBLY','enable_hidden_calls')
-	mBool[o].bDoEnableComments = conr.getboolean('SHAREM DISASSEMBLY','enable_assembly_comments')
-	mBool[o].bDoShowAscii = conr.getboolean('SHAREM DISASSEMBLY','enable_assembly_ascii')
-	mBool[o].bDoFindStrings = conr.getboolean('SHAREM DISASSEMBLY','enable_find_strings')
-	mBool[o].ignoreDisDiscovery = conr.getboolean('SHAREM DISASSEMBLY','ignore_dis_discovery')
-	mBool[o].maxOpDisplay = int(conr['SHAREM DISASSEMBLY']['max_disassembly_operands'])
-	mBool[o].btsV = int(conr['SHAREM DISASSEMBLY']['binary_to_string'])
-	shellSizeLimit = int(conr['SHAREM DISASSEMBLY']['shellcode_size_limit'])
-	mBool[o].bDoShowOffsets = conr.getboolean('SHAREM DISASSEMBLY','show_disassembly_offsets')
-	mBool[o].bDoShowOpcodes = conr.getboolean('SHAREM DISASSEMBLY','show_disassembly_opcodes')
-	mBool[o].bDoShowLabels = conr.getboolean('SHAREM DISASSEMBLY','show_disassembly_labels')
-
-
-
-
-
-
-
-
-
-
-
-
-
-#===============================================
-
+	global maxZeroes
+	#max_num_of_zeroes
 	sharem_out_dir = conr['SHAREM SEARCH']['default_outdir']
 	maxDistance = int(conr['SHAREM SEARCH']['max_callpop_distance'])
+	maxZeroes = int(conr['SHAREM SEARCH']['max_num_of_zeroes'])
 	bPushRet= conr.getboolean('SHAREM SEARCH','pushret')
 	bCallPop= conr.getboolean('SHAREM SEARCH','callpop')
 	bFstenv= conr.getboolean('SHAREM SEARCH','fstenv')
@@ -18384,9 +18278,6 @@ def readConf():
 	
 	bpEvilImports = conr.getboolean('SHAREM SEARCH', 'imports')
 
-
-
-
 	if rawHex and not bit32_argparse:
 		bit32 = conr.getboolean('SHAREM SEARCH','bit32')
 
@@ -18396,20 +18287,7 @@ def readConf():
 			shellBit = 64
 
 
-
 	p2screen =  conr.getboolean('SHAREM SEARCH','print_to_screen')
-
-
-	#==================== Strings ================================
-	bPushStackStrings =  conr.getboolean('SHAREM STRINGS','push_stack_strings')
-
-	bAsciiStrings =  conr.getboolean('SHAREM STRINGS','ascii_strings')
-	bWideCharStrings =  conr.getboolean('SHAREM STRINGS','wide_char_strings')
-	minStrLen = int(conr['SHAREM STRINGS']['minimum_str_length'])
-	#============================================================
-
-
-	# malformed = "print('malformed')"
 	pebPoints = int(conr['SHAREM SEARCH']['pebpoints'])
 	if pebPoints > 4:
 		pebPoints=4
@@ -18438,35 +18316,131 @@ def readConf():
 		linesBack = int(conr['SHAREM SEARCH']['max_lines_backward'],16)
 
 	print_style = conr['SHAREM SEARCH']['print_format_style']
-	if print_style != "right" and print_style != "left":
-		print(yel + "\n\nError: format style in config file is not correct."+ res, red + print_style+res , yel +"<-- should be either right, or left." +res)
+
+
+def stringsConf(conr):
+	global bPushStackStrings
+	global bWideCharStrings
+	global bAsciiStrings
+	global minStrLen
+
+	bPushStackStrings =  conr.getboolean('SHAREM STRINGS','push_stack_strings')
+
+	bAsciiStrings =  conr.getboolean('SHAREM STRINGS','ascii_strings')
+	bWideCharStrings =  conr.getboolean('SHAREM STRINGS','wide_char_strings')
+	minStrLen = int(conr['SHAREM STRINGS']['minimum_str_length'])
+
+
+
+def decryptConf(conr):
+	global dFastMode
+	global dFindAll
+	global dDistr
+	global dCPUcount
+	global dNodesFile
+	global dOutputFile
+	global decryptOpTypes
+	global decryptFile
+	global stubFile
+	global sameFile
+	global stubEntry
+	global stubEnd
+
+	dFastMode = conr.getboolean('SHAREM DECRYPT','fast_mode')
+	dFindAll = conr.getboolean('SHAREM DECRYPT','find_all')
+	dDistr = conr.getboolean('SHAREM DECRYPT','dist_mode')
+	try:
+		dCPUcount = int(conr['SHAREM DECRYPT']['cpu_count'])
+	except:
+		dCPUcount = "auto"
+	dNodesFile = conr['SHAREM DECRYPT']['nodes_file']
+	if not (os.path.exists(dNodesFile)):
+		print(red +"\n\nConfig file Error:", yel + dNodesFile + res, red + "doesn't exist!" + res)
+	dOutputFile = conr['SHAREM DECRYPT']['output_file']
+	decryptOpTypes = conr['SHAREM DECRYPT']['dec_operation_type']
+	try:
+		 decryptOpTypes = ast.literal_eval(decryptOpTypes)
+	except:
+		print(yel + "The value of", red + decryptOpTypes, yel + "is not correct or malformed!!"+ res)
 		sys.exit()
+	decryptFile = conr['SHAREM DECRYPT']['decrypt_file']
+	if not (os.path.exists(decryptFile)):
+		print(red +"\n\nConfig file Error:", yel + decryptFile + res, red + "doesn't exist!" + res)
+	stubFile = conr['SHAREM DECRYPT']['stub_file']
+	if not (os.path.exists(stubFile)):
+		print(red +"\n\nConfig file Error:", yel + stubFile + res, red + "doesn't exist!" + res)
+
+	sameFile = conr.getboolean('SHAREM DECRYPT','use_same_file')
+	try:
+		stubEntry = int(conr['SHAREM DECRYPT']['stub_entry_point'])
+	except:
+		stubEntry = int(conr['SHAREM DECRYPT']['stub_entry_point'],16)
+
+	try:
+		stubEnd = int(conr['SHAREM DECRYPT']['stub_end'])
+	except:
+		stubEnd = int(conr['SHAREM DECRYPT']['stub_end'],16)
+
+
+
+def syscallsConf(conr):
+
+	global syscallSelection
+	
+	initSysCallSelect()
+
 	list_of_syscalls = str(conr['SHAREM SYSCALLS']['selected_syscalls'])
 
 	try:
 		list_of_syscalls = ast.literal_eval(list_of_syscalls)
 		if(type(list_of_syscalls) != list):
 			print("Error:", list_of_syscalls, "<-- this should be a list.")
-		# print(list_of_syscalls)
 
 	except:
 		print(yel + "The value of", red + list_of_syscalls, yel + "is not correct or malformed!!"+ res)
 		sys.exit()
-	# list_of_syscalls = list_of_syscalls[1:-1].replace(" ", "").replace("'", "").split(",")
 
 	for selected in list_of_syscalls:
 		for osv in syscallSelection:
 			if osv.code == selected:
 				osv.toggle = True
 
-	# print ("shellEntry init", shellEntry)
+
+def printStyleConf(conr):
+	global print_style
+
+
+	#print_format_style = left
+	print_style = str(conr['SHAREM SEARCH']['print_format_style'])
+	if print_style != "right" and print_style != "left":
+		print(yel + "\n\nError: format style in config file is not correct."+ res, red + print_style+res , yel +"<-- should be either right, or left." +res)
+		sys.exit()
+
+
+
+def readConf():
+	
+	
+	
+	con = Configuration(conFile)
+	conr = con.readConf()
+
+	decryptConf(conr)
+	SharemSearchConfig(conr)
+	disassemblyConf(conr)
+	emulationConf(conr)
+	stringsConf(conr)
+	syscallsConf(conr)
+	printStyleConf(conr)
+
+	startupBool = conr.getboolean('SHAREM STARTUP','startup_enabled')
+
+	
 
 	if not startupBool:
 		return False
 	else:
 		return True
-			# print(os.code, os.name, os.category, os.toggle)
-
 
 
 def isFound():
@@ -18618,6 +18592,21 @@ def emu_max_instruction():
 
 
 
+def emulationEntryPoint():
+
+	while True:
+		etrPoint = input(" Enter new entry point: ")
+		if etrPoint == "exit" or etrPoint == "x":
+			return
+		try:
+			etrPoint = int(etrPoint)
+			# em.entryOffset = entrypoint
+			print(" Emulation entry point has been changed.")
+			break
+		except:
+			print(" Please enter an integer")
+	
+
 
 def emulationSubmenu():
 	em.maxCounter=emuObj.maxEmuInstr
@@ -18645,6 +18634,8 @@ def emulationSubmenu():
 
 		elif choice == "h":
 			emulatorUI(emuObj, emulation_multiline, emulation_verbose)
+		elif choice == "w":
+			emulationEntryPoint()
 		elif choice == "v":
 			print ("\tVerbosity changed.\n")
 			emuObj.verbose = not emuObj.verbose
@@ -18773,6 +18764,7 @@ def startupPrint():
 	
 	if bDisassembly and not mBool[o].bDisassemblyFound:
 		newTime= discoverDisassembly(max_len)
+		elapsed_time += newTime
 
 	if bpEvilImports and not mBool[o].bEvilImportsFound:
 		if not rawHex:
@@ -18785,7 +18777,14 @@ def startupPrint():
 		print(giveLoadedModules())
 		giveLoadedModules("save")
 
-
+	starTime = time.time()
+	shellClass = isShellcode()
+	endTime = time.time() - starTime
+	# print("Elapsed time for i/sShellcode : ", elTime)
+	print(cya + "\n Classification: ", yel + shellClass[0] + res2)
+	if shellClass[1]:
+		print(cya + "\n Reason: ", yel + shellClass[1] + res2)
+	elapsed_time += endTime
 	#Saving data
 	bpPushRet = bpSyscall = bpHeaven = bpFstenv = bpPEB = bpStrings = bpCallPop = bpEvilImports = bpModules = True
 	outputData = generateOutputData()
@@ -18795,6 +18794,8 @@ def startupPrint():
 	print(cya + "\nSaving to Text.." , end='')
 	printToText(outputData)
 	print(gre + 'Done\n\n' + res)
+
+	print(" Elapsed time: ", elapsed_time)
 
 
 def saveConf(con):
@@ -19019,23 +19020,24 @@ def discoverEmulation(maxLen=None):
 		maxLen=42
 	
 	start = time.time()
-	curLen = len("  Emulation of shellcode...")
-	print(cya + " Starting emulation of shellcode..."+res, end="", flush=True)
-	
+	if rawHex:
+		curLen = len("  Emulation of shellcode...")
+		print(cya + " Starting emulation of shellcode..."+res, end="", flush=True)
+		
 
-	emuArch = emuObj.cpuArch										# temporary way of invoking emulator - may change later
-	startEmu(emuArch, m[o].rawData2, emuObj.verbose)
-	mBool[o].bEmulationFound=True									# if we run it, it is done - if we have not objective way of quantifying how successful it issues
-																	# depending on shellcode, could miss some, a lot, or be perfect. We just run it.
+		emuArch = emuObj.cpuArch										# temporary way of invoking emulator - may change later
+		startEmu(emuArch, m[o].rawData2, emuObj.verbose)
+		mBool[o].bEmulationFound=True									# if we run it, it is done - if we have not objective way of quantifying how successful it issues
+																		# depending on shellcode, could miss some, a lot, or be perfect. We just run it.
 
-	print(cya + " Emulation of shellcode..."+res, end="", flush=True)
+		print(cya + " Emulation of shellcode..."+res, end="", flush=True)
 
-	if(mBool[o].bEmulationFound):
-		print("{:>{x}}[{}]".format("", gre + "COMPLETED" + res, x=15+(maxLen-curLen)))
-	else:
-		print("{:>{x}}[{}]".format("", red + "NOT COMPLETED" + res, x=15+(maxLen-curLen)))
+		if(mBool[o].bEmulationFound):
+			print("{:>{x}}[{}]".format("", gre + "COMPLETED" + res, x=15+(maxLen-curLen)))
+		else:
+			print("{:>{x}}[{}]".format("", red + "NOT COMPLETED" + res, x=15+(maxLen-curLen)))
 	end = time.time()
-	# elapsed_time += end - start
+		# elapsed_time += end - start
 	return end-start
 
 def discoverPEB(maxLen=None):
@@ -19708,8 +19710,9 @@ def uiPrintPushStrings(bPushStringsFound):
 			else:
 				for word4,offset,wordLength, instLen  in pushStringsTemp:
 					word4 = cya + word4 + res
+					if wordLength >= minStrLen:
 					#print ("\t"+ str(word4) + "\t" + hex(offset) + "\t" + str(hex(wordLength)))
-					print ('{:<5} {:<32s} {:<16s} {:<12}'.format("",str(word4), "(offset "+str(hex(offset))+")" , gre + "Stack String" + res))
+						print ('{:<5} {:<32s} {:<16s} {:<12}'.format("",str(word4), "(offset "+str(hex(offset))+")" , gre + "Stack String" + res))
 					#print('{:<5} {:<32s} {:<20s} {:<11s}'.format("",str(word4), "Offset: " + str(hex(offset)),"Size: "+ str(wordLength)))
 
 		except Exception as e:
@@ -19741,7 +19744,7 @@ def uiPrintStrings(bStringsFound):
 								#print ('{:<5} {:<32s} {:<20s} {:<11s} {:<4} {:<8}'.format("",str(x), "Offset: " + str(hex(y)), str(hex(y + s[t].ImageBase + s[t].VirtualAdd)),"Size: "+ str(z) , "Ascii"))
 								print ('{:<5} {:<32s} {:<8s} {:<8s} {:<8s} {:<8}'.format("",str(x), s[t].sectionName.decode('utf-8'), str(hex(y + s[t].ImageBase + s[t].VirtualAdd)),"(offset "+str(hex(y+ s[t].VirtualAdd))+")", yel + "Ascii"+res))
 
-								#print ("\t"+ str(x) + "\t" + str(hex(y)) + "\t" + str(hex(z))) 
+								# print ("\t"+ str(x) + "\t" + str(hex(y)) + "\t" + str(hex(z))) 
 							#for x,y in s[t].wideStrings:
 							#	print ("\t"+ str(x) + "\t" + str(hex(y)))
 							for x,y, z in s[t].wideStrings:
@@ -19753,15 +19756,18 @@ def uiPrintStrings(bStringsFound):
 						t+=1
 			else:
 				for x,y,z  in stringsTemp:
+
 					x = cya + x + res
+					if z >= minStrLen:
 					# print('{:<5} {:<32s} {:<20s} {:<11s}'.format("",str(x), "Offset: " + str(hex(y)),"Size: "+ str(z)))
-					print ('{:<5} {:<32s} {:<16s} {:<12}'.format("",str(x), "(offset "+str(hex(y))+")" , yel + "Ascii" + res))
+						print ('{:<5} {:<32s} {:<16s} {:<12}'.format("",str(x), "(offset "+str(hex(y))+")" , yel + "Ascii" + res))
 
 					#print ("\t"+ str(x) + "\t" + str(hex(y)) + "\t" + str(hex(z)))
 				for x,y,z  in stringsTempWide:
-					x = cya + x + res
+					if z >= minStrLen:
+						x = cya + x + res
 					# print('{:<5} {:<32s} {:<20s} {:<11s}'.format("",str(x), "Offset: " + str(hex(y)),"Size: "+ str(z)))
-					print ('{:<5} {:<32s} {:<16s} {:<12}'.format("",str(x), "(offset "+str(hex(y))+")" , red + "Unicode" + res))
+						print ('{:<5} {:<32s} {:<16s} {:<12}'.format("",str(x), "(offset "+str(hex(y))+")" , red + "Unicode" + res))
 
 					#print ("\t"+ str(x) + "\t" + str(hex(y)) + "\t" + str(hex(z)))
 
@@ -19902,6 +19908,10 @@ def uiPrint(): 	#Print instructions
 					emulation_txt_out(loggedList)
 				else:
 					print ("\nNo emulation results.")
+			shellClass = isShellcode()
+			print(cya + "\n Classification: " + yel+ shellClass[0] + res2 + "\n")
+			if shellClass[1]:
+				print(cya + " Reason: " + yel+ shellClass[1] + res2 + "\n")
 
 			outputData = generateOutputData()
 
@@ -20119,8 +20129,9 @@ def runInMem():
 		digDeeper(PE_DLLS)
 	if(modulesMode > 2):
 		print("Finding even more DLLs\n")
+		if platformType == "Windows":
 		# dontPrint()
-		digDeeper2()
+			digDeeper2()
 	# allowPrint()
 	InMem2()
 	colorama.init()
@@ -21100,7 +21111,7 @@ def emulation_txt_out(apiList):
 		try:
 			dll_name.append(i[8])
 		except:
-			dll_name.append("kernel32")
+			dll_name.append("")
 
 
 	api_par_bundle = []
@@ -21140,7 +21151,7 @@ def emulation_txt_out(apiList):
 		retVal = ret_values[t]
 		retType = ret_type[t]
 		paramVal = api_params_values[t]
-		DLL = dll_name[t] + ".dll"
+		DLL = dll_name[t] 
 		# bundle = [list(zipped) for zipped in zip(pType, pName)]
 		for v, typ in zip(pType, pName):
 			TypeBundle.append(v + " " + typ)
@@ -21456,7 +21467,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 			break
 		t += 1
 
-	filename = filename.split("\\")[-1]
+	filename = filename.split(slash)[-1]
 	noExtension = peName[0:t]
 	if filename == "":
 		outfile = peName.split(".")[0]
@@ -21520,27 +21531,27 @@ def printToJson(bpAll, outputData):	#Output data to json
 # 	"artifacts":["c:\\result.txt", "cmd.exe", "google.com", "result.txt", "user32.dll"]
 
 # }
-	# emulationOut = output_dir + "\\" + outfile+filler + "\\"  + "Test" +"-32"  + ".json"
-	#jsonFileName =  os.getcwd() + "\\" + noExtension + "\\output_" + peName + "_" + filetime + ".json"
+	# emulationOut = output_dir + slash + outfile+filler + slash  + "Test" +"-32"  + ".json"
+	#jsonFileName =  os.getcwd() + slash + noExtension + "\\output_" + peName + "_" + filetime + ".json"
 	if useDirectory and not known_arch:
 		if current_arch == 32:
-			jsonFileName =  output_dir + "\\" + outfile+filler + "\\"  + outfileName +"-32" + "_" + filetime + ".json"
+			jsonFileName =  output_dir + slash + outfile+filler + slash  + outfileName +"-32" + "_" + filetime + ".json"
 
 		elif current_arch == 64:
-			jsonFileName =  output_dir + "\\" + outfile +filler+ "\\"  + outfileName + "-64"+ "_" + filetime + ".json"
+			jsonFileName =  output_dir + slash + outfile +filler+ slash  + outfileName + "-64"+ "_" + filetime + ".json"
 
 	else:
 		if shellBit == 32:
 
-			jsonFileName =  output_dir + "\\" + outfile +filler+ "\\" + outfileName + "-32"+"_" + filetime + ".json"
+			jsonFileName =  output_dir + slash + outfile +filler+ slash + outfileName + "-32"+"_" + filetime + ".json"
 		else:
-			jsonFileName =  output_dir + "\\" + outfile +filler+ "\\" + outfileName + "-64"+"_" + filetime + ".json"
+			jsonFileName =  output_dir + slash + outfile +filler+ slash + outfileName + "-64"+"_" + filetime + ".json"
 
 
 
-	jsonImports =  output_dir + "\\" + outfile+filler + "\\"  + outfileName + "-imports"  + ".json"
-	jsonFp =  output_dir + "\\" + outfile+filler + "\\"  + outfileName + "-disassembly"  + ".json"
-	# jsonFileName =  os.getcwd() + "\\" + outfile + "\\" + outfileName + "_" + filetime + ".json"
+	jsonImports =  output_dir + slash + outfile+filler + slash  + outfileName + "-imports"  + ".json"
+	jsonFp =  output_dir + slash + outfile+filler + slash  + outfileName + "-disassembly"  + ".json"
+	# jsonFileName =  os.getcwd() + slash + outfile + slash + outfileName + "_" + filetime + ".json"
 	# print("outfile: ", outfile, "outfileName", outfileName)
 	# input()
 	os.makedirs(os.path.dirname(jsonFileName), exist_ok=True)
@@ -21675,7 +21686,11 @@ def generateOutputData(): #Generate the dictionary for json out
 
 	#jsonData is a dictionary, we add fields to it below
 	jsonData = {}
+	shellClass = isShellcode()
 	jsonData['dateAnalyzed'] = time
+	if rawHex:
+		jsonData['classification'] = shellClass[0]
+		jsonData['reason'] = shellClass[1]
 	jsonData['secondsSinceEpoch'] = epoch
 	jsonData['fileType'] = ''
 	jsonData['bits'] = shellBit
@@ -21790,7 +21805,8 @@ def generateOutputData(): #Generate the dictionary for json out
 
 			# jsonData['strings'] = {'shellcode':[]}
 			for value,offset,wordLength in stringsTemp:
-				jsonData['strings'].append({'type':'ascii', 
+				if wordLength >= minStrLen:
+					jsonData['strings'].append({'type':'ascii', 
 							'offset': hex(offset), 
 							'length':str(wordLength), 
 							'value':str(value),
@@ -21799,20 +21815,23 @@ def generateOutputData(): #Generate the dictionary for json out
 			# 	jsonData['strings'][]
 			# 	print ("\t"+ str(x) + "\t" + str(hex(y)) + "\t" + str(hex(z)))
 			for value,offset,wordLength in stringsTempWide:
-				jsonData['strings'].append({'type':'unicode', 
-							'offset': hex(offset), 
-							'length':str(wordLength), 
-							'value':str(value),
-							'source':'shellcode'})
+				if wordLength >= minStrLen:
+
+					jsonData['strings'].append({'type':'unicode', 
+								'offset': hex(offset), 
+								'length':str(wordLength), 
+								'value':str(value),
+								'source':'shellcode'})
 
 			# 	print ("\t"+ str(x) + "\t" + str(hex(y)) + "\t" + str(hex(z)))
 			# #word4, offset, wordLength,instructionsLength
 			for value,offset,wordLength, instLen in pushStringsTemp:
-				jsonData['strings'].append({'type':'pushString', 
-							'offset': hex(offset), 
-							'length':str(wordLength), 
-							'value':str(value),
-							'source':'shellcode'})
+				if wordLength >= minStrLen:
+					jsonData['strings'].append({'type':'pushString', 
+								'offset': hex(offset), 
+								'length':str(wordLength), 
+								'value':str(value),
+								'source':'shellcode'})
 			# 	print ("\t"+ str(word4) + "\t" + hex(offset) + "\t" + str(hex(wordLength)))
 			
 		#global stringsTemp ascii
@@ -22641,16 +22660,12 @@ def generateOutputData(): #Generate the dictionary for json out
 					if(eax != "unknown"):
 						# syscalls = returnSyscalls(int(eax, 0))
 						syscalls = getSyscallRecent(int(eax, 0), 64, "print2Json")
-					try:
-						if 'syscall' in val5[-1]:
-							offsetLabel = 'syscall offset'
-						elif 'int' in val5[-1]:
-							offsetLabel = 'int offset'
-						else:
-							offsetLabel = 'c0_offset'
-					except Exception as e:
-						# val5 list was empty -- why?
-						pass
+					if 'syscall' in val5[-1]:
+						offsetLabel = 'syscall offset'
+					elif 'int' in val5[-1]:
+						offsetLabel = 'int offset'
+					else:
+						offsetLabel = 'c0_offset'
 					jsonData['syscall'].append({'address':hex(address), 'modSecName':modSecName, 'eax':eax, offsetLabel:c0_offset,"disassembly":val5, "syscalls":syscalls, "internalData":{'NumOpsDis':NumOpsDis, 'NumOpsBack':NumOpsBack, 'secNum':secNum}})
 	if(mBool[o].bModulesFound):
 		t = 0
@@ -22770,16 +22785,19 @@ def printToTextStrings(bStringsFound):
 		# 	print ("\t"+ str(word4) + "\t" + hex(offset) + "\t" + str(hex(wordLength)))
 				if(len(stringsTemp) > 0):
 					for x, y, z in stringsTemp:
-						outString += ('{:<5} {:<32s} {:<16s} {:<8s} {:<10}\n'.format("",str(x), "Offset: " + str(hex(y)),"size: "+ str(int(z)), "Ascii"))
+						if z >= minStrLen:
+							outString += ('{:<5} {:<32s} {:<16s} {:<8s} {:<10}\n'.format("",str(x), "Offset: " + str(hex(y)),"size: "+ str(int(z)), "Ascii"))
 				outString += "\n"
 				if(len(stringsTempWide) >0):
 					for x, y, z in stringsTempWide:
-						outString += ('{:<5} {:<32s} {:<16s} {:<8s} {:<10}\n'.format("",str(x), "Offset: " + str(hex(y)),"size: "+ str(int(z)), "Unicode"))
+						if z >= minStrLen:
+							outString += ('{:<5} {:<32s} {:<16s} {:<8s} {:<10}\n'.format("",str(x), "Offset: " + str(hex(y)),"size: "+ str(int(z)), "Unicode"))
 				outString += "\n"	
 				if(len(pushStringsTemp) > 0):
 					outString += ("\n\n**Push Stack Strings**\n\n")
 					for word4, offset, wordLength, instLen in pushStringsTemp:
-						outString += ('{:<5} {:<32s} {:<16s} {:<8s} {:<10}\n'.format("",str(word4), "Offset: " + str(hex(offset)),"size: "+ str(int(wordLength)), "Stack String"))
+						if wordLength >= minStrLen:
+							outString += ('{:<5} {:<32s} {:<16s} {:<8s} {:<10}\n'.format("",str(word4), "Offset: " + str(hex(offset)),"size: "+ str(int(wordLength)), "Stack String"))
 				outString += "\n"
 
 
@@ -22837,7 +22855,7 @@ def printToText(outputData):	#Output data to text doc
 
 	# print("File name in printtotext", filename)
 	#print("********************************** ", peName, " **********************")
-	filename = filename.split("\\")[-1]
+	filename = filename.split(slash)[-1]
 	if filename == "":
 		outfile = peName.split(".")[0]
 		outfileName = peName
@@ -22861,18 +22879,18 @@ def printToText(outputData):	#Output data to text doc
 		
 
 
-	# txtFileName =  os.getcwd() + "\\" + outfile + "\\output_" + outfileName + "_" + filetime + ".txt"
+	# txtFileName =  os.getcwd() + slash + outfile + "\\output_" + outfileName + "_" + filetime + ".txt"
 	if useDirectory and not known_arch:
 		if current_arch == 32:
-			txtFileName =  output_dir + "\\" + outfile + filler+"\\" + "\\" + outfileName+"-32" + "_" + filetime + ".txt"
+			txtFileName =  output_dir + slash + outfile + filler+slash + slash + outfileName+"-32" + "_" + filetime + ".txt"
 		elif current_arch == 64:
-			txtFileName =  output_dir + "\\" + outfile + filler+"\\" + "\\" + outfileName + "-64"+ "_" + filetime + ".txt"
+			txtFileName =  output_dir + slash + outfile + filler+slash + slash + outfileName + "-64"+ "_" + filetime + ".txt"
 
 	else:
 		if shellBit == 32:
-			txtFileName =  output_dir + "\\" + outfile +filler+ "\\" + outfileName + "-32"+"_" + filetime + ".txt"
+			txtFileName =  output_dir + slash + outfile +filler+ slash + outfileName + "-32"+"_" + filetime + ".txt"
 		else:
-			txtFileName =  output_dir + "\\" + outfile +filler+ "\\" + outfileName + "-64"+"_" + filetime + ".txt"
+			txtFileName =  output_dir + slash + outfile +filler+ slash + outfileName + "-64"+"_" + filetime + ".txt"
 
 
 	# print("Saving location: ", outfile, outfileName)
@@ -22892,11 +22910,11 @@ def printToText(outputData):	#Output data to text doc
 	text = open(txtFileName, "w")
 
 
-	disFileName = output_dir + "\\" + outfile + filler+"\\" + outfileName + "-disassembly.txt"
-	binFileName = output_dir + "\\" + outfile + filler+"\\" + outfileName + "-disassembly.bin"
+	disFileName = output_dir + slash + outfile + filler+slash + outfileName + "-disassembly.txt"
+	binFileName = output_dir + slash + outfile + filler+slash + outfileName + "-disassembly.bin"
 
 	if mBool[o].bEvilImportsFound:
-		importsName =  output_dir + "\\" + outfile + filler+"\\" + outfileName + "-imports.txt"
+		importsName =  output_dir + slash + outfile + filler+slash + outfileName + "-imports.txt"
 		importData = showImports(out2File=True)
 		importFp = open(importsName, "w")
 		importFp.write(importData)
@@ -22912,11 +22930,15 @@ def printToText(outputData):	#Output data to text doc
 		binasm.write(m[o].rawData2)
 		binasm.close()
 
-
+	shellClass = isShellcode()
 	outString =  'Filename: ' + outfileName + "\n"
 	outString += 'File Type: ' + outputData['fileType'] + "\n"
 	outString += 'Architecture: ' + str(shellBit) +"-bit\n"
 	outString += 'Date Analyzed: ' + time + "\n"
+
+	outString += 'classification: ' + shellClass[0] + "\n"
+	outString += 'Reason: ' + shellClass[1] + "\n"
+
 	outString += "Seconds since last epoch: " + str(epoch) + "\n"
 	outString += info
 
@@ -23400,10 +23422,9 @@ if __name__ == "__main__":
 	if austin:
 		# AustinTesting2()
 		# AustinTesting3()
-		# AustinTesting4() # decrypt ui
+		AustinTesting4() # decrypt ui
 		# AustinTestingStub()
-		# batchEncodeShellcode()
-		batchDecodeShellcode()
+
 
 
 	if tarek:

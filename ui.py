@@ -335,7 +335,7 @@ def newSysCallPrint(syscallSelection):
 		if i.code == "w10":
 			index = all_selections.index(i)
 
-	column1 = all_selections[:index-1]
+	column1 = all_selections[:index]
 	column2 = all_selections[index:]
 
 	for i in column1:
@@ -343,7 +343,6 @@ def newSysCallPrint(syscallSelection):
 
 	for i in column2:
 		list_of_strings2.append(i.code + "  " + i.name )
-
 	for both in itertools.zip_longest(column1, column2):
 		col1 = both[0]
 		col2 = both[1]
@@ -365,15 +364,17 @@ def newSysCallPrint(syscallSelection):
 				toggle2 = " "
 			cat2 = col2.category
 			name2 = col2.name
-
 		maxLen1 = get_max_length(list_of_strings1)
 		maxLen2 = get_max_length(list_of_strings2)
 		L1Len = len(code1 + " " + name1)
 		L2Len = len(code2 + "  "+ name2)
 		if col1 != None and col2 != None:
-			
+			# print(code1, code2, codes)
 			if code1 in codes and code2 in codes:
 				print(" {}  {}{:>{x}}[{}]\t{}  {}{:>{y}}[{}]".format(gre+code1+res, cya + name1 + res, "",red + toggle1+res, gre + code2+res, cya + name2 + res, "",red + toggle2+res, x=(maxLen1-L1Len+8), y=(maxLen2-L2Len+10)))
+			elif code1 in codes and code2 not in codes:
+
+				print(" {}  {}{:>{x}}[{}]\t\t{}  {}{:>{y}}[{}]".format(gre+code1+res, cya + name1 + res, "",red + toggle1+res, yel + code2+res, whi + name2 + res, "",red + toggle2+res, x=(maxLen1-L1Len+8), y=(maxLen2-L2Len+2)))
 			else:
 				print("\t{}  {} {:>{x}}[{}]\t\t{}  {}{:>{y}}[{}]".format(yel + code1 + res, name1, "",red + toggle1+res, yel + code2 + res, name2, "",red + toggle2+res, x=(maxLen1-L1Len), y=(maxLen2-L2Len+2)))
 		elif col2 == None:
@@ -728,6 +729,8 @@ def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 
 
 	text += "  {}{:>1}[{}]\n".format(cya + "n"+res+" -"+yel+"  Emulation verbose print style."+ res, "", cya + str(emuVerbose)+ res)
+	text += "  {}{:>1}\n".format(cya + "?"+res+" -"+yel+"  Change entry point offset."+ res, "")
+
 	text += "  {}{:>1}[{}]\n".format(cya + "n"+res+" -"+yel+"  Multiline print style of artifacts."+ res, "", cya + str(emuMultiLine)+ res)
 
 	
