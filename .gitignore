@@ -4,6 +4,7 @@
 *.pyc
 work2.bin
 DLLS/**
+logs/**
 out.txt
 outputs/shellcode-disassembly.txt
 outputs/shellcode.bin
