@@ -6,16 +6,17 @@ from unicorn.x86_const import *
 from capstone import *
 from struct import pack, unpack
 from collections import defaultdict
-import sys
-import json
-import pefile
+from pathlib import Path
 from .modules import *
 from .DLLs.dict_signatures import *
 from .DLLs.dict2_signatures import *
 from .DLLs.dict3_w32 import *
 from .DLLs.dict4_ALL import *
 from .DLLs.hookAPIs import *
-from .helper import emuHelpers
+from .helper.emuHelpers import *
+import sys
+import json
+import pefile
 import re
 import os
 import argparse
@@ -30,6 +31,7 @@ import traceback
 class EMU():
     def __init__(self):
         self.maxCounter=500000
+        self.maxLoop = 500000
         self.entryOffset=0
 
 # maxCounter = 100
@@ -38,23 +40,13 @@ net_artifacts = []
 file_artifacts = []
 exec_artifacts = []
 programCounter = 0
-addrTracker = 0x14100000
 verbose = True
 
 
 CODE_ADDR = 0x12000000
 CODE_SIZE = 0x1000
-
-SEGMENT_ADDR = 0x11010000
-SEGMENT_SIZE = 0x4000
-TIB_ADDR = 0x00000000
-TIB_SIZE = 0x100
-PEB_ADDR = 0x11017000
-PEB_LIMIT = 0x208
-
 STACK_ADDR = 0x17000000
 EXTRA_ADDR = 0x18000000
-CONST_ADDR = 0x20000000
 
 export_dict = {}
 logged_calls = defaultdict(list)
@@ -69,14 +61,13 @@ jmpInstructs = {}
 
 traversedAdds=set()
 loadModsFromFile = True
-foundDLLAddresses= os.path.join(os.path.dirname(__file__), "foundDLLAddresses.txt")
+foundDLLAddresses = os.path.join(os.path.dirname(__file__), "foundDLLAddresses.txt")
+outFile = open(os.path.join(os.path.dirname(__file__), 'emulationLog.txt'), 'w')
 cleanStackFlag = False
 stopProcess = False
-outFile = open(os.path.join(os.path.dirname(__file__), 'emulationLog.txt'), 'w')
 cleanBytes = 0
 prevInstruct = []
-expandedDLLsPath = "DLLs\\"
-expandedDLLsPath = os.path.join(os.path.dirname(__file__), expandedDLLsPath)
+expandedDLLsPath = os.path.join(os.path.dirname(__file__), "DLLs\\")
 prevInstructs = []
 loopInstructs = []
 loopCounter = 0
@@ -84,40 +75,10 @@ verOut = ""
 bVerbose = True
 MAX_LOOP = 5000000
 
-def bprint(*args):
-    brDebugging2=False
-    if brDebugging2:
-        try:
-            if  (len(args) == 1):
-                if(type(args[0]) == list):
-                    print(args[0])
-                    return
 
-            if  (len(args) > 1):
-                strList = ""
-                for each in args:
-                    try:
-                        strList += each + " "
-                    except:
-                        strList += str(each) + " "
-                print(strList)
-
-            else:
-                for each in args:
-                    try:
-                        print (str(each) + " ")
-                    except:
-                        print ("dprint error: 1")
-                        print (each + " ")
-        except Exception as e:
-            print ("dprint error: 3")
-            print (e)
-            print(traceback.format_exc())
-            print (args)
 colorama.init()
 # readRegs()
 # testingAssembly()
-
 
 red ='\u001b[31;1m'
 gre = '\u001b[32;1m'
@@ -129,258 +90,14 @@ whi = '\u001b[37m'
 res = '\u001b[0m'
 res2 = '\u001b[0m'
 
-def readRaw(appName):
-    f = open(appName, "rb")
-    myBinary = f.read()
-    f.close()
-    return myBinary
-
-def insertIntoBytes(binaryBlob, start, size, value):
-    lBinary = list(binaryBlob)
-    for x in range (size):
-        lBinary.insert(start, value)
-    final=bytes(lBinary)
-    return final
-
-# This struct can have up to 0x58 total bytes depending on Windows version
-class PEB_LDR_DATA32():
-    def __init__(self, addr, length, initialized, sshandle):
-        self.Addr = addr
-        self.Length = length
-        self.Initialized = initialized
-        self.Sshandle = sshandle
-        self.ILO_entry = addr + 0xc
-        self.IMO_entry = addr + 0x14
-        self.IIO_entry = addr + 0x1c
-    def allocate(self, mu, ilo_flink, ilo_blink, imo_flink, imo_blink, iio_flink, iio_blink):
-        mu.mem_write(self.Addr, pack("<Q", self.Length))
-        mu.mem_write(self.Addr+0x4, pack("<Q", self.Initialized))
-        mu.mem_write(self.Addr+0x8, pack("<Q", self.Sshandle))
-        mu.mem_write(self.Addr+0xc, pack("<Q", ilo_flink) + pack("<Q", ilo_blink))
-        mu.mem_write(self.Addr+0x14, pack("<Q", imo_flink) + pack("<Q", imo_blink))
-        mu.mem_write(self.Addr+0x1c, pack("<Q", iio_flink) + pack("<Q", iio_blink))
-
-class LDR_Module32():
-    def __init__(self, mu, addr, dll_base, entry_point, reserved, full_dll_name, base_dll_name):
-        self.Addr = addr
-        self.ILO_entry = addr
-        self.IMO_entry = addr + 0x8
-        self.IIO_entry = addr + 0x10
-        self.DLL_Base = dll_base
-        self.Entry_Point = entry_point
-        self.Reserved = reserved
-
-        global CONST_ADDR
-        full_dll_name = full_dll_name.encode("utf-16-le") + b"\x00"
-        mu.mem_write(CONST_ADDR, full_dll_name)
-        self.Full_Dll_Name = CONST_ADDR
-        CONST_ADDR += len(full_dll_name)
-
-        base_dll_name = base_dll_name.encode("utf-16-le") + b"\x00"
-        mu.mem_write(CONST_ADDR, base_dll_name)
-        self.Base_Dll_Name = CONST_ADDR
-        CONST_ADDR += len(base_dll_name)
-
-    def allocate(self, mu, ilo_flink, ilo_blink, imo_flink, imo_blink, iio_flink, iio_blink):
-        mu.mem_write(self.Addr, pack("<Q", ilo_flink) + pack("<Q", ilo_blink))
-        mu.mem_write(self.Addr+0x8, pack("<Q", imo_flink) + pack("<Q", imo_blink))
-        mu.mem_write(self.Addr+0x10, pack("<Q", iio_flink) + pack("<Q", iio_blink))
-        mu.mem_write(self.Addr+0x18, pack("<Q", self.DLL_Base))
-        mu.mem_write(self.Addr+0x1c, pack("<Q", self.Entry_Point))
-
-        mu.mem_write(self.Addr+0x24, pack("<Q", 0x007e007c))
-        mu.mem_write(self.Addr+0x28, pack("<Q", self.Full_Dll_Name))
-        mu.mem_write(self.Addr+0x2c, pack("<Q", 0x001c001a))
-        mu.mem_write(self.Addr+0x30, pack("<Q", self.Base_Dll_Name))
-
-
-        pointer = unpack("<I", mu.mem_read(self.Addr+0x30, 4))[0]
-
-class PEB_LDR_DATA64():
-    def __init__(self, addr, length, initialized, sshandle):
-        self.Addr = addr
-        self.Length = length
-        self.Initialized = initialized
-        self.Sshandle = sshandle
-        self.ILO_entry = addr + 0x10
-        self.IMO_entry = addr + 0x20
-        self.IIO_entry = addr + 0x30
-    def allocate(self, mu, ilo_flink, ilo_blink, imo_flink, imo_blink, iio_flink, iio_blink):
-        mu.mem_write(self.Addr, pack("<Q", self.Length))
-        mu.mem_write(self.Addr+0x4, pack("<Q", self.Initialized))
-        mu.mem_write(self.Addr+0x8, pack("<Q", self.Sshandle))
-        mu.mem_write(self.Addr+0x10, pack("<Q", ilo_flink) + pack("<Q", ilo_blink))
-        mu.mem_write(self.Addr+0x20, pack("<Q", imo_flink) + pack("<Q", imo_blink))
-        mu.mem_write(self.Addr+0x30, pack("<Q", iio_flink) + pack("<Q", iio_blink))
-
-class LDR_Module64():
-    def __init__(self, addr, dll_base, entry_point, reserved, full_dll_name, base_dll_name):
-        self.Addr = addr
-        self.ILO_entry = addr
-        self.IMO_entry = addr + 0x10
-        self.IIO_entry = addr + 0x20
-        self.DLL_Base = dll_base
-        self.Entry_Point = entry_point
-        self.Reserved = reserved
-        self.Full_Dll_Name = full_dll_name
-        self.Base_Dll_Name = base_dll_name
-    def allocate(self, mu, ilo_flink, ilo_blink, imo_flink, imo_blink, iio_flink, iio_blink):
-        mu.mem_write(self.Addr, pack("<Q", ilo_flink) + pack("<Q", ilo_blink))
-        mu.mem_write(self.Addr+0x10, pack("<Q", imo_flink) + pack("<Q", imo_blink))
-        mu.mem_write(self.Addr+0x20, pack("<Q", iio_flink) + pack("<Q", iio_blink))
-        mu.mem_write(self.Addr+0x30, pack("<Q", self.DLL_Base))
-        mu.mem_write(self.Addr+0x40, pack("<Q", self.Entry_Point))
-        mu.mem_write(self.Addr+0x50, pack("<Q", self.Reserved))
-        mu.mem_write(self.Addr+0x60, pack("<Q", self.Full_Dll_Name))
-        mu.mem_write(self.Addr+0x70, pack("<Q", self.Base_Dll_Name))
-
-def allocateWinStructs32(mu):
-    # Put location of PEB at FS:30
-    mu.mem_write((PEB_ADDR-10), b'\x4a\x41\x43\x4f\x42\x41\x41\x41\x41\x42')
-
-    mu.mem_write(TIB_ADDR, b'\x00\x00\x00' + b'\x90'*0x2d + pack("<Q", PEB_ADDR))
-
-    # Create PEB data structure. Put pointer to ldr at offset 0xC
-    mu.mem_write(PEB_ADDR, b'\x90'*0xc + pack("<Q", LDR_ADDR) + b'\x90'*0x1fc)
-
-    # Create PEB_LDR_DATA structure
-    peb_ldr = PEB_LDR_DATA32(LDR_ADDR, 0x24, 0x00000000, 0x00000000)
-
-    dlls_obj = [0]*(len(allDlls)+1)
-
-    # Create ldr modules for the rest of the DLLs
-    dlls_obj[0] = LDR_Module32(mu, LDR_PROG_ADDR, PROCESS_BASE, PROCESS_BASE, 0x00000000, "C:\\shellcode.exe", "shellcode.exe")
-
-    i = 1
-    for dll in allDlls:
-        dlls_obj[i] = LDR_Module32(mu, mods[dll].ldrAddr, mods[dll].base, mods[dll].base, 0x00000000, mods[dll].d32, mods[dll].name)
-        i += 1
-
-    peb_ldr.allocate(mu, dlls_obj[0].ILO_entry, dlls_obj[-1].ILO_entry, dlls_obj[0].IMO_entry, dlls_obj[-1].IMO_entry, dlls_obj[1].IIO_entry, dlls_obj[-1].IIO_entry)
-
-    # Allocate the record in memory for program, ntdll, and kernel32
-    for i in range(0, len(dlls_obj)):
-        currentDLL = dlls_obj[i]
-
-        if i == 0:
-            nextDLL = dlls_obj[i+1]
-            currentDLL.allocate(mu, nextDLL.ILO_entry, dlls_obj[-1].ILO_entry, nextDLL.IMO_entry, dlls_obj[-1].IMO_entry, nextDLL.IIO_entry, dlls_obj[-1].IIO_entry)
-        elif i == len(dlls_obj) - 1:
-            prevDLL = dlls_obj[i-1]
-            currentDLL.allocate(mu, dlls_obj[0].ILO_entry, prevDLL.ILO_entry, dlls_obj[0].IMO_entry, prevDLL.IMO_entry, dlls_obj[1].IIO_entry, prevDLL.IIO_entry)
-        else:
-            nextDLL = dlls_obj[i+1]
-            prevDLL = dlls_obj[i-1]
-            currentDLL.allocate(mu, nextDLL.ILO_entry, prevDLL.ILO_entry, nextDLL.IMO_entry, prevDLL.IMO_entry, nextDLL.IIO_entry, prevDLL.IIO_entry)
-
-def allocateWinStructs64(mu):
-    mu.reg_write(UC_X86_REG_FS_BASE, TIB_ADDR)
-
-    # Put location of PEB at GS:60
-    mu.mem_write(TIB_ADDR, b'\x00'*0x60 + pack("<Q", PEB_ADDR))
-
-    # Create PEB data structure. Put pointer to ldr at offset 0x18
-    mu.mem_write(PEB_ADDR, b'\x00'*0x18 + pack("<Q", LDR_ADDR) + b'\x00'*0x1fc)
-
-    # Create PEB_LDR_DATA structure
-    peb_ldr = PEB_LDR_DATA64(LDR_ADDR, 0x24, 0x00000000, 0x00000000)
-    process = LDR_Module64(LDR_PROG_ADDR, PROCESS_BASE, PROCESS_BASE, 0x00000000, 0x00000000, 0x00000000)
-    ntdll = LDR_Module64(LDR_NTDLL_ADDR, NTDLL_BASE, NTDLL_BASE, 0x00000000, 0x00000000, 0x00000000)
-    kernel32 = LDR_Module64(LDR_KERNEL32_ADDR, KERNEL32_BASE, KERNEL32_BASE, 0x00000000, 0x00000000, 0x00000000)
-
-    peb_ldr.allocate(mu, process.ILO_entry, kernel32.ILO_entry, process.IMO_entry, kernel32.IMO_entry, ntdll.IIO_entry, kernel32.IIO_entry)
-    process.allocate(mu, ntdll.ILO_entry, peb_ldr.ILO_entry, ntdll.IMO_entry, peb_ldr.IMO_entry, 0x00000000, 0x00000000)
-    ntdll.allocate(mu, kernel32.ILO_entry, process.ILO_entry, kernel32.IMO_entry, process.IMO_entry, kernel32.IIO_entry, peb_ldr.IIO_entry)
-    kernel32.allocate(mu, peb_ldr.ILO_entry, ntdll.ILO_entry, peb_ldr.IMO_entry, ntdll.IMO_entry, peb_ldr.IIO_entry, ntdll.IIO_entry)
-
-    # initialize stack
-    mu.reg_write(UC_X86_REG_ESP, STACK_ADDR)
-    mu.reg_write(UC_X86_REG_EBP, STACK_ADDR)
-
-def padDLL(dllPath, dllName):
-    global addrTracker
-    pe = pefile.PE(dllPath)
-
-    virtualAddress = pe.NT_HEADERS.OPTIONAL_HEADER.DATA_DIRECTORY[0].VirtualAddress
-    i = 0
-    padding = 0
-    while True:
-        try:
-            section = pe.sections[i]
-
-            pointerToRaw = section.PointerToRawData
-            sectionVA = section.VirtualAddress
-            sizeOfRawData = section.SizeOfRawData
-
-            if (virtualAddress >= sectionVA and virtualAddress < (sectionVA + sizeOfRawData)):
-                padding = virtualAddress - (virtualAddress - sectionVA + pointerToRaw)
-                break
-        except:
-            break
-
-        i += 1
-
-
-    # Replace e_lfanew value
-    elfanew = pe.DOS_HEADER.e_lfanew
-    pe.DOS_HEADER.e_lfanew = elfanew + padding
-
-    tmpPath = expandedDLLsPath + dllName
-    # print("-->", os.getcwd())
-    pe.write(tmpPath)
-
-    # Add padding to dll, then save it.
-    out = readRaw(tmpPath)
-    final = insertIntoBytes(out, 0x40, padding, 0x00)
-    newBin = open(tmpPath, "wb")
-    newBin.write(final)
-    newBin.close()
-
-    rawDll = readRaw(tmpPath)
-
-    addrTracker = addrTracker + len(rawDll) + 0x1000
-    return rawDll
-
-
-# def loadDLLsFromPE(mu):
-#     path = 'C:\\Windows\\SysWOW64\\'
-#
-#     for m in mods:
-#         try:
-#             dll=readRaw(mods[m].d32)
-#         except:
-#             print("[*] Unable to locate ", mods[m].d32, ". It is likely that this file is not included in your version of Windows.")
-#             continue
-#
-#         # Unicorn line to dump the DLL in our memory
-#         mu.mem_write(mods[m].base, dll)
-#
-#         pe=pefile.PE(mods[m].d32)
-#         for exp in pe.DIRECTORY_ENTRY_EXPORT.symbols:
-#             try:
-#                 export_dict[mods[m].base + exp.address] = (exp.name.decode(), mods[m].name)
-#             except:
-#                 export_dict[mods[m].base + exp.address] = "unknown_function"
-#     saveDLLsToFile()        # saving the output to disc by default
-#
-def saveDLLsToFile():       #help function called by loaddllsfromPE
-    output=""
-    for address in export_dict:
-        apiName=export_dict[address][0]
-        dllName=export_dict[address][1]
-
-        output+=str(hex(address)) +", " + apiName+ ", "  + dllName + "\n"
-    with open(foundDLLAddresses, 'a') as out:
-        # print(output)
-        # input()
-        out.write(output)
-        out.close()
-
-
 def loadDlls(mu):
     global export_dict
     global expandedDLLsPath
     path = 'C:\\Windows\\SysWOW64\\'
+
+    # Create foundDllAddresses.txt if it doesn't already exist
+    if not os.path.exists(foundDLLAddresses):
+        Path(foundDLLAddresses).touch()
 
     runOnce=False
     for m in mods:
@@ -404,12 +121,12 @@ def loadDlls(mu):
                     export_dict[mods[m].base + exp.address] = "unknown_function"
 
             dllPath = path + mods[m].name
-            rawDll = padDLL(dllPath, mods[m].name)
+            rawDll = padDLL(dllPath, mods[m].name, expandedDLLsPath)
 
             # Dump the dll into unicorn memory
             mu.mem_write(mods[m].base, rawDll)
 
-    saveDLLsToFile()
+    saveDLLsToFile(export_dict, foundDLLAddresses)
 
     with open(foundDLLAddresses, "r") as f:
         data = f.read()
@@ -425,385 +142,6 @@ def loadDlls(mu):
                 export_dict[address] = ((apiName, dllName))
         except:
             pass
-# def loadDlls(mu):
-#     global export_dict
-#     global expandedDLLsPath
-#     path = 'C:\\Windows\\SysWOW64\\'
-
-#     runOnce=False
-#     for m in mods:
-#         if os.path.exists(mods[m].d32) == False:
-#             print("[*] Unable to locate ", mods[m].d32, ". It is likely that this file is not included in your version of Windows.")
-#             continue
-
-#         if os.path.exists("%s%s" % (expandedDLLsPath, mods[m].name)):
-#             dll=readRaw(expandedDLLsPath+mods[m].name)
-#             # Unicorn line to dump the DLL in our memory
-#             mu.mem_write(mods[m].base, dll)
-#         # Inflate dlls so PE offsets are correct
-#         else:
-#             if not runOnce:
-#                 print("Warning: DLLs must be parsed and inflated from a Windows OS.\n\tThis may take several minutes to generate the initial emulation files.\n\tThis initial step must be completed only once from a Windows machine.\n\tThe emulation will not work without these.")
-#                 runOnce=True
-#             pe=pefile.PE(mods[m].d32)
-#             for exp in pe.DIRECTORY_ENTRY_EXPORT.symbols:
-#                 try:
-#                     export_dict[mods[m].base + exp.address] = (exp.name.decode(), mods[m].name)
-#                 except:
-#                     export_dict[mods[m].base + exp.address] = "unknown_function"
-
-#             saveDLLsToFile()
-
-#             dllPath = path + mods[m].name
-#             rawDll = padDLL(dllPath, mods[m].name)
-
-#             # Dump the dll into unicorn memory
-#             mu.mem_write(mods[m].base, rawDll)
-
-#     with open(foundDLLAddresses, "r") as f:
-#         data = f.read()
-#     APIs = data.split("\n")
-#     for each in APIs:
-#         vals=each.split(", ")
-#         try:
-#             address=int(vals[0], 16)
-#             apiName=vals[1]
-#             dllName=vals[2]
-
-#             if apiName not in export_dict:
-#                 export_dict[address] = ((apiName, dllName))
-#         except:
-#             pass
-
-# def loadDlls(mu):   # we can keep your function here and then call whichever one it needs. This was easier for me than trying to combine the two in one. :-)
-#     global loadModsFromFile
-#
-#     if loadModsFromFile==False:
-#         loadDLLsFromPE(mu)
-#     else:
-#         loadDLLsFromFile(mu)
-
-def push(uc, val):
-    # read and subtract 4 from esp
-    esp = uc.reg_read(UC_X86_REG_ESP) - 4
-    uc.reg_write(UC_X86_REG_ESP, esp)
-
-    # insert new value onto the stack
-    uc.mem_write(esp, pack("<i", val))
-
-def constConvert(uc, string):
-    if (string == 'eax'):
-        return str(uc.reg_read(UC_X86_REG_EAX))
-    elif (string == 'ebx'):
-        return str(uc.reg_read(UC_X86_REG_EBX))
-    elif (string == 'ecx'):
-        return str(uc.reg_read(UC_X86_REG_ECX))
-    elif (string == 'edx'):
-        return str(uc.reg_read(UC_X86_REG_EDX))
-    elif (string == 'esi'):
-        return str(uc.reg_read(UC_X86_REG_ESI))
-    elif (string == 'edi'):
-        return str(uc.reg_read(UC_X86_REG_EDI))
-    elif (string == 'esp'):
-        return str(uc.reg_read(UC_X86_REG_ESP))
-    elif (string == 'ebp'):
-        return str(uc.reg_read(UC_X86_REG_EBP))
-
-    # Support smaller ebp and esp registers
-    elif (string == 'ax'):
-        return str(uc.reg_read(UC_X86_REG_AX))
-    elif (string == 'bx'):
-        return str(uc.reg_read(UC_X86_REG_BX))
-    elif (string == 'cx'):
-        return str(uc.reg_read(UC_X86_REG_CX))
-    elif (string == 'dx'):
-        return str(uc.reg_read(UC_X86_REG_DX))
-    elif (string == 'si'):
-        return str(uc.reg_read(UC_X86_REG_SI))
-    elif (string == 'di'):
-        return str(uc.reg_read(UC_X86_REG_DI))
-    elif (string == 'al'):
-        return str(uc.reg_read(UC_X86_REG_AL))
-    elif (string == 'bl'):
-        return str(uc.reg_read(UC_X86_REG_BL))
-    elif (string == 'cl'):
-        return str(uc.reg_read(UC_X86_REG_CL))
-    elif (string == 'dl'):
-        return str(uc.reg_read(UC_X86_REG_DL))
-    elif (string == 'sil'):
-        return str(uc.reg_read(UC_X86_REG_SIL))
-    elif (string == 'dil'):
-        return str(uc.reg_read(UC_X86_REG_DIL))
-
-    # Supprt 
-    elif (string == 'ah'):
-        return str(uc.reg_read(UC_X86_REG_AL))
-    elif (string == 'bl'):
-        return str(uc.reg_read(UC_X86_REG_BL))
-    elif (string == 'cl'):
-        return str(uc.reg_read(UC_X86_REG_CL))
-    elif (string == 'dl'):
-        return str(uc.reg_read(UC_X86_REG_DL))
-    elif (string == 'sil'):
-        return str(uc.reg_read(UC_X86_REG_SIL))
-    elif (string == 'dil'):
-        return str(uc.reg_read(UC_X86_REG_DIL))
-
-def callback(match):
-    return next(callback.v)
-
-def getJmpFlag(mnemonic):
-    if re.match("^(je)|(jz)|(jne)|(jnz)", mnemonic, re.M|re.I):
-        return "zf"
-    elif re.match("^(jg)|(jnle)|(jle)|(jng)", mnemonic, re.M|re.I):
-        return "osz"
-    elif re.match("^(jge)|(jnl)|(jl)|(jnge)", mnemonic, re.M|re.I):
-        return "os"
-    elif re.match("^(jae)|(jnb)|(jb)|(jnae)|(jc)|(jnc)", mnemonic, re.M|re.I):
-        return "cf"
-    elif re.match("^(jo)|(jno)", mnemonic, re.M|re.I):
-        return "of"
-    elif re.match("^(jp)|(jpe)|(jnp)|(jpo)", mnemonic, re.M|re.I):
-        return "pf"
-    elif re.match("^(js)|(jns)", mnemonic, re.M|re.I):
-        return "sf"
-    elif re.match("^(ja)|(jnbe)", mnemonic, re.M|re.I):
-        return "cz"
-    else:
-        return ""
-
-
-def controlFlow(uc, mnemonic, op_str):
-    # print ("cf", mnemonic, op_str)
-    controlFlow = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(jns)|(call))", mnemonic, re.M|re.I)
-
-
-    which=0
-    address = 0
-    if controlFlow:
-        ptr = re.match("d*word ptr \\[.*\\]", op_str)
-        if ptr:
-            expr = op_str.replace('dword ptr [', '')
-            expr = expr.replace(']', '')
-
-            # Support for 64 bit as well.
-            # Come up with some more test cases to make sure this works
-            regs = re.findall('e[abcdsipx]+', expr)
-            for i in range(0, len(regs)):
-                regs[i] = constConvert(uc, regs[i])
-
-            callback.v=iter(regs)
-            expr = re.sub('e[abcdsipx]+', callback, expr)
-
-            address = eval(expr)
-            # print ("address", hex(address))
-            address = unpack("<I", uc.mem_read(address, 4))[0]
-            which=1
-        elif re.match('e[abcdsipx]+', op_str):
-            regs = re.findall('e[abcdsipx]+', op_str)
-            for i in range(0, len(regs)):
-                regs[i] = constConvert(uc, regs[i])
-
-            callback.v=iter(regs)
-            address = int(re.sub('e[abcdsipx]+', callback, op_str))
-            which=2
-        elif re.match('0x[(0-9)|(a-f)]+', op_str):
-            address = int(op_str, 16)
-            which=3
-
-    if str(hex(address))=="0x44370b7b":
-        print (mnemonic, op_str, which)
-
-    return address
-
-def ord2(x):
-    return x
-
-def show1(int):
-        show = "{0:02x}".format(int) #
-        return show
-
-def binaryToStr(binary):
-    # OP_SPECIAL = b"\x8d\x4c\xff\xe2\x01\xd8\x81\xc6\x34\x12\x00\x00"
-    newop=""
-    # newAscii=""
-    try:
-        j = 1
-        for v in binary:
-            i = ord2(v)
-            newop += show1(i)
-            if j % 4 == 0:
-                newop += " "
-            j += 1
-        return newop
-    except Exception as e:
-        print ("*Not valid format")
-        print(e)
-
-def binaryToStr2(binary):
-    # OP_SPECIAL = b"\x8d\x4c\xff\xe2\x01\xd8\x81\xc6\x34\x12\x00\x00"
-    newop=""
-    # newAscii=""
-    try:
-        j = 3
-        addr = 0x45b5c290
-        a = 0
-        while j < len(binary):
-            if a % 24 == 0 or a == 0:
-                newop += '\n' + hex(addr + a) + ' '
-            i = ord2(binary[j])
-            newop += show1(i)
-            if j % 4 == 0:
-                newop += " "
-                j += 8
-            j -= 1
-            a += 1
-
-        newop = newop.replace('0x', '')
-        return newop
-    except Exception as e:
-        print ("*Not valid format")
-        print(e)
-
-def setBit (val, pos, newBit):
-    if newBit == 0:
-        val &= ~(1 << pos)
-    else:
-        val |= 1 << pos
-    return val
-
-def getBit (value, pos):
-    return ((value >> pos & 1) != 0)
-
-def flipBit(val, pos):
-    return val ^ (1 << pos)
-
-def signedNegHexTo(signedVal):
-    strSigned=str(signedVal)
-    ba = binascii.a2b_hex(strSigned[2:])
-    new = (int.from_bytes(ba, byteorder='big', signed=True))
-    return new
-
-def boolFollowJump(jmpFlag, jmpType, eflags):
-    # ZF Flag
-    if jmpFlag == "zf":
-        zf = getBit(eflags, 6)
-        if zf == 0:
-            if jmpType == 'jne' or jmpType == 'jnz':
-                return False
-            else:
-                return True
-        else:
-            if jmpType == 'jne' or jmpType == 'jnz':
-                return True
-            else:
-                return False
-
-    # OF, SF, and ZF Flags
-    elif jmpFlag == "osz":
-        zf = getBit(eflags, 6)
-        sf = getBit(eflags, 7)
-        of = getBit(eflags, 11)
-
-        if zf == 0 and sf == of:
-            if jmpType == 'jg' or jmpType == 'jnle':
-                return False
-            else:
-                return True
-        else:
-            if jmpType == 'jg' or jmpType == 'jnle':
-                return True
-            else:
-                return False
-
-    # OF and SF Flags
-    elif jmpFlag == "os":
-        sf = getBit(eflags, 7)
-        of = getBit(eflags, 11)
-
-        if sf == of:
-            if jmpType == 'jge' or jmpType == 'jnl':
-                return False
-            else:
-                return True
-        else:
-            if jmpType == 'jge' or jmpType == 'jnl':
-                return True
-            else:
-                return False
-
-    # CF Flag
-    elif jmpFlag == "cf":
-        cf = getBit(eflags, 0)
-
-        if cf == 0:
-            if jmpType == 'jnb' or jmpType == 'jae' or jmpType == 'jnc':
-                return False
-            else:
-                return True
-
-        else:
-            if jmpType == 'jb' or jmpType == 'jnae' or jmpType == 'jc':
-                return True
-            else:
-                return False
-
-    elif jmpFlag == "of":
-        of = getBit(eflags, 11)
-
-        if of == 0:
-            if jmpType == 'jno':
-                return False
-            else:
-                return True
-        else:
-            if jmpType == 'jno':
-                return True
-            else:
-                return False
-
-    elif jmpFlag == "pf":
-        of = getBit(eflags, 2)
-
-        if of == 0:
-            if jmpType == 'jnp' or jmpType == 'jpo':
-                return False
-            else:
-                return True
-        else:
-            if jmpType == 'jnp' or jmpType == 'jpo':
-                return True
-            else:
-                return False
-
-    elif jmpFlag == "sf":
-        sf = getBit(eflags, 7)
-
-        if sf == 0:
-            if jmpType == 'jns':
-                return False
-            else:
-                return True
-        else:
-            if jmpType == 'jns':
-                return True
-            else:
-                return False
-
-    elif jmpFlag == "cz":
-        cf = getBit(eflags, 0)
-        zf = getBit(eflags, 6)
-
-        if cf == 0 and zf == 0:
-            if jmpType == 'ja' and jmpType == 'jnbe':
-                return False
-            else:
-                return True
-        else:
-            if jmpType == 'ja' and jmpType == 'jnbe':
-                return True
-            else:
-                return False
 
 
 def breakLoop(uc, jmpFlag, jmpType, op_str, addr, size):
@@ -822,20 +160,9 @@ def breakLoop(uc, jmpFlag, jmpType, op_str, addr, size):
         # print("[*] SKIPPING THE JUMP")
         uc.reg_write(UC_X86_REG_EIP, addr + size)
 
-def giveRegs(uc):
-    EAX = uc.reg_read(UC_X86_REG_EAX)   # do not delete!
-    EBX = uc.reg_read(UC_X86_REG_EBX)
-    ECX = uc.reg_read(UC_X86_REG_ECX)
-    EDX = uc.reg_read(UC_X86_REG_EDX)
-    ESI = uc.reg_read(UC_X86_REG_ESI)
-    EDI = uc.reg_read(UC_X86_REG_EDI)
-    ESP = uc.reg_read(UC_X86_REG_ESP)
-    EBP = uc.reg_read(UC_X86_REG_EBP)
-    instructLine=("\n\t>>> EAX: 0x%x\tEBX: 0x%x\tECX: 0x%x\tEDX: 0x%x\tEDI: 0x%x\tESI: 0x%x\tEBP: 0x%x\tESP: 0x%x\n" %(EAX, EBX, ECX, EDX, EDI,ESI, EBP, ESP))
-    return instructLine
-
 def hook_code(uc, address, size, user_data):
     global cleanBytes, verbose
+    global outFile
     global programCounter
     global cleanStackFlag
     global stopProcess
@@ -883,7 +210,7 @@ def hook_code(uc, address, size, user_data):
     op_str=""
     t=0
     for i in cs.disasm(shells, address):
-        val = i.mnemonic + " " + i.op_str + " " + shells.hex()
+        val = i.mnemonic + " " + i.op_str # + " " + shells.hex()
         if t==0:
             mnemonic=i.mnemonic
             op_str=i.op_str
@@ -907,7 +234,7 @@ def hook_code(uc, address, size, user_data):
         else:
             jmpInstructs[addr] += 1
 
-        if jmpInstructs[addr] >= MAX_LOOP:
+        if jmpInstructs[addr] >= em.maxLoop:
             breakLoop(uc, jmpFlag, mnemonic, op_str, addr, len(shells))
             jmpInstructs[addr] = 0
 
@@ -923,11 +250,6 @@ def hook_code(uc, address, size, user_data):
         eip = uc.reg_read(UC_X86_REG_EIP)
         esp = uc.reg_read(UC_X86_REG_ESP)
         bprint ("funcAddress", hex(funcAddress))
-        # print("-->", funcAddress)
-        # 338581561
-        # for i in export_dict:
-            # print(i, export_dict[i])
-
         funcName = export_dict[funcAddress][0]
 
 
@@ -986,17 +308,6 @@ def cleanStack(uc, numBytes):
     global cleanBytes
     cleanBytes = 0
 
-def checkDups(uc):
-    global prevInstruct
-    j = 0
-    for i in range (0, len(prevInstruct)-1):
-        if prevInstruct[i] == prevInstruct[i+1]:
-            j += 1
-        else:
-            j = 0
-        if j == 100:
-            uc.emu_stop()
-            break
 def getRetVal2(retVal, retType=""):
     global rsReverseLookUp
     retBundle=""
@@ -1159,17 +470,11 @@ def hook_default(uc, eip, esp, funcAddress, funcName, callLoc):
         print ("Error!", e)
         print(traceback.format_exc())
 
-
-
-
 def logCall(funcName, funcInfo):
     global paramValues
     logged_calls[funcName].append(funcInfo)
     loggedList.append(funcInfo)
     paramValues += funcInfo[4]
-
-def logProcessCreate(path):
-    createdProcesses.append(path)
 
 def findArtifacts():
     artifacts = []
@@ -1189,7 +494,7 @@ def findArtifacts():
         #     file_artifacts.append(str(p))
         # print(file_artifacts)
 
-        # file_artifacts 
+        # file_artifacts
         exec_artifacts += re.findall(r"\S+\.exe", str(p))
         artifacts += net_artifacts + file_artifacts
 
@@ -1238,12 +543,10 @@ def printCalls():
         for e in exec_artifacts:
             print("\t\t", e)
 
-def hook_intr(uc, intno, user_data):
-    print("WOW, WE HOOKED IT!!!!")
-
 # Test X86 32 bit
 def test_i386(mode, code):
     global artifacts2
+    global outFile
     try:
     # Initialize emulator
 
@@ -1278,16 +581,17 @@ def test_i386(mode, code):
 
         # tracing all instructions with customized callback
         mu.hook_add(UC_HOOK_CODE, hook_code)
+
     except Exception as e:
         print(e)
-
-
 
     # emulate machine code in infinite time
     try:    
         mu.emu_start(CODE_ADDR + em.entryOffset, CODE_ADDR + len(code))
     except Exception as e:
         print("\t",e)
+
+    outFile.close()
     # now print out some registers
     artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
     # except:
@@ -1354,21 +658,3 @@ def startEmu(arch, data, vb):
         test_i386(UC_MODE_32, data)
 
 em=EMU()
-
-if __name__ == '__main__':
-    code = b""
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-m', '--mode')
-    parser.add_argument('-f', '--file')
-    # parser.add_argument('-v', '--verbose', action='count', default=0)
-
-    args = parser.parse_args()
-
-    # if args.verbose == 1:
-    #     verbose = True
-
-    if args.file != None:
-        code = readRaw(args.file)
-
-    if args.mode == '32':
-        test_i386(UC_MODE_32, code)
