@@ -1,7 +1,7 @@
 from unicorn.x86_const import *
 from struct import pack, unpack
 from ..modules import allDllsDict
-from ..helper import emuHelpers
+from ..helper.emuHelpers import *
 import sys
 FakeProcess=0xbadd0000
 
@@ -77,10 +77,13 @@ def hook_WinExec(uc, eip, esp, export_dict, callAddr):
     return logged_calls, cleanBytes
 
 def hook_LoadLibraryA(uc, eip, esp, export_dict, callAddr):
-    # print("Using custom function... LoadLibraryA")
+    print("Using custom function... LoadLibraryA")
     arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
     arg1 = unpack('<I', arg1)[0]
     arg1 = read_string(uc, arg1)
+
+    print("REEEEEEEEEEEE")
+
 
     # Return base address of passed library
     try:
@@ -95,6 +98,7 @@ def hook_LoadLibraryA(uc, eip, esp, export_dict, callAddr):
             retVal = 0
 
     uc.reg_write(UC_X86_REG_EAX, retVal)
+
 
     logged_calls = ("LoadLibraryA", hex(callAddr), hex(retVal), 'HINSTANCE', [arg1], ['LPCTSTR'], ['lpLibFileName'], False)
 

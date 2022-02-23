@@ -1,4 +1,14 @@
+from struct import pack, unpack
+
 ENTRY_ADDR = 0x1000
+PEB_ADDR = 0x11017000
+SEGMENT_ADDR = 0x11010000
+SEGMENT_SIZE = 0x4000
+TIB_ADDR = 0x00000000
+TIB_SIZE = 0x100
+PEB_LIMIT = 0x208
+CONST_ADDR = 0x20000000
+
 LDR_ADDR = 0x11020000
 LDR_PROG_ADDR = 0x11021000
 LDR_NTDLL_ADDR = 0x11021300
@@ -152,6 +162,161 @@ wininet="wininet"
 winmm="winmm"
 ws2_32="ws2_32"
 wsock32="wsock32"
+
+# This struct can have up to 0x58 total bytes depending on Windows version
+class PEB_LDR_DATA32():
+    def __init__(self, addr, length, initialized, sshandle):
+        self.Addr = addr
+        self.Length = length
+        self.Initialized = initialized
+        self.Sshandle = sshandle
+        self.ILO_entry = addr + 0xc
+        self.IMO_entry = addr + 0x14
+        self.IIO_entry = addr + 0x1c
+    def allocate(self, mu, ilo_flink, ilo_blink, imo_flink, imo_blink, iio_flink, iio_blink):
+        mu.mem_write(self.Addr, pack("<Q", self.Length))
+        mu.mem_write(self.Addr+0x4, pack("<Q", self.Initialized))
+        mu.mem_write(self.Addr+0x8, pack("<Q", self.Sshandle))
+        mu.mem_write(self.Addr+0xc, pack("<Q", ilo_flink) + pack("<Q", ilo_blink))
+        mu.mem_write(self.Addr+0x14, pack("<Q", imo_flink) + pack("<Q", imo_blink))
+        mu.mem_write(self.Addr+0x1c, pack("<Q", iio_flink) + pack("<Q", iio_blink))
+
+class LDR_Module32():
+    def __init__(self, mu, addr, dll_base, entry_point, reserved, full_dll_name, base_dll_name):
+        self.Addr = addr
+        self.ILO_entry = addr
+        self.IMO_entry = addr + 0x8
+        self.IIO_entry = addr + 0x10
+        self.DLL_Base = dll_base
+        self.Entry_Point = entry_point
+        self.Reserved = reserved
+
+        global CONST_ADDR
+        full_dll_name = full_dll_name.encode("utf-16-le") + b"\x00"
+        mu.mem_write(CONST_ADDR, full_dll_name)
+        self.Full_Dll_Name = CONST_ADDR
+        CONST_ADDR += len(full_dll_name)
+
+        base_dll_name = base_dll_name.encode("utf-16-le") + b"\x00"
+        mu.mem_write(CONST_ADDR, base_dll_name)
+        self.Base_Dll_Name = CONST_ADDR
+        CONST_ADDR += len(base_dll_name)
+
+    def allocate(self, mu, ilo_flink, ilo_blink, imo_flink, imo_blink, iio_flink, iio_blink):
+        mu.mem_write(self.Addr, pack("<Q", ilo_flink) + pack("<Q", ilo_blink))
+        mu.mem_write(self.Addr+0x8, pack("<Q", imo_flink) + pack("<Q", imo_blink))
+        mu.mem_write(self.Addr+0x10, pack("<Q", iio_flink) + pack("<Q", iio_blink))
+        mu.mem_write(self.Addr+0x18, pack("<Q", self.DLL_Base))
+        mu.mem_write(self.Addr+0x1c, pack("<Q", self.Entry_Point))
+
+        mu.mem_write(self.Addr+0x24, pack("<Q", 0x007e007c))
+        mu.mem_write(self.Addr+0x28, pack("<Q", self.Full_Dll_Name))
+        mu.mem_write(self.Addr+0x2c, pack("<Q", 0x001c001a))
+        mu.mem_write(self.Addr+0x30, pack("<Q", self.Base_Dll_Name))
+
+
+        pointer = unpack("<I", mu.mem_read(self.Addr+0x30, 4))[0]
+
+class PEB_LDR_DATA64():
+    def __init__(self, addr, length, initialized, sshandle):
+        self.Addr = addr
+        self.Length = length
+        self.Initialized = initialized
+        self.Sshandle = sshandle
+        self.ILO_entry = addr + 0x10
+        self.IMO_entry = addr + 0x20
+        self.IIO_entry = addr + 0x30
+    def allocate(self, mu, ilo_flink, ilo_blink, imo_flink, imo_blink, iio_flink, iio_blink):
+        mu.mem_write(self.Addr, pack("<Q", self.Length))
+        mu.mem_write(self.Addr+0x4, pack("<Q", self.Initialized))
+        mu.mem_write(self.Addr+0x8, pack("<Q", self.Sshandle))
+        mu.mem_write(self.Addr+0x10, pack("<Q", ilo_flink) + pack("<Q", ilo_blink))
+        mu.mem_write(self.Addr+0x20, pack("<Q", imo_flink) + pack("<Q", imo_blink))
+        mu.mem_write(self.Addr+0x30, pack("<Q", iio_flink) + pack("<Q", iio_blink))
+
+class LDR_Module64():
+    def __init__(self, addr, dll_base, entry_point, reserved, full_dll_name, base_dll_name):
+        self.Addr = addr
+        self.ILO_entry = addr
+        self.IMO_entry = addr + 0x10
+        self.IIO_entry = addr + 0x20
+        self.DLL_Base = dll_base
+        self.Entry_Point = entry_point
+        self.Reserved = reserved
+        self.Full_Dll_Name = full_dll_name
+        self.Base_Dll_Name = base_dll_name
+    def allocate(self, mu, ilo_flink, ilo_blink, imo_flink, imo_blink, iio_flink, iio_blink):
+        mu.mem_write(self.Addr, pack("<Q", ilo_flink) + pack("<Q", ilo_blink))
+        mu.mem_write(self.Addr+0x10, pack("<Q", imo_flink) + pack("<Q", imo_blink))
+        mu.mem_write(self.Addr+0x20, pack("<Q", iio_flink) + pack("<Q", iio_blink))
+        mu.mem_write(self.Addr+0x30, pack("<Q", self.DLL_Base))
+        mu.mem_write(self.Addr+0x40, pack("<Q", self.Entry_Point))
+        mu.mem_write(self.Addr+0x50, pack("<Q", self.Reserved))
+        mu.mem_write(self.Addr+0x60, pack("<Q", self.Full_Dll_Name))
+        mu.mem_write(self.Addr+0x70, pack("<Q", self.Base_Dll_Name))
+
+def allocateWinStructs32(mu):
+    # Put location of PEB at FS:30
+    mu.mem_write((PEB_ADDR-10), b'\x4a\x41\x43\x4f\x42\x41\x41\x41\x41\x42')
+
+    mu.mem_write(TIB_ADDR, b'\x00\x00\x00' + b'\x90'*0x2d + pack("<Q", PEB_ADDR))
+
+    # Create PEB data structure. Put pointer to ldr at offset 0xC
+    mu.mem_write(PEB_ADDR, b'\x90'*0xc + pack("<Q", LDR_ADDR) + b'\x90'*0x1fc)
+
+    # Create PEB_LDR_DATA structure
+    peb_ldr = PEB_LDR_DATA32(LDR_ADDR, 0x24, 0x00000000, 0x00000000)
+
+    dlls_obj = [0]*(len(allDlls)+1)
+
+    # Create ldr modules for the rest of the DLLs
+    dlls_obj[0] = LDR_Module32(mu, LDR_PROG_ADDR, PROCESS_BASE, PROCESS_BASE, 0x00000000, "C:\\shellcode.exe", "shellcode.exe")
+
+    i = 1
+    for dll in allDlls:
+        dlls_obj[i] = LDR_Module32(mu, mods[dll].ldrAddr, mods[dll].base, mods[dll].base, 0x00000000, mods[dll].d32, mods[dll].name)
+        i += 1
+
+    peb_ldr.allocate(mu, dlls_obj[0].ILO_entry, dlls_obj[-1].ILO_entry, dlls_obj[0].IMO_entry, dlls_obj[-1].IMO_entry, dlls_obj[1].IIO_entry, dlls_obj[-1].IIO_entry)
+
+    # Allocate the record in memory for program, ntdll, and kernel32
+    for i in range(0, len(dlls_obj)):
+        currentDLL = dlls_obj[i]
+
+        if i == 0:
+            nextDLL = dlls_obj[i+1]
+            currentDLL.allocate(mu, nextDLL.ILO_entry, dlls_obj[-1].ILO_entry, nextDLL.IMO_entry, dlls_obj[-1].IMO_entry, nextDLL.IIO_entry, dlls_obj[-1].IIO_entry)
+        elif i == len(dlls_obj) - 1:
+            prevDLL = dlls_obj[i-1]
+            currentDLL.allocate(mu, dlls_obj[0].ILO_entry, prevDLL.ILO_entry, dlls_obj[0].IMO_entry, prevDLL.IMO_entry, dlls_obj[1].IIO_entry, prevDLL.IIO_entry)
+        else:
+            nextDLL = dlls_obj[i+1]
+            prevDLL = dlls_obj[i-1]
+            currentDLL.allocate(mu, nextDLL.ILO_entry, prevDLL.ILO_entry, nextDLL.IMO_entry, prevDLL.IMO_entry, nextDLL.IIO_entry, prevDLL.IIO_entry)
+
+def allocateWinStructs64(mu):
+    mu.reg_write(UC_X86_REG_FS_BASE, TIB_ADDR)
+
+    # Put location of PEB at GS:60
+    mu.mem_write(TIB_ADDR, b'\x00'*0x60 + pack("<Q", PEB_ADDR))
+
+    # Create PEB data structure. Put pointer to ldr at offset 0x18
+    mu.mem_write(PEB_ADDR, b'\x00'*0x18 + pack("<Q", LDR_ADDR) + b'\x00'*0x1fc)
+
+    # Create PEB_LDR_DATA structure
+    peb_ldr = PEB_LDR_DATA64(LDR_ADDR, 0x24, 0x00000000, 0x00000000)
+    process = LDR_Module64(LDR_PROG_ADDR, PROCESS_BASE, PROCESS_BASE, 0x00000000, 0x00000000, 0x00000000)
+    ntdll = LDR_Module64(LDR_NTDLL_ADDR, NTDLL_BASE, NTDLL_BASE, 0x00000000, 0x00000000, 0x00000000)
+    kernel32 = LDR_Module64(LDR_KERNEL32_ADDR, KERNEL32_BASE, KERNEL32_BASE, 0x00000000, 0x00000000, 0x00000000)
+
+    peb_ldr.allocate(mu, process.ILO_entry, kernel32.ILO_entry, process.IMO_entry, kernel32.IMO_entry, ntdll.IIO_entry, kernel32.IIO_entry)
+    process.allocate(mu, ntdll.ILO_entry, peb_ldr.ILO_entry, ntdll.IMO_entry, peb_ldr.IMO_entry, 0x00000000, 0x00000000)
+    ntdll.allocate(mu, kernel32.ILO_entry, process.ILO_entry, kernel32.IMO_entry, process.IMO_entry, kernel32.IIO_entry, peb_ldr.IIO_entry)
+    kernel32.allocate(mu, peb_ldr.ILO_entry, ntdll.ILO_entry, peb_ldr.IMO_entry, ntdll.IMO_entry, peb_ldr.IIO_entry, ntdll.IIO_entry)
+
+    # initialize stack
+    mu.reg_write(UC_X86_REG_ESP, STACK_ADDR)
+    mu.reg_write(UC_X86_REG_EBP, STACK_ADDR)
 
 class WinDLL:
     def __init__(self, dllName, base, d32, d64, dExpanded32, dExpanded64, ldrAddr):
