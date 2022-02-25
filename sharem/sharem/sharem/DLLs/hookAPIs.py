@@ -191,7 +191,8 @@ def hook_LdrLoadDll(uc, eip, esp, export_dict, callAddr):
 
 
 def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
-    # print("Using custom function...")
+    print("Using custom VA hook")
+
     lpAddress = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
     lpAddress = unpack('<I', lpAddress)[0]
     dwSize = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
@@ -201,37 +202,18 @@ def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
     flProtect = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+16, 4)
     flProtect = unpack('<I', flProtect)[0]
 
-    success = True
-
     if lpAddress==0:
         lpAddress=0x90050000  # bramwell added--still not working for 0  # maybe because not on main emu page?
     try:
-        # print (lpAddress, type(lpAddress))
-        # uc.mem_map(lpAddress, dwSize)
-        # if flProtect == 0x2:
-        #     uc.mem_map(lpAddress, dwSize, UC_PROT_READ)
-        # elif flProtect == 0x4:
-        # 	uc.mem_map(lpAddress, dwSize, UC_PROT_READ|UC_PROT_WRITE)
-        # elif flProtect == 0x10:
-        #     uc.mem_map(lpAddress, dwSize, UC_PROT_EXEC)
-        # elif flProtect == 0x20:
-        #     uc.mem_map(lpAddress, dwSize, UC_PROT_READ|UC_PROT_EXEC)
-        # elif flProtect == 0x40:
-        #     uc.mem_map(0x80000000, 0x2000)
-        #     print("hi")
-        # else:
-        # 	success = False
-        lol = 2
-    except:
-            # print ("va fail")
-        success = False
-
-    if success == True:
+        uc.mem_map(lpAddress, dwSize)
         retVal = lpAddress
         uc.reg_write(UC_X86_REG_EAX, retVal)
-    else:
+    except:
+        print ("VirtualAlloc Function Failed")
+        success = False
         retVal = 0xbadd0000
         uc.reg_write(UC_X86_REG_EAX, retVal)
+
     if flAllocationType in MemReverseLookUp:
         flAllocationType=MemReverseLookUp[flAllocationType]
     else:
