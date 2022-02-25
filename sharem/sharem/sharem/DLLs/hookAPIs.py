@@ -191,8 +191,6 @@ def hook_LdrLoadDll(uc, eip, esp, export_dict, callAddr):
 
 
 def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
-    print("Using custom VA hook")
-
     lpAddress = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
     lpAddress = unpack('<I', lpAddress)[0]
     dwSize = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
