@@ -33,6 +33,8 @@ class EMU():
         self.maxCounter=500000
         self.maxLoop = 500000
         self.entryOffset=0
+        self.winVersion = "Windows 7"
+        self.winSP = "SP1"
 
 artifacts = []
 net_artifacts = []
@@ -47,9 +49,12 @@ CODE_SIZE = 0x1000
 STACK_ADDR = 0x17000000
 EXTRA_ADDR = 0x18000000
 
+with open(os.path.join(os.path.dirname(__file__), 'WinSysCalls.json'), 'r') as syscall_file:
+    syscall_dict = json.load(syscall_file)
 export_dict = {}
 logged_calls = defaultdict(list)
 loggedList = []
+logged_syscalls = []
 logged_types = defaultdict(list)
 custom_dict = defaultdict(list)
 logged_dlls = []
@@ -140,7 +145,6 @@ def loadDlls(mu):
         except:
             pass
 
-
 def breakLoop(uc, jmpFlag, jmpType, op_str, addr, size):
     # print("Jmp Flag: ", jmpFlag)
     eflags = uc.reg_read(UC_X86_REG_EFLAGS)
@@ -156,6 +160,46 @@ def breakLoop(uc, jmpFlag, jmpType, op_str, addr, size):
     else:
         # print("[*] SKIPPING THE JUMP")
         uc.reg_write(UC_X86_REG_EIP, addr + size)
+
+
+def hook_WindowsAPI(uc, addr, ret, size, funcAddress):
+    global stopProcess
+    global cleanBytes
+
+    ret += size
+    push(uc, ret)
+    eip = uc.reg_read(UC_X86_REG_EIP)
+    esp = uc.reg_read(UC_X86_REG_ESP)
+
+    try:
+        funcName = export_dict[funcAddress][0]
+        dll = export_dict[funcAddress][1]
+        dll = dll[0:-4]
+
+        # Log usage of DLL
+        if dll not in logged_dlls:
+            logged_dlls.append(dll)
+    except:
+        funcName = "DIDNOTFIND- " + str(hex((funcAddress)))
+    try:
+        funcInfo, cleanBytes = globals()['hook_' + funcName](uc, eip, esp, export_dict, addr)
+        logCall(funcName, funcInfo)
+
+    except:
+        try:
+            bprint("hook_default", hex(funcAddress))
+            hook_default(uc, eip, esp, funcAddress, export_dict[funcAddress][0], addr)
+        except:
+            print("\n\tHook failed at " + str(hex(funcAddress)) + ".")
+    if funcName == 'ExitProcess':
+        stopProcess = True
+    if 'LoadLibrary' in funcName and uc.reg_read(UC_X86_REG_EAX) == 0:
+        print("\t[*] LoadLibrary failed. Emulation ceasing.")
+        stopProcess = True
+
+    uc.reg_write(UC_X86_REG_EIP, EXTRA_ADDR)
+
+    return ret
 
 def hook_code(uc, address, size, user_data):
     global cleanBytes, verbose
@@ -199,92 +243,53 @@ def hook_code(uc, address, size, user_data):
         return # terminate func early   --don't comment - we want to see the earlyrror
 
     ret = address
-    address = 0
+    base = 0
 
     # Print out the instruction
     mnemonic=""
     op_str=""
     t=0
-    for i in cs.disasm(shells, address):
+    for i in cs.disasm(shells, base):
         val = i.mnemonic + " " + i.op_str # + " " + shells.hex()
         if t==0:
             mnemonic=i.mnemonic
             op_str=i.op_str
 
         if verbose:
-            shells = uc.mem_read(address, size)
+            shells = uc.mem_read(base, size)
             instructLine += val + '\n'
-            # print(instructLine)
+            print(instructLine)
             outFile.write(instructLine)
             loc = 0
             for i in cs.disasm(shells, loc):
                 val = i.mnemonic + " " + i.op_str
         t+=1
 
-    addr = ret
-
     # If jmp instruction, increment jmp counter to track for infinite loop
     jmpFlag = getJmpFlag(mnemonic)
     if jmpFlag != "":
-        if addr not in jmpInstructs:
-            jmpInstructs[addr] = 1
+        if address not in jmpInstructs:
+            jmpInstructs[address] = 1
         else:
-            jmpInstructs[addr] += 1
+            jmpInstructs[address] += 1
 
-        if jmpInstructs[addr] >= em.maxLoop:
-            breakLoop(uc, jmpFlag, mnemonic, op_str, addr, len(shells))
-            jmpInstructs[addr] = 0
+        if jmpInstructs[address] >= em.maxLoop:
+            breakLoop(uc, jmpFlag, mnemonic, op_str, address, len(shells))
+            jmpInstructs[address] = 0
 
 
-    # Hook usage of Windows API function
     funcAddress = controlFlow(uc, mnemonic, op_str)
 
+    # Hook usage of Windows API function
     if funcAddress > NTDLL_BASE and funcAddress < WTSAPI32_TOP:
-        ret += size
-        push(uc, ret)
-        bprint ("in range", hex(funcAddress))
-        bprint (instructLine)
-        eip = uc.reg_read(UC_X86_REG_EIP)
-        esp = uc.reg_read(UC_X86_REG_ESP)
-        bprint ("funcAddress", hex(funcAddress))
-        funcName = export_dict[funcAddress][0]
+        ret = hook_WindowsAPI(uc, address, ret, size, funcAddress)
 
+    # # Hook usage of Windows Syscall
 
-        try:
-            funcName = export_dict[funcAddress][0]
-        except:
-            funcName="DIDNOTFIND- " + str(hex((funcAddress))) 
-            bprint ("did not find:", funcName)
-        try:
-            bprint ("funcName", hex(funcAddress), funcName)
-            funcInfo, cleanBytes = globals()['hook_'+funcName](uc, eip, esp, export_dict, addr)
-            bprint("funcName2", funcName)
-            logCall(funcName, funcInfo)
-            bprint ("log done")
+    if address == 0:
+        hook_sysCall(uc, address)
 
-            dll = export_dict[funcAddress][1]
-            dll = dll[0:-4]
-
-            # Log usage of DLL
-            if dll not in logged_dlls:
-                logged_dlls.append(dll)
-
-        except:
-            # hook_backup(uc, eip, esp, funcAddress, export_dict[funcAddress])
-            try:
-                bprint ("hook_default", hex(funcAddress))
-                hook_default(uc, eip, esp, funcAddress, export_dict[funcAddress][0], addr)
-            except:
-                print ("\n\tHook failed at " + str(hex(funcAddress))+".")
-        if funcName == 'ExitProcess':
-            stopProcess = True
-        if 'LoadLibrary' in funcName and uc.reg_read(UC_X86_REG_EAX) == 0:
-            print ("\t[*] LoadLibrary failed. Emulation ceasing.")
-            stopProcess = True
-
-        uc.reg_write(UC_X86_REG_EIP, EXTRA_ADDR)
-
-    if addr == 0x1000:
+    if address == 0x1000:
         stopProcess = True
 
     if cleanStackFlag == True:
@@ -294,6 +299,51 @@ def hook_code(uc, address, size, user_data):
     # If parameters were used in the function, we need to clean the stack
     if ret == EXTRA_ADDR:
         cleanStackFlag = True
+
+def hook_syscallDefault(uc, eip, esp, funcAddress, funcName, callLoc):
+    try:
+        apiDict = dict_kernel32[funcName]
+
+        paramVals = getParams(uc, esp, apiDict, 'dict1')
+
+        paramTypes = ['DWORD'] * len(paramVals)
+        paramNames = ['arg'] * len(paramVals)
+
+        retVal = 32
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        funcInfo = (funcName, hex(callLoc), hex(retVal), 'INT', paramVals, paramTypes, paramNames, False)
+        logCall(funcName, funcInfo)
+    except Exception as e:
+        print("Error!", e)
+        print(traceback.format_exc())
+
+def hook_sysCall(uc, address):
+    global logged_dlls
+    global stopProcess
+
+    syscallID = uc.reg_read(UC_X86_REG_EAX)
+    sysCallName = syscall_dict[em.winVersion][em.winSP][str(syscallID)]
+    exportAddress = 0
+    eip = uc.reg_read(UC_X86_REG_EIP)
+    esp = uc.reg_read(UC_X86_REG_ESP)
+
+    try:
+        funcInfo, cleanBytes = globals()['hook_' + sysCallName](uc, eip, esp, address)
+        logCall(sysCallName, funcInfo)
+    except:
+        try:
+            hook_syscallDefault(uc, eip, esp, exportAddress, sysCallName, address)
+        except:
+            print("\n\tHook failed at " + str(hex(exportAddress)) + ".")
+    if sysCallName == 'NtTerminateProcess':
+        stopProcess = True
+    if 'LoadLibrary' in sysCallName and uc.reg_read(UC_X86_REG_EAX) == 0:
+        print("\t[*] LoadLibrary failed. Emulation ceasing.")
+        stopProcess = True
+
+    uc.reg_write(UC_X86_REG_EIP, EXTRA_ADDR)
+    syscall_info = ()
+    logged_syscalls.append(syscall_info)
 
 # Most Windows APIs use stdcall, so we need to clean the stack
 def cleanStack(uc, numBytes):
@@ -305,39 +355,6 @@ def cleanStack(uc, numBytes):
     global cleanBytes
     cleanBytes = 0
 
-def getRetVal2(retVal, retType=""):
-    global rsReverseLookUp
-    retBundle=""
-    if retVal != "None":
-        rIndex=retVal
-        if rIndex in rsReverseLookUp:
-            retBundle=rsReverseLookUp[rIndex]
-        else:
-            retBundle =  retVal
-    else: 
-            retBundle =  retVal
-    if retBundle=="None None":
-        retBundle="None"
-    return retBundle
-
-def findRetVal(funcName, dll):
-    bprint ("findRetVal - funcName", dll)
-    global rsLookUp
-    retValStr=""
-    dictR1 = globals()['dictRS_'+dll]
-    if funcName in dictR1:
-        retValStr= dictR1[funcName]
-        if retValStr in rsLookUp:
-            retVal=rsLookUp[retValStr]
-            return retVal
-        else: 
-            test=isinstance(retValStr,int)
-            if test:
-                return retValStr
-            else:
-                return 32
-    else:
-        return 32
 # Get the parameters off the stack
 def findDict(funcAddress, funcName, dll=None):
     try:
@@ -463,7 +480,7 @@ def hook_default(uc, eip, esp, funcAddress, funcName, callLoc):
 
 def logCall(funcName, funcInfo):
     global paramValues
-    logged_calls[funcName].append(funcInfo)
+    # logged_calls[funcName].append(funcInfo)
     loggedList.append(funcInfo)
     paramValues += funcInfo[4]
 
@@ -510,34 +527,13 @@ def findArtifacts():
 def getArtifacts():
     artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
 
-
-def printCalls():
-    if 2==3:
-        print("[*] All API Calls: ")
-        # print(loggedList)
-
-        print("[*] All DLLs Used: ")
-        for dll in logged_dlls:
-            print("\t\t", dll)
-
-        artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
-        print("[*] Artifacts")
-        for a in artifacts:
-            print("\t\t", a)
-        print("[*] Network Artifacts")
-        for n in net_artifacts:
-            print("\t\t", n)
-        print("[*] File Artifacts")
-        for f in file_artifacts:
-            print("\t\t", f)
-        print("[*] Executable Artifacts")
-        for e in exec_artifacts:
-            print("\t\t", e)
-
 # Test X86 32 bit
 def test_i386(mode, code):
     global artifacts2
     global outFile
+    global cs
+
+    code = b"\x6A\x00\x6A\xFF\xB8\x29\x00\x00\x00\x31\xC9\x8D\x14\x24\x64\xFF\x15\xC0\x00\x00\x00"
 
     try:
     # Initialize emulator
@@ -558,7 +554,6 @@ def test_i386(mode, code):
         push(mu, ENTRY_ADDR)
         mu.mem_write(ENTRY_ADDR, b'\x90\x90\x90\x90')
 
-        global cs
         if mode == UC_MODE_32:
             print(cya + "\n\t[*]" + res2 + " Emulating x86_32 shellcode")
             cs = Cs(CS_ARCH_X86, CS_MODE_32)
@@ -591,55 +586,6 @@ def test_i386(mode, code):
 
     print(cya+"\t[*]"+res2+" CPU counter: " + str(programCounter))
     print(cya+"\t[*]"+res2+" Emulation complete")
-    printCalls()
-
-# Test X86 32 bit
-def debugEmu(mode, code):
-    global artifacts2
-    # Initialize emulator
-    mu = Uc(UC_ARCH_X86, mode)
-
-    mu.mem_map(0x00000000, 0x20050000)
-
-    loadDlls(mu)
-
-    # write machine code to be emulated to memory
-    mu.mem_write(CODE_ADDR, code)
-    mu.mem_write(EXTRA_ADDR, b'\xC3')
-
-    # initialize stack
-    mu.reg_write(UC_X86_REG_ESP, STACK_ADDR)
-    mu.reg_write(UC_X86_REG_EBP, STACK_ADDR)
-
-    # Push entry point addr to top of stack. Represents calling of entry point.
-    push(mu, ENTRY_ADDR)
-    mu.mem_write(ENTRY_ADDR, b'\x90\x90\x90\x90')
-
-    global cs
-    if mode == UC_MODE_32:
-        print(cya+"\n\t[*]"+res2+" Emulating x86_32 shellcode")
-        cs = Cs(CS_ARCH_X86, CS_MODE_32)
-        allocateWinStructs32(mu)
-
-    elif mode == UC_MODE_64:
-        print(cya+"\n\t[*]"+res2+" Emulating x86_64 shellcode")
-        cs = Cs(CS_ARCH_X86, CS_MODE_64)
-        allocateWinStructs64(mu)
-
-    # tracing all instructions with customized callback
-    mu.hook_add(UC_HOOK_CODE, hook_code)
-
-    # emulate machine code in infinite time
-    mu.emu_start(CODE_ADDR + em.entryOffset, CODE_ADDR + len(code))
-
-    outFile.close()
-
-    # now print out some registers
-    artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
-
-    print(cya+"\t[*]"+res2+" CPU counter: " + str(programCounter))
-    print(cya+"\t[*]"+res2+" Emulation complete")
-    printCalls()
 
 def startEmu(arch, data, vb):
     global verbose
