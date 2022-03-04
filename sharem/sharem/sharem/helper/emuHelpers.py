@@ -3,6 +3,7 @@ from struct import pack, unpack
 from unicorn import *
 from ..DLLs.dict4_ALL import *
 import re
+import binascii
 import pefile
 import os
 import sys
@@ -506,3 +507,10 @@ def getRetVal2(retVal, retType=""):
     if retBundle=="None None":
         retBundle="None"
     return retBundle
+
+def buildPtrString (pointer, val):
+    return hex(pointer) + " -> " + hex(val)
+
+def getPointerVal(uc, pointer):
+    val = uc.mem_read(pointer, 4)
+    return unpack('<I', val)[0]

@@ -8,6 +8,7 @@ TIB_ADDR = 0x00000000
 TIB_SIZE = 0x100
 PEB_LIMIT = 0x208
 CONST_ADDR = 0x20000000
+FAST_ADDR = 0x5000
 
 LDR_ADDR = 0x11020000
 LDR_PROG_ADDR = 0x11021000
@@ -256,9 +257,10 @@ class LDR_Module64():
 
 def allocateWinStructs32(mu):
     # Put location of PEB at FS:30
+    mu.mem_write(TIB_ADDR, b'\x00\x00\x00' + b'\x90'*0x2d + pack("<Q", PEB_ADDR) + b'\x90'*0x88 + pack("<Q", FAST_ADDR))
     mu.mem_write((PEB_ADDR-10), b'\x4a\x41\x43\x4f\x42\x41\x41\x41\x41\x42')
+    mu.mem_write(FAST_ADDR, b'\x90\x90\x90\x90')
 
-    mu.mem_write(TIB_ADDR, b'\x00\x00\x00' + b'\x90'*0x2d + pack("<Q", PEB_ADDR))
 
     # Create PEB data structure. Put pointer to ldr at offset 0xC
     mu.mem_write(PEB_ADDR, b'\x90'*0xc + pack("<Q", LDR_ADDR) + b'\x90'*0x1fc)

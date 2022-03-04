@@ -3,13 +3,13 @@ from struct import pack, unpack
 from ..modules import allDllsDict
 from ..helper.emuHelpers import *
 import sys
+import traceback
+
 FakeProcess=0xbadd0000
-
 ProcessCreationReverseLookUp = {16777216: 'CREATE_BREAKAWAY_FROM_JOB', 67108864: 'CREATE_DEFAULT_ERROR_MODE', 16: 'CREATE_NEW_CONSOLE', 512: 'CREATE_NEW_PROCESS_GROUP', 134217728: 'CREATE_NO_WINDOW', 262144: 'CREATE_PROTECTED_PROCESS', 33554432: 'CREATE_PRESERVE_CODE_AUTHZ_LEVEL', 4194304: 'CREATE_SECURE_PROCESS', 2048: 'CREATE_SEPARATE_WOW_VDM', 4096: 'CREATE_SHARED_WOW_VDM', 4: 'CREATE_SUSPENDED', 1024: 'CREATE_UNICODE_ENVIRONMENT', 2: 'DEBUG_ONLY_THIS_PROCESS', 1: 'DEBUG_PROCESS', 8: 'DETACHED_PROCESS', 524288: 'EXTENDED_STARTUPINFO_PRESENT', 65536: 'INHERIT_PARENT_AFFINITY'}
-
-
 MemLookUp = {'MEM_COMMIT | MEM_RESERVE':'0x3000', 'MEM_COMMIT': '0x1000', 'MEM_FREE': '0x10000', 'MEM_RESERVE': '0x2000', 'MEM_IMAGE': '0x1000000', 'MEM_MAPPED': '0x40000', 'MEM_PRIVATE': '0x20000', 'PAGE_EXECUTE': '0x10', 'PAGE_EXECUTE_READ': '0x20', 'PAGE_EXECUTE_READWRITE': '0x40', 'PAGE_EXECUTE_WRITECOPY': '0x80', 'PAGE_NOACCESS': '0x01', 'PAGE_READONLY': '0x02', 'PAGE_READWRITE': '0x04', 'PAGE_TARGETS_INVALID': '0x40000000', 'PAGE_TARGETS_NO_UPDATE': '0x40000000'}
 MemReverseLookUp = {0x3000:'MEM_COMMIT | MEM_RESERVE', 4096: 'MEM_COMMIT', 65536: 'MEM_FREE', 8192: 'MEM_RESERVE', 16777216: 'MEM_IMAGE', 262144: 'MEM_MAPPED', 131072: 'MEM_PRIVATE', 16: 'PAGE_EXECUTE', 32: 'PAGE_EXECUTE_READ', 64: 'PAGE_EXECUTE_READWRITE', 128: 'PAGE_EXECUTE_WRITECOPY', 1: 'PAGE_NOACCESS', 2: 'PAGE_READONLY', 4: 'PAGE_READWRITE', 1073741824: 'PAGE_TARGETS_NO_UPDATE'}
+availMem = 0x30000000
 
 
 # Custom hook for GetProcAddress. Loops through the export dictionary we created, 
@@ -517,6 +517,73 @@ def hook_NtTerminateProcess(uc, eip, esp, callAddr):
     cleanBytes = 8
     retVal = 1
 
-    # FINISH THIS LATER
     logged_calls = ("NtTerminateProcess", hex(callAddr), hex(retVal), 'INT', [hex(handle), hex(ntstatus)], ['HANDLE', 'NTSTATUS'], ['ProcessHandle', 'ExitStatus'], False)
+    return logged_calls, cleanBytes
+
+def hook_NtAllocateVirtualMemory(uc, eip, esp, callAddr):
+    global availMem
+
+    processHandle = uc.mem_read(esp+4, 4)
+    processHandle = unpack('<I', processHandle)[0]
+    baseAddress = uc.mem_read(esp+8, 4)
+    baseAddress = unpack('<I', baseAddress)[0]
+    zeroBits = uc.mem_read(esp+12, 4)
+    zeroBits = unpack('<I', zeroBits)[0]
+    regionSize = uc.mem_read(esp+16, 4)
+    regionSize = unpack('<I', regionSize)[0]
+    allocationType = uc.mem_read(esp + 20, 4)
+    allocationType = unpack('<I', allocationType)[0]
+    protect = uc.mem_read(esp + 24, 4)
+    protect = unpack('<I', protect)[0]
+
+    # Get pointer values
+    allocLoc = getPointerVal(uc, baseAddress)
+    size = getPointerVal(uc, regionSize)
+
+    retVal = 0
+    try:
+        uc.mem_map(allocLoc, size)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        tmp = uc.mem_read(baseAddress, 4)
+        tmp = unpack('<I', tmp)[0]
+        print("hi: ", tmp)
+    except Exception as e:
+        print("Error: ", e)
+        print(traceback.format_exc())
+        try:
+            allocLoc = availMem
+            uc.mem_map(allocLoc, size)
+            availMem += (regionSize + 20)
+            uc.reg_write(UC_X86_REG_EAX, retVal)
+            uc.mem_write(baseAddress, pack("<Q", allocLoc))
+
+            tmp = uc.mem_read(baseAddress, 4)
+            tmp = unpack('<I', tmp)[0]
+            print("hi: ", hex(tmp))
+        except Exception as e:
+            print("Error: ", e)
+            print(traceback.format_exc())
+            print ("VirtualAlloc Function Failed")
+            success = False
+            retVal = 0xbadd0000
+            uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    if allocationType in MemReverseLookUp:
+        flAllocationType=MemReverseLookUp[allocationType]
+    else:
+        flAllocationType = hex(allocationType)
+
+    if protect in MemReverseLookUp:
+        flProtect=MemReverseLookUp[protect]
+    else:
+        flProtect = hex(protect)
+
+    baseAddress = buildPtrString(baseAddress, allocLoc)
+    regionSize = buildPtrString(regionSize, size)
+
+    logged_calls = ("NtAllocateVirtualMemory", hex(callAddr), hex(retVal), 'INT', [hex(processHandle), baseAddress, hex(zeroBits), regionSize, hex(allocationType), hex(protect)], ['HANDLE', 'PVOID', 'ULONG_PTR', 'PSIZE_T', 'ULONG', 'ULONG'], ['ProcessHandle', '*BaseAddress', 'ZeroBits', '*RegionSize', 'AllocationType', 'Protect'], False)
+
+    cleanBytes = 16
+
     return logged_calls, cleanBytes
