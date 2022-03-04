@@ -34,7 +34,6 @@ class EMU():
         self.maxLoop = 500000
         self.entryOffset=0
 
-# maxCounter = 100
 artifacts = []
 net_artifacts = []
 file_artifacts = []
@@ -77,8 +76,6 @@ MAX_LOOP = 5000000
 
 
 colorama.init()
-# readRegs()
-# testingAssembly()
 
 red ='\u001b[31;1m'
 gre = '\u001b[32;1m'
@@ -171,15 +168,14 @@ def hook_code(uc, address, size, user_data):
     global loopInstructs
     global loopCounter
     global traversedAdds
-    # global maxCounter
     funcName = ""
     # traversedAdds.add(address) # do not delete
     if stopProcess == True:
         uc.emu_stop()
 
     # Make sure current address is in proper range
-    if address < 0x12000000 or address > 0x18000000:
-        uc.emu_stop()
+    # if address < 0x12000000 or address > 0x18000000:
+    #     uc.emu_stop()
 
     programCounter += 1
     if programCounter > em.maxCounter:
@@ -218,6 +214,7 @@ def hook_code(uc, address, size, user_data):
         if verbose:
             shells = uc.mem_read(address, size)
             instructLine += val + '\n'
+            # print(instructLine)
             outFile.write(instructLine)
             loc = 0
             for i in cs.disasm(shells, loc):
@@ -343,9 +340,6 @@ def findRetVal(funcName, dll):
         return 32
 # Get the parameters off the stack
 def findDict(funcAddress, funcName, dll=None):
-    # Dict3 #####      'GetProcAddress': (2, ['HMODULE', 'LPCSTR']
-    # Dict2 #####      'GetProcAddress': (2, ['HMODULE', 'LPCSTR']
-    # Dict1 #####      'GetProcAddress': (2, 8, '.', True)
     try:
         global cleanBytes
         if dll == None:
@@ -386,8 +380,6 @@ def findDict(funcAddress, funcName, dll=None):
         else:
             bprint ("NOT FOUND!")
             return "none", "none", dll
-            # if dll.lower()=="wsock32":
-            #     findDict(funcAddress, funcName, "ws2_32")
     except Exception as e:
         bprint("Oh no!!!", e)
         bprint(traceback.format_exc())
@@ -396,7 +388,6 @@ def getParams(uc, esp, apiDict, dictName):
     global cleanBytes
 
     paramVals = []
-
 
     if dictName == 'dict1':
         numParams = apiDict[0]
@@ -547,11 +538,10 @@ def printCalls():
 def test_i386(mode, code):
     global artifacts2
     global outFile
+
     try:
     # Initialize emulator
-
         mu = Uc(UC_ARCH_X86, mode)
-
         mu.mem_map(0x00000000, 0x20050000)
 
         loadDlls(mu)
@@ -585,8 +575,7 @@ def test_i386(mode, code):
     except Exception as e:
         print(e)
 
-    # emulate machine code in infinite time
-    try:    
+    try:
         mu.emu_start(CODE_ADDR + em.entryOffset, CODE_ADDR + len(code))
     except Exception as e:
         print("\t",e)
@@ -642,6 +631,8 @@ def debugEmu(mode, code):
 
     # emulate machine code in infinite time
     mu.emu_start(CODE_ADDR + em.entryOffset, CODE_ADDR + len(code))
+
+    outFile.close()
 
     # now print out some registers
     artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
