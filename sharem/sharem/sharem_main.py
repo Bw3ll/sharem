@@ -13146,6 +13146,7 @@ def disHereShellcurrentgood(data,offset, end, mode, CheckingForDB, bit): #   LAT
 	global o
 	w=0
 
+	#Bramwell
 	try:
 		address=offset
 	except:
