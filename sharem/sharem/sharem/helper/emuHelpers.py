@@ -465,19 +465,17 @@ def bprint(*args):
         except Exception as e:
             print ("dprint error: 3")
             print (e)
-            print(traceback.format_exc())
             print (args)
 
-def findRetVal(funcName, dll):
-    bprint ("findRetVal - funcName", dll)
-    rsLookUp = {'S_OK': 0x00000000, 'E_ABORT': 0x80004004, 'E_ACCESSDENIED': 0x80070005, 'E_FAIL': 0x80004005,
+def findRetVal(funcName, rs_dict):
+    rsLookUp = {'S_OK': 0x00000000, 'STATUS_SUCCESS': 0x00000000, 'E_ABORT': 0x80004004, 'E_ACCESSDENIED': 0x80070005, 'E_FAIL': 0x80004005,
                 'E_HANDLE': 0x80070006, 'E_INVALIDARG': 0x80070057, 'E_NOINTERFACE': 0x80004002,
                 'E_NOTIMPL': 0x80004001, 'E_OUTOFMEMORY': 0x8007000E, 'E_POINTER': 0x80004003,
                 'E_UNEXPECTED': 0x8000FFFF}
     retValStr=""
-    dictR1 = globals()['dictRS_'+dll]
-    if funcName in dictR1:
-        retValStr= dictR1[funcName]
+
+    if funcName in rs_dict:
+        retValStr= rs_dict[funcName]
         if retValStr in rsLookUp:
             retVal=rsLookUp[retValStr]
             return retVal
@@ -490,7 +488,7 @@ def findRetVal(funcName, dll):
     else:
         return 32
 
-def getRetVal2(retVal, retType=""):
+def getRetVal(retVal, retType=""):
     rsReverseLookUp = {0x00000000: 'S_OK', 0x80004001: 'E_NOTIMPL', 0x80004002: 'E_NOINTERFACE',
                        0x80004003: 'E_POINTER', 0x80004004: 'E_ABORT', 0x80004005: 'E_FAIL', 0x8000FFFF: 'E_UNEXPECTED',
                        0x80070005: 'E_ACCESSDENIED', 0x80070006: 'E_HANDLE', 0x8007000E: 'E_OUTOFMEMORY',
