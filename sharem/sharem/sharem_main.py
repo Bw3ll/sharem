@@ -2688,6 +2688,7 @@ total1 = 0
 total2 = 0
 def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ##############
 	dprint2 ("disHerePEB", mode)
+	# print("disherepeb HERE")
 	global o
 	global pebPoints
 	w=0
@@ -2860,7 +2861,8 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 			return address , NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, (loadModList_offset, listEntryText	), advanceDLL_Offset
 		# print("SAVING PEB SEQUENCE: PEBPOINTS = ", pebPoints, "FOUND ", points, " POINTS")
 		# print(disString)
-		saveBasePEBWalk(address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, (loadModList_offset, listEntryText	), advanceDLL_Offset)
+		# print("saveBasePEBWalk", address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, (loadModList_offset, listEntryText	), advanceDLL_Offset)
+		saveBasePEBWalk_64(address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, (loadModList_offset, listEntryText	), advanceDLL_Offset)
 
 		# if(rawHex):
 		# 	m[o].save_PEB_info = helperListToSet(m[o].save_PEB_info)
@@ -2868,7 +2870,195 @@ def disHerePEB(mode, address, NumOpsDis, secNum, data): ############ AUSTIN ####
 		# 	print("Length peb_info", len(s[secNum].save_PEB_info), s[secNum].save_PEB_info)
 		# 	s[secNum].save_PEB_info =helperListToSet(s[secNum].save_PEB_info)
 
+
+
+
 def disHerePEB_64(address, NumOpsDis, secNum, data): ############## AUSTIN ####################
+	# print ("disHerePEB_64")
+	# print("Address", address, "NumOpsDis", NumOpsDis, "SecNum", secNum)
+	# input()
+
+	global o
+	global pebPoints
+
+	w=0
+
+	foundAdv = False
+	foundPEB = False
+	foundLDR = False
+	listEntryText = ""
+	## Capstone does not seem to allow me to start disassemblying at a given point, so I copy out a chunk to  disassemble. I append a 0x00 because it does not always disassemble correctly (or at all) if just two bytes. I cause it not to be displayed through other means. It simply take the starting address of the jmp [reg], disassembles backwards, and copies it to a variable that I examine more closely.
+	#lGoBack = linesGoBackFindOP
+
+	CODED2 = ""
+	x = NumOpsDis
+	# start = timeit.default_timer()
+	if(secNum != "noSec"):
+		section = s[secNum]
+
+	CODED2 = data[address:(address+NumOpsDis)]
+		#print("########################")
+	#	print(type(CODED2))
+	#	print("########################")
+	#
+	# stop = timeit.default_timer()
+	# total1 += (stop - start)
+	# print("Time 1 PEB: " + str(stop - start))
+
+	# I create the individual lines of code that will appear>
+	# print(len(CODED2))
+	val =""
+	val2 = []
+	val3 = []
+	#address2 = address + section.ImageBase + section.VirtualAdd
+	val5 =[]
+
+	# start = timeit.default_timer()
+	#CODED3 = CODED2.encode()
+	CODED3 = CODED2
+
+	for i in cs64.disasm(CODED3, address):
+
+		if(secNum == "noSec"):
+
+			dprint2("i = " + str(i) + " i.mnemonic = " + str(i.mnemonic))
+			# add = hex(int(i.address))
+			add4 = hex(int(i.address))
+			addb = hex(int(i.address))
+		else:
+			add = hex(int(i.address))
+			addb = hex(int(i.address +  section.VirtualAdd))
+			add2 = str(add)
+			add3 = hex (int(i.address + section.startLoc	))
+			add4 = str(add3)
+		val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")\n"
+		# val2.append(val)
+		# val3.append(add2)
+		val5.append(val)
+		# print (val)
+	#return val5
+	# stop = timeit.default_timer()
+	# total2 += (stop - start)
+	# print("Time 2 PEB: " + str(stop - start))
+
+	# for each in val5:
+		# print ("\t", each)
+	loadTIB_offset = -1
+	loadLDR_offset = -1
+	loadModList_offset = -1
+	advanceDLL_Offset = [-1]
+	points = 0
+	disString = val5
+	for line in disString:
+		##############################################
+
+		loadPEB = re.match("^((mov)|(add)|(xor)|(or)|(adc)|(xchg)) ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15)))), ?((q|d)?word ptr gs:\[(((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15)))) ?\+ ?)?0x60)\]", line, re.IGNORECASE)
+
+
+		# if movLoadPEB:
+			# print("FFFFFFFFFFFFFFFFFFFFFFFFFFFFOOOOOOOOOOOOOUND!!!")
+		if(loadPEB):
+			loadTIB_offset = addb
+			foundPEB = True
+			points += 1
+		elif(not foundPEB):
+			return
+			
+
+		##############################################
+
+
+		loadLDR = re.match("^((mov)|(add)|(xor)|(or)|(adc)|(xchg)) ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15)))), ?((q|d)word ptr ?(ds:)?\[((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15)))) ?\+ ?(0x18)\])", line, re.IGNORECASE)
+
+		if(loadLDR):
+			loadLDR_offset = addb
+			points += 1
+			foundLDR = True
+	
+		loadInLoadOrder = re.match("^((mov)|(add)|(xor)|(or)|(adc)|(xchg)) ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15)))), ?((q|d)word ptr ?(ds:)?\[((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15)))) ?\+ ?(0x10)\])", line, re.IGNORECASE)
+
+		if(loadInLoadOrder):
+			loadModList_offset = addb
+			points += 1
+			listEntryText = "LIST_ENTRY InLoadOrderModuleList"
+
+		loadInMemOrder = re.match("^((mov)|(add)|(xor)|(or)|(adc)|(xchg)) ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15)))), ?((q|d)word ptr ?(ds:)?\[((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15)))) ?\+ ?(0x20)\])", line, re.IGNORECASE)
+
+		if(loadInMemOrder):
+			loadModList_offset = addb
+			points += 1
+			listEntryText = "LIST_ENTRY InMemoryOrderModuleList"
+
+		loadInInitOrder = re.match("^((mov)|(add)|(xor)|(or)|(adc)|(xchg)) ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15)))), ?((q|d)word ptr ?(ds:)?\[((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15)))) ?\+ ?(0x30)\])", line, re.IGNORECASE)
+
+		if(loadInInitOrder):
+			loadModList_offset = addb
+			points += 1
+			listEntryText = "LIST_ENTRY InInitializationOrderModuleList"
+
+
+		###############################################	
+
+		dereference = re.match("^((mov)|(add)|(xor)|(or)|(adc)|(xchg))  ((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15)))), ?((d|q)word ptr ?(ds:)?\[((e|r)((ax)|(bx)|(cx)|(dx)|(di)|(si)|(bp))|(r((9)|(10)|(11)|(12)|(13)|(14)|(15))))\])", line, re.IGNORECASE)
+
+
+		if(dereference):
+			advanceDLL_Offset_temp = addb
+			if(not foundAdv):
+				advanceDLL_Offset[0] = advanceDLL_Offset_temp
+				foundAdv = True
+				points += 1
+			else:
+				advanceDLL_Offset.append(advanceDLL_Offset_temp)
+
+
+		###############################################
+
+		lod = re.match("^(lodsq)|(lodsd)", line, re.IGNORECASE)
+
+		if(lod):
+			advanceDLL_Offset_temp = addb
+			if(not foundAdv):
+				advanceDLL_Offset[0] = advanceDLL_Offset_temp
+				foundAdv = True
+				points += 1
+			else:
+				advanceDLL_Offset.append(advanceDLL_Offset_temp)
+	# pebPresent = True
+	# print(pebPoints, type(pebPoints))
+	# input()
+
+	if(points >= pebPoints):
+		if(rawHex):
+			modSecName = peName
+		else:
+			modSecName = section.sectionName
+		# print("SAVING PEB SEQUENCE: PEBPOINTS = ", pebPoints, "FOUND ", points, " POINTS")
+		# print(disString)
+		print("saveBasePEBWalk", address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, (loadModList_offset, listEntryText	), advanceDLL_Offset)
+		saveBasePEBWalk(address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, (loadModList_offset, listEntryText	), advanceDLL_Offset)
+
+
+
+	# if not pebPresent:
+
+	# 	if(points >= pebPoints):
+	# 		if rawHex:
+	# 			modSecName = 'N/A'
+	# 		else:
+	# 			modSecName = section.sectionName
+	# 		saveBasePEBWalk_64(address, NumOpsDis, modSecName, secNum, points)
+	# else:
+
+	# 	if(points >= pebPoints and pebFound):
+	# 		if rawHex:
+	# 			modSecName = 'N/A'
+	# 		else:
+	# 			modSecName = section.sectionName
+	# 		saveBasePEBWalk_64(address, NumOpsDis, modSecName, secNum, points)
+
+
+def disHerePEB_64_old(address, NumOpsDis, secNum, data): ############## AUSTIN ####################
 	# print ("disHerePEB_64")
 	# print("Address", address, "NumOpsDis", NumOpsDis, "SecNum", secNum)
 	# input()
@@ -3081,22 +3271,16 @@ def checkBasePEBWalk_64(address, NumOpsDis,modSecName,secNum, points): #########
 	return Good
 
 
-def saveBasePEBWalk_64(address, NumOpsDis,modSecName,secNum, points): ############## AUSTIN ####################
-	#print "saving"
-	#save virtaul address as well
-
-	
-	check = tuple((address,NumOpsDis,modSecName,secNum,points))
+def saveBasePEBWalk_64(address, NumOpsDis,modSecName,secNum, points, loadTIB_offset, loadLDR_offset, loadModList_offset, advanceDLL_Offset): ############## AUSTIN ####################
+	peb_data = tuple((address,NumOpsDis,modSecName,secNum,points,loadTIB_offset,loadLDR_offset,loadModList_offset,advanceDLL_Offset))
 
 	if(secNum != "noSec"):
-		if check not in s[secNum].save_PEB_info:
-		# checkBasePEBWalk_64(address, NumOpsDis,modSecName,secNum, points)
-			s[secNum].save_PEB_info.append(tuple((address,NumOpsDis,modSecName,secNum,points)))
+		if peb_data not in s[secNum].save_PEB_info:
+			s[secNum].save_PEB_info.append(tuple((address,NumOpsDis,modSecName,secNum,points,loadTIB_offset,loadLDR_offset,loadModList_offset,advanceDLL_Offset)))
 	else:
-		if check not in m[o].save_PEB_info:
-			secNum = -1
-			modSecName = "rawHex"
-			m[o].save_PEB_info.append(tuple((address,NumOpsDis,modSecName,secNum,points)))
+		secNum = -1
+		modSecName = "rawHex"
+		m[o].save_PEB_info.append(tuple((address,NumOpsDis,modSecName,secNum,points,loadTIB_offset,loadLDR_offset,loadModList_offset,advanceDLL_Offset)))
 # print ("#############################################################################")
 
 
@@ -3114,7 +3298,12 @@ def printSavedPEB(): ######################## AUSTIN ###########################
 		for item in m[o].save_PEB_info:
 			# print("-----------------> ",item)
 
-			mods = ', '.join(item[7])
+			mods = item[7]
+			if -1 in mods:
+				mods = 'N/A'
+			else:
+				if(len(mods) > 1):
+					mods = ', '.join(item[7])
 			adv = item[8]
 			# input()
 			if -1 in adv:
@@ -3184,12 +3373,18 @@ def printSavedPEB(): ######################## AUSTIN ###########################
 			h += 1
 			# print("PRINTING SECTION " + str(h))
 			for item in section.save_PEB_info:
-				mods = item[7]
-				if -1 in mods:
+				# print("------------->",item)
+				try:
+					mods = item[7]
+					if -1 in mods:
+						mods = 'N/A'
+					else:
+						if(len(mods) > 1):
+							mods = ', '.join(item[7])
+				except Exception as e:
+					# print(e)
 					mods = 'N/A'
-				else:
-					if(len(mods) > 1):
-						mods = ', '.join(item[7])
+					pass
 				# input()
 				
 				CODED2 = ""
@@ -3197,14 +3392,27 @@ def printSavedPEB(): ######################## AUSTIN ###########################
 
 				print("OFFSETS: ")
 				print("PEBWALKSTART = " + mag +str(hex(item[0])) + res)
-				print("TIB = " + mag + str(item[5])+res)
-				print("LDR = " + mag +str(item[6])+res)
-				print("MODS = " + mag + str(mods)+res)
+				if(len(item) > 5):
+					try:
+						print("TIB = " + mag + str(item[5])+res)
+					except:
+						pass
+					try:
+						print("LDR = " + mag +str(item[6])+res)
+					except:
+						pass
+					try:
+						print("MODS = " + mag + str(mods)+res)
+					except:
+						pass
+					try:
+						for adv in item[8]:
+							if adv == -1:
+									adv = 'N/A'
+							print("Adv = " + mag + str(adv)+res)
+					except:
+						pass
 
-				for adv in item[8]:
-					if adv == -1:
-							adv = 'N/A'
-					print("Adv = " + mag + str(adv)+res)
 
 				address = item[0]
 				NumOpsDis = item[1]
@@ -3256,10 +3464,43 @@ def printSavedPEB(): ######################## AUSTIN ###########################
 
 
 def printSavedPEB_64(): ############## AUSTIN ####################
-	#formatting
+		#formatting
+	#global m[o].rawData2
+
+	dprint2 ("printSavedPEB", len(m[o].rawData2))
+	dprint2 ("m[o].save_PEB_info", len(m[o].save_PEB_info))
+	dprint2 ("rawhex", rawHex)
 	j = 0
+
+
 	if(rawHex):
 		for item in m[o].save_PEB_info:
+			# print("-----------------> ",item)
+
+			mods = item[7]
+			if -1 in mods:
+				mods = 'N/A'
+			else:
+				if(len(mods) > 1):
+					mods = ', '.join(item[7])
+			adv = item[8]
+			# input()
+			if -1 in adv:
+				adv = 'N/A'
+			else:
+				if(len(adv) > 1):
+					adv = ', '.join(str(adv))
+				else:
+					adv = str(adv[0])
+			print("OFFSETS: ")
+
+			print("PEB WALKING START = " + mag +str(hex(item[0])) + res)
+			print("TIB = " + mag + str(item[5])+res)
+			print("LDR = " + mag + str(item[6])+res)
+			print("MODS = " + mag + str(mods)+res)
+			print("Adv = " + mag + str(adv)+res)
+
+
 			CODED2 = b""
 
 			address = item[0]
@@ -3270,27 +3511,25 @@ def printSavedPEB_64(): ############## AUSTIN ####################
 
 			CODED2 = m[o].rawData2[address:(address+NumOpsDis)]
 
-			outString = yel + "\n\nItem: " + str(j) + " | Points: " + str(points) + res
+			outString = "\n\nItem: " + str(j) + " | Points: " + str(points)
 			if(secNum != -1):
 
-				outString += yel + " | Section: " + str(secNum) + " | Section name: " + modSecName + res
+				outString += " | Section: " + str(secNum) + " | Section name: " + str(modSecName)
 				# if(secNum != 0):
 				# 	trash = raw_input("enter...")
-					
+				
 			else:
-				outString += yel + " | Module: " + cya + modSecName + res
+				outString += " | Module: " + modSecName
 
 			print ("\n******************************************************************************")
-			print ( outString )
+			print (yel + outString + res)
 			print ("\n")
 			val =""
 			val2 = []
 			val3 = []
 			#address2 = address + section.ImageBase + section.VirtualAdd
 			val5 =[]
-
-
-			for i in cs64.disasm(CODED2, address):
+			for i in cs.disasm(CODED2, address):
 				if(rawHex):
 					add4 = hex(int(i.address))
 					addb = hex(int(i.address))
@@ -3303,9 +3542,6 @@ def printSavedPEB_64(): ############## AUSTIN ####################
 				val = formatPrint(i, add4, addb)
 
 				# val =  gre + i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + cya + " (offset " + addb + ")\n" + res
-				# val2.append(val)
-		# val3.append(add2)
-		# val5.append(val)
 				print (val)
 	#return val5
 			print ("\n")
@@ -3314,11 +3550,48 @@ def printSavedPEB_64(): ############## AUSTIN ####################
 		h = 0
 		for section in s:
 			h += 1
-			
 			# print("PRINTING SECTION " + str(h))
-			w=0
 			for item in section.save_PEB_info:
+				print("------------->",item)
+				try:
+					mods = item[7]
+					if -1 in mods:
+						mods = 'N/A'
+					else:
+						if(len(mods) > 1):
+							mods = ', '.join(item[7])
+				except Exception as e:
+					# print(e)
+					mods = 'N/A'
+					pass
+				# input()
+				
 				CODED2 = ""
+
+
+				print("OFFSETS: ")
+				print("PEBWALKSTART = " + mag +str(hex(item[0])) + res)
+				if(len(item) > 5):
+					try:
+						print("TIB = " + mag + str(item[5])+res)
+					except:
+						pass
+					try:
+						print("LDR = " + mag +str(item[6])+res)
+					except:
+						pass
+					try:
+						print("MODS = " + mag + str(mods)+res)
+					except:
+						pass
+					try:
+						for adv in item[8]:
+							if adv == -1:
+									adv = 'N/A'
+							print("Adv = " + mag + str(adv)+res)
+					except:
+						pass
+
 
 				address = item[0]
 				NumOpsDis = item[1]
@@ -3328,7 +3601,6 @@ def printSavedPEB_64(): ############## AUSTIN ####################
 
 				section = s[secNum]
 
-				# outString = "h: "+str(h) +"w: "+str(w)+
 				outString = "\n\nItem: " + str(j) + " | Points: " + str(points)
 				if(secNum != -1):
 
@@ -3340,7 +3612,7 @@ def printSavedPEB_64(): ############## AUSTIN ####################
 					outString += " | Module: " + modSecName
 
 				print ("\n******************************************************************************")
-				print (outString)
+				print (yel + outString + res)
 				print ("\n")
 				val =""
 				val2 = []
@@ -3351,7 +3623,7 @@ def printSavedPEB_64(): ############## AUSTIN ####################
 				CODED2 = section.data2[address:(address+NumOpsDis)]
 
 				CODED3 = CODED2
-				for i in cs64.disasm(CODED3, address):
+				for i in cs.disasm(CODED3, address):
 					add = hex(int(i.address))
 					addb = hex(int(i.address +  section.VirtualAdd))
 					add2 = str(add)
@@ -3359,14 +3631,13 @@ def printSavedPEB_64(): ############## AUSTIN ####################
 					add4 = str(add3)
 					val = formatPrint(i, add4, addb, pe=True)
 
-					# val =  i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + " (offset " + addb + ")"
+					# val =  gre + i.mnemonic + " " + i.op_str + "\t\t\t\t"  + add4 + cya + " (offset " + addb + ")" + res
 					val2.append(val)
 					val3.append(add2)
 					val5.append(val)
-					print (val)
+					print (gre + val + res)
 				print ("\n")
 				j += 1
-				w+=1
 				# print str(type(m[o].data2))
 				# trash = raw_input("enter...")
 
@@ -3472,8 +3743,9 @@ def disHerePushRet(address, NumOpsDis, secNum, data): ##########################
 
 		ret = re.match("^ret", val, re.IGNORECASE)
 		retf = re.match("^retf", val, re.IGNORECASE)
+		retNum = re.match("^ret [0-9a-f]", val, re.IGNORECASE)
 
-		if(ret and not retf and foundPush):
+		if(ret and not retf and not retNum and foundPush):
 			# print("Found Ret: ", val, addb)
 			# input()
 			foundRet = True
@@ -3566,7 +3838,10 @@ def disHerePushRet64(address, NumOpsDis, secNum, data): ########################
 			foundPush = True
 			pushOffset = addb
 		ret = re.match("^ret", val, re.IGNORECASE)
-		if(ret):
+		retf = re.match("^retf", val, re.IGNORECASE)
+		retNum = re.match("^ret [0-9a-f]", val, re.IGNORECASE)
+
+		if(ret and not retf and not retNum and foundPush):
 			foundRet = True
 			# points += 1
 			retOffset = addb
@@ -6654,7 +6929,13 @@ def disHereSyscall(address, NumOpsDis, NumOpsBack, secNum, data): ############ A
 	if(secNum != "noSec"):
 		section = s[secNum]
 
-
+	#this setting allows us to filter out some rare edge case bugs. Using Cs() instead of copying cs var so it doesn't leave lasting problems
+	if(bit32):
+		syscallCs = Cs(CS_ARCH_X86, CS_MODE_32)
+	else:
+		syscallCs = Cs(CS_ARCH_X86, CS_MODE_64)
+	syscallCs.skipdata = True
+	syscallCs.skipdata_setup = ("bad instruction", None, None)
 	# dprint2("------------------------------------")
 	for back in range(NumOpsBack):
 		unlikely = 0
@@ -6682,7 +6963,7 @@ def disHereSyscall(address, NumOpsDis, NumOpsBack, secNum, data): ############ A
 		# dprint2("BINARY2STR")
 		# dprint2(binaryToStr(CODED3))
 		# dprint2("******************************************")
-		for i in cs.disasm(CODED3, address):
+		for i in syscallCs.disasm(CODED3, address):
 			#dprint2('address in for = ' + str(address))
 			if(secNum == "noSec"):
 
@@ -6718,17 +6999,19 @@ def disHereSyscall(address, NumOpsDis, NumOpsBack, secNum, data): ############ A
 				c0_match = True
 				c0_offset = line.split()[-1]
 				c0_offset = c0_offset[:-1]
-				# print ("got one syscall", line)
 
 			byte = re.search("byte ptr", line, re.IGNORECASE)
 			insd = re.search("insd", line, re.IGNORECASE)
 			outsd = re.search("outsd", line, re.IGNORECASE)
 			# longNum = re.search("(0x)([0-9a-f]){6,}", line, re.IGNORECASE)
 			longNum = re.search("\[?(0x)([0-9a-f]){6,}\]", line, re.IGNORECASE)
-
+			badInstruction = re.search("bad instruction", line, re.IGNORECASE)
 			#adc eax, dword[0xe0ff42]
 			#dword ptr [eax + 0xe0ff4212]
 			#dword ptr [0xe0ff4212]
+
+			if(badInstruction):
+				unlikely = 999
 			if(byte or insd or longNum or outsd):
 				unlikely = unlikely + 1
 
@@ -6765,7 +7048,12 @@ def disHereSyscall(address, NumOpsDis, NumOpsBack, secNum, data): ############ A
 
 					# if(eax != "unknown"):
 					# 	dprint2("TrackRegs found eax = " + str(eax))
-					# print ("saveBaseEgg",address, NumOpsDis, (NumOpsBack - back), modSecName, secNum, eax, c0_offset )
+					# if(int(c0_offset,0) == 0x142719):
+					# 	print ("saveBaseEgg", hex(address), NumOpsDis, (NumOpsBack - back), modSecName, secNum, eax, c0_offset )
+					# 	print("value of address: ", hex(address), " value of numOpsBack - back: ", hex(NumOpsBack-back), " value of address - numOpsBack-back: ", hex(address-NumOpsBack-back))
+					# 	for debugLine in disString: 
+					# 		print(debugLine)
+					# print("\n\n")
 					saveBaseEgg(address, NumOpsDis, (NumOpsBack - back), modSecName, secNum, eax, c0_offset)
 					return
 				else:
@@ -8565,6 +8853,7 @@ def printSavedSyscall(bit = 32, showDisassembly = True): #######################
 					CODED2 = section.data2[(address-NumOpsBack):(address+NumOpsDis)]
 
 					CODED3 = CODED2
+
 					for i in callCS.disasm(CODED3, address):
 						add = hex(int(i.address))
 						addb = hex(int(i.address +  section.VirtualAdd - NumOpsBack))
@@ -14822,7 +15111,9 @@ def addComments():
 		modAdd=mods[0]
 		modText=mods[1]
 		# sBy.comments[int(mods,16)] = "; LIST_ENTRY InMemoryOrderModuleList"
-		sBy.comments[int(modAdd,16)] = comC + "; "+ modText + res2 + ""
+		if(modAdd != -1):
+			sBy.comments[int(modAdd,16)] = comC + "; "+ modText + res2 + ""
+
 
 		adv=item[8]
 		for each in adv:
@@ -22913,6 +23204,8 @@ def generateOutputData(): #Generate the dictionary for json out
 					val5 =[]
 					CODED2 = section.data2[(address-NumOpsBack):(address+NumOpsDis)]
 					CODED3 = CODED2
+					print("CODED3 RANGE: ", hex((address-NumOpsBack)), hex((address+NumOpsDis)) )
+
 					for i in callCS.disasm(CODED3, address):
 						add = hex(int(i.address))
 						addb = hex(int(i.address +  section.VirtualAdd - NumOpsBack))
@@ -22927,7 +23220,6 @@ def generateOutputData(): #Generate the dictionary for json out
 						val5.append(val)
 						if c0_offset == addb:
 							break
-					syscalls = "not found"
 					if(eax != "unknown"):
 						# syscalls = returnSyscalls(int(eax, 0))
 						syscalls = getSyscallRecent(int(eax, 0), 64, "print2Json")
@@ -23429,7 +23721,7 @@ def printToText(outputData):	#Output data to text doc
 	# text.write(emulation_txt)
 	text.close()
 	rawSh = binaryToText(m[o].rawData2, "json")[1]
-	generateTester(outfile, rawSh)
+	# generateTester(outfile, rawSh)
 
 def returnSyscalls(callNum, bit = 64):
 	#works the same as getsyscallrecent()
