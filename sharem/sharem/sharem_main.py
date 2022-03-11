@@ -23223,6 +23223,8 @@ def generateOutputData(): #Generate the dictionary for json out
 					if(eax != "unknown"):
 						# syscalls = returnSyscalls(int(eax, 0))
 						syscalls = getSyscallRecent(int(eax, 0), 64, "print2Json")
+					else:
+						syscalls = "not found"
 					if 'syscall' in val5[-1]:
 						offsetLabel = 'syscall offset'
 					elif 'int' in val5[-1]:
@@ -23703,7 +23705,7 @@ def printToText(outputData):	#Output data to text doc
 		outString += "\nNo Disassembly found.\n"
 	#disassembly = shellDisassemblyStart(filename, "txt")
 	#dontPrint()
-	#disassembly = takeBytes(m[o].rawData2, 0)
+	# disassembly = takeBytes(m[o].rawData2, 0)
 	#printAgain()
 	
 	#disassembly = disassembly.split("Raw Hex:")[0]
