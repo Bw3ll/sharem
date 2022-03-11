@@ -23204,7 +23204,7 @@ def generateOutputData(): #Generate the dictionary for json out
 					val5 =[]
 					CODED2 = section.data2[(address-NumOpsBack):(address+NumOpsDis)]
 					CODED3 = CODED2
-					print("CODED3 RANGE: ", hex((address-NumOpsBack)), hex((address+NumOpsDis)) )
+					# print("CODED3 RANGE: ", hex((address-NumOpsBack)), hex((address+NumOpsDis)) )
 
 					for i in callCS.disasm(CODED3, address):
 						add = hex(int(i.address))
