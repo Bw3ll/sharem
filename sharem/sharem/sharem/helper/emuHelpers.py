@@ -2,6 +2,12 @@ from unicorn.x86_const import *
 from struct import pack, unpack
 from unicorn import *
 from ..DLLs.dict4_ALL import *
+from ..DLLs.dict_signatures import *
+from ..DLLs.dict2_signatures import *
+from ..DLLs.dict3_w32 import *
+from ..DLLs.dict4_ALL import *
+from ..DLLs.hookAPIs import *
+from ..DLLs.syscall_signatures import *
 import re
 import binascii
 import pefile
@@ -438,7 +444,7 @@ def boolFollowJump(jmpFlag, jmpType, eflags):
                 return False
 
 def bprint(*args):
-    brDebugging2=False
+    brDebugging2=True
     if brDebugging2:
         try:
             if  (len(args) == 1):
@@ -512,3 +518,10 @@ def buildPtrString (pointer, val):
 def getPointerVal(uc, pointer):
     val = uc.mem_read(pointer, 4)
     return unpack('<I', val)[0]
+
+def tryDictLocate(dictName, dll):
+    dictName += '_'
+    try:
+        return globals()[dictName + dll]
+    except:
+        return {}
