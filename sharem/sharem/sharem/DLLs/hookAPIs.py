@@ -68,16 +68,38 @@ def hook_WinExec(uc, eip, esp, export_dict, callAddr):
     arg2 = unpack('<I', arg2)[0]
     retVal = 32
 
+    try:
+        bruh = giveRegs(uc)
+    except Exception as e:
+        print(e)
+        print("WOWWWWWWW")
+
     uc.reg_write(UC_X86_REG_EAX, retVal)
     logged_calls = ("WinExec", hex(callAddr), hex(retVal), 'UINT', [arg1, hex(arg2)], ['lpCmdLine', 'uCmdShow'], ['lpCmdLine', 'uCmdShow'], False)
     cleanBytes = 8
 
+    print("Bruh2")
+
     return logged_calls, cleanBytes
 
 def hook_LoadLibraryA(uc, eip, esp, export_dict, callAddr):
-    arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
+    arg1 = uc.mem_read(esp+4, 4)
     arg1 = unpack('<I', arg1)[0]
-    arg1 = read_string(uc, arg1)
+
+    # Read arg1 as string. Need to go back and figure out why it won't let
+    # us call read_string from emuHelpers in this function only
+    try:
+        ret = ""
+        c = uc.mem_read(arg1, 1)[0]
+        read_bytes = 1
+
+        while c != 0x0:
+            ret += chr(c)
+            c = uc.mem_read(arg1 + read_bytes, 1)[0]
+            read_bytes += 1
+        arg1 = ret
+    except Exception as e:
+        print(e)
 
     # Return base address of passed library
     try:
@@ -261,7 +283,7 @@ def hook_CreateFileA(uc, eip, esp, export_dict, callAddr):
     dwFlagsAndAttributes = unpack('<I', dwFlagsAndAttributes)[0]
     hTemplateFile = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+28, 4)
     hTemplateFile = unpack('<I', hTemplateFile)[0]
-   
+
     retVal=FakeProcess
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -305,14 +327,14 @@ def makeArgVals(uc, eip, esp, export_dict, callAddr, cnt):
     arg8 = unpack('<I', arg8)[0]
     arg9 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+36, 4)
     arg9 = unpack('<I', arg9)[0]
-    
+
     arg10 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+40, 4)
     arg10 = unpack('<I', arg10)[0]
     arg11 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+36, 4)
     arg11 = unpack('<I', arg11)[0]
     arg12 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+40, 4)
     arg12 = unpack('<I', arg12)[0]
-    
+
     if cnt==1:
         return [arg1]
     elif cnt==2:
@@ -340,7 +362,7 @@ def makeArgVals(uc, eip, esp, export_dict, callAddr, cnt):
 
 def findStringsParms(uc, pTypes,pVals, skip):
     i=0
-    for each in pTypes:   
+    for each in pTypes:
         if i not in skip:
             if "STR" in pTypes[i]: #finding ones with string
                 try:
@@ -358,12 +380,12 @@ def findStringsParms(uc, pTypes,pVals, skip):
 def hook_CreateProcessA(uc, eip, esp, export_dict, callAddr):
     # print ("hook_CreateProcessA2")
     """'CreateProcess': (10, ['LPCTSTR', 'LPTSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID', 'LPCTSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION'], ['lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles', 'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation'], 'BOOL'),"""
-    
+
     # function to get values for parameters - count as specified at the end - returned as a list
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 10)
     pTypes=['LPCTSTR', 'LPTSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID', 'LPCTSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION']
     pNames=['lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles', 'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation']
-    
+
     #searching a dictionary for string to replace hex with
     search= pVals[5]
     if search in ProcessCreationReverseLookUp:
@@ -374,7 +396,7 @@ def hook_CreateProcessA(uc, eip, esp, export_dict, callAddr):
     #create strings for everything except ones in our skip
     skip=[5]   # we need to skip this value (index) later-let's put it in skip
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
-    
+
     cleanBytes=40
     retVal=32
     uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -399,7 +421,7 @@ def hook_URLDownloadToFileA(uc, eip, esp, export_dict, callAddr):
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
-    
+
     cleanBytes=len(pTypes)*4
     retVal=0x0
     retValStr='S_OK'
@@ -424,7 +446,7 @@ def hook_WinExec(uc, eip, esp, export_dict, callAddr):
     #create strings for everything except ones in our skip
     skip=[1]   # we need to skip this value (index) later-let's put it in skip
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
-    
+
     cleanBytes=len(pTypes)*4
     retVal=0x20
     retValStr=hex(retVal)
@@ -449,7 +471,7 @@ def hook_VirtualFree(uc, eip, esp, export_dict, callAddr):
     #create strings for everything except ones in our skip
     skip=[2]   # we need to skip this value (index) later-let's put it in skip
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
-    
+
     cleanBytes=len(pTypes)*4
     retVal=0x20
     retValStr=hex(retVal)
@@ -498,7 +520,7 @@ def hook_WSASocketA(uc, eip, esp, export_dict, callAddr):
     #create strings for everything except ones in our skip
     skip=[0,1,2,4, 5]   # we need to skip this value (index) later-let's put it in skip
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
-    
+
     cleanBytes=len(pTypes)*4
     retVal=0x20
     retValStr=hex(retVal)
