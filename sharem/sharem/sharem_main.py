@@ -23514,6 +23514,8 @@ def SharemMain(parserNamespace: Namespace):
 	IATs = FoundIATs()
 	sBy=DisassemblyBytes()
 	emuObj = emulationOptions()
+	fRaw.giveSize(rawData2)
+
 	if rawHex:
 		hashShellcode(m[o].rawData2, sample)  # if comes after args parser
 		if useHash:

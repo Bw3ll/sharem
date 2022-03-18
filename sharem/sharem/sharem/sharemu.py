@@ -14,6 +14,8 @@ from .DLLs.dict3_w32 import *
 from .DLLs.dict4_ALL import *
 from .DLLs.hookAPIs import *
 from .helper.emuHelpers import *
+from .helper.sharemuDeob import *
+
 import sys
 import json
 import pefile
@@ -23,6 +25,7 @@ import argparse
 import colorama
 import binascii
 import traceback
+# from sharemuDeob import *
 # artifacts2= [] 
 # net_artifacts = []
 # file_artifacts = []
@@ -41,6 +44,7 @@ exec_artifacts = []
 programCounter = 0
 verbose = True
 
+sharDeobf
 
 CODE_ADDR = 0x12000000
 CODE_SIZE = 0x1000
@@ -205,6 +209,11 @@ def hook_code(uc, address, size, user_data):
     mnemonic=""
     op_str=""
     t=0
+
+    # print ("sizeShells", len(shells))
+    # print ("address", ret-CODE_ADDR)
+    # print (shells)
+    fRaw.addBytes(shells, ret-CODE_ADDR, size)
     for i in cs.disasm(shells, address):
         val = i.mnemonic + " " + i.op_str # + " " + shells.hex()
         if t==0:
@@ -644,8 +653,15 @@ def debugEmu(mode, code):
 def startEmu(arch, data, vb):
     global verbose
     verbose = vb
-
+    fRaw.testBytesAdd()
     if arch == 32:
         test_i386(UC_MODE_32, data)
 
+    # fRaw.show2()
+    # fRaw.merge()
+def haha():
+    fRaw.show()
+
+
 em=EMU()
+
