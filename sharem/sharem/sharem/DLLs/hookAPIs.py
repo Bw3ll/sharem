@@ -536,11 +536,10 @@ def hook_NtTerminateProcess(uc, eip, esp, callAddr):
     ntstatus = uc.mem_read(esp+8, 4)
     ntstatus = unpack('<I', ntstatus)[0]
 
-    cleanBytes = 8
     retVal = 1
 
     logged_calls = ("NtTerminateProcess", hex(callAddr), hex(retVal), 'INT', [hex(handle), hex(ntstatus)], ['HANDLE', 'NTSTATUS'], ['ProcessHandle', 'ExitStatus'], False)
-    return logged_calls, cleanBytes
+    return logged_calls
 
 def hook_NtAllocateVirtualMemory(uc, eip, esp, callAddr):
     global availMem
@@ -606,6 +605,4 @@ def hook_NtAllocateVirtualMemory(uc, eip, esp, callAddr):
 
     logged_calls = ("NtAllocateVirtualMemory", hex(callAddr), hex(retVal), 'INT', [hex(processHandle), baseAddress, hex(zeroBits), regionSize, hex(allocationType), hex(protect)], ['HANDLE', 'PVOID', 'ULONG_PTR', 'PSIZE_T', 'ULONG', 'ULONG'], ['ProcessHandle', '*BaseAddress', 'ZeroBits', '*RegionSize', 'AllocationType', 'Protect'], False)
 
-    cleanBytes = 16
-
-    return logged_calls, cleanBytes
+    return logged_calls
