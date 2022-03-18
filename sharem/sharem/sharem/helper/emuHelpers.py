@@ -1,7 +1,9 @@
 from unicorn.x86_const import *
 from struct import pack, unpack
 from unicorn import *
+from ..DLLs.dict4_ALL import *
 import re
+import binascii
 import pefile
 import os
 import sys
@@ -275,7 +277,7 @@ def controlFlow(uc, mnemonic, op_str):
 
 
     which=0
-    address = 0
+    address = -1
     if controlFlow:
         ptr = re.match("d*word ptr \\[.*\\]", op_str)
         if ptr:
@@ -463,5 +465,50 @@ def bprint(*args):
         except Exception as e:
             print ("dprint error: 3")
             print (e)
-            print(traceback.format_exc())
             print (args)
+
+def findRetVal(funcName, rs_dict):
+    rsLookUp = {'S_OK': 0x00000000, 'STATUS_SUCCESS': 0x00000000, 'E_ABORT': 0x80004004, 'E_ACCESSDENIED': 0x80070005, 'E_FAIL': 0x80004005,
+                'E_HANDLE': 0x80070006, 'E_INVALIDARG': 0x80070057, 'E_NOINTERFACE': 0x80004002,
+                'E_NOTIMPL': 0x80004001, 'E_OUTOFMEMORY': 0x8007000E, 'E_POINTER': 0x80004003,
+                'E_UNEXPECTED': 0x8000FFFF}
+    retValStr=""
+
+    if funcName in rs_dict:
+        retValStr= rs_dict[funcName]
+        if retValStr in rsLookUp:
+            retVal=rsLookUp[retValStr]
+            return retVal
+        else:
+            test=isinstance(retValStr,int)
+            if test:
+                return retValStr
+            else:
+                return 32
+    else:
+        return 32
+
+def getRetVal(retVal, retType=""):
+    rsReverseLookUp = {0x00000000: 'S_OK', 0x80004001: 'E_NOTIMPL', 0x80004002: 'E_NOINTERFACE',
+                       0x80004003: 'E_POINTER', 0x80004004: 'E_ABORT', 0x80004005: 'E_FAIL', 0x8000FFFF: 'E_UNEXPECTED',
+                       0x80070005: 'E_ACCESSDENIED', 0x80070006: 'E_HANDLE', 0x8007000E: 'E_OUTOFMEMORY',
+                       0x80070057: 'E_INVALIDARG'}
+    retBundle=""
+    if retVal != "None":
+        rIndex=retVal
+        if rIndex in rsReverseLookUp:
+            retBundle=rsReverseLookUp[rIndex]
+        else:
+            retBundle =  retVal
+    else:
+            retBundle =  retVal
+    if retBundle=="None None":
+        retBundle="None"
+    return retBundle
+
+def buildPtrString (pointer, val):
+    return hex(pointer) + " -> " + hex(val)
+
+def getPointerVal(uc, pointer):
+    val = uc.mem_read(pointer, 4)
+    return unpack('<I', val)[0]
