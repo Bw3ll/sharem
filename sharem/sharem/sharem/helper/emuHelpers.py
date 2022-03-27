@@ -303,6 +303,8 @@ def controlFlow(uc, mnemonic, op_str):
             # print ("address", hex(address))
             address = unpack("<I", uc.mem_read(address, 4))[0]
             which=1
+        elif re.match('dword ptr fs:\[0xc0]', op_str):
+            address = 0x5000
         elif re.match('e[abcdsipx]+', op_str):
             regs = re.findall('e[abcdsipx]+', op_str)
             for i in range(0, len(regs)):
@@ -444,7 +446,7 @@ def boolFollowJump(jmpFlag, jmpType, eflags):
                 return False
 
 def bprint(*args):
-    brDebugging2=True
+    brDebugging2=False
     if brDebugging2:
         try:
             if  (len(args) == 1):

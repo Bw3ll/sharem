@@ -404,19 +404,13 @@ def hook_CreateProcessA(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("ProcessCreateA", hex(callAddr), hex(retVal), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-
 def hook_URLDownloadToFileA(uc, eip, esp, export_dict, callAddr):
     print("hook_URLDownloadToFileA")
-    # 'URLDownloadToFileA': (5, ['LPUNKNOWN', 'LPCSTR', 'LPCSTR', 'DWORD', 'LPBINDSTATUSCALLBACK'], ['pCaller', 'szURL', 'szFileName', 'dwReserved', 'lpfnCB'], 'HRESULT')
+
     # function to get values for parameters - count as specified at the end - returned as a list
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
     pTypes=['LPUNKNOWN', 'LPCSTR', 'LPCSTR', 'DWORD', 'LPBINDSTATUSCALLBACK']
     pNames=['pCaller', 'szURL', 'szFileName', 'dwReserved', 'lpfnCB']
-    # search= pVals[5]
-    # if search in ProcessCreationReverseLookUp:
-    #     pVals[5]=ProcessCreationReverseLookUp[search]
-    # else:
-    #     pVals[5]=hex(pVals[5])
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
