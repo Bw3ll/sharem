@@ -29,17 +29,6 @@ def read_unicode(uc, address):
     ret = ret.rstrip('\x00')
     return ret
 
-def read_string(uc, address):
-    ret = ""
-    c = uc.mem_read(address, 1)[0]
-    read_bytes = 1
-
-    while c != 0x0:
-        ret += chr(c)
-        c = uc.mem_read(address + read_bytes, 1)[0]
-        read_bytes += 1
-    return ret
-
 def giveRegs(uc):
     EAX = uc.reg_read(UC_X86_REG_EAX)   # do not delete!
     EBX = uc.reg_read(UC_X86_REG_EBX)
