@@ -225,20 +225,14 @@ def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
     try:
         uc.mem_map(lpAddress, dwSize)
         uc.reg_write(UC_X86_REG_EAX, retVal)
-    except Exception as e:
-        print("Error: ", e)
-        print(traceback.format_exc())
+    except:
         try:
             allocLoc = availMem
-            print(f"MEM_MAP: {hex(allocLoc)}, {hex(dwSize)}")
             uc.mem_map(allocLoc, dwSize)
             availMem += dwSize + 20
             uc.reg_write(UC_X86_REG_EAX, allocLoc)
             retVal = allocLoc
-        except Exception as e:
-            print("Error: ", e)
-            print(traceback.format_exc())
-            print ("VirtualAlloc Function Failed")
+        except:
             success = False
             retVal = 0xbadd0000
             uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -270,7 +264,6 @@ def hook_ExitProcess(uc, eip, esp, export_dict, callAddr):
 
 
 def hook_CreateFileA(uc, eip, esp, export_dict, callAddr):
-    print ("hook_CreateFileA")
     """  HANDLE CreateFile(
       LPCTSTR lpFileName, // pointer to name of the file
       DWORD dwDesiredAccess,      // access (read-write) mode
@@ -420,8 +413,6 @@ def hook_CreateProcessA(uc, eip, esp, export_dict, callAddr):
     return logged_calls, cleanBytes
 
 def hook_URLDownloadToFileA(uc, eip, esp, export_dict, callAddr):
-    print("hook_URLDownloadToFileA")
-
     # function to get values for parameters - count as specified at the end - returned as a list
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
     pTypes=['LPUNKNOWN', 'LPCSTR', 'LPCSTR', 'DWORD', 'LPBINDSTATUSCALLBACK']
@@ -440,7 +431,6 @@ def hook_URLDownloadToFileA(uc, eip, esp, export_dict, callAddr):
     return logged_calls, cleanBytes
 
 def hook_WinExec(uc, eip, esp, export_dict, callAddr):
-    # (2, ['LPCSTR', 'UINT'], ['lpCmdLine', 'uCmdShow'], 'UINT')
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
     pTypes=['LPCSTR', 'UINT']
     pNames=['lpCmdLine', 'uCmdShow']
@@ -527,7 +517,7 @@ def hook_WSASocketA(uc, eip, esp, export_dict, callAddr):
     else:
         pVals[4]=hex(pVals[4])
     #create strings for everything except ones in our skip
-    skip=[0,1,2,4, 5]   # we need to skip this value (index) later-let's put it in skip
+    skip=[0,1,2,4,5]   # we need to skip this value (index) later-let's put it in skip
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
     cleanBytes=len(pTypes)*4
@@ -569,6 +559,8 @@ def hook_NtAllocateVirtualMemory(uc, eip, esp, callAddr):
     # Get pointer values
     allocLoc = getPointerVal(uc, baseAddress)
     size = getPointerVal(uc, regionSize)
+
+    size = ((size//4096)+1) * 4096
 
     retVal = 0
     try:

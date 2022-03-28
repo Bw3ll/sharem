@@ -102,7 +102,6 @@ def loadDlls(mu):
     runOnce=False
     for m in mods:
         if os.path.exists(mods[m].d32) == False:
-            print("[*] Unable to locate ", mods[m].d32, ". It is likely that this file is not included in your version of Windows.")
             continue
         if os.path.exists("%s%s" % (expandedDLLsPath, mods[m].name)):
             dll=readRaw(expandedDLLsPath+mods[m].name)
@@ -111,6 +110,9 @@ def loadDlls(mu):
         # Inflate dlls so PE offsets are correct
         else:
             if not runOnce:
+                if os.path.exists(mods[m].d32) == False:
+                    print("[*] Unable to locate ", mods[m].d32,
+                          ". It is likely that this file is not included in your version of Windows.")
                 print("Warning: DLLs must be parsed and inflated from a Windows OS.\n\tThis may take several minutes to generate the initial emulation files.\n\tThis initial step must be completed only once from a Windows machine.\n\tThe emulation will not work without these.")
                 runOnce=True
             pe=pefile.PE(mods[m].d32)
@@ -233,8 +235,6 @@ def hook_code(uc, address, size, user_data):
         print(traceback.format_exc())
         instructLine += " size: 0x%x" % size + '\t'   # size is overflow - why so big?
         outFile.write("abrupt end:  " + instructLine)
-        # print (instructLine)
-        # shells = uc.mem_read(address, 1)
         return # terminate func early   --don't comment - we want to see the earlyrror
 
     ret = address
