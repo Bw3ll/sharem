@@ -444,7 +444,7 @@ def boolFollowJump(jmpFlag, jmpType, eflags):
                 return False
 
 def bprint(*args):
-    brDebugging2=True
+    brDebugging2=False
     if brDebugging2:
         try:
             if  (len(args) == 1):

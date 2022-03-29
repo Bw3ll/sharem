@@ -889,56 +889,46 @@ class FoundIATs:
 		self.path = []
 		self.originate=[]
 
-class shellcode:
-# 	o="shellcode"
-# shBody="decoded body"
-# shStub="decoder stub"
-# shDec="decoded shellcode (full)"
-	def __init__(self, rawData=None, decodedBody=None, decoderStub=None, decodedFull=None):
-		# print ("init")
-		self.rawData2 = rawData  # This is current - it is variable
-		self.decodedFullBody=decodedBody     #  3   the body has been decoded
-		self.decoderStub=decoderStub 	 # 2    just the decoder stub
-		self.decodedFull=decodedFull     # 1   fully decrypted, whole thing
-		self.original=rawData # original rawdata2    #0
-		# self.id = 0    # tells which one rawData2 is 
-		self.decryptSuccess=False
-		self.hasDecoderStub=False
-		self.isEncoded = False
+# class shellcode:
+# # #	o="shellcode"
+# # #shBody="decoded body"
+# # #shStub="decoder stub"
+# ## shDec="decoded shellcode (full)"
+# 	def __init__(self, rawData=None, decodedBody=None, decoderStub=None, decodedFull=None):
+# 		# print ("init")
+# 		self.rawData2 = rawData  # This is current - it is variable
+# 		self.decodedFullBody=decodedBody     #  3   the body has been decoded
+# 		self.decoderStub=decoderStub 	 # 2    just the decoder stub
+# 		self.decodedFull=decodedFull     # 1   fully decrypted, whole thing
+# 		self.original=rawData # original rawdata2    #0
+# 		# self.id = 0    # tells which one rawData2 is 
+# 		self.decryptSuccess=False
+# 		self.hasDecoderStub=False
+# 		self.isEncoded = False
 
-	def setRawData2(self, rawData):
-		self.rawData2 = rawData
-	def setDecodedBody(self, decodedBody):
-		self.decodedFullBody=decodedBody
-	def setDecoderStub(self, decoderStub):
-		self.decoderStub=decoderStub
-	def setDecoded(self, decodedFull):
-		self.decodedFull=decodedFull
-	def useDecBody(self):
-		o=shBody
-	def useDecStub(self):
-		o=shStub
-		# self.rawData2=self.useDecoderStub
-	def useDecoded(self):
-		o=shDec
-		# self.rawData2=self.decodedFull
-	def isDecrypted(self):
-		return self.decryptSuccess
-	def hasDecStub(self):
-		return self.hasDecoderStub
-	def isEncoded(self):
-		return self.isEncoded
-	# def id():
-		# return self.id
-	# def giveTypeText():
-	# 	if self.id == 0:
-	# 		text="Type: Original shellcode"
-	# 	elif self.id == 1:
-	# 		text="Type: Fully decrypted shellcode"
-	# 	elif self.id == 2:
-	# 		text="Type: Decoder stub"
-	# 	elif self.id == 3:
-	# 		text="Type: Body of Decoded shellcode"
+# 	def setRawData2(self, rawData):
+# 		self.rawData2 = rawData
+# 	def setDecodedBody(self, decodedBody):
+# 		self.decodedFullBody=decodedBody
+# 	def setDecoderStub(self, decoderStub):
+# 		self.decoderStub=decoderStub
+# 	def setDecoded(self, decodedFull):
+# 		self.decodedFull=decodedFull
+# 	def useDecBody(self):
+# 		o=shBody
+# 	def useDecStub(self):
+# 		o=shStub
+# 		# self.rawData2=self.useDecoderStub
+# 	def useDecoded(self):
+# 		o=shDec
+# 		# self.rawData2=self.decodedFull
+# 	def isDecrypted(self):
+# 		return self.decryptSuccess
+# 	def hasDecStub(self):
+# 		return self.hasDecoderStub
+# 	def isEncoded(self):
+# 		return self.isEncoded
+
 
 def cBytesChange(name):
 	global o 
@@ -1038,6 +1028,26 @@ class shellHash:
 			out+=yel+ "\tssdeep: "+res + self.unecryptedSsdeep+ "\n"
 
 		return out
+
+def emuDeobfuSuccess(emBytes, mode):
+
+	print ("  This is self-modifying code. Switching to decoded mode.")
+	# print ("emBytes", binaryToStr(emBytes))
+	sh.setDecoded(emBytes)
+	sh.decryptSuccess = True
+	if(mode == "stub"):
+		hashShellcode(sh.decoderStub, decoderShell)
+		hashShellcode(sh.decodedFullBody, unencryptedBodyShell)
+		newModule(shDec, emBytes)
+		o = shDec
+		print("  Setting default to decoded shellcode...")
+	else:
+		hashShellcode(emBytes, unencryptedShell)
+	#create newModule for decrypted shellcode
+		newModule(shDec, emBytes)
+		o = shDec
+		print("  Setting default to decoded shellcode...")
+
 # class DisassemblyBytes:
 # 	def __init__(self): #, name):
 class DisassemblyBytes:
@@ -1114,6 +1124,9 @@ def clearDisassemblyBytesClass():
 	sBy.specialEnd.clear()
 	sBy.comments.clear()
 
+def bramwellTesterHAHA():
+	print ("HAHAHAHAHAHAHAH")
+
 
 def newModule(nameOfType,rawD, name="Name"):
 	global m
@@ -1152,6 +1165,7 @@ def newModule(nameOfType,rawD, name="Name"):
 	if show:
 		print (out)
 		print (gre+"# mods"+res, len(m))
+	
 
 	objBool=foundBooleans(name)
 	if rawHex:
@@ -2252,6 +2266,7 @@ def hashesText():
 	global o 
 	global sh
 
+	o = shOrg
 	txt = ""
 	txt += "md5: " + m[o].getMd5() + "\n"
 	txt += "sha256: " + m[o].getSha256() + "\n"
@@ -2259,7 +2274,9 @@ def hashesText():
 	
 	if sh != None: 
 		if sh.decryptSuccess == True:
-			o = shOrg
+			# o = shOrg
+			o = shDec
+
 			txt += "Deobfuscated Shellcode:\n"
 			txt += "\tmd5: " + m[o].getMd5() + "\n"
 			txt += "\tsha256: " + m[o].getSha256() + "\n"
@@ -2270,6 +2287,7 @@ def hashesText():
 
 def showBasicInfo():
 	global shellEntry
+	global o
 	cat=""
 	# o=0
 	dprint2 ("# m: " + str(len(m)))
@@ -2278,6 +2296,7 @@ def showBasicInfo():
 		try:
 			cat+=gre+"Shellcode Entry point: " + res+str(hex(shellEntry)) +"\n"
 			cat += hashesText()
+
 		except:
 			cat+=gre+"Shellcode Entry point: " + res+str(shellEntry) +"\n"
 			cat += hashesText()
@@ -14765,6 +14784,7 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None)
 
 def takeBytes(shellBytes,startingAddress, silent=None):
 	# bprint ("takeBytes:", hex(startingAddress))
+	print ("take bytes o", o)
 	global sBy
 	global shellEntry
 	global gDisassemblyText
@@ -15374,7 +15394,7 @@ def getNextBool(pattern,test):
 	return found
 
 
-def findRange2(current):
+def findRange2old(current):
 	global sBy
 	# print (sBy.bytesType)
 	# print ("findRange2", hex(current))
@@ -15397,6 +15417,45 @@ def findRange2(current):
 
 	return current, foundStop, distance, initialBool
 
+
+def findRange2(current):
+	global sBy
+	# print (sBy.bytesType)
+	# print ("findRange2", hex(current))
+
+	if fRaw.status and fRaw.bytesInst[current]=="INST":
+		try:
+			startF, endF, distF=fRaw.startEnd[current]
+			# print ("fRaw status!", hex(startF), hex(endF), hex(distF))
+		except:
+			print ("error!!!!!!")
+
+	initialBool=sBy.bytesType[current]
+	# print ("initialBool", initialBool)
+	seeking=False
+	if not initialBool:
+		seeking = True
+	# print ("seeking", seeking)
+	# print ("sbytes size", len(sBy.bytesType[current:]))
+	foundStop=getNextBool(seeking, sBy.bytesType[current:])
+
+	foundStop+=current
+	distance=foundStop-current
+
+	if foundStop > len(m[o].rawData2):
+		foundStop = len(m[o].rawData2)-1
+	# print ("r: -end", hex(current), hex(foundStop), hex(distance), (initialBool))
+
+	#		start, current, distance, typeBytes = findRange2(current)
+
+
+	# print ("current, foundStop, distance, initialBool", hex(current), hex(foundStop), hex(distance), (initialBool))
+	
+	if fRaw.status and fRaw.bytesInst[current]=="INST":
+		# print ("fRaw status!", hex(startF), hex(endF), hex(distF))
+		
+		return	startF, endF, distF, True
+	return current, foundStop, distance, initialBool
 
 
 def findRange2222(current):
@@ -17457,6 +17516,7 @@ def toggleDecodedModule():
 
 	# hashShellcodeTestShow2()
 
+	
 	if(sh == None or sh.decryptSuccess == False):
 		print("No shellcode has been decoded. To decode an obfuscated shellcode, use the \"b - Brute-force deobfuscation of shellcode.\" option.")
 		# print("o = <<<", o,">>>")
@@ -19176,7 +19236,51 @@ def emulationEntryPoint():
 			# print(e)
 			print(" Please enter an integer")
 	
+def emuCheckDeobfSuccess():
+	if fRaw.status():
+		# print ("emulated!")
+		ssdeepHash1 = ssdeep.hash(fRaw.originalRaw)
+		ssdeepHash2 = ssdeep.hash(fRaw.merged2)
 
+		# print ("SSDeep")
+		# print (ssdeepHash1)
+		# print (ssdeepHash2)
+		# print(ssdeep.compare(ssdeepHash1,ssdeepHash2))
+		percent=ssdeep.compare(ssdeepHash1,ssdeepHash2)
+		if percent < 60:
+
+
+
+
+			t=0
+			stop=False
+			notEqual=False
+			decoderEnd=0
+			try:
+				for each in fRaw.originalRaw:
+					# if awmerged[:t] == aworiginal[:t]:
+						# print ("equal")
+					if fRaw.merged2[:t] != fRaw.originalRaw[:t]:
+						if not notEqual:
+							# print ("************stops", t)
+							notEqual=True
+							mode="stub"
+							decoderEnd=t
+					t+=1
+			except:
+				stop=True
+				mode = "notstub" # maybe build this later?
+
+			if not stop:
+				print ("  SSDeep: Only " + str(percent) +"% of the original shellcode.")
+				# print ("fRaw.originalRaw[:decoderEnd]", len(fRaw.originalRaw[:decoderEnd]))
+				# print ("fRaw.merged2[decoderEnd:]", len(fRaw.merged2[decoderEnd:]))
+				sh.setDecoderStub(fRaw.originalRaw[:decoderEnd])
+				sh.setDecodedBody(fRaw.merged2[decoderEnd:])
+
+
+
+			emuDeobfuSuccess(fRaw.merged2, mode)
 
 def emulationSubmenu():
 	global emuObj
@@ -19191,6 +19295,7 @@ def emulationSubmenu():
 			emuArch = emuObj.cpuArch
 			startEmu(emuArch, m[o].rawData2, emuObj.verbose)
 			emulation_txt_out(loggedList)
+			emuCheckDeobfSuccess()
 			pass # Initiate emulator
 		elif choice == "x":
 			return
@@ -19352,17 +19457,21 @@ def startupPrint():
 	shellClass = isShellcode()
 	endTime = time.time() - starTime
 	# print("Elapsed time for i/sShellcode : ", elTime)
+
 	print(cya + "\n Classification: ", yel + shellClass[0] + res2)
 	if shellClass[1]:
 		print(cya + "\n Reason:", yel + shellClass[1] + res2)
 	elapsed_time += endTime
 	#Saving data
+
 	bpPushRet = bpSyscall = bpHeaven = bpFstenv = bpPEB = bpStrings = bpCallPop = bpEvilImports = bpModules = True
 	outputData = generateOutputData()
 	print(cya + "\n\nSaving to Json.." , end='')
 	printToJson(False, outputData)
 	print(gre + 'Done' + res)
+
 	print(cya + "\nSaving to Text.." , end='')
+
 	printToText(outputData)
 	print(gre + 'Done\n\n' + res)
 
@@ -21124,6 +21233,9 @@ def hashShellcode(shell=None, mode=None):
 		ssdeepHash = ssdeep.hash(shell)
 		md5sum=(hashlib.md5(shell).hexdigest())
 		sha256=(hashlib.sha256(shell).hexdigest())
+
+	if shell==None:
+		print ("shell is none!!!")
 	# if shell ==None:
 	# 	ssdeepHash = ssdeep.hash(m[o].rawData2)
 	# 	md5sum=(hashlib.md5(m[o].rawData2).hexdigest())
@@ -23380,7 +23492,6 @@ def printToTextStrings(bStringsFound):
 def printToText(outputData):	#Output data to text doc
 	#output data from generateoutputdata
 	
-	
 	global bDisassembly
 	global gDisassemblyTextNoC
 	global bpModules
@@ -23400,6 +23511,7 @@ def printToText(outputData):	#Output data to text doc
 	
 	data = outputData
 	#Used for section info
+	
 	if (rawHex):
 		info = showBasicInfo()
 	else:
@@ -23809,6 +23921,7 @@ def SharemMain(parserNamespace: Namespace):
 	IATs = FoundIATs()
 	sBy=DisassemblyBytes()
 	emuObj = emulationOptions()
+
 	fRaw.giveSize(rawData2)
 
 	if rawHex:
