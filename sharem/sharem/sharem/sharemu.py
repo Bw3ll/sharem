@@ -16,7 +16,7 @@ from .DLLs.hookAPIs import *
 from .DLLs.syscall_signatures import *
 from .helper.emuHelpers import *
 from .helper.sharemuDeob import *
-from .helper.shellMemory import *
+# from .helper.shellMemory import *
 
 import sys
 import json
