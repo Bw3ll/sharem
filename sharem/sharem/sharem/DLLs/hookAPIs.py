@@ -543,6 +543,8 @@ def hook_NtTerminateProcess(uc, eip, esp, callAddr):
 def hook_NtAllocateVirtualMemory(uc, eip, esp, callAddr):
     global availMem
 
+    # Test change
+
     processHandle = uc.mem_read(esp+4, 4)
     processHandle = unpack('<I', processHandle)[0]
     baseAddress = uc.mem_read(esp+8, 4)
