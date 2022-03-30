@@ -9,7 +9,7 @@ FakeProcess=0xbadd0000
 ProcessCreationReverseLookUp = {16777216: 'CREATE_BREAKAWAY_FROM_JOB', 67108864: 'CREATE_DEFAULT_ERROR_MODE', 16: 'CREATE_NEW_CONSOLE', 512: 'CREATE_NEW_PROCESS_GROUP', 134217728: 'CREATE_NO_WINDOW', 262144: 'CREATE_PROTECTED_PROCESS', 33554432: 'CREATE_PRESERVE_CODE_AUTHZ_LEVEL', 4194304: 'CREATE_SECURE_PROCESS', 2048: 'CREATE_SEPARATE_WOW_VDM', 4096: 'CREATE_SHARED_WOW_VDM', 4: 'CREATE_SUSPENDED', 1024: 'CREATE_UNICODE_ENVIRONMENT', 2: 'DEBUG_ONLY_THIS_PROCESS', 1: 'DEBUG_PROCESS', 8: 'DETACHED_PROCESS', 524288: 'EXTENDED_STARTUPINFO_PRESENT', 65536: 'INHERIT_PARENT_AFFINITY'}
 MemLookUp = {'MEM_COMMIT | MEM_RESERVE':'0x3000', 'MEM_COMMIT': '0x1000', 'MEM_FREE': '0x10000', 'MEM_RESERVE': '0x2000', 'MEM_IMAGE': '0x1000000', 'MEM_MAPPED': '0x40000', 'MEM_PRIVATE': '0x20000', 'PAGE_EXECUTE': '0x10', 'PAGE_EXECUTE_READ': '0x20', 'PAGE_EXECUTE_READWRITE': '0x40', 'PAGE_EXECUTE_WRITECOPY': '0x80', 'PAGE_NOACCESS': '0x01', 'PAGE_READONLY': '0x02', 'PAGE_READWRITE': '0x04', 'PAGE_TARGETS_INVALID': '0x40000000', 'PAGE_TARGETS_NO_UPDATE': '0x40000000'}
 MemReverseLookUp = {0x3000:'MEM_COMMIT | MEM_RESERVE', 4096: 'MEM_COMMIT', 65536: 'MEM_FREE', 8192: 'MEM_RESERVE', 16777216: 'MEM_IMAGE', 262144: 'MEM_MAPPED', 131072: 'MEM_PRIVATE', 16: 'PAGE_EXECUTE', 32: 'PAGE_EXECUTE_READ', 64: 'PAGE_EXECUTE_READWRITE', 128: 'PAGE_EXECUTE_WRITECOPY', 1: 'PAGE_NOACCESS', 2: 'PAGE_READONLY', 4: 'PAGE_READWRITE', 1073741824: 'PAGE_TARGETS_NO_UPDATE'}
-availMem = 0x30000000
+availMem = 0x25000000
 
 
 # Custom hook for GetProcAddress. Loops through the export dictionary we created, 
@@ -207,6 +207,8 @@ def hook_LdrLoadDll(uc, eip, esp, export_dict, callAddr):
 
 
 def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
+    global availMem
+
     lpAddress = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
     lpAddress = unpack('<I', lpAddress)[0]
     dwSize = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
@@ -216,17 +218,24 @@ def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
     flProtect = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+16, 4)
     flProtect = unpack('<I', flProtect)[0]
 
-    if lpAddress==0:
-        lpAddress=0x90050000  # bramwell added--still not working for 0  # maybe because not on main emu page?
+    # Round up to next page (4096)
+    dwSize = ((dwSize//4096)+1) * 4096
+
+    retVal = 0
     try:
         uc.mem_map(lpAddress, dwSize)
-        retVal = lpAddress
         uc.reg_write(UC_X86_REG_EAX, retVal)
     except:
-        print ("VirtualAlloc Function Failed")
-        success = False
-        retVal = 0xbadd0000
-        uc.reg_write(UC_X86_REG_EAX, retVal)
+        try:
+            allocLoc = availMem
+            uc.mem_map(allocLoc, dwSize)
+            availMem += dwSize + 20
+            uc.reg_write(UC_X86_REG_EAX, allocLoc)
+            retVal = allocLoc
+        except:
+            success = False
+            retVal = 0xbadd0000
+            uc.reg_write(UC_X86_REG_EAX, retVal)
 
     if flAllocationType in MemReverseLookUp:
         flAllocationType=MemReverseLookUp[flAllocationType]
@@ -255,7 +264,6 @@ def hook_ExitProcess(uc, eip, esp, export_dict, callAddr):
 
 
 def hook_CreateFileA(uc, eip, esp, export_dict, callAddr):
-    print ("hook_CreateFileA")
     """  HANDLE CreateFile(
       LPCTSTR lpFileName, // pointer to name of the file
       DWORD dwDesiredAccess,      // access (read-write) mode
@@ -404,19 +412,11 @@ def hook_CreateProcessA(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("ProcessCreateA", hex(callAddr), hex(retVal), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-
 def hook_URLDownloadToFileA(uc, eip, esp, export_dict, callAddr):
-    print("hook_URLDownloadToFileA")
-    # 'URLDownloadToFileA': (5, ['LPUNKNOWN', 'LPCSTR', 'LPCSTR', 'DWORD', 'LPBINDSTATUSCALLBACK'], ['pCaller', 'szURL', 'szFileName', 'dwReserved', 'lpfnCB'], 'HRESULT')
     # function to get values for parameters - count as specified at the end - returned as a list
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
     pTypes=['LPUNKNOWN', 'LPCSTR', 'LPCSTR', 'DWORD', 'LPBINDSTATUSCALLBACK']
     pNames=['pCaller', 'szURL', 'szFileName', 'dwReserved', 'lpfnCB']
-    # search= pVals[5]
-    # if search in ProcessCreationReverseLookUp:
-    #     pVals[5]=ProcessCreationReverseLookUp[search]
-    # else:
-    #     pVals[5]=hex(pVals[5])
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
@@ -431,7 +431,6 @@ def hook_URLDownloadToFileA(uc, eip, esp, export_dict, callAddr):
     return logged_calls, cleanBytes
 
 def hook_WinExec(uc, eip, esp, export_dict, callAddr):
-    # (2, ['LPCSTR', 'UINT'], ['lpCmdLine', 'uCmdShow'], 'UINT')
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
     pTypes=['LPCSTR', 'UINT']
     pNames=['lpCmdLine', 'uCmdShow']
@@ -518,7 +517,7 @@ def hook_WSASocketA(uc, eip, esp, export_dict, callAddr):
     else:
         pVals[4]=hex(pVals[4])
     #create strings for everything except ones in our skip
-    skip=[0,1,2,4, 5]   # we need to skip this value (index) later-let's put it in skip
+    skip=[0,1,2,4,5]   # we need to skip this value (index) later-let's put it in skip
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
     cleanBytes=len(pTypes)*4
@@ -560,6 +559,8 @@ def hook_NtAllocateVirtualMemory(uc, eip, esp, callAddr):
     # Get pointer values
     allocLoc = getPointerVal(uc, baseAddress)
     size = getPointerVal(uc, regionSize)
+
+    size = ((size//4096)+1) * 4096
 
     retVal = 0
     try:
@@ -606,3 +607,15 @@ def hook_NtAllocateVirtualMemory(uc, eip, esp, callAddr):
     logged_calls = ("NtAllocateVirtualMemory", hex(callAddr), hex(retVal), 'INT', [hex(processHandle), baseAddress, hex(zeroBits), regionSize, hex(allocationType), hex(protect)], ['HANDLE', 'PVOID', 'ULONG_PTR', 'PSIZE_T', 'ULONG', 'ULONG'], ['ProcessHandle', '*BaseAddress', 'ZeroBits', '*RegionSize', 'AllocationType', 'Protect'], False)
 
     return logged_calls
+
+
+def read_string(uc, address):
+    ret = ""
+    c = uc.mem_read(address, 1)[0]
+    read_bytes = 1
+
+    while c != 0x0:
+        ret += chr(c)
+        c = uc.mem_read(address + read_bytes, 1)[0]
+        read_bytes += 1
+    return ret

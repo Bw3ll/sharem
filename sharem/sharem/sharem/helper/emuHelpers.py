@@ -29,17 +29,6 @@ def read_unicode(uc, address):
     ret = ret.rstrip('\x00')
     return ret
 
-def read_string(uc, address):
-    ret = ""
-    c = uc.mem_read(address, 1)[0]
-    read_bytes = 1
-
-    while c != 0x0:
-        ret += chr(c)
-        c = uc.mem_read(address + read_bytes, 1)[0]
-        read_bytes += 1
-    return ret
-
 def giveRegs(uc):
     EAX = uc.reg_read(UC_X86_REG_EAX)   # do not delete!
     EBX = uc.reg_read(UC_X86_REG_EBX)
@@ -303,6 +292,8 @@ def controlFlow(uc, mnemonic, op_str):
             # print ("address", hex(address))
             address = unpack("<I", uc.mem_read(address, 4))[0]
             which=1
+        elif re.match('dword ptr fs:\[0xc0]', op_str):
+            address = 0x5000
         elif re.match('e[abcdsipx]+', op_str):
             regs = re.findall('e[abcdsipx]+', op_str)
             for i in range(0, len(regs)):
