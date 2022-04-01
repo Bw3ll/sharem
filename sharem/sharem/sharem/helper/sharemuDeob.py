@@ -92,7 +92,8 @@ class sharDeobf:
 					self.startEnd[t]=(address, address+size, size)
 					self.bytesInst[t]="INST"
 				except:
-					print ("opps")
+					pass
+					# print ("opps")
 				t+=1
 				# print ("address, address+size, size", hex(address), hex(address+size), size)
 		except Exception as e:
