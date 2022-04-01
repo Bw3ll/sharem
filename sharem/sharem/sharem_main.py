@@ -19452,7 +19452,7 @@ def emulationSubmenu():
 		if choice == "z":
 			emuArch = emuObj.cpuArch
 			startEmu(emuArch, m[o].rawData2, emuObj.verbose)
-			emulation_txt_out(loggedList)
+			emulation_txt_out(loggedList, logged_syscalls)
 			emuCheckDeobfSuccess()
 			pass # Initiate emulator
 		elif choice == "x":
@@ -20742,7 +20742,7 @@ def uiPrint(): 	#Print instructions
 					print("No heaven's gate instructions found.\n")
 			if bPrintEmulation and p2screen:
 				if len(loggedList) >0:
-					emulation_txt_out(loggedList)
+					emulation_txt_out(loggedList, logged_syscalls)
 				else:
 					print ("\nNo emulation results.")
 			shellClass = isShellcode()
@@ -21892,16 +21892,7 @@ def getRetVal(retVal, retType=""):
 		retBundle="None"
 	return retBundle
 
-def emulation_txt_out(apiList):
-	
-	# for each in apiList:
-		# print (type(each), each, "\n\n")
-	sample = [('WinExec', '0x123123', '0x20', 'INT', ['cmd.exe /c ping google.com > C:\\result.txt', '0x5'], ['LPCSTR', 'UINT'], ['lpCmdLine', 'uCmdShow'], False, "kernel32.dll"), ('EncyptFileA', '0x321321', '0x20', 'INT', ['C:\\result.txt'], ['LPCSTR'], ['lpFileName'], False, "kernel32.dll"),
-('LoadLibraryA', '0x1337c0de', '0x45664c88', 'HINSTANCE', ['user32.dll'], ['LPCTSTR'], ['lpLibFileName'], False,"kernel32.dll"),('MessageBoxA', '0xdeadc0de', '0x20', 'INT', ['0x987987', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', '0x0'], ['HWND', 'LPCSTR', 'LPCSTR', 'UINT'], ['hWnd', 'lpText', 'lpCaption', 'uType'], True,"user32.dll")]
-	
-
-	artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
-
+def build_emu_results(apiList):
 	api_names = []
 	api_params_values = []
 	api_params_types = []
@@ -21911,20 +21902,34 @@ def emulation_txt_out(apiList):
 	ret_type = []
 	api_bruteforce = []
 	dll_name = []
+	sysCallID = []
+
 	for i in apiList:
 		api_names.append(i[0])
 		api_address.append(i[1])
-		ret_values.append(i[2])	
+		ret_values.append(i[2])
 		ret_type.append(i[3])
 		api_params_values.append(i[4])
 		api_params_types.append(i[5])
 		api_params_names.append(i[6])
 		api_bruteforce = i[7]
-		try:
-			dll_name.append(i[8])
-		except:
-			dll_name.append("")
+		# try:
+		# 	dll_name.append(i[8])
+		# except:
+		# 	dll_name.append("")
+		if len(i) > 8:
+			sysCallID = i[8]
 
+	return api_names, api_params_values, api_params_types, api_params_names, api_address, ret_values, ret_type, api_bruteforce, sysCallID
+
+def emulation_txt_out(apiList, logged_syscalls):
+	# for each in apiList:
+		# print (type(each), each, "\n\n")
+	sample = [('WinExec', '0x123123', '0x20', 'INT', ['cmd.exe /c ping google.com > C:\\result.txt', '0x5'], ['LPCSTR', 'UINT'], ['lpCmdLine', 'uCmdShow'], False, "kernel32.dll"), ('EncyptFileA', '0x321321', '0x20', 'INT', ['C:\\result.txt'], ['LPCSTR'], ['lpFileName'], False, "kernel32.dll"),
+('LoadLibraryA', '0x1337c0de', '0x45664c88', 'HINSTANCE', ['user32.dll'], ['LPCTSTR'], ['lpLibFileName'], False,"kernel32.dll"),('MessageBoxA', '0xdeadc0de', '0x20', 'INT', ['0x987987', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', '0x0'], ['HWND', 'LPCSTR', 'LPCSTR', 'UINT'], ['hWnd', 'lpText', 'lpCaption', 'uType'], True,"user32.dll")]
+
+	artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
+	api_names, api_params_values, api_params_types, api_params_names, api_address, ret_values, ret_type, api_bruteforce, syscallID = build_emu_results(apiList)
 
 	api_par_bundle = []
 	# for v, t in zip(api_params_types[0], api_params_types[0]):
@@ -21949,12 +21954,11 @@ def emulation_txt_out(apiList):
 
 	txt_output += mag + "\n************* APIs *************\n\n" + res
 	# no_colors_out += "\n************* APIs *************\n\n"
-	
 
 	verbose_mode = emulation_verbose
 	t = 0
 	for eachApi in api_names:
-		
+
 		apName = api_names[t]
 		offset = api_address[t]
 		pType = api_params_types[t]
@@ -21963,60 +21967,74 @@ def emulation_txt_out(apiList):
 		retVal = ret_values[t]
 		retType = ret_type[t]
 		paramVal = api_params_values[t]
-		DLL = dll_name[t] 
-		# bundle = [list(zipped) for zipped in zip(pType, pName)]
+		# DLL = dll_name[t]
 		for v, typ in zip(pType, pName):
 			TypeBundle.append(v + " " + typ)
 		joinedBund = ', '.join(TypeBundle)
-		joinedBundclr = joinedBund.replace(",", cya + ","+res)
-		# print(type(joinedBundclr), type(apName), type(offset), "---->", offset)
-
-		# try: 
-		# 	offset= int((str(offset)),16 )
-		
-		# global rsReverseLookUp
-
-		# retBundle=""
-		# if retVal != "None":
-		# 	rIndex=int(retVal,16)
-		# 	if rIndex in rsReverseLookUp:
-		# 		print ("IN HERE!")
-		# 		retBundle=rsReverseLookUp[rIndex]
-		# 	else:
-		# 		retBundle = retType + " " + retVal
-		# else: 
-		# 		retBundle = retType + " " + retVal
-		# retBundle=getRetVal(retVal, retType)
+		joinedBundclr = joinedBund.replace(",", cya + "," + res)
 		retBundle = retType + " " + retVal
 
 		if verbose_mode:
-			
-			txt_output += '{} {}{} {}\n'.format(gre + offset + res, yel + apName+ res, cya + "("+res + joinedBundclr + cya +")"+res, yel + DLL +  res) # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
-			# txt_output += '{} {}{}\n'.format(gre + offset + res, yel + apName+ res, cya + "("+res + joinedBundclr + cya +")"+res) # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
-
-			# no_colors_out += '{} {}({}) {}\n'.format(offset , apName, joinedBund, DLL)
+			txt_output += '{} {}{}\n'.format(gre + offset + res, yel + apName + res,
+											 cya + "(" + res + joinedBundclr + cya + ")" + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
 		else:
-			txt_output += '{} {}{} {}{}\n'.format(gre + offset + res, yel + apName+ res, cya + "("+res + joinedBundclr +cya +")"+res , cya + "Ret: "+res,red + retBundle + res) # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
-			# no_colors_out += '{} {}({}): {}\n'.format(offset , apName, joinedBund, retBundle)
-
+			txt_output += '{} {}{} {}{}\n'.format(gre + offset + res, yel + apName + res,
+												  cya + "(" + res + joinedBundclr + cya + ")" + res,
+												  cya + "Ret: " + res,
+												  red + retBundle + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
 
 		t += 1
 		if verbose_mode:
 			for ptyp, pname, pval in zip(pType, pName, paramVal):
-				txt_output += '\t{} {} {}\n'.format(cya + ptyp , pname + ":"+res, pval)
-				# no_colors_out += '\t{} {}: {}\n'.format(ptyp, pname, pval)
-
-			# 	txt_output += '\t{}: {}\n'.format(cya + p + res, val)
-			# 	no_colors_out += '\t{}: {}\n'.format(p, val)
-			# txt_output += "\n"
-			# no_colors_out += "\n"
-			txt_output += "\t{} {}\n".format( red + "Return:"+res, retBundle)
+				txt_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
+			txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
 			if api_bruteforce:
-				txt_output += "\t{}\n\n".format( whi + "Brute-forced"+res,)
+				txt_output += "\t{}\n\n".format(whi + "Brute-forced" + res, )
 			else:
-				txt_output+= "\n"
+				txt_output += "\n"
 
 			# no_colors_out += "\t{} {}\n\n".format( "Return:", retVal)
+
+	if len(logged_syscalls) > 0:
+		api_names, api_params_values, api_params_types, api_params_names, api_address, ret_values, ret_type, api_bruteforce, syscallID = build_emu_results(logged_syscalls)
+		txt_output += mag + "\n************* Syscalls *************\n\n" + res
+		verbose_mode = emulation_verbose
+		t = 0
+		for eachApi in api_names:
+			apName = api_names[t]
+			offset = api_address[t]
+			pType = api_params_types[t]
+			pName = api_params_names[t]
+			TypeBundle = []
+			retVal = ret_values[t]
+			retType = ret_type[t]
+			paramVal = api_params_values[t]
+			# DLL = dll_name[t]
+			for v, typ in zip(pType, pName):
+				TypeBundle.append(v + " " + typ)
+			joinedBund = ', '.join(TypeBundle)
+			joinedBundclr = joinedBund.replace(",", cya + "," + res)
+			retBundle = retType + " " + retVal
+
+			if verbose_mode:
+				txt_output += '{} {}{}\n'.format(gre + offset + res, yel + apName + res,
+													cya + "(" + res + joinedBundclr + cya + ")" + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
+			else:
+				txt_output += '{} {}{} {}{}\n'.format(gre + offset + res, yel + apName + res,
+													  cya + "(" + res + joinedBundclr + cya + ")" + res,
+													  cya + "Ret: " + res,
+													  red + retBundle + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
+
+			t += 1
+			if verbose_mode:
+				for ptyp, pname, pval in zip(pType, pName, paramVal):
+					txt_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
+				txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
+				txt_output += "\t{} {}\n".format(red + "EAX: " + res, hex(syscallID))
+				if api_bruteforce:
+					txt_output += "\t{}\n\n".format(whi + "Brute-forced" + res, )
+				else:
+					txt_output += "\n"
 
 	if emulation_multiline:
 		if len(logged_dlls) > 0:
@@ -22088,7 +22106,7 @@ def emulation_txt_out(apiList):
 	# 	print (hex(each))
 
 	if bPrintEmulation:
-		if len(apiList)>0:
+		if len(apiList)>0 or len(logged_syscalls)>0:
 			print(txt_output)
 		else:
 			print (gre+"\n\t[*]No APIs discovered through emulation."+res2)
@@ -23985,7 +24003,7 @@ def printToText(outputData):	#Output data to text doc
 	bPrintEmulation = False
 
 	if len(loggedList) > 0:
-		outString += emulation_txt_out(loggedList)
+		outString += emulation_txt_out(loggedList, logged_syscalls)
 	else:
 		outString += "\nNo APIs or artifacts discovered through emulation.\n"
 	bPrintEmulation = True
