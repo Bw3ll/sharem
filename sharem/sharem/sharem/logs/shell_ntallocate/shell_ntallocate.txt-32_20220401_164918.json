@@ -1,0 +1,38 @@
+{
+   "dateAnalyzed": "2022-04-01 16:49:18",
+   "classification": "Possibly encoded shellcode.",
+   "reason": "",
+   "secondsSinceEpoch": 1648849758.656281,
+   "fileType": "rawHex",
+   "bits": 32,
+   "entryPoint": "0x0",
+   "md5": "d71f5b795c1de4d9f3b83a53ef07046d",
+   "sha256": "da94f4cff8224a3ef6ab344595053ee14ef65e311ef4af43a412139fd3f90447",
+   "ssdeep": "3:ZHHlUPr01yllOsoH5/uQ:ZHallOsg5/t",
+   "pushret": [],
+   "callpop": [],
+   "PEB": [],
+   "fstenv": [],
+   "heavensGate": [],
+   "syscall": [],
+   "strings": [],
+   "shellcode": {
+      "rawhex": "c745f400001600c745f8000000006a4068003000008d5df4536a008d5df85350b81500000031c98d142464ff15c00000008b5df8",
+      "strlit": "\\xc7\\x45\\xf4\\x00\\x00\\x16\\x00\\xc7\\x45\\xf8\\x00\\x00\\x00\\x00\\x6a\\x40\\x68\\x00\\x30\\x00\\x00\\x8d\\x5d\\xf4\\x53\\x6a\\x00\\x8d\\x5d\\xf8\\x53\\x50\\xb8\\x15\\x00\\x00\\x00\\x31\\xc9\\x8d\\x14\\x24\\x64\\xff\\x15\\xc0\\x00\\x00\\x00\\x8b\\x5d\\xf8"
+   },
+   "deobfuscation": {
+      "deobfuscated": false,
+      "decoded_stub": "N/A",
+      "md5": "N/A",
+      "sha256": "N/A",
+      "ssdeep": "N/A"
+   },
+   "emulation": {
+      "api_calls": [],
+      "dlls": [],
+      "artifacts": [],
+      "web_artifacts": [],
+      "file_artifacts": [],
+      "executable_artifacts": []
+   }
+}

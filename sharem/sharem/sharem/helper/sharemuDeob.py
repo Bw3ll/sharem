@@ -110,11 +110,11 @@ class sharDeobf:
 			# 		end+="\\NONE"
 			# print (end)
 
-			print ("add_error: t", t, hex(t))
-			print("Oh no!!!", e)
+			# print ("add_error: t", t, hex(t))
+			# print("Oh no!!!", e)
 			print(traceback.format_exc())
-			print (len(self.rawFinal))
-			print (self.rawFinal)
+			# print (len(self.rawFinal))
+			# print (self.rawFinal)
 
 
 			pass
