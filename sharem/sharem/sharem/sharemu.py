@@ -668,7 +668,7 @@ def startEmu(arch, data, vb):
     # print (fRaw.APIs)
     # print ("COMPLETED2!!!")
 
-    # fRaw.findAPIs()
+    fRaw.findAPIs()
 def haha():
     fRaw.show()
 

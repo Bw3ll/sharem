@@ -1078,6 +1078,10 @@ class DisassemblyBytes:
 		self.shCodes = []
 		self.gDisassemblyTextNoC = 	''
 		self.gDisassemblyTextNoC = ''
+		self.ApiTable =[]
+		self.ApiStart=[]
+		self.ApiEnd=[]
+		self.ApiValue=[]
 
 
 		# self.PreSysOffsets = []   # starting offsets of bytes - may not always be 0 or 1
@@ -1123,7 +1127,10 @@ def clearDisassemblyBytesClass():
 	sBy.specialStart.clear()
 	sBy.specialEnd.clear()
 	sBy.comments.clear()
-
+	sBy.ApiTable.clear()
+	sBy.ApiStart.clear()
+	sBy.ApiEnd.clear()
+	sBy.ApiValue.clear()
 def bramwellTesterHAHA():
 	print ("HAHAHAHAHAHAHAH")
 
@@ -11777,7 +11784,12 @@ def addDis(address, line=None, mnemonic=None, op_str=None, id2="NA"):
 	# print("      [*] addDis id", id2, hex(address), "line", line, "mnemonic", mnemonic, op_str)
 	# print (type(address), "address type")
 	# print (mnemonic, op_str, id2, "\n")
-
+	lineSize=len(sBy.shDisassemblyLine)
+	# try:
+	# 	print ("previous", sBy.shDisassemblyLine[lineSize-1] )
+	# 	print ("previous", sBy.shAddresses[lineSize-1] )
+	# except:
+	# 	pass
 	sBy.shDisassemblyLine.append(line)
 	sBy.shAddresses.append(address)
 	sBy.shCodes.append(id2)
@@ -12153,7 +12165,7 @@ def checkForBad00(data, offset, end):
 		distance = ans[size]-ans[0]
 		dprint2(distance)
 		dprint2 (ans[0], ans[distance])
-		modifysBySpecial(data, ans[0], end, "al")
+		modifysBySpecial(data, ans[0], end, "al", "al2")
 		modifysByRange(data, ans[0], end,  "d","checkForBad00")
 	# print ("got bad one")
 	# input()
@@ -12391,13 +12403,20 @@ def disHereMakeDB2Edited(data,offset, end, mode, CheckingForDB):  #### new one
 	dprint2 ("")
 	val=stringVal
 	return val
+
+
 def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
-	# bprint("dis: disHereMakeDB2 - range " + str(hex(offset)) + " " + str(hex(end)) )
+	# print("dis: disHereMakeDB2 - range " + str(hex(offset)) + " " + str(hex(end)) )
 	# print ("start of function --------------------------------?>>>>>>>>>>>>>>>>>>>")
 	# dprint2 (num_bytes)
 	# printAllsByRange(offset,offset+num_bytes)
+
 	global labels
 	global sBy
+	apiFound=set()
+	# print (sBy.ApiTable)
+	# print (sBy.ApiValue)
+
 	# t=offset
 	w=0
 	length=end-offset
@@ -12405,15 +12424,21 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 	skip=True
 	startAddString=""
 	stringVala=""
+	apiValA=""
+	apiStart=0
+	apiDistance=0
+	apiInProgress=False
+	apiEnd=0
+	apiStartstr=""
 	stringStart=0
 	stringInProgress=False
 	maxSize=offset+length
 	dbOut=""
+	apiSkip=False
 	# print ("maxsize", hex(maxSize), "offset-start", hex(offset), "end", hex(end))
 	# print ("sBy.strings", hex(len(sBy.strings)))
 	# print (hex(len(m[o].rawData2)))
 	while offset < maxSize:
-		# print ("of", hex(offset))
 		check=sBy.strings[offset]
 
 		if sBy.strings[offset]==True: # and sBy.boolspecial[offset]==False:
@@ -12426,15 +12451,44 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 				startAddString=str(hex(offset))
 				stringVala=sBy.stringsValue[offset]+mag+" ; string"+res2+"\t\t"
 				# bprint ("\t\t\tmaking strings", stringVala)
-		elif (sBy.strings[offset]==False):#  and sBy.boolspecial[offset]==False:
+			# if ApiTable[offset]
+		elif sBy.ApiTable[offset]==True:
+			dbFlag=True
+			apiInProgress=True
+			apiStart= sBy.ApiStart[offset]
+			apiDistance=sBy.ApiEnd[offset] - sBy.ApiStart[offset]
+			if apiStart==offset:
+				apiStartstr=str(hex(offset))
+				apiValA=mag + sBy.ApiValue[offset] + " - API address pointer" +res2+"\t\t"
+			if apiStart+1==offset:
+				apiEnd=sBy.ApiEnd[offset]
+				apiSkip=False
+
+			# sBy.ApiTable[t]=True
+			# sBy.ApiStart[t]=start
+			# sBy.ApiValue[t]=word
+			# sBy.ApiEnd[t]= end
+			# print ("in api table range")
+		elif (sBy.strings[offset]==False) and (sBy.ApiTable[offset]==False):#  and sBy.boolspecial[offset]==False:
 			# dprint2("FoundNOTSTRING", hex(stringStart), hex(offset),"off")
-			stringInProgress=False
+			# stringInProgress=False
+			# apiInProgress=False
 			if dbFlag==False  and sBy.boolspecial[offset]==False:
 				bytesRes="0x"+data[offset:offset+1].hex()
 				addDis(offset, "db" + " " +bytesRes, "db", bytesRes,"A.")
 				skip=True
 			elif dbFlag==True:
-				addDis(int(startAddString,16),"",stringVala, "", "StringB")   # new Fixed
+				if stringInProgress:
+					# print ("startAddString", startAddString)
+					# print(type(startAddString))
+					addDis(int(startAddString,16),"",stringVala, "", "StringB")   # new Fixed
+					stringInProgress=False
+				if apiInProgress:
+					if apiStart not in apiFound:
+						addDis(int(apiStartstr,16),"",apiValA, "", "EndStringMaker")
+						apiFound.add(apiStart)
+						# print ("saveing", apiValA +" first")
+						apiInProgress=False
 				if  sBy.boolspecial[offset]==False:
 					bytesRes="0x"+data[offset:offset+1].hex()
 					addDis(offset, "db" + " " +bytesRes, "db", bytesRes,"BD")  # new - not tested
@@ -12444,11 +12498,21 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 				bytesRes="0x"+data[offset:offset+1].hex()
 				addDis(offset, "db" + " " +bytesRes, "db", bytesRes,"BD")  # new - not tested
 			skip=False
-		if sBy.boolspecial[offset]==True:
+
+		if apiEnd==offset+3:
+			# print ("making 3rd", apiValA, hex(offset), hex(apiStart))	
+			if apiStart not in apiFound:
+				addDis(int(apiStartstr,16),"",apiValA, "", "making 3rd")
+			apiFound.add(apiStart)
+			apiInProgress=False
+			apiSkip=True
+		elif sBy.boolspecial[offset]==True and sBy.ApiTable[offset]==False:
 			offset=sBy.specialEnd[offset]-1
+			
 			# t=offset
 			# w=offset
 			if sBy.specialVal[offset] == "al":
+				# print ("making align", hex(offset), sBy.ApiTable[offset], sBy.ApiTable[offset-1])
 				mnemonicVal="align " + hex(sBy.specialEnd[offset] - sBy.specialStart[offset])
 				# print ("distanceAlign", hex(sBy.specialStart[offset]), hex(sBy.specialEnd[offset]))
 				# print (mnemonicVal)
@@ -12457,10 +12521,14 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 				mnemonicVal="db 0xff x " + hex(sBy.specialEnd[offset] - sBy.specialStart[offset])
 				addDis(sBy.specialStart[offset],mnemonicVal,mnemonicVal, "","D2")		# new
 			else:
-				mnemonicVal="align " + hex(sBy.specialEnd[offset] - sBy.specialStart[offset])
-				# print ("distanceAlign", hex(sBy.specialStart[offset]), hex(sBy.specialEnd[offset]))
-				# print (mnemonicVal)
-				addDis(sBy.specialStart[offset],mnemonicVal , mnemonicVal, "","D3")   		# this is the one used    ---> new
+				if offset == sBy.specialEnd[offset]-1:
+					# print (apiFound)
+					# print ("making align2", hex(offset), sBy.ApiTable[offset], sBy.ApiTable[offset-1])
+
+					mnemonicVal="align2 " + hex(sBy.specialEnd[offset] - sBy.specialStart[offset])
+					# print ("distanceAlign", hex(sBy.specialStart[offset]), hex(sBy.specialEnd[offset]))
+					# print (mnemonicVal)
+					addDis(sBy.specialStart[offset],mnemonicVal , mnemonicVal, "","D3")   		# this is the one used    ---> new
 			# dprint2(hex(len(sBy.boolspecial)))
 		offset +=1
 		# t+=1
@@ -12478,10 +12546,18 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 			# print(data.hex())
 			if dbFlag==True:
 				stringVala=sBy.stringsValue[offset-1]+mag+" ; string"+res2+"\t\t"
-
 				# print("-->", startAddString, stringVala)
-				addDis(int(startAddString,16),"",stringVala, "", "EndStringMaker")
-			
+				try:
+					addDis(int(startAddString,16),"",stringVala, "", "EndStringMaker")
+				except:
+					print ("skip for now")
+				if apiInProgress and apiSkip==False:
+					# print ("making api 2nd", apiValA, hex(offset), apiSkip)
+					if offset == apiStart+3:
+						if apiStart not in apiFound:
+							# print ("apiFound", apiFound)
+							addDis(int(apiStartstr,16),"",apiValA, "", "EndStringMaker")
+							apiInProgress=False
 			# if dbFlag==True:
 			# 	try:
 			# 		addDis(int(startAddString,16),"",stringVala, "", "EndStringMaker")
@@ -14391,7 +14467,7 @@ def modifysByRange(data, start,end, dataType, mode=None):  # 1/8/2002
 			# print ("before", sBy.bytesType[t])
 			sBy.bytesType[t]=BytesBool
 # 
-			# print("changing value @ " + str(hex(t)), "\t\t", mode)
+			# print("changing value @ " + str(hex(t)), "\t\t")
 			# print (sBy.bytesType[t], " value: ", hex(sBy.values[t]))
 			if BytesBool:
 				sBy.boolspecial[t]=False
@@ -14430,8 +14506,8 @@ def modifysByRange(data, start,end, dataType, mode=None):  # 1/8/2002
 			t+=1
 
 
-def modifysBySpecial(data, start,end, dataType):
-	dprint2 ("modRangeSpecial ", hex(start),hex(end),dataType)
+def modifysBySpecial(data, start,end, dataType, caller):
+	# print ("modRangeSpecial ", hex(start),hex(end),dataType, caller)
 	global sBy
 	BytesBool=False
 	t=0
@@ -14443,14 +14519,15 @@ def modifysBySpecial(data, start,end, dataType):
 
 	for x in sBy.bytesType:
 		if (t>=start) and (t < end):
-			dprint2 ("before", sBy.specialVal[t])
-			sBy.specialVal[t]=spec
-			sBy.specialStart[t]=start
-			sBy.specialEnd[t]=end
-			sBy.boolspecial[t]=True
-			dprint2("changing value align @ " + str(hex(t)))
-			dprint2 (sBy.specialVal[t], " value: ", hex(sBy.values[t]))
-			dprint2(sBy.boolspecial[t], hex(sBy.specialStart[t]), hex(sBy.specialEnd[t]) )
+			if sBy.ApiTable[t]==False:
+				# print ("before", sBy.specialVal[t])
+				sBy.specialVal[t]=spec
+				sBy.specialStart[t]=start
+				sBy.specialEnd[t]=end
+				sBy.boolspecial[t]=True
+				# print("changing value align @ " + str(hex(t)))
+				# print (sBy.specialVal[t], " value: ", hex(sBy.values[t]))
+				# print(sBy.boolspecial[t], hex(sBy.specialStart[t]), hex(sBy.specialEnd[t]) )
 		t+=1
 
 	# dprint2 (sBy.bytesType)
@@ -14512,6 +14589,35 @@ def modifyPushStringsRange(start,end, dataType, word):
 			dprint2 (x,y)
 		t+=1
 	# dprint2 (sBy.bytesType)
+
+def modifyAPIRange(start,end, word):
+	dprint2 ("modifyAPIRange " )
+	# dprint2 (hex(start),hex(end),datfaType)
+	global sBy
+	t=0
+		# 	self.ApiTable =[]
+		# self.ApiStart=[]
+		# self.ApiEnd=[]
+		# self.ApiValue=[]
+	for x in sBy.bytesType:
+		if (t>=start) and (t < end):
+			# print ("t value", t, "size of ApiTable", len(sBy.ApiTable), len(sBy.ApiStart), len(sBy.ApiValue), len(sBy.ApiEnd) )
+			sBy.ApiTable[t]=True
+			sBy.ApiStart[t]=start
+			sBy.ApiValue[t]=word
+			sBy.ApiEnd[t]= end
+
+			# sBy.specialVal[t]=""
+			# sBy.specialStart[t]=0
+			# sBy.specialEnd[t]=0
+			# sBy.boolspecial[t]=False
+			# print("changing APITable value @ " + str(hex(t)))
+			# print (sBy.ApiTable[t], " value: ", hex(sBy.values[t]))
+			# print(sBy.ApiValue[t], sBy.ApiEnd[t])
+			# print ("boolspecial", sBy.boolspecial[t])
+		t+=1
+	t=0
+
 def printAllsBy():
 	global sBy
 	dprint2("printAllsBy")
@@ -14623,12 +14729,16 @@ def preSyscalDiscoverold(startingAddress, targetAddress, linesGoBack, caller=Non
 		sBy.specialStart.append(0)
 		sBy.specialEnd.append(0)
 		sBy.comments.append("")
+		sBy.ApiTable.append(False)
+		sBy.ApiStart.append(0xfffffffd)
+		sBy.ApiEnd.append(0xfffffffd)
+		sBy.ApiValue.append("")
 		i+=1
 	if mBool[o].bDoFindStrings and not mBool[o].bPreSysDisDone:
 		findStrings(shellBytes,3)
 		findStringsWide(shellBytes,3)
 		findPushAsciiMixed(shellBytes,3)
-	anaFindFF(shellBytes)
+	anaFindFF(shellBytes, "preSyscalDiscoverold")
 
 	if not mBool[o].bPreSysDisDone:
 		out=findRange(shellBytes, startingAddress, len(sBy.offsets)-1, "preSyscalDiscovery: " + caller)  #1st time helps do corrections
@@ -14636,7 +14746,7 @@ def preSyscalDiscoverold(startingAddress, targetAddress, linesGoBack, caller=Non
 		mBool[o].bPreSysDisDone = True
 
 
-	# anaFindFF(shellBytes)
+	# anaFindFF(shellBytes, "preSyscalDiscoverold")
 
 	# l1, l2=createDisassemblyLists()
 	# print (l2)
@@ -14719,7 +14829,10 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None)
 		sBy.specialStart.append(0)
 		sBy.specialEnd.append(0)
 		sBy.comments.append("")
-			
+		sBy.ApiTable.append(False)
+		sBy.ApiStart.append(0xfffffffd)
+		sBy.ApiEnd.append(0xfffffffd)
+		sBy.ApiValue.append("")
 		i+=1
 
 	start = time.time()
@@ -14735,7 +14848,7 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None)
 	bprint ("\n[*] Find strings", end-start)
 	
 	start = time.time()
-	# anaFindFF(shellBytes)
+	# anaFindFF(shellBytes,"preSyscalDiscover")
 	# addComments()
 	end = time.time()
 	bprint ("\n[*] anaFindFF", end-start)
@@ -14746,7 +14859,10 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None)
 		end = time.time()
 		bprint ("\n[*] findrange #1", end-start)
 
-		anaFindFF(shellBytes)
+
+		anaFindFF(shellBytes,"preSyscalDiscover")
+		anaFindAPIs()
+
 		clearTempDis()   # we must call this function before making new diassembly
 		
 
@@ -14784,7 +14900,7 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None)
 
 def takeBytes(shellBytes,startingAddress, silent=None):
 	# bprint ("takeBytes:", hex(startingAddress))
-	print ("take bytes o", o)
+	# print ("take bytse o", o)
 	global sBy
 	global shellEntry
 	global gDisassemblyText
@@ -14823,7 +14939,10 @@ def takeBytes(shellBytes,startingAddress, silent=None):
 			sBy.specialStart.append(0)
 			sBy.specialEnd.append(0)
 			sBy.comments.append("")
-				
+			sBy.ApiTable.append(False)
+			sBy.ApiStart.append(0xfffffffd)
+			sBy.ApiEnd.append(0xfffffffd)
+			sBy.ApiValue.append("")
 			i+=1
 
 		if not tooBig:
@@ -14840,7 +14959,10 @@ def takeBytes(shellBytes,startingAddress, silent=None):
 			bprint ("\n[*] Find strings", end-start)
 			
 			start = time.time()
-			anaFindFF(shellBytes)
+
+			anaFindFF(shellBytes, "takeBytes1")
+			anaFindAPIs()
+
 			# addComments()
 			end = time.time()
 			bprint ("\n[*] anaFindFF", end-start)
@@ -14850,7 +14972,8 @@ def takeBytes(shellBytes,startingAddress, silent=None):
 			end = time.time()
 			bprint ("\n[*] findrange #1b", end-start)
 
-			anaFindFF(shellBytes)
+			anaFindFF(shellBytes,"takeBytes2")
+			anaFindAPIs()
 			clearTempDis()   # we must call this function before making new diassembly
 			
 
@@ -15208,6 +15331,27 @@ def findInList(listPeb, address):
 	return 0, False
 
 #findrange
+
+def anaFindAPIs():
+	# print ("ana")
+	# print ("apis")
+	# print (fRaw.APIs)
+	apiLocs=[]
+	for each in fRaw.APIs:
+		api=each[0]
+		ansLE=each[1]
+		apiSize=len(ansLE)
+		funcName=each[2]
+		locInMemory=each[3]
+		apiLocs.append(locInMemory)
+		modifyAPIRange(locInMemory,locInMemory+apiSize, funcName)
+		modifysByRange(m[o].rawData2, locInMemory, locInMemory+4, "d", "anaFindAPIs")
+	try:
+		locMin=min(apiLocs)
+		locMax=max(apiLocs)
+		modifysByRange(m[o].rawData2, locMin,locMax, "d", "anaFindAPIs")
+	except:
+		pass
 def findRange(data, startingAddress, end2, caller=None):
 
 	global bit32
@@ -15232,6 +15376,7 @@ def findRange(data, startingAddress, end2, caller=None):
 	end =len(sBy.bytesType)-1
 	fr1 = time.time()
 
+	anaFindAPIs()
 	# print ("disAnalysisDone", mBool[o].disAnalysisDone, "caller", caller)
 	if not mBool[o].disAnalysisDone and "preSyscalDiscovery" in caller:
 		print ("inside disana")
@@ -15760,9 +15905,11 @@ def anaFindStrings(data, startingAddress):
 
 
 
-def anaFindFF(data):
+def anaFindFF(data, caller):
+
 	# global FFInstructions
-	dprint2("anaFindFF")
+	# print("anaFindFF", caller)
+	# print ("sBy.ApiTable", sBy.ApiTable)
 	OP_FF=b"\xff"	
 	OP_00=b"\x00"
 
@@ -15806,9 +15953,20 @@ def anaFindFF(data):
 			# if test==(OP_FF) and (test2 != inc_esi):
 			if test==(OP_00): #and (test2 not in FFInstructions):
 				# dprint2("gots one") # this just counts how many FF's there are that are not part of a more import instruciton'
-				total2+=1
+				# print ("check offset", hex(offset), hex(offset+ww), sBy.ApiTable[offset+ww] )
+
+
+				if sBy.ApiTable[offset + ww]==False: 
+					total2+=1
+				else:
+					escape=True
+					# print ("breaking", hex(offset + ww))
+
+					break
+					# total2=0
 				dprint2 ("total2", total2)
 				dprint2 (hex(offset), hex(offset+distance+ww))
+
 			vv+=1
 			ww+=1
 			escape=True
@@ -15816,12 +15974,12 @@ def anaFindFF(data):
 		if total > 3:
 			dprint2 (total, "ffTotal2")
 			modifysByRange(data, offset, offset+distance+total, "d","anaFindFF")
-			modifysBySpecial(data, offset, offset+distance+total, "ff")
+			modifysBySpecial(data, offset, offset+distance+total, "ff", "ff1")
 			# modifyStringsRange(offset, offset+distance+total, "s", word)
-		if total2 > 4:
-			dprint2 (total2, "00Total2")
-			modifysByRange(data, offset+4, offset+distance+total2, "d","anaFindFF")
-			modifysBySpecial(data, offset+4, offset+distance+total2, "al")
+		if total2 > 3:
+			# print (total2, "00Total2")
+			modifysByRange(data, offset, offset+distance+total2, "d","anaFindFF")
+			modifysBySpecial(data, offset, offset+distance+total2, "al", "al1")
 			
 			checkForBad00(data, offset, offset+distance+total2)
 			# modifyStringsRange(offset, offset+distance+total, "s", word)
