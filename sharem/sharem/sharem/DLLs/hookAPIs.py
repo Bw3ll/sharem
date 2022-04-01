@@ -542,6 +542,7 @@ def hook_NtTerminateProcess(uc, eip, esp, callAddr):
 
 def hook_NtAllocateVirtualMemory(uc, eip, esp, callAddr):
     global availMem
+    global address_range
 
     processHandle = uc.mem_read(esp+4, 4)
     processHandle = unpack('<I', processHandle)[0]
@@ -566,6 +567,7 @@ def hook_NtAllocateVirtualMemory(uc, eip, esp, callAddr):
     try:
         uc.mem_map(allocLoc, size)
         uc.reg_write(UC_X86_REG_EAX, retVal)
+        address_range.append([allocLoc, size])
 
         tmp = uc.mem_read(baseAddress, 4)
         tmp = unpack('<I', tmp)[0]
@@ -576,6 +578,8 @@ def hook_NtAllocateVirtualMemory(uc, eip, esp, callAddr):
         try:
             allocLoc = availMem
             uc.mem_map(allocLoc, size)
+            address_range.append([allocLoc, size])
+
             availMem += (regionSize + 20)
             uc.reg_write(UC_X86_REG_EAX, retVal)
             uc.mem_write(baseAddress, pack("<Q", allocLoc))
