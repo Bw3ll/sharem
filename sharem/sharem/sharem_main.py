@@ -22030,7 +22030,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 				for ptyp, pname, pval in zip(pType, pName, paramVal):
 					txt_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
 				txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
-				txt_output += "\t{} {}\n".format(red + "EAX: " + res, hex(syscallID))
+				txt_output += "\t{} {} - ({}, SP {})\n".format(red + "EAX: " + res, hex(syscallID) + res, em.winVersion + res, em.winSP + res)
 				if api_bruteforce:
 					txt_output += "\t{}\n\n".format(whi + "Brute-forced" + res, )
 				else:
