@@ -109,7 +109,7 @@ def hook_LoadLibraryA(uc, eip, esp, export_dict, callAddr):
             arg1L=arg1.lower()
             retVal=allDllsDict[arg1L]
         except:
-            print("\tError: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
+            print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", arg1)
             print (hex(eip), (len(arg1)))
             retVal = 0
 
@@ -131,7 +131,7 @@ def hook_LoadLibraryW(uc, eip, esp, export_dict, callAddr):
     try:
         retVal = allDllsDict[arg1]
     except:
-        print("Error: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
+        print("Error: The shellcode tried to load a DLL that isn't handled by this tool: ", arg1)
         retVal = 0
 
     uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -153,7 +153,7 @@ def hook_LoadLibraryExW(uc, eip, esp, export_dict, callAddr):
     try:
         retVal = allDllsDict[arg1]
     except:
-        print("Error: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
+        print("Error: The shellcode tried to load a DLL that isn't handled by this tool: ", arg1)
         retVal = 0
 
     uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -454,6 +454,56 @@ def hook_WinExec(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("WinExec", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
+def hook_ShellExecuteA(uc, eip, esp, export_dict, callAddr):
+    # HINSTANCE ShellExecuteA([in, optional] HWND   hwnd, [in, optional] LPCSTR lpOperation,[in] LPCSTR lpFile,
+    # [in, optional] LPCSTR lpParameters, [in, optional] LPCSTR lpDirectory, [in] INT    nShowCmd);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    pTypes=['HWND', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'INT']
+    pNames=['hwnd', 'lpOperation', 'lpFile', 'lpParameters', 'lpDirectory', 'nShowCmd']
+    cmdShowReverseLookUp = {0: 'SW_HIDE', 1: 'SW_NORMAL', 2: 'SW_SHOWMINIMIZED', 3: 'SW_MAXIMIZE', 4: 'SW_SHOWNOACTIVATE', 5: 'SW_SHOW', 6: 'SW_MINIMIZE', 7: 'SW_SHOWMINNOACTIVE', 8: 'SW_SHOWNA', 9: 'SW_RESTORE', 16: 'SW_SHOWDEFAULT', 17: 'SW_FORCEMINIMIZE'}
+    search= pVals[5]
+    if search in cmdShowReverseLookUp:
+        pVals[5]=cmdShowReverseLookUp[search]
+    else:
+        pVals[5]=hex(pVals[5])
+
+    # create strings for everything except ones in our skip
+    skip=[5]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x20
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("ShellExecuteA", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_ShellExecuteW(uc, eip, esp, export_dict, callAddr):
+    # HINSTANCE ShellExecuteW([in, optional] HWND   hwnd, [in, optional] LPCSTR lpOperation,[in] LPCSTR lpFile,
+    # [in, optional] LPCSTR lpParameters, [in, optional] LPCSTR lpDirectory, [in] INT    nShowCmd);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    pTypes=['HWND', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'INT']
+    pNames=['hwnd', 'lpOperation', 'lpFile', 'lpParameters', 'lpDirectory', 'nShowCmd']
+    cmdShowReverseLookUp = {0: 'SW_HIDE', 1: 'SW_NORMAL', 2: 'SW_SHOWMINIMIZED', 3: 'SW_MAXIMIZE', 4: 'SW_SHOWNOACTIVATE', 5: 'SW_SHOW', 6: 'SW_MINIMIZE', 7: 'SW_SHOWMINNOACTIVE', 8: 'SW_SHOWNA', 9: 'SW_RESTORE', 16: 'SW_SHOWDEFAULT', 17: 'SW_FORCEMINIMIZE'}
+    search= pVals[5]
+    if search in cmdShowReverseLookUp:
+        pVals[5]=cmdShowReverseLookUp[search]
+    else:
+        pVals[5]=hex(pVals[5])
+
+    # create strings for everything except ones in our skip
+    skip=[5]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x20
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("ShellExecuteW", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
 def hook_VirtualFree(uc, eip, esp, export_dict, callAddr):
     # 'VirtualFree': (3, ['LPVOID', 'SIZE_T', 'DWORD'], ['lpAddress', 'dwSize', 'dwFreeType'], 'BOOL'), 
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
@@ -527,6 +577,45 @@ def hook_WSASocketA(uc, eip, esp, export_dict, callAddr):
 
     logged_calls= ("WSASocketA", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
+
+def hook_socket(uc, eip, esp, export_dict, callAddr):
+    # SOCKET WSAAPI socket([in] int af, [in] int type, [in] int protocol)
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['int', 'int', 'int']
+    pNames= ['af', 'type', 'protocol']
+    aFReverseLookUp = {0: 'AF_UNSPEC', 2: 'AF_INET', 6: 'AF_IPX', 16: 'AF_APPLETALK', 17: 'AF_NETBIOS', 23: 'AF_INET6', 26: 'AF_IRDA', 32: 'AF_BTH'}
+    sockTypeReverseLookUp = {1: 'SOCK_STREAM', 2: 'SOCK_DGRAM', 3: 'SOCK_RAW', 4: 'SOCK_RDM', 5: 'SOCK_SEQPACKET'}
+    sockProtocolReverseLookUp = {1: 'IPPROTO_ICMP', 2: 'IPPROTO_IGMP', 3: 'BTHPROTO_RFCOMM', 6: 'IPPROTO_TCP', 17: 'IPPROTO_UDP', 58: 'IPPROTO_ICMPV6', 113: 'IPPROTO_RM'}
+
+    search= pVals[0]
+    if search in aFReverseLookUp:
+        pVals[0]=aFReverseLookUp[search]
+    else:
+        pVals[0]=hex(pVals[0])
+    search= pVals[1]
+    if search in sockTypeReverseLookUp:
+        pVals[1]=sockTypeReverseLookUp[search]
+    else:
+        pVals[1]=hex(pVals[1])
+    search= pVals[2]
+    if search in sockProtocolReverseLookUp:
+        pVals[2]=sockProtocolReverseLookUp[search]
+    else:
+        pVals[2]=hex(pVals[2])
+    
+    #create strings for everything except ones in our skip
+    skip=[0,1,2]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x20
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("socket", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+
 
 # SysCalls
 def hook_NtTerminateProcess(uc, eip, esp, callAddr):
