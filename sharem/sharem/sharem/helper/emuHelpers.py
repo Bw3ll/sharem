@@ -184,6 +184,24 @@ def push(uc, val):
     # insert new value onto the stack
     uc.mem_write(esp, pack("<i", val))
 
+def set_register(uc, reg, val):
+    if reg == 'eax':
+        uc.reg_write(UC_X86_REG_EAX, val)
+    elif reg == 'ebx':
+        uc.reg_write(UC_X86_REG_EBX, val)
+    elif reg == 'ecx':
+        uc.reg_write(UC_X86_REG_ECX, val)
+    elif reg == 'edx':
+        uc.reg_write(UC_X86_REG_EDX, val)
+    elif reg == 'edi':
+        uc.reg_write(UC_X86_REG_EDI, val)
+    elif reg == 'esi':
+        uc.reg_write(UC_X86_REG_ESI, val)
+    elif reg == 'ebp':
+        uc.reg_write(UC_X86_REG_EBP, val)
+    elif reg == 'esp':
+        uc.reg_write(UC_X86_REG_ESP, val)
+
 def constConvert(uc, string):
     if (string == 'eax'):
         return str(uc.reg_read(UC_X86_REG_EAX))
@@ -311,7 +329,14 @@ def controlFlow(uc, mnemonic, op_str):
 
     return address
 
-
+def retEnding(uc, mnemonic):
+    esp = uc.reg_read(UC_X86_REG_ESP)
+    retLoc = uc.mem_read(esp, 4)
+    retLoc = unpack('<I', retLoc)[0]
+    if mnemonic == 'ret' and retLoc == 0x1000:
+        return True
+    else:
+        return False
 
 def boolFollowJump(jmpFlag, jmpType, eflags):
     # ZF Flag
