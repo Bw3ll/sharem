@@ -335,13 +335,20 @@ def makeArgVals(uc, eip, esp, export_dict, callAddr, cnt):
     arg8 = unpack('<I', arg8)[0]
     arg9 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+36, 4)
     arg9 = unpack('<I', arg9)[0]
-
     arg10 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+40, 4)
     arg10 = unpack('<I', arg10)[0]
-    arg11 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+36, 4)
+    arg11 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+44, 4)
     arg11 = unpack('<I', arg11)[0]
-    arg12 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+40, 4)
+    arg12 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+48, 4)
     arg12 = unpack('<I', arg12)[0]
+    arg13 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+52, 4)
+    arg13 = unpack('<I', arg13)[0]
+    arg14 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+56, 4)
+    arg14 = unpack('<I', arg14)[0]
+    arg15 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+60, 4)
+    arg15 = unpack('<I', arg15)[0]
+    arg16 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+64, 4)
+    arg16 = unpack('<I', arg16)[0]
 
     if cnt==1:
         return [arg1]
@@ -366,7 +373,15 @@ def makeArgVals(uc, eip, esp, export_dict, callAddr, cnt):
     elif cnt==11:
         return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11]
     elif cnt==12:
-        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12 ]
+        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12]
+    elif cnt==13:
+        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13]
+    elif cnt==14:
+        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14]
+    elif cnt==15:
+        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15]
+    elif cnt==16:
+        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16]
 
 def findStringsParms(uc, pTypes,pVals, skip):
     i=0
@@ -810,6 +825,93 @@ def hook_CreateThread(uc, eip, esp, export_dict, callAddr):
 
     logged_calls= ("CreateThread", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
+
+def hook_CreateServiceA(uc, eip, esp, export_dict, callAddr):
+    # SC_HANDLE CreateServiceA([in]SC_HANDLE hSCManager,[in] LPCSTR lpServiceName,[in, optional]  LPCSTR lpDisplayName,[in] DWORD dwDesiredAccess,[in] DWORD dwServiceType,[in] DWORD dwStartType,[in] DWORD dwErrorControl,[in, optional]  LPCSTR    lpBinaryPathName,[in, optional]  LPCSTR    lpLoadOrderGroup,[out, optional] LPDWORD lpdwTagId,[in, optional]  LPCSTR lpDependencies,[in, optional]  LPCSTR lpServiceStartName,[in, optional] LPCSTR lpPassword);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 13)
+    pTypes=['SC_HANDLE', 'LPCSTR', 'LPCSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPCSTR', 'LPCSTR', 'LPDWORD', 'LPCSTR', 'LPCSTR', 'LPCSTR']
+    pNames=['hSCManager', 'lpServiceName', 'lpDisplayName', 'dwDesiredAccess', 'dwServiceType', 'dwStartType', 'dwErrorControl', 'lpBinaryPathName', 'lpLoadOrderGroup', 'lpdwTagId', 'lpDependencies', 'lpServiceStartName', 'lpPassword']
+    dwDesiredAccessReverseLookUp={0xf01ff: 'SERVICE_ALL_ACCESS', 0x0002: 'SERVICE_CHANGE_CONFIG', 0x0008: 'SERVICE_ENUMERATE_DEPENDENTS', 0x0080: 'SERVICE_INTERROGATE', 0x0040: 'SERVICE_PAUSE_COUNTINUE', 0x0001: 'SERVICE_QUERY_CONFIG', 0x0004: 'SERVICE_QUERY_STATUS', 0X0010: 'SERVICE_START', 0x0020: 'SERVICE_STOP', 0x0100: 'SERVICE_USER_DEFINED_CONTROL', 0x10000: 'DELETE', 0x20000: 'READ_CONTROL', 0x40000: 'WRITE_DAC', 0x80000: 'WRITE_OWNER'}
+    dwServiceTypeReverseLookUp={0x00000004: 'SERVICE_ADAPTER', 0x00000002: 'SERVICE_FILE_SYSTEM_DRIVER', 0x00000001: 'SERVICE_KERNEL_DRIVER', 0x00000008: 'SERVICE_RECOGNIZER_DRIVER', 0x00000010: 'SERVICE_WIN32_OWN_PROCESS', 0x00000020: 'SERVICE_WIN32_SHARE_PROCESS', 0x00000100: 'SERVICE_INTERACTIVE_PROCESS'}
+    dwStartTypeReverseLookUp={0x00000002: 'SERVICE_AUTO_START', 0x00000000: 'SERVICE_BOOT_START', 0x00000003: 'SERVICE_DEMAND_START', 0x00000004: 'SERVICE_DISABLED', 0x00000001: 'SERVICE_SYSTEM_START'}
+    dwErrorControlReverseLookUp={0x00000003: 'SERVICE_ERROR_CRITICAL', 0x00000000: 'SERVICE_ERROR_IGNORE', 0x00000001: 'SERVICE_ERROR_NORMAL', 0x00000002: 'SERVICE_ERROR_SEVERE'}
+
+    search= pVals[3]
+    if search in dwDesiredAccessReverseLookUp:
+        pVals[3]=dwDesiredAccessReverseLookUp[search]
+    else:
+        pVals[3]=hex(pVals[3])
+    search= pVals[4]
+    if search in dwServiceTypeReverseLookUp:
+        pVals[4]=dwServiceTypeReverseLookUp[search]
+    else:
+        pVals[4]=hex(pVals[4])
+    search= pVals[5]
+    if search in dwStartTypeReverseLookUp:
+        pVals[5]=dwStartTypeReverseLookUp[search]
+    else:
+        pVals[5]=hex(pVals[5])
+    search= pVals[6]
+    if search in dwErrorControlReverseLookUp:
+        pVals[6]=dwErrorControlReverseLookUp[search]
+    else:
+        pVals[6]=hex(pVals[6])
+
+    #create strings for everything except ones in our skip
+    skip=[3,4,5,6]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=FakeProcess # Return HANDLE to service
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CreateServiceA", hex(callAddr), (retValStr), 'SC_HANDLE', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_CreateServiceW(uc, eip, esp, export_dict, callAddr):
+    # SC_HANDLE CreateServiceW([in]SC_HANDLE hSCManager,[in] LPCSTR lpServiceName,[in, optional]  LPCSTR lpDisplayName,[in] DWORD dwDesiredAccess,[in] DWORD dwServiceType,[in] DWORD dwStartType,[in] DWORD dwErrorControl,[in, optional]  LPCSTR    lpBinaryPathName,[in, optional]  LPCSTR    lpLoadOrderGroup,[out, optional] LPDWORD lpdwTagId,[in, optional]  LPCSTR lpDependencies,[in, optional]  LPCSTR lpServiceStartName,[in, optional] LPCSTR lpPassword);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 13)
+    pTypes=['SC_HANDLE', 'LPCSTR', 'LPCSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPCSTR', 'LPCSTR', 'LPDWORD', 'LPCSTR', 'LPCSTR', 'LPCSTR']
+    pNames=['hSCManager', 'lpServiceName', 'lpDisplayName', 'dwDesiredAccess', 'dwServiceType', 'dwStartType', 'dwErrorControl', 'lpBinaryPathName', 'lpLoadOrderGroup', 'lpdwTagId', 'lpDependencies', 'lpServiceStartName', 'lpPassword']
+    dwDesiredAccessReverseLookUp={0xf01ff: 'SERVICE_ALL_ACCESS', 0x0002: 'SERVICE_CHANGE_CONFIG', 0x0008: 'SERVICE_ENUMERATE_DEPENDENTS', 0x0080: 'SERVICE_INTERROGATE', 0x0040: 'SERVICE_PAUSE_COUNTINUE', 0x0001: 'SERVICE_QUERY_CONFIG', 0x0004: 'SERVICE_QUERY_STATUS', 0X0010: 'SERVICE_START', 0x0020: 'SERVICE_STOP', 0x0100: 'SERVICE_USER_DEFINED_CONTROL', 0x10000: 'DELETE', 0x20000: 'READ_CONTROL', 0x40000: 'WRITE_DAC', 0x80000: 'WRITE_OWNER'}
+    dwServiceTypeReverseLookUp={0x00000004: 'SERVICE_ADAPTER', 0x00000002: 'SERVICE_FILE_SYSTEM_DRIVER', 0x00000001: 'SERVICE_KERNEL_DRIVER', 0x00000008: 'SERVICE_RECOGNIZER_DRIVER', 0x00000010: 'SERVICE_WIN32_OWN_PROCESS', 0x00000020: 'SERVICE_WIN32_SHARE_PROCESS', 0x00000100: 'SERVICE_INTERACTIVE_PROCESS'}
+    dwStartTypeReverseLookUp={0x00000002: 'SERVICE_AUTO_START', 0x00000000: 'SERVICE_BOOT_START', 0x00000003: 'SERVICE_DEMAND_START', 0x00000004: 'SERVICE_DISABLED', 0x00000001: 'SERVICE_SYSTEM_START'}
+    dwErrorControlReverseLookUp={0x00000003: 'SERVICE_ERROR_CRITICAL', 0x00000000: 'SERVICE_ERROR_IGNORE', 0x00000001: 'SERVICE_ERROR_NORMAL', 0x00000002: 'SERVICE_ERROR_SEVERE'}
+
+    search= pVals[3]
+    if search in dwDesiredAccessReverseLookUp:
+        pVals[3]=dwDesiredAccessReverseLookUp[search]
+    else:
+        pVals[3]=hex(pVals[3])
+    search= pVals[4]
+    if search in dwServiceTypeReverseLookUp:
+        pVals[4]=dwServiceTypeReverseLookUp[search]
+    else:
+        pVals[4]=hex(pVals[4])
+    search= pVals[5]
+    if search in dwStartTypeReverseLookUp:
+        pVals[5]=dwStartTypeReverseLookUp[search]
+    else:
+        pVals[5]=hex(pVals[5])
+    search= pVals[6]
+    if search in dwErrorControlReverseLookUp:
+        pVals[6]=dwErrorControlReverseLookUp[search]
+    else:
+        pVals[6]=hex(pVals[6])
+
+    #create strings for everything except ones in our skip
+    skip=[3,4,5,6]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=FakeProcess # Return HANDLE to service
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CreateServiceW", hex(callAddr), (retValStr), 'SC_HANDLE', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
 
 # SysCalls
 def hook_NtTerminateProcess(uc, eip, esp, callAddr):
