@@ -218,12 +218,14 @@ def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
     flProtect = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+16, 4)
     flProtect = unpack('<I', flProtect)[0]
 
+
     # Round up to next page (4096)
     dwSize = ((dwSize//4096)+1) * 4096
 
     retVal = 0
     try:
         uc.mem_map(lpAddress, dwSize)
+        retVal = lpAddress
         uc.reg_write(UC_X86_REG_EAX, retVal)
     except:
         try:
@@ -571,7 +573,6 @@ def hook_NtAllocateVirtualMemory(uc, eip, esp, callAddr):
 
         tmp = uc.mem_read(baseAddress, 4)
         tmp = unpack('<I', tmp)[0]
-        print("hi: ", tmp)
     except Exception as e:
         print("Error: ", e)
         print(traceback.format_exc())
@@ -586,7 +587,6 @@ def hook_NtAllocateVirtualMemory(uc, eip, esp, callAddr):
 
             tmp = uc.mem_read(baseAddress, 4)
             tmp = unpack('<I', tmp)[0]
-            print("hi: ", hex(tmp))
         except Exception as e:
             print("Error: ", e)
             print(traceback.format_exc())

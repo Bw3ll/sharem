@@ -329,6 +329,12 @@ def controlFlow(uc, mnemonic, op_str):
 
     return address
 
+def exitAPI(funcName):
+    if funcName == "ExitProcess" or funcName == "TerminateProcess":
+        return True
+    else:
+        return False
+
 def retEnding(uc, mnemonic):
     esp = uc.reg_read(UC_X86_REG_ESP)
     retLoc = uc.mem_read(esp, 4)

@@ -58,6 +58,8 @@ class Coverage():
         esp = self.regs['esp']
         ebp = self.regs['ebp']
         stack_bytes_len = ebp - esp
+        if stack_bytes_len < 0:
+            stack_bytes_len = STACK_ADDR - esp
         self.stack = bytes(uc.mem_read(esp, stack_bytes_len))
 
     def dump_saved_info(self, uc):
@@ -188,15 +190,19 @@ def coverage_branch(uc, address, mnemonic):
     global coverage_objects
 
     if len(coverage_objects) > 0:
+        # Start first coverage
         if coverage_objects[0].inProgress == False:
             uc.reg_write(UC_X86_REG_EIP, coverage_objects[0].address)
             coverage_objects[0].dump_saved_info(uc)
             coverage_objects[0].inProgress = True
+        # Case for every other object
         elif (address in traversedAdds and address != 0x18000000) or retEnding(uc, mnemonic):
-            for i in traversedAdds:
-                print(hex(i))
             del coverage_objects[0]
-            coverage_objects[0].inProgress = False
+
+            if len(coverage_objects) > 0:
+                uc.reg_write(UC_X86_REG_EIP, coverage_objects[0].address)
+                coverage_objects[0].dump_saved_info(uc)
+                coverage_objects[0].inProgress = True
     else:
         uc.emu_stop()
 
@@ -250,11 +256,11 @@ def hook_WindowsAPI(uc, addr, ret, size, funcAddress):
             print("\n\tHook failed at " + str(hex(funcAddress)) + ".")
     
     fRaw.add(funcAddress, funcName)
-    if funcName == 'ExitProcess':
+    if exitAPI(funcName):
         stopProcess = True
-    if 'LoadLibrary' in funcName and uc.reg_read(UC_X86_REG_EAX) == 0:
-        print("\t[*] LoadLibrary failed. Emulation ceasing.")
-        stopProcess = True
+    # if 'LoadLibrary' in funcName and uc.reg_read(UC_X86_REG_EAX) == 0:
+    #     print("\t[*] LoadLibrary failed. Emulation ceasing.")
+    #     stopProcess = True
 
     uc.reg_write(UC_X86_REG_EIP, EXTRA_ADDR)
 
@@ -275,7 +281,6 @@ def hook_code(uc, address, size, user_data):
     global em
 
     funcName = ""
-    # traversedAdds.add(address) # do not delete
 
     # # Exit if code executed is out of range
     # if stopProcess != False:
@@ -290,7 +295,6 @@ def hook_code(uc, address, size, user_data):
 
     addressF=address
     if stopProcess == True or address == 0x0:
-        print("WOAAAAAH")
         uc.emu_stop()
 
     programCounter += 1
@@ -344,8 +348,6 @@ def hook_code(uc, address, size, user_data):
     if em.beginCoverage == True and em.codeCoverage == True:
         coverage_branch(uc, address, mnemonic)
 
-    traversedAdds.add(address)
-
     jumpAddr = controlFlow(uc, mnemonic, op_str)
 
     # If jmp instruction, increment jmp counter to track for infinite loop and track in code coverage
@@ -361,13 +363,17 @@ def hook_code(uc, address, size, user_data):
             jmpInstructs[address] = 0
 
         # track for code coverage
-        cvg = Coverage(uc)
-        coverage_objects.append(cvg)
-        eflags = uc.reg_read(UC_X86_REG_EFLAGS)
-        if boolFollowJump(jmpFlag, mnemonic, eflags):
-            cvg.address = jumpAddr
-        else:
-            cvg.address = address + size
+        if address not in traversedAdds:
+            cvg = Coverage(uc)
+            coverage_objects.append(cvg)
+            eflags = uc.reg_read(UC_X86_REG_EFLAGS)
+            if boolFollowJump(jmpFlag, mnemonic, eflags):
+                cvg.address = jumpAddr
+            else:
+                cvg.address = address + size
+
+    traversedAdds.add(address)
+
 
     # Hook usage of Windows API function
     if jumpAddr > NTDLL_BASE and jumpAddr < WTSAPI32_TOP:
@@ -377,13 +383,18 @@ def hook_code(uc, address, size, user_data):
     if jumpAddr == 0x5000:
         hook_sysCall(uc, address, size)
 
-    if address == 0x1000:
+    if retEnding(uc, mnemonic):
         stopProcess = True
 
-    # Find if end of program for code coverage
-    if retEnding(uc, mnemonic) and em.codeCoverage == True:
+    # Begin code coverage if the shellcode is finished, and the option is enabled
+    if stopProcess and em.codeCoverage and not em.beginCoverage:
+        stopProcess = False
         em.beginCoverage = True
         coverage_branch(uc, address, mnemonic)
+
+    # Prevent the emulation from stopping if code coverage still has objects left
+    if len(coverage_objects) > 0 and em.beginCoverage:
+        stopProcess = False
 
     # If parameters were used in the function, we need to clean the stack
     if address == EXTRA_ADDR:
@@ -676,7 +687,11 @@ def test_i386(mode, code):
     # VA shellcode
     # code = b"\x6A\x40\x68\x00\x10\x00\x00\x68\x00\x05\x00\x00\x68\x00\x00\x00\x24\xE8\x48\x3D\x26\x02"
     # code coverage test
-    code = b"\xB8\x00\x00\x00\x00\x85\xC0\x74\x1B\x31\xC9\x51\x68\x2E\x65\x78\x65\x68\x63\x61\x6C\x63\x89\xE3\x41\x51\x53\xE8\x19\x58\x2E\x02\x83\xC4\x0C\xC3\x6A\x00\x68\x00\x00\x00\x12\xE8\x2A\xFD\x27\x02\xC3"
+    # code = b"\xB8\x01\x00\x00\x00\x85\xC0\x74\x1B\x31\xC9\x51\x68\x2E\x65\x78\x65\x68\x63\x61\x6C\x63\x89\xE3\x41\x51\x53\xE8\x19\x58\x2E\x02\x83\xC4\x0C\xC3\x6A\x00\x68\x00\x00\x00\x12\xE8\x2A\xFD\x27\x02\xC3"
+    # code coverage test 2
+    # code = b"\xB8\x00\x00\x00\x00\x85\xC0\x74\x3E\x31\xC9\x51\x68\x2E\x65\x78\x65\x68\x63\x61\x6C\x63\x89\xE3\x41\x51\x53\xE8\x19\x58\x2E\x02\x83\xC4\x0C\xB8\x00\x00\x00\x00\x85\xC0\x74\x1B\x31\xC9\x51\x68\x2E\x65\x78\x65\x68\x63\x61\x6C\x63\x89\xE3\x41\x51\x53\xE8\xF6\x57\x2E\x02\x83\xC4\x0C\xC3\x6A\x00\xE8\x12\x9F\x26\x02\xC3"
+    # code = b"\xB8\x01\x00\x00\x00\x85\xC0\x74\x3E\x31\xC9\x51\x68\x2E\x65\x78\x65\x68\x63\x61\x6C\x63\x89\xE3\x41\x51\x53\xE8\x19\x58\x2E\x02\x83\xC4\x0C\xB8\x00\x00\x00\x00\x85\xC0\x74\x1B\x31\xC9\x51\x68\x2E\x65\x78\x65\x68\x63\x61\x6C\x63\x89\xE3\x41\x51\x53\xE8\xF6\x57\x2E\x02\x83\xC4\x0C\xC3\x6A\x00\xE8\x12\x9F\x26\x02\xC3"
+
 
     # x64
     # Add admin
@@ -731,7 +746,8 @@ def test_i386(mode, code):
         # print ("testout",test)
         print("\n")
     except Exception as e:
-        pass
+        print(e)
+        print(traceback.format_exc())
         # print ("opps")
         # print("\t",e)
         # print("traceback", traceback.format_exc())
