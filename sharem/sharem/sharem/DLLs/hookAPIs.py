@@ -487,7 +487,10 @@ def findStringsParms(uc, pTypes,pVals, skip):
             if "STR" in pTypes[i]: #finding ones with string
                 try:
                     # print ("looking", i, pTypes[i], pVals[i])
-                    pVals[i] = read_string(uc, pVals[i])
+                    if "WSTR" in pTypes[i]:
+                        pVals[i] = read_unicode(uc, pVals[i])
+                    else:
+                        pVals[i] = read_string(uc, pVals[i])
                     # print (pVals[i],"*")
                 except:
                     # print ("pass", i)
