@@ -21486,7 +21486,8 @@ def hashShellcode(shell=None, mode=None):
 		sha256=(hashlib.sha256(shell).hexdigest())
 
 	if shell==None:
-		print ("shell is none!!!")
+		pass
+		# print ("shell is none!!!")
 	# if shell ==None:
 	# 	ssdeepHash = ssdeep.hash(m[o].rawData2)
 	# 	md5sum=(hashlib.md5(m[o].rawData2).hexdigest())
