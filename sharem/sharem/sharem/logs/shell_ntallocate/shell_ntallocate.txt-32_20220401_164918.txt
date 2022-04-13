@@ -1,0 +1,28 @@
+Filename: shell_ntallocate.txt
+File Type: rawHex
+Architecture: 32-bit
+Date Analyzed: 2022-04-01 16:49:18
+classification: Possibly encoded shellcode.
+Reason: 
+Seconds since last epoch: 1648849758.660187
+Shellcode Entry point: 0x0
+md5: d71f5b795c1de4d9f3b83a53ef07046d
+sha256: da94f4cff8224a3ef6ab344595053ee14ef65e311ef4af43a412139fd3f90447
+ssdeep: 3:ZHHlUPr01yllOsoH5/uQ:ZHallOsg5/t
+
+
+No push ret instructions found.
+
+No fstenv instructions found.
+
+No call pop instructions found.
+
+No syscall instructions found.
+
+No peb walking instructions found.
+
+No heaven's gate instructions found.
+
+No strings found.
+
+No APIs or artifacts discovered through emulation.
