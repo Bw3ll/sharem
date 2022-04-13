@@ -812,7 +812,7 @@ def hook_RegDeleteKeyExA(uc, eip, esp, export_dict, callAddr):
     retValStr='ERROR_SUCCESS'
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
-    logged_calls= ("RegDeleteKeyExA", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+    logged_calls= ("RegDeleteKeyExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
 def hook_RegGetValueA(uc, eip, esp, export_dict, callAddr):
@@ -838,7 +838,7 @@ def hook_RegGetValueA(uc, eip, esp, export_dict, callAddr):
     retValStr='ERROR_SUCCESS'
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
-    logged_calls= ("RegGetValueA", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+    logged_calls= ("RegGetValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
 def hook_CryptDecrypt(uc, eip, esp, export_dict, callAddr):
@@ -858,11 +858,11 @@ def hook_CryptDecrypt(uc, eip, esp, export_dict, callAddr):
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
     cleanBytes=len(pTypes)*4
-    retVal=0x20
-    retValStr=hex(retVal)
+    retVal=0x1
+    retValStr='TRUE'
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
-    logged_calls= ("CryptDecrypt", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+    logged_calls= ("CryptDecrypt", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
 def hook_SetWindowsHookExA(uc, eip, esp, export_dict, callAddr):
@@ -1038,8 +1038,8 @@ def hook_ExitWindowsEx(uc, eip, esp, export_dict, callAddr):
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
     cleanBytes=len(pTypes)*4
-    retVal=0x20
-    retValStr=hex(retVal)
+    retVal=0x1
+    retValStr='TRUE'
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
     logged_calls= ("ExitWindowsEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
@@ -1063,8 +1063,8 @@ def hook_SetFileAttributesA(uc, eip, esp, export_dict, callAddr):
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
     cleanBytes=len(pTypes)*4
-    retVal=0x20
-    retValStr=hex(retVal)
+    retVal=0x1
+    retValStr='TRUE'
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
     logged_calls= ("SetFileAttributesA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
@@ -1088,8 +1088,8 @@ def hook_ControlService(uc, eip, esp, export_dict, callAddr):
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
     cleanBytes=len(pTypes)*4
-    retVal=0x20
-    retValStr=hex(retVal)
+    retVal=0x1
+    retValStr='TRUE'
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
     logged_calls= ("ControlService", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
@@ -1125,7 +1125,14 @@ def hook_CryptAcquireContextA(uc, eip, esp, export_dict, callAddr):
     pTypes=['HCRYPTPROV', 'LPCSTR', 'LPCSTR', 'DWORD', 'DWORD']
     pNames= ['phProv', 'szContainer', 'szProvider', 'dwProvType', 'dwFlags']
 
+    dwProvTypeReverseLookUp = {1: 'PROV_RSA_FULL', 2: 'PROV_RSA_SIG', 3: 'PROV_DSS', 4: 'PROV_FORTEZZA', 5: 'PROV_MS_EXCHANGE', 6: 'PROV_SSL', 18: 'PROV_RSA_SCHANNEL', 19: 'PROV_DSS_DH', 24: 'PROV_DH_SCHANNEL', 36: 'PROV_RSA_AES'}
     dwFlagsReverseLookUp = {4026531840: 'CRYPT_VERIFYCONTEXT', 8: 'CRYPT_NEWKEYSET', 16: 'CRYPT_DELETEKEYSET', 32: 'CRYPT_MACHINE_KEYSET', 64: 'CRYPT_SILENT', 128: 'CRYPT_DEFAULT_CONTAINER_OPTIONAL'}
+
+    search= pVals[3]
+    if search in dwProvTypeReverseLookUp:
+        pVals[3]=dwProvTypeReverseLookUp[search]
+    else:
+        pVals[3]=hex(pVals[3])
 
     search= pVals[4]
     if search in dwFlagsReverseLookUp:
@@ -1133,13 +1140,78 @@ def hook_CryptAcquireContextA(uc, eip, esp, export_dict, callAddr):
     else:
         pVals[4]=hex(pVals[4])
     #create strings for everything except ones in our skip
-    skip=[4]   # we need to skip this value (index) later-let's put it in skip
+    skip=[3,4]   # we need to skip this value (index) later-let's put it in skip
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
     cleanBytes=len(pTypes)*4
-    retVal=0x20
-    retValStr=hex(retVal)
+    retVal=0x1
+    retValStr='TRUE'
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
     logged_calls= ("CryptAcquireContextA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
+
+def hook_Toolhelp32ReadProcessMemory(uc, eip, esp, export_dict, callAddr):
+    global availMem
+
+    th32ProcessID = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
+    th32ProcessID = unpack('<I', th32ProcessID)[0]
+    lpBaseAddress = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
+    lpBaseAddress = unpack('<I', lpBaseAddress)[0]
+    lpBuffer = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+12, 4)
+    lpBuffer = unpack('<I', lpBuffer)[0]
+    cbRead = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+16, 4)
+    cbRead = unpack('<I', cbRead)[0]
+    lpNumberOfBytesRead = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+20, 4)
+    lpNumberOfBytesRead = unpack('<I', lpNumberOfBytesRead)[0]
+
+    # Round up to next page (4096)
+    cbRead = ((cbRead//4096)+1) * 4096
+
+    retAddr = 0
+    try:
+        uc.mem_map(lpBuffer, cbRead)
+        retAddr = lpBuffer
+    except:
+        try:
+            allocLoc = availMem
+            uc.mem_map(allocLoc, cbRead)
+            availMem += cbRead + 20
+            lpBuffer = allocLoc
+        except:
+            success = False
+            retAddr = 0xbadd0000
+
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+    logged_calls = ("Toolhelp32ReadProcessMemory", hex(callAddr), (retValStr), 'BOOL', [(th32ProcessID), hex(lpBaseAddress), hex(lpBuffer), hex(cbRead), hex(lpNumberOfBytesRead)], ['DWORD', 'LPCVOID', 'LPVOID', 'SIZE_T', 'SIZE_T'], ['th32ProcessID', 'lpBaseAddress', 'lpBuffer', 'cbRead', 'lpNumberOfBytesRead'], False)
+    cleanBytes = 20
+
+    return logged_calls, cleanBytes
+
+def hook_OpenSCManagerA(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['LPCSTR', 'LPCSTR', 'DWORD']
+    pNames= ['lpMachineName', 'lpDatabaseName', 'dwDesiredAccess']
+
+    dwDesiredAccessReverseLookUp = {983103: 'SC_MANAGER_ALL_ACCESS', 2: 'SC_MANAGER_CREATE_SERVICE', 1: 'SC_MANAGER_CONNECT', 4: 'SC_MANAGER_ENUMERATE_SERVICE', 8: 'SC_MANAGER_LOCK', 32: 'SC_MANAGER_MODIFY_BOOT_CONFIG', 16: 'SC_MANAGER_QUERY_LOCK_STATUS'}
+
+    search= pVals[2]
+    if search in dwDesiredAccessReverseLookUp:
+        pVals[2]=dwDesiredAccessReverseLookUp[search]
+    else:
+        pVals[2]=hex(pVals[2])
+    
+    #create strings for everything except ones in our skip
+    skip=[2]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x00686868
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("OpenSCManagerA", hex(callAddr), (retValStr), 'SC_HANDLE', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
