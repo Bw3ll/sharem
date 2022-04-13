@@ -207,19 +207,15 @@ def coverage_branch(uc, address, mnemonic):
         uc.emu_stop()
 
 def breakLoop(uc, jmpFlag, jmpType, op_str, addr, size):
-    # print("Jmp Flag: ", jmpFlag)
     eflags = uc.reg_read(UC_X86_REG_EFLAGS)
 
-    # False = continue, True = jump
     if boolFollowJump(jmpFlag, jmpType, eflags):
-        # print("[*] TAKING THE JUMP")
         if "0x" in op_str:
             jmpLoc = addr + signedNegHexTo(op_str)
         else:
             jmpLoc = addr + int(op_str)
         uc.reg_write(UC_X86_REG_EIP, jmpLoc)
     else:
-        # print("[*] SKIPPING THE JUMP")
         uc.reg_write(UC_X86_REG_EIP, addr + size)
 
 
@@ -691,7 +687,7 @@ def test_i386(mode, code):
     # code coverage test 2
     # code = b"\xB8\x00\x00\x00\x00\x85\xC0\x74\x3E\x31\xC9\x51\x68\x2E\x65\x78\x65\x68\x63\x61\x6C\x63\x89\xE3\x41\x51\x53\xE8\x19\x58\x2E\x02\x83\xC4\x0C\xB8\x00\x00\x00\x00\x85\xC0\x74\x1B\x31\xC9\x51\x68\x2E\x65\x78\x65\x68\x63\x61\x6C\x63\x89\xE3\x41\x51\x53\xE8\xF6\x57\x2E\x02\x83\xC4\x0C\xC3\x6A\x00\xE8\x12\x9F\x26\x02\xC3"
     # code = b"\xB8\x01\x00\x00\x00\x85\xC0\x74\x3E\x31\xC9\x51\x68\x2E\x65\x78\x65\x68\x63\x61\x6C\x63\x89\xE3\x41\x51\x53\xE8\x19\x58\x2E\x02\x83\xC4\x0C\xB8\x00\x00\x00\x00\x85\xC0\x74\x1B\x31\xC9\x51\x68\x2E\x65\x78\x65\x68\x63\x61\x6C\x63\x89\xE3\x41\x51\x53\xE8\xF6\x57\x2E\x02\x83\xC4\x0C\xC3\x6A\x00\xE8\x12\x9F\x26\x02\xC3"
-
+    # code = b"\xB8\x00\x00\x00\x00\x85\xC0\x74\x18\x31\xC9\x51\x68\x2E\x65\x78\x65\x68\x63\x61\x6C\x63\x89\xE3\x41\x51\x53\xE8\x1B\x58\x2E\x02\xC3\x6A\x00\x68\x00\x00\x00\x12\xE8\x2D\xFD\x27\x02\xC3"
 
     # x64
     # Add admin
@@ -736,7 +732,6 @@ def test_i386(mode, code):
 
     try:
         # print("before", mu.mem_read(CODE_ADDR + em.entryOffset,20))
-
         # Start the emulation
         mu.emu_start(CODE_ADDR + em.entryOffset, (CODE_ADDR + em.entryOffset) + len(code))
 
@@ -758,7 +753,6 @@ def test_i386(mode, code):
     #     print ("finalOut", finalOut)
     # except Exception as e:
     #     print (e)
-    #     print ("HELP!!!\n\n\n\n\n")
     outFile.close()
     # now print out some registers
     artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
