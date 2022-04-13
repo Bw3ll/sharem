@@ -3,9 +3,8 @@
 *.egg-info
 *.pyc
 work2.bin
-**/DLLS/*.dll
-**/logs/**
-foundDLLAddresses.txt
+DLLS/*.dll
+logs/**
 out.txt
 outputs/shellcode-disassembly.txt
 outputs/shellcode.bin
