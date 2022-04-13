@@ -111,6 +111,7 @@ outFile = open(os.path.join(os.path.dirname(__file__), 'emulationLog.txt'), 'w')
 cleanStackFlag = False
 stopProcess = False
 cleanBytes = 0
+bad_instruct_count = 0
 prevInstruct = []
 expandedDLLsPath = os.path.join(os.path.dirname(__file__), "DLLs\\")
 prevInstructs = []
@@ -186,7 +187,7 @@ def loadDlls(mu):
         except:
             pass
 
-def coverage_branch(uc, address, mnemonic):
+def coverage_branch(uc, address, mnemonic, bad_instruct):
     global coverage_objects
 
     if len(coverage_objects) > 0:
@@ -196,7 +197,7 @@ def coverage_branch(uc, address, mnemonic):
             coverage_objects[0].dump_saved_info(uc)
             coverage_objects[0].inProgress = True
         # Case for every other object
-        elif (address in traversedAdds and address != 0x18000000) or retEnding(uc, mnemonic):
+        elif (address in traversedAdds and address != 0x18000000) or retEnding(uc, mnemonic) or bad_instruct:
             del coverage_objects[0]
 
             if len(coverage_objects) > 0:
@@ -275,6 +276,7 @@ def hook_code(uc, address, size, user_data):
     global traversedAdds
     global coverage_objects
     global em
+    global bad_instruct_count
 
     funcName = ""
 
@@ -290,7 +292,7 @@ def hook_code(uc, address, size, user_data):
         cleanStackFlag = False
 
     addressF=address
-    if stopProcess == True or address == 0x0:
+    if stopProcess == True:
         uc.emu_stop()
 
     programCounter += 1
@@ -320,10 +322,17 @@ def hook_code(uc, address, size, user_data):
     mnemonic=""
     op_str=""
     t=0
+    bad_instruct = False
 
     fRaw.addBytes(shells, addressF-CODE_ADDR, size)
     finalOut=uc.mem_read(CODE_ADDR + em.entryOffset,codeLen)
     fRaw.giveEnd(finalOut)
+
+    if shells == b'\x00\x00':
+        bad_instruct_count += 1
+        if bad_instruct_count > 5:
+            bad_instruct = True
+
     for i in cs.disasm(shells, address):
         val = i.mnemonic + " " + i.op_str # + " " + shells.hex()
         if t==0:
@@ -333,6 +342,7 @@ def hook_code(uc, address, size, user_data):
 
         if verbose:
             shells = uc.mem_read(base, size)
+
             instructLine += val + '\n'
             outFile.write(instructLine)
             loc = 0
@@ -342,7 +352,7 @@ def hook_code(uc, address, size, user_data):
 
     # Jump to code coverage branch if shellcode is already done
     if em.beginCoverage == True and em.codeCoverage == True:
-        coverage_branch(uc, address, mnemonic)
+        coverage_branch(uc, address, mnemonic, bad_instruct)
 
     jumpAddr = controlFlow(uc, mnemonic, op_str)
 
@@ -379,14 +389,14 @@ def hook_code(uc, address, size, user_data):
     if jumpAddr == 0x5000:
         hook_sysCall(uc, address, size)
 
-    if retEnding(uc, mnemonic):
+    if retEnding(uc, mnemonic) or bad_instruct:
         stopProcess = True
 
     # Begin code coverage if the shellcode is finished, and the option is enabled
     if stopProcess and em.codeCoverage and not em.beginCoverage:
         stopProcess = False
         em.beginCoverage = True
-        coverage_branch(uc, address, mnemonic)
+        coverage_branch(uc, address, mnemonic, bad_instruct)
 
     # Prevent the emulation from stopping if code coverage still has objects left
     if len(coverage_objects) > 0 and em.beginCoverage:
