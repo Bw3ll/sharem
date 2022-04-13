@@ -1028,10 +1028,16 @@ class shellHash:
 			out+=yel+ "\tssdeep: "+res + self.unecryptedSsdeep+ "\n"
 
 		return out
-
+def findDecoderStubEnd(test1,test2):
+	t=0
+	for each in test1:
+		if each != test2[t]:
+			return t
+			break
+		t+=1
 def emuDeobfuSuccess(emBytes, mode):
 
-	print ("  This is self-modifying code. Switching to decoded mode.")
+	print ("  This may be self-modifying code. Switching to decoded shellcode.")
 	# print ("emBytes", binaryToStr(emBytes))
 	sh.setDecoded(emBytes)
 	sh.decryptSuccess = True
@@ -1040,13 +1046,19 @@ def emuDeobfuSuccess(emBytes, mode):
 		hashShellcode(sh.decodedFullBody, unencryptedBodyShell)
 		newModule(shDec, emBytes)
 		o = shDec
-		print("  Setting default to decoded shellcode...")
+		# this messes up subsequent disassembly -- too time consuming to rebuild it.
+		# decoder=True #set to true and it will only do disassembly on the decoder stub
+		# disassembly, disassemblyNoC, assemblyBytes=takeBytes(sh.decoderStub,0, "silent", decoder)
+		# print ("decoder stub:")
+		# print(disassembly)
+		# print (disassemblyNoC)
+		# print("  Setting default to decoded shellcode...")
 	else:
 		hashShellcode(emBytes, unencryptedShell)
 	#create newModule for decrypted shellcode
 		newModule(shDec, emBytes)
 		o = shDec
-		print("  Setting default to decoded shellcode...")
+		# print("  Setting default to decoded shellcode...")
 
 # class DisassemblyBytes:
 # 	def __init__(self): #, name):
@@ -1076,7 +1088,7 @@ class DisassemblyBytes:
 		self.shMnemonic = []
 		self.shOp_str = []
 		self.shCodes = []
-		self.gDisassemblyTextNoC = 	''
+		self.gDisassemblyText = 	''
 		self.gDisassemblyTextNoC = ''
 		self.ApiTable =[]
 		self.ApiStart=[]
@@ -2282,6 +2294,7 @@ def hashesText():
 	if sh != None: 
 		if sh.decryptSuccess == True:
 			# o = shOrg
+			previousO=o
 			o = shDec
 
 			txt += "Deobfuscated Shellcode:\n"
@@ -2289,7 +2302,7 @@ def hashesText():
 			txt += "\tsha256: " + m[o].getSha256() + "\n"
 			txt += "\tssdeep: " + m[o].getSsdeep() + "\n\n"
 			txt += "Note: data below is from  deobfuscated shellcode.\n"
-
+			o=previousO
 	return txt
 
 def showBasicInfo():
@@ -2298,7 +2311,7 @@ def showBasicInfo():
 	cat=""
 	# o=0
 	dprint2 ("# m: " + str(len(m)))
-	
+	previousO=o
 	if rawHex:
 		try:
 			cat+=gre+"Shellcode Entry point: " + res+str(hex(shellEntry)) +"\n"
@@ -2307,6 +2320,7 @@ def showBasicInfo():
 		except:
 			cat+=gre+"Shellcode Entry point: " + res+str(shellEntry) +"\n"
 			cat += hashesText()
+		o=previousO
 	else:
 		for o in m:
 			cat +=m[o].modName.decode()+"\n"
@@ -5421,6 +5435,7 @@ def saveBaseCallpop_backup(address, NumOpsDis,modSecName,secNum,distance,pop_off
 
 
 def printSavedCallPop(bit = 32): ######################## AUSTIN ###############################3
+	global o
 	# print("in print")
 	#formatting
 	j = 0
@@ -11821,7 +11836,7 @@ def printTempDis():
 
 
 
-def createDisassemblyLists(Colors=True, caller=None):
+def createDisassemblyLists(Colors=True, caller=None,decoder=False):
 	# print ("createDisassemblyLists")
 	global off_Label
 	global labels
@@ -11832,6 +11847,12 @@ def createDisassemblyLists(Colors=True, caller=None):
 
 	btsV=mBool[o].btsV
 	
+	if not decoder:
+		shellArg=m[o].rawData2
+		# print("***rawdata2")
+	else:
+		shellArg=sh.decoderStub
+		# print ("***decoderstub")
 	showOpcodes = mBool[o].bDoshowOpcodes
 	showLabels = mBool[o].bShowLabels
 	if caller=="final" and mBool[o].bDoEnableComments:
@@ -11858,17 +11879,17 @@ def createDisassemblyLists(Colors=True, caller=None):
 		try:
 			endHex=sBy.shAddresses[j+1]
 		except:
-			endHex=len(m[o].rawData2)
+			endHex=len(shellArg)
 		sizeDisplay=endHex-startHex
 		if mode=="ascii":
 			try:
 				if sizeDisplay > maxOpDisplay:
-					myHex=red+binaryToStr(m[o].rawData2[startHex:startHex+maxOpDisplay],btsV)+"..."+res2+""
-					myStrOut=cya+" "+toString(m[o].rawData2[startHex:endHex])+res2+""
+					myHex=red+binaryToStr(shellArg[startHex:startHex+maxOpDisplay],btsV)+"..."+res2+""
+					myStrOut=cya+" "+toString(shellArg[startHex:endHex])+res2+""
 				else:
-					myHex=red+binaryToStr(m[o].rawData2[startHex:endHex],btsV)+res2+""
+					myHex=red+binaryToStr(shellArg[startHex:endHex],btsV)+res2+""
 					if mBool[o].bDoShowAscii:
-						myStrOut=cya+" "+toString(m[o].rawData2[startHex:endHex])+res2+""
+						myStrOut=cya+" "+toString(shellArg[startHex:endHex])+res2+""
 					else:
 						myStrOut=""
 			except Exception as e:
@@ -11880,9 +11901,9 @@ def createDisassemblyLists(Colors=True, caller=None):
 				myStrOut=""
 			out='{:<12s} {:<45s} {:<33s}{:<10s}\n'.format(pAddress, whi+sBy.shMnemonic[j] + " " + sBy.shOp_str[j], myHex,myStrOut )
 			if re.search( r'align|db 0xff x', sBy.shMnemonic[j], re.M|re.I):
-				myHex=red+binaryToStr(m[o].rawData2[startHex:startHex+4],btsV)+"..."+res2+""
+				myHex=red+binaryToStr(shellArg[startHex:startHex+4],btsV)+"..."+res2+""
 				if mBool[o].bDoShowAscii:
-					myStrOut=cya+" "+toString(m[o].rawData2[startHex:startHex+4])+"..."+res2+""
+					myStrOut=cya+" "+toString(shellArg[startHex:startHex+4])+"..."+res2+""
 				else:
 					myStrOut=""
 
@@ -11896,12 +11917,12 @@ def createDisassemblyLists(Colors=True, caller=None):
 		elif mode=="NoOffsets":
 			try:
 				if sizeDisplay > maxOpDisplay:
-					myHex=red+binaryToStr(m[o].rawData2[startHex:startHex+maxOpDisplay],btsV)+"..."+res2+""
-					myStrOut=cya+" "+toString(m[o].rawData2[startHex:endHex])+res2+""
+					myHex=red+binaryToStr(shellArg[startHex:startHex+maxOpDisplay],btsV)+"..."+res2+""
+					myStrOut=cya+" "+toString(shellArg[startHex:endHex])+res2+""
 				else:
-					myHex=red+binaryToStr(m[o].rawData2[startHex:endHex],btsV)+res2+""
+					myHex=red+binaryToStr(shellArg[startHex:endHex],btsV)+res2+""
 					if mBool[o].bDoShowAscii:
-						myStrOut=cya+" "+toString(m[o].rawData2[startHex:endHex])+res2+""
+						myStrOut=cya+" "+toString(shellArg[startHex:endHex])+res2+""
 					else:
 						myStrOut=""
 			except Exception as e:
@@ -11912,9 +11933,9 @@ def createDisassemblyLists(Colors=True, caller=None):
 				myStrOut=""
 			out='   {:<45s} {:<33s}{:<10s}\n'.format(whi+sBy.shMnemonic[j] + " " + sBy.shOp_str[j], myHex,myStrOut )
 			if re.search( r'align|db 0xff x', sBy.shMnemonic[j], re.M|re.I):
-				myHex=red+binaryToStr(m[o].rawData2[startHex:startHex+4],btsV)+"..."+res2+""
+				myHex=red+binaryToStr(shellArg[startHex:startHex+4],btsV)+"..."+res2+""
 				if mBool[o].bDoShowAscii:
-					myStrOut=cya+" "+toString(m[o].rawData2[startHex:startHex+4])+"..."+res2+""
+					myStrOut=cya+" "+toString(shellArg[startHex:startHex+4])+"..."+res2+""
 				else:
 					myStrOut=""
 
@@ -11981,7 +12002,7 @@ def testDict(k):
 	return js_test
 	# input()
 
-def createDisassemblyJson(Colors=True, caller=None):
+def createDisassemblyJson(Colors=True, caller=None,decoder=False):
 	# print ("createDisassemblyLists")
 	global off_Label
 	global labels
@@ -11991,6 +12012,11 @@ def createDisassemblyJson(Colors=True, caller=None):
 	maxOpDisplay=mBool[o].maxOpDisplay
 
 	btsV=mBool[o].btsV
+	
+	if not decoder:
+		shellArg=m[o].rawData2
+	else:
+		shellArg=sh.decoderStub
 	
 	showOpcodes = mBool[o].bDoshowOpcodes
 	showLabels = mBool[o].bShowLabels
@@ -12023,17 +12049,17 @@ def createDisassemblyJson(Colors=True, caller=None):
 		try:
 			endHex=sBy.shAddresses[j+1]
 		except:
-			endHex=len(m[o].rawData2)
+			endHex=len(shellArg)
 		sizeDisplay=endHex-startHex
 		if mode=="ascii":
 			try:
 				if sizeDisplay > maxOpDisplay:
-					myHex=red+binaryToStr(m[o].rawData2[startHex:startHex+maxOpDisplay],btsV)+"..."+res2+""
-					myStrOut=cya+" "+toString(m[o].rawData2[startHex:endHex])+res2+""
+					myHex=red+binaryToStr(shellArg[startHex:startHex+maxOpDisplay],btsV)+"..."+res2+""
+					myStrOut=cya+" "+toString(shellArg[startHex:endHex])+res2+""
 				else:
-					myHex=red+binaryToStr(m[o].rawData2[startHex:endHex],btsV)+res2+""
+					myHex=red+binaryToStr(shellArg[startHex:endHex],btsV)+res2+""
 					if mBool[o].bDoShowAscii:
-						myStrOut=cya+" "+toString(m[o].rawData2[startHex:endHex])+res2+""
+						myStrOut=cya+" "+toString(shellArg[startHex:endHex])+res2+""
 					else:
 						myStrOut=""
 			except Exception as e:
@@ -12053,9 +12079,9 @@ def createDisassemblyJson(Colors=True, caller=None):
 			# print(type(pAddress), pAddress, int(pAddress, 16))
 			out='{:<12s} {:<45s} {:<33s}{:<10s}\n'.format(pAddress, whi+sBy.shMnemonic[j] + " " + sBy.shOp_str[j], myHex,myStrOut )
 			if re.search( r'align|db 0xff x', sBy.shMnemonic[j], re.M|re.I):
-				myHex=red+binaryToStr(m[o].rawData2[startHex:startHex+4],btsV)+"..."+res2+""
+				myHex=red+binaryToStr(shellArg[startHex:startHex+4],btsV)+"..."+res2+""
 				if mBool[o].bDoShowAscii:
-					myStrOut=cya+" "+toString(m[o].rawData2[startHex:startHex+4])+"..."+res2+""
+					myStrOut=cya+" "+toString(shellArg[startHex:startHex+4])+"..."+res2+""
 				else:
 					myStrOut=""
 
@@ -12459,7 +12485,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 			apiDistance=sBy.ApiEnd[offset] - sBy.ApiStart[offset]
 			if apiStart==offset:
 				apiStartstr=str(hex(offset))
-				apiValA=mag + sBy.ApiValue[offset] + " - API address pointer" +res2+"\t\t"
+				apiValA=mag + sBy.ApiValue[offset] + yel + " - API pointer" +res2+"\t\t"
 			if apiStart+1==offset:
 				apiEnd=sBy.ApiEnd[offset]
 				apiSkip=False
@@ -12550,7 +12576,8 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 				try:
 					addDis(int(startAddString,16),"",stringVala, "", "EndStringMaker")
 				except:
-					print ("skip for now")
+					# print ("skip for now")
+					pass
 				if apiInProgress and apiSkip==False:
 					# print ("making api 2nd", apiValA, hex(offset), apiSkip)
 					if offset == apiStart+3:
@@ -14898,7 +14925,7 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None)
 	return truth, tl1, tl2, l1,l2
 
 
-def takeBytes(shellBytes,startingAddress, silent=None):
+def takeBytes(shellBytes,startingAddress, silent=None, decoder=False):
 	# bprint ("takeBytes:", hex(startingAddress))
 	# print ("take bytse o", o)
 	global sBy
@@ -15000,7 +15027,7 @@ def takeBytes(shellBytes,startingAddress, silent=None):
 
 	colorama.init()
 	# print ("final!!!!!")
-	disassembly, disassemblyC=createDisassemblyLists(True,"final")
+	disassembly, disassemblyC=createDisassemblyLists(True,"final", decoder)
 	gDisassemblyTextNoC = disassembly
 	gDisassemblyText =disassemblyC
 
@@ -15234,7 +15261,10 @@ def addComments():
 		apiAddress=apiAddress-0x12000000
 		# print("---->", hex(apiAddress))
 		# print (hex(apiAddress))
-		sBy.comments[apiAddress]=mag+"; call to " + api +res +" "
+		try:
+			sBy.comments[apiAddress]=mag+"; call to " + api +res +" "
+		except:
+			print ("error logging API address to disassembly - ", api)
 		# print (api, apiAddress, each[1])
 # 	input()
 # 1107296317 
@@ -15311,10 +15341,16 @@ def addComments():
 		except:
 			pass
 	cur=sBy.comments[shellEntry]
-	sBy.comments[shellEntry] = cur + comC+" ; ***Shellcode Entry Point, offset " + str(hex(shellEntry)) +"***" +res2+""
+	sBy.comments[shellEntry] =  comC+" ; ***Shellcode Entry Point, offset " + str(hex(shellEntry)) +"***" +res2+""
 	
 	cur=sBy.comments[shellEntry-1]
 
+	try:
+		dSEnd=sh.decoderStubEnd
+		sBy.comments[dSEnd]=comC+"; decoder stub end. Instructions below are deobfuscated." +res2 +""
+
+	except:
+		pass
 	# sBy.comments[shellEntry-1] =  cur + "\n\n\t\t[*] Shellcode Entry Point\n" 
 		# print ("index of tib is", tib)
 		# print ("index of ldr is", ldr)
@@ -17680,23 +17716,23 @@ def toggleDecodedModule():
 		# print("o = <<<", o,">>>")
 	else:
 		if(o == shOrg):
-			print("Currently performing operations on obfuscated shellcode. Switch to deobfuscated shellcode?")
+			print("  Currently performing operations on obfuscated shellcode. Switch to deobfuscated shellcode?")
 			# print("o = <<<", o,">>>")
 			while(True):
 				userAns = input(" y/n>")
 				if(userAns == "y" or userAns == "Y"):
-					print("Switching to deobfuscated shellcode...")
+					print("  Switching to deobfuscated shellcode...")
 					o = shDec
 					return
 				elif(userAns == "n" or userAns == "N"):
 					return
 		elif (o == shDec):
-			print("Currently performing operations on deobfuscated shellcode. Switch back to obfuscated shellcode?")
+			print("  Currently performing operations on deobfuscated shellcode. Switch back to obfuscated shellcode?")
 			# print("o = <<<", o,">>>")
 			while(True):
 				userAns = input("y/n>")
 				if(userAns == "y" or userAns == "Y"):
-					print("Switching to obfuscated shellcode...")
+					print("  Switching to obfuscated shellcode...")
 					o = shOrg
 					return
 				elif(userAns == "n" or userAns == "N"):
@@ -17773,6 +17809,10 @@ def analyzeDecoderStubs(shellArg="default", entryPoint = 0, stubEnd = -1):
 			# print(binaryToStr(rawBytes[(int(addb, 16) + int(size, 16)):]))
 			sh.setDecoderStub(rawBytes[:(int(addb, 16) + int(size, 16))])
 			sh.isEncoded = True
+			sh.decryptSuccess = True
+			decoderEnd = int(addb, 16) + int(size, 16)
+			sh.setDecoderStubEnd(decoderEnd)
+
 			hashShellcode(rawBytes[:(int(addb, 16) + int(size, 16))], decoderShell)
 			# print(binaryToStr(sh.decoderStub))
 			return (numVals, opTypes, (int(addb, 16) + int(size, 16)))
@@ -18341,26 +18381,65 @@ def shellDisassemblyInit(shellArg, silent=None):
 	allowPrint()
 	colorama.init()
 
+	try:
+		hashShellcode(sh.decodedFullBody, unencryptedBodyShell)
+		dStub=	shHash.unecryptedBodyMd5
+	except:
+		dStub=filename
+
 	if not useHash:
 		# txtDis = open(directory+"disassembly"+slash+filename[:-4]+"-disassembly.txt", "w")
 		txtDis = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs",'disassembly', (filename[:-4]+"-disassembly.txt")), "w")
 		printOUT= ("\tDisassembly printed to disassembly"+slash+filename[:-4]+"-disassembly.txt")
 		if save_bin_file:
-			# binDis = open(directory+"disassembly"+slash+filename[:-4]+"-disassembly.bin", "wb")
-			binDis = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs",'disassembly', (filename[:-4]+"-disassembly.bin")), "wb")
-			binDis.write(bytesOutput)
-			binDis.close()
-			("\tRaw binary saved to disassembly"+os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs",'disassembly', (filename[:-4]))+"-disassembly.bin")
+			# binDis = open(directory+"disassembly"+slash+filename[:-4]+"-raw.bin", "wb")
+			binasm = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs",'disassembly', (filename[:-4]+"-raw.bin")), "wb")
+
+
+			# binFileName = os.path.join(output_dir, outfile + filler, outfileName + "-raw.bin")
+
+			if not sh.decryptSuccess:
+
+				# binasm = open(binFileName, "wb")
+				binasm.write(m[o].rawData2)
+			if sh.decryptSuccess:
+
+				# binFileNameDecoded = os.path.join(output_dir, outfile + filler, outfileName + "-decoded_body_raw.bin")
+				binasm2 = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs",'disassembly', (filename[:-4]+"-decoded_body_raw.bin2")), "wb")
+
+				# binasm = open(binFileNameDecoded, "wb")
+				binasm2.write(sh.decodedFullBody)
+				# binasm2 = open(binFileName, "wb")
+				binasm.write(m["shellcode"].rawData2)
+				binasm2.close()
+
+
+			binasm.close()
+
+			# binDis.write(bytesOutput)
+			# binDis.close()
+			# print("\tRaw binary saved to disassembly"+os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs",'disassembly', (filename[:-4]))+"-raw.bin")
 
 	else:
-		
 		txtDis = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs",'disassembly', (filename2+"-disassembly.txt")), "w")
 		printOUT= ("\tDisassembly printed to disassembly"+slash+filename2+"-disassembly.txt")
 		if save_bin_file:
-			binDis = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs",'disassembly', (filename2+"-disassembly.bin")), "wb")
-			binDis.write(bytesOutput)
-			binDis.close()
-			("\tRaw binary saved to disassembly"+os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs",'disassembly', (filename2+"-disassembly.bin")))
+			binasm = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs",'disassembly', (filename2+"-raw.bin")), "wb")
+			
+			if not sh.decryptSuccess:
+				binasm.write(m[o].rawData2)
+			if sh.decryptSuccess:
+				binasm2 = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs",'disassembly', (dStub+"-decoded_body_raw.bin2")), "wb")
+				binasm2.write(sh.decodedFullBody)
+				binasm.write(m["shellcode"].rawData2)
+				binasm2.close()
+
+
+
+			# binDis = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs",'disassembly', (filename2+"-raw.bin")), "wb")
+			# binDis.write(bytesOutput)
+			# binDis.close()
+			# print("\tRaw binary saved to disassembly"+os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs",'disassembly', (filename2+"-raw.bin")))
 
 	if silent!="silent":
 		print (printOUT)
@@ -19416,14 +19495,17 @@ def emuCheckDeobfSuccess():
 			decoderEnd=0
 			try:
 				for each in fRaw.originalRaw:
-					# if awmerged[:t] == aworiginal[:t]:
+					# if awmerged[:t] == 	aworiginal[:t]:
 						# print ("equal")
+					# print (hex(t), "\t", binaryToStr(fRaw.merged2[t:t+1]), binaryToStr(fRaw.originalRaw[t:t+1]))
 					if fRaw.merged2[:t] != fRaw.originalRaw[:t]:
 						if not notEqual:
-							# print ("************stops", t)
+							# print ("************stops", hex(t), hex(t-1))
 							notEqual=True
 							mode="stub"
-							decoderEnd=t
+							decoderEnd=t-1
+							# print(binaryToStr(fRaw.originalRaw[:decoderEnd]))
+							break
 					t+=1
 			except:
 				stop=True
@@ -19433,8 +19515,11 @@ def emuCheckDeobfSuccess():
 				print ("  SSDeep: Only " + str(percent) +"% of the original shellcode.")
 				# print ("fRaw.originalRaw[:decoderEnd]", len(fRaw.originalRaw[:decoderEnd]))
 				# print ("fRaw.merged2[decoderEnd:]", len(fRaw.merged2[decoderEnd:]))
+				sh.setDecoderStubEnd(decoderEnd)
 				sh.setDecoderStub(fRaw.originalRaw[:decoderEnd])
 				sh.setDecodedBody(fRaw.merged2[decoderEnd:])
+				sh.isEncoded = True
+
 
 
 
@@ -19528,6 +19613,7 @@ def emulationSubmenu():
 
 
 def startupPrint():
+	# print ("startupPrint o", o)
 	global bAsciiStrings
 	global bWideCharStrings
 	global bPushStackStrings
@@ -19556,6 +19642,9 @@ def startupPrint():
 	l_of_strings = ["Finding Ascii strings..", "Finding unicode strings..", "Finding push stack strings..","Searching for disassembly..", "Searching for Fstenv instructions..", "Searching for push ret instructions..", "Searching for call pop instructions..", "Searching for heaven's gate instructions..", "Searching for syscall instructions..", "Searching for PEB instructions.."]
 	max_len = get_max_length(l_of_strings)
 
+	if bPrintEmulation and not mBool[o].bEmulationFound:
+		newTime	= discoverEmulation(max_len)
+		elapsed_time += newTime
 	
 	print(cya + "\n\n Finding Strings\n\n" + res)
 	
@@ -19591,11 +19680,6 @@ def startupPrint():
 		newTime	= discoverPEB(max_len)
 		elapsed_time += newTime
 
-	if bPrintEmulation and not mBool[o].bEmulationFound:
-		newTime	= discoverEmulation(max_len)
-		elapsed_time += newTime
-
-	
 	if bDisassembly and not mBool[o].bDisassemblyFound:
 		newTime= discoverDisassembly(max_len)
 		elapsed_time += newTime
@@ -19768,7 +19852,7 @@ def ui(): #UI menu loop
 			elif(re.match("^b$", userIN)):
 				decryptUI()
 
-			elif userIN[0:1] == "U":                  
+			elif userIN[0:1] == "U" or userIN[0:1] == "u":                  
 				toggleDecodedModule()
 
 			elif userIN[0:1] == "a":	# "change architecture, 32-bit or 64-bit"
@@ -19785,7 +19869,7 @@ def ui(): #UI menu loop
 					# print(configData)
 			elif userIN[0:1] == "z":
 				startupPrint()
-			elif userIN[0:1] == "u":
+			elif userIN[0:2] == "ut":
 				Text2Json(m[o].rawData2)
 			elif userIN[0:1] == "p":	#We want to print
 				uiPrint()
@@ -19864,6 +19948,7 @@ def discoverEmulation(maxLen=None):
 
 		emuArch = emuObj.cpuArch										# temporary way of invoking emulator - may change later
 		startEmu(emuArch, m[o].rawData2, emuObj.verbose)
+		emuCheckDeobfSuccess()
 		mBool[o].bEmulationFound=True									# if we run it, it is done - if we have not objective way of quantifying how successful it issues
 																		# depending on shellcode, could miss some, a lot, or be perfect. We just run it.
 
@@ -19925,8 +20010,8 @@ def discoverSyscal(maxLen=None):
 	if maxLen==None:
 		maxLen=42
 	start = time.time()
-	curLen = len("Searching for windows syscall instructions")
-	print(cya + " Searching for windows syscall instructions..."+res, end="", flush=True)
+	curLen = len("Searching for Windows syscall instructions")
+	print(cya + " Searching for Windows syscall instructions..."+res, end="", flush=True)
 	if (rawHex):
 		# getSyscallPE(20, 20, match, 'noSec', m[o].rawData2)
 		getSyscallRawHex(0, linesBack, 'noSec', m[o].rawData2)
@@ -20187,7 +20272,7 @@ def uiDiscover(): 	#Discover shellcode instructions
 			# test
 		elif(re.match("^z$", listIN, re.IGNORECASE)):
 
-			list_of_labels = ["Searching for disassembly", "Searching for fstenv instructions", "Searching for push ret instructions", "Searching for call pop instructions", "Searching for heaven's gate instructions", "Searching for windows syscall instructions", "Searching for PEB walking instructions"]
+			list_of_labels = ["Searching for disassembly", "Searching for fstenv instructions", "Searching for push ret instructions", "Searching for call pop instructions", "Searching for heaven's gate instructions", "Searching for Windows syscall instructions", "Searching for PEB walking instructions"]
 			maxLen = get_max_length(list_of_labels)
 		#For each boolean set, we execute the finding functions
 
@@ -20614,6 +20699,8 @@ def uiPrintStrings(bStringsFound):
 		print("\nNo strings found.\n")
 
 def uiPrint(): 	#Print instructions
+	global o
+	# print ("uiPrint o", o)
 	global bpPushRet
 	global bpFstenv
 	global bpSyscall
@@ -20673,6 +20760,9 @@ def uiPrint(): 	#Print instructions
 			sh_out_dir = sharem_out_dir
 			print(" Output path has been changed.")
 		elif(re.match("^z$", listIN, re.IGNORECASE)):
+			if sh.decryptSuccess and o=="shellcode":
+				print (blu+"  It appears this shellcode may have been deobfuscated. Switching output to decoded."+res)
+				o=shDec
 			
 
 			if bDisassembly and p2screen:
@@ -20750,6 +20840,9 @@ def uiPrint(): 	#Print instructions
 			if shellClass[1]:
 				print(cya + " Reason: " + yel+ shellClass[1] + res2 + "\n")
 
+			if sh.decryptSuccess and o=="shellcode":
+				print (blu+"  It appears this shellcode may have been deobfuscated. Switching output to decoded."+res)
+				o=shDec
 			outputData = generateOutputData()
 
 			printToJson(bpAll, outputData)
@@ -21516,7 +21609,7 @@ def findAll():  #Find everything
 
 	mBool[o].bWideStringFound = False
 
-	list_of_labels = ["Searching for push stack strings","Searching for unicode strings", "Searching for strings", "Searching for disassembly", "Searching for fstenv instructions", "Searching for push ret instructions", "Searching for call pop instructions", "Searching for heaven's gate instructions", "Searching for windows syscall instructions", "Searching for PEB walking instructions"]
+	list_of_labels = ["Searching for push stack strings","Searching for unicode strings", "Searching for strings", "Searching for disassembly", "Searching for fstenv instructions", "Searching for push ret instructions", "Searching for call pop instructions", "Searching for heaven's gate instructions", "Searching for Windows syscall instructions", "Searching for PEB walking instructions"]
 	max_len = get_max_length(list_of_labels)
 	if not rawHex:
 		print("Finding imports.\n")
@@ -21529,6 +21622,10 @@ def findAll():  #Find everything
 		pass
 	else:
 		runInMem()
+
+	if bPrintEmulation and not mBool[o].bEmulationFound:
+		newTime	= discoverEmulation(max_len)
+		elapsed_time += newTime
 	if not mBool[o].bStringsFound:
 		print("Finding strings.\n")
 
@@ -21539,6 +21636,7 @@ def findAll():  #Find everything
 		discoverStackStrings(max_len)
 
 	print("\n\n")
+
 
 	if bFstenv and not mBool[o].bFstenvFound:
 		newTime= discoverFstenv(max_len)
@@ -21564,9 +21662,7 @@ def findAll():  #Find everything
 		newTime	= discoverPEB(max_len)
 		elapsed_time += newTime
 
-	if bPrintEmulation and not mBool[o].bEmulationFound:
-		newTime	= discoverEmulation(max_len)
-		elapsed_time += newTime
+
 	
 	if bDisassembly and not mBool[o].bDisassemblyFound:
 		newTime= discoverDisassembly(max_len)
@@ -22299,14 +22395,30 @@ def printToJson(bpAll, outputData):	#Output data to json
 
 	filename = filename.split(slash)[-1]
 	noExtension = peName[0:t]
+
 	if filename == "":
 		outfile = peName.split(".")[0]
 		outfileName = peName
+		if outfileName[-4]==".":
+			outfileName=outfileName[:-4]
 		chkExt = peName[-4]
 	else:	
 		outfile = filename.split(".")[0]
 		outfileName = filename
+		if outfileName[-4]==".":
+			outfileName=outfileName[:-4]
+			print (outfileName)
 		chkExt = filename[-4]
+
+
+	# if filename == "":
+	# 	outfile = peName.split(".")[0]
+	# 	outfileName = peName
+	# 	chkExt = peName[-4]
+	# else:	
+	# 	outfile = filename.split(".")[0]
+	# 	outfileName = filename
+	# 	chkExt = filename[-4]
 
 	output_dir = os.getcwd()
 
@@ -22378,8 +22490,8 @@ def printToJson(bpAll, outputData):	#Output data to json
 
 	# jsonImports =  output_dir + slash + outfile+filler + slash  + outfileName + "-imports"  + ".json"
 	# jsonFp =  output_dir + slash + outfile+filler + slash  + outfileName + "-disassembly"  + ".json"
-
-	jsonImports =  os.path.join(output_dir, outfile+filler, outfileName + "-imports"  + ".json")
+	if not rawHex:
+		jsonImports =  os.path.join(output_dir, outfile+filler, outfileName + "-imports"  + ".json")
 	jsonFp =  os.path.join(output_dir, outfile+filler, outfileName + "-disassembly"  + ".json")
 
 	
@@ -22413,11 +22525,18 @@ def printToJson(bpAll, outputData):	#Output data to json
 	disJsonOut = str(createDisassemblyJson())
 	#create the json file, and write our data to it
 	outfile = open(jsonFileName, "w")
-	outimports = open(jsonImports, "w")
+	if not rawHex:
+		outimports = open(jsonImports, "w")
+
 	disFile = open(jsonFp, "w")
 	disFile.write(disJsonOut)
-	js_imports = json.dumps(importsDict, indent=3)
-	outimports.write(js_imports)
+	
+	if not rawHex:
+		print ("not rawhex")
+		input()	
+		js_imports = json.dumps(importsDict, indent=3)
+		outimports.write(js_imports)
+		outimports.close()
 	# emufile = open(emulationOut, "w")
 	# emu_ob = json.dumps(emulation_dict, indent=3)
 	js_ob = json.dumps(outputData, indent = 3)
@@ -22432,7 +22551,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 
 	jsonOut.close()
 	outfile.close()
-	outimports.close()
+	
 	disFile.close()
 	disasmOut.close()
 
@@ -22516,7 +22635,7 @@ def hashesJson():
 
 
 def generateOutputData(): #Generate the dictionary for json out
-	
+	# print ("generateoutputdata o ", o)
 	global shellBit
 	global rawHex
 	global brawHex
@@ -23541,6 +23660,8 @@ def generateOutputData(): #Generate the dictionary for json out
 		for dll, api, offset in FoundApisName:
 			jsonData['imports'].append({'dll':dll.decode(), 'api':api.decode(), 'address':str(offset)})
 
+	# print ("generateoutputdata END o ", o)
+
 	return jsonData
 
 
@@ -23667,9 +23788,9 @@ def printToTextStrings(bStringsFound):
 
 def printToText(outputData):	#Output data to text doc
 	#output data from generateoutputdata
-	
+	# print ("printToText o", o)
 	global bDisassembly
-	global gDisassemblyTextNoC
+	global gDisassemblyText
 	global bpModules
 	global bpEvilImports
 	global shellBit
@@ -23705,17 +23826,21 @@ def printToText(outputData):	#Output data to text doc
 	# 	t += 1
 	# noExtension = peName[0:t]s
 		
-
 	# print("File name in printtotext", filename)
 	#print("********************************** ", peName, " **********************")
 	filename = filename.split(slash)[-1]
 	if filename == "":
 		outfile = peName.split(".")[0]
 		outfileName = peName
+		if outfileName[-4]==".":
+			outfileName=outfileName[:-4]
 		chkExt = peName[-4]
 	else:	
 		outfile = filename.split(".")[0]
 		outfileName = filename
+		if outfileName[-4]==".":
+			outfileName=outfileName[:-4]
+			print (outfileName)
 		chkExt = filename[-4]
 
 	filler = ""
@@ -23774,11 +23899,11 @@ def printToText(outputData):	#Output data to text doc
 
 
 	# disFileName = output_dir + slash + outfile + filler+slash + outfileName + "-disassembly.txt"
-	# binFileName = output_dir + slash + outfile + filler+slash + outfileName + "-disassembly.bin"
+	# binFileName = output_dir + slash + outfile + filler+slash + outfileName + "-raw.bin"
 
 
 	disFileName = os.path.join(output_dir, outfile + filler, outfileName + "-disassembly.txt")
-	binFileName = os.path.join(output_dir, outfile + filler, outfileName + "-disassembly.bin")
+	binFileName = os.path.join(output_dir, outfile + filler, outfileName + "-raw.bin")
 
 	if mBool[o].bEvilImportsFound:
 		importsName =  os.path.join(output_dir, outfile + filler, outfileName + "-imports.txt")
@@ -23793,20 +23918,31 @@ def printToText(outputData):	#Output data to text doc
 
 	# print("Type --> ", type(m[o].rawData2), m[o].rawData2)
 	if save_bin_file and rawHex:
-		binasm = open(binFileName, "wb")
-		binasm.write(m[o].rawData2)
+		# binFileName = os.path.join(output_dir, outfile + filler, outfileName + "-raw.bin")
+
+		if not sh.decryptSuccess:
+			binasm = open(binFileName, "wb")
+			binasm.write(m[o].rawData2)
+		if sh.decryptSuccess:
+			binFileNameDecoded = os.path.join(output_dir, outfile + filler, outfileName + "-decoded_body_raw.bin")
+			binasm = open(binFileNameDecoded, "wb")
+			binasm.write(sh.decodedFullBody)
+			binasm2 = open(binFileName, "wb")
+			binasm2.write(m["shellcode"].rawData2)
 		binasm.close()
 
 	shellClass = isShellcode()
+	# print ("check4 o", o)
+
 	outString =  'Filename: ' + outfileName + "\n"
 	outString += 'File Type: ' + outputData['fileType'] + "\n"
 	outString += 'Architecture: ' + str(shellBit) +"-bit\n"
 	outString += 'Date Analyzed: ' + time + "\n"
 
 	outString += 'classification: ' + shellClass[0] + "\n"
-	outString += 'Reason: ' + shellClass[1] + "\n"
+	outString += '\tReason: ' + shellClass[1] + "\n"
 
-	outString += "Seconds since last epoch: " + str(epoch) + "\n"
+	outString += "Seconds since last epoch: " + str(epoch) + "\n\n"
 	outString += info
 
 

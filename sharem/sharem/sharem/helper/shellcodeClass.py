@@ -14,9 +14,12 @@ class shellcode:
 		self.decryptSuccess=False
 		self.hasDecoderStub=False
 		self.isEncoded = False
+		self.decoderStubEnd=0xfffffffffff
 
 	def setRawData2(self, rawData):
 		self.rawData2 = rawData
+	def setDecoderStubEnd(self, end):
+		self.decoderStubEnd=end
 	def setDecodedBody(self, decodedBody):
 		self.decodedFullBody=decodedBody
 	def setDecoderStub(self, decoderStub):
