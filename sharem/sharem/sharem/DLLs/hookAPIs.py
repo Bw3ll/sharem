@@ -109,7 +109,7 @@ def hook_LoadLibraryA(uc, eip, esp, export_dict, callAddr):
             arg1L=arg1.lower()
             retVal=allDllsDict[arg1L]
         except:
-            print("\tError: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
+            print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", arg1)
             print (hex(eip), (len(arg1)))
             retVal = 0
 
@@ -131,7 +131,7 @@ def hook_LoadLibraryW(uc, eip, esp, export_dict, callAddr):
     try:
         retVal = allDllsDict[arg1]
     except:
-        print("Error: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
+        print("Error: The shellcode tried to load a DLL that isn't handled by this tool: ", arg1)
         retVal = 0
 
     uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -153,7 +153,7 @@ def hook_LoadLibraryExW(uc, eip, esp, export_dict, callAddr):
     try:
         retVal = allDllsDict[arg1]
     except:
-        print("Error: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
+        print("Error: The shellcode tried to load a DLL that isn't handled by this tool: ", arg1)
         retVal = 0
 
     uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -336,13 +336,20 @@ def makeArgVals(uc, eip, esp, export_dict, callAddr, cnt):
     arg8 = unpack('<I', arg8)[0]
     arg9 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+36, 4)
     arg9 = unpack('<I', arg9)[0]
-
     arg10 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+40, 4)
     arg10 = unpack('<I', arg10)[0]
-    arg11 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+36, 4)
+    arg11 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+44, 4)
     arg11 = unpack('<I', arg11)[0]
-    arg12 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+40, 4)
+    arg12 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+48, 4)
     arg12 = unpack('<I', arg12)[0]
+    arg13 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+52, 4)
+    arg13 = unpack('<I', arg13)[0]
+    arg14 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+56, 4)
+    arg14 = unpack('<I', arg14)[0]
+    arg15 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+60, 4)
+    arg15 = unpack('<I', arg15)[0]
+    arg16 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+64, 4)
+    arg16 = unpack('<I', arg16)[0]
 
     if cnt==1:
         return [arg1]
@@ -367,7 +374,15 @@ def makeArgVals(uc, eip, esp, export_dict, callAddr, cnt):
     elif cnt==11:
         return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11]
     elif cnt==12:
-        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12 ]
+        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12]
+    elif cnt==13:
+        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13]
+    elif cnt==14:
+        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14]
+    elif cnt==15:
+        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15]
+    elif cnt==16:
+        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16]
 
 def findStringsParms(uc, pTypes,pVals, skip):
     i=0
@@ -455,6 +470,56 @@ def hook_WinExec(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("WinExec", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
+def hook_ShellExecuteA(uc, eip, esp, export_dict, callAddr):
+    # HINSTANCE ShellExecuteA([in, optional] HWND   hwnd, [in, optional] LPCSTR lpOperation,[in] LPCSTR lpFile,
+    # [in, optional] LPCSTR lpParameters, [in, optional] LPCSTR lpDirectory, [in] INT    nShowCmd);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    pTypes=['HWND', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'INT']
+    pNames=['hwnd', 'lpOperation', 'lpFile', 'lpParameters', 'lpDirectory', 'nShowCmd']
+    cmdShowReverseLookUp = {0: 'SW_HIDE', 1: 'SW_NORMAL', 2: 'SW_SHOWMINIMIZED', 3: 'SW_MAXIMIZE', 4: 'SW_SHOWNOACTIVATE', 5: 'SW_SHOW', 6: 'SW_MINIMIZE', 7: 'SW_SHOWMINNOACTIVE', 8: 'SW_SHOWNA', 9: 'SW_RESTORE', 16: 'SW_SHOWDEFAULT', 17: 'SW_FORCEMINIMIZE'}
+    search= pVals[5]
+    if search in cmdShowReverseLookUp:
+        pVals[5]=cmdShowReverseLookUp[search]
+    else:
+        pVals[5]=hex(pVals[5])
+
+    # create strings for everything except ones in our skip
+    skip=[5]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x20
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("ShellExecuteA", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_ShellExecuteW(uc, eip, esp, export_dict, callAddr):
+    # HINSTANCE ShellExecuteW([in, optional] HWND   hwnd, [in, optional] LPCSTR lpOperation,[in] LPCSTR lpFile,
+    # [in, optional] LPCSTR lpParameters, [in, optional] LPCSTR lpDirectory, [in] INT    nShowCmd);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    pTypes=['HWND', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'INT']
+    pNames=['hwnd', 'lpOperation', 'lpFile', 'lpParameters', 'lpDirectory', 'nShowCmd']
+    cmdShowReverseLookUp = {0: 'SW_HIDE', 1: 'SW_NORMAL', 2: 'SW_SHOWMINIMIZED', 3: 'SW_MAXIMIZE', 4: 'SW_SHOWNOACTIVATE', 5: 'SW_SHOW', 6: 'SW_MINIMIZE', 7: 'SW_SHOWMINNOACTIVE', 8: 'SW_SHOWNA', 9: 'SW_RESTORE', 16: 'SW_SHOWDEFAULT', 17: 'SW_FORCEMINIMIZE'}
+    search= pVals[5]
+    if search in cmdShowReverseLookUp:
+        pVals[5]=cmdShowReverseLookUp[search]
+    else:
+        pVals[5]=hex(pVals[5])
+
+    # create strings for everything except ones in our skip
+    skip=[5]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x20
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("ShellExecuteW", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
 def hook_VirtualFree(uc, eip, esp, export_dict, callAddr):
     # 'VirtualFree': (3, ['LPVOID', 'SIZE_T', 'DWORD'], ['lpAddress', 'dwSize', 'dwFreeType'], 'BOOL'), 
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
@@ -480,6 +545,56 @@ def hook_VirtualFree(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("VirtualFree", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
+def hook_VirtualProtect(uc, eip, esp, export_dict, callAddr):
+    # BOOL VirtualProtect([in]  LPVOID lpAddress,[in]  SIZE_T dwSize, [in]  DWORD  flNewProtect, [out] PDWORD lpflOldProtect)
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    pTypes=['LPVOID', 'SIZE_T', 'DWORD', 'PDWORD']
+    pNames= ['lpAddress', 'dwSize', 'flNewProtect', 'lpflOldProtect']
+
+    search= pVals[2]
+    if search in MemReverseLookUp:
+        pVals[2]=MemReverseLookUp[search]
+    else:
+        pVals[2]=hex(pVals[2])
+
+    # create strings for everything except ones in our skip
+    skip=[2]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("VirtualProtect", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+
+def hook_VirtualProtectEx(uc, eip, esp, export_dict, callAddr):
+    # Need to Finish Testing when VirtualAllocEx is Commited
+    # BOOL VirtualProtectEx([in]  HANDLE hProcess, [in]  LPVOID lpAddress, [in]  SIZE_T dwSize, [in]  DWORD  flNewProtect, [out] PDWORD lpflOldProtect);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    pTypes=['HANDLE', 'LPVOID', 'SIZE_T', 'DWORD', 'PDWORD']
+    pNames= ['hProcess', 'lpAddress', 'dwSize', 'flNewProtect', 'lpflOldProtect']
+
+    search= pVals[3]
+    if search in MemReverseLookUp:
+        pVals[3]=MemReverseLookUp[search]
+    else:
+        pVals[3]=hex(pVals[3])
+
+    # create strings for everything except ones in our skip
+    skip=[3]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("VirtualProtectEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
 def hook_WSASocketA(uc, eip, esp, export_dict, callAddr):
     # 'WSASocketA': (6, ['INT', 'INT', 'INT', 'LPWSAPROTOCOL_INFOA', 'GROUP', 'DWORD'], ['af', 'type', 'protocol', 'lpProtocolInfo', 'g', 'dwFlags'], 'SOCKET'),
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
@@ -488,8 +603,58 @@ def hook_WSASocketA(uc, eip, esp, export_dict, callAddr):
     aFReverseLookUp = {0: 'AF_UNSPEC', 2: 'AF_INET', 6: 'AF_IPX', 22: 'AF_APPLETALK', 23: 'AF_NETBIOS', 35: 'AF_INET6', 38: 'AF_IRDA', 50: 'AF_BTH'}
     sockTypeReverseLookUp = {1: 'SOCK_STREAM', 2: 'SOCK_DGRAM', 3: 'SOCK_RAW', 4: 'SOCK_RDM', 5: 'SOCK_SEQPACKET'}
     sockProtocolReverseLookUp = {1: 'IPPROTO_ICMP', 2: 'IPPROTO_IGMP', 3: 'BTHPROTO_RFCOMM', 6: 'IPPROTO_TCP', 23: 'IPPROTO_UDP', 88: 'IPPROTO_ICMPV6', 275: 'IPPROTO_RM'}
-    dwFlagsReverseLookUp = {1: 'WSA_FLAG_OVERLAPPED', 2: 'WSA_FLAG_MULTIPOINT_C_ROOT', 4: 'WSA_FLAG_MULTIPOINT_C_LEAF', 8: 'WSA_FLAG_MULTIPOINT_D_ROOT', 16: 'WSA_FLAG_MULTIPOINT_D_LEAF', 64: 'WSA_FLAG_ACCESS_SYSTEM_SECURITY', 128: 'WSA_FLAG_NO_HANDLE_INHERIT'}
     groupReverseLookUp = {1: 'SG_UNCONSTRAINED_GROUP', 2: 'SG_CONSTRAINED_GROUP'}
+    dwFlagsReverseLookUp = {1: 'WSA_FLAG_OVERLAPPED', 2: 'WSA_FLAG_MULTIPOINT_C_ROOT', 4: 'WSA_FLAG_MULTIPOINT_C_LEAF', 8: 'WSA_FLAG_MULTIPOINT_D_ROOT', 16: 'WSA_FLAG_MULTIPOINT_D_LEAF', 64: 'WSA_FLAG_ACCESS_SYSTEM_SECURITY', 128: 'WSA_FLAG_NO_HANDLE_INHERIT'}
+
+    search= pVals[0]
+    if search in aFReverseLookUp:
+        pVals[0]=aFReverseLookUp[search]
+    else:
+        pVals[0]=hex(pVals[0])
+    search= pVals[1]
+    if search in sockTypeReverseLookUp:
+        pVals[1]=sockTypeReverseLookUp[search]
+    else:
+        pVals[1]=hex(pVals[1])
+    search= pVals[2]
+    if search in sockProtocolReverseLookUp:
+        pVals[2]=sockProtocolReverseLookUp[search]
+    else:
+        pVals[2]=hex(pVals[2])
+    search= pVals[4]
+    if search in groupReverseLookUp:
+        pVals[4]=groupReverseLookUp[search]
+    else:
+        pVals[4]=hex(pVals[4])
+    search= pVals[5]
+    if search in dwFlagsReverseLookUp:
+        pVals[5]=dwFlagsReverseLookUp[search]
+    else:
+        pVals[5]=hex(pVals[5])
+    
+    #create strings for everything except ones in our skip
+    skip=[0,1,2,4,5]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x20
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("WSASocketA", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_WSASocketW(uc, eip, esp, export_dict, callAddr):
+    # 'WSASocketW': (6, ['INT', 'INT', 'INT', 'LPWSAPROTOCOL_INFOW', 'GROUP', 'DWORD'], ['af', 'type', 'protocol', 'lpProtocolInfo', 'g', 'dwFlags'], 'SOCKET'),
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    pTypes=['int', 'int', 'int', 'LPWSAPROTOCOL_INFOW', 'GROUP', 'DWORD']
+    pNames= ['af', 'type', 'protocol', 'lpProtocolInfo', 'g', 'dwFlags']
+    aFReverseLookUp = {0: 'AF_UNSPEC', 2: 'AF_INET', 6: 'AF_IPX', 16: 'AF_APPLETALK', 17: 'AF_NETBIOS', 23: 'AF_INET6', 26: 'AF_IRDA', 32: 'AF_BTH'}
+    sockTypeReverseLookUp = {1: 'SOCK_STREAM', 2: 'SOCK_DGRAM', 3: 'SOCK_RAW', 4: 'SOCK_RDM', 5: 'SOCK_SEQPACKET'}
+    sockProtocolReverseLookUp = {1: 'IPPROTO_ICMP', 2: 'IPPROTO_IGMP', 3: 'BTHPROTO_RFCOMM', 6: 'IPPROTO_TCP', 17: 'IPPROTO_UDP', 58: 'IPPROTO_ICMPV6', 113: 'IPPROTO_RM'}
+    groupReverseLookUp = {1: 'SG_UNCONSTRAINED_GROUP', 2: 'SG_CONSTRAINED_GROUP'}
+    dwFlagsReverseLookUp = {1: 'WSA_FLAG_OVERLAPPED', 2: 'WSA_FLAG_MULTIPOINT_C_ROOT', 4: 'WSA_FLAG_MULTIPOINT_C_LEAF', 8: 'WSA_FLAG_MULTIPOINT_D_ROOT', 16: 'WSA_FLAG_MULTIPOINT_D_LEAF', 64: 'WSA_FLAG_ACCESS_SYSTEM_SECURITY', 128: 'WSA_FLAG_NO_HANDLE_INHERIT'}
+    
 
     search= pVals[0]
     if search in aFReverseLookUp:
@@ -507,16 +672,16 @@ def hook_WSASocketA(uc, eip, esp, export_dict, callAddr):
     else:
         pVals[2]=hex(pVals[2])
     search= pVals[5]
-    if search in dwFlagsReverseLookUp:
-        pVals[5]=dwFlagsReverseLookUp[search]
-    else:
-        pVals[5]=hex(pVals[5])
-    search= pVals[5]
-
     if search in groupReverseLookUp:
         pVals[4]=groupReverseLookUp[search]
     else:
         pVals[4]=hex(pVals[4])
+    if search in dwFlagsReverseLookUp:
+        pVals[5]=dwFlagsReverseLookUp[search]
+    else:
+        pVals[5]=hex(pVals[5])
+    search= pVals[4]
+    
     #create strings for everything except ones in our skip
     skip=[0,1,2,4,5]   # we need to skip this value (index) later-let's put it in skip
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
@@ -526,8 +691,228 @@ def hook_WSASocketA(uc, eip, esp, export_dict, callAddr):
     retValStr=hex(retVal)
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
-    logged_calls= ("WSASocketA", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+    logged_calls= ("WSASocketW", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
+
+def hook_socket(uc, eip, esp, export_dict, callAddr):
+    # SOCKET WSAAPI socket([in] int af, [in] int type, [in] int protocol)
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['int', 'int', 'int']
+    pNames= ['af', 'type', 'protocol']
+    aFReverseLookUp = {0: 'AF_UNSPEC', 2: 'AF_INET', 6: 'AF_IPX', 16: 'AF_APPLETALK', 17: 'AF_NETBIOS', 23: 'AF_INET6', 26: 'AF_IRDA', 32: 'AF_BTH'}
+    sockTypeReverseLookUp = {1: 'SOCK_STREAM', 2: 'SOCK_DGRAM', 3: 'SOCK_RAW', 4: 'SOCK_RDM', 5: 'SOCK_SEQPACKET'}
+    sockProtocolReverseLookUp = {1: 'IPPROTO_ICMP', 2: 'IPPROTO_IGMP', 3: 'BTHPROTO_RFCOMM', 6: 'IPPROTO_TCP', 17: 'IPPROTO_UDP', 58: 'IPPROTO_ICMPV6', 113: 'IPPROTO_RM'}
+
+    search= pVals[0]
+    if search in aFReverseLookUp:
+        pVals[0]=aFReverseLookUp[search]
+    else:
+        pVals[0]=hex(pVals[0])
+    search= pVals[1]
+    if search in sockTypeReverseLookUp:
+        pVals[1]=sockTypeReverseLookUp[search]
+    else:
+        pVals[1]=hex(pVals[1])
+    search= pVals[2]
+    if search in sockProtocolReverseLookUp:
+        pVals[2]=sockProtocolReverseLookUp[search]
+    else:
+        pVals[2]=hex(pVals[2])
+    
+    #create strings for everything except ones in our skip
+    skip=[0,1,2]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x20
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("socket", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_BroadcastSystemMessageA(uc, eip, esp, export_dict, callAddr):
+    # long BroadcastSystemMessage([in] DWORD   flags, [in, out, optional] LPDWORD lpInfo, 
+    # [in] UINT Msg, [in]  WPARAM  wParam, [in]  LPARAM  lParam );
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    pTypes=['DWORD', 'LPDWORD', 'UINT', 'WPARAM', 'LPARAM']
+    pNames= ['flags', 'lpInfo', 'Msg', 'wParam', 'lParam']
+    flagsReverseLookUp = {0x00000080: 'BSF_ALLOWSFW', 0x00000004: 'BSF_FLUSHDISK', 0x00000020: 'BSF_FORCEIFHUNG', 0x00000002: 'BSF_IGNORECURRENTTASK', 0x00000008: 'BSF_NOHANG', 0x00000040: 'BSF_NOTIMEOUTIFNOTHUNG', 0x00000010: 'BSF_POSTMESSAGE', 0x00000001: 'BSF_QUERY', 0x00000100: 'BSF_SENDNOTIFYMESSAGE'}
+    lpInfoReverseLookUp = {0x00000000: 'BSM_ALLCOMPONENTS', 0x00000010: 'BSM_ALLDESKTOPS', 0x00000008: 'BSM_APPLICATIONS'}
+
+    search= pVals[0]
+    if search in flagsReverseLookUp:
+        pVals[0]=flagsReverseLookUp[search]
+    else:
+        pVals[0]=hex(pVals[0])
+    search= pVals[1]
+    if search in lpInfoReverseLookUp:
+        pVals[1]=lpInfoReverseLookUp[search]
+    else:
+        pVals[1]=hex(pVals[1])
+    search= pVals[2]
+    
+    #create strings for everything except ones in our skip
+    skip=[0,1]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("BroadcastSystemMessageA", hex(callAddr), (retValStr), 'long', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_BroadcastSystemMessageW(uc, eip, esp, export_dict, callAddr):
+    # long BroadcastSystemMessage([in] DWORD   flags, [in, out, optional] LPDWORD lpInfo, 
+    # [in] UINT Msg, [in]  WPARAM  wParam, [in]  LPARAM  lParam );
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    pTypes=['DWORD', 'LPDWORD', 'UINT', 'WPARAM', 'LPARAM']
+    pNames= ['flags', 'lpInfo', 'Msg', 'wParam', 'lParam']
+    flagsReverseLookUp = {0x00000080: 'BSF_ALLOWSFW', 0x00000004: 'BSF_FLUSHDISK', 0x00000020: 'BSF_FORCEIFHUNG', 0x00000002: 'BSF_IGNORECURRENTTASK', 0x00000008: 'BSF_NOHANG', 0x00000040: 'BSF_NOTIMEOUTIFNOTHUNG', 0x00000010: 'BSF_POSTMESSAGE', 0x00000001: 'BSF_QUERY', 0x00000100: 'BSF_SENDNOTIFYMESSAGE'}
+    lpInfoReverseLookUp = {0x00000000: 'BSM_ALLCOMPONENTS', 0x00000010: 'BSM_ALLDESKTOPS', 0x00000008: 'BSM_APPLICATIONS'}
+
+    search= pVals[0]
+    if search in flagsReverseLookUp:
+        pVals[0]=flagsReverseLookUp[search]
+    else:
+        pVals[0]=hex(pVals[0])
+    search= pVals[1]
+    if search in lpInfoReverseLookUp:
+        pVals[1]=lpInfoReverseLookUp[search]
+    else:
+        pVals[1]=hex(pVals[1])
+    search= pVals[2]
+    
+    #create strings for everything except ones in our skip
+    skip=[0,1]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("BroadcastSystemMessageW", hex(callAddr), (retValStr), 'long', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+
+
+def hook_CreateThread(uc, eip, esp, export_dict, callAddr):
+    # HANDLE CreateThread([in, optional] LPSECURITY_ATTRIBUTES lpThreadAttributes, [in] SIZE_T dwStackSize, [in] LPTHREAD_START_ROUTINE  lpStartAddress, [in, optional]  __drv_aliasesMem LPVOID lpParameter, [in] DWORD dwCreationFlags, [out, optional] LPDWORD lpThreadId);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    pTypes=['LPSECURITY_ATTRIBUTES', 'SIZE_T', 'LPTHREAD_START_ROUTINE', '__drv_aliasesMem LPVOID', 'DWORD', 'LPDWORD']
+    pNames=['lpThreadAttributes', 'dwStackSize', 'lpStartAddress', 'lpParameter', 'dwCreationFlags', 'lpThreadId']
+    dwCreationFlagsReverseLookUp={0x0: '0', 0x00000004: 'CREATE_SUSPENDED', 0x00010000: 'STACK_SIZE_PARAM_IS_A_RESERVATION'}
+
+    # Round up to next page (4096)
+    pVals[1] = ((pVals[1]//4096)+1) * 4096
+
+    search= pVals[4]
+    if search in dwCreationFlagsReverseLookUp:
+        pVals[4]=dwCreationFlagsReverseLookUp[search]
+    else:
+        pVals[4]=hex(pVals[4])
+
+    #create strings for everything except ones in our skip
+    skip=[4]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=FakeProcess # Return HANDLE to new thread
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CreateThread", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_CreateServiceA(uc, eip, esp, export_dict, callAddr):
+    # SC_HANDLE CreateServiceA([in]SC_HANDLE hSCManager,[in] LPCSTR lpServiceName,[in, optional]  LPCSTR lpDisplayName,[in] DWORD dwDesiredAccess,[in] DWORD dwServiceType,[in] DWORD dwStartType,[in] DWORD dwErrorControl,[in, optional]  LPCSTR    lpBinaryPathName,[in, optional]  LPCSTR    lpLoadOrderGroup,[out, optional] LPDWORD lpdwTagId,[in, optional]  LPCSTR lpDependencies,[in, optional]  LPCSTR lpServiceStartName,[in, optional] LPCSTR lpPassword);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 13)
+    pTypes=['SC_HANDLE', 'LPCSTR', 'LPCSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPCSTR', 'LPCSTR', 'LPDWORD', 'LPCSTR', 'LPCSTR', 'LPCSTR']
+    pNames=['hSCManager', 'lpServiceName', 'lpDisplayName', 'dwDesiredAccess', 'dwServiceType', 'dwStartType', 'dwErrorControl', 'lpBinaryPathName', 'lpLoadOrderGroup', 'lpdwTagId', 'lpDependencies', 'lpServiceStartName', 'lpPassword']
+    dwDesiredAccessReverseLookUp={0xf01ff: 'SERVICE_ALL_ACCESS', 0x0002: 'SERVICE_CHANGE_CONFIG', 0x0008: 'SERVICE_ENUMERATE_DEPENDENTS', 0x0080: 'SERVICE_INTERROGATE', 0x0040: 'SERVICE_PAUSE_COUNTINUE', 0x0001: 'SERVICE_QUERY_CONFIG', 0x0004: 'SERVICE_QUERY_STATUS', 0X0010: 'SERVICE_START', 0x0020: 'SERVICE_STOP', 0x0100: 'SERVICE_USER_DEFINED_CONTROL', 0x10000: 'DELETE', 0x20000: 'READ_CONTROL', 0x40000: 'WRITE_DAC', 0x80000: 'WRITE_OWNER'}
+    dwServiceTypeReverseLookUp={0x00000004: 'SERVICE_ADAPTER', 0x00000002: 'SERVICE_FILE_SYSTEM_DRIVER', 0x00000001: 'SERVICE_KERNEL_DRIVER', 0x00000008: 'SERVICE_RECOGNIZER_DRIVER', 0x00000010: 'SERVICE_WIN32_OWN_PROCESS', 0x00000020: 'SERVICE_WIN32_SHARE_PROCESS', 0x00000100: 'SERVICE_INTERACTIVE_PROCESS'}
+    dwStartTypeReverseLookUp={0x00000002: 'SERVICE_AUTO_START', 0x00000000: 'SERVICE_BOOT_START', 0x00000003: 'SERVICE_DEMAND_START', 0x00000004: 'SERVICE_DISABLED', 0x00000001: 'SERVICE_SYSTEM_START'}
+    dwErrorControlReverseLookUp={0x00000003: 'SERVICE_ERROR_CRITICAL', 0x00000000: 'SERVICE_ERROR_IGNORE', 0x00000001: 'SERVICE_ERROR_NORMAL', 0x00000002: 'SERVICE_ERROR_SEVERE'}
+
+    search= pVals[3]
+    if search in dwDesiredAccessReverseLookUp:
+        pVals[3]=dwDesiredAccessReverseLookUp[search]
+    else:
+        pVals[3]=hex(pVals[3])
+    search= pVals[4]
+    if search in dwServiceTypeReverseLookUp:
+        pVals[4]=dwServiceTypeReverseLookUp[search]
+    else:
+        pVals[4]=hex(pVals[4])
+    search= pVals[5]
+    if search in dwStartTypeReverseLookUp:
+        pVals[5]=dwStartTypeReverseLookUp[search]
+    else:
+        pVals[5]=hex(pVals[5])
+    search= pVals[6]
+    if search in dwErrorControlReverseLookUp:
+        pVals[6]=dwErrorControlReverseLookUp[search]
+    else:
+        pVals[6]=hex(pVals[6])
+
+    #create strings for everything except ones in our skip
+    skip=[3,4,5,6]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=FakeProcess # Return HANDLE to service
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CreateServiceA", hex(callAddr), (retValStr), 'SC_HANDLE', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_CreateServiceW(uc, eip, esp, export_dict, callAddr):
+    # SC_HANDLE CreateServiceW([in]SC_HANDLE hSCManager,[in] LPCSTR lpServiceName,[in, optional]  LPCSTR lpDisplayName,[in] DWORD dwDesiredAccess,[in] DWORD dwServiceType,[in] DWORD dwStartType,[in] DWORD dwErrorControl,[in, optional]  LPCSTR    lpBinaryPathName,[in, optional]  LPCSTR    lpLoadOrderGroup,[out, optional] LPDWORD lpdwTagId,[in, optional]  LPCSTR lpDependencies,[in, optional]  LPCSTR lpServiceStartName,[in, optional] LPCSTR lpPassword);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 13)
+    pTypes=['SC_HANDLE', 'LPCSTR', 'LPCSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPCSTR', 'LPCSTR', 'LPDWORD', 'LPCSTR', 'LPCSTR', 'LPCSTR']
+    pNames=['hSCManager', 'lpServiceName', 'lpDisplayName', 'dwDesiredAccess', 'dwServiceType', 'dwStartType', 'dwErrorControl', 'lpBinaryPathName', 'lpLoadOrderGroup', 'lpdwTagId', 'lpDependencies', 'lpServiceStartName', 'lpPassword']
+    dwDesiredAccessReverseLookUp={0xf01ff: 'SERVICE_ALL_ACCESS', 0x0002: 'SERVICE_CHANGE_CONFIG', 0x0008: 'SERVICE_ENUMERATE_DEPENDENTS', 0x0080: 'SERVICE_INTERROGATE', 0x0040: 'SERVICE_PAUSE_COUNTINUE', 0x0001: 'SERVICE_QUERY_CONFIG', 0x0004: 'SERVICE_QUERY_STATUS', 0X0010: 'SERVICE_START', 0x0020: 'SERVICE_STOP', 0x0100: 'SERVICE_USER_DEFINED_CONTROL', 0x10000: 'DELETE', 0x20000: 'READ_CONTROL', 0x40000: 'WRITE_DAC', 0x80000: 'WRITE_OWNER'}
+    dwServiceTypeReverseLookUp={0x00000004: 'SERVICE_ADAPTER', 0x00000002: 'SERVICE_FILE_SYSTEM_DRIVER', 0x00000001: 'SERVICE_KERNEL_DRIVER', 0x00000008: 'SERVICE_RECOGNIZER_DRIVER', 0x00000010: 'SERVICE_WIN32_OWN_PROCESS', 0x00000020: 'SERVICE_WIN32_SHARE_PROCESS', 0x00000100: 'SERVICE_INTERACTIVE_PROCESS'}
+    dwStartTypeReverseLookUp={0x00000002: 'SERVICE_AUTO_START', 0x00000000: 'SERVICE_BOOT_START', 0x00000003: 'SERVICE_DEMAND_START', 0x00000004: 'SERVICE_DISABLED', 0x00000001: 'SERVICE_SYSTEM_START'}
+    dwErrorControlReverseLookUp={0x00000003: 'SERVICE_ERROR_CRITICAL', 0x00000000: 'SERVICE_ERROR_IGNORE', 0x00000001: 'SERVICE_ERROR_NORMAL', 0x00000002: 'SERVICE_ERROR_SEVERE'}
+
+    search= pVals[3]
+    if search in dwDesiredAccessReverseLookUp:
+        pVals[3]=dwDesiredAccessReverseLookUp[search]
+    else:
+        pVals[3]=hex(pVals[3])
+    search= pVals[4]
+    if search in dwServiceTypeReverseLookUp:
+        pVals[4]=dwServiceTypeReverseLookUp[search]
+    else:
+        pVals[4]=hex(pVals[4])
+    search= pVals[5]
+    if search in dwStartTypeReverseLookUp:
+        pVals[5]=dwStartTypeReverseLookUp[search]
+    else:
+        pVals[5]=hex(pVals[5])
+    search= pVals[6]
+    if search in dwErrorControlReverseLookUp:
+        pVals[6]=dwErrorControlReverseLookUp[search]
+    else:
+        pVals[6]=hex(pVals[6])
+
+    #create strings for everything except ones in our skip
+    skip=[3,4,5,6]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=FakeProcess # Return HANDLE to service
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CreateServiceW", hex(callAddr), (retValStr), 'SC_HANDLE', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
 
 # SysCalls
 def hook_NtTerminateProcess(uc, eip, esp, callAddr):
@@ -543,6 +928,8 @@ def hook_NtTerminateProcess(uc, eip, esp, callAddr):
 
 def hook_NtAllocateVirtualMemory(uc, eip, esp, callAddr):
     global availMem
+
+    # Test change
 
     processHandle = uc.mem_read(esp+4, 4)
     processHandle = unpack('<I', processHandle)[0]
