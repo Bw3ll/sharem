@@ -44,7 +44,7 @@ LDR_SAMCLI_ADDR=0x11027C00
 LDR_SECUR32_ADDR=0x11028000
 LDR_WKSCLI_ADDR=0x11028300
 LDR_WTSAPI32_ADDR=0x11028600
-LDR_KERNELBASE_ADDR=0x11028600
+LDR_KERNELBASE_ADDR=0x11028900
 
 PROCESS_BASE = 0x14000000
 NTDLL_BASE = 0x14100000
@@ -244,7 +244,7 @@ def allocateWinStructs32(mu):
     # Put location of PEB at FS:30
     mu.mem_write(TIB_ADDR, b'\x00\x00\x00' + b'\x90'*0x2d + pack("<Q", PEB_ADDR) + b'\x90'*0x88 + pack("<Q", FAST_ADDR))
     mu.mem_write((PEB_ADDR-10), b'\x4a\x41\x43\x4f\x42\x41\x41\x41\x41\x42')
-    mu.mem_write(FAST_ADDR, b'\x90\x90\x90\x90')
+    mu.mem_write(FAST_ADDR, b'\xC3')
 
 
     # Create PEB data structure. Put pointer to ldr at offset 0xC

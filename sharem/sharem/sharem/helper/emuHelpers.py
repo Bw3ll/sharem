@@ -2,6 +2,12 @@ from unicorn.x86_const import *
 from struct import pack, unpack
 from unicorn import *
 from ..DLLs.dict4_ALL import *
+from ..DLLs.dict_signatures import *
+from ..DLLs.dict2_signatures import *
+from ..DLLs.dict3_w32 import *
+from ..DLLs.dict4_ALL import *
+from ..DLLs.hookAPIs import *
+from ..DLLs.syscall_signatures import *
 import re
 import binascii
 import pefile
@@ -21,17 +27,6 @@ def read_unicode(uc, address):
         read_bytes += 2
 
     ret = ret.rstrip('\x00')
-    return ret
-
-def read_string(uc, address):
-    ret = ""
-    c = uc.mem_read(address, 1)[0]
-    read_bytes = 1
-
-    while c != 0x0:
-        ret += chr(c)
-        c = uc.mem_read(address + read_bytes, 1)[0]
-        read_bytes += 1
     return ret
 
 def giveRegs(uc):
@@ -189,6 +184,24 @@ def push(uc, val):
     # insert new value onto the stack
     uc.mem_write(esp, pack("<i", val))
 
+def set_register(uc, reg, val):
+    if reg == 'eax':
+        uc.reg_write(UC_X86_REG_EAX, val)
+    elif reg == 'ebx':
+        uc.reg_write(UC_X86_REG_EBX, val)
+    elif reg == 'ecx':
+        uc.reg_write(UC_X86_REG_ECX, val)
+    elif reg == 'edx':
+        uc.reg_write(UC_X86_REG_EDX, val)
+    elif reg == 'edi':
+        uc.reg_write(UC_X86_REG_EDI, val)
+    elif reg == 'esi':
+        uc.reg_write(UC_X86_REG_ESI, val)
+    elif reg == 'ebp':
+        uc.reg_write(UC_X86_REG_EBP, val)
+    elif reg == 'esp':
+        uc.reg_write(UC_X86_REG_ESP, val)
+
 def constConvert(uc, string):
     if (string == 'eax'):
         return str(uc.reg_read(UC_X86_REG_EAX))
@@ -297,6 +310,8 @@ def controlFlow(uc, mnemonic, op_str):
             # print ("address", hex(address))
             address = unpack("<I", uc.mem_read(address, 4))[0]
             which=1
+        elif re.match('dword ptr fs:\[0xc0]', op_str):
+            address = 0x5000
         elif re.match('e[abcdsipx]+', op_str):
             regs = re.findall('e[abcdsipx]+', op_str)
             for i in range(0, len(regs)):
@@ -314,7 +329,20 @@ def controlFlow(uc, mnemonic, op_str):
 
     return address
 
+def exitAPI(funcName):
+    if funcName == "ExitProcess" or funcName == "TerminateProcess":
+        return True
+    else:
+        return False
 
+def retEnding(uc, mnemonic):
+    esp = uc.reg_read(UC_X86_REG_ESP)
+    retLoc = uc.mem_read(esp, 4)
+    retLoc = unpack('<I', retLoc)[0]
+    if mnemonic == 'ret' and retLoc == 0x1000:
+        return True
+    else:
+        return False
 
 def boolFollowJump(jmpFlag, jmpType, eflags):
     # ZF Flag
@@ -512,3 +540,10 @@ def buildPtrString (pointer, val):
 def getPointerVal(uc, pointer):
     val = uc.mem_read(pointer, 4)
     return unpack('<I', val)[0]
+
+def tryDictLocate(dictName, dll):
+    dictName += '_'
+    try:
+        return globals()[dictName + dll]
+    except:
+        return {}
