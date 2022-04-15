@@ -18684,7 +18684,7 @@ def changeEntryPoint():
 		if not result:
 			print("Please enter a valid hex address")
 	shellEntry = int(entrypoint, 16)
-
+	em.entryOffset = shellEntry
 	print("\nEntry point: " + str(hex(shellEntry))+"\n")
 
 
@@ -19022,6 +19022,8 @@ def modConf():
 
 	maxEmuInstr = emuObj.maxEmuInstr
 	numOfIter = emuObj.numOfIter
+	numOfIter = em.maxLoop
+
 
 	listofBools = [bPushRet, bCallPop, bFstenv, bSyscall, bHeaven, bPEB, bDisassembly, pebPresent, bit32, bytesForward, bytesBack, linesForward, linesBack,p2screen, bPushStackStrings, bAsciiStrings, bWideCharStrings, dFastMode, dFindAll, dDistr, dCPUcount, dNodesFile, dOutputFile, decryptOpTypes, decryptFile, stubFile, sameFile, stubEntry, stubEnd, shellEntry, pebPoints, minStrLen, maxDistance, sharem_out_dir, bPrintEmulation, emulation_verbose, emulation_multiline, maxEmuInstr, numOfIter, emuObj.breakLoop, emuObj.verbose]
 
@@ -19073,8 +19075,12 @@ def emulationConf(conr):
 	emulation_verbose = conr.getboolean('SHAREM EMULATION', 'emulation_verbose_mode')
 	emulation_multiline = conr.getboolean('SHAREM EMULATION', 'emulation_multiline')
 	emuObj.maxEmuInstr = int(conr['SHAREM EMULATION']['max_num_of_instr'])
+	em.maxCounter = int(conr['SHAREM EMULATION']['max_num_of_instr'])
 	emuObj.numOfIter = int(conr['SHAREM EMULATION']['iterations_before_break'])
+	em.maxLoop = int(conr['SHAREM EMULATION']['iterations_before_break'])
+
 	emuObj.breakLoop = conr.getboolean('SHAREM EMULATION', 'break_infinite_loops')
+	em.breakOutOfLoops = conr.getboolean('SHAREM EMULATION', 'break_infinite_loops')
 	emuObj.verbose = conr.getboolean('SHAREM EMULATION', 'timeless_debugging')
 
 
@@ -19137,6 +19143,10 @@ def SharemSearchConfig(conr):
 		shellEntry = int(conr['SHAREM SEARCH']['shellEntry'])
 	except:
 		shellEntry = int(conr['SHAREM SEARCH']['shellEntry'], 16)
+	try:
+		em.entryOffset = shellEntry
+	except:
+		print ("Config error: emu object not initialized.")
 	try:
 		bytesForward = int(conr['SHAREM SEARCH']['max_bytes_forward'])
 	except:
@@ -19527,10 +19537,11 @@ def emuCheckDeobfSuccess():
 
 def emulationSubmenu():
 	global emuObj
+	global shellEntry
 	em.maxCounter=emuObj.maxEmuInstr
 	global emulation_verbose
 	global emulation_multiline
-	
+
 	while True:
 		print(yel + " Sharem>" + cya + "Emulator> " +res, end="")
 		choice = input()
@@ -19543,32 +19554,56 @@ def emulationSubmenu():
 		elif choice == "x":
 			return
 
-		if choice == "e":
-			if emulation_verbose: 
-				emulation_verbose = False
-				print(cya + " Emulation verbose mode disabled.\n" + res)
-			else:
-				emulation_verbose = True
-				print(cya + " Emulation verbose mode enabled.\n" + res)
+		if choice == "p":
+			under_dev_function()
+			if False:
+				if emulation_verbose: 
+					emulation_verbose = False
+					print(cya + " Emulation verbose mode disabled.\n" + res)
+				else:
+					emulation_verbose = True
+					print(cya + " Emulation verbose mode enabled.\n" + res)
 
 		elif choice == "h":
 			emulatorUI(emuObj, emulation_multiline, emulation_verbose)
-		elif choice == "w":
+		elif choice == "wOld":
 			emulationEntryPoint()
 		elif choice == "v":
 			print ("\tVerbosity changed.\n")
 			emuObj.verbose = not emuObj.verbose
+		elif choice == "w":
+			print ("\tPrint style of artifacts changed.\n")
+			emulation_multiline = not emulation_multiline
 		elif choice == "b":
-			under_dev_function()
+			if em.breakOutOfLoops == False:
+				em.breakOutOfLoops = True
+				emuObj.breakLoop = True
+				print ("\tBreaking out of loops enabled.\n")
+			elif em.breakOutOfLoops == True:
+				em.breakOutOfLoops = False
+				emuObj.breakLoop = False
+				print ("\tBreaking out of loops disabled.\n")
 			# emuObj.breakLoop = not emuObj.breakLoop
+		elif choice == "c":
+			if em.codeCoverage == False:
+				em.codeCoverage = True
+				print ("\tCode coverage enabled.\n")
+			elif em.codeCoverage == True:
+				em.codeCoverage = False
+				print ("\tCode coverage disabled.\n")
+			
 		elif choice == "m":
 
 			while True:
 				try:
-					minst = input(" Enter maximum instructions number: ")
+					minst = input("\tEnter maximum number of instructions to emulate: ")
 					if minst == "x":
 						break
-					minst = int(minst)
+					try:
+						minst = int(minst)
+					except:
+						minst = int(minst,16)
+
 					emuObj.maxEmuInstr = minst
 					em.maxCounter=minst
 					# sharemu.maxCounter = minst
@@ -19576,8 +19611,43 @@ def emulationSubmenu():
 				except:
 					print(red + "\tPlease enter only a number." + res)
 					break
+		elif choice == "e":
+
+			while True:
+				try:
+					sEinst = input("\tEnter shellcode entrypoint: " )
+					if sEinst == "x":
+						break
+					try:
+						sEinst = int(sEinst)
+					except:
+						sEinst = int(sEinst,16)
+					shellEntry = sEinst
+					em.entryOffset=sEinst
+					# sharemu.maxCounter = minst
+					break
+				except:
+					print(red + "\tPlease enter only a number." + res)
+					break
+					
 		elif choice == "n":
-			under_dev_function()
+			while True:
+				try:
+					bLinst = input("\tBreak out of loops after how many instructions: ")
+					if bLinst == "x":
+						break
+					try:
+						bLinst = int(bLinst)
+					except:
+						bLinst = int(bLinst,16)
+
+					emuObj.numOfIter = bLinst
+					em.maxLoop=bLinst
+					# print (emuObj.numOfIter, em.maxLoop)
+					break
+				except:
+					print(red + "\tPlease enter only a number." + res)
+					break
 			# while True:
 			# 	try:
 			# 		minst = input(" Enter maximum number of iterations: ")
