@@ -22603,8 +22603,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 	disFile.write(disJsonOut)
 	
 	if not rawHex:
-		print ("not rawhex")
-		input()	
+
 		js_imports = json.dumps(importsDict, indent=3)
 		outimports.write(js_imports)
 		outimports.close()
