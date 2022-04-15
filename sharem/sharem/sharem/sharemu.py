@@ -306,14 +306,17 @@ def hook_code(uc, address, size, user_data):
         instructLine+=giveRegs(uc)
         instructLine += "0x%x" % address + '\t'
 
+    shells = b''
     try:
         shells = uc.mem_read(address, size)
     except Exception as e:
-        print ("Error: ", e)
-        print(traceback.format_exc())
+        # print ("Error: ", e)
+        # print(traceback.format_exc())
         instructLine += " size: 0x%x" % size + '\t'   # size is overflow - why so big?
         outFile.write("abrupt end:  " + instructLine)
-        return # terminate func early   --don't comment - we want to see the earlyrror
+        print("abrupt end: error reading line of shellcode")
+        stopProcess = True
+        # return # terminate func early   --don't comment - we want to see the earlyrror
 
     ret = address
     base = 0
