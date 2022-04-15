@@ -16,6 +16,8 @@ outputs/shellcode.bin
 *.bin
 outputs/**
 shellcodes/**
+sharem_cli/*.bin
+sharem_cli/format.py
 shDis.py
 testing.txt
 testing10.py

@@ -242,7 +242,7 @@ class LDR_Module64():
 
 def allocateWinStructs32(mu):
     # Put location of PEB at FS:30
-    mu.mem_write(TIB_ADDR, b'\x00\x00\x00' + b'\x90'*0x2d + pack("<Q", PEB_ADDR) + b'\x90'*0x88 + pack("<Q", FAST_ADDR))
+    mu.mem_write(TIB_ADDR+0x30, pack("<Q", PEB_ADDR) + b'\x90'*0x88 + pack("<Q", FAST_ADDR))
     mu.mem_write((PEB_ADDR-10), b'\x4a\x41\x43\x4f\x42\x41\x41\x41\x41\x42')
     mu.mem_write(FAST_ADDR, b'\xC3')
 
@@ -285,10 +285,8 @@ def allocateWinStructs32(mu):
 
 
 def allocateWinStructs64(mu):
-    mu.reg_write(UC_X86_REG_FS_BASE, TIB_ADDR)
-
     # Put location of PEB at GS:60
-    mu.mem_write(TIB_ADDR, b'\x00'*0x60 + pack("<Q", PEB_ADDR))
+    mu.mem_write(TIB_ADDR+0x60, pack("<Q", PEB_ADDR))
 
     # Create PEB data structure. Put pointer to ldr at offset 0x18
     mu.mem_write(PEB_ADDR, b'\x00'*0x18 + pack("<Q", LDR_ADDR) + b'\x00'*0x1fc)
@@ -307,6 +305,51 @@ def allocateWinStructs64(mu):
     # initialize stack
     mu.reg_write(UC_X86_REG_ESP, STACK_ADDR)
     mu.reg_write(UC_X86_REG_EBP, STACK_ADDR)
+
+
+    ###################################################################################################################################################
+
+    # Put location of PEB at FS:30
+    mu.mem_write(TIB_ADDR, b'\x00\x00\x00' + b'\x90'*0x2d + pack("<Q", PEB_ADDR) + b'\x90'*0x88 + pack("<Q", FAST_ADDR))
+    mu.mem_write((PEB_ADDR-10), b'\x4a\x41\x43\x4f\x42\x41\x41\x41\x41\x42')
+    mu.mem_write(FAST_ADDR, b'\xC3')
+
+
+    # Create PEB data structure. Put pointer to ldr at offset 0xC
+    mu.mem_write(PEB_ADDR, b'\x90'*0xc + pack("<Q", LDR_ADDR) + b'\x90'*0x1fc)
+
+    # Create PEB_LDR_DATA structure
+    peb_ldr = PEB_LDR_DATA32(LDR_ADDR, 0x24, 0x00000000, 0x00000000)
+
+    dlls_obj = []
+
+    # Create ldr module for the running process
+    dlls_obj.append(LDR_Module32(mu, LDR_PROG_ADDR, PROCESS_BASE, PROCESS_BASE, 0x00000000, "C:\\shellcode.exe", "shellcode.exe"))
+
+    # Create ldr module for the rest
+    for dll in allDlls:
+        dlls_obj.append(LDR_Module32(mu, mods[dll].ldrAddr, mods[dll].base, mods[dll].base, 0x00000000, mods[dll].d32, mods[dll].name))
+
+    peb_ldr.allocate(mu, dlls_obj[0].ILO_entry, dlls_obj[-1].ILO_entry, dlls_obj[0].IMO_entry, dlls_obj[-1].IMO_entry, dlls_obj[1].IIO_entry, dlls_obj[-1].IIO_entry)
+
+    # Allocate first 5 LDR records (ntdll, kernel32, kernelbase)
+    dlls_obj[0].allocate(mu, dlls_obj[1].ILO_entry, dlls_obj[-1].ILO_entry, dlls_obj[1].IMO_entry, dlls_obj[-1].IMO_entry, 0x0, 0x0)
+    dlls_obj[1].allocate(mu, dlls_obj[2].ILO_entry, dlls_obj[0].ILO_entry, dlls_obj[2].IMO_entry, dlls_obj[0].IMO_entry, dlls_obj[3].IIO_entry, dlls_obj[-1].IIO_entry)
+    dlls_obj[2].allocate(mu, dlls_obj[3].ILO_entry, dlls_obj[1].ILO_entry, dlls_obj[3].IMO_entry, dlls_obj[1].IMO_entry, dlls_obj[4].IIO_entry, dlls_obj[3].IIO_entry)
+    dlls_obj[3].allocate(mu, dlls_obj[4].ILO_entry, dlls_obj[2].ILO_entry, dlls_obj[4].IMO_entry, dlls_obj[2].IMO_entry, dlls_obj[2].IIO_entry, dlls_obj[1].IIO_entry)
+    dlls_obj[4].allocate(mu, dlls_obj[5].ILO_entry, dlls_obj[3].ILO_entry, dlls_obj[5].IMO_entry, dlls_obj[3].IMO_entry, dlls_obj[5].IIO_entry, dlls_obj[2].IIO_entry)
+
+
+    # Allocate the rest of the LDR records
+    for i in range(5, len(dlls_obj)):
+        currentDLL = dlls_obj[i]
+        prevDLL = dlls_obj[i-1]
+
+        if i == len(dlls_obj) - 1:
+            currentDLL.allocate(mu, dlls_obj[0].ILO_entry, prevDLL.ILO_entry, dlls_obj[0].IMO_entry, prevDLL.IMO_entry, dlls_obj[1].IIO_entry, prevDLL.IIO_entry)
+        else:
+            nextDLL = dlls_obj[i+1]
+            currentDLL.allocate(mu, nextDLL.ILO_entry, prevDLL.ILO_entry, nextDLL.IMO_entry, prevDLL.IMO_entry, nextDLL.IIO_entry, prevDLL.IIO_entry)
 
 class WinDLL:
     def __init__(self, dllName, base, d32, d64, dExpanded32, dExpanded64, ldrAddr):
