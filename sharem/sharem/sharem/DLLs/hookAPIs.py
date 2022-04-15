@@ -284,10 +284,10 @@ def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
         try:
             allocLoc = availMem
             uc.mem_map(allocLoc, dwSize)
-            availMem += dwSize + 20
+            availMem += dwSize
             uc.reg_write(UC_X86_REG_EAX, allocLoc)
             retVal = allocLoc
-        except:
+        except Exception as e:
             success = False
             retVal = 0xbadd0000
             uc.reg_write(UC_X86_REG_EAX, retVal)
