@@ -66,7 +66,7 @@ my_stdout = open( 1, "w", buffering = 400000 )
 
 sys.stdout = my_stdout
 sys.stdout=oldsysOut
-print (res2+"")
+# print (res2+"")
 			
 iatList=[]
 m = {} #[]   # start modules CHANGED to dicitonary
@@ -1666,16 +1666,20 @@ def giveLoadedModules(mode=None):
 
 	if filename == "":
 		outfile = peName.split(".")[0]
+		outfile = peName.split("\\")[-1]
 		outfileName = peName
 	else:	
 		outfile = filename.split(".")[0]
+		outfile = filename.split("\\")[-1]
 		outfileName = filename
 
 	if mode =="text" or mode =="save":
 		# out = cleanColors(out)
 		if mode =="save":
 			out2 = cleanColors(out)
+			outfileName = outfileName.split("\\")[-1]
 			txtFileName =  os.getcwd() + slash + outfile + slash + outfileName + "_" + "loaded_Modules" + ".txt"
+			print(txtFileName)
 			os.makedirs(os.path.dirname(txtFileName), exist_ok=True)
 			text = open(txtFileName, "w")
 			text.write(out2)
@@ -5589,7 +5593,7 @@ def identifySyscall(callNum): # returns two lists containing lists of the format
 	result64 = []
 	result32 = []
 	callNum = format(callNum, '#06x')
-	with open(os.path.join(os.path.dirname(__file__), 'nt64.csv'), 'r') as file:
+	with open(os.path.join(os.path.dirname(__file__), '\\sharem\\nt64.csv'), 'r') as file:
 		nt64Csv = csv.reader(file)
 		# print(format(callNum, '#06x'))
 		nt64Header = next(nt64Csv)
@@ -5608,7 +5612,7 @@ def identifySyscall(callNum): # returns two lists containing lists of the format
 
 	# print("################### WIN32K #########################")
 
-	with open(os.path.join(os.path.dirname(__file__), 'win32k64.csv'), 'r') as file:
+	with open(os.path.join(os.path.dirname(__file__), '\\sharem\\win32k64.csv'), 'r') as file:
 		w3264Csv = csv.reader(file)
 		# print(format(callNum, '#06x'))
 		w3264header = next(w3264Csv)
@@ -5625,7 +5629,7 @@ def identifySyscall(callNum): # returns two lists containing lists of the format
 				result64.append(newEntry)
 
 
-	with open(os.path.join(os.path.dirname(__file__), 'nt.csv'), 'r') as file:
+	with open(os.path.join(os.path.dirname(__file__), '\\sharem\\nt.csv'), 'r') as file:
 		ntCsv = csv.reader(file)
 		# print(format(callNum, '#06x'))
 		ntHeader = next(ntCsv)
@@ -5644,7 +5648,7 @@ def identifySyscall(callNum): # returns two lists containing lists of the format
 
 	# print("################### WIN32K #########################")
 
-	with open(os.path.join(os.path.dirname(__file__), 'win32k.csv'), 'r') as file:
+	with open(os.path.join(os.path.dirname(__file__), '\\sharem\\win32k.csv'), 'r') as file:
 		w32Csv = csv.reader(file)
 		# print(format(callNum, '#06x'))
 		w32header = next(w32Csv)
@@ -5679,14 +5683,14 @@ def getSyscall(callNum, bit = 64, version = "default"):
 	if(version == "default"):
 
 		if(bit == 64):
-			with open(os.path.join(os.path.dirname(__file__), 'nt64.csv'), 'r') as file:
+			with open(os.path.join(os.path.dirname(__file__), '\\sharem\\nt64.csv'), 'r') as file:
 				nt64Csv = csv.reader(file)
 				# print(format(callNum, '#06x'))
 				nt64Header = next(nt64Csv)
 				version = nt64Header[-1]
 
 		else:
-			with open(os.path.join(os.path.dirname(__file__), 'nt32.csv'), 'r') as file:
+			with open(os.path.join(os.path.dirname(__file__), '\\sharem\\nt32.csv'), 'r') as file:
 				nt32Csv = csv.reader(file)
 				# print(format(callNum, '#06x'))
 				nt32Header = next(nt32Csv)
@@ -5724,14 +5728,14 @@ def getSyscallRecent(callNum, bit = 64, print2File=None, jsonFormat=None):
 	# print("inAPI")
 
 	if(bit == 64):
-		with open(os.path.join(os.path.dirname(__file__), 'nt64.csv'), 'r') as file:
+		with open(os.path.join(os.path.dirname(__file__), '\\sharem\\nt64.csv'), 'r') as file:
 				nt64Csv = csv.reader(file)
 				# print(format(callNum, '#06x'))
 				versions = next(nt64Csv)
 				versions = versions[1:]
 
 	else:
-		with open(os.path.join(os.path.dirname(__file__), 'nt32.csv'), 'r') as file:
+		with open(os.path.join(os.path.dirname(__file__), '\\sharem\\nt32.csv'), 'r') as file:
 				nt32Csv = csv.reader(file)
 				# print(format(callNum, '#06x'))
 				versions = next(nt32Csv)
@@ -7995,6 +7999,13 @@ def disHereHeavenPE(address, NumOpsDis, NumOpsBack, secNum, data): ############ 
 	# dprint2(secNum)
 	#input("addy")
 
+	if(bit32):
+		syscallCs = Cs(CS_ARCH_X86, CS_MODE_32)
+	else:
+		syscallCs = Cs(CS_ARCH_X86, CS_MODE_64)
+	syscallCs.skipdata = True
+	syscallCs.skipdata_setup = ("bad instruction", None, None)
+
 
 	CODED2 = ""
 	x = NumOpsDis
@@ -8036,7 +8047,7 @@ def disHereHeavenPE(address, NumOpsDis, NumOpsBack, secNum, data): ############ 
 		# dprint2(binaryToStr(CODED3))
 		# dprint2("******************************************")
 		offsets = []
-		for i in callCS.disasm(CODED3, address):
+		for i in syscallCs.disasm(CODED3, address):
 			# dprint2('address in for = ' + str(address))
 			if(secNum == "noSec"):
 
@@ -8104,12 +8115,15 @@ def disHereHeavenPE(address, NumOpsDis, NumOpsBack, secNum, data): ############ 
 			outsd = re.search("outsd", line, re.IGNORECASE)
 			# longNum = re.search("(0x)([0-9a-f]){6,}", line, re.IGNORECASE)
 			longNum = re.search("\[?(0x)([0-9a-f]){6,}\]", line, re.IGNORECASE)
+			badInstr = re.search("bad instruction" ,line, re.IGNORECASE)
 
 			#adc eax, dword[0xe0ff42]
 			#dword ptr [eax + 0xe0ff4212]
 			#dword ptr [0xe0ff4212]
 			if(byte or insd or longNum or outsd):
 				unlikely = unlikely + 1
+			if(badInstr and not heav_match and not retf):
+				unlikely = 999
 
 		if(heav_match and (unlikely < 3)):
 			# dprint2("heavenhere")
@@ -8847,7 +8861,7 @@ def printSavedSyscall(bit = 32, showDisassembly = True): #######################
 						getSyscallRecent(int(eax, 0))
 
 	else:
-		print("in else")
+		# print("in else")
 		h = 0
 
 		for section in s:
@@ -17349,19 +17363,20 @@ def decryptShellcode(encodedShell, operations,  findAll = False, fastMode = Fals
 
 		if(outputFile):
 			disassembly, disassemblyNoC, assemblyBytes=takeBytes(decodedBytes, shellEntry)
-			rawBytes = decodedBytes	
-			directory = "."+slash
-			print ("decrypted disassembly")
-			print (disassembly)
-			if not os.path.exists(directory+'outputs'):
-				os.makedirs(directory+'outputs')
-			print (directory+"outputs"+slash+"decoded"+".bin")
-			newBin = open(directory+"outputs"+slash+"decrypted-"+filename+".bin", "wb")
-			newBin.write(rawBytes)
-			newBin.close()
-			newDis = open(directory+"outputs"+slash+"decrypted-"+filename+"-disassembly.txt", "w")
-			newDis.write(disassemblyNoC)
-			newDis.close()
+			try:
+				rawBytes = decodedBytes	
+				directory = "."+slash
+				if not os.path.exists(directory+'outputs'):
+					os.makedirs(directory+'outputs')
+				print (directory+"outputs"+slash+"decoded"+".bin")
+				newBin = open(directory+"outputs"+slash+"decrypted-"+filename+".bin", "wb")
+				newBin.write(rawBytes)
+				newBin.close()
+				newDis = open(directory+"outputs"+slash+"decrypted-"+filename+"-disassembly.txt", "w")
+				newDis.write(disassemblyNoC)
+				newDis.close()
+			except:
+				pass
 
 decryptInput = "default"
 decryptNumOps = 3
@@ -17537,6 +17552,7 @@ def decryptUI():
 				print("Got stubEnd offset: ", stubEnd)
 				input("press enter to proceed...")
 				decodedBytes = decryptShellcode(decryptBytes, decryptOpTypes, findAll = dFindAll, fastMode = dFastMode, distributed = dDistr, cpuCount = dCPUcount, nodesFile = dNodesFile, outputFile = dOutputFile, mode = "stub", stubParams = (numVals,opTypes))
+
 			else:
 				print("No decoder detected.")
 

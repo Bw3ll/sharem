@@ -2216,7 +2216,7 @@ def austinDecode(decodeOps, sample, mode = "default", starts = [], order = [], f
 
 	# print("LISTDONE")
 	# print(encodeBytes4)
-	print(len(encodeBytes4))
+	# print(len(encodeBytes4))
 	sortOut = sorted(out)
 	# print("LEN SORT PAR", str(len(sortOut)))
 
@@ -5513,6 +5513,8 @@ def specialEncoderP2(*args):
 	print ("finTime", finTime)
 	return sortOut
 
+
+
 def runProcs(encodeBytes4, sample, numThreads, version = 3, findAll = False):
 	# if __name__ == '__main__':
 			# print("in runprocs")
@@ -5521,6 +5523,7 @@ def runProcs(encodeBytes4, sample, numThreads, version = 3, findAll = False):
 			# print(numThreads)
 			# print(perms)
 			# numThreads = 4
+			# print("runProcs start")
 			argsLen = len(encodeBytes4)
 			# r = len(encodeBytes4) % numThreads
 			# startChunk = 0
@@ -5540,7 +5543,6 @@ def runProcs(encodeBytes4, sample, numThreads, version = 3, findAll = False):
 				# print(block_high(rank, numThreads, argsLen))
 				processList.append(multiprocessing.Process(target=p2Encode, args = (block_low(rank, numThreads, argsLen), block_high(rank, numThreads, argsLen), encodeBytes4, sample, rank, queue, version, endFlag, findAll)))
 
-
 			for proc in processList:
 				proc.start()
 
@@ -5556,6 +5558,7 @@ def runProcs(encodeBytes4, sample, numThreads, version = 3, findAll = False):
 
 			# print("rets here")
 			# print(rets)
+
 			return rets, endFlag.value
 
 def runProcsDistr(encodeBytes4, sample, numThreads, version = 3, findAll = False, successPoints	= 3):
@@ -5604,6 +5607,9 @@ def runProcsDistr(encodeBytes4, sample, numThreads, version = 3, findAll = False
 			# print(rets)
 			return rets, endFlag.value
 
+
+
+
 def p2Encode(low, high, encodeBytes4, sample, rank, queue, version, endFlag, findAll = False):
 
 	outs = []
@@ -5625,6 +5631,7 @@ def p2Encode(low, high, encodeBytes4, sample, rank, queue, version, endFlag, fin
 			output = doStuffP24(encodeBytes4[i], sample, rank)
 		elif(version == 5):
 			output = doStuffP25(encodeBytes4[i], sample, rank)
+
 		# if(findAll):
 		# 	outs.append(output)
 		# print("checking bytes, endFlag = ", endFlag.value, "rank = ", rank, " findall = ", findAll)
@@ -5647,6 +5654,7 @@ def p2Encode(low, high, encodeBytes4, sample, rank, queue, version, endFlag, fin
 	# 		outs.append(doStuffP25(encodeBytes4[i], sample, rank))
 
 	queue.put(outs)
+
 def doStuffP2(inputs, sample, rank):
 	# newString = ""
 	# print("IN dostuffp2")
