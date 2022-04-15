@@ -36,10 +36,12 @@ import traceback
 class EMU():
     def __init__(self):
         self.maxCounter=500000
-        self.maxLoop = 50000
+        self.breakOutOfLoops=True
+        self.maxLoop = 50000 # to break out of loops
         self.entryOffset=0
         self.codeCoverage = True
         self.beginCoverage = False
+        self.timelessDebugging = False  #todo: bramwell
         self.winVersion = "Windows 10"
         self.winSP = "2004"
 
@@ -367,7 +369,7 @@ def hook_code(uc, address, size, user_data):
         else:
             jmpInstructs[address] += 1
 
-        if jmpInstructs[address] >= em.maxLoop:
+        if jmpInstructs[address] >= em.maxLoop and em.breakOutOfLoops:
             breakLoop(uc, jmpFlag, mnemonic, op_str, address, len(shells))
             jmpInstructs[address] = 0
 
