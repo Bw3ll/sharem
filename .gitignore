@@ -4,6 +4,8 @@
 *.pyc
 work2.bin
 **/DLLS/*.dll
+**/DLLs/x86/*.dll
+**/DLLs/x64/*.dll
 **/logs/**
 foundDLLAddresses.txt
 out.txt

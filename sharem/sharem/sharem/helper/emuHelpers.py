@@ -1,3 +1,5 @@
+import json
+
 from unicorn.x86_const import *
 from struct import pack, unpack
 from unicorn import *
@@ -122,6 +124,44 @@ def insertIntoBytes(binaryBlob, start, size, value):
     final=bytes(lBinary)
     return final
 
+def iter_and_dump_dlls(mu, em, export_dict, source_path, save_path, mods):
+    runOnce=False
+    for m in mods:
+        if em.arch == 32:
+            dll_path = mods[m].d32
+        else:
+            dll_path = mods[m].d64
+        dll_name = mods[m].name
+
+        if os.path.exists(dll_path) == False:
+            continue
+        if os.path.exists("%s%s" % (save_path, dll_name)):
+            dll=readRaw(save_path+dll_name)
+            # Unicorn line to dump the DLL in our memory
+            mu.mem_write(mods[m].base, dll)
+        # Inflate dlls so PE offsets are correct
+        else:
+            if not runOnce:
+                if os.path.exists(dll_path) == False:
+                    print("[*] Unable to locate ", dll_path,
+                          ". It is likely that this file is not included in your version of Windows.")
+                print("Warning: DLLs must be parsed and inflated from a Windows OS.\n\tThis may take several minutes to generate the initial emulation files.\n\tThis initial step must be completed only once from a Windows machine.\n\tThe emulation will not work without these.")
+                runOnce=True
+            pe=pefile.PE(dll_path)
+            for exp in pe.DIRECTORY_ENTRY_EXPORT.symbols:
+                try:
+                    export_dict[hex(mods[m].base + exp.address)] = (exp.name.decode(), dll_name)
+                except:
+                    export_dict[hex(mods[m].base + exp.address)] = "unknown_function"
+
+            dllPath = source_path + dll_name
+            rawDll = padDLL(dllPath, dll_name, save_path)
+
+            # Dump the dll into emulation memory
+            mu.mem_write(mods[m].base, rawDll)
+
+    return export_dict
+
 def padDLL(dllPath, dllName, expandedDLLsPath):
     pe = pefile.PE(dllPath)
 
@@ -144,7 +184,6 @@ def padDLL(dllPath, dllName, expandedDLLsPath):
 
         i += 1
 
-
     # Replace e_lfanew value
     elfanew = pe.DOS_HEADER.e_lfanew
     pe.DOS_HEADER.e_lfanew = elfanew + padding
@@ -164,17 +203,14 @@ def padDLL(dllPath, dllName, expandedDLLsPath):
 
     return rawDll
 
-def saveDLLsToFile(export_dict, foundDLLAddresses):       # help function called by loadDLLs
-    output=""
-    for address in export_dict:
-        apiName=export_dict[address][0]
-        dllName=export_dict[address][1]
+def saveDLLAddsToFile(foundDLLAddrs, export_dict):       # help function called by loadDLLs
+    with open(foundDLLAddrs, 'a') as out:
+        json.dump(export_dict, out)
 
-        output+=str(hex(address)) +", " + apiName+ ", "  + dllName + "\n"
-
-    with open(foundDLLAddresses, 'a') as out:
-        out.write(output)
-        out.close()
+def readDLLsAddsFromFile(foundDLLAddrs, export_dict):
+    with open(foundDLLAddrs, 'r') as f:
+        export_dict=json.load(f)
+    return export_dict
 
 def push(uc, val):
     # read and subtract 4 from esp
@@ -287,7 +323,6 @@ def getJmpFlag(mnemonic):
 def controlFlow(uc, mnemonic, op_str):
     # print ("cf", mnemonic, op_str)
     controlFlow = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(jns)|(call))", mnemonic, re.M|re.I)
-
 
     which=0
     address = -1
