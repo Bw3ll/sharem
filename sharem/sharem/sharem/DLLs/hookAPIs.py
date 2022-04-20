@@ -488,7 +488,7 @@ def findStringsParms(uc, pTypes,pVals, skip):
                 try:
                     # print ("looking", i, pTypes[i], pVals[i])
                     if "WSTR" in pTypes[i]:
-                        pVals[i] = read_unicode(uc, pVals[i])
+                        pVals[i] = read_unicode2(uc, pVals[i])
                     else:
                         pVals[i] = read_string(uc, pVals[i])
                     # print (pVals[i],"*")
@@ -575,7 +575,7 @@ def hook_WinExec(uc, eip, esp, export_dict, callAddr):
 
     logged_calls= ("WinExec", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
-def hook_ShellExecuteA(uc, eip, esp, export_dict, callAddr):
+def hook_ShellExecuteA2(uc, eip, esp, export_dict, callAddr):
     # HINSTANCE ShellExecuteA([in, optional] HWND   hwnd, [in, optional] LPCSTR lpOperation,[in] LPCSTR lpFile,
     # [in, optional] LPCSTR lpParameters, [in, optional] LPCSTR lpDirectory, [in] INT    nShowCmd);
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
@@ -987,7 +987,7 @@ def read_string(uc, address):
     c = uc.mem_read(address, 1)[0]
     read_bytes = 1
 
-    # if c == 0x0: ret = "NULL" # Option for NULL String
+    if c == 0x0: ret = "[NULL]" # Option for NULL String
 
     while c != 0x0:
         ret += chr(c)
@@ -996,7 +996,7 @@ def read_string(uc, address):
     return ret
 
 # New Version Works for More Unicode Chars
-# def read_unicode(uc, address):
+# def read_unicode_extended(uc, address):
 #     ret = ""
 #     mem = uc.mem_read(address, 2)[::-1]
 #     read_bytes = 2
@@ -1016,10 +1016,12 @@ def read_string(uc, address):
 #     return ret
 
 # Old Version Only Works for First 256/Ascii
-def read_unicode(uc, address):
+def read_unicode2(uc, address):
     ret = ""
     c = uc.mem_read(address, 1)[0]
     read_bytes = 0
+    
+    if c == 0x0: ret = "[NULL]" # Option for NULL String
 
     while c != 0x0:
         c = uc.mem_read(address + read_bytes, 1)[0]
