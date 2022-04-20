@@ -109,7 +109,7 @@ def hook_LoadLibraryA(uc, eip, esp, export_dict, callAddr):
             arg1L=arg1.lower()
             retVal=allDllsDict[arg1L]
         except:
-            print("\tError: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
+            print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", arg1)
             print (hex(eip), (len(arg1)))
             retVal = 0
 
@@ -131,7 +131,7 @@ def hook_LoadLibraryW(uc, eip, esp, export_dict, callAddr):
     try:
         retVal = allDllsDict[arg1]
     except:
-        print("Error: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
+        print("Error: The shellcode tried to load a DLL that isn't handled by this tool: ", arg1)
         retVal = 0
 
     uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -153,7 +153,7 @@ def hook_LoadLibraryExW(uc, eip, esp, export_dict, callAddr):
     try:
         retVal = allDllsDict[arg1]
     except:
-        print("Error: The shellcode tried to lode a DLL that isn't handled by this tool: ", arg1)
+        print("Error: The shellcode tried to load a DLL that isn't handled by this tool: ", arg1)
         retVal = 0
 
     uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -487,16 +487,26 @@ def findStringsParms(uc, pTypes,pVals, skip):
             if "STR" in pTypes[i]: #finding ones with string
                 try:
                     # print ("looking", i, pTypes[i], pVals[i])
-                    pVals[i] = read_string(uc, pVals[i])
+                    if "WSTR" in pTypes[i]:
+                        pVals[i] = read_unicode2(uc, pVals[i])
+                    else:
+                        pVals[i] = read_string(uc, pVals[i])
                     # print (pVals[i],"*")
                 except:
                     # print ("pass", i)
                     pass
+            # elif pTypes[i][0] == 'P': # Pointer Builder
+            #     try:
+            #         pointerVal = getPointerVal(uc,pVals[i])
+            #         pVals[i] = buildPtrString(pVals[i], pointerVal)
+            #     except:
+            #         pass
             else:
                 pVals[i] = hex(pVals[i])
 
         i+=1
     return pTypes, pVals
+
 def hook_CreateProcessA(uc, eip, esp, export_dict, callAddr):
     # print ("hook_CreateProcessA2")
     """'CreateProcess': (10, ['LPCTSTR', 'LPTSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID', 'LPCTSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION'], ['lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles', 'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation'], 'BOOL'),"""
@@ -594,7 +604,7 @@ def hook_ShellExecuteW(uc, eip, esp, export_dict, callAddr):
     # HINSTANCE ShellExecuteW([in, optional] HWND   hwnd, [in, optional] LPCSTR lpOperation,[in] LPCSTR lpFile,
     # [in, optional] LPCSTR lpParameters, [in, optional] LPCSTR lpDirectory, [in] INT    nShowCmd);
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
-    pTypes=['HWND', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'INT']
+    pTypes=['HWND', 'LPCWSTR', 'LPCWSTR', 'LPCWSTR', 'LPCWSTR', 'INT']
     pNames=['hwnd', 'lpOperation', 'lpFile', 'lpParameters', 'lpDirectory', 'nShowCmd']
     cmdShowReverseLookUp = {0: 'SW_HIDE', 1: 'SW_NORMAL', 2: 'SW_SHOWMINIMIZED', 3: 'SW_MAXIMIZE', 4: 'SW_SHOWNOACTIVATE', 5: 'SW_SHOW', 6: 'SW_MINIMIZE', 7: 'SW_SHOWMINNOACTIVE', 8: 'SW_SHOWNA', 9: 'SW_RESTORE', 16: 'SW_SHOWDEFAULT', 17: 'SW_FORCEMINIMIZE'}
     search= pVals[5]
@@ -633,13 +643,13 @@ def hook_VirtualProtect(uc, eip, esp, export_dict, callAddr):
 
     cleanBytes=len(pTypes)*4
     retVal=0x1
-    retValStr=hex(retVal)
+    retValStr='TRUE'
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
     logged_calls= ("VirtualProtect", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
+
 def hook_VirtualProtectEx(uc, eip, esp, export_dict, callAddr):
-    # Need to Finish Testing when VirtualAllocEx is Commited
     # BOOL VirtualProtectEx([in]  HANDLE hProcess, [in]  LPVOID lpAddress, [in]  SIZE_T dwSize, [in]  DWORD  flNewProtect, [out] PDWORD lpflOldProtect);
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
     pTypes=['HANDLE', 'LPVOID', 'SIZE_T', 'DWORD', 'PDWORD']
@@ -657,7 +667,7 @@ def hook_VirtualProtectEx(uc, eip, esp, export_dict, callAddr):
 
     cleanBytes=len(pTypes)*4
     retVal=0x1
-    retValStr=hex(retVal)
+    retValStr='TRUE'
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
     logged_calls= ("VirtualProtectEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
@@ -786,6 +796,7 @@ def hook_WSASocketW(uc, eip, esp, export_dict, callAddr):
 
     logged_calls= ("WSASocketW", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
+
 def hook_socket(uc, eip, esp, export_dict, callAddr):
     # SOCKET WSAAPI socket([in] int af, [in] int type, [in] int protocol)
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
@@ -976,12 +987,56 @@ def read_string(uc, address):
     c = uc.mem_read(address, 1)[0]
     read_bytes = 1
 
+    if c == 0x0: ret = "[NULL]" # Option for NULL String
+
     while c != 0x0:
         ret += chr(c)
         c = uc.mem_read(address + read_bytes, 1)[0]
         read_bytes += 1
     return ret
 
+# New Version Works for More Unicode Chars
+# def read_unicode_extended(uc, address):
+#     ret = ""
+#     mem = uc.mem_read(address, 2)[::-1]
+#     read_bytes = 2
+
+#     unicodeString = str(hex(mem[0])) + str(hex(mem[1])[2::])
+#     unicodeInt = int(unicodeString, 0)
+
+#     if unicodeInt == 0x0000: ret="NULL" # Option for NULL String
+
+#     while unicodeInt != 0x0000:
+#         ret += chr(unicodeInt)
+#         mem = uc.mem_read(address + read_bytes, 2)[::-1]
+#         unicodeString = str(hex(mem[0])) + str(hex(mem[1])[2::])
+#         unicodeInt = int(unicodeString, 0)
+#         read_bytes += 2
+
+#     return ret
+
+# Old Version Only Works for First 256/Ascii
+def read_unicode2(uc, address):
+    ret = ""
+    c = uc.mem_read(address, 1)[0]
+    read_bytes = 0
+    
+    if c == 0x0: ret = "[NULL]" # Option for NULL String
+
+    while c != 0x0:
+        c = uc.mem_read(address + read_bytes, 1)[0]
+        ret += chr(c)
+        read_bytes += 2
+
+    ret = ret.rstrip('\x00')
+    return ret
+
+def buildPtrString (pointer, val):
+    return hex(pointer) + " -> " + hex(val)
+
+def getPointerVal(uc, pointer):
+    val = uc.mem_read(pointer, 4)
+    return unpack('<I', val)[0]
 
 
 def hook_CreateThread(uc, eip, esp, export_dict, callAddr):
@@ -1053,7 +1108,7 @@ def hook_CreateServiceA(uc, eip, esp, export_dict, callAddr):
 def hook_CreateServiceW(uc, eip, esp, export_dict, callAddr):
     # SC_HANDLE CreateServiceW([in]SC_HANDLE hSCManager,[in] LPCSTR lpServiceName,[in, optional]  LPCSTR lpDisplayName,[in] DWORD dwDesiredAccess,[in] DWORD dwServiceType,[in] DWORD dwStartType,[in] DWORD dwErrorControl,[in, optional]  LPCSTR    lpBinaryPathName,[in, optional]  LPCSTR    lpLoadOrderGroup,[out, optional] LPDWORD lpdwTagId,[in, optional]  LPCSTR lpDependencies,[in, optional]  LPCSTR lpServiceStartName,[in, optional] LPCSTR lpPassword);
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 13)
-    pTypes=['SC_HANDLE', 'LPCSTR', 'LPCSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPCSTR', 'LPCSTR', 'LPDWORD', 'LPCSTR', 'LPCSTR', 'LPCSTR']
+    pTypes=['SC_HANDLE', 'LPCWSTR', 'LPCWSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPCWSTR', 'LPCWSTR', 'LPDWORD', 'LPCWSTR', 'LPCWSTR', 'LPCWSTR']
     pNames=['hSCManager', 'lpServiceName', 'lpDisplayName', 'dwDesiredAccess', 'dwServiceType', 'dwStartType', 'dwErrorControl', 'lpBinaryPathName', 'lpLoadOrderGroup', 'lpdwTagId', 'lpDependencies', 'lpServiceStartName', 'lpPassword']
     dwDesiredAccessReverseLookUp={0xf01ff: 'SERVICE_ALL_ACCESS', 0x0002: 'SERVICE_CHANGE_CONFIG', 0x0008: 'SERVICE_ENUMERATE_DEPENDENTS', 0x0080: 'SERVICE_INTERROGATE', 0x0040: 'SERVICE_PAUSE_COUNTINUE', 0x0001: 'SERVICE_QUERY_CONFIG', 0x0004: 'SERVICE_QUERY_STATUS', 0X0010: 'SERVICE_START', 0x0020: 'SERVICE_STOP', 0x0100: 'SERVICE_USER_DEFINED_CONTROL', 0x10000: 'DELETE', 0x20000: 'READ_CONTROL', 0x40000: 'WRITE_DAC', 0x80000: 'WRITE_OWNER'}
     dwServiceTypeReverseLookUp={0x00000004: 'SERVICE_ADAPTER', 0x00000002: 'SERVICE_FILE_SYSTEM_DRIVER', 0x00000001: 'SERVICE_KERNEL_DRIVER', 0x00000008: 'SERVICE_RECOGNIZER_DRIVER', 0x00000010: 'SERVICE_WIN32_OWN_PROCESS', 0x00000020: 'SERVICE_WIN32_SHARE_PROCESS', 0x00000100: 'SERVICE_INTERACTIVE_PROCESS'}
@@ -1238,14 +1293,14 @@ def hook_VirtualAllocEx(uc, eip, esp, export_dict, callAddr):
 
     return logged_calls, cleanBytes
 
-def hook_RegCreateKeyExA2(uc, eip, esp, export_dict, callAddr):
+def hook_RegCreateKeyExA(uc, eip, esp, export_dict, callAddr):
     # LSTATUS RegCreateKeyExA([in] HKEY hKey,[in] LPCSTR lpSubKey,DWORD Reserved,[in, optional]  LPSTR lpClass,[in] DWORD dwOptions,[in] REGSAM samDesired,[in, optional] const LPSECURITY_ATTRIBUTES lpSecurityAttributes,[out] PHKEY phkResult,[out, optional] LPDWORD lpdwDisposition);
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 9)
     pTypes=['HKEY', 'LPCSTR', 'DWORD', 'LPSTR', 'DWORD', 'REGSAM', 'LPSECURITY_ATTRIBUTES', 'PHKEY', 'LPDWORD']
     pNames= ['hKey', 'lpSubKey', 'Reserved', 'lpClass', 'dwOptions', 'samDesired', 'lpSecurityAttributes', 'phkResult', 'lpdwDisposition']
     dwOptionsReverseLookUp={4: 'REG_OPTION_BACKUP_RESTORE', 2: 'REG_OPTION_CREATE_LINK', 0: 'REG_OPTION_NON_VOLATILE', 1: 'REG_OPTION_VOLATILE'}
-    lpdwDispostitionReverseLookUp={1: 'REG_CREATED_NEW_KEY', 2: 'REG_OPENED_EXISTING_KEY'}
     samDesiredReverseLookUp = {983103: 'KEY_ALL_ACCESS', 32:'KEY_CREATE_LINK', 4: 'KEY_CREATE_SUB_KEY', 8: 'KEY_ENUMERATE_SUB_KEYS', 131097: 'KEY_READ', 16: 'KEY_NOTIFY', 1: 'KEY_QUERY_VALUE', 2: 'KEY_SET_VALUE',512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY', 131078: 'KEY_WRITE'}
+    lpdwDispostitionReverseLookUp={1: 'REG_CREATED_NEW_KEY', 2: 'REG_OPENED_EXISTING_KEY'}
 
     search= pVals[4]
     if search in dwOptionsReverseLookUp:
@@ -1253,13 +1308,13 @@ def hook_RegCreateKeyExA2(uc, eip, esp, export_dict, callAddr):
     else:
         pVals[4]=hex(pVals[4])
     search= pVals[5]
-    if search in dwOptionsReverseLookUp:
-        pVals[5]=dwOptionsReverseLookUp[search]
+    if search in samDesiredReverseLookUp:
+        pVals[5]=samDesiredReverseLookUp[search]
     else:
         pVals[5]=hex(pVals[5])
     search= pVals[8]
-    if search in dwOptionsReverseLookUp:
-        pVals[8]=dwOptionsReverseLookUp[search]
+    if search in lpdwDispostitionReverseLookUp:
+        pVals[8]=lpdwDispostitionReverseLookUp[search]
     else:
         pVals[8]=hex(pVals[8])
 
@@ -1268,13 +1323,50 @@ def hook_RegCreateKeyExA2(uc, eip, esp, export_dict, callAddr):
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
     cleanBytes=len(pTypes)*4
-    retVal=0x1
-    retValStr=hex(retVal)
+    retVal=0x0
+    retValStr='ERROR_SUCCESS'
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
     logged_calls= ("RegCreateKeyExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
-    
+
+def hook_RegCreateKeyExW(uc, eip, esp, export_dict, callAddr):
+    # LSTATUS RegCreateKeyExA([in] HKEY hKey,[in] LPCSTR lpSubKey,DWORD Reserved,[in, optional]  LPSTR lpClass,[in] DWORD dwOptions,[in] REGSAM samDesired,[in, optional] const LPSECURITY_ATTRIBUTES lpSecurityAttributes,[out] PHKEY phkResult,[out, optional] LPDWORD lpdwDisposition);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 9)
+    pTypes=['HKEY', 'LPCWSTR', 'DWORD', 'LPWSTR', 'DWORD', 'REGSAM', 'LPSECURITY_ATTRIBUTES', 'PHKEY', 'LPDWORD']
+    pNames= ['hKey', 'lpSubKey', 'Reserved', 'lpClass', 'dwOptions', 'samDesired', 'lpSecurityAttributes', 'phkResult', 'lpdwDisposition']
+    dwOptionsReverseLookUp={4: 'REG_OPTION_BACKUP_RESTORE', 2: 'REG_OPTION_CREATE_LINK', 0: 'REG_OPTION_NON_VOLATILE', 1: 'REG_OPTION_VOLATILE'}
+    samDesiredReverseLookUp = {983103: 'KEY_ALL_ACCESS', 32:'KEY_CREATE_LINK', 4: 'KEY_CREATE_SUB_KEY', 8: 'KEY_ENUMERATE_SUB_KEYS', 131097: 'KEY_READ', 16: 'KEY_NOTIFY', 1: 'KEY_QUERY_VALUE', 2: 'KEY_SET_VALUE',512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY', 131078: 'KEY_WRITE'}
+    lpdwDispostitionReverseLookUp={1: 'REG_CREATED_NEW_KEY', 2: 'REG_OPENED_EXISTING_KEY'}
+
+    search= pVals[4]
+    if search in dwOptionsReverseLookUp:
+        pVals[4]=dwOptionsReverseLookUp[search]
+    else:
+        pVals[4]=hex(pVals[4])
+    search= pVals[5]
+    if search in samDesiredReverseLookUp:
+        pVals[5]=samDesiredReverseLookUp[search]
+    else:
+        pVals[5]=hex(pVals[5])
+    search= pVals[8]
+    if search in lpdwDispostitionReverseLookUp:
+        pVals[8]=lpdwDispostitionReverseLookUp[search]
+    else:
+        pVals[8]=hex(pVals[8])
+
+    # create strings for everything except ones in our skip
+    skip=[4,5,8]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x0
+    retValStr='ERROR_SUCCESS'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("RegCreateKeyExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
 def hook_RegDeleteKeyExA(uc, eip, esp, export_dict, callAddr):
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
     pTypes=['HKEY', 'LPCSTR', 'REGSAM', 'DWORD']
@@ -1299,6 +1391,32 @@ def hook_RegDeleteKeyExA(uc, eip, esp, export_dict, callAddr):
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
     logged_calls= ("RegDeleteKeyExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_RegDeleteKeyExW(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    pTypes=['HKEY', 'LPCWSTR', 'REGSAM', 'DWORD']
+    pNames= ['hKey', 'lpSubKey', 'samDesired', 'Reserved']
+
+    samDesiredReverseLookUp = {512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY'}
+
+    search= pVals[2]
+    if search in samDesiredReverseLookUp:
+        pVals[2]=samDesiredReverseLookUp[search]
+    else:
+        pVals[2]=hex(pVals[2])
+    
+        
+    #create strings for everything except ones in our skip
+    skip=[2]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x0
+    retValStr='ERROR_SUCCESS'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("RegDeleteKeyExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
 def hook_RegGetValueA(uc, eip, esp, export_dict, callAddr):
