@@ -495,6 +495,12 @@ def findStringsParms(uc, pTypes,pVals, skip):
                 except:
                     # print ("pass", i)
                     pass
+            # elif pTypes[i][0] == 'P': # Pointer Builder
+            #     try:
+            #         pointerVal = getPointerVal(uc,pVals[i])
+            #         pVals[i] = buildPtrString(pVals[i], pointerVal)
+            #     except:
+            #         pass
             else:
                 pVals[i] = hex(pVals[i])
 
@@ -981,12 +987,54 @@ def read_string(uc, address):
     c = uc.mem_read(address, 1)[0]
     read_bytes = 1
 
+    # if c == 0x0: ret = "NULL" # Option for NULL String
+
     while c != 0x0:
         ret += chr(c)
         c = uc.mem_read(address + read_bytes, 1)[0]
         read_bytes += 1
     return ret
 
+# New Version Works for More Unicode Chars
+# def read_unicode(uc, address):
+#     ret = ""
+#     mem = uc.mem_read(address, 2)[::-1]
+#     read_bytes = 2
+
+#     unicodeString = str(hex(mem[0])) + str(hex(mem[1])[2::])
+#     unicodeInt = int(unicodeString, 0)
+
+#     if unicodeInt == 0x0000: ret="NULL" # Option for NULL String
+
+#     while unicodeInt != 0x0000:
+#         ret += chr(unicodeInt)
+#         mem = uc.mem_read(address + read_bytes, 2)[::-1]
+#         unicodeString = str(hex(mem[0])) + str(hex(mem[1])[2::])
+#         unicodeInt = int(unicodeString, 0)
+#         read_bytes += 2
+
+#     return ret
+
+# Old Version Only Works for First 256/Ascii
+def read_unicode(uc, address):
+    ret = ""
+    c = uc.mem_read(address, 1)[0]
+    read_bytes = 0
+
+    while c != 0x0:
+        c = uc.mem_read(address + read_bytes, 1)[0]
+        ret += chr(c)
+        read_bytes += 2
+
+    ret = ret.rstrip('\x00')
+    return ret
+
+def buildPtrString (pointer, val):
+    return hex(pointer) + " -> " + hex(val)
+
+def getPointerVal(uc, pointer):
+    val = uc.mem_read(pointer, 4)
+    return unpack('<I', val)[0]
 
 
 def hook_CreateThread(uc, eip, esp, export_dict, callAddr):
