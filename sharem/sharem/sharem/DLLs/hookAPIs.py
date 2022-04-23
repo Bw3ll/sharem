@@ -10,7 +10,7 @@ ProcessCreationReverseLookUp = {16777216: 'CREATE_BREAKAWAY_FROM_JOB', 67108864:
 MemLookUp = {'MEM_COMMIT | MEM_RESERVE':'0x3000', 'MEM_COMMIT': '0x1000', 'MEM_FREE': '0x10000', 'MEM_RESERVE': '0x2000', 'MEM_IMAGE': '0x1000000', 'MEM_MAPPED': '0x40000', 'MEM_PRIVATE': '0x20000', 'PAGE_EXECUTE': '0x10', 'PAGE_EXECUTE_READ': '0x20', 'PAGE_EXECUTE_READWRITE': '0x40', 'PAGE_EXECUTE_WRITECOPY': '0x80', 'PAGE_NOACCESS': '0x01', 'PAGE_READONLY': '0x02', 'PAGE_READWRITE': '0x04', 'PAGE_TARGETS_INVALID': '0x40000000', 'PAGE_TARGETS_NO_UPDATE': '0x40000000'}
 MemReverseLookUp = {0x3000:'MEM_COMMIT | MEM_RESERVE', 4096: 'MEM_COMMIT', 65536: 'MEM_FREE', 8192: 'MEM_RESERVE', 16777216: 'MEM_IMAGE', 262144: 'MEM_MAPPED', 131072: 'MEM_PRIVATE', 16: 'PAGE_EXECUTE', 32: 'PAGE_EXECUTE_READ', 64: 'PAGE_EXECUTE_READWRITE', 128: 'PAGE_EXECUTE_WRITECOPY', 1: 'PAGE_NOACCESS', 2: 'PAGE_READONLY', 4: 'PAGE_READWRITE', 1073741824: 'PAGE_TARGETS_NO_UPDATE'}
 availMem = 0x25000000
-
+HeapsDict = {} # Dictionary of All Heaps 
 
 # Custom hook for GetProcAddress. Loops through the export dictionary we created, 
 # # then returns the address of the indicated function into eax
@@ -205,7 +205,55 @@ def hook_LdrLoadDll(uc, eip, esp, export_dict, callAddr):
     cleanBytes = 16
     return logged_calls, cleanBytes
 
-def hook_HeapCreate2(uc, eip, esp, export_dict, callAddr):
+# Heap Functions
+class Heap:
+    allocations=[]
+    currentSize=0
+    def __init__(self, uc, size):
+        global availMem
+        try:
+            self.baseAddress = availMem
+            uc.mem_map(self.baseAddress, size)
+            availMem += size + 20
+        except:
+            pass
+        self.totalSize = size
+        HeapsDict.update({self.baseAddress: self})
+
+    def newHeapAllocation(self, size):
+        # Check avaible Memory Increase if Necessary
+        while (self.currentSize + size) > self.totalSize:
+            self.increaseHeapSize
+
+        # Create Allocation
+        if len(self.allocations) != 0:
+            lastAlloc = self.allocations[-1]
+            newAddress = lastAlloc.address + lastAlloc.size + 20
+        else:
+            newAddress = self.baseAddress + self.currentSize + 20
+
+        newAllocation= HeapAllocation(newAddress,size)
+        self.allocations.append(newAllocation)
+        return newAllocation
+
+    def increaseHeapSize(self):
+        # Double or increase By 1/2 or Just Make Enough Room for new Allocation
+        print('Heap Size Increased')
+        self.totalSize = self.totalSize * 2
+
+    def free(self):
+        for i in self.allocations:
+            print(str(i))
+
+    def destroy(self):
+        HeapsDict.pop(self.baseAddress)
+
+class HeapAllocation:
+    def __init__(self, address, size):
+        self.address = address
+        self.size = size
+
+def hook_HeapCreate(uc, eip, esp, export_dict, callAddr):
     # HANDLE HeapCreate([in] DWORD  flOptions,[in] SIZE_T dwInitialSize,[in] SIZE_T dwMaximumSize);
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
     pTypes=['DWORD', 'SIZE_T', 'SIZE_T']
@@ -215,6 +263,8 @@ def hook_HeapCreate2(uc, eip, esp, export_dict, callAddr):
     # Round up to next page (4096)
     pVals[1] = ((pVals[1]//4096)+1) * 4096
     pVals[2] = ((pVals[2]//4096)+1) * 4096
+
+    heap = Heap(uc, pVals[2])
 
     search= pVals[0]
     if search in flOptionsReverseLookUp:
@@ -227,20 +277,27 @@ def hook_HeapCreate2(uc, eip, esp, export_dict, callAddr):
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
     cleanBytes=len(pTypes)*4
-    retVal=FakeProcess # Figure out how to return HANDLE
+    retVal=heap.baseAddress
     retValStr=hex(retVal)
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
     logged_calls= ("HeapCreate", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_HeapAlloc2(uc, eip, esp, export_dict, callAddr):
+def hook_HeapAlloc(uc, eip, esp, export_dict, callAddr):
     # DECLSPEC_ALLOCATOR LPVOID HeapAlloc([in] HANDLE hHeap, [in] DWORD  dwFlags, [in] SIZE_T dwBytes)
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
     pTypes=['HANDLE', 'DWORD', 'SIZE_T']
     pNames=['hHeap', 'dwFlags', 'dwBytes']
     dwFlagsReverseLookUp={0x00000008: 'HEAP_ZERO_MEMORY', 0x00000004: 'HEAP_GENERATE_EXCEPTIONS', 0x00000001: 'HEAP_NO_SERIALIZE'}
+    
+    try:
+        heap = HeapsDict[pVals[0]]
+    except:
+        heap = Heap(uc, pVals[2])
 
+    allocation = heap.newHeapAllocation(pVals[2])
+    heap.free()
     search= pVals[1]
     if search in dwFlagsReverseLookUp:
         pVals[1]=dwFlagsReverseLookUp[search]
@@ -252,11 +309,11 @@ def hook_HeapAlloc2(uc, eip, esp, export_dict, callAddr):
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
     cleanBytes=len(pTypes)*4
-    retVal=0x20 # Return pointer to allocated memory block
+    retVal=allocation.address
     retValStr=hex(retVal)
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
-    logged_calls= ("HeapAlloc", hex(callAddr), (retValStr), 'PTR', pVals, pTypes, pNames, False)
+    logged_calls= ("HeapAlloc", hex(callAddr), (retValStr), 'LPVOID', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
 def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
