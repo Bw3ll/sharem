@@ -207,39 +207,38 @@ def hook_LdrLoadDll(uc, eip, esp, export_dict, callAddr):
 
 # Heap Functions
 class Heap:
-    allocations=[]
-    currentSize=0
-    def __init__(self, uc, size):
+    def __init__(self, uc, handle, size):
         global availMem
         try:
             self.baseAddress = availMem
             uc.mem_map(self.baseAddress, size)
-            availMem += size + 20
+            availMem += size
         except:
+            print('Heap Create Failed')
             pass
-        self.totalSize = size
-        HeapsDict.update({self.baseAddress: self})
-
-    def newHeapAllocation(self, size):
-        # Check avaible Memory Increase if Necessary
-        while (self.currentSize + size) > self.totalSize:
-            self.increaseHeapSize
-
-        # Create Allocation
-        if len(self.allocations) != 0:
-            lastAlloc = self.allocations[-1]
-            newAddress = lastAlloc.address + lastAlloc.size + 20
+        self.availableSize = size
+        if handle == 0:
+            self.handle = self.baseAddress
         else:
-            newAddress = self.baseAddress + self.currentSize + 20
+            self.handle = handle
+        self.allocations = {}
+        self.usedSize = 0
+        HeapsDict.update({self.handle: self})
 
-        newAllocation= HeapAllocation(newAddress,size)
-        self.allocations.append(newAllocation)
+    def createAllocation(self, uc, size):
+        # Check avaible Memory Increase if Necessary
+        while (self.usedSize + size) > self.availableSize:
+            self.increaseSize()
+
+        newAllocation = HeapAllocation(uc, size)
+        self.usedSize = self.usedSize + size
+        self.allocations.update({newAllocation.address: newAllocation})
         return newAllocation
 
-    def increaseHeapSize(self):
+    def increaseSize(self):
         # Double or increase By 1/2 or Just Make Enough Room for new Allocation
         print('Heap Size Increased')
-        self.totalSize = self.totalSize * 2
+        self.availableSize = self.availableSize * 2
 
     def free(self):
         for i in self.allocations:
@@ -248,10 +247,27 @@ class Heap:
     def destroy(self):
         HeapsDict.pop(self.baseAddress)
 
+    def printInfo(self):
+        print('Heap Info')
+        print('Handle: ', hex(self.handle))
+        print('BaseAddress: ', hex(self.baseAddress))
+        print('Used Size: ', self.usedSize)
+        print('Total Size: ', self.availableSize)
+        print('Allocations: ', len(self.allocations))
+        for i in self.allocations:
+            print(' Address: ', hex(self.allocations[i].address), ' Size: ', self.allocations[i].size)
+
 class HeapAllocation:
-    def __init__(self, address, size):
-        self.address = address
-        self.size = size
+    def __init__(self, uc, size):
+        global availMem
+        try:
+            self.address = availMem
+            self.size = size
+            uc.mem_map(self.address, self.size)
+            availMem += size
+        except:
+            print('Heap Allocation Failed')
+            pass
 
 def hook_HeapCreate(uc, eip, esp, export_dict, callAddr):
     # HANDLE HeapCreate([in] DWORD  flOptions,[in] SIZE_T dwInitialSize,[in] SIZE_T dwMaximumSize);
