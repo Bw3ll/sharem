@@ -207,12 +207,13 @@ def hook_LdrLoadDll(uc, eip, esp, export_dict, callAddr):
 
 # Heap Functions
 class Heap:
-    def __init__(self, uc, handle, size):
+    realSize = 4096
+    def __init__(self, uc: Uc, handle: int, size: int):
         global availMem
         try:
             self.baseAddress = availMem
-            uc.mem_map(self.baseAddress, size)
-            availMem += size
+            uc.mem_map(self.baseAddress, self.realSize)
+            availMem += self.realSize
         except:
             print('Heap Create Failed')
             pass
@@ -221,11 +222,11 @@ class Heap:
             self.handle = self.baseAddress
         else:
             self.handle = handle
-        self.allocations = {}
+        self.allocations: HeapAllocation = {}
         self.usedSize = 0
         HeapsDict.update({self.handle: self})
 
-    def createAllocation(self, uc, size):
+    def createAllocation(self, uc: Uc, size: int):
         # Check avaible Memory Increase if Necessary
         while (self.usedSize + size) > self.availableSize:
             self.increaseSize()
@@ -235,16 +236,43 @@ class Heap:
         self.allocations.update({newAllocation.address: newAllocation})
         return newAllocation
 
+    def reAlloc(self, uc: Uc, addr: int, size: int):
+        # Check avaible Memory Increase if Necessary
+        while (self.usedSize + size) > self.availableSize:
+            self.increaseSize()
+
+        newAllo = HeapAllocation(uc, size)
+        oldAllo = self.allocations[addr]
+
+        try:
+            memory = uc.mem_read(oldAllo.address, oldAllo.size)
+            fmt = '<'+ str(oldAllo.size) + 's' 
+            uc.mem_write(newAllo.address, pack(fmt, memory))
+        except:
+            return oldAllo
+        
+        self.usedSize = self.usedSize - oldAllo.size + size
+        self.free(uc, oldAllo.address)
+        self.allocations.update({newAllo.address: newAllo})
+        return newAllo
+
     def increaseSize(self):
         # Double or increase By 1/2 or Just Make Enough Room for new Allocation
-        print('Heap Size Increased')
+        # print('Heap Size Increased')
         self.availableSize = self.availableSize * 2
 
-    def free(self):
-        for i in self.allocations:
-            print(str(i))
+    def free(self, uc: Uc, addr: int):
+        if addr in self.allocations:
+            uc.mem_unmap(self.allocations[addr].address, self.allocations[addr].size)
+            self.usedSize -= self.allocations[addr].size
+            self.allocations.pop(addr)
 
-    def destroy(self):
+    def destroy(self, uc: Uc):
+        for i in self.allocations:
+            self.usedSize -= self.allocations[i].size
+            uc.mem_unmap(self.allocations[i].address, self.allocations[i].size)
+        self.allocations = {}
+        uc.mem_unmap(self.baseAddress, self.realSize)
         HeapsDict.pop(self.baseAddress)
 
     def printInfo(self):
@@ -255,10 +283,10 @@ class Heap:
         print('Total Size: ', self.availableSize)
         print('Allocations: ', len(self.allocations))
         for i in self.allocations:
-            print(' Address: ', hex(self.allocations[i].address), ' Size: ', self.allocations[i].size)
+            print(' Address:', hex(self.allocations[i].address), 'Size:', self.allocations[i].size)
 
 class HeapAllocation:
-    def __init__(self, uc, size):
+    def __init__(self, uc: Uc, size: int):
         global availMem
         try:
             self.address = availMem
@@ -280,7 +308,7 @@ def hook_HeapCreate(uc, eip, esp, export_dict, callAddr):
     pVals[1] = ((pVals[1]//4096)+1) * 4096
     pVals[2] = ((pVals[2]//4096)+1) * 4096
 
-    heap = Heap(uc, pVals[2])
+    heap = Heap(uc, 0, pVals[2])
 
     search= pVals[0]
     if search in flOptionsReverseLookUp:
@@ -293,7 +321,7 @@ def hook_HeapCreate(uc, eip, esp, export_dict, callAddr):
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
     cleanBytes=len(pTypes)*4
-    retVal=heap.baseAddress
+    retVal=heap.handle
     retValStr=hex(retVal)
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -307,14 +335,17 @@ def hook_HeapAlloc(uc, eip, esp, export_dict, callAddr):
     pNames=['hHeap', 'dwFlags', 'dwBytes']
     dwFlagsReverseLookUp={0x00000008: 'HEAP_ZERO_MEMORY', 0x00000004: 'HEAP_GENERATE_EXCEPTIONS', 0x00000001: 'HEAP_NO_SERIALIZE'}
     
+    # Round up to next page (4096)
+    pVals[2] = ((pVals[2]//4096)+1) * 4096
+
     try:
         heap = HeapsDict[pVals[0]]
     except:
-        heap = Heap(uc, pVals[2])
+        heap = Heap(uc, pVals[0], pVals[2])
 
-    allocation = heap.newHeapAllocation(pVals[2])
-    heap.free()
-    search= pVals[1]
+    allocation = heap.createAllocation(uc, pVals[2])
+
+    search = pVals[1]
     if search in dwFlagsReverseLookUp:
         pVals[1]=dwFlagsReverseLookUp[search]
     else:
@@ -330,6 +361,129 @@ def hook_HeapAlloc(uc, eip, esp, export_dict, callAddr):
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
     logged_calls= ("HeapAlloc", hex(callAddr), (retValStr), 'LPVOID', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_HeapDestroy(uc, eip, esp, export_dict, callAddr):
+    # BOOL HeapDestroy([in] HANDLE hHeap);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['HANDLE']
+    pNames=['hHeap']
+    
+    try:
+        heap = HeapsDict[pVals[0]]
+        heap.destroy(uc)
+    except:
+        pass
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("HeapDestroy", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_HeapFree(uc, eip, esp, export_dict, callAddr):
+    # BOOL HeapFree([in] HANDLE hHeap,[in] DWORD dwFlags,[in] _Frees_ptr_opt_ LPVOID lpMem);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['HANDLE', 'DWORD', '_Frees_ptr_opt_ LPVOID']
+    pNames=['hHeap', 'dwFlags', 'lpMem']
+    dwFlagsReverseLookUp={0x00000008: 'HEAP_ZERO_MEMORY', 0x00000004: 'HEAP_GENERATE_EXCEPTIONS', 0x00000001: 'HEAP_NO_SERIALIZE'}
+
+    try:
+        heap = HeapsDict[pVals[0]]
+        heap.free(uc, pVals[2])
+    except:
+        pass
+
+    search = pVals[1]
+    if search in dwFlagsReverseLookUp:
+        pVals[1]=dwFlagsReverseLookUp[search]
+    else:
+        pVals[1]=hex(pVals[1])
+
+    #create strings for everything except ones in our skip
+    skip=[1]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("HeapFree", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+
+def hook_HeapSize(uc, eip, esp, export_dict, callAddr):
+    # SIZE_T HeapSize([in] HANDLE  hHeap,[in] DWORD   dwFlags,[in] LPCVOID lpMem);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['HANDLE', 'DWORD', 'LPCVOID']
+    pNames=['hHeap', 'dwFlags', 'lpMem']
+    dwFlagsReverseLookUp={0x00000008: 'HEAP_ZERO_MEMORY', 0x00000004: 'HEAP_GENERATE_EXCEPTIONS', 0x00000001: 'HEAP_NO_SERIALIZE'}
+
+    try:
+        heap = HeapsDict[pVals[0]]
+        if pVals[2] in heap.allocations:
+            retVal = heap.allocations[pVals[2]].size
+    except:
+        retVal = 0x0
+        pass
+
+    search = pVals[1]
+    if search in dwFlagsReverseLookUp:
+        pVals[1]=dwFlagsReverseLookUp[search]
+    else:
+        pVals[1]=hex(pVals[1])
+
+    #create strings for everything except ones in our skip
+    skip=[1]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("HeapSize", hex(callAddr), (retValStr), 'SIZE_T', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_HeapReAlloc(uc, eip, esp, export_dict, callAddr):
+    # DECLSPEC_ALLOCATOR LPVOID HeapReAlloc([in] HANDLE hHeap,[in] DWORD dwFlags,[in] _Frees_ptr_opt_ LPVOID lpMem,[in] SIZE_T dwBytes);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    pTypes=['HANDLE', 'DWORD', '_Frees_ptr_opt_ LPVOID', 'SIZE_T']
+    pNames=['hHeap', 'dwFlags', 'lpMem', 'dwBytes']
+    dwFlagsReverseLookUp={0x00000008: 'HEAP_ZERO_MEMORY', 0x00000004: 'HEAP_GENERATE_EXCEPTIONS', 0x00000001: 'HEAP_NO_SERIALIZE', 0x00000010: 'HEAP_REALLOC_IN_PLACE_ONLY'}
+    
+    # Round up to next page (4096)
+    pVals[3] = ((pVals[3]//4096)+1) * 4096
+
+    if pVals[0] in HeapsDict:
+        heap = HeapsDict[pVals[0]]
+        allocation = heap.reAlloc(uc, pVals[2], pVals[3])
+    else:
+        heap = Heap(uc, pVals[0], pVals[2])
+        allocation = heap.createAllocation(uc, pVals[3])
+
+    search = pVals[1]
+    if search in dwFlagsReverseLookUp:
+        pVals[1]=dwFlagsReverseLookUp[search]
+    else:
+        pVals[1]=hex(pVals[1])
+
+    #create strings for everything except ones in our skip
+    skip=[1]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=allocation.address
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("HeapReAlloc", hex(callAddr), (retValStr), 'LPVOID', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
 def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
