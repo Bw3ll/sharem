@@ -511,7 +511,7 @@ def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
         try:
             allocLoc = availMem
             uc.mem_map(allocLoc, dwSize)
-            availMem += dwSize + 20
+            availMem += dwSize
             uc.reg_write(UC_X86_REG_EAX, allocLoc)
             retVal = allocLoc
         except:
@@ -1177,7 +1177,7 @@ def hook_NtAllocateVirtualMemory(uc, eip, esp, callAddr):
             uc.mem_map(allocLoc, size)
             address_range.append([allocLoc, size])
 
-            availMem += (regionSize + 20)
+            availMem += regionSize
             uc.reg_write(UC_X86_REG_EAX, retVal)
             uc.mem_write(baseAddress, pack("<Q", allocLoc))
 
@@ -1564,7 +1564,7 @@ def hook_VirtualAllocEx(uc, eip, esp, export_dict, callAddr):
         try:
             allocLoc = availMem
             uc.mem_map(allocLoc, dwSize)
-            availMem += dwSize + 20
+            availMem += dwSize
             uc.reg_write(UC_X86_REG_EAX, allocLoc)
             retVal = allocLoc
         except:
@@ -2252,7 +2252,7 @@ def hook_Toolhelp32ReadProcessMemory(uc, eip, esp, export_dict, callAddr):
         try:
             allocLoc = availMem
             uc.mem_map(allocLoc, cbRead)
-            availMem += cbRead + 20
+            availMem += cbRead
             lpBuffer = allocLoc
         except:
             success = False
