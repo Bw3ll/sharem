@@ -58,30 +58,6 @@ def hook_GetProcedureAddress(uc, eip, esp, export_dict, callAddr):
     return logged_calls, cleanBytes
 
 
-# Make sure WinExec returns 32, then add it to created process log
-def hook_WinExec(uc, eip, esp, export_dict, callAddr):
-    # print("Using custom function...")
-    arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
-    arg1 = unpack('<I', arg1)[0]
-    arg1 = read_string(uc, arg1)
-    arg2 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
-    arg2 = unpack('<I', arg2)[0]
-    retVal = 32
-
-    try:
-        bruh = giveRegs(uc)
-    except Exception as e:
-        print(e)
-        print("WOWWWWWWW")
-
-    uc.reg_write(UC_X86_REG_EAX, retVal)
-    logged_calls = ("WinExec", hex(callAddr), hex(retVal), 'UINT', [arg1, hex(arg2)], ['lpCmdLine', 'uCmdShow'], ['lpCmdLine', 'uCmdShow'], False)
-    cleanBytes = 8
-
-    print("Bruh2")
-
-    return logged_calls, cleanBytes
-
 def hook_LoadLibraryA(uc, eip, esp, export_dict, callAddr):
     arg1 = uc.mem_read(esp+4, 4)
     arg1 = unpack('<I', arg1)[0]
@@ -802,6 +778,7 @@ def hook_WinExec(uc, eip, esp, export_dict, callAddr):
 
     logged_calls= ("WinExec", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
+
 def hook_ShellExecuteA(uc, eip, esp, export_dict, callAddr):
     # HINSTANCE ShellExecuteA([in, optional] HWND   hwnd, [in, optional] LPCSTR lpOperation,[in] LPCSTR lpFile,
     # [in, optional] LPCSTR lpParameters, [in, optional] LPCSTR lpDirectory, [in] INT    nShowCmd);
