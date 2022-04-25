@@ -1637,7 +1637,6 @@ def hook_CreateToolhelp32Snapshot(uc, eip, esp, export_dict, callAddr):
     return logged_calls, cleanBytes
 
 def hook_shutdown(uc, eip, esp, export_dict, callAddr):
-    # 'WSASocketA': (6, ['INT', 'INT', 'INT', 'LPWSAPROTOCOL_INFOA', 'GROUP', 'DWORD'], ['af', 'type', 'protocol', 'lpProtocolInfo', 'g', 'dwFlags'], 'SOCKET'),
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
     pTypes=['SOCKET', 'int']
     pNames= ['s', 'how']
@@ -2240,3 +2239,108 @@ def hook_InternetSetOptionW(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("InternetSetOptionW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
+def hook_HttpOpenRequestA(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 8)
+    pTypes=['HINTERNET', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'DWORD', 'DWORD_PTR']
+    pNames= ['hConnect', 'lpszVerb', 'lpszObjectName', 'lpszVersion', 'lpszReferrer', 'lplpszAcceptTypes', 'dwFlags', 'dwContext']
+
+    dwFlagsReverseLookUp = {65536: 'INTERNET_FLAG_CACHE_IF_NET_FAIL', 1024: 'INTERNET_FLAG_HYPERLINK', 4096: 'INTERNET_FLAG_IGNORE_CERT_CN_INVALID', 8192: 'INTERNET_FLAG_IGNORE_CERT_DATE_INVALID', 32768: 'INTERNET_FLAG_IGNORE_REDIRECT_TO_HTTP', 16384: 'INTERNET_FLAG_IGNORE_REDIRECT_TO_HTTPS', 4194304: 'INTERNET_FLAG_KEEP_CONNECTION', 16: 'INTERNET_FLAG_NEED_FILE', 262144: 'INTERNET_FLAG_NO_AUTH', 2097152: 'INTERNET_FLAG_NO_AUTO_REDIRECT', 67108864: 'INTERNET_FLAG_NO_CACHE_WRITE', 524288: 'INTERNET_FLAG_NO_COOKIES', 512: 'INTERNET_FLAG_NO_UI', 256: 'INTERNET_FLAG_PRAGMA_NOCACHE', 2147483648: 'INTERNET_FLAG_RELOAD', 2048: 'INTERNET_FLAG_RESYNCHRONIZE', 8388608: 'INTERNET_FLAG_SECURE'}
+
+    search= pVals[6]
+    if search in dwFlagsReverseLookUp:
+        pVals[6]=dwFlagsReverseLookUp[search]
+    else:
+        pVals[6]=hex(pVals[6])
+
+    #create strings for everything except ones in our skip
+    skip=[6]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    if pVals[3] == '[NULL]':
+        pVals[3] = 'HTTP/1.1'
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x00747474
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("HttpOpenRequestA", hex(callAddr), (retValStr), 'HINTERNET', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_HttpOpenRequestW(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 8)
+    pTypes=['HINTERNET', 'LPCWSTR', 'LPCWSTR', 'LPCWSTR', 'LPCWSTR', 'LPCWSTR', 'DWORD', 'DWORD_PTR']
+    pNames= ['hConnect', 'lpszVerb', 'lpszObjectName', 'lpszVersion', 'lpszReferrer', 'lplpszAcceptTypes', 'dwFlags', 'dwContext']
+
+    dwFlagsReverseLookUp = {65536: 'INTERNET_FLAG_CACHE_IF_NET_FAIL', 1024: 'INTERNET_FLAG_HYPERLINK', 4096: 'INTERNET_FLAG_IGNORE_CERT_CN_INVALID', 8192: 'INTERNET_FLAG_IGNORE_CERT_DATE_INVALID', 32768: 'INTERNET_FLAG_IGNORE_REDIRECT_TO_HTTP', 16384: 'INTERNET_FLAG_IGNORE_REDIRECT_TO_HTTPS', 4194304: 'INTERNET_FLAG_KEEP_CONNECTION', 16: 'INTERNET_FLAG_NEED_FILE', 262144: 'INTERNET_FLAG_NO_AUTH', 2097152: 'INTERNET_FLAG_NO_AUTO_REDIRECT', 67108864: 'INTERNET_FLAG_NO_CACHE_WRITE', 524288: 'INTERNET_FLAG_NO_COOKIES', 512: 'INTERNET_FLAG_NO_UI', 256: 'INTERNET_FLAG_PRAGMA_NOCACHE', 2147483648: 'INTERNET_FLAG_RELOAD', 2048: 'INTERNET_FLAG_RESYNCHRONIZE', 8388608: 'INTERNET_FLAG_SECURE'}
+
+    search= pVals[6]
+    if search in dwFlagsReverseLookUp:
+        pVals[6]=dwFlagsReverseLookUp[search]
+    else:
+        pVals[6]=hex(pVals[6])
+
+    #create strings for everything except ones in our skip
+    skip=[6]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    if pVals[3] == '[NULL]':
+        pVals[3] = 'HTTP/1.1'
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x00757575
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("HttpOpenRequestW", hex(callAddr), (retValStr), 'HINTERNET', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_HttpAddRequestHeadersA(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    pTypes=['HINTERNET', 'LPCSTR', 'DWORD', 'DWORD']
+    pNames= ['hRequest', 'lpszHeaders', 'dwHeadersLength', 'dwModifiers']
+
+    dwModifiersReverseLookUp = {536870912: 'HTTP_ADDREQ_FLAG_ADD', 268435456: 'HTTP_ADDREQ_FLAG_ADD_IF_NEW', 1073741824: 'HTTP_ADDREQ_FLAG_COALESCE_WITH_COMMA', 16777216: 'HTTP_ADDREQ_FLAG_COALESCE_WITH_SEMICOLON', 2147483648: 'HTTP_ADDREQ_FLAG_REPLACE'}
+
+    search= pVals[3]
+    if search in dwModifiersReverseLookUp:
+        pVals[3]=dwModifiersReverseLookUp[search]
+    else:
+        pVals[3]=hex(pVals[3])
+
+    #create strings for everything except ones in our skip
+    skip=[3]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("HttpAddRequestHeadersA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_HttpAddRequestHeadersW(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    pTypes=['HINTERNET', 'LPCWSTR', 'DWORD', 'DWORD']
+    pNames= ['hRequest', 'lpszHeaders', 'dwHeadersLength', 'dwModifiers']
+
+    dwModifiersReverseLookUp = {536870912: 'HTTP_ADDREQ_FLAG_ADD', 268435456: 'HTTP_ADDREQ_FLAG_ADD_IF_NEW', 1073741824: 'HTTP_ADDREQ_FLAG_COALESCE_WITH_COMMA', 16777216: 'HTTP_ADDREQ_FLAG_COALESCE_WITH_SEMICOLON', 2147483648: 'HTTP_ADDREQ_FLAG_REPLACE'}
+
+    search= pVals[3]
+    if search in dwModifiersReverseLookUp:
+        pVals[3]=dwModifiersReverseLookUp[search]
+    else:
+        pVals[3]=hex(pVals[3])
+
+    #create strings for everything except ones in our skip
+    skip=[3]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("HttpAddRequestHeadersW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
