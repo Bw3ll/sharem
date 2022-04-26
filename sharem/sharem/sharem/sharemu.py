@@ -280,6 +280,8 @@ def hook_code(uc, address, size, user_data):
     global em
     global bad_instruct_count
 
+
+
     funcName = ""
 
     # # Exit if code executed is out of range
@@ -544,6 +546,7 @@ def getParams(uc, esp, apiDict, dictName):
         cleanBytes = apiDict[1]
     else:
         numParams = apiDict[0]
+
         for i in range(0, numParams):
             paramVals.append(uc.mem_read(esp + (i*4+4), 4))
             paramVals[i] = unpack('<I', paramVals[i])[0]
