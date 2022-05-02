@@ -750,6 +750,34 @@ def hook_RtlMoveMemory(uc: Uc, eip, esp, export_dict, callAddr):
     logged_calls= ("RtlMoveMemory", hex(callAddr), (retValStr), 'VOID', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
+def hook_ReadProcessMemory(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL ReadProcessMemory([in]  HANDLE  hProcess,[in]  LPCVOID lpBaseAddress,[out] LPVOID  lpBuffer,[in]  SIZE_T  nSize,[out] SIZE_T  *lpNumberOfBytesRead);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    pTypes=['HANDLE', 'LPCVOID', 'LPVOID', 'SIZE_T', 'SIZE_T']
+    pNames=['hProcess', 'lpBaseAddress', 'lpBuffer', 'nSize', '*lpNumberOfBytesRead']
+
+    try:
+        buffer = uc.mem_read(pVals[1], pVals[3])
+        fmt = '<'+ str(pVals[3]) + 's' 
+        uc.mem_write(pVals[2], pack(fmt, buffer))
+        if pVals[4] != 0x0:
+            uc.mem_write(pVals[4], pack('<i', pVals[4]))
+    except:
+        pass
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+
+    logged_calls= ("ReadProcessMemory", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
 def hook_ExitProcess(uc, eip, esp, export_dict, callAddr):
     # print("Using custom function...")
     uExitCode = uc.mem_read(esp+4, 4)
