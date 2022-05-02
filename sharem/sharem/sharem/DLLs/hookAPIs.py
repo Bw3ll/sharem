@@ -2571,3 +2571,424 @@ def hook_HttpAddRequestHeadersW(uc, eip, esp, export_dict, callAddr):
 
     logged_calls= ("HttpAddRequestHeadersW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
+
+def hook_HttpQueryInfoA(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    pTypes=['HINTERNET', 'DWORD', 'LPVOID', 'LPDWORD', 'LPDWORD']
+    pNames= ['hRequest', 'dwInfoLevel', 'lpBuffer', 'lpdwBufferLength', 'lpdwIndex']
+
+    dwInfoLevelReverseLookUp = {36: 'HTTP_QUERY_ACCEPT', 37: 'HTTP_QUERY_ACCEPT_CHARSET', 38: 'HTTP_QUERY_ACCEPT_ENCODING', 39: 'HTTP_QUERY_ACCEPT_LANGUAGE', 66: 'HTTP_QUERY_ACCEPT_RANGES', 72: 'HTTP_QUERY_AGE', 7: 'HTTP_QUERY_ALLOW', 40: 'HTTP_QUERY_AUTHORIZATION', 73: 'HTTP_QUERY_CACHE_CONTROL', 35: 'HTTP_QUERY_CONNECTION', 80: 'HTTP_QUERY_CONTENT_BASE', 4: 'HTTP_QUERY_CONTENT_DESCRIPTION', 71: 'HTTP_QUERY_CONTENT_DISPOSITION', 41: 'HTTP_QUERY_CONTENT_ENCODING', 3: 'HTTP_QUERY_CONTENT_ID', 6: 'HTTP_QUERY_CONTENT_LANGUAGE', 5: 'HTTP_QUERY_CONTENT_LENGTH', 81: 'HTTP_QUERY_CONTENT_LOCATION', 82: 'HTTP_QUERY_CONTENT_MD5', 83: 'HTTP_QUERY_CONTENT_RANGE', 2: 'HTTP_QUERY_CONTENT_TRANSFER_ENCODING', 1: 'HTTP_QUERY_CONTENT_TYPE', 68: 'HTTP_QUERY_COOKIE', 21: 'HTTP_QUERY_COST', 415029: 'HTTP_QUERY_CUSTOM', 9: 'HTTP_QUERY_DATE', 20: 'HTTP_QUERY_DERIVED_FROM', 115: 'HTTP_QUERY_ECHO_HEADERS', 116: 'HTTP_QUERY_ECHO_HEADERS_CRLF', 114: 'HTTP_QUERY_ECHO_REPLY', 113: 'HTTP_QUERY_ECHO_REQUEST', 84: 'HTTP_QUERY_ETAG', 104: 'HTTP_QUERY_EXPECT', 16: 'HTTP_QUERY_EXPIRES', 48: 'HTTP_QUERY_FORWARDED', 49: 'HTTP_QUERY_FROM', 85: 'HTTP_QUERY_HOST', 86: 'HTTP_QUERY_IF_MATCH', 50: 'HTTP_QUERY_IF_MODIFIED_SINCE', 87: 'HTTP_QUERY_IF_NONE_MATCH', 88: 'HTTP_QUERY_IF_RANGE', 89: 'HTTP_QUERY_IF_UNMODIFIED_SINCE', 17: 'HTTP_QUERY_LAST_MODIFIED', 22: 'HTTP_QUERY_LINK', 51: 'HTTP_QUERY_LOCATION', 120: 'HTTP_QUERY_MAX', 96: 'HTTP_QUERY_MAX_FORWARDS', 18: 'HTTP_QUERY_MESSAGE_ID', 0: 'HTTP_QUERY_MIME_VERSION', 52: 'HTTP_QUERY_ORIG_URI', 23: 'HTTP_QUERY_PRAGMA', 65: 'HTTP_QUERY_PROXY_AUTHENTICATE', 97: 'HTTP_QUERY_PROXY_AUTHORIZATION', 105: 'HTTP_QUERY_PROXY_CONNECTION', 8: 'HTTP_QUERY_PUBLIC', 98: 'HTTP_QUERY_RANGE', 33: 'HTTP_QUERY_RAW_HEADERS', 34: 'HTTP_QUERY_RAW_HEADERS_CRLF', 53: 'HTTP_QUERY_REFERER', 70: 'HTTP_QUERY_REFRESH', 69: 'HTTP_QUERY_REQUEST_METHOD', 54: 'HTTP_QUERY_RETRY_AFTER', 55: 'HTTP_QUERY_SERVER', 67: 'HTTP_QUERY_SET_COOKIE', 25: 'HTTP_QUERY_STATUS_CODE', 32: 'HTTP_QUERY_STATUS_TEXT', 56: 'HTTP_QUERY_TITLE', 99: 'HTTP_QUERY_TRANSFER_ENCODING', 112: 'HTTP_QUERY_UNLESS_MODIFIED_SINCE', 100: 'HTTP_QUERY_UPGRADE', 19: 'HTTP_QUERY_URI', 57: 'HTTP_QUERY_USER_AGENT', 101: 'HTTP_QUERY_VARY', 24: 'HTTP_QUERY_VERSION', 102: 'HTTP_QUERY_VIA', 103: 'HTTP_QUERY_WARNING', 64: 'HTTP_QUERY_WWW_AUTHENTICATE', 121: 'HTTP_QUERY_X_CONTENT_TYPE_OPTIONS', 128: 'HTTP_QUERY_P3P', 129: 'HTTP_QUERY_X_P2P_PEERDIST', 130: 'HTTP_QUERY_TRANSLATE', 131: 'HTTP_QUERY_X_UA_COMPATIBLE', 132: 'HTTP_QUERY_DEFAULT_STYLE', 133: 'HTTP_QUERY_X_FRAME_OPTIONS', 134: 'HTTP_QUERY_X_XSS_PROTECTION', 268435456: 'HTTP_QUERY_FLAG_COALESCE', 536870912: 'HTTP_QUERY_FLAG_NUMBER', 2147483648: 'HTTP_QUERY_FLAG_REQUEST_HEADERS', 1073741824: 'HTTP_QUERY_FLAG_SYSTEMTIME'}
+
+    search= pVals[1]
+    if search in dwInfoLevelReverseLookUp:
+        pVals[1]=dwInfoLevelReverseLookUp[search]
+    else:
+        pVals[1]=hex(pVals[1])
+
+    #create strings for everything except ones in our skip
+    skip=[1]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("HttpQueryInfoA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_HttpQueryInfoW(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    pTypes=['HINTERNET', 'DWORD', 'LPVOID', 'LPDWORD', 'LPDWORD']
+    pNames= ['hRequest', 'dwInfoLevel', 'lpBuffer', 'lpdwBufferLength', 'lpdwIndex']
+
+    dwInfoLevelReverseLookUp = {36: 'HTTP_QUERY_ACCEPT', 37: 'HTTP_QUERY_ACCEPT_CHARSET', 38: 'HTTP_QUERY_ACCEPT_ENCODING', 39: 'HTTP_QUERY_ACCEPT_LANGUAGE', 66: 'HTTP_QUERY_ACCEPT_RANGES', 72: 'HTTP_QUERY_AGE', 7: 'HTTP_QUERY_ALLOW', 40: 'HTTP_QUERY_AUTHORIZATION', 73: 'HTTP_QUERY_CACHE_CONTROL', 35: 'HTTP_QUERY_CONNECTION', 80: 'HTTP_QUERY_CONTENT_BASE', 4: 'HTTP_QUERY_CONTENT_DESCRIPTION', 71: 'HTTP_QUERY_CONTENT_DISPOSITION', 41: 'HTTP_QUERY_CONTENT_ENCODING', 3: 'HTTP_QUERY_CONTENT_ID', 6: 'HTTP_QUERY_CONTENT_LANGUAGE', 5: 'HTTP_QUERY_CONTENT_LENGTH', 81: 'HTTP_QUERY_CONTENT_LOCATION', 82: 'HTTP_QUERY_CONTENT_MD5', 83: 'HTTP_QUERY_CONTENT_RANGE', 2: 'HTTP_QUERY_CONTENT_TRANSFER_ENCODING', 1: 'HTTP_QUERY_CONTENT_TYPE', 68: 'HTTP_QUERY_COOKIE', 21: 'HTTP_QUERY_COST', 415029: 'HTTP_QUERY_CUSTOM', 9: 'HTTP_QUERY_DATE', 20: 'HTTP_QUERY_DERIVED_FROM', 115: 'HTTP_QUERY_ECHO_HEADERS', 116: 'HTTP_QUERY_ECHO_HEADERS_CRLF', 114: 'HTTP_QUERY_ECHO_REPLY', 113: 'HTTP_QUERY_ECHO_REQUEST', 84: 'HTTP_QUERY_ETAG', 104: 'HTTP_QUERY_EXPECT', 16: 'HTTP_QUERY_EXPIRES', 48: 'HTTP_QUERY_FORWARDED', 49: 'HTTP_QUERY_FROM', 85: 'HTTP_QUERY_HOST', 86: 'HTTP_QUERY_IF_MATCH', 50: 'HTTP_QUERY_IF_MODIFIED_SINCE', 87: 'HTTP_QUERY_IF_NONE_MATCH', 88: 'HTTP_QUERY_IF_RANGE', 89: 'HTTP_QUERY_IF_UNMODIFIED_SINCE', 17: 'HTTP_QUERY_LAST_MODIFIED', 22: 'HTTP_QUERY_LINK', 51: 'HTTP_QUERY_LOCATION', 120: 'HTTP_QUERY_MAX', 96: 'HTTP_QUERY_MAX_FORWARDS', 18: 'HTTP_QUERY_MESSAGE_ID', 0: 'HTTP_QUERY_MIME_VERSION', 52: 'HTTP_QUERY_ORIG_URI', 23: 'HTTP_QUERY_PRAGMA', 65: 'HTTP_QUERY_PROXY_AUTHENTICATE', 97: 'HTTP_QUERY_PROXY_AUTHORIZATION', 105: 'HTTP_QUERY_PROXY_CONNECTION', 8: 'HTTP_QUERY_PUBLIC', 98: 'HTTP_QUERY_RANGE', 33: 'HTTP_QUERY_RAW_HEADERS', 34: 'HTTP_QUERY_RAW_HEADERS_CRLF', 53: 'HTTP_QUERY_REFERER', 70: 'HTTP_QUERY_REFRESH', 69: 'HTTP_QUERY_REQUEST_METHOD', 54: 'HTTP_QUERY_RETRY_AFTER', 55: 'HTTP_QUERY_SERVER', 67: 'HTTP_QUERY_SET_COOKIE', 25: 'HTTP_QUERY_STATUS_CODE', 32: 'HTTP_QUERY_STATUS_TEXT', 56: 'HTTP_QUERY_TITLE', 99: 'HTTP_QUERY_TRANSFER_ENCODING', 112: 'HTTP_QUERY_UNLESS_MODIFIED_SINCE', 100: 'HTTP_QUERY_UPGRADE', 19: 'HTTP_QUERY_URI', 57: 'HTTP_QUERY_USER_AGENT', 101: 'HTTP_QUERY_VARY', 24: 'HTTP_QUERY_VERSION', 102: 'HTTP_QUERY_VIA', 103: 'HTTP_QUERY_WARNING', 64: 'HTTP_QUERY_WWW_AUTHENTICATE', 121: 'HTTP_QUERY_X_CONTENT_TYPE_OPTIONS', 128: 'HTTP_QUERY_P3P', 129: 'HTTP_QUERY_X_P2P_PEERDIST', 130: 'HTTP_QUERY_TRANSLATE', 131: 'HTTP_QUERY_X_UA_COMPATIBLE', 132: 'HTTP_QUERY_DEFAULT_STYLE', 133: 'HTTP_QUERY_X_FRAME_OPTIONS', 134: 'HTTP_QUERY_X_XSS_PROTECTION', 268435456: 'HTTP_QUERY_FLAG_COALESCE', 536870912: 'HTTP_QUERY_FLAG_NUMBER', 2147483648: 'HTTP_QUERY_FLAG_REQUEST_HEADERS', 1073741824: 'HTTP_QUERY_FLAG_SYSTEMTIME'}
+
+    search= pVals[1]
+    if search in dwInfoLevelReverseLookUp:
+        pVals[1]=dwInfoLevelReverseLookUp[search]
+    else:
+        pVals[1]=hex(pVals[1])
+
+    #create strings for everything except ones in our skip
+    skip=[1]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("HttpQueryInfoW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_FtpGetFileA(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 7)
+    pTypes=['HINTERNET', 'LPCSTR', 'LPCSTR', 'BOOL', 'DWORD', 'DWORD', 'DWORD_PTR']
+    pNames= ['hConnect', 'lpszRemoteFile', 'lpszNewFile', 'fFailIfExists', 'dwFlagsAndAttributes', 'dwFlags', 'dwContext']
+    
+    dwFlagsAndAttributesReverseLookUp = {50: 'FILE_ATTRIBUTE_ARCHIVE', 91012: 'FILE_ATTRIBUTE_ENCRYPTED', 2: 'FILE_ATTRIBUTE_HIDDEN', 296: 'FILE_ATTRIBUTE_NORMAL', 16534: 'FILE_ATTRIBUTE_OFFLINE', 1: 'FILE_ATTRIBUTE_READONLY', 4: 'FILE_ATTRIBUTE_SYSTEM', 598: 'FILE_ATTRIBUTE_TEMPORARY'}
+    dwFlagsReverseLookUp = {0: 'FTP_TRANSFER_TYPE_UNKNOWN', 1: 'FTP_TRANSFER_TYPE_ASCII', 2: 'FTP_TRANSFER_TYPE_BINARY', 1024: 'INTERNET_FLAG_HYPERLINK', 16: 'INTERNET_FLAG_NEED_FILE', 2147483648: 'INTERNET_FLAG_RELOAD', 2048: 'INTERNET_FLAG_RESYNCHRONIZE'}
+
+    search= pVals[4]
+    if search in dwFlagsAndAttributesReverseLookUp:
+        pVals[4]=dwFlagsAndAttributesReverseLookUp[search]
+    else:
+        pVals[4]=hex(pVals[4])
+    search= pVals[5]
+    if search in dwFlagsReverseLookUp:
+        pVals[5]=dwFlagsReverseLookUp[search]
+    else:
+        pVals[5]=hex(pVals[5])
+
+    #create strings for everything except ones in our skip
+    skip=[4,5]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("FtpGetFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_FtpGetFileW(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 7)
+    pTypes=['HINTERNET', 'LPCWSTR', 'LPCWSTR', 'BOOL', 'DWORD', 'DWORD', 'DWORD_PTR']
+    pNames= ['hConnect', 'lpszRemoteFile', 'lpszNewFile', 'fFailIfExists', 'dwFlagsAndAttributes', 'dwFlags', 'dwContext']
+    
+    dwFlagsAndAttributesReverseLookUp = {50: 'FILE_ATTRIBUTE_ARCHIVE', 91012: 'FILE_ATTRIBUTE_ENCRYPTED', 2: 'FILE_ATTRIBUTE_HIDDEN', 296: 'FILE_ATTRIBUTE_NORMAL', 16534: 'FILE_ATTRIBUTE_OFFLINE', 1: 'FILE_ATTRIBUTE_READONLY', 4: 'FILE_ATTRIBUTE_SYSTEM', 598: 'FILE_ATTRIBUTE_TEMPORARY'}
+    dwFlagsReverseLookUp = {0: 'FTP_TRANSFER_TYPE_UNKNOWN', 1: 'FTP_TRANSFER_TYPE_ASCII', 2: 'FTP_TRANSFER_TYPE_BINARY', 1024: 'INTERNET_FLAG_HYPERLINK', 16: 'INTERNET_FLAG_NEED_FILE', 2147483648: 'INTERNET_FLAG_RELOAD', 2048: 'INTERNET_FLAG_RESYNCHRONIZE'}
+
+    search= pVals[4]
+    if search in dwFlagsAndAttributesReverseLookUp:
+        pVals[4]=dwFlagsAndAttributesReverseLookUp[search]
+    else:
+        pVals[4]=hex(pVals[4])
+    search= pVals[5]
+    if search in dwFlagsReverseLookUp:
+        pVals[5]=dwFlagsReverseLookUp[search]
+    else:
+        pVals[5]=hex(pVals[5])
+
+    #create strings for everything except ones in our skip
+    skip=[4,5]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("FtpGetFileW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_FtpOpenFileA(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    pTypes=['HINTERNET', 'LPCSTR', 'DWORD', 'DWORD', 'DWORD_PTR']
+    pNames= ['hConnect', 'lpszFileName', 'dwAccess', 'dwFlags', 'dwContext']
+
+    dwAccessReverseLookUp = {2147483648: 'GENERIC_READ', 1073741824: 'GENERIC_WRITE'}
+    dwFlagsReverseLookUp = {0: 'FTP_TRANSFER_TYPE_UNKNOWN', 1: 'FTP_TRANSFER_TYPE_ASCII', 2: 'FTP_TRANSFER_TYPE_BINARY', 1024: 'INTERNET_FLAG_HYPERLINK', 16: 'INTERNET_FLAG_NEED_FILE', 2147483648: 'INTERNET_FLAG_RELOAD', 2048: 'INTERNET_FLAG_RESYNCHRONIZE'}
+
+    search= pVals[2]
+    if search in dwAccessReverseLookUp:
+        pVals[2]=dwAccessReverseLookUp[search]
+    else:
+        pVals[2]=hex(pVals[2])
+    search= pVals[3]
+    if search in dwFlagsReverseLookUp:
+        pVals[3]=dwFlagsReverseLookUp[search]
+    else:
+        pVals[3]=hex(pVals[3])
+
+    #create strings for everything except ones in our skip
+    skip=[2,3]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x00767676
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("FtpOpenFileA", hex(callAddr), (retValStr), 'HINTERNET', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_FtpOpenFileW(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    pTypes=['HINTERNET', 'LPCWSTR', 'DWORD', 'DWORD', 'DWORD_PTR']
+    pNames= ['hConnect', 'lpszFileName', 'dwAccess', 'dwFlags', 'dwContext']
+
+    dwAccessReverseLookUp = {2147483648: 'GENERIC_READ', 1073741824: 'GENERIC_WRITE'}
+    dwFlagsReverseLookUp = {0: 'FTP_TRANSFER_TYPE_UNKNOWN', 1: 'FTP_TRANSFER_TYPE_ASCII', 2: 'FTP_TRANSFER_TYPE_BINARY', 1024: 'INTERNET_FLAG_HYPERLINK', 16: 'INTERNET_FLAG_NEED_FILE', 2147483648: 'INTERNET_FLAG_RELOAD', 2048: 'INTERNET_FLAG_RESYNCHRONIZE'}
+
+    search= pVals[2]
+    if search in dwAccessReverseLookUp:
+        pVals[2]=dwAccessReverseLookUp[search]
+    else:
+        pVals[2]=hex(pVals[2])
+    search= pVals[3]
+    if search in dwFlagsReverseLookUp:
+        pVals[3]=dwFlagsReverseLookUp[search]
+    else:
+        pVals[3]=hex(pVals[3])
+
+    #create strings for everything except ones in our skip
+    skip=[2,3]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x00777777
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("FtpOpenFileW", hex(callAddr), (retValStr), 'HINTERNET', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_InternetOpenUrlA(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    pTypes=['HINTERNET', 'LPCSTR', 'LPCSTR', 'DWORD', 'DWORD', 'DWORD_PTR']
+    pNames= ['hInternet', 'lpszUrl', 'lpszHeaders', 'dwHeadersLength', 'dwFlags', 'dwContext']
+
+    dwFlagsReverseLookUp = {536870912: 'INTERNET_FLAG_EXISTING_CONNECT', 1024: 'INTERNET_FLAG_HYPERLINK', 4096: 'INTERNET_FLAG_IGNORE_CERT_CN_INVALID', 8192: 'INTERNET_FLAG_IGNORE_CERT_DATE_INVALID', 32768: 'INTERNET_FLAG_IGNORE_REDIRECT_TO_HTTP', 16384: 'INTERNET_FLAG_IGNORE_REDIRECT_TO_HTTPS', 4194304: 'INTERNET_FLAG_KEEP_CONNECTION', 16: 'INTERNET_FLAG_NEED_FILE', 262144: 'INTERNET_FLAG_NO_AUTH', 2097152: 'INTERNET_FLAG_NO_AUTO_REDIRECT', 67108864: 'INTERNET_FLAG_NO_CACHE_WRITE', 524288: 'INTERNET_FLAG_NO_COOKIES', 512: 'INTERNET_FLAG_NO_UI', 134217728: 'INTERNET_FLAG_PASSIVE', 256: 'INTERNET_FLAG_PRAGMA_NOCACHE', 1073741824: 'INTERNET_FLAG_RAW_DATA', 2147483648: 'INTERNET_FLAG_RELOAD', 2048: 'INTERNET_FLAG_RESYNCHRONIZE', 8388608: 'INTERNET_FLAG_SECURE'}
+
+    search= pVals[4]
+    if search in dwFlagsReverseLookUp:
+        pVals[4]=dwFlagsReverseLookUp[search]
+    else:
+        pVals[4]=hex(pVals[4])
+
+    #create strings for everything except ones in our skip
+    skip=[4]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x00787878
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("InternetOpenUrlA", hex(callAddr), (retValStr), 'HINTERNET', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_InternetOpenUrlW(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    pTypes=['HINTERNET', 'LPCWSTR', 'LPCWSTR', 'DWORD', 'DWORD', 'DWORD_PTR']
+    pNames= ['hInternet', 'lpszUrl', 'lpszHeaders', 'dwHeadersLength', 'dwFlags', 'dwContext']
+
+    dwFlagsReverseLookUp = {536870912: 'INTERNET_FLAG_EXISTING_CONNECT', 1024: 'INTERNET_FLAG_HYPERLINK', 4096: 'INTERNET_FLAG_IGNORE_CERT_CN_INVALID', 8192: 'INTERNET_FLAG_IGNORE_CERT_DATE_INVALID', 32768: 'INTERNET_FLAG_IGNORE_REDIRECT_TO_HTTP', 16384: 'INTERNET_FLAG_IGNORE_REDIRECT_TO_HTTPS', 4194304: 'INTERNET_FLAG_KEEP_CONNECTION', 16: 'INTERNET_FLAG_NEED_FILE', 262144: 'INTERNET_FLAG_NO_AUTH', 2097152: 'INTERNET_FLAG_NO_AUTO_REDIRECT', 67108864: 'INTERNET_FLAG_NO_CACHE_WRITE', 524288: 'INTERNET_FLAG_NO_COOKIES', 512: 'INTERNET_FLAG_NO_UI', 134217728: 'INTERNET_FLAG_PASSIVE', 256: 'INTERNET_FLAG_PRAGMA_NOCACHE', 1073741824: 'INTERNET_FLAG_RAW_DATA', 2147483648: 'INTERNET_FLAG_RELOAD', 2048: 'INTERNET_FLAG_RESYNCHRONIZE', 8388608: 'INTERNET_FLAG_SECURE'}
+
+    search= pVals[4]
+    if search in dwFlagsReverseLookUp:
+        pVals[4]=dwFlagsReverseLookUp[search]
+    else:
+        pVals[4]=hex(pVals[4])
+
+    #create strings for everything except ones in our skip
+    skip=[4]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x00797979
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("InternetOpenUrlW", hex(callAddr), (retValStr), 'HINTERNET', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+
+def hook_MoveFileExA(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['LPCSTR', 'LPCSTR', 'DWORD']
+    pNames= ['lpExistingFileName', 'lpNewFileName', 'dwFlags']
+
+    dwFlagsReverseLookUp = {2: 'MOVEFILE_COPY_ALLOWED', 16: 'MOVEFILE_CREATE_HARDLINK', 4: 'MOVEFILE_DELAY_UNTIL_REBOOT', 32: 'MOVEFILE_FAIL_IF_NOT_TRACKABLE', 1: 'MOVEFILE_REPLACE_EXISTING', 8: 'MOVEFILE_WRITE_THROUGH'}
+
+    search= pVals[2]
+    if search in dwFlagsReverseLookUp:
+        pVals[2]=dwFlagsReverseLookUp[search]
+    else:
+        pVals[2]=hex(pVals[2])
+
+    #create strings for everything except ones in our skip
+    skip=[2]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("MoveFileExA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_MoveFileExW(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['LPCWSTR', 'LPCWSTR', 'DWORD']
+    pNames= ['lpExistingFileName', 'lpNewFileName', 'dwFlags']
+
+    dwFlagsReverseLookUp = {2: 'MOVEFILE_COPY_ALLOWED', 16: 'MOVEFILE_CREATE_HARDLINK', 4: 'MOVEFILE_DELAY_UNTIL_REBOOT', 32: 'MOVEFILE_FAIL_IF_NOT_TRACKABLE', 1: 'MOVEFILE_REPLACE_EXISTING', 8: 'MOVEFILE_WRITE_THROUGH'}
+
+    search= pVals[2]
+    if search in dwFlagsReverseLookUp:
+        pVals[2]=dwFlagsReverseLookUp[search]
+    else:
+        pVals[2]=hex(pVals[2])
+
+    #create strings for everything except ones in our skip
+    skip=[2]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("MoveFileExW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_CopyFileExA(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    pTypes=['LPCSTR', 'LPCSTR', 'LPPROGRESS_ROUTINE', 'LPVOID', 'LPBOOL', 'DWORD']
+    pNames= ['lpExistingFileName', 'lpNewFileName', 'lpProgressRoutine', 'lpData', 'pbCancel', 'dwCopyFlags']
+
+    mdwCopyFlagsReverseLookUp = {8: 'COPY_FILE_ALLOW_DECRYPTED_DESTINATION', 2048: 'COPY_FILE_COPY_SYMLINK', 1: 'COPY_FILE_FAIL_IF_EXISTS', 4096: 'COPY_FILE_NO_BUFFERING', 4: 'COPY_FILE_OPEN_SOURCE_FOR_WRITE', 2: 'COPY_FILE_RESTARTABLE', 268435456: 'COPY_FILE_REQUEST_COMPRESSED_TRAFFIC'}
+
+    search= pVals[5]
+    if search in mdwCopyFlagsReverseLookUp:
+        pVals[5]=mdwCopyFlagsReverseLookUp[search]
+    else:
+        pVals[5]=hex(pVals[5])
+
+    #create strings for everything except ones in our skip
+    skip=[5]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CopyFileExA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_CopyFileExW(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    pTypes=['LPCWSTR', 'LPCWSTR', 'LPPROGRESS_ROUTINE', 'LPVOID', 'LPBOOL', 'DWORD']
+    pNames= ['lpExistingFileName', 'lpNewFileName', 'lpProgressRoutine', 'lpData', 'pbCancel', 'dwCopyFlags']
+
+    mdwCopyFlagsReverseLookUp = {8: 'COPY_FILE_ALLOW_DECRYPTED_DESTINATION', 2048: 'COPY_FILE_COPY_SYMLINK', 1: 'COPY_FILE_FAIL_IF_EXISTS', 4096: 'COPY_FILE_NO_BUFFERING', 4: 'COPY_FILE_OPEN_SOURCE_FOR_WRITE', 2: 'COPY_FILE_RESTARTABLE', 268435456: 'COPY_FILE_REQUEST_COMPRESSED_TRAFFIC'}
+
+    search= pVals[5]
+    if search in mdwCopyFlagsReverseLookUp:
+        pVals[5]=mdwCopyFlagsReverseLookUp[search]
+    else:
+        pVals[5]=hex(pVals[5])
+
+    #create strings for everything except ones in our skip
+    skip=[5]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CopyFileExW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_DuplicateHandle(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 7)
+    pTypes=['HANDLE', 'HANDLE', 'HANDLE', 'LPHANDLE', 'DWORD', 'BOOL', 'DWORD']
+    pNames= ['hSourceProcessHandle', 'hSourceHandle', 'hTargetProcessHandle', 'lpTargetHandle', 'dwDesiredAccess', 'bInheritHandle', 'dwOptions']
+
+    dwDesiredAccessReverseLookUp = {65536: 'DELETE', 131072: 'READ_CONTROL', 262144: 'WRITE_DAC', 524288: 'WRITE_OWNER', 1048576: 'SYNCHRONIZE', 983040: 'STANDARD_RIGHTS_REQUIRED', 2031616: 'STANDARD_RIGHTS_ALL'}
+    dwOptionsReverseLookUp = {1: 'DUPLICATE_CLOSE_SOURCE', 2: 'DUPLICATE_SAME_ACCESS'}
+
+    search= pVals[4]
+    if search in dwDesiredAccessReverseLookUp:
+        pVals[4]=dwDesiredAccessReverseLookUp[search]
+    else:
+        pVals[4]=hex(pVals[4])
+
+    search= pVals[6]
+    if search in dwOptionsReverseLookUp:
+        pVals[6]=dwOptionsReverseLookUp[search]
+    else:
+        pVals[6]=hex(pVals[6])
+
+    #create strings for everything except ones in our skip
+    skip=[4,6]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("DuplicateHandle", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_CreateFileMappingNumaA(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 7)
+    pTypes=['HANDLE', 'LPSECURITY_ATTRIBUTES', 'DWORD', 'DWORD', 'DWORD', 'LPCSTR', 'DWORD']
+    pNames= ['hFile', 'lpFileMappingAttributes', 'flProtect', 'dwMaximumSizeHigh', 'dwMaximumSizeLow', 'lpName', 'nndPreferred']
+
+    flProtectReverseLookUp = {32: 'PAGE_EXECUTE_READ', 64: 'PAGE_EXECUTE_READWRITE', 128: 'PAGE_EXECUTE_WRITECOPY', 2: 'PAGE_READONLY', 4: 'PAGE_READWRITE', 8: 'PAGE_WRITECOPY', 134217728: 'SEC_COMMIT', 16777216: 'SEC_IMAGE', 285212672: 'SEC_IMAGE_NO_EXECUTE', 2147483648: 'SEC_LARGE_PAGES', 268435456: 'SEC_NOCACHE', 67108864: 'SEC_RESERVE', 1073741824: 'SEC_WRITECOMBINE'}
+    nndPreferredReverseLookUp = {4294967295: 'NUMA_NO_PREFERRED_NODE'}
+
+    search= pVals[2]
+    if search in flProtectReverseLookUp:
+        pVals[2]=flProtectReverseLookUp[search]
+    else:
+        pVals[2]=hex(pVals[2])
+
+    search= pVals[6]
+    if search in nndPreferredReverseLookUp:
+        pVals[6]=nndPreferredReverseLookUp[search]
+    else:
+        pVals[6]=hex(pVals[6])
+
+    #create strings for everything except ones in our skip
+    skip=[2,6]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x00808080
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CreateFileMappingNumaA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_CreateFileMappingNumaW(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 7)
+    pTypes=['HANDLE', 'LPSECURITY_ATTRIBUTES', 'DWORD', 'DWORD', 'DWORD', 'LPCWSTR', 'DWORD']
+    pNames= ['hFile', 'lpFileMappingAttributes', 'flProtect', 'dwMaximumSizeHigh', 'dwMaximumSizeLow', 'lpName', 'nndPreferred']
+
+    flProtectReverseLookUp = {32: 'PAGE_EXECUTE_READ', 64: 'PAGE_EXECUTE_READWRITE', 128: 'PAGE_EXECUTE_WRITECOPY', 2: 'PAGE_READONLY', 4: 'PAGE_READWRITE', 8: 'PAGE_WRITECOPY', 134217728: 'SEC_COMMIT', 16777216: 'SEC_IMAGE', 285212672: 'SEC_IMAGE_NO_EXECUTE', 2147483648: 'SEC_LARGE_PAGES', 268435456: 'SEC_NOCACHE', 67108864: 'SEC_RESERVE', 1073741824: 'SEC_WRITECOMBINE'}
+    nndPreferredReverseLookUp = {4294967295: 'NUMA_NO_PREFERRED_NODE'}
+
+    search= pVals[2]
+    if search in flProtectReverseLookUp:
+        pVals[2]=flProtectReverseLookUp[search]
+    else:
+        pVals[2]=hex(pVals[2])
+
+    search= pVals[6]
+    if search in nndPreferredReverseLookUp:
+        pVals[6]=nndPreferredReverseLookUp[search]
+    else:
+        pVals[6]=hex(pVals[6])
+
+    #create strings for everything except ones in our skip
+    skip=[2,6]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x00818181
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CreateFileMappingNumaW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
