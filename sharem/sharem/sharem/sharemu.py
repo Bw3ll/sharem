@@ -36,10 +36,12 @@ import traceback
 class EMU():
     def __init__(self):
         self.maxCounter=500000
-        self.maxLoop = 50000
+        self.breakOutOfLoops=True
+        self.maxLoop = 50000 # to break out of loops
         self.entryOffset=0
         self.codeCoverage = True
         self.beginCoverage = False
+        self.timelessDebugging = False  #todo: bramwell
         self.winVersion = "Windows 10"
         self.winSP = "2004"
 
@@ -111,6 +113,7 @@ outFile = open(os.path.join(os.path.dirname(__file__), 'emulationLog.txt'), 'w')
 cleanStackFlag = False
 stopProcess = False
 cleanBytes = 0
+bad_instruct_count = 0
 prevInstruct = []
 expandedDLLsPath = os.path.join(os.path.dirname(__file__), "DLLs\\")
 prevInstructs = []
@@ -186,7 +189,7 @@ def loadDlls(mu):
         except:
             pass
 
-def coverage_branch(uc, address, mnemonic):
+def coverage_branch(uc, address, mnemonic, bad_instruct):
     global coverage_objects
 
     if len(coverage_objects) > 0:
@@ -196,7 +199,7 @@ def coverage_branch(uc, address, mnemonic):
             coverage_objects[0].dump_saved_info(uc)
             coverage_objects[0].inProgress = True
         # Case for every other object
-        elif (address in traversedAdds and address != 0x18000000) or retEnding(uc, mnemonic):
+        elif (address in traversedAdds and address != 0x18000000) or retEnding(uc, mnemonic) or bad_instruct:
             del coverage_objects[0]
 
             if len(coverage_objects) > 0:
@@ -275,6 +278,9 @@ def hook_code(uc, address, size, user_data):
     global traversedAdds
     global coverage_objects
     global em
+    global bad_instruct_count
+
+
 
     funcName = ""
 
@@ -290,7 +296,7 @@ def hook_code(uc, address, size, user_data):
         cleanStackFlag = False
 
     addressF=address
-    if stopProcess == True or address == 0x0:
+    if stopProcess == True:
         uc.emu_stop()
 
     programCounter += 1
@@ -304,14 +310,17 @@ def hook_code(uc, address, size, user_data):
         instructLine+=giveRegs(uc)
         instructLine += "0x%x" % address + '\t'
 
+    shells = b''
     try:
         shells = uc.mem_read(address, size)
     except Exception as e:
-        print ("Error: ", e)
-        print(traceback.format_exc())
+        # print ("Error: ", e)
+        # print(traceback.format_exc())
         instructLine += " size: 0x%x" % size + '\t'   # size is overflow - why so big?
         outFile.write("abrupt end:  " + instructLine)
-        return # terminate func early   --don't comment - we want to see the earlyrror
+        print("abrupt end: error reading line of shellcode")
+        stopProcess = True
+        # return # terminate func early   --don't comment - we want to see the earlyrror
 
     ret = address
     base = 0
@@ -320,10 +329,17 @@ def hook_code(uc, address, size, user_data):
     mnemonic=""
     op_str=""
     t=0
+    bad_instruct = False
 
     fRaw.addBytes(shells, addressF-CODE_ADDR, size)
     finalOut=uc.mem_read(CODE_ADDR + em.entryOffset,codeLen)
     fRaw.giveEnd(finalOut)
+
+    if shells == b'\x00\x00':
+        bad_instruct_count += 1
+        if bad_instruct_count > 5:
+            bad_instruct = True
+
     for i in cs.disasm(shells, address):
         val = i.mnemonic + " " + i.op_str # + " " + shells.hex()
         if t==0:
@@ -333,6 +349,7 @@ def hook_code(uc, address, size, user_data):
 
         if verbose:
             shells = uc.mem_read(base, size)
+
             instructLine += val + '\n'
             outFile.write(instructLine)
             loc = 0
@@ -342,7 +359,7 @@ def hook_code(uc, address, size, user_data):
 
     # Jump to code coverage branch if shellcode is already done
     if em.beginCoverage == True and em.codeCoverage == True:
-        coverage_branch(uc, address, mnemonic)
+        coverage_branch(uc, address, mnemonic, bad_instruct)
 
     jumpAddr = controlFlow(uc, mnemonic, op_str)
 
@@ -354,7 +371,7 @@ def hook_code(uc, address, size, user_data):
         else:
             jmpInstructs[address] += 1
 
-        if jmpInstructs[address] >= em.maxLoop:
+        if jmpInstructs[address] >= em.maxLoop and em.breakOutOfLoops:
             breakLoop(uc, jmpFlag, mnemonic, op_str, address, len(shells))
             jmpInstructs[address] = 0
 
@@ -379,14 +396,14 @@ def hook_code(uc, address, size, user_data):
     if jumpAddr == 0x5000:
         hook_sysCall(uc, address, size)
 
-    if retEnding(uc, mnemonic):
+    if retEnding(uc, mnemonic) or bad_instruct:
         stopProcess = True
 
     # Begin code coverage if the shellcode is finished, and the option is enabled
     if stopProcess and em.codeCoverage and not em.beginCoverage:
         stopProcess = False
         em.beginCoverage = True
-        coverage_branch(uc, address, mnemonic)
+        coverage_branch(uc, address, mnemonic, bad_instruct)
 
     # Prevent the emulation from stopping if code coverage still has objects left
     if len(coverage_objects) > 0 and em.beginCoverage:
@@ -529,6 +546,7 @@ def getParams(uc, esp, apiDict, dictName):
         cleanBytes = apiDict[1]
     else:
         numParams = apiDict[0]
+
         for i in range(0, numParams):
             paramVals.append(uc.mem_read(esp + (i*4+4), 4))
             paramVals[i] = unpack('<I', paramVals[i])[0]

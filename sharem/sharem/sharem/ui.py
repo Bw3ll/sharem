@@ -4,6 +4,7 @@ import colorama
 import itertools
 from .helper import get_max_length
 from .helper import foundBooleans
+from .sharemu import *
 colorama.init()
 # readRegs()
 # testingAssembly()
@@ -65,7 +66,7 @@ def showOptions(shellBit, rawHex, name,hMd5):
 		showType="PE file"
 		showType2="\n\tPE file: "
 	print(gre + banner() + res)
-	print (whi+"  Shellcode Analysis & Emulation Framework, v. 1.0"+res)
+	print (whi+"  Shellcode Analysis & Emulation Framework, v. 1.01"+res)
 	
 	print (gre+showType2+ cya+name+gre +"\tMd5: "+cya+hMd5+res)
 	optionsLabel = """
@@ -675,23 +676,26 @@ def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 	                                            
 	\n"""+res
 
-	text+=cya+	"\tPlease note the"+gre+" em_setup.py"+cya+" MUST be run first before emulation will work!\n\n"+res
+	# text+=cya+	"\tPlease note the"+gre+" em_setup.py"+cya+" MUST be run first before emulation will work!\n\n"+res
 
 	vmode = emuObj.verbose
 	maxinst = emuObj.maxEmuInstr
 	arch = emuObj.cpuArch
-	bloop = emuObj.breakLoop
-	iternum = emuObj.numOfIter
+	bloop = em.maxLoop #emuObj.breakLoop  old
+	# iternum = emuObj.numOfIter
+	ent = em.entryOffset
+
+
+	if em.breakOutOfLoops:
+  		bloopTog = "x"
+	else:
+		bloopTog = " "
 
 	if vmode:
   		vmodeTog = "x"
 	else:
 		vmodeTog = " "
 
-	if bloop:
-		bloopTog = "x"
-	else:
-		bloopTog = " "
 
 	if emulation_verbose:
 		emuVerbose = "x"
@@ -704,6 +708,10 @@ def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 	else:
 		emuMultiLine = " "
 
+	if em.codeCoverage:
+		emuCoCo = "x"
+	else:
+		emuCoCo = " "
 	# iMenu += " {} {} \t\t[".format(gre + "e"+ res, whi + "- Emulation verbose print style." + res)
 	# iMenu += cya + "x" + res if emulation_verbose else " "
 	# iMenu += "]\n"
@@ -713,30 +721,34 @@ def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 
 
 	text += "  {}        \n".format(cya + "z"+res+" -"+yel+"  Initiate emulation."+ res)
-	text += "  {}{:>3}[{}]\n".format(cya + "m"+res+" -"+yel+"  Maximum instructions to emulate."+ res, "", cya + str(maxinst)+ res)
+	text += "  {}{:>3} [{}]\n".format(cya + "m"+res+" -"+yel+"  Maximum instructions to emulate."+ res, "", cya + str(maxinst)+ res)
 
 
-	text += "  {}{:>22}[{}]\n".format(cya + "v"+res+" -"+yel+"  Verbose mode."+ res, "", cya + vmodeTog+ res)
+	text += "  {}{:>1} [{}]\n".format(cya + "v"+res+" -"+yel+"  Verbose mode (Timeless Debugging)."+ res, "", cya + vmodeTog+ res)
 	text += "\t{}\n".format(gre + "Log all Assembly executed to "+cya +"emulationLog.txt" + res)
 
-	text += "  {}{:>13}      [{}]\n".format(cya + "a"+res+" -"+yel+"  CPU Architecture"+ res, "", cya + str(arch)+ res)
+	text += "  {}{:>13}[{}]\n".format(cya + "c"+res+" -"+yel+"  Complete code coverage."+ res, "", cya + emuCoCo+ res)
+
+	
+	text += "  {}{:>13}       [{}]\n".format(cya + "a"+res+" -"+yel+"  CPU Architecture"+ res, "", cya + str(arch)+ res)
 	text += "\t{}\n".format(whi + "* 64 Bit"+whi + " Under Development" + res)
-	text += "  {}{:>7}[{}]\n".format(cya + "b"+res+" -"+yel+"  Break out of infinite loops."+ res, "", cya + bloopTog+ res)
-	text += "\t{}\n".format(cya + "*"+whi + "Under Development" + res)
+	text += "  {}{:>7} [{}]\n".format(cya + "b"+res+" -"+yel+"  Break out of infinite loops."+ res, "", cya + bloopTog+ res)
 
-	text += "  {}{:>1}[{}]\n".format(cya + "n"+res+" -"+yel+"  Number of iterations before break."+ res, "", cya + str(iternum)+ res)
-	text += "\t{}\n".format(cya + "*"+whi + "Under Development" + res)
+	text += "  {}{:>1} [{}]\n".format(cya + "n"+res+" -"+yel+"  Number of iterations before break."+ res, "", cya + str(bloop)+ res)
 
 
-	text += "  {}{:>1}[{}]\n".format(cya + "n"+res+" -"+yel+"  Emulation verbose print style."+ res, "", cya + str(emuVerbose)+ res)
-	text += "  {}{:>1}\n".format(cya + "?"+res+" -"+yel+"  Change entry point offset."+ res, "")
+	text += "  {}{:>1} [{}]\n".format(cya + "p"+res+" -"+yel+"  Emulation verbose print style.    "+ res, "", cya + str(emuVerbose)+ res)
+	
+	text += "  {}{:>1} [{}]\n".format(cya + "e"+res+" -"+yel+"  Change entry point offset.        "+ res, "", cya + hex(ent)+ res)
 
-	text += "  {}{:>1}[{}]\n".format(cya + "n"+res+" -"+yel+"  Multiline print style of artifacts."+ res, "", cya + str(emuMultiLine)+ res)
+
+
+	text += "  {}{:>1}[{}]\n".format(cya + "w"+res+" -"+yel+"  Multiline print style of artifacts."+ res, "", cya + str(emuMultiLine)+ res)
 
 	
 
 
-	text += "  {}        \n".format(cya + "h"+res+" -"+yel+"  Print this menu."+ res)
+	text += "  {}        \n".format(cya + "h"+res+" -"+yel+"  Show this menu."+ res)
 
 	text += "  {}        \n".format(cya + "x"+res+" -"+yel+"  Exit."+ res)
 

@@ -58,30 +58,6 @@ def hook_GetProcedureAddress(uc, eip, esp, export_dict, callAddr):
     return logged_calls, cleanBytes
 
 
-# Make sure WinExec returns 32, then add it to created process log
-def hook_WinExec(uc, eip, esp, export_dict, callAddr):
-    # print("Using custom function...")
-    arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
-    arg1 = unpack('<I', arg1)[0]
-    arg1 = read_string(uc, arg1)
-    arg2 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
-    arg2 = unpack('<I', arg2)[0]
-    retVal = 32
-
-    try:
-        bruh = giveRegs(uc)
-    except Exception as e:
-        print(e)
-        print("WOWWWWWWW")
-
-    uc.reg_write(UC_X86_REG_EAX, retVal)
-    logged_calls = ("WinExec", hex(callAddr), hex(retVal), 'UINT', [arg1, hex(arg2)], ['lpCmdLine', 'uCmdShow'], ['lpCmdLine', 'uCmdShow'], False)
-    cleanBytes = 8
-
-    print("Bruh2")
-
-    return logged_calls, cleanBytes
-
 def hook_LoadLibraryA(uc, eip, esp, export_dict, callAddr):
     arg1 = uc.mem_read(esp+4, 4)
     arg1 = unpack('<I', arg1)[0]
@@ -514,7 +490,7 @@ def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
             availMem += dwSize
             uc.reg_write(UC_X86_REG_EAX, allocLoc)
             retVal = allocLoc
-        except:
+        except Exception as e:
             success = False
             retVal = 0xbadd0000
             uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -534,6 +510,274 @@ def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
 
     return logged_calls, cleanBytes
 
+# Memory Functions
+def hook_WriteProcessMemory(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL WriteProcessMemory([in]  HANDLE  hProcess,[in]  LPVOID  lpBaseAddress,[in]  LPCVOID lpBuffer,[in]  SIZE_T  nSize,[out] SIZE_T  *lpNumberOfBytesWritten);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    pTypes=['HANDLE', 'LPVOID', 'LPCVOID', 'SIZE_T', 'SIZE_T']
+    pNames=['hProcess', 'lpBaseAddress', 'lpBuffer', 'nSize', '*lpNumberOfBytesWritten']
+    
+    try:
+        buffer = uc.mem_read(pVals[2], pVals[3])
+        fmt = '<'+ str(pVals[3]) + 's' 
+        uc.mem_write(pVals[1], pack(fmt, buffer))
+    except:
+        pass
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("WriteProcessMemory", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_memcpy(uc: Uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['void', 'const void', 'size_t']
+    pNames=['*dest', '*src', 'count']
+
+    try:
+        buffer = uc.mem_read(pVals[1], pVals[2])
+        fmt = '<'+ str(pVals[2]) + 's' 
+        uc.mem_write(pVals[0], pack(fmt, buffer))
+    except:
+        pass
+
+    retVal = pVals[0]
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("memcpy", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_memcpy_s(uc: Uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    pTypes=['void', 'size_t', 'const void', 'size_t']
+    pNames=['*dest', 'destSize', '*src', 'count']
+
+    try:
+        buffer = uc.mem_read(pVals[2], pVals[3])
+        fmt = '<'+ str(pVals[1]) + 's' 
+        uc.mem_write(pVals[0], pack(fmt, buffer))
+    except:
+        pass
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("memcpy_s", hex(callAddr), (retValStr), 'errno_t', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_memmove(uc: Uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['void', 'const void', 'size_t']
+    pNames=['*dest', '*src', 'count']
+
+    try:
+        buffer = uc.mem_read(pVals[1], pVals[2])
+        fmt = '<'+ str(pVals[2]) + 's' 
+        uc.mem_write(pVals[0], pack(fmt, buffer))
+    except:
+        pass
+
+    retVal = pVals[0]
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("memmove", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_memmove_s(uc: Uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    pTypes=['void', 'size_t', 'const void', 'size_t']
+    pNames=['*dest', 'numberOfElements', '*src', 'count']
+
+    try:
+        buffer = uc.mem_read(pVals[2], pVals[3])
+        fmt = '<'+ str(pVals[1]) + 's' 
+        uc.mem_write(pVals[0], pack(fmt, buffer))
+    except:
+        pass
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x0
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("memcpy_s", hex(callAddr), (retValStr), 'errno_t', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_memset(uc: Uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['void', 'int', 'size_t']
+    pNames=['*dest', 'c', 'count']
+
+    try:
+        buffer = uc.mem_read(pVals[0], pVals[2])
+        for i in range(pVals[2]):
+            buffer[i] = pVals[1]
+        fmt = '<'+ str(pVals[2]) + 's'
+        uc.mem_write(pVals[0], pack(fmt, buffer))
+    except:
+        pass
+
+    retVal = pVals[0]
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("memset", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_memcmp(uc: Uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['const void', 'const void', 'size_t']
+    pNames=['*buffer1', '*buffer2', 'count']
+
+    try:
+        buffer1 = uc.mem_read(pVals[0], pVals[2])
+        buffer2 = uc.mem_read(pVals[1], pVals[2])
+        if buffer1[:pVals[2]] == buffer2[:pVals[2]]: # Check if Same
+            retVal = 0
+        else:
+            for i in range(pVals[2]): # Check Byte by Byte
+                # print('Index:', i, 'B1:', buffer1[i], 'B2:', buffer2[i])
+                if buffer1[i] < buffer2[i]:
+                    retVal = -1
+                    break
+                elif buffer1[i] > buffer2[i]:
+                    retVal = 1
+                    break 
+    except:
+        pass
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("memcmp", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_memchr(uc: Uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['const void', 'int', 'size_t']
+    pNames=['*buffer', 'c', 'count']
+
+    try:
+        buffer = uc.mem_read(pVals[0], pVals[2])
+        if pVals[1] in buffer:
+            offset = 0
+            for i in buffer:
+                if i == pVals[1]:
+                    retVal = pVals[0] + offset
+                    break
+                offset += 1
+        else:
+            retVal=0
+    except:
+        pass
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    if retVal == 0:
+        retValStr='NULL'
+    else:
+        retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("memchr", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_RtlMoveMemory(uc: Uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['VOID UNALIGNED', 'VOID UNALIGNED', 'SIZE_T']
+    pNames=['*Destination', '*Source', 'Length']
+
+    try:
+        buffer = uc.mem_read(pVals[1], pVals[2])
+        fmt = '<'+ str(pVals[2]) + 's' 
+        uc.mem_write(pVals[0], pack(fmt, buffer))
+    except:
+        pass
+
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retValStr=''
+
+    logged_calls= ("RtlMoveMemory", hex(callAddr), (retValStr), 'VOID', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_ReadProcessMemory(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL ReadProcessMemory([in]  HANDLE  hProcess,[in]  LPCVOID lpBaseAddress,[out] LPVOID  lpBuffer,[in]  SIZE_T  nSize,[out] SIZE_T  *lpNumberOfBytesRead);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    pTypes=['HANDLE', 'LPCVOID', 'LPVOID', 'SIZE_T', 'SIZE_T']
+    pNames=['hProcess', 'lpBaseAddress', 'lpBuffer', 'nSize', '*lpNumberOfBytesRead']
+
+    try:
+        buffer = uc.mem_read(pVals[1], pVals[3])
+        fmt = '<'+ str(pVals[3]) + 's' 
+        uc.mem_write(pVals[2], pack(fmt, buffer))
+        if pVals[4] != 0x0:
+            uc.mem_write(pVals[4], pack('<i', pVals[4]))
+    except:
+        pass
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+
+    logged_calls= ("ReadProcessMemory", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
 def hook_ExitProcess(uc, eip, esp, export_dict, callAddr):
     # print("Using custom function...")
     uExitCode = uc.mem_read(esp+4, 4)
@@ -542,8 +786,6 @@ def hook_ExitProcess(uc, eip, esp, export_dict, callAddr):
     cleanBytes = 4
     logged_calls = ("ExitProcess", hex(callAddr), 'None', '', [uExitCode], ['UINT'],  ['uExitCode'], False)
     return logged_calls, cleanBytes
-
-
 
 def hook_CreateFileA(uc, eip, esp, export_dict, callAddr):
     """  HANDLE CreateFile(
@@ -802,6 +1044,7 @@ def hook_WinExec(uc, eip, esp, export_dict, callAddr):
 
     logged_calls= ("WinExec", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
+
 def hook_ShellExecuteA(uc, eip, esp, export_dict, callAddr):
     # HINSTANCE ShellExecuteA([in, optional] HWND   hwnd, [in, optional] LPCSTR lpOperation,[in] LPCSTR lpFile,
     # [in, optional] LPCSTR lpParameters, [in, optional] LPCSTR lpDirectory, [in] INT    nShowCmd);
