@@ -117,13 +117,38 @@ def hook_LoadLibraryW(uc, eip, esp, export_dict, callAddr):
     cleanBytes = 4
     return logged_calls, cleanBytes
 
-def hook_LoadLibraryExW(uc, eip, esp, export_dict, callAddr):
+def hook_LoadLibraryExA(uc, eip, esp, export_dict, callAddr):
     # print("Using custom function...")
     arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
     arg1 = unpack('<I', arg1)[0]
     arg1 = read_string(uc, arg1)
     arg2 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
+    arg2 = unpack('<I', arg2)[0]
     arg3 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+12, 4)
+    arg3 = unpack('<I', arg3)[0] # Need to add dwFlags when converting to makeArgs
+
+    # Return base address of passed library
+    try:
+        retVal = allDllsDict[arg1]
+    except:
+        print("Error: The shellcode tried to load a DLL that isn't handled by this tool: ", arg1)
+        retVal = 0
+
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+    logged_calls = ("LoadLibraryExA", hex(callAddr), hex(retVal), 'HINSTANCE', [arg1, arg2, arg3], ['LPCTSTR', 'HANDLE', 'DWORD'], ['lpLibFileName', 'hFile', 'dwFlags'], False)
+
+    cleanBytes = 12
+    return logged_calls, cleanBytes
+
+def hook_LoadLibraryExW(uc, eip, esp, export_dict, callAddr):
+    # print("Using custom function...")
+    arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
+    arg1 = unpack('<I', arg1)[0]
+    arg1 = read_unicode2(uc, arg1)
+    arg2 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
+    arg2 = unpack('<I', arg2)[0]
+    arg3 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+12, 4)
+    arg3 = unpack('<I', arg3)[0] # Need to add dwFlags when converting to makeArgs
 
     # Return base address of passed library
     try:
@@ -140,7 +165,7 @@ def hook_LoadLibraryExW(uc, eip, esp, export_dict, callAddr):
 
 
 def hook_LdrLoadDll(uc, eip, esp, export_dict, callAddr):
-    print("Doing manual function")
+    # print("Doing manual function")
     arg1 = uc.mem_read(esp+4, 4)
     arg1 = unpack('<I', arg1)[0]
     arg1 = read_string(uc, arg1)
@@ -174,7 +199,7 @@ def hook_LdrLoadDll(uc, eip, esp, export_dict, callAddr):
 
     check = uc.mem_read(arg4, 4)
     check = unpack('<I', arg4)[0]
-    print("Check: ", check)
+    # print("Check: ", check)
 
     logged_calls = ("LdrLoadDll", hex(callAddr), hex(retVal), 'ModuleHandle', [arg1, arg2, arg3, arg4], ['PWCHAR', 'ULONG', 'PUNICODE_STRING', 'PHANDLE'], ['PathToFile', 'Flags', 'ModuleFileName', 'ModuleHandle'], False)
 
@@ -978,11 +1003,11 @@ def findStringsParms(uc, pTypes,pVals, skip):
 
 def hook_CreateProcessA(uc, eip, esp, export_dict, callAddr):
     # print ("hook_CreateProcessA2")
-    """'CreateProcess': (10, ['LPCTSTR', 'LPTSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID', 'LPCTSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION'], ['lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles', 'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation'], 'BOOL'),"""
+    """'CreateProcess': (10, ['LPCSTR', 'LPSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID', 'LPCSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION'], ['lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles', 'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation'], 'BOOL'),"""
 
     # function to get values for parameters - count as specified at the end - returned as a list
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 10)
-    pTypes=['LPCTSTR', 'LPTSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID', 'LPCTSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION']
+    pTypes=['LPCSTR', 'LPSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID', 'LPCSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION']
     pNames=['lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles', 'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation']
 
     #searching a dictionary for string to replace hex with
@@ -996,11 +1021,36 @@ def hook_CreateProcessA(uc, eip, esp, export_dict, callAddr):
     skip=[5]   # we need to skip this value (index) later-let's put it in skip
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-    cleanBytes=40
-    retVal=32
+    cleanBytes=len(pTypes)*4
+    retVal=1
+    retValStr='TRUE'
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
-    logged_calls= ("ProcessCreateA", hex(callAddr), hex(retVal), 'INT', pVals, pTypes, pNames, False)
+    logged_calls= ("CreateProcessA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_CreateProcessW(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 10)
+    pTypes=['LPCWSTR', 'LPWSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID', 'LPCWSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION']
+    pNames=['lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles', 'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation']
+
+    #searching a dictionary for string to replace hex with
+    search= pVals[5]
+    if search in ProcessCreationReverseLookUp:
+        pVals[5]=ProcessCreationReverseLookUp[search]
+    else:
+        pVals[5]=hex(pVals[5])
+
+    #create strings for everything except ones in our skip
+    skip=[5]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CreateProcessW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
 def hook_URLDownloadToFileA(uc, eip, esp, export_dict, callAddr):
@@ -1018,7 +1068,24 @@ def hook_URLDownloadToFileA(uc, eip, esp, export_dict, callAddr):
     retValStr='S_OK'
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
-    logged_calls= ("URLDownloadToFileA", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+    logged_calls= ("URLDownloadToFileA", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_URLDownloadToFileW(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    pTypes=['LPUNKNOWN', 'LPCWSTR', 'LPCWSTR', 'DWORD', 'LPBINDSTATUSCALLBACK']
+    pNames=['pCaller', 'szURL', 'szFileName', 'dwReserved', 'lpfnCB']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x0
+    retValStr='S_OK'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("URLDownloadToFileW", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
 def hook_WinExec(uc, eip, esp, export_dict, callAddr):
