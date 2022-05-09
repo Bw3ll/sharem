@@ -2,6 +2,7 @@ from unicorn.x86_const import *
 from struct import pack, unpack
 from ..modules import allDllsDict
 from ..helper.emuHelpers import *
+from .structures import *
 import sys
 import traceback
 
@@ -10,7 +11,9 @@ ProcessCreationReverseLookUp = {16777216: 'CREATE_BREAKAWAY_FROM_JOB', 67108864:
 MemLookUp = {'MEM_COMMIT | MEM_RESERVE':'0x3000', 'MEM_COMMIT': '0x1000', 'MEM_FREE': '0x10000', 'MEM_RESERVE': '0x2000', 'MEM_IMAGE': '0x1000000', 'MEM_MAPPED': '0x40000', 'MEM_PRIVATE': '0x20000', 'PAGE_EXECUTE': '0x10', 'PAGE_EXECUTE_READ': '0x20', 'PAGE_EXECUTE_READWRITE': '0x40', 'PAGE_EXECUTE_WRITECOPY': '0x80', 'PAGE_NOACCESS': '0x01', 'PAGE_READONLY': '0x02', 'PAGE_READWRITE': '0x04', 'PAGE_TARGETS_INVALID': '0x40000000', 'PAGE_TARGETS_NO_UPDATE': '0x40000000'}
 MemReverseLookUp = {0x3000:'MEM_COMMIT | MEM_RESERVE', 4096: 'MEM_COMMIT', 65536: 'MEM_FREE', 8192: 'MEM_RESERVE', 16777216: 'MEM_IMAGE', 262144: 'MEM_MAPPED', 131072: 'MEM_PRIVATE', 16: 'PAGE_EXECUTE', 32: 'PAGE_EXECUTE_READ', 64: 'PAGE_EXECUTE_READWRITE', 128: 'PAGE_EXECUTE_WRITECOPY', 1: 'PAGE_NOACCESS', 2: 'PAGE_READONLY', 4: 'PAGE_READWRITE', 1073741824: 'PAGE_TARGETS_NO_UPDATE'}
 availMem = 0x25000000
-HeapsDict = {} # Dictionary of All Heaps 
+HeapsDict = {} # Dictionary of All Heaps
+ProcessSnapShotOffset = 0 # Used To Enumerate Through Processes
+ProcessList = [struct_PROCESSENTRY32(2688,16,0,4,'explorer.exe'), struct_PROCESSENTRY32(9172,10,2688,10,'calc.exe'), struct_PROCESSENTRY32(8280,50,2688,16,'chrome.exe'), struct_PROCESSENTRY32(11676,78,2688,15,'notepad.exe'), struct_PROCESSENTRY32(8768,20,2688,4,'firefox.exe')] # List of All Processes
 
 # Custom hook for GetProcAddress. Loops through the export dictionary we created, 
 # # then returns the address of the indicated function into eax
@@ -177,7 +180,7 @@ def hook_LdrLoadDll(uc, eip, esp, export_dict, callAddr):
     arg3 = unpack('<I', arg3)[0]
     arg3 = uc.mem_read(arg3+4, 4)
     arg3 = unpack('<I', arg3)[0]
-    arg3 = read_unicode(uc, arg3)
+    arg3 = read_unicode2(uc, arg3)
 
     arg4 = uc.mem_read(esp+16, 4)
     arg4 = unpack('<I', arg4)[0]
@@ -485,6 +488,190 @@ def hook_HeapReAlloc(uc, eip, esp, export_dict, callAddr):
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
     logged_calls= ("HeapReAlloc", hex(callAddr), (retValStr), 'LPVOID', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_CreateToolhelp32Snapshot(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['DWORD', 'DWORD']
+    pNames= ['dwFlags', 'th32ProcessID']
+    dwFlagsReverseLookUp = {2147483648: 'TH32CS_INHERIT', 15: 'TH32CS_SNAPALL', 1: 'TH32CS_SNAPHEAPLIST', 8: 'TH32CS_SNAPMODULE', 16: 'TH32CS_SNAPMODULE32', 2: 'TH32CS_SNAPPROCESS', 4: 'TH32CS_SNAPTHREAD'}
+
+    global ProcessSnapShotOffset
+    ProcessSnapShotOffset = 0
+
+    search= pVals[0]
+    if search in dwFlagsReverseLookUp:
+        pVals[0]=dwFlagsReverseLookUp[search]
+    else:
+        pVals[0]=hex(pVals[0])
+
+    #create strings for everything except ones in our skip
+    skip=[0]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x00666666
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CreateToolhelp32Snapshot", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_Process32First(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL Process32First([in] HANDLE hSnapshot,[in, out] LPPROCESSENTRY32 lppe);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['HANDLE', 'LPPROCESSENTRY32']
+    pNames= ['hSnapshot', 'lppe']
+    global ProcessSnapShotOffset
+    global ProcessList
+
+    if ProcessSnapShotOffset < len(ProcessList):
+        process = ProcessList[ProcessSnapShotOffset]
+        process.writeToMemoryA(uc, pVals[1])
+        retVal=0x1
+        retValStr='TRUE'
+    else:
+        retVal=0x0
+        retValStr='FALSE' 
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("Process32First", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_Process32Next(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL Process32Next([in]  HANDLE hSnapshot,[out] LPPROCESSENTRY32 lppe);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['HANDLE', 'LPPROCESSENTRY32']
+    pNames= ['hSnapshot', 'lppe']
+    global ProcessSnapShotOffset
+    global ProcessList
+
+    ProcessSnapShotOffset += 1 
+    
+    if ProcessSnapShotOffset < len(ProcessList):
+        process = ProcessList[ProcessSnapShotOffset]
+        process.writeToMemoryA(uc, pVals[1])
+        retVal=0x1
+        retValStr='TRUE'
+    else:
+        retVal=0x0
+        retValStr='FALSE'
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("Process32Next", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes    
+
+def hook_Process32FirstW(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL Process32First([in] HANDLE hSnapshot,[in, out] LPPROCESSENTRY32 lppe);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['HANDLE', 'LPPROCESSENTRY32']
+    pNames= ['hSnapshot', 'lppe']
+    global ProcessSnapShotOffset
+    global ProcessList
+
+    if ProcessSnapShotOffset < len(ProcessList):
+        process = ProcessList[ProcessSnapShotOffset]
+        process.writeToMemoryW(uc, pVals[1])
+        retVal=0x1
+        retValStr='TRUE'
+    else:
+        retVal=0x0
+        retValStr='FALSE'  
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("Process32FirstW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_Process32NextW(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL Process32Next([in]  HANDLE hSnapshot,[out] LPPROCESSENTRY32 lppe);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['HANDLE', 'LPPROCESSENTRY32']
+    pNames= ['hSnapshot', 'lppe']
+    global ProcessSnapShotOffset
+    global ProcessList
+
+    ProcessSnapShotOffset += 1 
+    
+    if ProcessSnapShotOffset < len(ProcessList):
+        process = ProcessList[ProcessSnapShotOffset]
+        process.writeToMemoryW(uc, pVals[1])
+        retVal=0x1
+        retValStr='TRUE'
+    else:
+        retVal=0x0
+        retValStr='FALSE'
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("Process32NextW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_Toolhelp32ReadProcessMemory2(uc: Uc, eip, esp, export_dict, callAddr):
+    # Needs to be Redone
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    pTypes=['DWORD', 'LPCVOID', 'LPVOID', 'SIZE_T', 'SIZE_T']
+    pNames=['th32ProcessID', 'lpBaseAddress', 'lpBuffer', 'cbRead', 'lpNumberOfBytesRead']
+
+    th32ProcessID = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
+    th32ProcessID = unpack('<I', th32ProcessID)[0]
+    lpBaseAddress = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
+    lpBaseAddress = unpack('<I', lpBaseAddress)[0]
+    lpBuffer = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+12, 4)
+    lpBuffer = unpack('<I', lpBuffer)[0]
+    cbRead = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+16, 4)
+    cbRead = unpack('<I', cbRead)[0]
+    lpNumberOfBytesRead = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+20, 4)
+    lpNumberOfBytesRead = unpack('<I', lpNumberOfBytesRead)[0]
+    global availMem
+    # Round up to next page (4096)
+    cbRead = ((cbRead//4096)+1) * 4096
+    retAddr = 0
+    try:
+        uc.mem_map(lpBuffer, cbRead)
+        retAddr = lpBuffer
+    except:
+        try:
+            allocLoc = availMem
+            uc.mem_map(allocLoc, cbRead)
+            availMem += cbRead
+            lpBuffer = allocLoc
+        except:
+            success = False
+            retAddr = 0xbadd0000
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr ='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("Toolhelp32ReadProcessMemory", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
 def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
@@ -2148,31 +2335,6 @@ def hook_SetWindowsHookExW(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("SetWindowsHookExW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_CreateToolhelp32Snapshot(uc, eip, esp, export_dict, callAddr):
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
-    pTypes=['DWORD', 'DWORD']
-    pNames= ['dwFlags', 'th32ProcessID']
-
-    dwFlagsReverseLookUp = {2147483648: 'TH32CS_INHERIT', 15: 'TH32CS_SNAPALL', 1: 'TH32CS_SNAPHEAPLIST', 8: 'TH32CS_SNAPMODULE', 16: 'TH32CS_SNAPMODULE32', 2: 'TH32CS_SNAPPROCESS', 4: 'TH32CS_SNAPTHREAD'}
-
-    search= pVals[0]
-    if search in dwFlagsReverseLookUp:
-        pVals[0]=dwFlagsReverseLookUp[search]
-    else:
-        pVals[0]=hex(pVals[0])
-
-    #create strings for everything except ones in our skip
-    skip=[0]   # we need to skip this value (index) later-let's put it in skip
-    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
-
-    cleanBytes=len(pTypes)*4
-    retVal=0x00666666
-    retValStr=hex(retVal)
-    uc.reg_write(UC_X86_REG_EAX, retVal)
-
-    logged_calls= ("CreateToolhelp32Snapshot", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
-    return logged_calls, cleanBytes
-
 def hook_shutdown(uc, eip, esp, export_dict, callAddr):
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
     pTypes=['SOCKET', 'int']
@@ -2535,45 +2697,6 @@ def hook_CryptAcquireContextW(uc, eip, esp, export_dict, callAddr):
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
     logged_calls= ("CryptAcquireContextW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
-    return logged_calls, cleanBytes
-
-def hook_Toolhelp32ReadProcessMemory(uc, eip, esp, export_dict, callAddr):
-    global availMem
-
-    th32ProcessID = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
-    th32ProcessID = unpack('<I', th32ProcessID)[0]
-    lpBaseAddress = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
-    lpBaseAddress = unpack('<I', lpBaseAddress)[0]
-    lpBuffer = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+12, 4)
-    lpBuffer = unpack('<I', lpBuffer)[0]
-    cbRead = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+16, 4)
-    cbRead = unpack('<I', cbRead)[0]
-    lpNumberOfBytesRead = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+20, 4)
-    lpNumberOfBytesRead = unpack('<I', lpNumberOfBytesRead)[0]
-
-    # Round up to next page (4096)
-    cbRead = ((cbRead//4096)+1) * 4096
-
-    retAddr = 0
-    try:
-        uc.mem_map(lpBuffer, cbRead)
-        retAddr = lpBuffer
-    except:
-        try:
-            allocLoc = availMem
-            uc.mem_map(allocLoc, cbRead)
-            availMem += cbRead
-            lpBuffer = allocLoc
-        except:
-            success = False
-            retAddr = 0xbadd0000
-
-    retVal=0x1
-    retValStr='TRUE'
-    uc.reg_write(UC_X86_REG_EAX, retVal)
-    logged_calls = ("Toolhelp32ReadProcessMemory", hex(callAddr), (retValStr), 'BOOL', [(th32ProcessID), hex(lpBaseAddress), hex(lpBuffer), hex(cbRead), hex(lpNumberOfBytesRead)], ['DWORD', 'LPCVOID', 'LPVOID', 'SIZE_T', 'SIZE_T'], ['th32ProcessID', 'lpBaseAddress', 'lpBuffer', 'cbRead', 'lpNumberOfBytesRead'], False)
-    cleanBytes = 20
-
     return logged_calls, cleanBytes
 
 def hook_OpenSCManagerA(uc, eip, esp, export_dict, callAddr):
