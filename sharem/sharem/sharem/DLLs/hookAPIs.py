@@ -1,9 +1,8 @@
 from unicorn.x86_const import *
 from struct import pack, unpack
 from ..modules import allDllsDict
-from ..helper.emuHelpers import *
-from .structures import *
-import sys
+from ..helper.emuHelpers import Uc
+from .structures import struct_PROCESSENTRY32, struct_MODULEENTRY32, struct_THREADENTRY32
 import traceback
 
 FakeProcess=0xbadd0000
@@ -12,8 +11,36 @@ MemLookUp = {'MEM_COMMIT | MEM_RESERVE':'0x3000', 'MEM_COMMIT': '0x1000', 'MEM_F
 MemReverseLookUp = {0x3000:'MEM_COMMIT | MEM_RESERVE', 4096: 'MEM_COMMIT', 65536: 'MEM_FREE', 8192: 'MEM_RESERVE', 16777216: 'MEM_IMAGE', 262144: 'MEM_MAPPED', 131072: 'MEM_PRIVATE', 16: 'PAGE_EXECUTE', 32: 'PAGE_EXECUTE_READ', 64: 'PAGE_EXECUTE_READWRITE', 128: 'PAGE_EXECUTE_WRITECOPY', 1: 'PAGE_NOACCESS', 2: 'PAGE_READONLY', 4: 'PAGE_READWRITE', 1073741824: 'PAGE_TARGETS_NO_UPDATE'}
 availMem = 0x25000000
 HeapsDict = {} # Dictionary of All Heaps
-ProcessSnapShotOffset = 0 # Used To Enumerate Through Processes
-ProcessList = [struct_PROCESSENTRY32(2688,16,0,4,'explorer.exe'), struct_PROCESSENTRY32(9172,10,2688,10,'calc.exe'), struct_PROCESSENTRY32(8280,50,2688,16,'chrome.exe'), struct_PROCESSENTRY32(11676,78,2688,15,'notepad.exe'), struct_PROCESSENTRY32(8768,20,2688,4,'firefox.exe')] # List of All Processes
+
+class System_SnapShot:
+    def __init__(self, fakeThreads: bool, fakeModules: bool):
+        self.processOffset = 4
+        self.threadOffset = 1000
+        self.moduleOffset = 0
+        self.baseThreadID = 1000
+        self.processDict = {4: struct_PROCESSENTRY32(0,10,0,0,'System'), 2688: struct_PROCESSENTRY32(2688,16,0,4,'explorer.exe'), 9172: struct_PROCESSENTRY32(9172,10,2688,10,'calc.exe'), 8280: struct_PROCESSENTRY32(8280,50,2688,16,'chrome.exe'), 11676: struct_PROCESSENTRY32(11676,78,2688,15,'notepad.exe'), 8768: struct_PROCESSENTRY32(8768,20,2688,4,'firefox.exe')}
+        self.threadDict = {}
+        self.moduleDict = {}
+        if fakeThreads:
+            self.fakeThreads()
+        if fakeModules:
+            self.fakeModules()
+    
+    def fakeThreads(self):
+        for k, v in self.processDict.items(): # Create Fake Threads
+            for i in range(v.cntThreads):
+                self.threadDict.update({self.baseThreadID: struct_THREADENTRY32(self.baseThreadID,v.th32ProcessID,v.pcPriClassBase)})
+                self.baseThreadID += 1
+
+    def fakeModules(self):
+        pass
+
+    def resetOffsets(self):
+        self.processOffset = list(self.processDict.keys())[0]
+        self.threadOffset = list(self.threadDict.keys())[0]
+        # self.moduleOffset = list(self.moduleDict.keys())[0]
+
+SystemSnapShot = System_SnapShot(True, False)
 
 # Custom hook for GetProcAddress. Loops through the export dictionary we created, 
 # # then returns the address of the indicated function into eax
@@ -494,10 +521,9 @@ def hook_CreateToolhelp32Snapshot(uc, eip, esp, export_dict, callAddr):
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
     pTypes=['DWORD', 'DWORD']
     pNames= ['dwFlags', 'th32ProcessID']
-    dwFlagsReverseLookUp = {2147483648: 'TH32CS_INHERIT', 15: 'TH32CS_SNAPALL', 1: 'TH32CS_SNAPHEAPLIST', 8: 'TH32CS_SNAPMODULE', 16: 'TH32CS_SNAPMODULE32', 2: 'TH32CS_SNAPPROCESS', 4: 'TH32CS_SNAPTHREAD'}
+    dwFlagsReverseLookUp = {2147483648: 'TH32CS_INHERIT', 15: 'TH32CS_SNAPALL', 1: 'TH32CS_SNAPHEAPLIST', 8: 'TH32CS_SNAPMODULE', 16: 'TH32CS_SNAPMODULE32', 2: 'TH32CS_SNAPPROCESS', 4: 'TH32CS_SNAPTHREAD', 15: 'TH32CS_SNAPALL'}
 
-    global ProcessSnapShotOffset
-    ProcessSnapShotOffset = 0
+    SystemSnapShot.resetOffsets()
 
     search= pVals[0]
     if search in dwFlagsReverseLookUp:
@@ -522,11 +548,9 @@ def hook_Process32First(uc: Uc, eip, esp, export_dict, callAddr):
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
     pTypes=['HANDLE', 'LPPROCESSENTRY32']
     pNames= ['hSnapshot', 'lppe']
-    global ProcessSnapShotOffset
-    global ProcessList
 
-    if ProcessSnapShotOffset < len(ProcessList):
-        process = ProcessList[ProcessSnapShotOffset]
+    if SystemSnapShot.processOffset in SystemSnapShot.processDict:
+        process = SystemSnapShot.processDict[SystemSnapShot.processOffset]
         process.writeToMemoryA(uc, pVals[1])
         retVal=0x1
         retValStr='TRUE'
@@ -549,13 +573,18 @@ def hook_Process32Next(uc: Uc, eip, esp, export_dict, callAddr):
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
     pTypes=['HANDLE', 'LPPROCESSENTRY32']
     pNames= ['hSnapshot', 'lppe']
-    global ProcessSnapShotOffset
-    global ProcessList
 
-    ProcessSnapShotOffset += 1 
-    
-    if ProcessSnapShotOffset < len(ProcessList):
-        process = ProcessList[ProcessSnapShotOffset]
+    # Get Next Process
+    try:
+        processList = list(SystemSnapShot.processDict)
+        nextProcess = processList[processList.index(SystemSnapShot.processOffset)+1]
+        SystemSnapShot.processOffset = nextProcess
+    except:
+        SystemSnapShot.processOffset = None
+        pass
+
+    if SystemSnapShot.processOffset in SystemSnapShot.processDict:
+        process = SystemSnapShot.processDict[SystemSnapShot.processOffset]
         process.writeToMemoryA(uc, pVals[1])
         retVal=0x1
         retValStr='TRUE'
@@ -574,15 +603,13 @@ def hook_Process32Next(uc: Uc, eip, esp, export_dict, callAddr):
     return logged_calls, cleanBytes    
 
 def hook_Process32FirstW(uc: Uc, eip, esp, export_dict, callAddr):
-    # BOOL Process32First([in] HANDLE hSnapshot,[in, out] LPPROCESSENTRY32 lppe);
+    # BOOL Process32FirstW([in] HANDLE hSnapshot,[in, out] LPPROCESSENTRY32W lppe);
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
-    pTypes=['HANDLE', 'LPPROCESSENTRY32']
+    pTypes=['HANDLE', 'LPPROCESSENTRY32W']
     pNames= ['hSnapshot', 'lppe']
-    global ProcessSnapShotOffset
-    global ProcessList
 
-    if ProcessSnapShotOffset < len(ProcessList):
-        process = ProcessList[ProcessSnapShotOffset]
+    if SystemSnapShot.processOffset in SystemSnapShot.processDict:
+        process = SystemSnapShot.processDict[SystemSnapShot.processOffset]
         process.writeToMemoryW(uc, pVals[1])
         retVal=0x1
         retValStr='TRUE'
@@ -601,18 +628,83 @@ def hook_Process32FirstW(uc: Uc, eip, esp, export_dict, callAddr):
     return logged_calls, cleanBytes
 
 def hook_Process32NextW(uc: Uc, eip, esp, export_dict, callAddr):
-    # BOOL Process32Next([in]  HANDLE hSnapshot,[out] LPPROCESSENTRY32 lppe);
+    # BOOL Process32NextW([in]  HANDLE hSnapshot,[out] LPPROCESSENTRY32W lppe);
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
-    pTypes=['HANDLE', 'LPPROCESSENTRY32']
+    pTypes=['HANDLE', 'LPPROCESSENTRY32W']
     pNames= ['hSnapshot', 'lppe']
-    global ProcessSnapShotOffset
-    global ProcessList
 
-    ProcessSnapShotOffset += 1 
-    
-    if ProcessSnapShotOffset < len(ProcessList):
-        process = ProcessList[ProcessSnapShotOffset]
+    # Get Next Process
+    try:
+        processList = list(SystemSnapShot.processDict)
+        nextProcess = processList[processList.index(SystemSnapShot.processOffset)+1]
+        SystemSnapShot.processOffset = nextProcess
+    except:
+        SystemSnapShot.processOffset = None
+        pass
+
+    if SystemSnapShot.processOffset in SystemSnapShot.processDict:
+        process = SystemSnapShot.processDict[SystemSnapShot.processOffset]
         process.writeToMemoryW(uc, pVals[1])
+        retVal=0x1
+        retValStr='TRUE'
+    else:
+        retVal=0x0
+        retValStr='FALSE'  
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("Process32NextW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_Thread32First(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL Thread32First([in] HANDLE hSnapshot,[in, out] LPTHREADENTRY32 lpte);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['HANDLE', 'LPTHREADENTRY32']
+    pNames= ['hSnapshot', 'lpte']
+
+    if SystemSnapShot.threadOffset in SystemSnapShot.threadDict:
+        thread = SystemSnapShot.threadDict[SystemSnapShot.threadOffset]
+        thread.writeToMemory(uc, pVals[1])
+        retVal=0x1
+        retValStr='TRUE'
+    else:
+        retVal=0x0
+        retValStr='FALSE'  
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("Thread32First", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_Thread32Next(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL Thread32Next([in] HANDLE hSnapshot,[out] LPTHREADENTRY32 lpte);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['HANDLE', 'LPTHREADENTRY32']
+    pNames= ['hSnapshot', 'lpte']
+
+    # Get Next Thread
+    try:
+        threadList = list(SystemSnapShot.threadDict)
+        SystemSnapShot.threadOffset = threadList[threadList.index(SystemSnapShot.threadOffset)+1]
+    except:
+        SystemSnapShot.threadOffset = None
+        pass
+
+    if SystemSnapShot.threadOffset in SystemSnapShot.threadDict:
+        thread = SystemSnapShot.threadDict[SystemSnapShot.threadOffset]
+        thread.writeToMemory(uc, pVals[1])
         retVal=0x1
         retValStr='TRUE'
     else:
@@ -626,7 +718,7 @@ def hook_Process32NextW(uc: Uc, eip, esp, export_dict, callAddr):
     cleanBytes=len(pTypes)*4
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
-    logged_calls= ("Process32NextW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    logged_calls= ("Thread32Next", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
 def hook_Toolhelp32ReadProcessMemory2(uc: Uc, eip, esp, export_dict, callAddr):

@@ -3,18 +3,17 @@ from ..helper.emuHelpers import Uc
 
 class struct_PROCESSENTRY32:
     # Backs both PROCESSENTRY32 and PROCESSENTRY32W
-    def __init__(self, pID, threadCount, parent_pID, baseThreadPriority, exeFile):
-        # The Values with 0 are No Longer Used
+    def __init__(self, processID, threadCount, parent_pID, baseThreadPriority, exeFile):
         self.dwSizeA = 296 # Ascii Size
         self.dwSizeW = 556 # Unicode Size
-        self.cntUsage = 0
-        self.th32ProcessID = pID
-        self.th32DefaultHeapID = 0
-        self.th32ModuleID = 0
+        self.cntUsage = 0 # No Longer Used
+        self.th32ProcessID = processID
+        self.th32DefaultHeapID = 0 # No Longer Used
+        self.th32ModuleID = 0 # No Longer Used
         self.cntThreads= threadCount
         self.th32ParentProcessID = parent_pID
         self.pcPriClassBase = baseThreadPriority
-        self.dwFlags = 0
+        self.dwFlags = 0 # No Longer Used
         self.szExeFile = exeFile
 
     def writeToMemoryA(self, uc: Uc, address):
@@ -56,14 +55,14 @@ class struct_PROCESSENTRY32:
 class struct_THREADENTRY32:
     def __init__(self, ThreadID, OwnerProcessID, tpBasePri):
         self.dwSize = 28
-        self.cntUsage = 0
+        self.cntUsage = 0 # No Longer Used
         self.th32ThreadID = ThreadID
         self.th32OwnerProcessID = OwnerProcessID
         if tpBasePri < 0 or tpBasePri > 31: # Value 0 to 31
             tpBasePri = 16 # Set to Middle Priority
         self.tpBasePri = tpBasePri
-        self.tpDeltaPri = 0
-        self.dwFlags = 0
+        self.tpDeltaPri = 0 # No Longer Used
+        self.dwFlags = 0 # No Longer Used
 
     def writeToMemory(self, uc: Uc, address):
         packedStruct = pack('<IIIIllI', self.dwSize, self.cntUsage, self.th32ThreadID, self.th32OwnerProcessID, self.tpBasePri, self.tpDeltaPri, self.dwFlags)
