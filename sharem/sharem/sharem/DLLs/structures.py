@@ -1,4 +1,4 @@
-from struct import pack, unpack
+from struct import calcsize, pack, unpack
 from ..helper.emuHelpers import Uc
 
 class struct_PROCESSENTRY32:
@@ -95,12 +95,12 @@ class struct_MODULEENTRY32:
         self.szExePath = szExePath
 
     def writeToMemoryA(self, uc: Uc, address):
-        packedStruct = pack('<IIIIIBII256s260s', self.dwSizeA, self.th32ModuleID, self.th32ProcessID, self.GlblcntUsage, self.ProccntUsage, self.modBaseAddr, self.modBaseSize, self.hModule, bytes(self.szModule, 'ascii'), bytes(self.szExePath, 'ascii'))
+        packedStruct = pack('<IIIIIIII256s260s', self.dwSizeA, self.th32ModuleID, self.th32ProcessID, self.GlblcntUsage, self.ProccntUsage, self.modBaseAddr, self.modBaseSize, self.hModule, bytes(self.szModule, 'ascii'), bytes(self.szExePath, 'ascii'))
         uc.mem_write(address, packedStruct)
 
     def readFromMemoryA(self, uc: Uc, address):
         data = uc.mem_read(address, self.dwSizeA)
-        unpackedStruct = unpack('<IIIIIBII256s260s', data)
+        unpackedStruct = unpack('<IIIIIIII256s260s', data)
         self.dwSizeA = unpackedStruct[0]
         self.th32ModuleID = unpackedStruct[1]
         self.th32ProcessID = unpackedStruct[2]
@@ -113,12 +113,12 @@ class struct_MODULEENTRY32:
         self.szExePath = unpackedStruct[9].decode()
 
     def writeToMemoryW(self, uc: Uc, address):
-        packedStruct = pack('<IIIIIBII512s520s', self.dwSizeW, self.th32ModuleID, self.th32ProcessID, self.GlblcntUsage, self.ProccntUsage, self.modBaseAddr, self.modBaseSize, self.hModule, bytes(self.szModule, 'utf-8'), bytes(self.szExePath, 'utf-8'))
+        packedStruct = pack('<IIIIIIII512s520s', self.dwSizeW, self.th32ModuleID, self.th32ProcessID, self.GlblcntUsage, self.ProccntUsage, self.modBaseAddr, self.modBaseSize, self.hModule, bytes(self.szModule, 'utf-8'), bytes(self.szExePath, 'utf-8'))
         uc.mem_write(address, packedStruct)
 
     def readFromMemoryW(self, uc: Uc, address):
         data = uc.mem_read(address, self.dwSizeW)
-        unpackedStruct = unpack('<IIIIIBII512s520s', data)
+        unpackedStruct = unpack('<IIIIIIII512s520s', data)
         self.dwSizeW = unpackedStruct[0]
         self.th32ModuleID = unpackedStruct[1]
         self.th32ProcessID = unpackedStruct[2]

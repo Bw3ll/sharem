@@ -1,6 +1,7 @@
+from random import choice, randint
 from unicorn.x86_const import *
 from struct import pack, unpack
-from ..modules import allDllsDict
+from ..modules import ADVAPI32_BASE, ADVAPI32_TOP, ADVPACK_BASE, ADVPACK_TOP, BCRYPT_BASE, BCRYPT_TOP, COMCTL32_BASE, COMCTL32_TOP, COMDLG32_BASE, COMDLG32_TOP, CRYPT32_BASE, CRYPT32_TOP, DNSAPI_BASE, DNSAPI_TOP, GDI32_BASE, GDI32_TOP, GDIPLUS_BASE, GDIPLUS_TOP, IMM32_BASE, IMM32_TOP, KERNEL32_BASE, KERNEL32_TOP, KERNELBASE_BASE, KERNELBASE_TOP, MPR_BASE, MPR_TOP, MSCOREE_BASE, MSCOREE_TOP, MSVCRT_BASE, MSVCRT_TOP, NCRYPT_BASE, NCRYPT_TOP, NETAPI32_BASE, NETAPI32_TOP, NETUTILS_BASE, NETUTILS_TOP, NTDLL_BASE, NTDLL_TOP, OLE32_BASE, OLE32_TOP, OLEAUT32_BASE, OLEAUT32_TOP, SAMCLI_BASE, SAMCLI_TOP, SECUR32_BASE, SECUR32_TOP, SHELL32_BASE, SHELL32_TOP, SHLWAPI_BASE, SHLWAPI_TOP, URLMON_BASE, URLMON_TOP, USER32_BASE, USER32_TOP, WININET_BASE, WININET_TOP, WINMM_BASE, WINMM_TOP, WKSCLI_BASE, WKSCLI_TOP, WS2_32_BASE, WS2_32_TOP, WSOCK32_BASE, WSOCK32_TOP, WTSAPI32_BASE, WTSAPI32_TOP, allDllsDict
 from ..helper.emuHelpers import Uc
 from .structures import struct_PROCESSENTRY32, struct_MODULEENTRY32, struct_THREADENTRY32
 import traceback
@@ -20,7 +21,7 @@ class System_SnapShot:
         self.baseThreadID = 1000
         self.processDict = {4: struct_PROCESSENTRY32(0,10,0,0,'System'), 2688: struct_PROCESSENTRY32(2688,16,0,4,'explorer.exe'), 9172: struct_PROCESSENTRY32(9172,10,2688,10,'calc.exe'), 8280: struct_PROCESSENTRY32(8280,50,2688,16,'chrome.exe'), 11676: struct_PROCESSENTRY32(11676,78,2688,15,'notepad.exe'), 8768: struct_PROCESSENTRY32(8768,20,2688,4,'firefox.exe')}
         self.threadDict = {}
-        self.moduleDict = {}
+        self.moduleList = []
         if fakeThreads:
             self.fakeThreads()
         if fakeModules:
@@ -33,14 +34,26 @@ class System_SnapShot:
                 self.baseThreadID += 1
 
     def fakeModules(self):
-        pass
+        allDllsSizeDict = {'ntdll.dll': NTDLL_TOP-NTDLL_BASE, 'kernel32.dll': KERNEL32_TOP-KERNEL32_BASE, 'KernelBase.dll': KERNELBASE_TOP-KERNELBASE_BASE, 'advapi32.dll': ADVAPI32_TOP-ADVAPI32_BASE, 'comctl32.dll': COMCTL32_TOP-COMCTL32_BASE, 'comdlg32.dll':COMDLG32_TOP-COMDLG32_BASE, 'gdi32.dll': GDI32_TOP-GDI32_BASE, 'gdiplus.dll': GDIPLUS_TOP-GDIPLUS_BASE, 'imm32.dll': IMM32_TOP-IMM32_BASE, 'mscoree.dll': MSCOREE_TOP-MSCOREE_BASE, 'msvcrt.dll': MSVCRT_TOP-MSVCRT_BASE, 'netapi32.dll': NETAPI32_TOP-NETAPI32_BASE, 'ole32.dll': OLE32_TOP-OLE32_BASE, 'oleaut32.dll': OLEAUT32_TOP-OLEAUT32_BASE, 'shell32.dll': SHELL32_TOP-SHELL32_BASE, 'shlwapi.dll': SHLWAPI_TOP-SHLWAPI_BASE, 'urlmon.dll': URLMON_TOP-URLMON_BASE, 'user32.dll': USER32_TOP-USER32_BASE, 'wininet.dll': WININET_TOP-WININET_BASE, 'winmm.dll': WINMM_TOP-WINMM_BASE, 'ws2_32.dll': WS2_32_TOP-WS2_32_BASE, 'wsock32.dll': WSOCK32_TOP-WSOCK32_BASE, 'advpack.dll': ADVPACK_TOP-ADVPACK_BASE, 'bcrypt.dll': BCRYPT_TOP-BCRYPT_BASE, 'crypt32.dll': CRYPT32_TOP-CRYPT32_BASE, 'dnsapi.dll': DNSAPI_TOP-DNSAPI_BASE, 'mpr.dll': MPR_TOP-MPR_BASE, 'ncrypt.dll':NCRYPT_TOP-NCRYPT_BASE, 'netutils.dll': NETUTILS_TOP-NETUTILS_BASE, 'samcli.dll': SAMCLI_TOP-SAMCLI_BASE, 'secur32.dll': SECUR32_TOP-SECUR32_BASE, 'wkscli.dll': WKSCLI_TOP-WKSCLI_BASE, 'wtsapi32.dll': WTSAPI32_TOP-WTSAPI32_BASE}
+        for k, v in self.processDict.items():
+            moduleCount = randint(2,20)
+            modules = set()
+            for i in range(moduleCount):
+                selectedDLL = choice(list(allDllsDict))
+                if selectedDLL not in modules:
+                    modules.add(selectedDLL)
+                    path = "C:\Windows\SysWOW64\\" + selectedDLL
+                    self.moduleList.append(struct_MODULEENTRY32(v.th32ProcessID,allDllsDict[selectedDLL],allDllsSizeDict[selectedDLL],allDllsDict[selectedDLL],selectedDLL,path))
 
     def resetOffsets(self):
-        self.processOffset = list(self.processDict.keys())[0]
-        self.threadOffset = list(self.threadDict.keys())[0]
-        # self.moduleOffset = list(self.moduleDict.keys())[0]
+        try:
+            self.processOffset = list(self.processDict.keys())[0]
+            self.threadOffset = list(self.threadDict.keys())[0]
+            self.moduleOffset = 0
+        except:
+            pass
 
-SystemSnapShot = System_SnapShot(True, False)
+SystemSnapShot = System_SnapShot(True, True)
 
 # Custom hook for GetProcAddress. Loops through the export dictionary we created, 
 # # then returns the address of the indicated function into eax
@@ -577,8 +590,7 @@ def hook_Process32Next(uc: Uc, eip, esp, export_dict, callAddr):
     # Get Next Process
     try:
         processList = list(SystemSnapShot.processDict)
-        nextProcess = processList[processList.index(SystemSnapShot.processOffset)+1]
-        SystemSnapShot.processOffset = nextProcess
+        SystemSnapShot.processOffset = processList[processList.index(SystemSnapShot.processOffset)+1]
     except:
         SystemSnapShot.processOffset = None
         pass
@@ -636,8 +648,7 @@ def hook_Process32NextW(uc: Uc, eip, esp, export_dict, callAddr):
     # Get Next Process
     try:
         processList = list(SystemSnapShot.processDict)
-        nextProcess = processList[processList.index(SystemSnapShot.processOffset)+1]
-        SystemSnapShot.processOffset = nextProcess
+        SystemSnapShot.processOffset = processList[processList.index(SystemSnapShot.processOffset)+1]
     except:
         SystemSnapShot.processOffset = None
         pass
@@ -720,6 +731,120 @@ def hook_Thread32Next(uc: Uc, eip, esp, export_dict, callAddr):
 
     logged_calls= ("Thread32Next", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
+
+def hook_Module32First(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL Module32First([in] HANDLE hSnapshot,[in, out] LPMODULEENTRY32 lpme);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['HANDLE', 'LPMODULEENTRY32']
+    pNames= ['hSnapshot', 'lpme']
+
+    if SystemSnapShot.moduleOffset < len(SystemSnapShot.moduleList):
+        module = SystemSnapShot.moduleList[SystemSnapShot.moduleOffset]
+        module.writeToMemoryA(uc, pVals[1])
+        retVal=0x1
+        retValStr='TRUE'
+    else:
+        retVal=0x0
+        retValStr='FALSE'  
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("Module32First", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+def hook_Module32Next(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL Module32Next([in] HANDLE hSnapshot,[in, out] LPMODULEENTRY32 lpme);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['HANDLE', 'LPMODULEENTRY32']
+    pNames= ['hSnapshot', 'lpme']
+
+    # Get Next Module
+    try:
+        SystemSnapShot.moduleOffset += 1
+    except:
+        SystemSnapShot.moduleOffset = None
+        pass
+
+    if SystemSnapShot.moduleOffset < len(SystemSnapShot.moduleList):
+        module = SystemSnapShot.moduleList[SystemSnapShot.moduleOffset]
+        module.writeToMemoryA(uc, pVals[1])
+        retVal=0x1
+        retValStr='TRUE'
+    else:
+        retVal=0x0
+        retValStr='FALSE'  
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("Module32Next", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_Module32FirstW(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL Module32FirstW([in] HANDLE hSnapshot,[in, out] LPMODULEENTRY32W lpme);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['HANDLE', 'LPMODULEENTRY32']
+    pNames= ['hSnapshot', 'lpme']
+
+    if SystemSnapShot.moduleOffset < len(SystemSnapShot.moduleList):
+        module = SystemSnapShot.moduleList[SystemSnapShot.moduleOffset]
+        module.writeToMemoryW(uc, pVals[1])
+        retVal=0x1
+        retValStr='TRUE'
+    else:
+        retVal=0x0
+        retValStr='FALSE'  
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("Module32FirstW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_Module32NextW(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL Module32NextW([in] HANDLE hSnapshot,[in, out] LPMODULEENTRY32W lpme);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['HANDLE', 'LPMODULEENTRY32W']
+    pNames= ['hSnapshot', 'lpme']
+
+    # Get Next Module
+    try:
+        SystemSnapShot.moduleOffset += 1
+    except:
+        SystemSnapShot.moduleOffset = None
+        pass
+
+    if SystemSnapShot.moduleOffset < len(SystemSnapShot.moduleList):
+        module = SystemSnapShot.moduleList[SystemSnapShot.moduleOffset]
+        module.writeToMemoryW(uc, pVals[1])
+        retVal=0x1
+        retValStr='TRUE'
+    else:
+        retVal=0x0
+        retValStr='FALSE'  
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("Module32NextW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
 
 def hook_Toolhelp32ReadProcessMemory2(uc: Uc, eip, esp, export_dict, callAddr):
     # Needs to be Redone
