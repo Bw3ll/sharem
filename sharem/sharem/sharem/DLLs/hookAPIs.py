@@ -25,7 +25,7 @@ def hook_GetProcAddress(uc, eip, esp, export_dict, callAddr):
 
     for api in export_dict:
         if export_dict[api][0] == arg2:
-            retVal = api
+            retVal = int(api, 16)
 
     # print("Using custom API function...")
 
@@ -48,7 +48,7 @@ def hook_GetProcedureAddress(uc, eip, esp, export_dict, callAddr):
 
     for api in export_dict:
         if export_dict[api][0] == arg2:
-            retVal = api
+            retVal = int(api, 16)
 
     uc.reg_write(UC_X86_REG_EAX, retVal)
     logged_calls = ("LdrGetProcedureAddress", hex(callAddr), hex(retVal), 'FARPROC', [hex(arg1), arg2], ['HMODULE', 'LPCSTR'], ['hModule', 'lpProcName'], False)
@@ -56,7 +56,6 @@ def hook_GetProcedureAddress(uc, eip, esp, export_dict, callAddr):
     cleanBytes = 8
 
     return logged_calls, cleanBytes
-
 
 # Make sure WinExec returns 32, then add it to created process log
 def hook_WinExec(uc, eip, esp, export_dict, callAddr):
@@ -67,12 +66,6 @@ def hook_WinExec(uc, eip, esp, export_dict, callAddr):
     arg2 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
     arg2 = unpack('<I', arg2)[0]
     retVal = 32
-
-    try:
-        bruh = giveRegs(uc)
-    except Exception as e:
-        print(e)
-        print("WOWWWWWWW")
 
     uc.reg_write(UC_X86_REG_EAX, retVal)
     logged_calls = ("WinExec", hex(callAddr), hex(retVal), 'UINT', [arg1, hex(arg2)], ['lpCmdLine', 'uCmdShow'], ['lpCmdLine', 'uCmdShow'], False)

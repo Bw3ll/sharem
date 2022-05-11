@@ -1,152 +1,34 @@
 from struct import pack, unpack
+import ctypes
+import os
+import pefile
+from pathlib import Path
+import json
+from .helper.moduleHelpers import *
 
+# https://code.activestate.com/recipes/578035-disable-file-system-redirector/
+class disable_file_system_redirection:
+    _disable = ctypes.windll.kernel32.Wow64DisableWow64FsRedirection
+    _revert = ctypes.windll.kernel32.Wow64RevertWow64FsRedirection
+    def __enter__(self):
+        self.old_value = ctypes.c_long()
+        self.success = self._disable(ctypes.byref(self.old_value))
+    def __exit__(self, type, value, traceback):
+        if self.success:
+            self._revert(self.old_value)
+
+PROCESS_BASE = 0x14000000
 ENTRY_ADDR = 0x1000
 PEB_ADDR = 0x11017000
-SEGMENT_ADDR = 0x11010000
-SEGMENT_SIZE = 0x4000
 TIB_ADDR = 0x00000000
-TIB_SIZE = 0x100
-PEB_LIMIT = 0x208
 CONST_ADDR = 0x20000000
 FAST_ADDR = 0x5000
 
 LDR_ADDR = 0x11020000
 LDR_PROG_ADDR = 0x11021000
-LDR_NTDLL_ADDR = 0x11021300
-LDR_KERNEL32_ADDR = 0x11021600
-LDR_ADVAPI32_ADDR = 0x11021900
-LDR_COMCTL32_ADDR = 0x11021C00
-LDR_COMDLG32_ADDR = 0x11022000
-LDR_GDI32_ADDR = 0x11022300
-LDR_GDIPLUS_ADDR = 0x11022600
-LDR_IMM32_ADDR = 0x11022900
-LDR_MSCOREE_ADDR = 0x11022C00
-LDR_MSVCRT_ADDR = 0x11023000
-LDR_NETAPI32_ADDR = 0x11023300
-LDR_OLE32_ADDR = 0x11023600
-LDR_OLEAUT32_ADDR = 0x11023900
-LDR_SHELL32_ADDR = 0x11024C00
-LDR_SHLWAPI_ADDR = 0x11025000
-LDR_URLMON_ADDR = 0x11025300
-LDR_USER32_ADDR = 0x11025600
-LDR_WININET_ADDR = 0x11025900
-LDR_WINMM_ADDR = 0x11025C00
-LDR_WS2_32_ADDR = 0x11026000
-LDR_WSOCK32_ADDR = 0x11026300
-LDR_ADVPACK_ADDR=0x11026600
-LDR_BCRYPT_ADDR=0x11026900
-LDR_CRYPT32_ADDR=0x11026C00
-LDR_DNSAPI_ADDR=0x11027000
-LDR_MPR_ADDR=0x11027300
-LDR_NCRYPT_ADDR=0x11027600
-LDR_NETUTILS_ADDR=0x11027900
-LDR_SAMCLI_ADDR=0x11027C00
-LDR_SECUR32_ADDR=0x11028000
-LDR_WKSCLI_ADDR=0x11028300
-LDR_WTSAPI32_ADDR=0x11028600
-LDR_KERNELBASE_ADDR=0x11028900
-
-PROCESS_BASE = 0x14000000
-NTDLL_BASE = 0x14100000
-NTDLL_TOP = 0x14252538
-KERNEL32_BASE = 0x14252538
-KERNEL32_TOP = 0x14372538
-ADVAPI32_BASE = 0x14372538
-ADVAPI32_TOP = 0x1441f938
-COMCTL32_BASE = 0x1441f938
-COMCTL32_TOP = 0x144b1138
-COMDLG32_BASE = 0x144b1138
-COMDLG32_TOP = 0x14537b38
-GDI32_BASE = 0x14537b38
-GDI32_TOP = 0x14594338
-GDIPLUS_BASE = 0x14594338
-GDIPLUS_TOP = 0x151ecd38
-IMM32_BASE = 0x151ecd38
-IMM32_TOP = 0x1521a138
-MSCOREE_BASE = 0x1521a138
-MSCOREE_TOP = 0x15272c88
-MSVCRT_BASE = 0x15272c88
-MSVCRT_TOP = 0x1532b688
-NETAPI32_BASE = 0x1532b688
-NETAPI32_TOP = 0x15349688
-OLE32_BASE = 0x15349688
-OLE32_TOP = 0x154b5888
-OLEAUT32_BASE = 0x154b5888
-OLEAUT32_TOP = 0x15554088
-SHELL32_BASE = 0x15554088
-SHELL32_TOP = 0x161aca88
-SHLWAPI_BASE = 0x161aca88
-SHLWAPI_TOP = 0x16212288
-URLMON_BASE = 0x16212288
-URLMON_TOP = 0x16367488
-USER32_BASE = 0x16367488
-USER32_TOP = 0x16443088
-WININET_BASE = 0x16443088
-WININET_TOP = 0x16882488
-WINMM_BASE = 0x16882488
-WINMM_TOP = 0x168c1a88
-WS2_32_BASE = 0x168c1a88
-WS2_32_TOP = 0x16904088
-WSOCK32_BASE = 0x16904088
-WSOCK32_TOP = 0x16917c88
-ADVPACK_BASE = 0x16917c88
-ADVPACK_TOP = 0x16946a88
-BCRYPT_BASE = 0x16946a88
-BCRYPT_TOP = 0x1696ae88
-CRYPT32_BASE = 0x1696ae88
-CRYPT32_TOP = 0x16a9a488
-DNSAPI_BASE = 0x16a9a488
-DNSAPI_TOP = 0x16aec288
-MPR_BASE = 0x16aec288
-MPR_TOP = 0x16b0bc88
-NCRYPT_BASE = 0x16b0bc88
-NCRYPT_TOP = 0x16b52488
-NETUTILS_BASE = 0x16b52488
-NETUTILS_TOP = 0x16b67c88
-SAMCLI_BASE = 0x16b67c88
-SAMCLI_TOP = 0x16b84488
-SECUR32_BASE = 0x16b84488
-SECUR32_TOP = 0x16b99a88
-WKSCLI_BASE = 0x16b99a88
-WKSCLI_TOP = 0x16bb5288
-WTSAPI32_BASE = 0x16bb5288
-WTSAPI32_TOP = 0x16bcf088
-KERNELBASE_BASE = 0x16bcf088
-KERNELBASE_TOP = 0x16DE3088
-
-
-path32 = 'C:\\Windows\\SysWOW64\\'
-path64 = 'C:\\Windows\\System32\\'
-expandedDLLsPath32="expandedDLLsPath"
-expandedDLLsPath64="expandedDLLsPath"
-mods = {}
 
 allDlls=["ntdll", "kernel32", "KernelBase", "advapi32",  "comctl32",  "comdlg32",  "gdi32", "gdiplus", "imm32",  "mscoree",  "msvcrt",  "netapi32",  "ole32",  "oleaut32",  "shell32",  "shlwapi",  "urlmon",  "user32",  "wininet",  "winmm",  "ws2_32",  "wsock32", "advpack", "bcrypt", "crypt32", "dnsapi", "mpr", "ncrypt", "netutils", "samcli", "secur32", "wkscli", "wtsapi32"]
-allDllsDict = {'ntdll.dll': NTDLL_BASE, 'kernel32.dll': KERNEL32_BASE, 'KernelBase.dll': KERNELBASE_BASE, 'advapi32.dll': ADVAPI32_BASE, 'comctl32.dll': COMCTL32_BASE, 'comdlg32.dll': COMDLG32_BASE, 'gdi32.dll': GDI32_BASE, 'gdiplus.dll': GDIPLUS_BASE, 'imm32.dll': IMM32_BASE, 'mscoree.dll': MSCOREE_BASE, 'msvcrt.dll': MSVCRT_BASE, 'netapi32.dll': NETAPI32_BASE, 'ole32.dll': OLE32_BASE, 'oleaut32.dll': OLEAUT32_BASE, 'shell32.dll': SHELL32_BASE, 'shlwapi.dll': SHLWAPI_BASE, 'urlmon.dll': URLMON_BASE, 'user32.dll': USER32_BASE, 'wininet.dll': WININET_BASE, 'winmm.dll': WINMM_BASE, 'ws2_32.dll': WS2_32_BASE, 'wsock32.dll': WSOCK32_BASE, 'advpack.dll':ADVPACK_BASE, 'bcrypt.dll':BCRYPT_BASE, 'crypt32.dll':CRYPT32_BASE, 'dnsapi.dll':DNSAPI_BASE, 'mpr.dll':MPR_BASE, 'ncrypt.dll':NCRYPT_BASE, 'netutils.dll':NETUTILS_BASE, 'samcli.dll':SAMCLI_BASE, 'secur32.dll':SECUR32_BASE, 'wkscli.dll':WKSCLI_BASE, 'wtsapi32.dll':WTSAPI32_BASE}
-ldrDict = {'ntdll.dll': LDR_NTDLL_ADDR, 'kernel32.dll': LDR_KERNEL32_ADDR, 'KernelBase.dll': LDR_KERNELBASE_ADDR, 'advapi32.dll': LDR_ADVAPI32_ADDR, 'comctl32.dll': LDR_COMCTL32_ADDR, 'comdlg32.dll': LDR_COMDLG32_ADDR, 'gdi32.dll': LDR_GDI32_ADDR, 'gdiplus.dll': LDR_GDIPLUS_ADDR, 'imm32.dll': LDR_IMM32_ADDR, 'mscoree.dll': LDR_MSCOREE_ADDR, 'msvcrt.dll': LDR_MSVCRT_ADDR, 'netapi32.dll': LDR_NETAPI32_ADDR, 'ole32.dll': LDR_OLE32_ADDR, 'oleaut32.dll': LDR_OLEAUT32_ADDR, 'shell32.dll': LDR_SHELL32_ADDR, 'shlwapi.dll': LDR_SHLWAPI_ADDR, 'urlmon.dll': LDR_URLMON_ADDR, 'user32.dll': LDR_USER32_ADDR, 'wininet.dll': LDR_WININET_ADDR, 'winmm.dll': LDR_WINMM_ADDR, 'ws2_32.dll': LDR_WS2_32_ADDR, 'wsock32.dll': LDR_WSOCK32_ADDR, 'advpack.dll':LDR_ADVPACK_ADDR, 'bcrypt.dll':LDR_BCRYPT_ADDR, 'crypt32.dll':LDR_CRYPT32_ADDR, 'dnsapi.dll':LDR_DNSAPI_ADDR, 'mpr.dll':LDR_MPR_ADDR, 'ncrypt.dll':LDR_NCRYPT_ADDR, 'netutils.dll':LDR_NETUTILS_ADDR, 'samcli.dll':LDR_SAMCLI_ADDR, 'secur32.dll':LDR_SECUR32_ADDR, 'wkscli.dll':LDR_WKSCLI_ADDR, 'wtsapi32.dll':LDR_WTSAPI32_ADDR}
-
-
-ntdll="ntdll"
-kernel32="kernel32"
-advapi32="advapi32"
-comctl32="comctl32"
-comdlg32="comdlg32"
-gdiplus="gdiplus"
-gdi32="gdi32"
-imm32="imm32"
-mscoree="mscoree"
-msvcrt="msvcrt"
-netapi32="netapi32"
-ole32="ole32"
-oleaut32="oleaut32"
-shell32="shell32"
-shlwapi="shlwapi"
-urlmon="urlmon"
-user32="user32"
-wininet="wininet"
-winmm="winmm"
-ws2_32="ws2_32"
-wsock32="wsock32"
+allDllsDict = {}
 
 # This struct can have up to 0x58 total bytes depending on Windows version
 class PEB_LDR_DATA32():
@@ -246,7 +128,7 @@ class LDR_Module64():
         mu.mem_write(self.Addr+0x58, pack("<Q", 0x0000001c0000001a))
         mu.mem_write(self.Addr+0x58, pack("<Q", self.Base_Dll_Name))
 
-def allocateWinStructs32(mu):
+def allocateWinStructs32(mu, mods):
     # Put location of PEB at FS:30
     mu.mem_write(TIB_ADDR+0x30, pack("<Q", PEB_ADDR) + b'\x90'*0x88 + pack("<Q", FAST_ADDR))
     mu.mem_write((PEB_ADDR-10), b'\x4a\x41\x43\x4f\x42\x41\x41\x41\x41\x42')
@@ -289,10 +171,7 @@ def allocateWinStructs32(mu):
             nextDLL = dlls_obj[i+1]
             currentDLL.allocate(mu, nextDLL.ILO_entry, prevDLL.ILO_entry, nextDLL.IMO_entry, prevDLL.IMO_entry, nextDLL.IIO_entry, prevDLL.IIO_entry)
 
-
-def allocateWinStructs64(mu):
-    print("REEEEE")
-
+def allocateWinStructs64(mu, mods):
     # Put location of PEB at GS:60
     mu.mem_write(TIB_ADDR+0x60, pack("<Q", PEB_ADDR))
 
@@ -329,18 +208,132 @@ def allocateWinStructs64(mu):
             currentDLL.allocate(mu, nextDLL.ILO_entry, prevDLL.ILO_entry, nextDLL.IMO_entry, prevDLL.IMO_entry, nextDLL.IIO_entry, prevDLL.IIO_entry)
 
 class WinDLL:
-    def __init__(self, dllName, base, d32, d64, dExpanded32, dExpanded64, ldrAddr):
-        self.id=dllName[:-3]
-        self.name = dllName
-        self.base = base
+    def __init__(self, dllName, d32, d64, ldrAddr):
+        self.id=dllName
+        self.name = dllName + '.dll'
+        self.base = 0x0
         self.d32 = d32
         self.d64 = d64
-        self.dExpanded32=dExpanded32
-        self.dExpanded64=dExpanded64
         self.ldrAddr = ldrAddr
 
-def initMods():
-    for dllName, base in allDllsDict.items():
-        mods[dllName[:-4]]= WinDLL(dllName, base, path32+dllName, path64+dllName, expandedDLLsPath32, expandedDLLsPath64, ldrDict[dllName])
+def iter_and_dump_dlls(mu, em, export_dict, source_path, save_path, mods):
+    global MOD_LOW
 
-initMods()
+    base = 0x14100000
+    runOnce = False
+
+    for dll_name in mods:
+        dll_file = dll_name + '.dll'
+        allDllsDict[dll_file] = base
+        mods[dll_name].base = base
+
+        if os.path.exists(source_path+dll_file) == False:
+            continue
+        if os.path.exists(save_path+dll_file):
+            rawDll = readRaw(save_path + dll_file)
+        # Inflate dlls so PE offsets are correct
+        else:
+            if not runOnce:
+                if os.path.exists(source_path+dll_file) == False:
+                    print("[*] Unable to locate ", source_path,
+                          ". It is likely that this file is not included in your version of Windows.")
+                print(
+                    "Warning: DLLs must be parsed and inflated from a Windows OS.\n\tThis may take several minutes to generate the initial emulation files.\n\tThis initial step must be completed only once from a Windows machine.\n\tThe emulation will not work without these.")
+                runOnce = True
+            pe = pefile.PE(source_path+dll_file)
+            for exp in pe.DIRECTORY_ENTRY_EXPORT.symbols:
+                try:
+                    export_dict[hex(mods[dll_name].base + exp.address)] = (exp.name.decode(), dll_file)
+                except:
+                    export_dict[hex(mods[dll_name].base + exp.address)] = "unknown_function"
+
+            dllPath = source_path + dll_file
+            rawDll = padDLL(dllPath, dll_file, save_path)
+
+        # Dump the dll into emulation memory
+        mu.mem_write(base, rawDll)
+        base += len(rawDll) + 20
+
+    mod_high_val = base
+
+    return export_dict, mods, mod_high_val
+
+
+def padDLL(dllPath, dllName, expandedDLLsPath):
+    with disable_file_system_redirection():
+        pe = pefile.PE(dllPath)
+
+    virtualAddress = pe.NT_HEADERS.OPTIONAL_HEADER.DATA_DIRECTORY[0].VirtualAddress
+    i = 0
+    padding = 0
+    while True:
+        try:
+            section = pe.sections[i]
+
+            pointerToRaw = section.PointerToRawData
+            sectionVA = section.VirtualAddress
+            sizeOfRawData = section.SizeOfRawData
+
+            if (virtualAddress >= sectionVA and virtualAddress < (sectionVA + sizeOfRawData)):
+                padding = virtualAddress - (virtualAddress - sectionVA + pointerToRaw)
+                break
+        except:
+            break
+
+        i += 1
+
+    # Replace e_lfanew value
+    elfanew = pe.DOS_HEADER.e_lfanew
+    pe.DOS_HEADER.e_lfanew = elfanew + padding
+
+    tmpPath = expandedDLLsPath + dllName
+    pe.write(tmpPath)
+
+    # Add padding to dll, then save it.
+    out = readRaw(tmpPath)
+    final = insertIntoBytes(out, 0x40, padding, 0x00)
+    newBin = open(tmpPath, "wb")
+    newBin.write(final)
+    newBin.close()
+
+    rawDll = readRaw(tmpPath)
+
+    return rawDll
+
+
+def saveDLLAddsToFile(foundDLLAddrs, export_dict):
+    # Create foundDllAddresses.txt if it doesn't already exist
+    if not os.path.exists(foundDLLAddrs):
+        Path(foundDLLAddrs).touch()
+        with open(foundDLLAddrs, 'a') as out:
+            json.dump(export_dict, out)
+
+    # Make sure no duplicates get in if there's already content in the file
+    else:
+        with open(foundDLLAddrs, 'r') as f:
+            currentData = json.load(f)
+
+        with open(foundDLLAddrs, 'a') as out:
+            for apiAddr, apiInfo in export_dict.items():
+                if apiAddr not in currentData.keys():
+                    newRecord = {}
+                    newRecord[apiAddr] = apiInfo
+                    json.dump(newRecord, out)
+
+def initMods(uc, em, export_dict, source_path, save_path):
+    mods_list = ["ntdll", "kernel32", "KernelBase", "advapi32", "comctl32", "comdlg32", "gdi32", "gdiplus", "imm32",
+               "mscoree", "msvcrt", "netapi32", "ole32", "oleaut32", "shell32", "shlwapi", "urlmon", "user32",
+               "wininet", "winmm", "ws2_32", "wsock32", "advpack", "bcrypt", "crypt32", "dnsapi", "mpr", "ncrypt",
+               "netutils", "samcli", "secur32", "wkscli", "wtsapi32"]
+    path32 = 'C:\\Windows\\SysWOW64\\'
+    path64 = 'C:\\Windows\\System32\\'
+    mods = {}
+
+    mod_ldr_addr = 0x11021300
+    for dll_name in mods_list:
+        mods[dll_name] = WinDLL(dll_name, path32+dll_name, path64+dll_name, mod_ldr_addr)
+        mod_ldr_addr += 0x300
+
+    export_dict, mods, mod_high_val = iter_and_dump_dlls(uc, em, export_dict, source_path, save_path, mods)
+
+    return mods, export_dict, mod_high_val
