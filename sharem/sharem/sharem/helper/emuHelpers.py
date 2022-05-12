@@ -143,7 +143,40 @@ def set_register(uc, reg, val):
         uc.reg_write(UC_X86_REG_ESP, val)
 
 def constConvert(uc, string):
-    if (string == 'eax'):
+    if (string == 'rax'):
+        return str(uc.reg_read(UC_X86_REG_RAX))
+    elif (string == 'rbx'):
+        return str(uc.reg_read(UC_X86_REG_RBX))
+    elif (string == 'rcx'):
+        return str(uc.reg_read(UC_X86_REG_RCX))
+    elif (string == 'rdx'):
+        return str(uc.reg_read(UC_X86_REG_RDX))
+    elif (string == 'rsi'):
+        return str(uc.reg_read(UC_X86_REG_RSI))
+    elif (string == 'rdi'):
+        return str(uc.reg_read(UC_X86_REG_RDI))
+    elif (string == 'rsp'):
+        return str(uc.reg_read(UC_X86_REG_RSP))
+    elif (string == 'rbp'):
+        return str(uc.reg_read(UC_X86_REG_RBP))
+    elif (string == 'r8'):
+        return str(uc.reg_read(UC_X86_REG_R8))
+    elif (string == 'r9'):
+        return str(uc.reg_read(UC_X86_REG_R9))
+    elif (string == 'r10'):
+        return str(uc.reg_read(UC_X86_REG_R10))
+    elif (string == 'r11'):
+        return str(uc.reg_read(UC_X86_REG_R11))
+    elif (string == 'r12'):
+        return str(uc.reg_read(UC_X86_REG_R12))
+    elif (string == 'r13'):
+        return str(uc.reg_read(UC_X86_REG_R13))
+    elif (string == 'r14'):
+        return str(uc.reg_read(UC_X86_REG_R14))
+    elif (string == 'r15'):
+        return str(uc.reg_read(UC_X86_REG_R15))
+
+    elif (string == 'eax'):
         return str(uc.reg_read(UC_X86_REG_EAX))
     elif (string == 'ebx'):
         return str(uc.reg_read(UC_X86_REG_EBX))
@@ -159,6 +192,22 @@ def constConvert(uc, string):
         return str(uc.reg_read(UC_X86_REG_ESP))
     elif (string == 'ebp'):
         return str(uc.reg_read(UC_X86_REG_EBP))
+    elif (string == 'r8d'):
+        return str(uc.reg_read(UC_X86_REG_R8D))
+    elif (string == 'r9d'):
+        return str(uc.reg_read(UC_X86_REG_R9D))
+    elif (string == 'r10d'):
+        return str(uc.reg_read(UC_X86_REG_R10D))
+    elif (string == 'r11d'):
+        return str(uc.reg_read(UC_X86_REG_R11D))
+    elif (string == 'r12d'):
+        return str(uc.reg_read(UC_X86_REG_R12D))
+    elif (string == 'r13d'):
+        return str(uc.reg_read(UC_X86_REG_R13D))
+    elif (string == 'r14d'):
+        return str(uc.reg_read(UC_X86_REG_R14D))
+    elif (string == 'r15d'):
+        return str(uc.reg_read(UC_X86_REG_R15D))
 
     # Support smaller ebp and esp registers
     elif (string == 'ax'):
@@ -238,12 +287,12 @@ def controlFlow(uc, mnemonic, op_str):
 
             # Support for 64 bit as well.
             # Come up with some more test cases to make sure this works
-            regs = re.findall('e[abcdsipx]+', expr)
+            regs = re.findall('([er][abcdsipx]+|r[8910234]+)', expr)
             for i in range(0, len(regs)):
                 regs[i] = constConvert(uc, regs[i])
 
             callback.v=iter(regs)
-            expr = re.sub('e[abcdsipx]+', callback, expr)
+            expr = re.sub('([er][abcdsipx]+|r[8910234]+)', callback, expr)
 
             address = eval(expr)
             # print ("address", hex(address))
@@ -251,20 +300,18 @@ def controlFlow(uc, mnemonic, op_str):
             which=1
         elif re.match('dword ptr fs:\[0xc0]', op_str):
             address = 0x5000
-        elif re.match('e[abcdsipx]+', op_str):
-            regs = re.findall('e[abcdsipx]+', op_str)
+        elif re.match('([er][abcdsipx]+|r[8910234]+)', op_str):
+            regs = re.findall('([er][abcdsipx]+|r[8910234]+)', op_str)
+
             for i in range(0, len(regs)):
                 regs[i] = constConvert(uc, regs[i])
 
             callback.v=iter(regs)
-            address = int(re.sub('e[abcdsipx]+', callback, op_str))
+            address = int(re.sub('([er][abcdsipx]+|r[8910234]+)', callback, op_str))
             which=2
         elif re.match('0x[(0-9)|(a-f)]+', op_str):
             address = int(op_str, 16)
             which=3
-
-    if str(hex(address))=="0x44370b7b":
-        print (mnemonic, op_str, which)
 
     return address
 

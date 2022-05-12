@@ -224,31 +224,36 @@ def iter_and_dump_dlls(mu, em, export_dict, source_path, save_path, mods):
 
     for dll_name in mods:
         dll_file = dll_name + '.dll'
+
         allDllsDict[dll_file] = base
         mods[dll_name].base = base
-
-        if os.path.exists(source_path+dll_file) == False:
-            continue
+        with disable_file_system_redirection():
+            if os.path.exists(source_path+dll_file) == False:
+                continue
         if os.path.exists(save_path+dll_file):
             rawDll = readRaw(save_path + dll_file)
         # Inflate dlls so PE offsets are correct
         else:
             if not runOnce:
-                if os.path.exists(source_path+dll_file) == False:
-                    print("[*] Unable to locate ", source_path,
-                          ". It is likely that this file is not included in your version of Windows.")
-                print(
-                    "Warning: DLLs must be parsed and inflated from a Windows OS.\n\tThis may take several minutes to generate the initial emulation files.\n\tThis initial step must be completed only once from a Windows machine.\n\tThe emulation will not work without these.")
-                runOnce = True
-            pe = pefile.PE(source_path+dll_file)
-            for exp in pe.DIRECTORY_ENTRY_EXPORT.symbols:
-                try:
-                    export_dict[hex(mods[dll_name].base + exp.address)] = (exp.name.decode(), dll_file)
-                except:
-                    export_dict[hex(mods[dll_name].base + exp.address)] = "unknown_function"
+                with disable_file_system_redirection():
+                    if os.path.exists(source_path+dll_file) == False:
+                        print("[*] Unable to locate ", source_path,
+                              ". It is likely that this file is not included in your version of Windows.")
+                    print(
+                        "Warning: DLLs must be parsed and inflated from a Windows OS.\n\tThis may take several minutes to generate the initial emulation files.\n\tThis initial step must be completed only once from a Windows machine.\n\tThe emulation will not work without these.")
+                    runOnce = True
 
             dllPath = source_path + dll_file
-            rawDll = padDLL(dllPath, dll_file, save_path)
+            rawDll, padding = padDLL(dllPath, dll_file, save_path)
+
+            print(f"DLL NAME: {dll_name}, PADDING: {padding}, BASE: {base}")
+            with disable_file_system_redirection():
+                pe = pefile.PE(source_path+dll_file)
+            for exp in pe.DIRECTORY_ENTRY_EXPORT.symbols:
+                try:
+                    export_dict[hex(base + exp.address)] = (exp.name.decode(), dll_file)
+                except:
+                    export_dict[hex(base + exp.address)] = ("unknown_function", dll_file)
 
         # Dump the dll into emulation memory
         mu.mem_write(base, rawDll)
@@ -298,7 +303,7 @@ def padDLL(dllPath, dllName, expandedDLLsPath):
 
     rawDll = readRaw(tmpPath)
 
-    return rawDll
+    return rawDll, padding
 
 
 def saveDLLAddsToFile(foundDLLAddrs, export_dict):

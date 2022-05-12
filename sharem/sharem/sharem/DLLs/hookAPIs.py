@@ -14,7 +14,7 @@ availMem = 0x25000000
 
 # Custom hook for GetProcAddress. Loops through the export dictionary we created, 
 # # then returns the address of the indicated function into eax
-def hook_GetProcAddress(uc, eip, esp, export_dict, callAddr):
+def hook_GetProcAddress(uc, eip, esp, export_dict, callAddr, em):
     arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
     arg1 = unpack('<I', arg1)[0]
     arg2 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
@@ -36,7 +36,7 @@ def hook_GetProcAddress(uc, eip, esp, export_dict, callAddr):
 
     return logged_calls, cleanBytes
 
-def hook_GetProcedureAddress(uc, eip, esp, export_dict, callAddr):
+def hook_GetProcedureAddress(uc, eip, esp, export_dict, callAddr, em):
     arg1 = uc.mem_read(esp+4, 4)
     arg2 = uc.mem_read(esp+8, 4)
     arg2 = unpack('<I', arg2)[0]
@@ -57,25 +57,22 @@ def hook_GetProcedureAddress(uc, eip, esp, export_dict, callAddr):
 
     return logged_calls, cleanBytes
 
-# Make sure WinExec returns 32, then add it to created process log
-def hook_WinExec(uc, eip, esp, export_dict, callAddr):
-    # print("Using custom function...")
-    arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
-    arg1 = unpack('<I', arg1)[0]
-    arg1 = read_string(uc, arg1)
-    arg2 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
-    arg2 = unpack('<I', arg2)[0]
-    retVal = 32
+# def hook_WinExec(uc, eip, esp, export_dict, callAddr, em):
+#     # print("Using custom function...")
+#     arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
+#     arg1 = unpack('<I', arg1)[0]
+#     arg1 = read_string(uc, arg1)
+#     arg2 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
+#     arg2 = unpack('<I', arg2)[0]
+#     retVal = 32
+#
+#     uc.reg_write(UC_X86_REG_EAX, retVal)
+#     logged_calls = ("WinExec", hex(callAddr), hex(retVal), 'UINT', [arg1, hex(arg2)], ['lpCmdLine', 'uCmdShow'], ['lpCmdLine', 'uCmdShow'], False)
+#     cleanBytes = 8
+#
+#     return logged_calls, cleanBytes
 
-    uc.reg_write(UC_X86_REG_EAX, retVal)
-    logged_calls = ("WinExec", hex(callAddr), hex(retVal), 'UINT', [arg1, hex(arg2)], ['lpCmdLine', 'uCmdShow'], ['lpCmdLine', 'uCmdShow'], False)
-    cleanBytes = 8
-
-    print("Bruh2")
-
-    return logged_calls, cleanBytes
-
-def hook_LoadLibraryA(uc, eip, esp, export_dict, callAddr):
+def hook_LoadLibraryA(uc, eip, esp, export_dict, callAddr, em):
     arg1 = uc.mem_read(esp+4, 4)
     arg1 = unpack('<I', arg1)[0]
 
@@ -114,7 +111,7 @@ def hook_LoadLibraryA(uc, eip, esp, export_dict, callAddr):
     cleanBytes = 4
     return logged_calls, cleanBytes
 
-def hook_LoadLibraryW(uc, eip, esp, export_dict, callAddr):
+def hook_LoadLibraryW(uc, eip, esp, export_dict, callAddr, em):
     # print("Using custom function...")
     arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
     arg1 = unpack('<I', arg1)[0]
@@ -134,7 +131,7 @@ def hook_LoadLibraryW(uc, eip, esp, export_dict, callAddr):
     cleanBytes = 4
     return logged_calls, cleanBytes
 
-def hook_LoadLibraryExW(uc, eip, esp, export_dict, callAddr):
+def hook_LoadLibraryExW(uc, eip, esp, export_dict, callAddr, em):
     # print("Using custom function...")
     arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
     arg1 = unpack('<I', arg1)[0]
@@ -156,7 +153,7 @@ def hook_LoadLibraryExW(uc, eip, esp, export_dict, callAddr):
     return logged_calls, cleanBytes
 
 
-def hook_LdrLoadDll(uc, eip, esp, export_dict, callAddr):
+def hook_LdrLoadDll(uc, eip, esp, export_dict, callAddr, em):
     print("Doing manual function")
     arg1 = uc.mem_read(esp+4, 4)
     arg1 = unpack('<I', arg1)[0]
@@ -198,9 +195,9 @@ def hook_LdrLoadDll(uc, eip, esp, export_dict, callAddr):
     cleanBytes = 16
     return logged_calls, cleanBytes
 
-def hook_HeapCreate2(uc, eip, esp, export_dict, callAddr):
+def hook_HeapCreate2(uc, eip, esp, export_dict, callAddr, em):
     # HANDLE HeapCreate([in] DWORD  flOptions,[in] SIZE_T dwInitialSize,[in] SIZE_T dwMaximumSize);
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 3)
     pTypes=['DWORD', 'SIZE_T', 'SIZE_T']
     pNames=['flOptions', 'dwInitialSize', 'dwMaximumSize']
     flOptionsReverseLookUp={0x00040000: 'HEAP_CREATE_ENABLE_EXECUTE', 0x00000004: 'HEAP_GENERATE_EXCEPTIONS', 0x00000001: 'HEAP_NO_SERIALIZE'}
@@ -227,9 +224,9 @@ def hook_HeapCreate2(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("HeapCreate", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_HeapAlloc2(uc, eip, esp, export_dict, callAddr):
+def hook_HeapAlloc2(uc, eip, esp, export_dict, callAddr, em):
     # DECLSPEC_ALLOCATOR LPVOID HeapAlloc([in] HANDLE hHeap, [in] DWORD  dwFlags, [in] SIZE_T dwBytes)
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 3)
     pTypes=['HANDLE', 'DWORD', 'SIZE_T']
     pNames=['hHeap', 'dwFlags', 'dwBytes']
     dwFlagsReverseLookUp={0x00000008: 'HEAP_ZERO_MEMORY', 0x00000004: 'HEAP_GENERATE_EXCEPTIONS', 0x00000001: 'HEAP_NO_SERIALIZE'}
@@ -252,7 +249,7 @@ def hook_HeapAlloc2(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("HeapAlloc", hex(callAddr), (retValStr), 'PTR', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
+def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr, em):
     global availMem
 
     lpAddress = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
@@ -300,7 +297,7 @@ def hook_VirtualAlloc(uc, eip, esp, export_dict, callAddr):
 
     return logged_calls, cleanBytes
 
-def hook_ExitProcess(uc, eip, esp, export_dict, callAddr):
+def hook_ExitProcess(uc, eip, esp, export_dict, callAddr, em):
     # print("Using custom function...")
     uExitCode = uc.mem_read(esp+4, 4)
     uExitCode = unpack('<I', uExitCode)[0]
@@ -311,7 +308,7 @@ def hook_ExitProcess(uc, eip, esp, export_dict, callAddr):
 
 
 
-def hook_CreateFileA(uc, eip, esp, export_dict, callAddr):
+def hook_CreateFileA(uc, eip, esp, export_dict, callAddr, em):
     """  HANDLE CreateFile(
       LPCTSTR lpFileName, // pointer to name of the file
       DWORD dwDesiredAccess,      // access (read-write) mode
@@ -363,9 +360,9 @@ def hook_CreateFileA(uc, eip, esp, export_dict, callAddr):
 
     return logged_calls, cleanBytes
 
-def hook_CreateFileW(uc, eip, esp, export_dict, callAddr):
+def hook_CreateFileW(uc, eip, esp, export_dict, callAddr, em):
     # HANDLE CreateFileW([in] LPCWSTR lpFileName,[in] DWORD dwDesiredAccess,[in] DWORD dwShareMode,[in, optional] LPSECURITY_ATTRIBUTES lpSecurityAttributes,[in] DWORD dwCreationDisposition,[in] DWORD dwFlagsAndAttributes,[in, optional] HANDLE hTemplateFile);
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 8)
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 8)
     pTypes=['LPCWSTR', 'lpFileName', 'DWORD', 'DWORD', 'LPSECURITY_ATTRIBUTES', 'DWORD', 'DWORD', 'HANDLE']
     pNames= ["lpFileName", "dwDesiredAccess", "dwShareMode","lpSecurityAttributes", "dwCreationDistribution","dwFlagsAndAttributes", "hTemplateFile"]
     dwDesiredAccessReverseLookUp = {2147483648: 'GENERIC_READ', 1073741824: 'GENERIC_WRITE', 536870912: 'GENERIC_EXECUTE', 268435456: 'GENERIC_ALL', 0xC0000000: 'GENERIC_READ | GENERIC_WRITE'}
@@ -406,72 +403,28 @@ def hook_CreateFileW(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("CreateFileW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def makeArgVals(uc, eip, esp, export_dict, callAddr, cnt):
-    arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
-    arg1 = unpack('<I', arg1)[0]
-    arg2 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+8, 4)
-    arg2 = unpack('<I', arg2)[0]
-    arg3 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+12, 4)
-    arg3 = unpack('<I', arg3)[0]
-    arg4 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+16, 4)
-    arg4 = unpack('<I', arg4)[0]
-    arg5 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+20, 4)
-    arg5 = unpack('<I', arg5)[0]
-    arg6 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+24, 4)
-    arg6 = unpack('<I', arg6)[0]
-    arg7 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+28, 4)
-    arg7 = unpack('<I', arg7)[0]
-    arg8 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+32, 4)
-    arg8 = unpack('<I', arg8)[0]
-    arg9 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+36, 4)
-    arg9 = unpack('<I', arg9)[0]
-    arg10 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+40, 4)
-    arg10 = unpack('<I', arg10)[0]
-    arg11 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+44, 4)
-    arg11 = unpack('<I', arg11)[0]
-    arg12 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+48, 4)
-    arg12 = unpack('<I', arg12)[0]
-    arg13 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+52, 4)
-    arg13 = unpack('<I', arg13)[0]
-    arg14 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+56, 4)
-    arg14 = unpack('<I', arg14)[0]
-    arg15 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+60, 4)
-    arg15 = unpack('<I', arg15)[0]
-    arg16 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+64, 4)
-    arg16 = unpack('<I', arg16)[0]
+def getStackVal(uc, em, esp, loc):
+    # x64 Windows parameter order: rcx, rdx, r8, r9, stack
+    if loc == 1 and em.arch == 64:
+        arg = uc.reg_read(UC_X86_REG_RCX)
+    elif loc == 2 and em.arch == 64:
+        arg = uc.reg_read(UC_X86_REG_RDX)
+    elif loc == 3 and em.arch == 64:
+        arg = uc.reg_read(UC_X86_REG_R8)
+    elif loc == 4 and em.arch == 64:
+        arg = uc.reg_read(UC_X86_REG_R9)
+    else:
+        arg = uc.mem_read(esp+(4 * loc))
+        arg = unpack('<I', arg)[0]
 
-    if cnt==1:
-        return [arg1]
-    elif cnt==2:
-        return [arg1, arg2]
-    elif cnt==3:
-        return [arg1, arg2, arg3]
-    elif cnt==4:
-        return [arg1, arg2, arg3, arg4]
-    elif cnt==5:
-        return [arg1, arg2, arg3, arg4, arg5]
-    elif cnt==6:
-        return [arg1, arg2, arg3, arg4, arg5, arg6]
-    elif cnt==7:
-        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7]
-    elif cnt==8:
-        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7,arg8]
-    elif cnt==9:
-        return [arg1, arg2, arg3, arg4, arg5, arg6,arg7, arg8, arg9]
-    elif cnt==10:
-        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10]
-    elif cnt==11:
-        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11]
-    elif cnt==12:
-        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12]
-    elif cnt==13:
-        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13]
-    elif cnt==14:
-        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14]
-    elif cnt==15:
-        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15]
-    elif cnt==16:
-        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16]
+    return arg
+
+def makeArgVals(uc, em , esp, export_dict, callAddr, cnt):
+    args = [0] * cnt
+    for i in range(len(args)):
+        args[i] = getStackVal(uc, em, esp, i+1)
+
+    return args
 
 def findStringsParms(uc, pTypes,pVals, skip):
     i=0
@@ -490,12 +443,12 @@ def findStringsParms(uc, pTypes,pVals, skip):
 
         i+=1
     return pTypes, pVals
-def hook_CreateProcessA(uc, eip, esp, export_dict, callAddr):
+def hook_CreateProcessA(uc, eip, esp, export_dict, callAddr, em):
     # print ("hook_CreateProcessA2")
     """'CreateProcess': (10, ['LPCTSTR', 'LPTSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID', 'LPCTSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION'], ['lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles', 'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation'], 'BOOL'),"""
 
     # function to get values for parameters - count as specified at the end - returned as a list
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 10)
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 10)
     pTypes=['LPCTSTR', 'LPTSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID', 'LPCTSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION']
     pNames=['lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles', 'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation']
 
@@ -517,9 +470,9 @@ def hook_CreateProcessA(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("ProcessCreateA", hex(callAddr), hex(retVal), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_URLDownloadToFileA(uc, eip, esp, export_dict, callAddr):
+def hook_URLDownloadToFileA(uc, eip, esp, export_dict, callAddr, em):
     # function to get values for parameters - count as specified at the end - returned as a list
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 5)
     pTypes=['LPUNKNOWN', 'LPCSTR', 'LPCSTR', 'DWORD', 'LPBINDSTATUSCALLBACK']
     pNames=['pCaller', 'szURL', 'szFileName', 'dwReserved', 'lpfnCB']
 
@@ -535,8 +488,13 @@ def hook_URLDownloadToFileA(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("URLDownloadToFileA", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_WinExec(uc, eip, esp, export_dict, callAddr):
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+def hook_WinExec(uc, eip, esp, export_dict, callAddr, em):
+    print("WOWOWOWOWOWOWOWOW")
+
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 2)
+    print("YOOOOOOOOOOOO")
+
+
     pTypes=['LPCSTR', 'UINT']
     pNames=['lpCmdLine', 'uCmdShow']
     cmdShowReverseLookUp = {0: 'SW_HIDE', 1: 'SW_NORMAL', 2: 'SW_SHOWMINIMIZED', 3: 'SW_MAXIMIZE', 4: 'SW_SHOWNOACTIVATE', 5: 'SW_SHOW', 6: 'SW_MINIMIZE', 7: 'SW_SHOWMINNOACTIVE', 8: 'SW_SHOWNA', 9: 'SW_RESTORE', 16: 'SW_SHOWDEFAULT', 17: 'SW_FORCEMINIMIZE'}
@@ -556,12 +514,15 @@ def hook_WinExec(uc, eip, esp, export_dict, callAddr):
     retValStr=hex(retVal)
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
+    print("FINALLLY")
+
     logged_calls= ("WinExec", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+
     return logged_calls, cleanBytes
-def hook_ShellExecuteA(uc, eip, esp, export_dict, callAddr):
+def hook_ShellExecuteA(uc, eip, esp, export_dict, callAddr, em):
     # HINSTANCE ShellExecuteA([in, optional] HWND   hwnd, [in, optional] LPCSTR lpOperation,[in] LPCSTR lpFile,
     # [in, optional] LPCSTR lpParameters, [in, optional] LPCSTR lpDirectory, [in] INT    nShowCmd);
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 6)
     pTypes=['HWND', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'INT']
     pNames=['hwnd', 'lpOperation', 'lpFile', 'lpParameters', 'lpDirectory', 'nShowCmd']
     cmdShowReverseLookUp = {0: 'SW_HIDE', 1: 'SW_NORMAL', 2: 'SW_SHOWMINIMIZED', 3: 'SW_MAXIMIZE', 4: 'SW_SHOWNOACTIVATE', 5: 'SW_SHOW', 6: 'SW_MINIMIZE', 7: 'SW_SHOWMINNOACTIVE', 8: 'SW_SHOWNA', 9: 'SW_RESTORE', 16: 'SW_SHOWDEFAULT', 17: 'SW_FORCEMINIMIZE'}
@@ -583,10 +544,10 @@ def hook_ShellExecuteA(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("ShellExecuteA", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_ShellExecuteW(uc, eip, esp, export_dict, callAddr):
+def hook_ShellExecuteW(uc, eip, esp, export_dict, callAddr, em):
     # HINSTANCE ShellExecuteW([in, optional] HWND   hwnd, [in, optional] LPCSTR lpOperation,[in] LPCSTR lpFile,
     # [in, optional] LPCSTR lpParameters, [in, optional] LPCSTR lpDirectory, [in] INT    nShowCmd);
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 6)
     pTypes=['HWND', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'INT']
     pNames=['hwnd', 'lpOperation', 'lpFile', 'lpParameters', 'lpDirectory', 'nShowCmd']
     cmdShowReverseLookUp = {0: 'SW_HIDE', 1: 'SW_NORMAL', 2: 'SW_SHOWMINIMIZED', 3: 'SW_MAXIMIZE', 4: 'SW_SHOWNOACTIVATE', 5: 'SW_SHOW', 6: 'SW_MINIMIZE', 7: 'SW_SHOWMINNOACTIVE', 8: 'SW_SHOWNA', 9: 'SW_RESTORE', 16: 'SW_SHOWDEFAULT', 17: 'SW_FORCEMINIMIZE'}
@@ -608,9 +569,9 @@ def hook_ShellExecuteW(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("ShellExecuteW", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_VirtualProtect(uc, eip, esp, export_dict, callAddr):
+def hook_VirtualProtect(uc, eip, esp, export_dict, callAddr, em):
     # BOOL VirtualProtect([in]  LPVOID lpAddress,[in]  SIZE_T dwSize, [in]  DWORD  flNewProtect, [out] PDWORD lpflOldProtect)
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 4)
     pTypes=['LPVOID', 'SIZE_T', 'DWORD', 'PDWORD']
     pNames= ['lpAddress', 'dwSize', 'flNewProtect', 'lpflOldProtect']
 
@@ -631,10 +592,10 @@ def hook_VirtualProtect(uc, eip, esp, export_dict, callAddr):
 
     logged_calls= ("VirtualProtect", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
-def hook_VirtualProtectEx(uc, eip, esp, export_dict, callAddr):
+def hook_VirtualProtectEx(uc, eip, esp, export_dict, callAddr, em):
     # Need to Finish Testing when VirtualAllocEx is Commited
     # BOOL VirtualProtectEx([in]  HANDLE hProcess, [in]  LPVOID lpAddress, [in]  SIZE_T dwSize, [in]  DWORD  flNewProtect, [out] PDWORD lpflOldProtect);
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 5)
     pTypes=['HANDLE', 'LPVOID', 'SIZE_T', 'DWORD', 'PDWORD']
     pNames= ['hProcess', 'lpAddress', 'dwSize', 'flNewProtect', 'lpflOldProtect']
 
@@ -656,9 +617,9 @@ def hook_VirtualProtectEx(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("VirtualProtectEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_VirtualFree(uc, eip, esp, export_dict, callAddr):
+def hook_VirtualFree(uc, eip, esp, export_dict, callAddr, em):
     # 'VirtualFree': (3, ['LPVOID', 'SIZE_T', 'DWORD'], ['lpAddress', 'dwSize', 'dwFreeType'], 'BOOL'), 
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 3)
     pTypes=['LPVOID', 'SIZE_T', 'DWORD']
     pNames=['lpAddress', 'dwSize', 'dwFreeType']
     memReleaseReverseLookUp = {16384: 'MEM_DECOMMIT', 32768: 'MEM_RELEASE', 1: 'MEM_COALESCE_PLACEHOLDERS', 2: 'MEM_PRESERVE_PLACEHOLDER', 0x00004001: 'MEM_DECOMMIT | MEM_COALESCE_PLACEHOLDERS', 0x00004002: 'MEM_DECOMMIT | MEM_PRESERVE_PLACEHOLDER', 0x00008001: 'MEM_RELEASE | MEM_COALESCE_PLACEHOLDERS', 0x00008002: 'MEM_RELEASE | MEM_PRESERVE_PLACEHOLDER'}
@@ -681,9 +642,9 @@ def hook_VirtualFree(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("VirtualFree", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_WSASocketA(uc, eip, esp, export_dict, callAddr):
+def hook_WSASocketA(uc, eip, esp, export_dict, callAddr, em):
     # 'WSASocketA': (6, ['INT', 'INT', 'INT', 'LPWSAPROTOCOL_INFOA', 'GROUP', 'DWORD'], ['af', 'type', 'protocol', 'lpProtocolInfo', 'g', 'dwFlags'], 'SOCKET'),
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 6)
     pTypes=['int', 'int', 'int', 'LPWSAPROTOCOL_INFOA', 'GROUP', 'DWORD']
     pNames= ['af', 'type', 'protocol', 'lpProtocolInfo', 'g', 'dwFlags']
     aFReverseLookUp = {0: 'AF_UNSPEC', 2: 'AF_INET', 6: 'AF_IPX', 22: 'AF_APPLETALK', 23: 'AF_NETBIOS', 35: 'AF_INET6', 38: 'AF_IRDA', 50: 'AF_BTH'}
@@ -730,9 +691,9 @@ def hook_WSASocketA(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("WSASocketA", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_WSASocketW(uc, eip, esp, export_dict, callAddr):
+def hook_WSASocketW(uc, eip, esp, export_dict, callAddr, em):
     # 'WSASocketW': (6, ['INT', 'INT', 'INT', 'LPWSAPROTOCOL_INFOW', 'GROUP', 'DWORD'], ['af', 'type', 'protocol', 'lpProtocolInfo', 'g', 'dwFlags'], 'SOCKET'),
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 6)
     pTypes=['int', 'int', 'int', 'LPWSAPROTOCOL_INFOW', 'GROUP', 'DWORD']
     pNames= ['af', 'type', 'protocol', 'lpProtocolInfo', 'g', 'dwFlags']
     aFReverseLookUp = {0: 'AF_UNSPEC', 2: 'AF_INET', 6: 'AF_IPX', 16: 'AF_APPLETALK', 17: 'AF_NETBIOS', 23: 'AF_INET6', 26: 'AF_IRDA', 32: 'AF_BTH'}
@@ -779,9 +740,9 @@ def hook_WSASocketW(uc, eip, esp, export_dict, callAddr):
 
     logged_calls= ("WSASocketW", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
-def hook_socket(uc, eip, esp, export_dict, callAddr):
+def hook_socket(uc, eip, esp, export_dict, callAddr, em):
     # SOCKET WSAAPI socket([in] int af, [in] int type, [in] int protocol)
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 3)
     pTypes=['int', 'int', 'int']
     pNames= ['af', 'type', 'protocol']
     aFReverseLookUp = {0: 'AF_UNSPEC', 2: 'AF_INET', 6: 'AF_IPX', 16: 'AF_APPLETALK', 17: 'AF_NETBIOS', 23: 'AF_INET6', 26: 'AF_IRDA', 32: 'AF_BTH'}
@@ -816,10 +777,10 @@ def hook_socket(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("socket", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_BroadcastSystemMessageA(uc, eip, esp, export_dict, callAddr):
+def hook_BroadcastSystemMessageA(uc, eip, esp, export_dict, callAddr, em):
     # long BroadcastSystemMessage([in] DWORD   flags, [in, out, optional] LPDWORD lpInfo, 
     # [in] UINT Msg, [in]  WPARAM  wParam, [in]  LPARAM  lParam );
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 5)
     pTypes=['DWORD', 'LPDWORD', 'UINT', 'WPARAM', 'LPARAM']
     pNames= ['flags', 'lpInfo', 'Msg', 'wParam', 'lParam']
     flagsReverseLookUp = {0x00000080: 'BSF_ALLOWSFW', 0x00000004: 'BSF_FLUSHDISK', 0x00000020: 'BSF_FORCEIFHUNG', 0x00000002: 'BSF_IGNORECURRENTTASK', 0x00000008: 'BSF_NOHANG', 0x00000040: 'BSF_NOTIMEOUTIFNOTHUNG', 0x00000010: 'BSF_POSTMESSAGE', 0x00000001: 'BSF_QUERY', 0x00000100: 'BSF_SENDNOTIFYMESSAGE'}
@@ -849,10 +810,10 @@ def hook_BroadcastSystemMessageA(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("BroadcastSystemMessageA", hex(callAddr), (retValStr), 'long', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_BroadcastSystemMessageW(uc, eip, esp, export_dict, callAddr):
+def hook_BroadcastSystemMessageW(uc, eip, esp, export_dict, callAddr, em):
     # long BroadcastSystemMessage([in] DWORD   flags, [in, out, optional] LPDWORD lpInfo, 
     # [in] UINT Msg, [in]  WPARAM  wParam, [in]  LPARAM  lParam );
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 5)
     pTypes=['DWORD', 'LPDWORD', 'UINT', 'WPARAM', 'LPARAM']
     pNames= ['flags', 'lpInfo', 'Msg', 'wParam', 'lParam']
     flagsReverseLookUp = {0x00000080: 'BSF_ALLOWSFW', 0x00000004: 'BSF_FLUSHDISK', 0x00000020: 'BSF_FORCEIFHUNG', 0x00000002: 'BSF_IGNORECURRENTTASK', 0x00000008: 'BSF_NOHANG', 0x00000040: 'BSF_NOTIMEOUTIFNOTHUNG', 0x00000010: 'BSF_POSTMESSAGE', 0x00000001: 'BSF_QUERY', 0x00000100: 'BSF_SENDNOTIFYMESSAGE'}
@@ -977,8 +938,8 @@ def read_string(uc, address):
 
 
 
-def hook_CreateThread(uc, eip, esp, export_dict, callAddr):
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+def hook_CreateThread(uc, eip, esp, export_dict, callAddr, em):
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 6)
     pTypes=['LPSECURITY_ATTRIBUTES', 'SIZE_T', 'LPTHREAD_START_ROUTINE', 'LPVOID', 'DWORD', 'LPDWORD']
     pNames= ['lpThreadAttributes', 'dwStackSize', 'lpStartAddress', 'lpParameter', 'dwCreationFlags', 'lpThreadId']
     dwCreateFlagsReverseLookUp = {4: 'CREATE_SUSPENDED', 65536: 'STACK_SIZE_PARAM_IS_A_RESERVATION'}
@@ -1000,9 +961,9 @@ def hook_CreateThread(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("CreateThread", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_CreateServiceA(uc, eip, esp, export_dict, callAddr):
+def hook_CreateServiceA(uc, eip, esp, export_dict, callAddr, em):
     # SC_HANDLE CreateServiceA([in]SC_HANDLE hSCManager,[in] LPCSTR lpServiceName,[in, optional]  LPCSTR lpDisplayName,[in] DWORD dwDesiredAccess,[in] DWORD dwServiceType,[in] DWORD dwStartType,[in] DWORD dwErrorControl,[in, optional]  LPCSTR    lpBinaryPathName,[in, optional]  LPCSTR    lpLoadOrderGroup,[out, optional] LPDWORD lpdwTagId,[in, optional]  LPCSTR lpDependencies,[in, optional]  LPCSTR lpServiceStartName,[in, optional] LPCSTR lpPassword);
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 13)
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 13)
     pTypes=['SC_HANDLE', 'LPCSTR', 'LPCSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPCSTR', 'LPCSTR', 'LPDWORD', 'LPCSTR', 'LPCSTR', 'LPCSTR']
     pNames=['hSCManager', 'lpServiceName', 'lpDisplayName', 'dwDesiredAccess', 'dwServiceType', 'dwStartType', 'dwErrorControl', 'lpBinaryPathName', 'lpLoadOrderGroup', 'lpdwTagId', 'lpDependencies', 'lpServiceStartName', 'lpPassword']
     dwDesiredAccessReverseLookUp={0xf01ff: 'SERVICE_ALL_ACCESS', 0x0002: 'SERVICE_CHANGE_CONFIG', 0x0008: 'SERVICE_ENUMERATE_DEPENDENTS', 0x0080: 'SERVICE_INTERROGATE', 0x0040: 'SERVICE_PAUSE_COUNTINUE', 0x0001: 'SERVICE_QUERY_CONFIG', 0x0004: 'SERVICE_QUERY_STATUS', 0X0010: 'SERVICE_START', 0x0020: 'SERVICE_STOP', 0x0100: 'SERVICE_USER_DEFINED_CONTROL', 0x10000: 'DELETE', 0x20000: 'READ_CONTROL', 0x40000: 'WRITE_DAC', 0x80000: 'WRITE_OWNER'}
@@ -1043,9 +1004,9 @@ def hook_CreateServiceA(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("CreateServiceA", hex(callAddr), (retValStr), 'SC_HANDLE', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_CreateServiceW(uc, eip, esp, export_dict, callAddr):
+def hook_CreateServiceW(uc, eip, esp, export_dict, callAddr, em):
     # SC_HANDLE CreateServiceW([in]SC_HANDLE hSCManager,[in] LPCSTR lpServiceName,[in, optional]  LPCSTR lpDisplayName,[in] DWORD dwDesiredAccess,[in] DWORD dwServiceType,[in] DWORD dwStartType,[in] DWORD dwErrorControl,[in, optional]  LPCSTR    lpBinaryPathName,[in, optional]  LPCSTR    lpLoadOrderGroup,[out, optional] LPDWORD lpdwTagId,[in, optional]  LPCSTR lpDependencies,[in, optional]  LPCSTR lpServiceStartName,[in, optional] LPCSTR lpPassword);
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 13)
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 13)
     pTypes=['SC_HANDLE', 'LPCSTR', 'LPCSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPCSTR', 'LPCSTR', 'LPDWORD', 'LPCSTR', 'LPCSTR', 'LPCSTR']
     pNames=['hSCManager', 'lpServiceName', 'lpDisplayName', 'dwDesiredAccess', 'dwServiceType', 'dwStartType', 'dwErrorControl', 'lpBinaryPathName', 'lpLoadOrderGroup', 'lpdwTagId', 'lpDependencies', 'lpServiceStartName', 'lpPassword']
     dwDesiredAccessReverseLookUp={0xf01ff: 'SERVICE_ALL_ACCESS', 0x0002: 'SERVICE_CHANGE_CONFIG', 0x0008: 'SERVICE_ENUMERATE_DEPENDENTS', 0x0080: 'SERVICE_INTERROGATE', 0x0040: 'SERVICE_PAUSE_COUNTINUE', 0x0001: 'SERVICE_QUERY_CONFIG', 0x0004: 'SERVICE_QUERY_STATUS', 0X0010: 'SERVICE_START', 0x0020: 'SERVICE_STOP', 0x0100: 'SERVICE_USER_DEFINED_CONTROL', 0x10000: 'DELETE', 0x20000: 'READ_CONTROL', 0x40000: 'WRITE_DAC', 0x80000: 'WRITE_OWNER'}
@@ -1086,8 +1047,8 @@ def hook_CreateServiceW(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("CreateServiceW", hex(callAddr), (retValStr), 'SC_HANDLE', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_InternetOpenA(uc, eip, esp, export_dict, callAddr):
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+def hook_InternetOpenA(uc, eip, esp, export_dict, callAddr, em):
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 5)
     pTypes=['LPCSTR', 'DWORD', 'LPCSTR', 'LPCSTR', 'DWORD']
     pNames= ['lpszAgent', 'dwAccessType', 'lpszProxy', 'lpszProxyBypass', 'dwFlags']
 
@@ -1119,8 +1080,8 @@ def hook_InternetOpenA(uc, eip, esp, export_dict, callAddr):
     return logged_calls, cleanBytes
 
 
-def hook_InternetConnectA(uc, eip, esp, export_dict, callAddr):
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 8)
+def hook_InternetConnectA(uc, eip, esp, export_dict, callAddr, em):
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 8)
     pTypes=['HINTERNET', 'LPCSTR', 'INTERNET_PORT', 'LPCSTR', 'LPCSTR', 'DWORD', 'DWORD', 'DWORD_PTR']
     pNames= ['hInternet', 'lpszServerName', 'nServerPort', 'lpszUserName', 'lpszPassword', 'dwService', 'dwFlags', 'dwContext']
 
@@ -1156,8 +1117,8 @@ def hook_InternetConnectA(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("InternetConnectA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_CreateRemoteThread(uc, eip, esp, export_dict, callAddr):
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 7)
+def hook_CreateRemoteThread(uc, eip, esp, export_dict, callAddr, em):
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 7)
     pTypes=['HANDLE', 'LPSECURITY_ATTRIBUTES', 'SIZE_T', 'LPTHREAD_START_ROUTINE', 'LPVOID', 'DWORD', 'LPDWORD']
     pNames= ['hProcess', 'lpThreadAttributes', 'dwStackSize', 'lpStartAddress', 'lpParameter', 'dwCreationFlags', 'lpThreadId']
 
@@ -1182,7 +1143,7 @@ def hook_CreateRemoteThread(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("CreateRemoteThread", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_VirtualAllocEx(uc, eip, esp, export_dict, callAddr):
+def hook_VirtualAllocEx(uc, eip, esp, export_dict, callAddr, em):
     global availMem
 
     hProcess = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
@@ -1231,9 +1192,9 @@ def hook_VirtualAllocEx(uc, eip, esp, export_dict, callAddr):
 
     return logged_calls, cleanBytes
 
-def hook_RegCreateKeyExA2(uc, eip, esp, export_dict, callAddr):
+def hook_RegCreateKeyExA2(uc, eip, esp, export_dict, callAddr, em):
     # LSTATUS RegCreateKeyExA([in] HKEY hKey,[in] LPCSTR lpSubKey,DWORD Reserved,[in, optional]  LPSTR lpClass,[in] DWORD dwOptions,[in] REGSAM samDesired,[in, optional] const LPSECURITY_ATTRIBUTES lpSecurityAttributes,[out] PHKEY phkResult,[out, optional] LPDWORD lpdwDisposition);
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 4)
     pTypes=['HKEY', 'LPCSTR', 'DWORD', 'LPSTR', 'DWORD', 'REGSAM', 'LPSECURITY_ATTRIBUTES', 'PHKEY', 'LPDWORD']
     pNames= ['hKey', 'lpSubKey', 'Reserved', 'lpClass', 'dwOptions', 'samDesired', 'lpSecurityAttributes', 'phkResult', 'lpdwDisposition']
     dwOptionsReverseLookUp={4: 'REG_OPTION_BACKUP_RESTORE', 2: 'REG_OPTION_CREATE_LINK', 0: 'REG_OPTION_NON_VOLATILE', 1: 'REG_OPTION_VOLATILE'}
@@ -1268,8 +1229,8 @@ def hook_RegCreateKeyExA2(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("RegCreateKeyExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
     
-def hook_RegDeleteKeyExA(uc, eip, esp, export_dict, callAddr):
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+def hook_RegDeleteKeyExA(uc, eip, esp, export_dict, callAddr, em):
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 4)
     pTypes=['HKEY', 'LPCSTR', 'REGSAM', 'DWORD']
     pNames= ['hKey', 'lpSubKey', 'samDesired', 'Reserved']
 
@@ -1294,8 +1255,8 @@ def hook_RegDeleteKeyExA(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("RegDeleteKeyExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_RegGetValueA(uc, eip, esp, export_dict, callAddr):
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 7)
+def hook_RegGetValueA(uc, eip, esp, export_dict, callAddr, em):
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 7)
     pTypes=['HKEY', 'LPCSTR', 'LPCSTR', 'DWORD', 'LPDWORD', 'PVOID', 'LPDWORD']
     pNames= ['hKey', 'lpSubKey', 'lpValue', 'dwFlags', 'pdwType', 'pvData', 'pcbData']
 
@@ -1320,8 +1281,8 @@ def hook_RegGetValueA(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("RegGetValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_CryptDecrypt(uc, eip, esp, export_dict, callAddr):
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+def hook_CryptDecrypt(uc, eip, esp, export_dict, callAddr, em):
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 6)
     pTypes=['HCRYPTKEY', 'HCRYPTHASH', 'BOOL', 'DWORD', 'BYTE', 'DWORD']
     pNames= ['hKey', 'hHash', 'Final', 'dwFlags', 'pbData', 'pdwDataLen']
 
@@ -1344,8 +1305,8 @@ def hook_CryptDecrypt(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("CryptDecrypt", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_SetWindowsHookExA(uc, eip, esp, export_dict, callAddr):
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+def hook_SetWindowsHookExA(uc, eip, esp, export_dict, callAddr, em):
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 4)
     pTypes=['int', 'HOOKPROC', 'HINSTANCE', 'DWORD']
     pNames= ['idHook', 'lpfn', 'hmod', 'dwThreadId']
 
@@ -1369,8 +1330,8 @@ def hook_SetWindowsHookExA(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("SetWindowsHookExA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_CreateToolhelp32Snapshot(uc, eip, esp, export_dict, callAddr):
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+def hook_CreateToolhelp32Snapshot(uc, eip, esp, export_dict, callAddr, em):
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 2)
     pTypes=['DWORD', 'DWORD']
     pNames= ['dwFlags', 'th32ProcessID']
 
@@ -1394,9 +1355,9 @@ def hook_CreateToolhelp32Snapshot(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("CreateToolhelp32Snapshot", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_shutdown(uc, eip, esp, export_dict, callAddr):
+def hook_shutdown(uc, eip, esp, export_dict, callAddr, em):
     # 'WSASocketA': (6, ['INT', 'INT', 'INT', 'LPWSAPROTOCOL_INFOA', 'GROUP', 'DWORD'], ['af', 'type', 'protocol', 'lpProtocolInfo', 'g', 'dwFlags'], 'SOCKET'),
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 2)
     pTypes=['SOCKET', 'int']
     pNames= ['s', 'how']
 
@@ -1420,8 +1381,8 @@ def hook_shutdown(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("shutdown", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_ReplaceFileA(uc, eip, esp, export_dict, callAddr):
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+def hook_ReplaceFileA(uc, eip, esp, export_dict, callAddr, em):
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 6)
     pTypes=['LPCSTR', 'LPCSTR', 'LPCSTR', 'DWORD', 'LPVOID', 'LPVOID']
     pNames= ['lpReplacedFileName', 'lpReplacementFileName', 'lpBackupFileName', 'dwReplaceFlags', 'lpExclude', 'lpReserved']
 
@@ -1444,8 +1405,8 @@ def hook_ReplaceFileA(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("ReplaceFileA", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_ReadDirectoryChangesW(uc, eip, esp, export_dict, callAddr):
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 8)
+def hook_ReadDirectoryChangesW(uc, eip, esp, export_dict, callAddr, em):
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 8)
     pTypes=['HANDLE', 'LPVOID', 'DWORD', 'BOOL', 'DWORD', 'LPDWORD', 'LPOVERLAPPED', 'LPOVERLAPPED_COMPLETION_ROUTINE']
     pNames= ['hDirectory', 'lpBuffer', 'nBufferLength', 'bWatchSubtree', 'dwNotifyFilter', 'lpBytesReturned', 'lpOverlapped', 'lpCompletionRoutine']
 
@@ -1469,8 +1430,8 @@ def hook_ReadDirectoryChangesW(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("ReadDirectoryChangesW", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_InternetCombineUrlW(uc, eip, esp, export_dict, callAddr):
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+def hook_InternetCombineUrlW(uc, eip, esp, export_dict, callAddr, em):
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 5)
     pTypes=['LPCWSTR', 'LPCWSTR', 'LPWSTR', 'LPDWORD', 'DWORD']
     pNames= ['lpszBaseUrl', 'lpszRelativeUrl', 'lpszBuffer', 'lpdwBufferLength', 'dwFlags']
 
@@ -1493,8 +1454,8 @@ def hook_InternetCombineUrlW(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("InternetCombineUrlW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_ExitWindowsEx(uc, eip, esp, export_dict, callAddr):
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+def hook_ExitWindowsEx(uc, eip, esp, export_dict, callAddr, em):
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 2)
     pTypes=['UINT', 'DWORD']
     pNames= ['uFlags', 'dwReason']
 
@@ -1524,8 +1485,8 @@ def hook_ExitWindowsEx(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("ExitWindowsEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_SetFileAttributesA(uc, eip, esp, export_dict, callAddr):
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+def hook_SetFileAttributesA(uc, eip, esp, export_dict, callAddr, em):
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 2)
     pTypes=['LPCSTR', 'DWORD']
     pNames= ['lpFileName', 'dwFileAttributes']
 
@@ -1549,8 +1510,8 @@ def hook_SetFileAttributesA(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("SetFileAttributesA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_ControlService(uc, eip, esp, export_dict, callAddr):
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+def hook_ControlService(uc, eip, esp, export_dict, callAddr, em):
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 3)
     pTypes=['SC_HANDLE', 'DWORD', 'LPSERVICE_STATUS']
     pNames= ['hService', 'dwControl', 'lpServiceStatus']
 
@@ -1574,8 +1535,8 @@ def hook_ControlService(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("ControlService", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_CreateFileMappingA(uc, eip, esp, export_dict, callAddr):
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+def hook_CreateFileMappingA(uc, eip, esp, export_dict, callAddr, em):
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 6)
     pTypes=['HANDLE', 'LPSECURITY_ATTRIBUTES', 'DWORD', 'DWORD', 'DWORD', 'LPCSTR']
     pNames= ['hFile', 'lpFileMappingAttributes', 'flProtect', 'dwMaximumSizeHigh', 'dwMaximumSizeLow', 'lpName']
 
@@ -1599,8 +1560,8 @@ def hook_CreateFileMappingA(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("CreateFileMappingA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_CryptAcquireContextA(uc, eip, esp, export_dict, callAddr):
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+def hook_CryptAcquireContextA(uc, eip, esp, export_dict, callAddr, em):
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 5)
     pTypes=['HCRYPTPROV', 'LPCSTR', 'LPCSTR', 'DWORD', 'DWORD']
     pNames= ['phProv', 'szContainer', 'szProvider', 'dwProvType', 'dwFlags']
 
@@ -1630,7 +1591,7 @@ def hook_CryptAcquireContextA(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("CryptAcquireContextA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_Toolhelp32ReadProcessMemory(uc, eip, esp, export_dict, callAddr):
+def hook_Toolhelp32ReadProcessMemory(uc, eip, esp, export_dict, callAddr, em):
     global availMem
 
     th32ProcessID = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+4, 4)
@@ -1669,8 +1630,8 @@ def hook_Toolhelp32ReadProcessMemory(uc, eip, esp, export_dict, callAddr):
 
     return logged_calls, cleanBytes
 
-def hook_OpenSCManagerA(uc, eip, esp, export_dict, callAddr):
-    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+def hook_OpenSCManagerA(uc, eip, esp, export_dict, callAddr, em):
+    pVals = makeArgVals(uc, em, esp, export_dict, callAddr, 3)
     pTypes=['LPCSTR', 'LPCSTR', 'DWORD']
     pNames= ['lpMachineName', 'lpDatabaseName', 'dwDesiredAccess']
 

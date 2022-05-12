@@ -218,7 +218,7 @@ def hook_WindowsAPI(uc, addr, ret, size, funcAddress):
     except:
         funcName = "DIDNOTFIND- " + funcAddress
     try:
-        funcInfo, cleanBytes = globals()['hook_' + funcName](uc, eip, esp, export_dict, addr)
+        funcInfo, cleanBytes = globals()['hook_' + funcName](uc, eip, esp, export_dict, addr, em)
         logCall(funcName, funcInfo)
 
     except:
@@ -361,6 +361,9 @@ def hook_code(uc, address, size, user_data):
 
     traversedAdds.add(address)
 
+
+    if address == 0x120000ca:
+        print(hex(jumpAddr))
 
     # Hook usage of Windows API function
     if jumpAddr > MOD_LOW and jumpAddr < MOD_HIGH:
@@ -733,14 +736,9 @@ def test_i386(mode, code):
         print(traceback.format_exc())
 
     try:
-        # ("before", mu.mem_read(CODE_ADDR + em.entryOffset,20))
         # Start the emulation
         mu.emu_start(CODE_ADDR + em.entryOffset, (CODE_ADDR + em.entryOffset) + len(code))
 
-        # print("after", mu.mem_read(CODE_ADDR + em.entryOffset,20))
-        # finalOut=mu.mem_read(CODE_ADDR + em.entryOffset,len(code))
-        # fRaw.giveEnd(finalOut)
-        # print ("testout",test)
         print("\n")
     except Exception as e:
         print(e)
