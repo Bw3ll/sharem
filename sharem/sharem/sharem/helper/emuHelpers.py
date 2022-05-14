@@ -16,8 +16,6 @@ import binascii
 from pathlib import Path
 import sys
 
-PEB_ADDR = 0x11017000
-
 def read_unicode(uc, address):
     ret = ""
     c = uc.mem_read(address, 1)[0]
