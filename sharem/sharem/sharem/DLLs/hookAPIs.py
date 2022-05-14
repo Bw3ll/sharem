@@ -1,3 +1,4 @@
+from enum import Enum, auto
 from random import choice, randint
 from unicorn.x86_const import *
 from struct import pack, unpack
@@ -12,20 +13,70 @@ MemLookUp = {'MEM_COMMIT | MEM_RESERVE':'0x3000', 'MEM_COMMIT': '0x1000', 'MEM_F
 MemReverseLookUp = {0x3000:'MEM_COMMIT | MEM_RESERVE', 4096: 'MEM_COMMIT', 65536: 'MEM_FREE', 8192: 'MEM_RESERVE', 16777216: 'MEM_IMAGE', 262144: 'MEM_MAPPED', 131072: 'MEM_PRIVATE', 16: 'PAGE_EXECUTE', 32: 'PAGE_EXECUTE_READ', 64: 'PAGE_EXECUTE_READWRITE', 128: 'PAGE_EXECUTE_WRITECOPY', 1: 'PAGE_NOACCESS', 2: 'PAGE_READONLY', 4: 'PAGE_READWRITE', 1073741824: 'PAGE_TARGETS_NO_UPDATE'}
 availMem = 0x25000000
 HeapsDict = {} # Dictionary of All Heaps
+HandlesDict = {} # Dictionary of All Handles
+
+class HandleType(Enum):
+    CreateThread = auto()
+    CreateRemoteThread = auto()
+    SetWindowsHookExA = auto()
+    SetWindowsHookExW = auto()
+    CreateToolhelp32Snapshot = auto()
+    # Internet Handles
+    InternetOpenA = auto()
+    InternetOpenW = auto()
+    InternetConnectA = auto()
+    InternetConnectW = auto()
+    InternetOpenUrlA = auto()
+    InternetOpenUrlW = auto()
+    HttpOpenRequestA = auto()
+    HttpOpenRequestW = auto()
+    FtpOpenFileA = auto()
+    FtpOpenFileW = auto()
+    # File Handles
+    CreateFileA = auto()
+    CreateFileW = auto()
+    CreateFileMappingA = auto()
+    CreateFileMappingW = auto()
+    CreateFileMappingNumaA = auto()
+    CreateFileMappingNumaW = auto()
+    CreateMutexA = auto()
+    CreateMutexW = auto()
+    CreateMutexExA = auto()
+    CreateMutexExW = auto()
+    # Service Handles
+    OpenSCManagerA = auto()
+    OpenSCManagerW = auto()
+    CreateServiceA = auto()
+    CreateServiceW = auto()
+
+class Handle:
+    usedHandles = set()
+    def __init__(self, type: HandleType, data = None, handleValue = 0):
+        if handleValue == 0:
+            # Generate Handle Value
+            handleValue = randint(0x10000000,0x1fffffff)
+            while handleValue in self.usedHandles:
+                handleValue = randint(0x10000000,0x1fffffff)
+        self.usedHandles.add(handleValue)
+        self.value = handleValue
+        self.type = type
+        self.data = data
+        HandlesDict.update({self.value: self})
 
 class System_SnapShot:
     def __init__(self, fakeThreads: bool, fakeModules: bool):
-        self.processOffset = 4
-        self.threadOffset = 1000
+        self.processOffset = 0
+        self.threadOffset = 0
         self.moduleOffset = 0
         self.baseThreadID = 1000
         self.processDict = {4: struct_PROCESSENTRY32(0,10,0,0,'System'), 2688: struct_PROCESSENTRY32(2688,16,0,4,'explorer.exe'), 9172: struct_PROCESSENTRY32(9172,10,2688,10,'calc.exe'), 8280: struct_PROCESSENTRY32(8280,50,2688,16,'chrome.exe'), 11676: struct_PROCESSENTRY32(11676,78,2688,15,'notepad.exe'), 8768: struct_PROCESSENTRY32(8768,20,2688,4,'firefox.exe')}
-        self.threadDict = {}
-        self.moduleList = []
+        self.threadDict: dict[int,struct_THREADENTRY32] = {}
+        self.moduleList: list[struct_MODULEENTRY32] = []
         if fakeThreads:
             self.fakeThreads()
         if fakeModules:
             self.fakeModules()
+        self.resetOffsets()
     
     def fakeThreads(self):
         for k, v in self.processDict.items(): # Create Fake Threads
@@ -36,7 +87,7 @@ class System_SnapShot:
     def fakeModules(self):
         allDllsSizeDict = {'ntdll.dll': NTDLL_TOP-NTDLL_BASE, 'kernel32.dll': KERNEL32_TOP-KERNEL32_BASE, 'KernelBase.dll': KERNELBASE_TOP-KERNELBASE_BASE, 'advapi32.dll': ADVAPI32_TOP-ADVAPI32_BASE, 'comctl32.dll': COMCTL32_TOP-COMCTL32_BASE, 'comdlg32.dll':COMDLG32_TOP-COMDLG32_BASE, 'gdi32.dll': GDI32_TOP-GDI32_BASE, 'gdiplus.dll': GDIPLUS_TOP-GDIPLUS_BASE, 'imm32.dll': IMM32_TOP-IMM32_BASE, 'mscoree.dll': MSCOREE_TOP-MSCOREE_BASE, 'msvcrt.dll': MSVCRT_TOP-MSVCRT_BASE, 'netapi32.dll': NETAPI32_TOP-NETAPI32_BASE, 'ole32.dll': OLE32_TOP-OLE32_BASE, 'oleaut32.dll': OLEAUT32_TOP-OLEAUT32_BASE, 'shell32.dll': SHELL32_TOP-SHELL32_BASE, 'shlwapi.dll': SHLWAPI_TOP-SHLWAPI_BASE, 'urlmon.dll': URLMON_TOP-URLMON_BASE, 'user32.dll': USER32_TOP-USER32_BASE, 'wininet.dll': WININET_TOP-WININET_BASE, 'winmm.dll': WINMM_TOP-WINMM_BASE, 'ws2_32.dll': WS2_32_TOP-WS2_32_BASE, 'wsock32.dll': WSOCK32_TOP-WSOCK32_BASE, 'advpack.dll': ADVPACK_TOP-ADVPACK_BASE, 'bcrypt.dll': BCRYPT_TOP-BCRYPT_BASE, 'crypt32.dll': CRYPT32_TOP-CRYPT32_BASE, 'dnsapi.dll': DNSAPI_TOP-DNSAPI_BASE, 'mpr.dll': MPR_TOP-MPR_BASE, 'ncrypt.dll':NCRYPT_TOP-NCRYPT_BASE, 'netutils.dll': NETUTILS_TOP-NETUTILS_BASE, 'samcli.dll': SAMCLI_TOP-SAMCLI_BASE, 'secur32.dll': SECUR32_TOP-SECUR32_BASE, 'wkscli.dll': WKSCLI_TOP-WKSCLI_BASE, 'wtsapi32.dll': WTSAPI32_TOP-WTSAPI32_BASE}
         for k, v in self.processDict.items():
-            moduleCount = randint(2,20)
+            moduleCount = randint(2,16) # Add Random Number of Modules
             modules = set()
             for i in range(moduleCount):
                 selectedDLL = choice(list(allDllsDict))
@@ -52,8 +103,6 @@ class System_SnapShot:
             self.moduleOffset = 0
         except:
             pass
-
-SystemSnapShot = System_SnapShot(True, True)
 
 # Custom hook for GetProcAddress. Loops through the export dictionary we created, 
 # # then returns the address of the indicated function into eax
@@ -536,7 +585,8 @@ def hook_CreateToolhelp32Snapshot(uc, eip, esp, export_dict, callAddr):
     pNames= ['dwFlags', 'th32ProcessID']
     dwFlagsReverseLookUp = {2147483648: 'TH32CS_INHERIT', 15: 'TH32CS_SNAPALL', 1: 'TH32CS_SNAPHEAPLIST', 8: 'TH32CS_SNAPMODULE', 16: 'TH32CS_SNAPMODULE32', 2: 'TH32CS_SNAPPROCESS', 4: 'TH32CS_SNAPTHREAD', 15: 'TH32CS_SNAPALL'}
 
-    SystemSnapShot.resetOffsets()
+    SnapShot = System_SnapShot(True, True)
+    handle = Handle(HandleType.CreateToolhelp32Snapshot, data=SnapShot)
 
     search= pVals[0]
     if search in dwFlagsReverseLookUp:
@@ -549,7 +599,7 @@ def hook_CreateToolhelp32Snapshot(uc, eip, esp, export_dict, callAddr):
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
     cleanBytes=len(pTypes)*4
-    retVal=0x00666666
+    retVal=handle.value
     retValStr=hex(retVal)
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -562,8 +612,19 @@ def hook_Process32First(uc: Uc, eip, esp, export_dict, callAddr):
     pTypes=['HANDLE', 'LPPROCESSENTRY32']
     pNames= ['hSnapshot', 'lppe']
 
-    if SystemSnapShot.processOffset in SystemSnapShot.processDict:
-        process = SystemSnapShot.processDict[SystemSnapShot.processOffset]
+    # Get Handle
+    if pVals[0] in HandlesDict:
+        handle = HandlesDict[pVals[0]]
+        if handle.type != HandleType.CreateToolhelp32Snapshot:
+            handle.data = System_SnapShot(True, True)
+            handle.type = HandleType.CreateToolhelp32Snapshot
+    else:
+        SnapShot = System_SnapShot(True, True)
+        handle = Handle(HandleType.CreateToolhelp32Snapshot, data=SnapShot, handleValue=pVals[0])
+
+    # Get First Process
+    if handle.data.processOffset in handle.data.processDict:
+        process = handle.data.processDict[handle.data.processOffset]
         process.writeToMemoryA(uc, pVals[1])
         retVal=0x1
         retValStr='TRUE'
@@ -587,16 +648,26 @@ def hook_Process32Next(uc: Uc, eip, esp, export_dict, callAddr):
     pTypes=['HANDLE', 'LPPROCESSENTRY32']
     pNames= ['hSnapshot', 'lppe']
 
+    # Get Handle
+    if pVals[0] in HandlesDict:
+        handle = HandlesDict[pVals[0]]
+        if handle.type != HandleType.CreateToolhelp32Snapshot:
+            handle.data = System_SnapShot(True, True)
+            handle.type = HandleType.CreateToolhelp32Snapshot
+    else:
+        SnapShot = System_SnapShot(True, True)
+        handle = Handle(HandleType.CreateToolhelp32Snapshot, data=SnapShot, handleValue=pVals[0])
+
     # Get Next Process
     try:
-        processList = list(SystemSnapShot.processDict)
-        SystemSnapShot.processOffset = processList[processList.index(SystemSnapShot.processOffset)+1]
+        processList = list(handle.data.processDict)
+        handle.data.processOffset = processList[processList.index(handle.data.processOffset)+1]
     except:
-        SystemSnapShot.processOffset = None
+        handle.data.processOffset = None
         pass
 
-    if SystemSnapShot.processOffset in SystemSnapShot.processDict:
-        process = SystemSnapShot.processDict[SystemSnapShot.processOffset]
+    if handle.data.processOffset in handle.data.processDict:
+        process = handle.data.processDict[handle.data.processOffset]
         process.writeToMemoryA(uc, pVals[1])
         retVal=0x1
         retValStr='TRUE'
@@ -620,8 +691,19 @@ def hook_Process32FirstW(uc: Uc, eip, esp, export_dict, callAddr):
     pTypes=['HANDLE', 'LPPROCESSENTRY32W']
     pNames= ['hSnapshot', 'lppe']
 
-    if SystemSnapShot.processOffset in SystemSnapShot.processDict:
-        process = SystemSnapShot.processDict[SystemSnapShot.processOffset]
+    # Get Handle
+    if pVals[0] in HandlesDict:
+        handle = HandlesDict[pVals[0]]
+        if handle.type != HandleType.CreateToolhelp32Snapshot:
+            handle.data = System_SnapShot(True, True)
+            handle.type = HandleType.CreateToolhelp32Snapshot
+    else:
+        SnapShot = System_SnapShot(True, True)
+        handle = Handle(HandleType.CreateToolhelp32Snapshot, data=SnapShot, handleValue=pVals[0])
+
+    # Get First Process
+    if handle.data.processOffset in handle.data.processDict:
+        process = handle.data.processDict[handle.data.processOffset]
         process.writeToMemoryW(uc, pVals[1])
         retVal=0x1
         retValStr='TRUE'
@@ -645,16 +727,26 @@ def hook_Process32NextW(uc: Uc, eip, esp, export_dict, callAddr):
     pTypes=['HANDLE', 'LPPROCESSENTRY32W']
     pNames= ['hSnapshot', 'lppe']
 
+    # Get Handle
+    if pVals[0] in HandlesDict:
+        handle = HandlesDict[pVals[0]]
+        if handle.type != HandleType.CreateToolhelp32Snapshot:
+            handle.data = System_SnapShot(True, True)
+            handle.type = HandleType.CreateToolhelp32Snapshot
+    else:
+        SnapShot = System_SnapShot(True, True)
+        handle = Handle(HandleType.CreateToolhelp32Snapshot, data=SnapShot, handleValue=pVals[0])
+
     # Get Next Process
     try:
-        processList = list(SystemSnapShot.processDict)
-        SystemSnapShot.processOffset = processList[processList.index(SystemSnapShot.processOffset)+1]
+        processList = list(handle.data.processDict)
+        handle.data.processOffset = processList[processList.index(handle.data.processOffset)+1]
     except:
-        SystemSnapShot.processOffset = None
+        handle.data.processOffset = None
         pass
 
-    if SystemSnapShot.processOffset in SystemSnapShot.processDict:
-        process = SystemSnapShot.processDict[SystemSnapShot.processOffset]
+    if handle.data.processOffset in handle.data.processDict:
+        process = handle.data.processDict[handle.data.processOffset]
         process.writeToMemoryW(uc, pVals[1])
         retVal=0x1
         retValStr='TRUE'
@@ -678,8 +770,19 @@ def hook_Thread32First(uc: Uc, eip, esp, export_dict, callAddr):
     pTypes=['HANDLE', 'LPTHREADENTRY32']
     pNames= ['hSnapshot', 'lpte']
 
-    if SystemSnapShot.threadOffset in SystemSnapShot.threadDict:
-        thread = SystemSnapShot.threadDict[SystemSnapShot.threadOffset]
+    # Get Handle
+    if pVals[0] in HandlesDict:
+        handle = HandlesDict[pVals[0]]
+        if handle.type != HandleType.CreateToolhelp32Snapshot:
+            handle.data = System_SnapShot(True, True)
+            handle.type = HandleType.CreateToolhelp32Snapshot
+    else:
+        SnapShot = System_SnapShot(True, True)
+        handle = Handle(HandleType.CreateToolhelp32Snapshot, data=SnapShot, handleValue=pVals[0])
+
+    # Get First Thread
+    if handle.data.threadOffset in handle.data.threadDict:
+        thread = handle.data.threadDict[handle.data.threadOffset]
         thread.writeToMemory(uc, pVals[1])
         retVal=0x1
         retValStr='TRUE'
@@ -705,16 +808,26 @@ def hook_Thread32Next(uc: Uc, eip, esp, export_dict, callAddr):
     pTypes=['HANDLE', 'LPTHREADENTRY32']
     pNames= ['hSnapshot', 'lpte']
 
+    # Get Handle
+    if pVals[0] in HandlesDict:
+        handle = HandlesDict[pVals[0]]
+        if handle.type != HandleType.CreateToolhelp32Snapshot:
+            handle.data = System_SnapShot(True, True)
+            handle.type = HandleType.CreateToolhelp32Snapshot
+    else:
+        SnapShot = System_SnapShot(True, True)
+        handle = Handle(HandleType.CreateToolhelp32Snapshot, data=SnapShot, handleValue=pVals[0])
+
     # Get Next Thread
     try:
-        threadList = list(SystemSnapShot.threadDict)
-        SystemSnapShot.threadOffset = threadList[threadList.index(SystemSnapShot.threadOffset)+1]
+        threadList = list(handle.data.threadDict)
+        handle.data.threadOffset = threadList[threadList.index(handle.data.threadOffset)+1]
     except:
-        SystemSnapShot.threadOffset = None
+        handle.data.threadOffset = None
         pass
 
-    if SystemSnapShot.threadOffset in SystemSnapShot.threadDict:
-        thread = SystemSnapShot.threadDict[SystemSnapShot.threadOffset]
+    if handle.data.threadOffset in handle.data.threadDict:
+        thread = handle.data.threadDict[handle.data.threadOffset]
         thread.writeToMemory(uc, pVals[1])
         retVal=0x1
         retValStr='TRUE'
@@ -737,9 +850,20 @@ def hook_Module32First(uc: Uc, eip, esp, export_dict, callAddr):
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
     pTypes=['HANDLE', 'LPMODULEENTRY32']
     pNames= ['hSnapshot', 'lpme']
+    
+    # Get Handle
+    if pVals[0] in HandlesDict:
+        handle = HandlesDict[pVals[0]]
+        if handle.type != HandleType.CreateToolhelp32Snapshot:
+            handle.data = System_SnapShot(True, True)
+            handle.type = HandleType.CreateToolhelp32Snapshot
+    else:
+        SnapShot = System_SnapShot(True, True)
+        handle = Handle(HandleType.CreateToolhelp32Snapshot, data=SnapShot, handleValue=pVals[0])
 
-    if SystemSnapShot.moduleOffset < len(SystemSnapShot.moduleList):
-        module = SystemSnapShot.moduleList[SystemSnapShot.moduleOffset]
+    # Get First Module
+    if handle.data.moduleOffset < len(handle.data.moduleList):
+        module = handle.data.moduleList[handle.data.moduleOffset]
         module.writeToMemoryA(uc, pVals[1])
         retVal=0x1
         retValStr='TRUE'
@@ -762,15 +886,25 @@ def hook_Module32Next(uc: Uc, eip, esp, export_dict, callAddr):
     pTypes=['HANDLE', 'LPMODULEENTRY32']
     pNames= ['hSnapshot', 'lpme']
 
+    # Get Handle
+    if pVals[0] in HandlesDict:
+        handle = HandlesDict[pVals[0]]
+        if handle.type != HandleType.CreateToolhelp32Snapshot:
+            handle.data = System_SnapShot(True, True)
+            handle.type = HandleType.CreateToolhelp32Snapshot
+    else:
+        SnapShot = System_SnapShot(True, True)
+        handle = Handle(HandleType.CreateToolhelp32Snapshot, data=SnapShot, handleValue=pVals[0])
+
     # Get Next Module
     try:
-        SystemSnapShot.moduleOffset += 1
+        handle.data.moduleOffset += 1
     except:
-        SystemSnapShot.moduleOffset = None
+        handle.data.moduleOffset = None
         pass
 
-    if SystemSnapShot.moduleOffset < len(SystemSnapShot.moduleList):
-        module = SystemSnapShot.moduleList[SystemSnapShot.moduleOffset]
+    if handle.data.moduleOffset < len(handle.data.moduleList):
+        module = handle.data.moduleList[handle.data.moduleOffset]
         module.writeToMemoryA(uc, pVals[1])
         retVal=0x1
         retValStr='TRUE'
@@ -794,8 +928,19 @@ def hook_Module32FirstW(uc: Uc, eip, esp, export_dict, callAddr):
     pTypes=['HANDLE', 'LPMODULEENTRY32']
     pNames= ['hSnapshot', 'lpme']
 
-    if SystemSnapShot.moduleOffset < len(SystemSnapShot.moduleList):
-        module = SystemSnapShot.moduleList[SystemSnapShot.moduleOffset]
+    # Get Handle
+    if pVals[0] in HandlesDict:
+        handle = HandlesDict[pVals[0]]
+        if handle.type != HandleType.CreateToolhelp32Snapshot:
+            handle.data = System_SnapShot(True, True)
+            handle.type = HandleType.CreateToolhelp32Snapshot
+    else:
+        SnapShot = System_SnapShot(True, True)
+        handle = Handle(HandleType.CreateToolhelp32Snapshot, data=SnapShot, handleValue=pVals[0])
+
+    # Get First Module
+    if handle.data.moduleOffset < len(handle.data.moduleList):
+        module = handle.data.moduleList[handle.data.moduleOffset]
         module.writeToMemoryW(uc, pVals[1])
         retVal=0x1
         retValStr='TRUE'
@@ -819,15 +964,25 @@ def hook_Module32NextW(uc: Uc, eip, esp, export_dict, callAddr):
     pTypes=['HANDLE', 'LPMODULEENTRY32W']
     pNames= ['hSnapshot', 'lpme']
 
+    # Get Handle
+    if pVals[0] in HandlesDict:
+        handle = HandlesDict[pVals[0]]
+        if handle.type != HandleType.CreateToolhelp32Snapshot:
+            handle.data = System_SnapShot(True, True)
+            handle.type = HandleType.CreateToolhelp32Snapshot
+    else:
+        SnapShot = System_SnapShot(True, True)
+        handle = Handle(HandleType.CreateToolhelp32Snapshot, data=SnapShot, handleValue=pVals[0])
+
     # Get Next Module
     try:
-        SystemSnapShot.moduleOffset += 1
+        handle.data.moduleOffset += 1
     except:
-        SystemSnapShot.moduleOffset = None
+        handle.data.moduleOffset = None
         pass
 
-    if SystemSnapShot.moduleOffset < len(SystemSnapShot.moduleList):
-        module = SystemSnapShot.moduleList[SystemSnapShot.moduleOffset]
+    if handle.data.moduleOffset < len(handle.data.moduleList):
+        module = handle.data.moduleList[handle.data.moduleOffset]
         module.writeToMemoryW(uc, pVals[1])
         retVal=0x1
         retValStr='TRUE'
@@ -1278,6 +1433,8 @@ def hook_CreateFileW(uc, eip, esp, export_dict, callAddr):
     dwCreationDistributionReverseLookUp = {2: 'CREATE_ALWAYS', 1: 'CREATE_NEW', 4: 'TRUNCATE_EXISTING', 3: 'OPEN_EXISTING', 5: 'TRUNCATE_EXISTING'}
     dwFlagsAndAttributesReverseLookUp = {32: 'FILE_ATTRIBUTE_ARCHIVE', 16384: 'FILE_ATTRIBUTE_ENCRYPTED', 2: 'FILE_ATTRIBUTE_HIDDEN', 128: 'FILE_ATTRIBUTE_NORMAL', 4096: 'FILE_ATTRIBUTE_OFFLINE', 1: 'FILE_ATTRIBUTE_READONLY', 4: 'FILE_ATTRIBUTE_SYSTEM', 256: 'FILE_ATTRIBUTE_TEMPORARY', 33554432: 'FILE_FLAG_BACKUP_SEMANTICS', 67108864: 'FILE_FLAG_DELETE_ON_CLOSE', 536870912: 'FILE_FLAG_NO_BUFFERING', 1048576: 'FILE_FLAG_OPEN_NO_RECALL', 2097152: 'FILE_FLAG_OPEN_REPARSE_POINT', 1073741824: 'FILE_FLAG_OVERLAPPED', 16777216: 'FILE_FLAG_POSIX_SEMANTICS', 268435456: 'FILE_FLAG_RANDOM_ACCESS', 8388608: 'FILE_FLAG_SESSION_AWARE', 134217728: 'FILE_FLAG_SEQUENTIAL_SCAN', 2147483648: 'FILE_FLAG_WRITE_THROUGH'}
     
+    handle = Handle(HandleType.CreateFileW)
+
     search= pVals[1]
     if search in dwDesiredAccessReverseLookUp:
         pVals[1]=dwDesiredAccessReverseLookUp[search]
@@ -1304,7 +1461,7 @@ def hook_CreateFileW(uc, eip, esp, export_dict, callAddr):
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
     cleanBytes=len(pTypes)*4
-    retVal=FakeProcess
+    retVal=handle.value
     retValStr=hex(retVal)
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -2013,6 +2170,8 @@ def hook_CreateServiceA(uc, eip, esp, export_dict, callAddr):
     dwStartTypeReverseLookUp={0x00000002: 'SERVICE_AUTO_START', 0x00000000: 'SERVICE_BOOT_START', 0x00000003: 'SERVICE_DEMAND_START', 0x00000004: 'SERVICE_DISABLED', 0x00000001: 'SERVICE_SYSTEM_START'}
     dwErrorControlReverseLookUp={0x00000003: 'SERVICE_ERROR_CRITICAL', 0x00000000: 'SERVICE_ERROR_IGNORE', 0x00000001: 'SERVICE_ERROR_NORMAL', 0x00000002: 'SERVICE_ERROR_SEVERE'}
 
+    handle = Handle(HandleType.CreateServiceA)
+
     search= pVals[3]
     if search in dwDesiredAccessReverseLookUp:
         pVals[3]=dwDesiredAccessReverseLookUp[search]
@@ -2039,7 +2198,7 @@ def hook_CreateServiceA(uc, eip, esp, export_dict, callAddr):
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
     cleanBytes=len(pTypes)*4
-    retVal=FakeProcess # Return HANDLE to service
+    retVal=handle.value
     retValStr=hex(retVal)
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -2056,6 +2215,8 @@ def hook_CreateServiceW(uc, eip, esp, export_dict, callAddr):
     dwStartTypeReverseLookUp={0x00000002: 'SERVICE_AUTO_START', 0x00000000: 'SERVICE_BOOT_START', 0x00000003: 'SERVICE_DEMAND_START', 0x00000004: 'SERVICE_DISABLED', 0x00000001: 'SERVICE_SYSTEM_START'}
     dwErrorControlReverseLookUp={0x00000003: 'SERVICE_ERROR_CRITICAL', 0x00000000: 'SERVICE_ERROR_IGNORE', 0x00000001: 'SERVICE_ERROR_NORMAL', 0x00000002: 'SERVICE_ERROR_SEVERE'}
 
+    handle = Handle(HandleType.CreateServiceW)
+
     search= pVals[3]
     if search in dwDesiredAccessReverseLookUp:
         pVals[3]=dwDesiredAccessReverseLookUp[search]
@@ -2082,7 +2243,7 @@ def hook_CreateServiceW(uc, eip, esp, export_dict, callAddr):
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
     cleanBytes=len(pTypes)*4
-    retVal=FakeProcess # Return HANDLE to service
+    retVal=handle.value
     retValStr=hex(retVal)
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -3641,4 +3802,111 @@ def hook_CreateFileMappingNumaW(uc, eip, esp, export_dict, callAddr):
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
     logged_calls= ("CreateFileMappingNumaW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_CreateMutexA(uc, eip, esp, export_dict, callAddr):
+    # HANDLE CreateMutexA([in, optional] LPSECURITY_ATTRIBUTES lpMutexAttributes,[in] BOOL bInitialOwner,[in, optional] LPCSTR lpName)
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['LPSECURITY_ATTRIBUTES', 'BOOL', 'LPCSTR']
+    pNames= ['lpMutexAttributes', 'bInitialOwner', 'lpName']
+
+    handle = Handle(HandleType.CreateMutexA)
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=handle.value
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CreateMutexA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_CreateMutexW(uc, eip, esp, export_dict, callAddr):
+    # HANDLE CreateMutexW([in, optional] LPSECURITY_ATTRIBUTES lpMutexAttributes,[in] BOOL bInitialOwner,[in, optional] LPCWSTR lpName)
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['LPSECURITY_ATTRIBUTES', 'BOOL', 'LPCWSTR']
+    pNames= ['lpMutexAttributes', 'bInitialOwner', 'lpName']
+
+    handle = Handle(HandleType.CreateMutexW)
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=handle.value
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CreateMutexW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_CreateMutexExA(uc, eip, esp, export_dict, callAddr):
+    # HANDLE CreateMutexExA([in, optional] LPSECURITY_ATTRIBUTES lpMutexAttributes,[in, optional] LPCSTR lpName,[in] DWORD dwFlags,[in] DWORD dwDesiredAccess);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    pTypes=['LPSECURITY_ATTRIBUTES', 'LPCSTR', 'DWORD', 'DWORD']
+    pNames= ['lpMutexAttributes', 'lpName', 'dwFlags', 'dwDesiredAccess']
+    dwFlagsReverseLookUp={0x00000001: 'CREATE_MUTEX_INITIAL_OWNER'}
+    dwDesiredAccessReverseLookUp={0xf01ff: 'SERVICE_ALL_ACCESS', 0x0002: 'SERVICE_CHANGE_CONFIG', 0x0008: 'SERVICE_ENUMERATE_DEPENDENTS', 0x0080: 'SERVICE_INTERROGATE', 0x0040: 'SERVICE_PAUSE_COUNTINUE', 0x0001: 'SERVICE_QUERY_CONFIG', 0x0004: 'SERVICE_QUERY_STATUS', 0X0010: 'SERVICE_START', 0x0020: 'SERVICE_STOP', 0x0100: 'SERVICE_USER_DEFINED_CONTROL', 0x10000: 'DELETE', 0x20000: 'READ_CONTROL', 0x40000: 'WRITE_DAC', 0x80000: 'WRITE_OWNER'}
+
+    handle = Handle(HandleType.CreateMutexExA)
+
+    search= pVals[2]
+    if search in dwFlagsReverseLookUp:
+        pVals[2]=dwFlagsReverseLookUp[search]
+    else:
+        pVals[2]=hex(pVals[2])
+
+    search= pVals[3]
+    if search in dwDesiredAccessReverseLookUp:
+        pVals[3]=dwDesiredAccessReverseLookUp[search]
+    else:
+        pVals[3]=hex(pVals[3])
+
+    #create strings for everything except ones in our skip
+    skip=[2,3]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+    cleanBytes=len(pTypes)*4
+    retVal=handle.value
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CreateMutexExA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_CreateMutexExW(uc, eip, esp, export_dict, callAddr):
+    # HANDLE CreateMutexExW([in, optional] LPSECURITY_ATTRIBUTES lpMutexAttributes,[in, optional] LPCWSTR lpName,[in] DWORD dwFlags,[in] DWORD dwDesiredAccess);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    pTypes=['LPSECURITY_ATTRIBUTES', 'LPCWSTR', 'DWORD', 'DWORD']
+    pNames= ['lpMutexAttributes', 'lpName', 'dwFlags', 'dwDesiredAccess']
+    dwFlagsReverseLookUp={0x00000001: 'CREATE_MUTEX_INITIAL_OWNER'}
+    dwDesiredAccessReverseLookUp={0xf01ff: 'SERVICE_ALL_ACCESS', 0x0002: 'SERVICE_CHANGE_CONFIG', 0x0008: 'SERVICE_ENUMERATE_DEPENDENTS', 0x0080: 'SERVICE_INTERROGATE', 0x0040: 'SERVICE_PAUSE_COUNTINUE', 0x0001: 'SERVICE_QUERY_CONFIG', 0x0004: 'SERVICE_QUERY_STATUS', 0X0010: 'SERVICE_START', 0x0020: 'SERVICE_STOP', 0x0100: 'SERVICE_USER_DEFINED_CONTROL', 0x10000: 'DELETE', 0x20000: 'READ_CONTROL', 0x40000: 'WRITE_DAC', 0x80000: 'WRITE_OWNER'}
+
+    handle = Handle(HandleType.CreateMutexExA)
+
+    search= pVals[2]
+    if search in dwFlagsReverseLookUp:
+        pVals[2]=dwFlagsReverseLookUp[search]
+    else:
+        pVals[2]=hex(pVals[2])
+
+    search= pVals[3]
+    if search in dwDesiredAccessReverseLookUp:
+        pVals[3]=dwDesiredAccessReverseLookUp[search]
+    else:
+        pVals[3]=hex(pVals[3])
+
+    #create strings for everything except ones in our skip
+    skip=[2,3]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=handle.value
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CreateMutexExW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
