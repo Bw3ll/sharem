@@ -3422,3 +3422,123 @@ def hook_CreateMutexExW(uc, eip, esp, export_dict, callAddr):
 
     logged_calls= ("CreateMutexExW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
+
+def hook_ReleaseMutex(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL ReleaseMutex([in] HANDLE hMutex);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['HANDLE']
+    pNames= ['hMutex']
+
+    # Remove Handle from HandlesDict
+    if pVals[0] in HandlesDict:
+        HandlesDict.pop(pVals[0])
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("ReleaseMutex", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetComputerNameA(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL GetComputerNameA([out] LPSTR lpBuffer,[in, out] LPDWORD nSize);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['LPSTR', 'LPDWORD']
+    pNames= ['lpBuffer', 'nSize']
+
+    computerName = 'Desktop-JR4WS'.encode('ascii')
+    uc.mem_write(pVals[0], pack('<15s', computerName))
+    uc.mem_write(pVals[1], pack('<I',len(computerName)))
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetComputerNameA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetComputerNameW(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL GetComputerNameW([out] LPWSTR lpBuffer,[in, out] LPDWORD nSize);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['LPWSTR', 'LPDWORD']
+    pNames= ['lpBuffer', 'nSize']
+    
+    computerName = 'Desktop-JR4WS'.encode('utf-16')
+    uc.mem_write(pVals[0], pack('<30s', computerName[2:]))
+    uc.mem_write(pVals[1], pack('<I',len(computerName)))
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetComputerNameW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetComputerNameExA(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL GetComputerNameExA([in] COMPUTER_NAME_FORMAT NameType,[out] LPSTR  lpBuffer,[in, out] LPDWORD nSize);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['COMPUTER_NAME_FORMAT', 'LPSTR', 'LPDWORD']
+    pNames= ['NameType', 'lpBuffer', 'nSize']
+    nameTypeReverseLookup = {  0: 'ComputerNameNetBIOS', 1: 'ComputerNameDnsHostname', 2: 'ComputerNameDnsDomain', 3: 'ComputerNameDnsFullyQualified', 4: 'ComputerNamePhysicalNetBIOS', 5: 'ComputerNamePhysicalDnsHostname', 6: 'ComputerNamePhysicalDnsDomain', 7: 'ComputerNamePhysicalDnsFullyQualified', 8: 'ComputerNameMax'}
+    
+    pVals[0] = getLookUpVal(pVals[0], nameTypeReverseLookup)
+    
+    computerName = 'Desktop-JR4WS'.encode('ascii')
+    uc.mem_write(pVals[1], pack('<15s', computerName))
+    uc.mem_write(pVals[2], pack('<I',len(computerName)))
+
+    
+
+    #create strings for everything except ones in our skip
+    skip=[0]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetComputerNameExA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetComputerNameExW(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL GetComputerNameExW([in] COMPUTER_NAME_FORMAT NameType,[out] LPWSTR  lpBuffer,[in, out] LPDWORD nSize);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['COMPUTER_NAME_FORMAT', 'LPWSTR', 'LPDWORD']
+    pNames= ['NameType', 'lpBuffer', 'nSize']
+    nameTypeReverseLookup = {  0: 'ComputerNameNetBIOS', 1: 'ComputerNameDnsHostname', 2: 'ComputerNameDnsDomain', 3: 'ComputerNameDnsFullyQualified', 4: 'ComputerNamePhysicalNetBIOS', 5: 'ComputerNamePhysicalDnsHostname', 6: 'ComputerNamePhysicalDnsDomain', 7: 'ComputerNamePhysicalDnsFullyQualified', 8: 'ComputerNameMax'}
+    
+    pVals[0] = getLookUpVal(pVals[0], nameTypeReverseLookup)
+    
+    computerName = 'Desktop-JR4WS'.encode('utf-16')
+    uc.mem_write(pVals[1], pack('<30s', computerName[2:]))
+    uc.mem_write(pVals[2], pack('<I',len(computerName[2:])))
+
+    
+
+    #create strings for everything except ones in our skip
+    skip=[0]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetComputerNameExW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes

@@ -3,7 +3,7 @@ from ..helper.emuHelpers import Uc
 
 class struct_PROCESSENTRY32:
     # Backs both PROCESSENTRY32 and PROCESSENTRY32W
-    def __init__(self, processID, threadCount, parent_pID, baseThreadPriority, exeFile):
+    def __init__(self, processID, threadCount, parent_pID, baseThreadPriority, exeFile: str):
         self.dwSizeA = 296 # Ascii Size
         self.dwSizeW = 556 # Unicode Size
         self.cntUsage = 0 # No Longer Used
@@ -17,7 +17,7 @@ class struct_PROCESSENTRY32:
         self.szExeFile = exeFile
 
     def writeToMemoryA(self, uc: Uc, address):
-        packedStruct = pack('<IIILIIIlI260s', self.dwSizeA, self.cntUsage, self.th32ProcessID, self.th32DefaultHeapID, self.th32ModuleID, self.cntThreads, self.th32ParentProcessID, self.pcPriClassBase, self.dwFlags, bytes(self.szExeFile, 'ascii'))
+        packedStruct = pack('<IIILIIIlI260s', self.dwSizeA, self.cntUsage, self.th32ProcessID, self.th32DefaultHeapID, self.th32ModuleID, self.cntThreads, self.th32ParentProcessID, self.pcPriClassBase, self.dwFlags, self.szExeFile.encode('ascii'))
         uc.mem_write(address, packedStruct)
 
     def readFromMemoryA(self, uc: Uc, address):
@@ -35,7 +35,7 @@ class struct_PROCESSENTRY32:
         self.szExeFile = unpackedStruct[9].decode()
 
     def writeToMemoryW(self, uc: Uc, address):
-        packedStruct = pack('<IIILIIIlI520s', self.dwSizeW, self.cntUsage, self.th32ProcessID, self.th32DefaultHeapID, self.th32ModuleID, self.cntThreads, self.th32ParentProcessID, self.pcPriClassBase, self.dwFlags, bytes(self.szExeFile, 'utf-8'))
+        packedStruct = pack('<IIILIIIlI520s', self.dwSizeW, self.cntUsage, self.th32ProcessID, self.th32DefaultHeapID, self.th32ModuleID, self.cntThreads, self.th32ParentProcessID, self.pcPriClassBase, self.dwFlags,self.szExeFile.encode('utf-16')[2:])
         uc.mem_write(address, packedStruct)
 
     def readFromMemoryW(self, uc: Uc, address):
@@ -81,7 +81,7 @@ class struct_THREADENTRY32:
 
 class struct_MODULEENTRY32:
     # Backs both MODULEENTRY32 and MODULEENTRY32W
-    def __init__(self, th32ProcessID, modBaseAddr, modBaseSize, hModule, szModule, szExePath):
+    def __init__(self, th32ProcessID, modBaseAddr, modBaseSize, hModule, szModule: str, szExePath: str):
         self.dwSizeA = 548 # Ascii Size
         self.dwSizeW = 1064 # unicode Size
         self.th32ModuleID = 1 # No Longer Used
@@ -95,7 +95,7 @@ class struct_MODULEENTRY32:
         self.szExePath = szExePath
 
     def writeToMemoryA(self, uc: Uc, address):
-        packedStruct = pack('<IIIIIIII256s260s', self.dwSizeA, self.th32ModuleID, self.th32ProcessID, self.GlblcntUsage, self.ProccntUsage, self.modBaseAddr, self.modBaseSize, self.hModule, bytes(self.szModule, 'ascii'), bytes(self.szExePath, 'ascii'))
+        packedStruct = pack('<IIIIIIII256s260s', self.dwSizeA, self.th32ModuleID, self.th32ProcessID, self.GlblcntUsage, self.ProccntUsage, self.modBaseAddr, self.modBaseSize, self.hModule, self.szModule.encode('ascii'), self.szExePath.encode('ascii'))
         uc.mem_write(address, packedStruct)
 
     def readFromMemoryA(self, uc: Uc, address):
@@ -113,7 +113,7 @@ class struct_MODULEENTRY32:
         self.szExePath = unpackedStruct[9].decode()
 
     def writeToMemoryW(self, uc: Uc, address):
-        packedStruct = pack('<IIIIIIII512s520s', self.dwSizeW, self.th32ModuleID, self.th32ProcessID, self.GlblcntUsage, self.ProccntUsage, self.modBaseAddr, self.modBaseSize, self.hModule, bytes(self.szModule, 'utf-8'), bytes(self.szExePath, 'utf-8'))
+        packedStruct = pack('<IIIIIIII512s520s', self.dwSizeW, self.th32ModuleID, self.th32ProcessID, self.GlblcntUsage, self.ProccntUsage, self.modBaseAddr, self.modBaseSize, self.hModule, self.szModule.encode('utf-16')[2:], self.szExePath.encode('utf-16')[2:])
         uc.mem_write(address, packedStruct)
 
     def readFromMemoryW(self, uc: Uc, address):
