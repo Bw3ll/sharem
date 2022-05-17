@@ -4,7 +4,7 @@ sudo apt-get install vim git python3-pip make build-essential libssl-dev zlib1g-
 
 sudo BUILD_LIB=1 pip install ssdeep
 
-python3 ../sharem/setup.py install
+sudo python3 ../sharem/setup.py install
 python3 -m pip install -e ../sharem 
 
 exec $SHELL
