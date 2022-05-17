@@ -635,6 +635,158 @@ def logSysCall(syscallName, syscallInfo):
     paramValues += syscallInfo[4]
 
 def findArtifacts():
+    paths = []
+    path_artifacts = []
+    file_artifacts = []
+    commandLine_artifacts = []
+    web_artifacts = []
+    registry_artifacts = []
+    exe_dll_artifacts =[]
+
+    ## ============================================================================
+    ## PATHs
+    ## -----------------------------
+    find_environment = r"(?:(?:\%[A-Za-z86]+\%)(?:(?:\\|\/|\\\\)(?:[^<>\"\*\/\\\|\?\n])+)+)"
+    find_letterDrives = r"(?:(?:[A-za-z]:)(?:(?:\\|\/|\\\\)(?:[^<>\"\*\/\\\|\?\n])+)+)"
+    find_relativePaths = r"(?:(?:\.\.)(?:(?:\\|\/|\\\\)(?:[^<>\"\*\/\\\|\?\n]+))+)"
+    find_networkShares = r"(?:(?:\\\\)(?:[^<>\"\*\/\\\|\?\n]+)(?:(?:\\|\/|\\\\)(?:[^<>\"\*\/\\\|\?\n]+(?:\$|\:)?))+)"
+    total_findPaths = find_letterDrives+"|"+find_relativePaths+"|"+find_networkShares+"|"+find_environment
+    ##*****************************************************************************
+    ## FILES
+    ## -----------------------------
+    find_files = r"(?:[^<>:\"\*\/\\\|\?\n]+)(?:\.[A-Za-z1743]{2,5})"
+    # gives a couple false positives, but this can be improved upon slowly
+    ## works best when paired with other regex.
+    find_zip = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:7z|zip|rar|tar|tar.gz)(?:\b)"
+    find_genericFiles = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:bin|log|exe|dll|txt|ini|ico|lnk|tmp|bak|cfg|config|msi|dat|rtf|cer|sys|cab|iso|db|asp|  aspx|html|htm)(?:\b)"
+    find_images = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:jpg|gid|gmp|jpeg|png|tif|gif|bmp|tiff)(?:\b)"
+    find_programming = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:com|cpp|java|js|php|py|bat|c|pyc|py3|pyw|jar|eps)(?:\b)"
+    find_workRelated = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:xls|xlsm|xlsx|ppt|pptx|doc|docx|pdf|wpd|odt|dodp|pps|key|diff|docm|eml|email|msg|pst|pub|    sldm|sldx|wbk|xll|xla|xps|dbf|accdb|accde|accdr|accdt|sql|sqlite|mdb)(?:\b)"
+    find_videoAudio = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:mp4|mpg|mpeg|avi|mp3|wav|aac|adt|adts|aif|aifc|aiff|cda|flv|m4a)(?:\b)"
+    find_totalFiles = find_genericFiles+"|"+find_images+"|"+find_programming+"|"+find_workRelated+"|"+find_videoAudio
+    find_totalFilesBeginning = "^"+find_genericFiles+"|^"+find_images+"|^"+find_programming+"|^"+find_workRelated+"|^"+find_videoAudio
+    
+    ##*****************************************************************************
+    ## COMMAND LINE ARGUMENTS
+    ## -----------------------------
+    valid_cmd_characters = r"(?:[A-Za-z0-9 \/\\=\-_:!@#\$%\^&\*\(\)><\.\"'`\{\};\[\]\+,\|]+)"
+    find_cmdLine = r"(?:(?:cmd(?:\.exe)?)(?:\s+(?:\/[cCkKaAuUdDxX]|\/[eEfFvV]:..|\/[tT]:[0-9a-fA-F])+)+)"
+    find_powershell = r"(?:powershell(?:\.exe)?)"
+    find_regCMD = r"(?:reg(?:\.exe)?(?:\s+(?:add|compare|copy|delete|export|import|load|query|restore|save|unload))+)"
+    find_netCMD = r"(?:net(?:\.exe)?(?:\s+(?:accounts|computer|config|continue|file|group|help|helpmsg|localgroup|name|pause|print|send|session|    share|start|statistics|stop|time|use|user|view))+)"
+    find_schtasksCMD = r"(?:schtasks(?:\.exe)?\s+)(?:\/(?:change|create|delete|end|query|run))"
+    find_netsh = r"(?:netsh(?:\.exe)?\s+(?:abort|add|advfirewall|alias|branchcache|bridge|bye|commit|delete|dhcpclient|dnsclient|dump|exec|exit|    firewall|help|http|interface|ipsec|ipsecdosprotection|lan|namespace|netio|offline|online|popd|pushd|quit|ras|rpc|set|show|trace|unalias|    wfp|winhttp|winsock))"
+    cmdline_args = find_cmdLine+valid_cmd_characters
+    powershell_args= find_powershell+valid_cmd_characters
+    reg_args = find_regCMD+valid_cmd_characters
+    net_args = find_netCMD+valid_cmd_characters
+    netsh_args = find_netsh+valid_cmd_characters
+    schtask_args = find_schtasksCMD+valid_cmd_characters
+    total_commandLineArguments = cmdline_args+"|"+powershell_args+ "|"+reg_args+"|"+net_args+"|"+netsh_args+"|"+schtask_args
+    
+    ##*****************************************************************************
+    ## WEB
+    ## -----------------------------
+    valid_web_ending1 = r"(?:\\|\/|\\\\|:)(?:[^\s\'\",]+)"
+    valid_web_ending2 = r"(?:\b)"
+    find_website = r"(?:(?:(?:http|https):\/\/|www)(?:[^\s\'\",]+))"
+    find_doubleLetterDomains = r"(?:www)?(?:[^\\\s\'\",])+\.(?:cn|bd|it|ul|cd|ch|br|ml|ga|us|pw|eu|cf|uk|ws|zw|ke|am|vn|tk|gq|pl|ca|pe|su|de|me|    au|fr|be|pk|th|it|nid|tw|cc|ng|tz|lk|sa|ru)"
+    find_tripleLetterDomains = r"(?:www)?(?:[^\\\s\'\",])+\.(?:xyz|top|bar|cam|sbs|org|win|arn|moe|fun|uno|mail|stream|club|vip|ren|kim|mom|pro|    gdn|biz|ooo|xin|cfd|men|com|net|edu|gov|mil|org|int)"
+    find_4LettersDomains = r"(?:www)?(?:[^\\\s\'\",])+\.(?:host|rest|shot|buss|cyou|surf|info|help|life|best|live|archi|acam|load|part|mobi|loan|   asia|jetzt|email|space|site|date|want|casa|link|bond|store|click|work|mail)"
+    find_5MoreDomains = r"(?:www)?(?:[^\\\s\'\",])+\.(?:monster|name|reset|quest|finance|cloud|kenya|accountants|support|solar|online|yokohama| ryukyu|country|download|website|racing|digital|tokyo|world)"
+    find_2_valid1 = find_doubleLetterDomains + valid_web_ending1
+    find_2_valid2 = find_doubleLetterDomains + valid_web_ending2
+    find_3_valid1 = find_tripleLetterDomains + valid_web_ending1
+    find_3_valid2 = find_tripleLetterDomains + valid_web_ending2
+    find_4_valid1 = find_4LettersDomains + valid_web_ending1
+    find_4_valid2 = find_4LettersDomains + valid_web_ending2
+    find_5_valid1 = find_5MoreDomains + valid_web_ending1
+    find_5_valid2 = find_5MoreDomains + valid_web_ending2
+    find_genericTLD = r"(?:(?:[A-Za-z\.])+\.(?:[A-Za-z0-9]{2,63}))"
+    find_ftp = r"(?:(?:ftp):\/\/(?:[\S]+))"
+    find_ipAddress = r"(?:(?:[0-9]{,3}\.[0-9]{,3}\.[0-9]{,3}\.[0-9]{,3})(?:[^\s\'\",]+))"
+    total_webTraffic = find_website+"|"+find_ftp+"|"+find_ipAddress+"|"+find_2_valid1+"|"+find_2_valid2+"|"+find_3_valid1+"|"+find_3_valid2+"|"+    find_4_valid1+"|"+find_4_valid2+"|"+find_5_valid1+"|"+find_5_valid2
+    ##*****************************************************************************
+    ## REGISTRY
+    ## -----------------------------
+    find_HKEY = r"(?:(?:HKEY|HKLM|HKCU|HKCC|HKCR|HKU)(?:\:)?(?:[_A-z0-9])+(?:\\[^\\\n]+)+)"
+    find_CurrentUser = r"(?:(?:AppEvents|Console|Control Panel|Environment|EUDC|Identities|Keyboard Layout|Network|Printers|Remote|Software|    System|Uninstall|Volatile Environment)(?:\\[^\\\n]+)+)"
+    find_LocalMachine = r"(?:(?:SOFTWARE|SYSTEM|HARDWARE|SAM|BCD00000000)(?:\\[^\\\n]+){+)"
+    find_Users = r"(?:(?:\.DEFAULT|S[\-0-9]+(?:_Classes)?)(?:\\[^\\\n]+)+)"
+    find_CurrentConfig = r"(?:(?:SOFTWARE|SYSTEM)(?:\\[^\\\n]+)+)"
+    total_Registry = find_HKEY +"|"+ find_CurrentUser +"|"+ find_LocalMachine +"|"+ find_Users +"|"+ find_CurrentConfig
+    
+    ##*****************************************************************************
+    ## EXE OR DLL
+    ## -----------------------------
+    find_exe_dll = r"(?:.*)(?:\.exe|\.dll)(?:\b)"
+
+    for p in paramValues:
+        #-------------------------------------------
+        #       Finding Paths
+        #-------------------------------------------   
+        # path_artifacts += re.findall(find_environment,str(p))
+        # path_artifacts += re.findall(find_letterDrives,str(p))
+        # path_artifacts += re.findall(find_relativePaths,str(p))
+        # path_artifacts += re.findall(find_networkShares,str(p))
+        paths += re.findall(total_findPaths,str(p))
+        # -------------------------------------------
+        #       Finding Files
+        #-------------------------------------------        
+        # file_artifacts += re.findall(find_files,str(p))
+        # file_artifacts += re.findall(find_genericFiles,str(p))
+        # file_artifacts += re.findall(find_zip,str(p))
+        # file_artifacts += re.findall(find_images,str(p))
+        # file_artifacts += re.findall(find_programming,str(p))
+        # file_artifacts += re.findall(find_workRelated,str(p))
+        # file_artifacts += re.findall(find_videoAudio,str(p))
+        # file_artifacts += re.findall(find_totalFiles,str(p))
+        file_artifacts += re.findall(find_totalFilesBeginning,str(p))
+        #-------------------------------------------
+        #       Finding Command line
+        #-------------------------------------------   
+        # commandLine_artifacts += re.findall(cmdline_args,str(p))
+        # commandLine_artifacts += re.findall(powershell_args,str(p))
+        # commandLine_artifacts += re.findall(reg_args,str(p))
+        # commandLine_artifacts += re.findall(net_args,str(p))
+        # commandLine_artifacts += re.findall(netsh_args,str(p))
+        # commandLine_artifacts += re.findall(schtask_args,str(p),re.IGNORECASE)
+        # commandLine_artifacts += re.findall(sc_args,str(p))
+        commandLine_artifacts += re.findall(total_commandLineArguments,str(p))
+        #-------------------------------------------
+        #       Finding WEB
+        #-------------------------------------------   
+        # web_artifacts += re.findall(find_website,str(p))
+        # web_artifacts += re.findall(find_ftp,str(p))
+        web_artifacts += re.findall(total_webTraffic,str(p))
+        #-------------------------------------------
+        #       Finding Registry
+        #-------------------------------------------   
+        # registry_artifacts += re.findall(find_HKEY,str(p))
+        # registry_artifacts += re.findall(find_CurrentUser,str(p))
+        # registry_artifacts += re.findall(find_LocalMachine,str(p))
+        # registry_artifacts += re.findall(find_Users,str(p))
+        # registry_artifacts += re.findall(find_CurrentConfig,str(p))
+        registry_artifacts += re.findall(total_Registry,str(p))
+        #-------------------------------------------
+        #       Finding Exe / DLL
+        #-------------------------------------------
+         
+
+    for item in paths:
+        # print(item)
+        if("exe" in item or "EXE" in item):
+            exe_dll_artifacts.append(item)
+        elif("dll" in item or "DLL" in item):
+            exe_dll_artifacts.append(item)
+        else:
+            path_artifacts.append(item)
+
+        
+
+    return list(dict.fromkeys(path_artifacts)), list(dict.fromkeys(file_artifacts)), list(dict.fromkeys(commandLine_artifacts)), list(dict.fromkeys(web_artifacts)), list(dict.fromkeys(registry_artifacts)), list(dict.fromkeys(exe_dll_artifacts))
+"""
+def findArtifactsOLD():
     artifacts = []
     net_artifacts = []
     file_artifacts = []
@@ -672,8 +824,7 @@ def findArtifacts():
     # print (net_artifacts)
 
     return list(dict.fromkeys(artifacts)), list(dict.fromkeys(net_artifacts)), list(dict.fromkeys(file_artifacts)), list(dict.fromkeys(exec_artifacts))
-
-
+"""
 def getArtifacts():
     artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
 
@@ -773,12 +924,12 @@ def test_i386(mode, code):
     #     print (e)
     outFile.close()
     # now print out some registers
-    artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
+    path_artifacts, file_artifacts, commandLine_artifacts, web_artifacts, registry_artifacts,   exe_dll_artifacts = findArtifacts()
     # except:
     #     pass
 
     # now print out some registers
-    artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
+    path_artifacts, file_artifacts, commandLine_artifacts, web_artifacts, registry_artifacts,   exe_dll_artifacts = findArtifacts()
 
     print(cya+"\t[*]"+res2+" CPU counter: " + str(programCounter))
     print(cya+"\t[*]"+res2+" Emulation complete")

