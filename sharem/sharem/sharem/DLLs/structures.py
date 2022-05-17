@@ -1,4 +1,5 @@
-from struct import calcsize, pack, unpack
+from struct import pack, unpack
+from time import gmtime, localtime
 from ..helper.emuHelpers import Uc
 
 class struct_PROCESSENTRY32:
@@ -129,3 +130,44 @@ class struct_MODULEENTRY32:
         self.hModule = unpackedStruct[7]
         self.szModule = unpackedStruct[8].decode()
         self.szExePath = unpackedStruct[9].decode()
+
+class struct_SYSTEMTIME:
+    # Backs SYSTEMTIME, *PSYSTEMTIME, *LPSYSTEMTIME
+    def __init__(self, utc: bool, customTime= 0):
+        if utc:
+            if customTime == 0:
+                timeVal = gmtime()
+            else:
+                timeVal = gmtime(customTime)
+        else:
+            if customTime == 0:
+                timeVal = localtime()
+            else:
+                timeVal = localtime(customTime)
+
+        self.wYear = timeVal.tm_year
+        self.wMonth = timeVal.tm_mon
+        dayOfWeek = timeVal.tm_wday + 1 # Convert Monday 0 to Sunday 0
+        if dayOfWeek is 7: dayOfWeek = 0
+        self.wDayOfWeek = dayOfWeek
+        self.wDay = timeVal.tm_mday
+        self.wHour = timeVal.tm_hour
+        self.wMinute = timeVal.tm_min
+        self.wSecond = timeVal.tm_sec
+        self.wMilliseconds = 0
+
+    def writeToMemory(self, uc: Uc, address):
+        packedStruct = pack('<HHHHHHHH', self.wYear, self.wMonth, self.wDayOfWeek, self.wDay, self.wHour, self.wMinute, self.wSecond, self.wMilliseconds)
+        uc.mem_write(address, packedStruct)
+
+    def readFromMemory(self, uc: Uc, address):
+        data = uc.mem_read(address, 16)
+        unpackedStruct = unpack('<HHHHHHHH', data)
+        self.wYear = unpackedStruct[0]
+        self.wMonth = unpackedStruct[1]
+        self.wDayOfWeek = unpackedStruct[2]
+        self.wDay = unpackedStruct[3]
+        self.wHour = unpackedStruct[4]
+        self.wMinute = unpackedStruct[5]
+        self.wSecond = unpackedStruct[6]
+        self.wMilliseconds = unpackedStruct[7]

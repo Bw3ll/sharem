@@ -4,7 +4,7 @@ from unicorn.x86_const import *
 from struct import pack, unpack
 from ..modules import ADVAPI32_BASE, ADVAPI32_TOP, ADVPACK_BASE, ADVPACK_TOP, BCRYPT_BASE, BCRYPT_TOP, COMCTL32_BASE, COMCTL32_TOP, COMDLG32_BASE, COMDLG32_TOP, CRYPT32_BASE, CRYPT32_TOP, DNSAPI_BASE, DNSAPI_TOP, GDI32_BASE, GDI32_TOP, GDIPLUS_BASE, GDIPLUS_TOP, IMM32_BASE, IMM32_TOP, KERNEL32_BASE, KERNEL32_TOP, KERNELBASE_BASE, KERNELBASE_TOP, MPR_BASE, MPR_TOP, MSCOREE_BASE, MSCOREE_TOP, MSVCRT_BASE, MSVCRT_TOP, NCRYPT_BASE, NCRYPT_TOP, NETAPI32_BASE, NETAPI32_TOP, NETUTILS_BASE, NETUTILS_TOP, NTDLL_BASE, NTDLL_TOP, OLE32_BASE, OLE32_TOP, OLEAUT32_BASE, OLEAUT32_TOP, SAMCLI_BASE, SAMCLI_TOP, SECUR32_BASE, SECUR32_TOP, SHELL32_BASE, SHELL32_TOP, SHLWAPI_BASE, SHLWAPI_TOP, URLMON_BASE, URLMON_TOP, USER32_BASE, USER32_TOP, WININET_BASE, WININET_TOP, WINMM_BASE, WINMM_TOP, WKSCLI_BASE, WKSCLI_TOP, WS2_32_BASE, WS2_32_TOP, WSOCK32_BASE, WSOCK32_TOP, WTSAPI32_BASE, WTSAPI32_TOP, allDllsDict
 from ..helper.emuHelpers import Uc
-from .structures import struct_PROCESSENTRY32, struct_MODULEENTRY32, struct_THREADENTRY32
+from .structures import struct_PROCESSENTRY32, struct_MODULEENTRY32, struct_SYSTEMTIME, struct_THREADENTRY32
 import traceback
 
 FakeProcess=0xbadd0000
@@ -1728,6 +1728,46 @@ def hook_ShellExecuteW(uc, eip, esp, export_dict, callAddr):
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
     logged_calls= ("ShellExecuteW", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_system(uc: Uc, eip, esp, export_dict, callAddr):
+    # int system(const char *command);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['const char']
+    pNames= ['*command']
+
+    pVals[0] = read_string(uc, pVals[0])
+
+    #create strings for everything except ones in our skip
+    skip=[0]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x0
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("system", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook__wsystem(uc: Uc, eip, esp, export_dict, callAddr):
+    # int _wsystem(const wchar_t *command);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['const wchar_t']
+    pNames= ['*command']
+
+    pVals[0] = read_unicode2(uc, pVals[0])
+
+    #create strings for everything except ones in our skip
+    skip=[0]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x0
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("_wsystem", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
 def hook_VirtualProtect(uc, eip, esp, export_dict, callAddr):
@@ -3495,7 +3535,7 @@ def hook_GetComputerNameExA(uc: Uc, eip, esp, export_dict, callAddr):
     pTypes=['COMPUTER_NAME_FORMAT', 'LPSTR', 'LPDWORD']
     pNames= ['NameType', 'lpBuffer', 'nSize']
     nameTypeReverseLookup = {  0: 'ComputerNameNetBIOS', 1: 'ComputerNameDnsHostname', 2: 'ComputerNameDnsDomain', 3: 'ComputerNameDnsFullyQualified', 4: 'ComputerNamePhysicalNetBIOS', 5: 'ComputerNamePhysicalDnsHostname', 6: 'ComputerNamePhysicalDnsDomain', 7: 'ComputerNamePhysicalDnsFullyQualified', 8: 'ComputerNameMax'}
-    
+    # Possibly Implement Different Formats
     pVals[0] = getLookUpVal(pVals[0], nameTypeReverseLookup)
     
     computerName = 'Desktop-JR4WS'.encode('ascii')
@@ -3520,7 +3560,7 @@ def hook_GetComputerNameExW(uc: Uc, eip, esp, export_dict, callAddr):
     pTypes=['COMPUTER_NAME_FORMAT', 'LPWSTR', 'LPDWORD']
     pNames= ['NameType', 'lpBuffer', 'nSize']
     nameTypeReverseLookup = {  0: 'ComputerNameNetBIOS', 1: 'ComputerNameDnsHostname', 2: 'ComputerNameDnsDomain', 3: 'ComputerNameDnsFullyQualified', 4: 'ComputerNamePhysicalNetBIOS', 5: 'ComputerNamePhysicalDnsHostname', 6: 'ComputerNamePhysicalDnsDomain', 7: 'ComputerNamePhysicalDnsFullyQualified', 8: 'ComputerNameMax'}
-    
+    # Possibly Implement Different Formats
     pVals[0] = getLookUpVal(pVals[0], nameTypeReverseLookup)
     
     computerName = 'Desktop-JR4WS'.encode('utf-16')
@@ -3787,4 +3827,139 @@ def hook_GetSystemWow64DirectoryW(uc: Uc, eip, esp, export_dict, callAddr):
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
     logged_calls= ("GetSystemWow64DirectoryW", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetSystemTime(uc: Uc, eip, esp, export_dict, callAddr):
+    # void GetSystemTime([out] LPSYSTEMTIME lpSystemTime);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['LPSYSTEMTIME']
+    pNames= ['lpSystemTime']
+
+    if pVals[0] != 0x0:
+        timeVal = struct_SYSTEMTIME(True)
+        timeVal.writeToMemory(uc, pVals[0])
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retValStr='None'
+
+    logged_calls= ("GetSystemTime", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetLocalTime(uc: Uc, eip, esp, export_dict, callAddr):
+    # void GetLocalTime([out] LPSYSTEMTIME lpSystemTime);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['LPSYSTEMTIME']
+    pNames= ['lpSystemTime']
+
+    if pVals[0] != 0x0:
+        timeVal = struct_SYSTEMTIME(False)
+        timeVal.writeToMemory(uc, pVals[0])
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retValStr='None'
+
+    logged_calls= ("GetLocalTime", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetUserNameA(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL GetUserNameA([out] LPSTR lpBuffer,[in, out] LPDWORD pcbBuffer);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['LPSTR', 'LPDWORD']
+    pNames= ['lpBuffer', 'pcbBuffer']
+
+    username = 'Administrator'.encode('ascii')
+    uc.mem_write(pVals[0], pack('<257s', username))
+    uc.mem_write(pVals[1], pack('<I', len(username)))
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetUserNameA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetUserNameW(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL GetUserNameW([out] LPWSTR lpBuffer,[in, out] LPDWORD pcbBuffer);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['LPWSTR', 'LPDWORD']
+    pNames= ['lpBuffer', 'pcbBuffer']
+
+    username = 'Administrator'.encode('utf-16')[2:]
+    uc.mem_write(pVals[0], pack('<514s', username))
+    uc.mem_write(pVals[1], pack('<I', len(username)))
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetUserNameW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+
+def hook_GetUserNameExA(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOLEAN SEC_ENTRY GetUserNameExA([in] EXTENDED_NAME_FORMAT NameFormat,[out] LPSTR lpNameBuffer,[in, out] PULONG nSize);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['EXTENDED_NAME_FORMAT', 'LPSTR', 'LPDWORD']
+    pNames= ['NameFormat', 'lpBuffer', 'pcbBuffer']
+    nameFormatReverseLookup = {0: 'NameUnknown', 1: 'NameFullyQualifiedDN', 2: 'NameSamCompatible', 3: 'NameDisplay', 6: 'NameUniqueId', 7: 'NameCanonical', 8: 'NameUserPrincipal', 9: 'NameCanonicalEx', 10: 'NameServicePrincipal', 12: 'NameDnsDomain', 13: 'NameGivenName', 14: 'NameSurname'}
+    # Possibly Implement Different Formats
+    username = 'Administrator'.encode('ascii')
+    uc.mem_write(pVals[1], pack('<257s', username))
+    uc.mem_write(pVals[2], pack('<I', len(username)))
+
+    pVals[0] = getLookUpVal(pVals[0], nameFormatReverseLookup)
+
+    #create strings for everything except ones in our skip
+    skip=[0]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetUserNameExA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetUserNameExW(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOLEAN SEC_ENTRY GetUserNameExW([in] EXTENDED_NAME_FORMAT NameFormat,[out] LPWSTR lpNameBuffer,[in, out] PULONG nSize);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['EXTENDED_NAME_FORMAT', 'LPWSTR', 'LPDWORD']
+    pNames= ['NameFormat', 'lpBuffer', 'pcbBuffer']
+    nameFormatReverseLookup = {0: 'NameUnknown', 1: 'NameFullyQualifiedDN', 2: 'NameSamCompatible', 3: 'NameDisplay', 6: 'NameUniqueId', 7: 'NameCanonical', 8: 'NameUserPrincipal', 9: 'NameCanonicalEx', 10: 'NameServicePrincipal', 12: 'NameDnsDomain', 13: 'NameGivenName', 14: 'NameSurname'}
+    # Possibly Implement Different Formats
+    username = 'Administrator'.encode('utf-16')[2:]
+    uc.mem_write(pVals[1], pack('<514s', username))
+    uc.mem_write(pVals[2], pack('<I', len(username)))
+
+    pVals[0] = getLookUpVal(pVals[0], nameFormatReverseLookup)
+
+    #create strings for everything except ones in our skip
+    skip=[0]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetUserNameExW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
