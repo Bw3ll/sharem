@@ -3502,8 +3502,6 @@ def hook_GetComputerNameExA(uc: Uc, eip, esp, export_dict, callAddr):
     uc.mem_write(pVals[1], pack('<15s', computerName))
     uc.mem_write(pVals[2], pack('<I',len(computerName)))
 
-    
-
     #create strings for everything except ones in our skip
     skip=[0]   # we need to skip this value (index) later-let's put it in skip
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
@@ -3529,8 +3527,6 @@ def hook_GetComputerNameExW(uc: Uc, eip, esp, export_dict, callAddr):
     uc.mem_write(pVals[1], pack('<30s', computerName[2:]))
     uc.mem_write(pVals[2], pack('<I',len(computerName[2:])))
 
-    
-
     #create strings for everything except ones in our skip
     skip=[0]   # we need to skip this value (index) later-let's put it in skip
     pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
@@ -3541,4 +3537,254 @@ def hook_GetComputerNameExW(uc: Uc, eip, esp, export_dict, callAddr):
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
     logged_calls= ("GetComputerNameExW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetWindowsDirectoryA(uc: Uc, eip, esp, export_dict, callAddr):
+    # UINT GetWindowsDirectoryA([out] LPSTR lpBuffer,[in]  UINT  uSize);    
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['LPSTR', 'UNINT']
+    pNames= ['lpBuffer', 'uSize']
+
+    path = 'C:\Windows'.encode('ascii')
+    uc.mem_write(pVals[0], pack('<260s', path))
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=len(path)
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetWindowsDirectoryA", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetWindowsDirectoryW(uc: Uc, eip, esp, export_dict, callAddr):
+    # UINT GetWindowsDirectoryW([out] LPWSTR lpBuffer,[in]  UINT  uSize);    
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['LPWSTR', 'UNINT']
+    pNames= ['lpBuffer', 'uSize']
+
+    path = 'C:\Windows'.encode('utf-16')[2:]
+    uc.mem_write(pVals[0], pack('<520s', path))
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=len(path)
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetWindowsDirectoryW", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetSystemWindowsDirectoryA(uc: Uc, eip, esp, export_dict, callAddr):
+    # UINT GetSystemWindowsDirectoryA([out] LPSTR lpBuffer,[in]  UINT  uSize);    
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['LPSTR', 'UNINT']
+    pNames= ['lpBuffer', 'uSize']
+
+    path = 'C:\Windows'.encode('ascii')
+    uc.mem_write(pVals[0], pack('<260s', path))
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=len(path)
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetSystemWindowsDirectoryA", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetSystemWindowsDirectoryW(uc: Uc, eip, esp, export_dict, callAddr):
+    # UINT GetSystemWindowsDirectoryW([out] LPWSTR lpBuffer,[in]  UINT  uSize);    
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['LPWSTR', 'UNINT']
+    pNames= ['lpBuffer', 'uSize']
+
+    path = 'C:\Windows'.encode('utf-16')[2:]
+    uc.mem_write(pVals[0], pack('<520s', path))
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=len(path)
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetSystemWindowsDirectoryW", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetTempPathA(uc: Uc, eip, esp, export_dict, callAddr):
+    # DWORD GetTempPathA([in]  DWORD nBufferLength,[out] LPSTR lpBuffer);  
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['DWORD', 'LPSTR',]
+    pNames= ['nBufferLength', 'lpBuffer',]
+
+    path = 'C:\TEMP\\'.encode('ascii')
+    uc.mem_write(pVals[1], pack('<260s', path))
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=len(path)
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetTempPathA", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetTempPathW(uc: Uc, eip, esp, export_dict, callAddr):
+    # DWORD GetTempPathW([in]  DWORD nBufferLength,[out] LPWSTR lpBuffer);  
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['DWORD', 'LPWSTR',]
+    pNames= ['nBufferLength', 'lpBuffer',]
+
+    path = 'C:\TEMP\\'.encode('utf-16')[2:]
+    uc.mem_write(pVals[1], pack('<520s', path))
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=len(path)
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetTempPathW", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetTempFileNameA(uc: Uc, eip, esp, export_dict, callAddr):
+    # UINT GetTempFileNameA([in]  LPCSTR lpPathName,[in]  LPCSTR lpPrefixString,[in]  UINT   uUnique,[out] LPSTR  lpTempFileName);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    pTypes=['LPCSTR', 'LPCSTR', 'UINT', 'LPSTR']
+    pNames= ['lpPathName', 'lpPrefixString', 'uUnique', 'lpTempFileName']
+
+    tempPath = read_string(uc, pVals[0])
+    preFix = read_string(uc, pVals[1])
+
+    if pVals[2] == 0x0:
+        retVal = randint(0x0,0xffff)
+        value = hex(retVal)[2:]
+        while len(value) < 4: # Pad to 4
+            value = str(0) + value
+        if preFix != '[NULL]':
+            path = f'{tempPath}{preFix[:3]}{value}.TMP'
+        else:
+            path = f'{tempPath}{value}.TMP'
+    else:
+        retVal = pVals[2]
+        value = hex(retVal)[2:]
+        while len(value) < 4: # Pad to 4
+            value = str(0) + value
+        if preFix != '[NULL]':
+            path = f'{tempPath}{preFix[:3]}{value}.TMP'
+        else:
+            path = f'{tempPath}{value}.TMP'
+
+    uc.mem_write(pVals[3], pack('<260s', path.encode('ascii')))
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetTempFileNameA", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetTempFileNameW(uc: Uc, eip, esp, export_dict, callAddr):
+    # UINT GetTempFileNameW([in]  LPCWSTR lpPathName,[in]  LPCWSTR lpPrefixString,[in]  UINT   uUnique,[out] LPWSTR  lpTempFileName);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    pTypes=['LPCWSTR', 'LPCWSTR', 'UINT', 'LPWSTR']
+    pNames= ['lpPathName', 'lpPrefixString', 'uUnique', 'lpTempFileName']
+
+    tempPath = read_unicode2(uc, pVals[0])
+    preFix = read_unicode2(uc, pVals[1])
+
+    if pVals[2] == 0x0:
+        retVal = randint(0x0,0xffff)
+        value = hex(retVal)[2:]
+        while len(value) < 4: # Pad to 4
+            value = str(0) + value
+        if preFix != '[NULL]':
+            path = f'{tempPath}{preFix[:3]}{value}.TMP'
+        else:
+            path = f'{tempPath}{value}.TMP'
+    else:
+        retVal = pVals[2]
+        value = hex(retVal)[2:]
+        while len(value) < 4: # Pad to 4
+            value = str(0) + value
+        if preFix != '[NULL]':
+            path = f'{tempPath}{preFix[:3]}{value}.TMP'
+        else:
+            path = f'{tempPath}{value}.TMP'
+
+    uc.mem_write(pVals[3], pack('<520s', path.encode('utf-16')[2:]))
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetTempFileNameW", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetSystemWow64DirectoryA(uc: Uc, eip, esp, export_dict, callAddr):
+    # UINT GetSystemWow64DirectoryA([out] LPSTR lpBuffer,[in]  UINT  uSize);    
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['LPSTR', 'UNINT']
+    pNames= ['lpBuffer', 'uSize']
+
+    path = 'C:\Windows\SysWOW64'.encode('ascii')
+    uc.mem_write(pVals[0], pack('<260s', path))
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=len(path)
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetSystemWow64DirectoryA", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetSystemWow64DirectoryW(uc: Uc, eip, esp, export_dict, callAddr):
+    # UINT GetSystemWow64DirectoryW([out] LPWSTR lpBuffer,[in]  UINT  uSize);    
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['LPWSTR', 'UNINT']
+    pNames= ['lpBuffer', 'uSize']
+
+    path = 'C:\Windows\SysWOW64'.encode('utf-16')[2:]
+    uc.mem_write(pVals[0], pack('<520s', path))
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=len(path)
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetSystemWow64DirectoryW", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
