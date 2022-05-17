@@ -207,14 +207,12 @@ class HandleType(Enum):
     CreateServiceW = auto()
 
 class Handle:
-    usedHandles = set()
+    nextValue = 0x10000000 # Start of Handle IDs
     def __init__(self, type: HandleType, data = None, handleValue = 0):
         if handleValue == 0:
             # Generate Handle Value
-            handleValue = randint(0x10000000,0x1fffffff)
-            while handleValue in self.usedHandles:
-                handleValue = randint(0x10000000,0x1fffffff)
-        self.usedHandles.add(handleValue)
+            handleValue = Handle.nextValue
+            Handle.nextValue += 1
         self.value = handleValue
         self.type = type
         self.data = data
@@ -3491,7 +3489,7 @@ def hook_GetComputerNameA(uc: Uc, eip, esp, export_dict, callAddr):
     pTypes=['LPSTR', 'LPDWORD']
     pNames= ['lpBuffer', 'nSize']
 
-    computerName = 'Desktop-JR4WS'.encode('ascii')
+    computerName = 'Desktop-SHAREM'.encode('ascii')
     uc.mem_write(pVals[0], pack('<15s', computerName))
     uc.mem_write(pVals[1], pack('<I',len(computerName)))
 
@@ -3513,8 +3511,8 @@ def hook_GetComputerNameW(uc: Uc, eip, esp, export_dict, callAddr):
     pTypes=['LPWSTR', 'LPDWORD']
     pNames= ['lpBuffer', 'nSize']
     
-    computerName = 'Desktop-JR4WS'.encode('utf-16')
-    uc.mem_write(pVals[0], pack('<30s', computerName[2:]))
+    computerName = 'Desktop-SHAREM'.encode('utf-16')[2:]
+    uc.mem_write(pVals[0], pack('<30s', computerName))
     uc.mem_write(pVals[1], pack('<I',len(computerName)))
 
     #create strings for everything except ones in our skip
@@ -3538,7 +3536,7 @@ def hook_GetComputerNameExA(uc: Uc, eip, esp, export_dict, callAddr):
     # Possibly Implement Different Formats
     pVals[0] = getLookUpVal(pVals[0], nameTypeReverseLookup)
     
-    computerName = 'Desktop-JR4WS'.encode('ascii')
+    computerName = 'Desktop-SHAREM'.encode('ascii')
     uc.mem_write(pVals[1], pack('<15s', computerName))
     uc.mem_write(pVals[2], pack('<I',len(computerName)))
 
@@ -3563,9 +3561,9 @@ def hook_GetComputerNameExW(uc: Uc, eip, esp, export_dict, callAddr):
     # Possibly Implement Different Formats
     pVals[0] = getLookUpVal(pVals[0], nameTypeReverseLookup)
     
-    computerName = 'Desktop-JR4WS'.encode('utf-16')
-    uc.mem_write(pVals[1], pack('<30s', computerName[2:]))
-    uc.mem_write(pVals[2], pack('<I',len(computerName[2:])))
+    computerName = 'Desktop-SHAREM'.encode('utf-16')[2:]
+    uc.mem_write(pVals[1], pack('<30s', computerName))
+    uc.mem_write(pVals[2], pack('<I',len(computerName)))
 
     #create strings for everything except ones in our skip
     skip=[0]   # we need to skip this value (index) later-let's put it in skip
@@ -3722,7 +3720,7 @@ def hook_GetTempFileNameA(uc: Uc, eip, esp, export_dict, callAddr):
         if preFix != '[NULL]':
             path = f'{tempPath}{preFix[:3]}{value}.TMP'
         else:
-            path = f'{tempPath}{value}.TMP'
+            path = f'{tempPath}SHAREM{value}.TMP'
     else:
         retVal = pVals[2]
         value = hex(retVal)[2:]
@@ -3763,7 +3761,7 @@ def hook_GetTempFileNameW(uc: Uc, eip, esp, export_dict, callAddr):
         if preFix != '[NULL]':
             path = f'{tempPath}{preFix[:3]}{value}.TMP'
         else:
-            path = f'{tempPath}{value}.TMP'
+            path = f'{tempPath}SHAREM{value}.TMP'
     else:
         retVal = pVals[2]
         value = hex(retVal)[2:]
