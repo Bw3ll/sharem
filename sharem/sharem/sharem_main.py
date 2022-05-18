@@ -22522,7 +22522,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 ('LoadLibraryA', '0x1337c0de', '0x45664c88', 'HINSTANCE', ['user32.dll'], ['LPCTSTR'], ['lpLibFileName'], False,"kernel32.dll"),('MessageBoxA', '0xdeadc0de', '0x20', 'INT', ['0x987987', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', '0x0'], ['HWND', 'LPCSTR', 'LPCSTR', 'UINT'], ['hWnd', 'lpText', 'lpCaption', 'uType'], True,"user32.dll")]
 
 	# artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
-	path_artifacts, file_artifacts, commandLine_artifacts, web_artifacts, registry_artifacts,	exe_dll_artifacts = findArtifacts()
+	path_artifacts, file_artifacts, commandLine_artifacts, web_artifacts, registry_artifacts, exe_dll_artifacts = findArtifacts()
 	api_names, api_params_values, api_params_types, api_params_names, api_address, ret_values, ret_type, api_bruteforce, syscallID = build_emu_results(apiList)
 
 	api_par_bundle = []
@@ -22695,17 +22695,17 @@ def emulation_txt_out(apiList, logged_syscalls):
 	# no_colors_out += "\n************* Artifacts *************\n"
 
 	if len(path_artifacts) > 0:
-		txt_output += "{}{:<13} {}\n".format(cya + "Paths" + res,"", emu_path_list)
+		txt_output += "{}{:<13} {}\n".format(cya + "*** Paths ***" + res,"", emu_path_list)
 	if len(file_artifacts) > 0:
-		txt_output += "{}{:<9} {}\n".format(cya + "Files" + res,"", emu_fileArtifacts_list)
+		txt_output += "{}{:<9} {}\n".format(cya + "*** Files ***" + res,"", emu_fileArtifacts_list)
 	if len(commandLine_artifacts) > 0:
-		txt_output += "{}{:<8} {}\n".format(cya + "Command Line" + res,"", emu_commandline_list)
+		txt_output += "{}{:<8} {}\n".format(cya + "*** Command Line ***" + res,"", emu_commandline_list)
 	if len(web_artifacts) > 0:
-		txt_output += "{}{:<13} {}\n".format(cya + "Web" + res,"", emu_webArtifacts_list)
+		txt_output += "{}{:<13} {}\n".format(cya + "*** Web ***" + res,"", emu_webArtifacts_list)
 	if len(registry_artifacts) > 0:
-		txt_output += "{}{:<9} {}\n".format(cya + "Registry" + res,"", emu_registry_list)
+		txt_output += "{}{:<9} {}\n".format(cya + "*** Registry ***" + res,"", emu_registry_list)
 	if len(exe_dll_artifacts) > 0:
-		txt_output += "{}{:<8} {}\n".format(cya + "EXE / DLLs" + res,"", emu_exe_dll_list)
+		txt_output += "{}{:<8} {}\n".format(cya + "*** EXE / DLLs ***" + res,"", emu_exe_dll_list)
 	# if len(artifacts) > 0:
 	# 	txt_output += "{}{:<13} {}\n".format(cya + "Artifacts" + res,"", emu_artifacts_list)
 	# if len(net_artifacts) > 0:

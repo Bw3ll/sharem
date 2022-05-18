@@ -670,7 +670,7 @@ def findArtifacts():
     ## COMMAND LINE ARGUMENTS
     ## -----------------------------
     valid_cmd_characters = r"(?:[A-Za-z0-9 \/\\=\-_:!@#\$%\^&\*\(\)><\.\"'`\{\};\[\]\+,\|]+)"
-    find_cmdLine = r"(?:(?:cmd(?:\.exe)?)(?:\s+(?:\/[cCkKaAuUdDxX]|\/[eEfFvV]:..|\/[tT]:[0-9a-fA-F])+)+)"
+    find_cmdLine = r"(?:(?:cmd(?:\.exe)?)(?:\s+(?:\/[cCkKaAuUdDxXqQ]|\/[eEfFvV]:..|\/[tT]:[0-9a-fA-F])+)+)"
     find_powershell = r"(?:powershell(?:\.exe)?)"
     find_regCMD = r"(?:reg(?:\.exe)?(?:\s+(?:add|compare|copy|delete|export|import|load|query|restore|save|unload))+)"
     find_netCMD = r"(?:net(?:\.exe)?(?:\s+(?:accounts|computer|config|continue|file|group|help|helpmsg|localgroup|name|pause|print|send|session|    share|start|statistics|stop|time|use|user|view))+)"
@@ -710,10 +710,10 @@ def findArtifacts():
     ## REGISTRY
     ## -----------------------------
     find_HKEY = r"(?:(?:HKEY|HKLM|HKCU|HKCC|HKCR|HKU)(?:\:)?(?:[_A-z0-9])+(?:\\[^\\\n]+)+)"
-    find_CurrentUser = r"(?:(?:AppEvents|Console|Control Panel|Environment|EUDC|Identities|Keyboard Layout|Network|Printers|Remote|Software|    System|Uninstall|Volatile Environment)(?:\\[^\\\n]+)+)"
-    find_LocalMachine = r"(?:(?:SOFTWARE|SYSTEM|HARDWARE|SAM|BCD00000000)(?:\\[^\\\n]+){+)"
-    find_Users = r"(?:(?:\.DEFAULT|S[\-0-9]+(?:_Classes)?)(?:\\[^\\\n]+)+)"
-    find_CurrentConfig = r"(?:(?:SOFTWARE|SYSTEM)(?:\\[^\\\n]+)+)"
+    find_CurrentUser = r"(?:(?:AppEvents|Console|Control Panel|Environment|EUDC|Identities|Keyboard Layout|Network|Printers|Remote|Software|System|Uninstall|Volatile Environment)(?:\\[^\n]+)+)"
+    find_LocalMachine = r"(?:(?:SOFTWARE|SYSTEM|HARDWARE|SAM|BCD00000000)(?:\\[^\n]+){+)"
+    find_Users = r"(?:(?:\.DEFAULT|S[\-0-9]+(?:_Classes)?)(?:\\[^\n]+)+)"
+    find_CurrentConfig = r"(?:(?:SOFTWARE|SYSTEM)(?:\\[^\n]+)+)"
     total_Registry = find_HKEY +"|"+ find_CurrentUser +"|"+ find_LocalMachine +"|"+ find_Users +"|"+ find_CurrentConfig
     
     ##*****************************************************************************
@@ -729,7 +729,7 @@ def findArtifacts():
         # path_artifacts += re.findall(find_letterDrives,str(p))
         # path_artifacts += re.findall(find_relativePaths,str(p))
         # path_artifacts += re.findall(find_networkShares,str(p))
-        paths += re.findall(total_findPaths,str(p))
+        paths += re.findall(total_findPaths,str(p),re.IGNORECASE)
         # -------------------------------------------
         #       Finding Files
         #-------------------------------------------        
@@ -741,7 +741,7 @@ def findArtifacts():
         # file_artifacts += re.findall(find_workRelated,str(p))
         # file_artifacts += re.findall(find_videoAudio,str(p))
         # file_artifacts += re.findall(find_totalFiles,str(p))
-        file_artifacts += re.findall(find_totalFilesBeginning,str(p))
+        file_artifacts += re.findall(find_totalFilesBeginning,str(p),re.IGNORECASE)
         #-------------------------------------------
         #       Finding Command line
         #-------------------------------------------   
@@ -752,13 +752,13 @@ def findArtifacts():
         # commandLine_artifacts += re.findall(netsh_args,str(p))
         # commandLine_artifacts += re.findall(schtask_args,str(p),re.IGNORECASE)
         # commandLine_artifacts += re.findall(sc_args,str(p))
-        commandLine_artifacts += re.findall(total_commandLineArguments,str(p))
+        commandLine_artifacts += re.findall(total_commandLineArguments,str(p),re.IGNORECASE)
         #-------------------------------------------
         #       Finding WEB
         #-------------------------------------------   
         # web_artifacts += re.findall(find_website,str(p))
         # web_artifacts += re.findall(find_ftp,str(p))
-        web_artifacts += re.findall(total_webTraffic,str(p))
+        web_artifacts += re.findall(total_webTraffic,str(p),re.IGNORECASE)
         #-------------------------------------------
         #       Finding Registry
         #-------------------------------------------   
@@ -767,7 +767,7 @@ def findArtifacts():
         # registry_artifacts += re.findall(find_LocalMachine,str(p))
         # registry_artifacts += re.findall(find_Users,str(p))
         # registry_artifacts += re.findall(find_CurrentConfig,str(p))
-        registry_artifacts += re.findall(total_Registry,str(p))
+        registry_artifacts += re.findall(total_Registry,str(p),re.IGNORECASE)
         #-------------------------------------------
         #       Finding Exe / DLL
         #-------------------------------------------
