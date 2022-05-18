@@ -1680,6 +1680,7 @@ def giveLoadedModules(mode=None):
 			outfileName = outfileName.split("\\")[-1]
 			txtFileName =  os.getcwd() + slash + outfile + slash + outfileName + "_" + "loaded_Modules" + ".txt"
 			print(txtFileName)
+			print ("textfile", txtFileName)
 			os.makedirs(os.path.dirname(txtFileName), exist_ok=True)
 			text = open(txtFileName, "w")
 			text.write(out2)
@@ -12299,7 +12300,7 @@ def disHereMakeDB2Edited(data,offset, end, mode, CheckingForDB):  #### new one
 				# print ("beforeS", sVal, beforeS)
 				sVal=""
 				startAddString=str(hex(offset))
-				stringVala=sBy.stringsValue[offset]+" ; string1"
+				stringVala=sBy.stringsValue[offset]+" ; string"
 				# bprint ("\t\t\tmaking strings", stringVala)
 
 				# input()
@@ -12683,7 +12684,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 			# dprint2("FoundSTRING", hex(stringStart), hex(offset),"off")
 			if stringStart==offset:
 				startAddString=str(hex(offset))
-				stringVala=sBy.stringsValue[offset]+mag+" ; string2"+res2+"\t\t"
+				stringVala=sBy.stringsValue[offset]+mag+" ; string"+res2+"\t\t"
 				# print ("stringVala", stringVala, len(stringVala))
 				# bprint ("\t\t\tmaking strings2", stringVala)
 			# if ApiTable[offset]
@@ -12784,7 +12785,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 			# print(data[offset-2:offset+1].hex())
 			# print(data.hex())
 			if dbFlag==True:
-				stringVala=sBy.stringsValue[offset-1]+mag+" ; string3"+res2+"\t\t"
+				stringVala=sBy.stringsValue[offset-1]+mag+" ; string"+res2+"\t\t"
 				# print("-->", startAddString, stringVala)
 				try:
 					addDis(int(startAddString,16),"",stringVala, "", "EndStringMaker")
@@ -15493,15 +15494,45 @@ def addComments():
 	# print("addcomments:", hex(len(sBy.comments)), hex(len(sBy.bytesType)))
 
 	# print (loggedList)
+	parC=mag
+	parC0=mag
+	parC1=blu
+	# loggedList.append(('VirtualAlloc', '0x120001a8', 0, 0, (0, 0, 0, 0, 0)))
+	# loggedList.append(('VirtualAlloc', '0x120001a9', '0x25000000', 'INT', ['0x0', '0x9999', 'MEM_COMMIT', 'PAGE_EXECUTE_READWRITE'], ['LPVOID', 'SIZE_T', 'DWORD', 'DWORD'], ['lpAddress', 'dwSize', 'flAllocationType', 'flProtect'], False))
+	# print (loggedList)
 	for each in loggedList:
+		params=parC0+"("+res2
 		api=each[0]
+		vals=each[4]
+		limit=len(vals)-1
+		t=0
+		for v in vals:
+			try:
+				v=parC1+v
+			except:
+				v=parC1+hex(v)
+
+			if t!=limit:
+					params+=v +parC+ ", "+res2
+			else:
+					params+=v
+			t+=1
+
+		params+=parC0+")"+res2
+		# print (api)
+		# print (vals)
+		# print ("p", params)
 		apiAddress=int(each[1],16)
 		# print (hex(apiAddress), 42000000, each[1])
 		apiAddress=apiAddress-0x12000000
 		# print("---->", hex(apiAddress))
 		# print (hex(apiAddress))
 		try:
-			sBy.comments[apiAddress]=mag+"; call to " + api +res +" "
+			if sBy.comments[apiAddress] !="":
+				sBy.comments[apiAddress]+=res +"\n      "+params
+			else:
+				sBy.comments[apiAddress]=mag+"; call to " + api +res +"\n      "+params
+
 		except:
 			print ("error logging API address to disassembly - ", api)
 		# print (api, apiAddress, each[1])
@@ -19434,7 +19465,7 @@ def modConf():
 					'fast_mode', 
 					'find_all', 
 					'dist_mode', 
-					'cpu_count', 'nodes_file', 'output_file', 'dec_operation_type', 'decrypt_file', 'stub_file', 'use_same_file', 'stub_entry_point', 'stub_end', 'shellEntry', 'pebpoints', 'minimum_str_length', 'max_callpop_distance', 'default_outdir', 'print_emulation_result', 'emulation_verbose_mode', 'emulation_multiline','max_num_of_instr','iterations_before_break','break_infinite_loops','timeless_debugging']
+					'cpu_count', 'nodes_file', 'output_file', 'dec_operation_type', 'decrypt_file', 'stub_file', 'use_same_file', 'stub_entry_point', 'stub_end', 'shellEntry', 'pebpoints', 'minimum_str_length', 'max_callpop_distance', 'default_outdir', 'print_emulation_result', 'emulation_verbose_mode', 'emulation_multiline','max_num_of_instr','iterations_before_break','break_infinite_loops','timeless_debugging',"complete_code_coverage"]
 
 
 
@@ -19445,7 +19476,7 @@ def modConf():
 	numOfIter = em.maxLoop
 
 
-	listofBools = [bPushRet, bCallPop, bFstenv, bSyscall, bHeaven, bPEB, bDisassembly, pebPresent, bit32, bytesForward, bytesBack, linesForward, linesBack,p2screen, bPushStackStrings, bAsciiStrings, bWideCharStrings, dFastMode, dFindAll, dDistr, dCPUcount, dNodesFile, dOutputFile, decryptOpTypes, decryptFile, stubFile, sameFile, stubEntry, stubEnd, shellEntry, pebPoints, minStrLen, maxDistance, sharem_out_dir, bPrintEmulation, emulation_verbose, emulation_multiline, maxEmuInstr, numOfIter, emuObj.breakLoop, emuObj.verbose]
+	listofBools = [bPushRet, bCallPop, bFstenv, bSyscall, bHeaven, bPEB, bDisassembly, pebPresent, bit32, bytesForward, bytesBack, linesForward, linesBack,p2screen, bPushStackStrings, bAsciiStrings, bWideCharStrings, dFastMode, dFindAll, dDistr, dCPUcount, dNodesFile, dOutputFile, decryptOpTypes, decryptFile, stubFile, sameFile, stubEntry, stubEnd, shellEntry, pebPoints, minStrLen, maxDistance, sharem_out_dir, bPrintEmulation, emulation_verbose, emulation_multiline, maxEmuInstr, numOfIter, emuObj.breakLoop, emuObj.verbose,em.codeCoverage]
 
 	listofSyscalls = []
 	for osv in syscallSelection:
@@ -19502,7 +19533,7 @@ def emulationConf(conr):
 	emuObj.breakLoop = conr.getboolean('SHAREM EMULATION', 'break_infinite_loops')
 	em.breakOutOfLoops = conr.getboolean('SHAREM EMULATION', 'break_infinite_loops')
 	emuObj.verbose = conr.getboolean('SHAREM EMULATION', 'timeless_debugging')
-
+	em.codeCoverage = conr.getboolean('SHAREM EMULATION',"complete_code_coverage")
 
 
 def SharemSearchConfig(conr):
@@ -20214,6 +20245,7 @@ def startupPrint():
 	return outputData
 
 def saveConf(con):
+	global configOptions
 	try:
 		con.changeConf(configOptions)
 		con.save()
