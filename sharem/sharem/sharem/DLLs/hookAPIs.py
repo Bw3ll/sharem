@@ -1629,6 +1629,59 @@ def hook_CreateProcessW(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("CreateProcessW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
+# DWORD WINAPI CreateProcessInternal(
+#   __in         DWORD unknown1,                              // always (?) NULL
+#   __in_opt     LPCTSTR lpApplicationName,
+#   __inout_opt  LPTSTR lpCommandLine,
+#   __in_opt     LPSECURITY_ATTRIBUTES lpProcessAttributes,
+#   __in_opt     LPSECURITY_ATTRIBUTES lpThreadAttributes,
+#   __in         BOOL bInheritHandles,
+#   __in         DWORD dwCreationFlags,
+#   __in_opt     LPVOID lpEnvironment,
+#   __in_opt     LPCTSTR lpCurrentDirectory,
+#   __in         LPSTARTUPINFO lpStartupInfo,
+#   __out        LPPROCESS_INFORMATION lpProcessInformation,
+#   __in         DWORD unknown2                               // always (?) NULL
+# );
+
+def hook_CreateProcessInternalA2(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 12)
+    pTypes=['DWORD', 'LPCTSTR', 'LPTSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID', 'LPCSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION', 'DWORD']
+    pNames=['unknown1', 'lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles', 'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation', 'unknown2']
+
+    pVals[6] = getLookUpVal(pVals[5],ProcessCreationReverseLookUp)
+
+    #create strings for everything except ones in our skip
+    skip=[6]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CreateProcessInternalA", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_CreateProcessInternalW2(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 12)
+    pTypes=['DWORD', 'LPCTWSTR', 'LPTWSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID', 'LPCSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION', 'DWORD']
+    pNames=['unknown1', 'lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles', 'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation', 'unknown2']
+
+    pVals[6] = getLookUpVal(pVals[5],ProcessCreationReverseLookUp)
+
+    #create strings for everything except ones in our skip
+    skip=[6]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CreateProcessInternalW", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
 def hook_URLDownloadToFileA(uc, eip, esp, export_dict, callAddr):
     # function to get values for parameters - count as specified at the end - returned as a list
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
@@ -3577,6 +3630,29 @@ def hook_GetComputerNameExW(uc: Uc, eip, esp, export_dict, callAddr):
     logged_calls= ("GetComputerNameExW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
+def hook_gethostname(uc: Uc, eip, esp, export_dict, callAddr):
+    # int gethostname([out] char *name,[in]  int  namelen);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['char', 'int']
+    pNames= ['*name', 'namelen']
+
+    computerName = 'Desktop-SHAREM'.encode('ascii')
+    uc.mem_write(pVals[0], pack('<15s', computerName))
+
+    pVals[0] = read_string(uc, pVals[0])
+
+    #create strings for everything except ones in our skip
+    skip=[0]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x0
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("gethostname", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
 def hook_GetWindowsDirectoryA(uc: Uc, eip, esp, export_dict, callAddr):
     # UINT GetWindowsDirectoryA([out] LPSTR lpBuffer,[in]  UINT  uSize);    
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
@@ -3874,7 +3950,7 @@ def hook_GetUserNameA(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'pcbBuffer']
 
     username = 'Administrator'.encode('ascii')
-    uc.mem_write(pVals[0], pack('<257s', username))
+    uc.mem_write(pVals[0], pack('<256s', username))
     uc.mem_write(pVals[1], pack('<I', len(username)))
 
     #create strings for everything except ones in our skip
@@ -3896,7 +3972,7 @@ def hook_GetUserNameW(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'pcbBuffer']
 
     username = 'Administrator'.encode('utf-16')[2:]
-    uc.mem_write(pVals[0], pack('<514s', username))
+    uc.mem_write(pVals[0], pack('<512s', username))
     uc.mem_write(pVals[1], pack('<I', len(username)))
 
     #create strings for everything except ones in our skip
@@ -3920,7 +3996,7 @@ def hook_GetUserNameExA(uc: Uc, eip, esp, export_dict, callAddr):
     nameFormatReverseLookup = {0: 'NameUnknown', 1: 'NameFullyQualifiedDN', 2: 'NameSamCompatible', 3: 'NameDisplay', 6: 'NameUniqueId', 7: 'NameCanonical', 8: 'NameUserPrincipal', 9: 'NameCanonicalEx', 10: 'NameServicePrincipal', 12: 'NameDnsDomain', 13: 'NameGivenName', 14: 'NameSurname'}
     # Possibly Implement Different Formats
     username = 'Administrator'.encode('ascii')
-    uc.mem_write(pVals[1], pack('<257s', username))
+    uc.mem_write(pVals[1], pack('<256s', username))
     uc.mem_write(pVals[2], pack('<I', len(username)))
 
     pVals[0] = getLookUpVal(pVals[0], nameFormatReverseLookup)
@@ -3945,7 +4021,7 @@ def hook_GetUserNameExW(uc: Uc, eip, esp, export_dict, callAddr):
     nameFormatReverseLookup = {0: 'NameUnknown', 1: 'NameFullyQualifiedDN', 2: 'NameSamCompatible', 3: 'NameDisplay', 6: 'NameUniqueId', 7: 'NameCanonical', 8: 'NameUserPrincipal', 9: 'NameCanonicalEx', 10: 'NameServicePrincipal', 12: 'NameDnsDomain', 13: 'NameGivenName', 14: 'NameSurname'}
     # Possibly Implement Different Formats
     username = 'Administrator'.encode('utf-16')[2:]
-    uc.mem_write(pVals[1], pack('<514s', username))
+    uc.mem_write(pVals[1], pack('<512s', username))
     uc.mem_write(pVals[2], pack('<I', len(username)))
 
     pVals[0] = getLookUpVal(pVals[0], nameFormatReverseLookup)
