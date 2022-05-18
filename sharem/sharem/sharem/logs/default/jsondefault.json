@@ -1,0 +1,40 @@
+{
+   "dateAnalyzed": "2022-05-18 13:08:26",
+   "classification": "Possibly encoded shellcode.",
+   "reason": "",
+   "secondsSinceEpoch": 1652897306.080066,
+   "fileType": "rawHex",
+   "bits": 32,
+   "entryPoint": "0x0",
+   "md5": "59d4ee9c6934200477e948669747f0bc",
+   "sha256": "c5ca492be2b4c6292faf8c9c25bc5b1b4b4f25abf6668affe8ab2510803c8c0c",
+   "ssdeep": "3:PzTPlDCgnalOJ5/n:PXPlmjOJ5/n",
+   "pushret": [],
+   "callpop": [],
+   "PEB": [],
+   "fstenv": [],
+   "heavensGate": [],
+   "syscall": [],
+   "strings": [],
+   "shellcode": {
+      "rawhex": "",
+      "strlit": ""
+   },
+   "deobfuscation": {
+      "deobfuscated": false,
+      "decoded_stub": "N/A",
+      "md5": "N/A",
+      "sha256": "N/A",
+      "ssdeep": "N/A"
+   },
+   "emulation": {
+      "api_calls": [],
+      "dlls": [],
+      "path_artifacts": [],
+      "file_artifacts": [],
+      "commandLine_artifacts": [],
+      "web_artifacts": [],
+      "registry_artifacts": [],
+      "exe_dll_artifacts": []
+   }
+}
