@@ -1649,7 +1649,7 @@ def hook_CreateProcessInternalA2(uc, eip, esp, export_dict, callAddr):
     pTypes=['DWORD', 'LPCTSTR', 'LPTSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID', 'LPCSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION', 'DWORD']
     pNames=['unknown1', 'lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles', 'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation', 'unknown2']
 
-    pVals[6] = getLookUpVal(pVals[5],ProcessCreationReverseLookUp)
+    pVals[6] = getLookUpVal(pVals[6],ProcessCreationReverseLookUp)
 
     #create strings for everything except ones in our skip
     skip=[6]   # we need to skip this value (index) later-let's put it in skip
@@ -1668,7 +1668,7 @@ def hook_CreateProcessInternalW2(uc, eip, esp, export_dict, callAddr):
     pTypes=['DWORD', 'LPCTWSTR', 'LPTWSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID', 'LPCSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION', 'DWORD']
     pNames=['unknown1', 'lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles', 'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation', 'unknown2']
 
-    pVals[6] = getLookUpVal(pVals[5],ProcessCreationReverseLookUp)
+    pVals[6] = getLookUpVal(pVals[6],ProcessCreationReverseLookUp)
 
     #create strings for everything except ones in our skip
     skip=[6]   # we need to skip this value (index) later-let's put it in skip
@@ -2181,7 +2181,7 @@ def hook_InternetOpenA(uc, eip, esp, export_dict, callAddr):
     dwAccessTypeReverseLookUp = {0: 'INTERNET_OPEN_TYPE_PRECONFIG', 1: 'INTERNET_OPEN_TYPE_DIRECT', 3: 'INTERNET_OPEN_TYPE_PROXY', 4: 'INTERNET_OPEN_TYPE_PRECONFIG_WITH_NO_AUTOPROXY'}
     dwFlagsReverseLookUp = {268435456: 'INTERNET_FLAG_ASYNC', 16777216: 'INTERNET_FLAG_FROM_CACHE'}
 
-    pVals[1] = getLookUpVal(pVals[4],dwAccessTypeReverseLookUp)
+    pVals[1] = getLookUpVal(pVals[1],dwAccessTypeReverseLookUp)
     pVals[4] = getLookUpVal(pVals[4],dwFlagsReverseLookUp)
     
     #create strings for everything except ones in our skip
@@ -2204,7 +2204,7 @@ def hook_InternetOpenW(uc, eip, esp, export_dict, callAddr):
     dwAccessTypeReverseLookUp = {0: 'INTERNET_OPEN_TYPE_PRECONFIG', 1: 'INTERNET_OPEN_TYPE_DIRECT', 3: 'INTERNET_OPEN_TYPE_PROXY', 4: 'INTERNET_OPEN_TYPE_PRECONFIG_WITH_NO_AUTOPROXY'}
     dwFlagsReverseLookUp = {268435456: 'INTERNET_FLAG_ASYNC', 16777216: 'INTERNET_FLAG_FROM_CACHE'}
 
-    pVals[1] = getLookUpVal(pVals[4],dwAccessTypeReverseLookUp)
+    pVals[1] = getLookUpVal(pVals[1],dwAccessTypeReverseLookUp)
     pVals[4] = getLookUpVal(pVals[4],dwFlagsReverseLookUp)
     
     #create strings for everything except ones in our skip
@@ -3543,7 +3543,7 @@ def hook_GetComputerNameA(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'nSize']
 
     computerName = 'Desktop-SHAREM'.encode('ascii')
-    uc.mem_write(pVals[0], pack('<15s', computerName))
+    uc.mem_write(pVals[0], pack(f'<{len(computerName)+2}s', computerName))
     uc.mem_write(pVals[1], pack('<I',len(computerName)))
 
     #create strings for everything except ones in our skip
@@ -3565,7 +3565,7 @@ def hook_GetComputerNameW(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'nSize']
     
     computerName = 'Desktop-SHAREM'.encode('utf-16')[2:]
-    uc.mem_write(pVals[0], pack('<30s', computerName))
+    uc.mem_write(pVals[0], pack(f'<{len(computerName)+2}s', computerName))
     uc.mem_write(pVals[1], pack('<I',len(computerName)))
 
     #create strings for everything except ones in our skip
@@ -3590,7 +3590,7 @@ def hook_GetComputerNameExA(uc: Uc, eip, esp, export_dict, callAddr):
     pVals[0] = getLookUpVal(pVals[0], nameTypeReverseLookup)
     
     computerName = 'Desktop-SHAREM'.encode('ascii')
-    uc.mem_write(pVals[1], pack('<15s', computerName))
+    uc.mem_write(pVals[1], pack(f'<{len(computerName)+2}s', computerName))
     uc.mem_write(pVals[2], pack('<I',len(computerName)))
 
     #create strings for everything except ones in our skip
@@ -3615,7 +3615,7 @@ def hook_GetComputerNameExW(uc: Uc, eip, esp, export_dict, callAddr):
     pVals[0] = getLookUpVal(pVals[0], nameTypeReverseLookup)
     
     computerName = 'Desktop-SHAREM'.encode('utf-16')[2:]
-    uc.mem_write(pVals[1], pack('<30s', computerName))
+    uc.mem_write(pVals[1], pack(f'<{len(computerName)+2}s', computerName))
     uc.mem_write(pVals[2], pack('<I',len(computerName)))
 
     #create strings for everything except ones in our skip
@@ -3637,7 +3637,7 @@ def hook_gethostname(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['*name', 'namelen']
 
     computerName = 'Desktop-SHAREM'.encode('ascii')
-    uc.mem_write(pVals[0], pack('<15s', computerName))
+    uc.mem_write(pVals[0], pack(f'<{len(computerName)+2}s', computerName))
 
     pVals[0] = read_string(uc, pVals[0])
 
@@ -3660,7 +3660,7 @@ def hook_GetWindowsDirectoryA(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'uSize']
 
     path = 'C:\Windows'.encode('ascii')
-    uc.mem_write(pVals[0], pack('<260s', path))
+    uc.mem_write(pVals[0], pack(f'<{len(path)+2}s', path))
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
@@ -3681,7 +3681,7 @@ def hook_GetWindowsDirectoryW(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'uSize']
 
     path = 'C:\Windows'.encode('utf-16')[2:]
-    uc.mem_write(pVals[0], pack('<520s', path))
+    uc.mem_write(pVals[0], pack(f'<{len(path)+2}s', path))
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
@@ -3702,7 +3702,7 @@ def hook_GetSystemWindowsDirectoryA(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'uSize']
 
     path = 'C:\Windows'.encode('ascii')
-    uc.mem_write(pVals[0], pack('<260s', path))
+    uc.mem_write(pVals[0], pack(f'<{len(path)+2}s', path))
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
@@ -3723,7 +3723,7 @@ def hook_GetSystemWindowsDirectoryW(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'uSize']
 
     path = 'C:\Windows'.encode('utf-16')[2:]
-    uc.mem_write(pVals[0], pack('<520s', path))
+    uc.mem_write(pVals[0], pack(f'<{len(path)+2}s', path))
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
@@ -3744,7 +3744,7 @@ def hook_GetTempPathA(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['nBufferLength', 'lpBuffer',]
 
     path = 'C:\TEMP\\'.encode('ascii')
-    uc.mem_write(pVals[1], pack('<260s', path))
+    uc.mem_write(pVals[1], pack(f'<{len(path)+2}s', path))
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
@@ -3765,7 +3765,7 @@ def hook_GetTempPathW(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['nBufferLength', 'lpBuffer',]
 
     path = 'C:\TEMP\\'.encode('utf-16')[2:]
-    uc.mem_write(pVals[1], pack('<520s', path))
+    uc.mem_write(pVals[1], pack(f'<{len(path)+2}s', path))
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
@@ -3794,7 +3794,7 @@ def hook_GetTempFileNameA(uc: Uc, eip, esp, export_dict, callAddr):
         while len(value) < 4: # Pad to 4
             value = str(0) + value
         if preFix != '[NULL]':
-            path = f'{tempPath}{preFix[:3]}{value}.TMP'
+            path = f'{tempPath}SHAREM{preFix[:3]}{value}.TMP'
         else:
             path = f'{tempPath}SHAREM{value}.TMP'
     else:
@@ -3803,11 +3803,12 @@ def hook_GetTempFileNameA(uc: Uc, eip, esp, export_dict, callAddr):
         while len(value) < 4: # Pad to 4
             value = str(0) + value
         if preFix != '[NULL]':
-            path = f'{tempPath}{preFix[:3]}{value}.TMP'
+            path = f'{tempPath}SHAREM{preFix[:3]}{value}.TMP'
         else:
-            path = f'{tempPath}{value}.TMP'
+            path = f'{tempPath}SHAREM{value}.TMP'
 
-    uc.mem_write(pVals[3], pack('<260s', path.encode('ascii')))
+    pathEncoded = path.encode('ascii')
+    uc.mem_write(pVals[3], pack(f'<{len(pathEncoded)}s', pathEncoded))
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
@@ -3835,7 +3836,7 @@ def hook_GetTempFileNameW(uc: Uc, eip, esp, export_dict, callAddr):
         while len(value) < 4: # Pad to 4
             value = str(0) + value
         if preFix != '[NULL]':
-            path = f'{tempPath}{preFix[:3]}{value}.TMP'
+            path = f'{tempPath}SHAREM{preFix[:3]}{value}.TMP'
         else:
             path = f'{tempPath}SHAREM{value}.TMP'
     else:
@@ -3844,11 +3845,13 @@ def hook_GetTempFileNameW(uc: Uc, eip, esp, export_dict, callAddr):
         while len(value) < 4: # Pad to 4
             value = str(0) + value
         if preFix != '[NULL]':
-            path = f'{tempPath}{preFix[:3]}{value}.TMP'
+            path = f'{tempPath}SHAREM{preFix[:3]}{value}.TMP'
         else:
-            path = f'{tempPath}{value}.TMP'
+            path = f'{tempPath}SHAREM{value}.TMP'
 
-    uc.mem_write(pVals[3], pack('<520s', path.encode('utf-16')[2:]))
+    pathEncoded = path.encode('utf-16')[2:]
+
+    uc.mem_write(pVals[3], pack(f'<{len(pathEncoded)+2}s', pathEncoded))
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
@@ -3868,7 +3871,7 @@ def hook_GetSystemWow64DirectoryA(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'uSize']
 
     path = 'C:\Windows\SysWOW64'.encode('ascii')
-    uc.mem_write(pVals[0], pack('<260s', path))
+    uc.mem_write(pVals[0], pack(f'<{len(path)+2}s', path))
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
@@ -3889,7 +3892,7 @@ def hook_GetSystemWow64DirectoryW(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'uSize']
 
     path = 'C:\Windows\SysWOW64'.encode('utf-16')[2:]
-    uc.mem_write(pVals[0], pack('<520s', path))
+    uc.mem_write(pVals[0], pack(f'<{len(path)+2}s', path))
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
@@ -3950,7 +3953,7 @@ def hook_GetUserNameA(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'pcbBuffer']
 
     username = 'Administrator'.encode('ascii')
-    uc.mem_write(pVals[0], pack('<256s', username))
+    uc.mem_write(pVals[0], pack(f'<{len(username)+2}s', username))
     uc.mem_write(pVals[1], pack('<I', len(username)))
 
     #create strings for everything except ones in our skip
@@ -3972,7 +3975,7 @@ def hook_GetUserNameW(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'pcbBuffer']
 
     username = 'Administrator'.encode('utf-16')[2:]
-    uc.mem_write(pVals[0], pack('<512s', username))
+    uc.mem_write(pVals[0], pack(f'<{len(username)+2}s', username))
     uc.mem_write(pVals[1], pack('<I', len(username)))
 
     #create strings for everything except ones in our skip
@@ -3996,7 +3999,7 @@ def hook_GetUserNameExA(uc: Uc, eip, esp, export_dict, callAddr):
     nameFormatReverseLookup = {0: 'NameUnknown', 1: 'NameFullyQualifiedDN', 2: 'NameSamCompatible', 3: 'NameDisplay', 6: 'NameUniqueId', 7: 'NameCanonical', 8: 'NameUserPrincipal', 9: 'NameCanonicalEx', 10: 'NameServicePrincipal', 12: 'NameDnsDomain', 13: 'NameGivenName', 14: 'NameSurname'}
     # Possibly Implement Different Formats
     username = 'Administrator'.encode('ascii')
-    uc.mem_write(pVals[1], pack('<256s', username))
+    uc.mem_write(pVals[1], pack(f'<{len(username)+2}s', username))
     uc.mem_write(pVals[2], pack('<I', len(username)))
 
     pVals[0] = getLookUpVal(pVals[0], nameFormatReverseLookup)
@@ -4021,7 +4024,7 @@ def hook_GetUserNameExW(uc: Uc, eip, esp, export_dict, callAddr):
     nameFormatReverseLookup = {0: 'NameUnknown', 1: 'NameFullyQualifiedDN', 2: 'NameSamCompatible', 3: 'NameDisplay', 6: 'NameUniqueId', 7: 'NameCanonical', 8: 'NameUserPrincipal', 9: 'NameCanonicalEx', 10: 'NameServicePrincipal', 12: 'NameDnsDomain', 13: 'NameGivenName', 14: 'NameSurname'}
     # Possibly Implement Different Formats
     username = 'Administrator'.encode('utf-16')[2:]
-    uc.mem_write(pVals[1], pack('<512s', username))
+    uc.mem_write(pVals[1], pack(f'<{len(username)+2}s', username))
     uc.mem_write(pVals[2], pack('<I', len(username)))
 
     pVals[0] = getLookUpVal(pVals[0], nameFormatReverseLookup)
