@@ -4040,3 +4040,38 @@ def hook_GetUserNameExW(uc: Uc, eip, esp, export_dict, callAddr):
 
     logged_calls= ("GetUserNameExW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
+
+def hook_TerminateProcess(uc: Uc, eip, esp, export_dict, callAddr):
+    # 'TerminateProcess': (2, ['HANDLE', 'UINT'], ['hProcess', 'uExitCode'], 'BOOL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['HANDLE', 'UINT']
+    pNames= ['hProcess', 'uExitCode']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal = 0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("TerminateProcess", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_Sleep(uc: Uc, eip, esp, export_dict, callAddr):
+    # 'Sleep': (1, ['DWORD'], ['dwMilliseconds'], 'thunk void')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['DWORD']
+    pNames=  ['dwMilliseconds']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retValStr='None'
+
+    logged_calls= ("Sleep", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
