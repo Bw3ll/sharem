@@ -50,7 +50,9 @@ def makeArgVals(uc, eip, esp, export_dict, callAddr, cnt):
     arg16 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+64, 4)
     arg16 = unpack('<I', arg16)[0]
 
-    if cnt==1:
+    if cnt==0:
+        return []
+    elif cnt==1:
         return [arg1]
     elif cnt==2:
         return [arg1, arg2]
@@ -205,6 +207,12 @@ class HandleType(Enum):
     OpenSCManagerW = auto()
     CreateServiceA = auto()
     CreateServiceW = auto()
+    # PIPE
+    pipeName = auto()
+    # CHAR
+    charName = auto()
+    # Other
+    HGLOBAL = auto()
 
 class Handle:
     nextValue = 0x10000000 # Start of Handle IDs
@@ -4075,3 +4083,397 @@ def hook_Sleep(uc: Uc, eip, esp, export_dict, callAddr):
 
     logged_calls= ("Sleep", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
+
+def hook_CloseHandle(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL CloseHandle( [in] HANDLE hObject);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['HANDLE']
+    pNames=  ['hObject']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CloseHandle", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+### Has a structure of OSVERSIONINFOA, need help with.
+def hook_GetVersionExA(uc: Uc, eip, esp, export_dict, callAddr):
+    #'GetVersionExA': (1, ['LPOSVERSIONINFOA'], ['lpVersionInformation'], 'BOOL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['LPOSVERSIONINFOA']
+    pNames=['lpVersionInformation']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetVersionExA", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_SetErrorMode(uc: Uc, eip, esp, export_dict, callAddr):
+    # 'SetErrorMode': (1, ['UINT'], ['uMode'], 'UINT'),
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['UINT']
+    pNames=['uMode']
+    SetErrorModeFormatReverseLookup = {0: '', 1: 'SEM_FAILCRITICALERRORS', 4: 'SEM_NOALIGNMENTFAULTEXCEPT', 2: 'SEM_NOGPFAULTERRORBOX', 32768: 'SEM_NOOPENFILEERRORBOX'}
+    pVals[0] = getLookUpVal(pVals[0], SetErrorModeFormatReverseLookup)
+    #create strings for everything except ones in our skip
+    skip=[0]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0x0    #returns a the previous state of the error-mode bit flags
+    retValStr=''
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("SetErrorMode", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_SetEndOfFile(uc: Uc, eip, esp, export_dict, callAddr):
+    #'GetVersionExA': (1, ['LPOSVERSIONINFOA'], ['lpVersionInformation'], 'BOOL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['HANDLE']
+    pNames=['hFile']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("SetEndOfFile", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_ResetEvent(uc: Uc, eip, esp, export_dict, callAddr):
+    #'GetVersionExA': (1, ['LPOSVERSIONINFOA'], ['lpVersionInformation'], 'BOOL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['HANDLE']
+    pNames=['hEvent']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("ResetEvent", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_WaitForSingleObjectEx(uc: Uc, eip, esp, export_dict, callAddr):
+    #'WaitForSingleObjectEx': (3, ['HANDLE', 'DWORD', 'BOOL'], ['hHandle', 'dwMilliseconds', 'bAlertable'], 'thunk DWORD')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['HANDLE', 'DWORD', 'BOOL']
+    pNames=['hHandle', 'dwMilliseconds', 'bAlertable']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0x00000000
+    retValStr='WAIT_OBJECT_0'
+    uc.reg_write(UC_X86_REG_EAX, retVal)      
+    logged_calls= ("WaitForSingleObjectEx", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetModuleHandleW(uc: Uc, eip, esp, export_dict, callAddr):
+    #GetModuleHandleW': (1, ['LPCWSTR'], ['lpModuleName'], 'HMODULE'),
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['LPCWSTR']
+    pNames=['lpModuleName']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal=0x00808080
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetModuleHandleW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_TlsFree(uc: Uc, eip, esp, export_dict, callAddr):
+    #''TlsFree': (1, ['DWORD'], ['dwTlsIndex'], 'BOOL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['DWORD']
+    pNames=['dwTlsIndex']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)        ## The return value can be of 4 differnt things, what do i do in this situation?
+
+    logged_calls= ("TlsFree", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_FlsFree(uc: Uc, eip, esp, export_dict, callAddr):
+    #''TlsFree': (1, ['DWORD'], ['dwTlsIndex'], 'BOOL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['DWORD']
+    pNames=['dwFlsIndex']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)        ## The return value can be of 4 differnt things, what do i do in this situation?
+
+    logged_calls= ("FlsFree", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GlobalFree(uc: Uc, eip, esp, export_dict, callAddr):
+    #'GlobalFree': (1, ['HGLOBAL'], ['hMem'], 'HGLOBAL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['HGLOBAL']
+    pNames=['hMem']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0
+    retValStr='NULL'
+    uc.reg_write(UC_X86_REG_EAX, retVal)        ## The return value can be of 4 differnt things, what do i do in this situation?
+
+    logged_calls= ("GlobalFree", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_LocalFree(uc: Uc, eip, esp, export_dict, callAddr):
+    #''LocalFree': (1, ['HLOCAL'], ['hMem'], 'HLOCAL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes= ['HLOCAL']
+    pNames=['hMem']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0
+    retValStr='NULL'
+    uc.reg_write(UC_X86_REG_EAX, retVal)        ## The return value can be of 4 differnt things, what do i do in this situation?
+
+    logged_calls= ("LocalFree", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_FlushFileBuffers(uc: Uc, eip, esp, export_dict, callAddr):
+    #'FlushFileBuffers': (1, ['HANDLE'], ['hFile'], 'BOOL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes= ['HANDLE']
+    pNames=['hFile']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)        ## The return value can be of 4 differnt things, what do i do in this situation?
+
+    logged_calls= ("FlushFileBuffers", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_FlushFileBuffers(uc: Uc, eip, esp, export_dict, callAddr):
+    #'FlushFileBuffers': (1, ['HANDLE'], ['hFile'], 'BOOL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes= ['HANDLE']
+    pNames=['hFile']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)        ## The return value can be of 4 differnt things, what do i do in this situation?
+
+    logged_calls= ("FlushFileBuffers", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_IsDebuggerPresent(uc: Uc, eip, esp, export_dict, callAddr):
+    #'FlushFileBuffers': (1, ['HANDLE'], ['hFile'], 'BOOL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 0)
+    pTypes= []
+    pNames=[]
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0
+    retValStr='False'
+    uc.reg_write(UC_X86_REG_EAX, retVal)        ## The return value can be of 4 differnt things, what do i do in this situation?
+
+    logged_calls= ("IsDebuggerPresent", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+#handle in handle dict
+def hook_GetFileType(uc: Uc, eip, esp, export_dict, callAddr):
+    #'GetFileType': (1, ['HANDLE'], ['hFile'], 'DWORD'
+    # match the filetypes to the HandleType list
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes= ['HANDLE']
+    pNames=['hFile']
+
+    if( pVals[0] in HandlesDict ):
+       fileTypeHandle = HandlesDict[pVals[0]]
+       if( fileTypeHandle.type == HandleType.CreateFileW or fileTypeHandle.type == HandleType.CreateFileA):
+           retVal = 0x0001
+           retValStr='FILE_TYPE_DISK'
+       elif ( fileTypeHandle.type == HandleType.FtpOpenFileA or fileTypeHandle.type == HandleType.FtpOpenFileW):
+           retVal = 0x8000
+           retValStr='FILE_TYPE_REMOTE'
+       elif ( fileTypeHandle.type == HandleType.charName ):
+           retVal = 0x0002
+           retValStr='FILE_TYPE_CHAR'
+       elif ( fileTypeHandle.type == HandleType.pipeName ):
+           retVal = 0x0003
+           retValStr='FILE_TYPE_PIPE'
+       else:
+           retVal = 0x0000
+           retValStr='FILE_TYPE_UNKNOWN'
+    else:
+         retVal = 0x0000
+         retValStr='FILE_TYPE_UNKNOWN'
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+ 
+    uc.reg_write(UC_X86_REG_EAX, retVal)        ## The return value can be of 4 differnt things, what do i do in this situation?
+
+    logged_calls= ("GetFileType", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GlobalLock(uc: Uc, eip, esp, export_dict, callAddr):
+    #'FlushFileBuffers': (1, ['HANDLE'], ['hFile'], 'BOOL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes= ['HGLOBAL']
+    pNames=['hMem']
+    global availMem
+
+    print('test01')
+    if ( pVals[0] in HandlesDict):
+        #return pointer
+        print('test1')
+        retVal = HandlesDict[pVals[0]].data 
+        retValStr = hex(retVal)
+        print('test2')
+    else:
+        #return pointer
+        print('test03')
+        allocMemoryVal = availMem
+        uc.mem_map(availMem,4096)
+        availMem += 4096
+        retHandle = Handle(HandleType.HGLOBAL,allocMemoryVal,pVals[0])
+        retVal = retHandle.data 
+        retValStr = hex(retVal)
+
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    uc.reg_write(UC_X86_REG_EAX, retVal)       
+
+    logged_calls= ("GlobalLock", hex(callAddr), (retValStr), 'LPVOID ', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GlobalAlloc(uc: Uc, eip, esp, export_dict, callAddr):
+    #''GlobalAlloc': (2, ['UINT', 'SIZE_T'], ['uFlags', 'dwBytes'], 'HGLOBAL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes= ['UINT', 'SIZE_T']
+    pNames= ['uFlags', 'dwBytes']
+    uFlags_ReverseLookUp = {66: 'GHND', 0: 'GMEM_FIXED', 2: 'GMEM_MOVEABLE', 64: 'GPTR'}
+    global availMem
+
+    if(pVals[0] == 0 or pVals[0] == 0x0040):
+        #GMEM_FIXED
+        # gptr
+        try:
+            retVal = availMem
+            pVals[1] = ((pVals[1]//4096)+1) * 4096
+            uc.mem_map(availMem,pVals[1])
+            availMem += pVals[1]
+            retValStr = hex(retVal)
+        except:
+            pass
+    elif (pVals[0] == 0x0002 or pVals[0] == 0x0042 ):
+        #GMEM_MOVEABLE
+        # GHND
+        try:
+            allocMemoryVal = availMem
+            pVals[1] = ((pVals[1]//4096)+1) * 4096
+            uc.mem_map(availMem,pVals[1])
+            availMem += pVals[1]
+            retHandle = Handle(HandleType.HGLOBAL,data = allocMemoryVal)
+            retVal = retHandle.value  
+            retValStr = hex(retVal)
+        except:
+            pass
+    else:
+        retVal = 0
+        retValStr = 'NULL'
+
+
+    pVals[0] = getLookUpVal(pVals[0],uFlags_ReverseLookUp)
+    #create strings for everything except ones in our skip
+    skip=[0]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    
+    
+    uc.reg_write(UC_X86_REG_EAX, retVal)        ## The return value can be of 4 differnt things, what do i do in this situation?
+
+    logged_calls= ("GlobalAlloc", hex(callAddr), (retValStr), 'HGLOBAL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
