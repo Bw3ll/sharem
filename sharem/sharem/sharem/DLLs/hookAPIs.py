@@ -25,8 +25,6 @@ class CustomWinAPIs():
             if export_dict[api][0] == arg2:
                 retVal = int(api, 16)
 
-        # print("Using custom API function...")
-
         uc.reg_write(UC_X86_REG_EAX, retVal)
         logged_calls = (
         "GetProcAddress", hex(callAddr), hex(retVal), 'FARPROC', [hex(arg1), arg2], ['HMODULE', 'LPCSTR'],
@@ -99,7 +97,6 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def LoadLibraryW(self, uc, eip, esp, export_dict, callAddr, em):
-        # print("Using custom function...")
         arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 4, 4)
         arg1 = unpack('<I', arg1)[0]
         arg1 = read_string(uc, arg1)
@@ -120,7 +117,6 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def LoadLibraryExW(self, uc, eip, esp, export_dict, callAddr, em):
-        # print("Using custom function...")
         arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 4, 4)
         arg1 = unpack('<I', arg1)[0]
         arg1 = read_string(uc, arg1)
@@ -249,7 +245,6 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def ExitProcess(self, uc, eip, esp, export_dict, callAddr, em):
-        # print("Using custom function...")
         uExitCode = uc.mem_read(esp + 4, 4)
         uExitCode = unpack('<I', uExitCode)[0]
 
@@ -375,7 +370,6 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def ExitProcess(self, uc, eip, esp, export_dict, callAddr, em):
-        # print("Using custom function...")
         uExitCode = uc.mem_read(esp + 4, 4)
         uExitCode = unpack('<I', uExitCode)[0]
 
