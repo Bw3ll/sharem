@@ -1680,11 +1680,12 @@ def giveLoadedModules(mode=None):
 			out2 = cleanColors(out)
 			outfileNoExt = outfile.split(".", 1)[0]
 			outfileName = outfileName.split("\\")[-1]
-			txtFileName =  os.getcwd() + slash + outfileNoExt + slash + outfileName + "_" + "loaded_Modules" + ".txt"
-			print(txtFileName)
-			print ("textfile", txtFileName)
-			os.makedirs(os.path.dirname(txtFileName), exist_ok=True)
-			text = open(txtFileName, "w")
+			# txtFileName =  os.getcwd() + slash + outfileNoExt + slash + outfileName + "_" + "loaded_Modules" + ".txt"
+			txtFileName = outfileNoExt + slash + outfileName + "_" + "loaded_Modules" + ".txt"
+			saveFile = os.path.join(os.path.dirname(__file__), "sharem", "logs", txtFileName)
+
+			os.makedirs(os.path.dirname(saveFile), exist_ok=True)
+			text = open(saveFile, "w")
 			text.write(out2)
 	return (out)
 
