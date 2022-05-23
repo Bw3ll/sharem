@@ -1,3 +1,4 @@
+from enum import Enum
 from struct import pack, unpack
 from time import gmtime, localtime
 from ..helper.emuHelpers import Uc
@@ -155,6 +156,45 @@ class struct_SYSTEMTIME:
         self.wMinute = timeVal.tm_min
         self.wSecond = timeVal.tm_sec
         self.wMilliseconds = 0
+
+    def writeToMemory(self, uc: Uc, address):
+        packedStruct = pack('<HHHHHHHH', self.wYear, self.wMonth, self.wDayOfWeek, self.wDay, self.wHour, self.wMinute, self.wSecond, self.wMilliseconds)
+        uc.mem_write(address, packedStruct)
+
+    def readFromMemory(self, uc: Uc, address):
+        data = uc.mem_read(address, 16)
+        unpackedStruct = unpack('<HHHHHHHH', data)
+        self.wYear = unpackedStruct[0]
+        self.wMonth = unpackedStruct[1]
+        self.wDayOfWeek = unpackedStruct[2]
+        self.wDay = unpackedStruct[3]
+        self.wHour = unpackedStruct[4]
+        self.wMinute = unpackedStruct[5]
+        self.wSecond = unpackedStruct[6]
+        self.wMilliseconds = unpackedStruct[7]
+
+class Processor(Enum):
+    PROCESSOR_ARCHITECTURE_AMD64 = 9 # x64
+    PROCESSOR_ARCHITECTURE_ARM = 5 # Arm 32
+    PROCESSOR_ARCHITECTURE_ARM64 = 12 # Arm64/Aarch64
+    PROCESSOR_ARCHITECTURE_IA64 = 6
+    PROCESSOR_ARCHITECTURE_INTEL = 0 # x86
+    PROCESSOR_ARCHITECTURE_UNKNOWN = 0xffff
+
+class struct_SYSTEM_INFO:
+    # Backs SYSTEM_INFO, *LPSYSTEM_INFO
+    def __init__(self, PA: Processor, numProcessors: int):
+        self.wProcessorArchitecture = PA
+        self.wReserved = 0
+        self.dwPageSize = 4096 #KB
+        self.lpMinimumApplicationAddress = 0x25000000 # Ask someone
+        self.lpMaximumApplicationAddress = 0
+        self.dwPageSizedwActiveProcessorMask = 0 # Check
+        self.dwNumberOfProcessors = numProcessors
+        self.dwProcessorType = 0
+        self.dwAllocationGranularity = 0 # check
+        self.wProcessorLevel = 0 # check
+        self.wProcessorRevision = 0 # check
 
     def writeToMemory(self, uc: Uc, address):
         packedStruct = pack('<HHHHHHHH', self.wYear, self.wMonth, self.wDayOfWeek, self.wDay, self.wHour, self.wMinute, self.wSecond, self.wMilliseconds)

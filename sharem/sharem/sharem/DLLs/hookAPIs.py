@@ -12,6 +12,7 @@ ProcessCreationReverseLookUp = {16777216: 'CREATE_BREAKAWAY_FROM_JOB', 67108864:
 MemLookUp = {'MEM_COMMIT | MEM_RESERVE':'0x3000', 'MEM_COMMIT': '0x1000', 'MEM_FREE': '0x10000', 'MEM_RESERVE': '0x2000', 'MEM_IMAGE': '0x1000000', 'MEM_MAPPED': '0x40000', 'MEM_PRIVATE': '0x20000', 'PAGE_EXECUTE': '0x10', 'PAGE_EXECUTE_READ': '0x20', 'PAGE_EXECUTE_READWRITE': '0x40', 'PAGE_EXECUTE_WRITECOPY': '0x80', 'PAGE_NOACCESS': '0x01', 'PAGE_READONLY': '0x02', 'PAGE_READWRITE': '0x04', 'PAGE_TARGETS_INVALID': '0x40000000', 'PAGE_TARGETS_NO_UPDATE': '0x40000000'}
 MemReverseLookUp = {0x3000:'MEM_COMMIT | MEM_RESERVE', 4096: 'MEM_COMMIT', 65536: 'MEM_FREE', 8192: 'MEM_RESERVE', 16777216: 'MEM_IMAGE', 262144: 'MEM_MAPPED', 131072: 'MEM_PRIVATE', 16: 'PAGE_EXECUTE', 32: 'PAGE_EXECUTE_READ', 64: 'PAGE_EXECUTE_READWRITE', 128: 'PAGE_EXECUTE_WRITECOPY', 1: 'PAGE_NOACCESS', 2: 'PAGE_READONLY', 4: 'PAGE_READWRITE', 1073741824: 'PAGE_TARGETS_NO_UPDATE'}
 availMem = 0x25000000
+lastErrorCode = 0x0
 HeapsDict = {} # Dictionary of All Heaps
 HandlesDict = {} # Dictionary of All Handles
 
@@ -50,7 +51,9 @@ def makeArgVals(uc, eip, esp, export_dict, callAddr, cnt):
     arg16 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP)+64, 4)
     arg16 = unpack('<I', arg16)[0]
 
-    if cnt==1:
+    if cnt==0:
+        return []
+    elif cnt==1:
         return [arg1]
     elif cnt==2:
         return [arg1, arg2]
@@ -205,14 +208,23 @@ class HandleType(Enum):
     OpenSCManagerW = auto()
     CreateServiceA = auto()
     CreateServiceW = auto()
+    # PIPE
+    pipeName = auto()
+    ReadPipe = auto()
+    WritePipe = auto()
+    ReadWritePipe = auto()
+    # CHAR
+    charName = auto()
+    # Other
+    HGLOBAL = auto()
 
 class Handle:
-    nextValue = 0x10000000 # Start of Handle IDs
+    nextValue = 0x80800000 # Start of Handle IDs
     def __init__(self, type: HandleType, data = None, handleValue = 0):
         if handleValue == 0:
             # Generate Handle Value
             handleValue = Handle.nextValue
-            Handle.nextValue += 1
+            Handle.nextValue += 8
         self.value = handleValue
         self.type = type
         self.data = data
@@ -715,6 +727,54 @@ def hook_HeapReAlloc(uc, eip, esp, export_dict, callAddr):
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
     logged_calls= ("HeapReAlloc", hex(callAddr), (retValStr), 'LPVOID', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetProcessHeap(uc: Uc, eip, esp, export_dict, callAddr):
+    # HANDLE GetProcessHeap()
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 0)
+    pTypes=[]
+    pNames=[]
+
+    # Create new Heap
+    heap = Heap(uc, 0, 4096)
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=heap.handle
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetProcessHeap", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetProcessHeaps(uc: Uc, eip, esp, export_dict, callAddr):
+    # 'GetProcessHeaps': (2, ['DWORD', 'PHANDLE'], ['NumberOfHeaps', 'ProcessHeaps'], 'DWORD'),
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['DWORD', 'PHANDLE']
+    pNames=['NumberOfHeaps', 'ProcessHeaps']
+
+
+    # Get Heaps from Heap Dict
+    total = 0
+    for heap in HeapsDict:
+        uc.mem_write(pVals[1]+(total*4),pack('<I',HeapsDict[heap].handle))
+        total += 1
+        if total == pVals[0]: # Write up to NumberOfHeaps to Memory
+            break
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=total
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetProcessHeaps", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
 def hook_CreateToolhelp32Snapshot(uc, eip, esp, export_dict, callAddr):
@@ -1480,7 +1540,7 @@ def hook_ReadProcessMemory(uc: Uc, eip, esp, export_dict, callAddr):
         fmt = '<'+ str(pVals[3]) + 's' 
         uc.mem_write(pVals[2], pack(fmt, buffer))
         if pVals[4] != 0x0:
-            uc.mem_write(pVals[4], pack('<i', pVals[4]))
+            uc.mem_write(pVals[4], pack('<I', len(buffer)))
     except:
         pass
 
@@ -1629,27 +1689,12 @@ def hook_CreateProcessW(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("CreateProcessW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-# DWORD WINAPI CreateProcessInternal(
-#   __in         DWORD unknown1,                              // always (?) NULL
-#   __in_opt     LPCTSTR lpApplicationName,
-#   __inout_opt  LPTSTR lpCommandLine,
-#   __in_opt     LPSECURITY_ATTRIBUTES lpProcessAttributes,
-#   __in_opt     LPSECURITY_ATTRIBUTES lpThreadAttributes,
-#   __in         BOOL bInheritHandles,
-#   __in         DWORD dwCreationFlags,
-#   __in_opt     LPVOID lpEnvironment,
-#   __in_opt     LPCTSTR lpCurrentDirectory,
-#   __in         LPSTARTUPINFO lpStartupInfo,
-#   __out        LPPROCESS_INFORMATION lpProcessInformation,
-#   __in         DWORD unknown2                               // always (?) NULL
-# );
-
-def hook_CreateProcessInternalA2(uc, eip, esp, export_dict, callAddr):
+def hook_CreateProcessInternalA(uc, eip, esp, export_dict, callAddr):
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 12)
     pTypes=['DWORD', 'LPCTSTR', 'LPTSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID', 'LPCSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION', 'DWORD']
     pNames=['unknown1', 'lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles', 'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation', 'unknown2']
 
-    pVals[6] = getLookUpVal(pVals[5],ProcessCreationReverseLookUp)
+    pVals[6] = getLookUpVal(pVals[6],ProcessCreationReverseLookUp)
 
     #create strings for everything except ones in our skip
     skip=[6]   # we need to skip this value (index) later-let's put it in skip
@@ -1663,12 +1708,12 @@ def hook_CreateProcessInternalA2(uc, eip, esp, export_dict, callAddr):
     logged_calls= ("CreateProcessInternalA", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
-def hook_CreateProcessInternalW2(uc, eip, esp, export_dict, callAddr):
+def hook_CreateProcessInternalW(uc, eip, esp, export_dict, callAddr):
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 12)
     pTypes=['DWORD', 'LPCTWSTR', 'LPTWSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID', 'LPCSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION', 'DWORD']
     pNames=['unknown1', 'lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles', 'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation', 'unknown2']
 
-    pVals[6] = getLookUpVal(pVals[5],ProcessCreationReverseLookUp)
+    pVals[6] = getLookUpVal(pVals[6],ProcessCreationReverseLookUp)
 
     #create strings for everything except ones in our skip
     skip=[6]   # we need to skip this value (index) later-let's put it in skip
@@ -1680,6 +1725,44 @@ def hook_CreateProcessInternalW2(uc, eip, esp, export_dict, callAddr):
     uc.reg_write(UC_X86_REG_EAX, retVal)
 
     logged_calls= ("CreateProcessInternalW", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_CreateProcessAsUserA(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 11)
+    pTypes=['HANDLE', 'LPCSTR', 'LPSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID', 'LPCSTR', 'LPSTARTUPINFOA', 'LPPROCESS_INFORMATION']
+    pNames=['hToken', 'lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles', 'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation']
+
+    pVals[6] = getLookUpVal(pVals[6],ProcessCreationReverseLookUp)
+
+    #create strings for everything except ones in our skip
+    skip=[6]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CreateProcessAsUserA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_CreateProcessAsUserW(uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 11)
+    pTypes=['HANDLE', 'LPCWSTR', 'LPWSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID', 'LPCWSTR', 'LPSTARTUPINFOW', 'LPPROCESS_INFORMATION']
+    pNames=['hToken', 'lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles', 'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation']
+
+    pVals[6] = getLookUpVal(pVals[6],ProcessCreationReverseLookUp)
+
+    #create strings for everything except ones in our skip
+    skip=[6]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CreateProcessAsUserW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
 def hook_URLDownloadToFileA(uc, eip, esp, export_dict, callAddr):
@@ -2181,7 +2264,7 @@ def hook_InternetOpenA(uc, eip, esp, export_dict, callAddr):
     dwAccessTypeReverseLookUp = {0: 'INTERNET_OPEN_TYPE_PRECONFIG', 1: 'INTERNET_OPEN_TYPE_DIRECT', 3: 'INTERNET_OPEN_TYPE_PROXY', 4: 'INTERNET_OPEN_TYPE_PRECONFIG_WITH_NO_AUTOPROXY'}
     dwFlagsReverseLookUp = {268435456: 'INTERNET_FLAG_ASYNC', 16777216: 'INTERNET_FLAG_FROM_CACHE'}
 
-    pVals[1] = getLookUpVal(pVals[4],dwAccessTypeReverseLookUp)
+    pVals[1] = getLookUpVal(pVals[1],dwAccessTypeReverseLookUp)
     pVals[4] = getLookUpVal(pVals[4],dwFlagsReverseLookUp)
     
     #create strings for everything except ones in our skip
@@ -2204,7 +2287,7 @@ def hook_InternetOpenW(uc, eip, esp, export_dict, callAddr):
     dwAccessTypeReverseLookUp = {0: 'INTERNET_OPEN_TYPE_PRECONFIG', 1: 'INTERNET_OPEN_TYPE_DIRECT', 3: 'INTERNET_OPEN_TYPE_PROXY', 4: 'INTERNET_OPEN_TYPE_PRECONFIG_WITH_NO_AUTOPROXY'}
     dwFlagsReverseLookUp = {268435456: 'INTERNET_FLAG_ASYNC', 16777216: 'INTERNET_FLAG_FROM_CACHE'}
 
-    pVals[1] = getLookUpVal(pVals[4],dwAccessTypeReverseLookUp)
+    pVals[1] = getLookUpVal(pVals[1],dwAccessTypeReverseLookUp)
     pVals[4] = getLookUpVal(pVals[4],dwFlagsReverseLookUp)
     
     #create strings for everything except ones in our skip
@@ -3536,6 +3619,155 @@ def hook_ReleaseMutex(uc: Uc, eip, esp, export_dict, callAddr):
     logged_calls= ("ReleaseMutex", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
 
+def hook_CreatePipe(uc: Uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    pTypes=['PHANDLE', 'PHANDLE', 'LPSECURITY_ATTRIBUTES', 'DWORD']
+    pNames=['hReadPipe', 'hWritePipe', 'lpPipeAttributes', 'nSize']
+
+    # Create Handles
+    readHandle = Handle(HandleType.ReadPipe)
+    writeHandle = Handle(HandleType.WritePipe)
+
+    # Write Handles to memory
+    try:
+        uc.mem_write(pVals[0], pack('<I', readHandle.value))
+        uc.mem_write(pVals[1], pack('<I', writeHandle.value))
+    except:
+        pass
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CreatePipe", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_CreateNamedPipeA(uc: Uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 8)
+    pTypes=['LPCSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPSECURITY_ATTRIBUTES']
+    pNames=['lpName', 'dwOpenMode', 'dwPipeMode', 'nMaxInstances', 'nOutBufferSize', 'nInBufferSize', 'nDefaultTimeOut', 'lpSecurityAttributes']
+    dwOpenModeReverseLookUp = {0x00000003: 'PIPE_ACCESS_DUPLEX', 0x00000001: 'PIPE_ACCESS_INBOUND', 0x00000002: 'PIPE_ACCESS_OUTBOUND', 0x00040003: 'PIPE_ACCESS_DUPLEX | WRITE_DAC', 0x00040001: 'PIPE_ACCESS_INBOUND | WRITE_DAC', 0x00040002: 'PIPE_ACCESS_OUTBOUND | WRITE_DAC', 0x01000003: 'PIPE_ACCESS_DUPLEX | ACCESS_SYSTEM_SECURITY', 0x01000001: 'PIPE_ACCESS_INBOUND | ACCESS_SYSTEM_SECURITY', 0x01000002: 'PIPE_ACCESS_OUTBOUND | ACCESS_SYSTEM_SECURITY', 0x00080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE', 0x00080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE', 0x00080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE', 0x000C0003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_DAC', 0x000C0001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_DAC', 0x000C0002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_DAC', 0x00080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_OWNER', 0x00080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_OWNER', 0x00080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_OWNER', 0x01080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | ACCESS_SYSTEM_SECURITY', 0x01080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | ACCESS_SYSTEM_SECURITY', 0x01080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | ACCESS_SYSTEM_SECURITY', 0x80000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH', 0x80000001: 'PIPE_ACCESS_INBOUND| FILE_FLAG_WRITE_THROUGH', 0x80000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH', 0x80040003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH | WRITE_DAC', 0x80040001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_WRITE_THROUGH | WRITE_DAC', 0x80040002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH | WRITE_DAC', 0x81000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY', 0x81000001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY', 0x81000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY', 0x40000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED', 0x40000001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED', 0x40000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_OVERLAPPED', 0x40040003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0x40040001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0x40040002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0x41000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0x41000001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0x41000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0x80080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH', 0x80080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH', 0x80080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH', 0x800C0003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_DAC', 0x800C0001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_DAC', 0x800C0002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_DAC', 0x80080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_OWNER', 0x80080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_OWNER', 0x80080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_OWNER', 0x81080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY', 0x81080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY', 0x81080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY', 0x40080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED', 0x40080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED', 0x40080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED', 0x400C0003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0x400C0001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0x400C0002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0x40080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_OWNER', 0x40080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_OWNER', 0x40080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_OWNER', 0x41080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0x41080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0x41080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0xC0000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED', 0xC0000001: 'PIPE_ACCESS_INBOUND| FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED', 0xC0000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED', 0xC0040003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0xC0040001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0xC0040002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0xC1000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0xC1000001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0xC1000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0xC0080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED', 0xC0080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED', 0xC0080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED', 0xC00C0003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0xC00C0001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0xC00C0002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0xC0080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_OWNER', 0xC0080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_OWNER', 0xC0080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_OWNER', 0xC1080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0xC1080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0xC1080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY'}
+    dwPipeModeReverseLookUp = {0x00000000: 'PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT | PIPE_ACCEPT_REMOTE_CLIENTS', 0x00000001: 'PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_NOWAIT | PIPE_ACCEPT_REMOTE_CLIENTS', 0x00000002: 'PIPE_TYPE_BYTE | PIPE_READMODE_MESSAGE | PIPE_WAIT | PIPE_ACCEPT_REMOTE_CLIENTS', 0x00000003: 'PIPE_TYPE_BYTE | PIPE_READMODE_MESSAGE | PIPE_NOWAIT | PIPE_ACCEPT_REMOTE_CLIENTS', 0x00000004: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_BYTE | PIPE_WAIT | PIPE_ACCEPT_REMOTE_CLIENTS', 0x00000005: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_BYTE | PIPE_NOWAIT | PIPE_ACCEPT_REMOTE_CLIENTS', 0x00000006: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT | PIPE_ACCEPT_REMOTE_CLIENTS', 0x00000007: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_NOWAIT | PIPE_ACCEPT_REMOTE_CLIENTS', 0x00000008: 'PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS', 0x00000009: 'PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_NOWAIT | PIPE_REJECT_REMOTE_CLIENTS', 0x0000000A: 'PIPE_TYPE_BYTE | PIPE_READMODE_MESSAGE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS', 0x0000000C: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_BYTE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS', 0x0000000D: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_BYTE | PIPE_NOWAIT | PIPE_REJECT_REMOTE_CLIENTS', 0x0000000E: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS', 0x0000000F: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_NOWAIT | PIPE_REJECT_REMOTE_CLIENTS'}
+    nMaxInstancesReverseLookUp = {255: 'PIPE_UNLIMITED_INSTANCES'}
+
+    name = read_string(uc, pVals[0])
+
+    if pVals[1] == 1:
+        pipeHandle = Handle(HandleType.ReadPipe,data=name)
+    elif pVals[1] == 2:
+        pipeHandle = Handle(HandleType.WritePipe,data=name)
+    else:
+        pipeHandle = Handle(HandleType.ReadWritePipe,data=name)
+
+    pVals[1] = getLookUpVal(pVals[1],dwOpenModeReverseLookUp)
+    pVals[2] = getLookUpVal(pVals[2],dwPipeModeReverseLookUp)
+    pVals[3] = getLookUpVal(pVals[3],nMaxInstancesReverseLookUp)
+
+    #create strings for everything except ones in our skip
+    skip=[1,2,3]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=pipeHandle.value
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CreateNamedPipeA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_CreateNamedPipeW(uc: Uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 8)
+    pTypes=['LPCWSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPSECURITY_ATTRIBUTES']
+    pNames=['lpName', 'dwOpenMode', 'dwPipeMode', 'nMaxInstances', 'nOutBufferSize', 'nInBufferSize', 'nDefaultTimeOut', 'lpSecurityAttributes']
+    dwOpenModeReverseLookUp = {0x00000003: 'PIPE_ACCESS_DUPLEX', 0x00000001: 'PIPE_ACCESS_INBOUND', 0x00000002: 'PIPE_ACCESS_OUTBOUND', 0x00040003: 'PIPE_ACCESS_DUPLEX | WRITE_DAC', 0x00040001: 'PIPE_ACCESS_INBOUND | WRITE_DAC', 0x00040002: 'PIPE_ACCESS_OUTBOUND | WRITE_DAC', 0x01000003: 'PIPE_ACCESS_DUPLEX | ACCESS_SYSTEM_SECURITY', 0x01000001: 'PIPE_ACCESS_INBOUND | ACCESS_SYSTEM_SECURITY', 0x01000002: 'PIPE_ACCESS_OUTBOUND | ACCESS_SYSTEM_SECURITY', 0x00080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE', 0x00080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE', 0x00080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE', 0x000C0003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_DAC', 0x000C0001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_DAC', 0x000C0002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_DAC', 0x00080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_OWNER', 0x00080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_OWNER', 0x00080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_OWNER', 0x01080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | ACCESS_SYSTEM_SECURITY', 0x01080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | ACCESS_SYSTEM_SECURITY', 0x01080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | ACCESS_SYSTEM_SECURITY', 0x80000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH', 0x80000001: 'PIPE_ACCESS_INBOUND| FILE_FLAG_WRITE_THROUGH', 0x80000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH', 0x80040003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH | WRITE_DAC', 0x80040001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_WRITE_THROUGH | WRITE_DAC', 0x80040002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH | WRITE_DAC', 0x81000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY', 0x81000001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY', 0x81000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY', 0x40000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED', 0x40000001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED', 0x40000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_OVERLAPPED', 0x40040003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0x40040001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0x40040002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0x41000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0x41000001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0x41000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0x80080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH', 0x80080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH', 0x80080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH', 0x800C0003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_DAC', 0x800C0001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_DAC', 0x800C0002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_DAC', 0x80080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_OWNER', 0x80080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_OWNER', 0x80080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_OWNER', 0x81080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY', 0x81080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY', 0x81080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY', 0x40080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED', 0x40080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED', 0x40080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED', 0x400C0003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0x400C0001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0x400C0002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0x40080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_OWNER', 0x40080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_OWNER', 0x40080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_OWNER', 0x41080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0x41080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0x41080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0xC0000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED', 0xC0000001: 'PIPE_ACCESS_INBOUND| FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED', 0xC0000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED', 0xC0040003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0xC0040001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0xC0040002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0xC1000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0xC1000001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0xC1000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0xC0080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED', 0xC0080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED', 0xC0080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED', 0xC00C0003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0xC00C0001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0xC00C0002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC', 0xC0080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_OWNER', 0xC0080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_OWNER', 0xC0080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_OWNER', 0xC1080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0xC1080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY', 0xC1080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY'}
+    dwPipeModeReverseLookUp = {0x00000000: 'PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT | PIPE_ACCEPT_REMOTE_CLIENTS', 0x00000001: 'PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_NOWAIT | PIPE_ACCEPT_REMOTE_CLIENTS', 0x00000002: 'PIPE_TYPE_BYTE | PIPE_READMODE_MESSAGE | PIPE_WAIT | PIPE_ACCEPT_REMOTE_CLIENTS', 0x00000003: 'PIPE_TYPE_BYTE | PIPE_READMODE_MESSAGE | PIPE_NOWAIT | PIPE_ACCEPT_REMOTE_CLIENTS', 0x00000004: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_BYTE | PIPE_WAIT | PIPE_ACCEPT_REMOTE_CLIENTS', 0x00000005: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_BYTE | PIPE_NOWAIT | PIPE_ACCEPT_REMOTE_CLIENTS', 0x00000006: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT | PIPE_ACCEPT_REMOTE_CLIENTS', 0x00000007: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_NOWAIT | PIPE_ACCEPT_REMOTE_CLIENTS', 0x00000008: 'PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS', 0x00000009: 'PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_NOWAIT | PIPE_REJECT_REMOTE_CLIENTS', 0x0000000A: 'PIPE_TYPE_BYTE | PIPE_READMODE_MESSAGE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS', 0x0000000C: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_BYTE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS', 0x0000000D: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_BYTE | PIPE_NOWAIT | PIPE_REJECT_REMOTE_CLIENTS', 0x0000000E: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS', 0x0000000F: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_NOWAIT | PIPE_REJECT_REMOTE_CLIENTS'}
+    nMaxInstancesReverseLookUp = {255: 'PIPE_UNLIMITED_INSTANCES'}
+
+    name = read_string(uc, pVals[0])
+
+    if pVals[1] == 1:
+        pipeHandle = Handle(HandleType.ReadPipe,data=name)
+    elif pVals[1] == 2:
+        pipeHandle = Handle(HandleType.WritePipe,data=name)
+    else:
+        pipeHandle = Handle(HandleType.ReadWritePipe,data=name)
+
+    pVals[1] = getLookUpVal(pVals[1],dwOpenModeReverseLookUp)
+    pVals[2] = getLookUpVal(pVals[2],dwPipeModeReverseLookUp)
+    pVals[3] = getLookUpVal(pVals[3],nMaxInstancesReverseLookUp)
+
+    #create strings for everything except ones in our skip
+    skip=[1,2,3]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal=pipeHandle.value
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CreateNamedPipeW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_MultiByteToWideChar(uc: Uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    pTypes=['UINT', 'DWORD', 'LPCSTR', 'int', 'LPWSTR', 'int']
+    pNames=['CodePage', 'dwFlags', 'lpMultiByteStr', 'cbMultiByte', 'lpWideCharStr', 'cchWideChar']
+
+    try:
+        stringToConvert = read_string(uc, pVals[2])
+        unicode = stringToConvert.encode('utf-16')[2:]
+        if pVals[5] == 0:
+            retVal = len(unicode)+2
+        else:
+            uc.mem_write(pVals[4],pack(f'<{len(unicode)}s',unicode))
+            retVal = len(unicode)
+    except:
+        pass
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("MultiByteToWideChar", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_WideCharToMultiByte(uc: Uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 8)
+    pTypes=['UINT', 'DWORD', 'LPCWSTR', 'int', 'LPSTR', 'int', 'LPCSTR', 'LPBOOL']
+    pNames=['CodePage', 'dwFlags', 'lpWideCharStr', 'cchWideChar', 'lpMultiByteStr', 'cbMultiByte', 'lpDefaultChar', 'lpUsedDefaultChar']
+
+
+    try:
+        stringToConvert = read_unicode2(uc, pVals[2])
+        ascii = stringToConvert.encode('ascii', errors="replace") # Attempt to encode replace unknown with ?
+        if pVals[5] == 0:
+            retVal = len(ascii)+1
+        else:
+            uc.mem_write(pVals[4],pack(f'<{len(ascii)}s',ascii))
+            retVal = len(ascii)
+    except:
+        pass
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("WideCharToMultiByte", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
 def hook_GetComputerNameA(uc: Uc, eip, esp, export_dict, callAddr):
     # BOOL GetComputerNameA([out] LPSTR lpBuffer,[in, out] LPDWORD nSize);
     pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
@@ -3543,7 +3775,7 @@ def hook_GetComputerNameA(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'nSize']
 
     computerName = 'Desktop-SHAREM'.encode('ascii')
-    uc.mem_write(pVals[0], pack('<15s', computerName))
+    uc.mem_write(pVals[0], pack(f'<{len(computerName)+2}s', computerName))
     uc.mem_write(pVals[1], pack('<I',len(computerName)))
 
     #create strings for everything except ones in our skip
@@ -3565,7 +3797,7 @@ def hook_GetComputerNameW(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'nSize']
     
     computerName = 'Desktop-SHAREM'.encode('utf-16')[2:]
-    uc.mem_write(pVals[0], pack('<30s', computerName))
+    uc.mem_write(pVals[0], pack(f'<{len(computerName)+2}s', computerName))
     uc.mem_write(pVals[1], pack('<I',len(computerName)))
 
     #create strings for everything except ones in our skip
@@ -3590,7 +3822,7 @@ def hook_GetComputerNameExA(uc: Uc, eip, esp, export_dict, callAddr):
     pVals[0] = getLookUpVal(pVals[0], nameTypeReverseLookup)
     
     computerName = 'Desktop-SHAREM'.encode('ascii')
-    uc.mem_write(pVals[1], pack('<15s', computerName))
+    uc.mem_write(pVals[1], pack(f'<{len(computerName)+2}s', computerName))
     uc.mem_write(pVals[2], pack('<I',len(computerName)))
 
     #create strings for everything except ones in our skip
@@ -3615,7 +3847,7 @@ def hook_GetComputerNameExW(uc: Uc, eip, esp, export_dict, callAddr):
     pVals[0] = getLookUpVal(pVals[0], nameTypeReverseLookup)
     
     computerName = 'Desktop-SHAREM'.encode('utf-16')[2:]
-    uc.mem_write(pVals[1], pack('<30s', computerName))
+    uc.mem_write(pVals[1], pack(f'<{len(computerName)+2}s', computerName))
     uc.mem_write(pVals[2], pack('<I',len(computerName)))
 
     #create strings for everything except ones in our skip
@@ -3637,7 +3869,7 @@ def hook_gethostname(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['*name', 'namelen']
 
     computerName = 'Desktop-SHAREM'.encode('ascii')
-    uc.mem_write(pVals[0], pack('<15s', computerName))
+    uc.mem_write(pVals[0], pack(f'<{len(computerName)+2}s', computerName))
 
     pVals[0] = read_string(uc, pVals[0])
 
@@ -3660,7 +3892,7 @@ def hook_GetWindowsDirectoryA(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'uSize']
 
     path = 'C:\Windows'.encode('ascii')
-    uc.mem_write(pVals[0], pack('<260s', path))
+    uc.mem_write(pVals[0], pack(f'<{len(path)+2}s', path))
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
@@ -3681,7 +3913,7 @@ def hook_GetWindowsDirectoryW(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'uSize']
 
     path = 'C:\Windows'.encode('utf-16')[2:]
-    uc.mem_write(pVals[0], pack('<520s', path))
+    uc.mem_write(pVals[0], pack(f'<{len(path)+2}s', path))
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
@@ -3702,7 +3934,7 @@ def hook_GetSystemWindowsDirectoryA(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'uSize']
 
     path = 'C:\Windows'.encode('ascii')
-    uc.mem_write(pVals[0], pack('<260s', path))
+    uc.mem_write(pVals[0], pack(f'<{len(path)+2}s', path))
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
@@ -3723,7 +3955,7 @@ def hook_GetSystemWindowsDirectoryW(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'uSize']
 
     path = 'C:\Windows'.encode('utf-16')[2:]
-    uc.mem_write(pVals[0], pack('<520s', path))
+    uc.mem_write(pVals[0], pack(f'<{len(path)+2}s', path))
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
@@ -3744,7 +3976,7 @@ def hook_GetTempPathA(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['nBufferLength', 'lpBuffer',]
 
     path = 'C:\TEMP\\'.encode('ascii')
-    uc.mem_write(pVals[1], pack('<260s', path))
+    uc.mem_write(pVals[1], pack(f'<{len(path)+2}s', path))
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
@@ -3765,7 +3997,7 @@ def hook_GetTempPathW(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['nBufferLength', 'lpBuffer',]
 
     path = 'C:\TEMP\\'.encode('utf-16')[2:]
-    uc.mem_write(pVals[1], pack('<520s', path))
+    uc.mem_write(pVals[1], pack(f'<{len(path)+2}s', path))
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
@@ -3794,7 +4026,7 @@ def hook_GetTempFileNameA(uc: Uc, eip, esp, export_dict, callAddr):
         while len(value) < 4: # Pad to 4
             value = str(0) + value
         if preFix != '[NULL]':
-            path = f'{tempPath}{preFix[:3]}{value}.TMP'
+            path = f'{tempPath}SHAREM{preFix[:3]}{value}.TMP'
         else:
             path = f'{tempPath}SHAREM{value}.TMP'
     else:
@@ -3803,11 +4035,12 @@ def hook_GetTempFileNameA(uc: Uc, eip, esp, export_dict, callAddr):
         while len(value) < 4: # Pad to 4
             value = str(0) + value
         if preFix != '[NULL]':
-            path = f'{tempPath}{preFix[:3]}{value}.TMP'
+            path = f'{tempPath}SHAREM{preFix[:3]}{value}.TMP'
         else:
-            path = f'{tempPath}{value}.TMP'
+            path = f'{tempPath}SHAREM{value}.TMP'
 
-    uc.mem_write(pVals[3], pack('<260s', path.encode('ascii')))
+    pathEncoded = path.encode('ascii')
+    uc.mem_write(pVals[3], pack(f'<{len(pathEncoded)}s', pathEncoded))
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
@@ -3835,7 +4068,7 @@ def hook_GetTempFileNameW(uc: Uc, eip, esp, export_dict, callAddr):
         while len(value) < 4: # Pad to 4
             value = str(0) + value
         if preFix != '[NULL]':
-            path = f'{tempPath}{preFix[:3]}{value}.TMP'
+            path = f'{tempPath}SHAREM{preFix[:3]}{value}.TMP'
         else:
             path = f'{tempPath}SHAREM{value}.TMP'
     else:
@@ -3844,11 +4077,13 @@ def hook_GetTempFileNameW(uc: Uc, eip, esp, export_dict, callAddr):
         while len(value) < 4: # Pad to 4
             value = str(0) + value
         if preFix != '[NULL]':
-            path = f'{tempPath}{preFix[:3]}{value}.TMP'
+            path = f'{tempPath}SHAREM{preFix[:3]}{value}.TMP'
         else:
-            path = f'{tempPath}{value}.TMP'
+            path = f'{tempPath}SHAREM{value}.TMP'
 
-    uc.mem_write(pVals[3], pack('<520s', path.encode('utf-16')[2:]))
+    pathEncoded = path.encode('utf-16')[2:]
+
+    uc.mem_write(pVals[3], pack(f'<{len(pathEncoded)+2}s', pathEncoded))
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
@@ -3868,7 +4103,7 @@ def hook_GetSystemWow64DirectoryA(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'uSize']
 
     path = 'C:\Windows\SysWOW64'.encode('ascii')
-    uc.mem_write(pVals[0], pack('<260s', path))
+    uc.mem_write(pVals[0], pack(f'<{len(path)+2}s', path))
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
@@ -3889,7 +4124,7 @@ def hook_GetSystemWow64DirectoryW(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'uSize']
 
     path = 'C:\Windows\SysWOW64'.encode('utf-16')[2:]
-    uc.mem_write(pVals[0], pack('<520s', path))
+    uc.mem_write(pVals[0], pack(f'<{len(path)+2}s', path))
 
     #create strings for everything except ones in our skip
     skip=[]   # we need to skip this value (index) later-let's put it in skip
@@ -3950,7 +4185,7 @@ def hook_GetUserNameA(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'pcbBuffer']
 
     username = 'Administrator'.encode('ascii')
-    uc.mem_write(pVals[0], pack('<256s', username))
+    uc.mem_write(pVals[0], pack(f'<{len(username)+2}s', username))
     uc.mem_write(pVals[1], pack('<I', len(username)))
 
     #create strings for everything except ones in our skip
@@ -3972,7 +4207,7 @@ def hook_GetUserNameW(uc: Uc, eip, esp, export_dict, callAddr):
     pNames= ['lpBuffer', 'pcbBuffer']
 
     username = 'Administrator'.encode('utf-16')[2:]
-    uc.mem_write(pVals[0], pack('<512s', username))
+    uc.mem_write(pVals[0], pack(f'<{len(username)+2}s', username))
     uc.mem_write(pVals[1], pack('<I', len(username)))
 
     #create strings for everything except ones in our skip
@@ -3996,7 +4231,7 @@ def hook_GetUserNameExA(uc: Uc, eip, esp, export_dict, callAddr):
     nameFormatReverseLookup = {0: 'NameUnknown', 1: 'NameFullyQualifiedDN', 2: 'NameSamCompatible', 3: 'NameDisplay', 6: 'NameUniqueId', 7: 'NameCanonical', 8: 'NameUserPrincipal', 9: 'NameCanonicalEx', 10: 'NameServicePrincipal', 12: 'NameDnsDomain', 13: 'NameGivenName', 14: 'NameSurname'}
     # Possibly Implement Different Formats
     username = 'Administrator'.encode('ascii')
-    uc.mem_write(pVals[1], pack('<256s', username))
+    uc.mem_write(pVals[1], pack(f'<{len(username)+2}s', username))
     uc.mem_write(pVals[2], pack('<I', len(username)))
 
     pVals[0] = getLookUpVal(pVals[0], nameFormatReverseLookup)
@@ -4021,7 +4256,7 @@ def hook_GetUserNameExW(uc: Uc, eip, esp, export_dict, callAddr):
     nameFormatReverseLookup = {0: 'NameUnknown', 1: 'NameFullyQualifiedDN', 2: 'NameSamCompatible', 3: 'NameDisplay', 6: 'NameUniqueId', 7: 'NameCanonical', 8: 'NameUserPrincipal', 9: 'NameCanonicalEx', 10: 'NameServicePrincipal', 12: 'NameDnsDomain', 13: 'NameGivenName', 14: 'NameSurname'}
     # Possibly Implement Different Formats
     username = 'Administrator'.encode('utf-16')[2:]
-    uc.mem_write(pVals[1], pack('<512s', username))
+    uc.mem_write(pVals[1], pack(f'<{len(username)+2}s', username))
     uc.mem_write(pVals[2], pack('<I', len(username)))
 
     pVals[0] = getLookUpVal(pVals[0], nameFormatReverseLookup)
@@ -4037,3 +4272,495 @@ def hook_GetUserNameExW(uc: Uc, eip, esp, export_dict, callAddr):
 
     logged_calls= ("GetUserNameExW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
     return logged_calls, cleanBytes
+
+def hook_TerminateProcess(uc: Uc, eip, esp, export_dict, callAddr):
+    # 'TerminateProcess': (2, ['HANDLE', 'UINT'], ['hProcess', 'uExitCode'], 'BOOL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['HANDLE', 'UINT']
+    pNames= ['hProcess', 'uExitCode']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal = 0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("TerminateProcess", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_Sleep(uc: Uc, eip, esp, export_dict, callAddr):
+    # 'Sleep': (1, ['DWORD'], ['dwMilliseconds'], 'thunk void')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['DWORD']
+    pNames=  ['dwMilliseconds']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retValStr='None'
+
+    logged_calls= ("Sleep", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_CloseHandle(uc: Uc, eip, esp, export_dict, callAddr):
+    # BOOL CloseHandle( [in] HANDLE hObject);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['HANDLE']
+    pNames=  ['hObject']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("CloseHandle", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+### Has a structure of OSVERSIONINFOA, need help with.
+def hook_GetVersionExA(uc: Uc, eip, esp, export_dict, callAddr):
+    #'GetVersionExA': (1, ['LPOSVERSIONINFOA'], ['lpVersionInformation'], 'BOOL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['LPOSVERSIONINFOA']
+    pNames=['lpVersionInformation']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetVersionExA", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_SetErrorMode(uc: Uc, eip, esp, export_dict, callAddr):
+    # 'SetErrorMode': (1, ['UINT'], ['uMode'], 'UINT'),
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['UINT']
+    pNames=['uMode']
+    SetErrorModeFormatReverseLookup = {0: '', 1: 'SEM_FAILCRITICALERRORS', 4: 'SEM_NOALIGNMENTFAULTEXCEPT', 2: 'SEM_NOGPFAULTERRORBOX', 32768: 'SEM_NOOPENFILEERRORBOX'}
+    pVals[0] = getLookUpVal(pVals[0], SetErrorModeFormatReverseLookup)
+    #create strings for everything except ones in our skip
+    skip=[0]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0x0    #returns a the previous state of the error-mode bit flags
+    retValStr=''
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("SetErrorMode", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_SetEndOfFile(uc: Uc, eip, esp, export_dict, callAddr):
+    #'GetVersionExA': (1, ['LPOSVERSIONINFOA'], ['lpVersionInformation'], 'BOOL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['HANDLE']
+    pNames=['hFile']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("SetEndOfFile", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_ResetEvent(uc: Uc, eip, esp, export_dict, callAddr):
+    #'GetVersionExA': (1, ['LPOSVERSIONINFOA'], ['lpVersionInformation'], 'BOOL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['HANDLE']
+    pNames=['hEvent']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("ResetEvent", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_WaitForSingleObjectEx(uc: Uc, eip, esp, export_dict, callAddr):
+    #'WaitForSingleObjectEx': (3, ['HANDLE', 'DWORD', 'BOOL'], ['hHandle', 'dwMilliseconds', 'bAlertable'], 'thunk DWORD')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['HANDLE', 'DWORD', 'BOOL']
+    pNames=['hHandle', 'dwMilliseconds', 'bAlertable']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0x00000000
+    retValStr='WAIT_OBJECT_0'
+    uc.reg_write(UC_X86_REG_EAX, retVal)      
+    logged_calls= ("WaitForSingleObjectEx", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetModuleHandleW(uc: Uc, eip, esp, export_dict, callAddr):
+    #GetModuleHandleW': (1, ['LPCWSTR'], ['lpModuleName'], 'HMODULE'),
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    pTypes=['LPCWSTR']
+    pNames=['lpModuleName']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal=0x00808080
+    retValStr=hex(retVal)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetModuleHandleW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_TlsFree(uc: Uc, eip, esp, export_dict, callAddr):
+    #''TlsFree': (1, ['DWORD'], ['dwTlsIndex'], 'BOOL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['DWORD']
+    pNames=['dwTlsIndex']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)        ## The return value can be of 4 differnt things, what do i do in this situation?
+
+    logged_calls= ("TlsFree", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_FlsFree(uc: Uc, eip, esp, export_dict, callAddr):
+    #''TlsFree': (1, ['DWORD'], ['dwTlsIndex'], 'BOOL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['DWORD']
+    pNames=['dwFlsIndex']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)        ## The return value can be of 4 differnt things, what do i do in this situation?
+
+    logged_calls= ("FlsFree", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GlobalFree(uc: Uc, eip, esp, export_dict, callAddr):
+    #'GlobalFree': (1, ['HGLOBAL'], ['hMem'], 'HGLOBAL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['HGLOBAL']
+    pNames=['hMem']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0
+    retValStr='NULL'
+    uc.reg_write(UC_X86_REG_EAX, retVal)        ## The return value can be of 4 differnt things, what do i do in this situation?
+
+    logged_calls= ("GlobalFree", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_LocalFree(uc: Uc, eip, esp, export_dict, callAddr):
+    #''LocalFree': (1, ['HLOCAL'], ['hMem'], 'HLOCAL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes= ['HLOCAL']
+    pNames=['hMem']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0
+    retValStr='NULL'
+    uc.reg_write(UC_X86_REG_EAX, retVal)        ## The return value can be of 4 differnt things, what do i do in this situation?
+
+    logged_calls= ("LocalFree", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_FlushFileBuffers(uc: Uc, eip, esp, export_dict, callAddr):
+    #'FlushFileBuffers': (1, ['HANDLE'], ['hFile'], 'BOOL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes= ['HANDLE']
+    pNames=['hFile']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)        ## The return value can be of 4 differnt things, what do i do in this situation?
+
+    logged_calls= ("FlushFileBuffers", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_FlushFileBuffers(uc: Uc, eip, esp, export_dict, callAddr):
+    #'FlushFileBuffers': (1, ['HANDLE'], ['hFile'], 'BOOL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes= ['HANDLE']
+    pNames=['hFile']
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0x1
+    retValStr='TRUE'
+    uc.reg_write(UC_X86_REG_EAX, retVal)        ## The return value can be of 4 differnt things, what do i do in this situation?
+
+    logged_calls= ("FlushFileBuffers", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_IsDebuggerPresent(uc: Uc, eip, esp, export_dict, callAddr):
+    #'FlushFileBuffers': (1, ['HANDLE'], ['hFile'], 'BOOL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 0)
+    pTypes= []
+    pNames=[]
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    retVal = 0
+    retValStr='False'
+    uc.reg_write(UC_X86_REG_EAX, retVal)        ## The return value can be of 4 differnt things, what do i do in this situation?
+
+    logged_calls= ("IsDebuggerPresent", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_SetLastError(uc: Uc, eip, esp, export_dict, callAddr):
+    # void SetLastError([in] DWORD dwErrCode);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes=['DWORD']
+    pNames=['dwErrCode']
+    ErrorCodeReverseLookUp = {0: 'ERROR_SUCCESS', 1: 'ERROR_INVALID_FUNCTION', 2: 'ERROR_FILE_NOT_FOUND', 3: 'ERROR_PATH_NOT_FOUND', 4: 'ERROR_TOO_MANY_OPEN_FILES', 5: 'ERROR_ACCESS_DENIED', 6: 'ERROR_INVALID_HANDLE', 7: 'ERROR_ARENA_TRASHED', 8: 'ERROR_NOT_ENOUGH_MEMORY', 9: 'ERROR_INVALID_BLOCK', 10: 'ERROR_BAD_ENVIRONMENT', 11: 'ERROR_BAD_FORMAT', 12: 'ERROR_INVALID_ACCESS', 13: 'ERROR_INVALID_DATA', 14: 'ERROR_OUTOFMEMORY', 15: 'ERROR_INVALID_DRIVE', 16: 'ERROR_CURRENT_DIRECTORY', 17: 'ERROR_NOT_SAME_DEVICE', 18: 'ERROR_NO_MORE_FILES', 19: 'ERROR_WRITE_PROTECT', 20: 'ERROR_BAD_UNIT', 21: 'ERROR_NOT_READY', 22: 'ERROR_BAD_COMMAND', 23: 'ERROR_CRC', 24: 'ERROR_BAD_LENGTH', 25: 'ERROR_SEEK', 26: 'ERROR_NOT_DOS_DISK', 27: 'ERROR_SECTOR_NOT_FOUND', 28: 'ERROR_OUT_OF_PAPER', 29: 'ERROR_WRITE_FAULT', 30: 'ERROR_READ_FAULT', 31: 'ERROR_GEN_FAILURE', 32: 'ERROR_SHARING_VIOLATION', 33: 'ERROR_LOCK_VIOLATION', 34: 'ERROR_WRONG_DISK', 36: 'ERROR_SHARING_BUFFER_EXCEEDED', 38: 'ERROR_HANDLE_EOF', 39: 'ERROR_HANDLE_DISK_FULL', 50: 'ERROR_NOT_SUPPORTED', 51: 'ERROR_REM_NOT_LIST', 52: 'ERROR_DUP_NAME', 53: 'ERROR_BAD_NETPATH', 54: 'ERROR_NETWORK_BUSY', 55: 'ERROR_DEV_NOT_EXIST', 56: 'ERROR_TOO_MANY_CMDS', 57: 'ERROR_ADAP_HDW_ERR', 58: 'ERROR_BAD_NET_RESP', 59: 'ERROR_UNEXP_NET_ERR', 60: 'ERROR_BAD_REM_ADAP', 61: 'ERROR_PRINTQ_FULL', 62: 'ERROR_NO_SPOOL_SPACE', 63: 'ERROR_PRINT_CANCELLED', 64: 'ERROR_NETNAME_DELETED', 65: 'ERROR_NETWORK_ACCESS_DENIED', 66: 'ERROR_BAD_DEV_TYPE', 67: 'ERROR_BAD_NET_NAME', 68: 'ERROR_TOO_MANY_NAMES', 69: 'ERROR_TOO_MANY_SESS', 70: 'ERROR_SHARING_PAUSED', 71: 'ERROR_REQ_NOT_ACCEP', 72: 'ERROR_REDIR_PAUSED', 80: 'ERROR_FILE_EXISTS', 82: 'ERROR_CANNOT_MAKE', 83: 'ERROR_FAIL_I24', 84: 'ERROR_OUT_OF_STRUCTURES', 85: 'ERROR_ALREADY_ASSIGNED', 86: 'ERROR_INVALID_PASSWORD', 87: 'ERROR_INVALID_PARAMETER', 88: 'ERROR_NET_WRITE_FAULT', 89: 'ERROR_NO_PROC_SLOTS', 100: 'ERROR_TOO_MANY_SEMAPHORES', 101: 'ERROR_EXCL_SEM_ALREADY_OWNED', 102: 'ERROR_SEM_IS_SET', 103: 'ERROR_TOO_MANY_SEM_REQUESTS', 104: 'ERROR_INVALID_AT_INTERRUPT_TIME', 105: 'ERROR_SEM_OWNER_DIED', 106: 'ERROR_SEM_USER_LIMIT', 107: 'ERROR_DISK_CHANGE', 108: 'ERROR_DRIVE_LOCKED', 109: 'ERROR_BROKEN_PIPE', 110: 'ERROR_OPEN_FAILED', 111: 'ERROR_BUFFER_OVERFLOW', 112: 'ERROR_DISK_FULL', 113: 'ERROR_NO_MORE_SEARCH_HANDLES', 114: 'ERROR_INVALID_TARGET_HANDLE', 117: 'ERROR_INVALID_CATEGORY', 118: 'ERROR_INVALID_VERIFY_SWITCH', 119: 'ERROR_BAD_DRIVER_LEVEL', 120: 'ERROR_CALL_NOT_IMPLEMENTED', 121: 'ERROR_SEM_TIMEOUT', 122: 'ERROR_INSUFFICIENT_BUFFER', 123: 'ERROR_INVALID_NAME', 124: 'ERROR_INVALID_LEVEL', 125: 'ERROR_NO_VOLUME_LABEL', 126: 'ERROR_MOD_NOT_FOUND', 127: 'ERROR_PROC_NOT_FOUND', 128: 'ERROR_WAIT_NO_CHILDREN', 129: 'ERROR_CHILD_NOT_COMPLETE', 130: 'ERROR_DIRECT_ACCESS_HANDLE', 131: 'ERROR_NEGATIVE_SEEK', 132: 'ERROR_SEEK_ON_DEVICE', 133: 'ERROR_IS_JOIN_TARGET', 134: 'ERROR_IS_JOINED', 135: 'ERROR_IS_SUBSTED', 136: 'ERROR_NOT_JOINED', 137: 'ERROR_NOT_SUBSTED', 138: 'ERROR_JOIN_TO_JOIN', 139: 'ERROR_SUBST_TO_SUBST', 140: 'ERROR_JOIN_TO_SUBST', 141: 'ERROR_SUBST_TO_JOIN', 142: 'ERROR_BUSY_DRIVE', 143: 'ERROR_SAME_DRIVE', 144: 'ERROR_DIR_NOT_ROOT', 145: 'ERROR_DIR_NOT_EMPTY', 146: 'ERROR_IS_SUBST_PATH', 147: 'ERROR_IS_JOIN_PATH', 148: 'ERROR_PATH_BUSY', 149: 'ERROR_IS_SUBST_TARGET', 150: 'ERROR_SYSTEM_TRACE', 151: 'ERROR_INVALID_EVENT_COUNT', 152: 'ERROR_TOO_MANY_MUXWAITERS', 153: 'ERROR_INVALID_LIST_FORMAT', 154: 'ERROR_LABEL_TOO_LONG', 155: 'ERROR_TOO_MANY_TCBS', 156: 'ERROR_SIGNAL_REFUSED', 157: 'ERROR_DISCARDED', 158: 'ERROR_NOT_LOCKED', 159: 'ERROR_BAD_THREADID_ADDR', 160: 'ERROR_BAD_ARGUMENTS', 161: 'ERROR_BAD_PATHNAME', 162: 'ERROR_SIGNAL_PENDING', 164: 'ERROR_MAX_THRDS_REACHED', 167: 'ERROR_LOCK_FAILED', 170: 'ERROR_BUSY', 171: 'ERROR_DEVICE_SUPPORT_IN_PROGRESS', 173: 'ERROR_CANCEL_VIOLATION', 174: 'ERROR_ATOMIC_LOCKS_NOT_SUPPORTED', 180: 'ERROR_INVALID_SEGMENT_NUMBER', 182: 'ERROR_INVALID_ORDINAL', 183: 'ERROR_ALREADY_EXISTS', 186: 'ERROR_INVALID_FLAG_NUMBER', 187: 'ERROR_SEM_NOT_FOUND', 188: 'ERROR_INVALID_STARTING_CODESEG', 189: 'ERROR_INVALID_STACKSEG', 190: 'ERROR_INVALID_MODULETYPE', 191: 'ERROR_INVALID_EXE_SIGNATURE', 192: 'ERROR_EXE_MARKED_INVALID', 193: 'ERROR_BAD_EXE_FORMAT', 194: 'ERROR_ITERATED_DATA_EXCEEDS_64k', 195: 'ERROR_INVALID_MINALLOCSIZE', 196: 'ERROR_DYNLINK_FROM_INVALID_RING', 197: 'ERROR_IOPL_NOT_ENABLED', 198: 'ERROR_INVALID_SEGDPL', 199: 'ERROR_AUTODATASEG_EXCEEDS_64k', 200: 'ERROR_RING2SEG_MUST_BE_MOVABLE', 201: 'ERROR_RELOC_CHAIN_XEEDS_SEGLIM', 202: 'ERROR_INFLOOP_IN_RELOC_CHAIN', 203: 'ERROR_ENVVAR_NOT_FOUND', 205: 'ERROR_NO_SIGNAL_SENT', 206: 'ERROR_FILENAME_EXCED_RANGE', 207: 'ERROR_RING2_STACK_IN_USE', 208: 'ERROR_META_EXPANSION_TOO_LONG', 209: 'ERROR_INVALID_SIGNAL_NUMBER', 210: 'ERROR_THREAD_1_INACTIVE', 212: 'ERROR_LOCKED', 214: 'ERROR_TOO_MANY_MODULES', 215: 'ERROR_NESTING_NOT_ALLOWED', 216: 'ERROR_EXE_MACHINE_TYPE_MISMATCH', 217: 'ERROR_EXE_CANNOT_MODIFY_SIGNED_BINARY', 218: 'ERROR_EXE_CANNOT_MODIFY_STRONG_SIGNED_BINARY', 220: 'ERROR_FILE_CHECKED_OUT', 221: 'ERROR_CHECKOUT_REQUIRED', 222: 'ERROR_BAD_FILE_TYPE', 223: 'ERROR_FILE_TOO_LARGE', 224: 'ERROR_FORMS_AUTH_REQUIRED', 225: 'ERROR_VIRUS_INFECTED', 226: 'ERROR_VIRUS_DELETED', 229: 'ERROR_PIPE_LOCAL', 230: 'ERROR_BAD_PIPE', 231: 'ERROR_PIPE_BUSY', 232: 'ERROR_NO_DATA', 233: 'ERROR_PIPE_NOT_CONNECTED', 234: 'ERROR_MORE_DATA', 240: 'ERROR_VC_DISCONNECTED', 254: 'ERROR_INVALID_EA_NAME', 255: 'ERROR_EA_LIST_INCONSISTENT', 258: 'WAIT_TIMEOUT', 259: 'ERROR_NO_MORE_ITEMS', 266: 'ERROR_CANNOT_COPY', 267: 'ERROR_DIRECTORY', 275: 'ERROR_EAS_DIDNT_FIT', 276: 'ERROR_EA_FILE_CORRUPT', 277: 'ERROR_EA_TABLE_FULL', 278: 'ERROR_INVALID_EA_HANDLE', 282: 'ERROR_EAS_NOT_SUPPORTED', 288: 'ERROR_NOT_OWNER', 298: 'ERROR_TOO_MANY_POSTS', 299: 'ERROR_PARTIAL_COPY', 300: 'ERROR_OPLOCK_NOT_GRANTED', 301: 'ERROR_INVALID_OPLOCK_PROTOCOL', 302: 'ERROR_DISK_TOO_FRAGMENTED', 303: 'ERROR_DELETE_PENDING', 304: 'ERROR_INCOMPATIBLE_WITH_GLOBAL_SHORT_NAME_REGISTRY_SETTING', 305: 'ERROR_SHORT_NAMES_NOT_ENABLED_ON_VOLUME', 306: 'ERROR_SECURITY_STREAM_IS_INCONSISTENT', 307: 'ERROR_INVALID_LOCK_RANGE', 308: 'ERROR_IMAGE_SUBSYSTEM_NOT_PRESENT', 309: 'ERROR_NOTIFICATION_GUID_ALREADY_DEFINED', 310: 'ERROR_INVALID_EXCEPTION_HANDLER', 311: 'ERROR_DUPLICATE_PRIVILEGES', 312: 'ERROR_NO_RANGES_PROCESSED', 313: 'ERROR_NOT_ALLOWED_ON_SYSTEM_FILE', 314: 'ERROR_DISK_RESOURCES_EXHAUSTED', 315: 'ERROR_INVALID_TOKEN', 316: 'ERROR_DEVICE_FEATURE_NOT_SUPPORTED', 317: 'ERROR_MR_MID_NOT_FOUND', 318: 'ERROR_SCOPE_NOT_FOUND', 319: 'ERROR_UNDEFINED_SCOPE', 320: 'ERROR_INVALID_CAP', 321: 'ERROR_DEVICE_UNREACHABLE', 322: 'ERROR_DEVICE_NO_RESOURCES', 323: 'ERROR_DATA_CHECKSUM_ERROR', 324: 'ERROR_INTERMIXED_KERNEL_EA_OPERATION', 326: 'ERROR_FILE_LEVEL_TRIM_NOT_SUPPORTED', 327: 'ERROR_OFFSET_ALIGNMENT_VIOLATION', 328: 'ERROR_INVALID_FIELD_IN_PARAMETER_LIST', 329: 'ERROR_OPERATION_IN_PROGRESS', 330: 'ERROR_BAD_DEVICE_PATH', 331: 'ERROR_TOO_MANY_DESCRIPTORS', 332: 'ERROR_SCRUB_DATA_DISABLED', 333: 'ERROR_NOT_REDUNDANT_STORAGE', 334: 'ERROR_RESIDENT_FILE_NOT_SUPPORTED', 335: 'ERROR_COMPRESSED_FILE_NOT_SUPPORTED', 336: 'ERROR_DIRECTORY_NOT_SUPPORTED', 337: 'ERROR_NOT_READ_FROM_COPY', 350: 'ERROR_FAIL_NOACTION_REBOOT', 351: 'ERROR_FAIL_SHUTDOWN', 352: 'ERROR_FAIL_RESTART', 353: 'ERROR_MAX_SESSIONS_REACHED', 400: 'ERROR_THREAD_MODE_ALREADY_BACKGROUND', 401: 'ERROR_THREAD_MODE_NOT_BACKGROUND', 402: 'ERROR_PROCESS_MODE_ALREADY_BACKGROUND', 403: 'ERROR_PROCESS_MODE_NOT_BACKGROUND', 487: 'ERROR_INVALID_ADDRESS'}
+    global lastErrorCode
+
+    lastErrorCode = pVals[0]
+
+    pVals[0] = getLookUpVal(pVals[0],ErrorCodeReverseLookUp)
+
+    #create strings for everything except ones in our skip
+    skip=[0]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retValStr='None'
+
+    logged_calls= ("SetLastError", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_SetLastErrorEx(uc: Uc, eip, esp, export_dict, callAddr):
+    # void SetLastErrorEx([in] DWORD dwErrCode,[in] DWORD dwType);
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes=['DWORD', 'DWORD']
+    pNames=['dwErrCode', 'dwType']
+    ErrorCodeReverseLookUp = {0: 'ERROR_SUCCESS', 1: 'ERROR_INVALID_FUNCTION', 2: 'ERROR_FILE_NOT_FOUND', 3: 'ERROR_PATH_NOT_FOUND', 4: 'ERROR_TOO_MANY_OPEN_FILES', 5: 'ERROR_ACCESS_DENIED', 6: 'ERROR_INVALID_HANDLE', 7: 'ERROR_ARENA_TRASHED', 8: 'ERROR_NOT_ENOUGH_MEMORY', 9: 'ERROR_INVALID_BLOCK', 10: 'ERROR_BAD_ENVIRONMENT', 11: 'ERROR_BAD_FORMAT', 12: 'ERROR_INVALID_ACCESS', 13: 'ERROR_INVALID_DATA', 14: 'ERROR_OUTOFMEMORY', 15: 'ERROR_INVALID_DRIVE', 16: 'ERROR_CURRENT_DIRECTORY', 17: 'ERROR_NOT_SAME_DEVICE', 18: 'ERROR_NO_MORE_FILES', 19: 'ERROR_WRITE_PROTECT', 20: 'ERROR_BAD_UNIT', 21: 'ERROR_NOT_READY', 22: 'ERROR_BAD_COMMAND', 23: 'ERROR_CRC', 24: 'ERROR_BAD_LENGTH', 25: 'ERROR_SEEK', 26: 'ERROR_NOT_DOS_DISK', 27: 'ERROR_SECTOR_NOT_FOUND', 28: 'ERROR_OUT_OF_PAPER', 29: 'ERROR_WRITE_FAULT', 30: 'ERROR_READ_FAULT', 31: 'ERROR_GEN_FAILURE', 32: 'ERROR_SHARING_VIOLATION', 33: 'ERROR_LOCK_VIOLATION', 34: 'ERROR_WRONG_DISK', 36: 'ERROR_SHARING_BUFFER_EXCEEDED', 38: 'ERROR_HANDLE_EOF', 39: 'ERROR_HANDLE_DISK_FULL', 50: 'ERROR_NOT_SUPPORTED', 51: 'ERROR_REM_NOT_LIST', 52: 'ERROR_DUP_NAME', 53: 'ERROR_BAD_NETPATH', 54: 'ERROR_NETWORK_BUSY', 55: 'ERROR_DEV_NOT_EXIST', 56: 'ERROR_TOO_MANY_CMDS', 57: 'ERROR_ADAP_HDW_ERR', 58: 'ERROR_BAD_NET_RESP', 59: 'ERROR_UNEXP_NET_ERR', 60: 'ERROR_BAD_REM_ADAP', 61: 'ERROR_PRINTQ_FULL', 62: 'ERROR_NO_SPOOL_SPACE', 63: 'ERROR_PRINT_CANCELLED', 64: 'ERROR_NETNAME_DELETED', 65: 'ERROR_NETWORK_ACCESS_DENIED', 66: 'ERROR_BAD_DEV_TYPE', 67: 'ERROR_BAD_NET_NAME', 68: 'ERROR_TOO_MANY_NAMES', 69: 'ERROR_TOO_MANY_SESS', 70: 'ERROR_SHARING_PAUSED', 71: 'ERROR_REQ_NOT_ACCEP', 72: 'ERROR_REDIR_PAUSED', 80: 'ERROR_FILE_EXISTS', 82: 'ERROR_CANNOT_MAKE', 83: 'ERROR_FAIL_I24', 84: 'ERROR_OUT_OF_STRUCTURES', 85: 'ERROR_ALREADY_ASSIGNED', 86: 'ERROR_INVALID_PASSWORD', 87: 'ERROR_INVALID_PARAMETER', 88: 'ERROR_NET_WRITE_FAULT', 89: 'ERROR_NO_PROC_SLOTS', 100: 'ERROR_TOO_MANY_SEMAPHORES', 101: 'ERROR_EXCL_SEM_ALREADY_OWNED', 102: 'ERROR_SEM_IS_SET', 103: 'ERROR_TOO_MANY_SEM_REQUESTS', 104: 'ERROR_INVALID_AT_INTERRUPT_TIME', 105: 'ERROR_SEM_OWNER_DIED', 106: 'ERROR_SEM_USER_LIMIT', 107: 'ERROR_DISK_CHANGE', 108: 'ERROR_DRIVE_LOCKED', 109: 'ERROR_BROKEN_PIPE', 110: 'ERROR_OPEN_FAILED', 111: 'ERROR_BUFFER_OVERFLOW', 112: 'ERROR_DISK_FULL', 113: 'ERROR_NO_MORE_SEARCH_HANDLES', 114: 'ERROR_INVALID_TARGET_HANDLE', 117: 'ERROR_INVALID_CATEGORY', 118: 'ERROR_INVALID_VERIFY_SWITCH', 119: 'ERROR_BAD_DRIVER_LEVEL', 120: 'ERROR_CALL_NOT_IMPLEMENTED', 121: 'ERROR_SEM_TIMEOUT', 122: 'ERROR_INSUFFICIENT_BUFFER', 123: 'ERROR_INVALID_NAME', 124: 'ERROR_INVALID_LEVEL', 125: 'ERROR_NO_VOLUME_LABEL', 126: 'ERROR_MOD_NOT_FOUND', 127: 'ERROR_PROC_NOT_FOUND', 128: 'ERROR_WAIT_NO_CHILDREN', 129: 'ERROR_CHILD_NOT_COMPLETE', 130: 'ERROR_DIRECT_ACCESS_HANDLE', 131: 'ERROR_NEGATIVE_SEEK', 132: 'ERROR_SEEK_ON_DEVICE', 133: 'ERROR_IS_JOIN_TARGET', 134: 'ERROR_IS_JOINED', 135: 'ERROR_IS_SUBSTED', 136: 'ERROR_NOT_JOINED', 137: 'ERROR_NOT_SUBSTED', 138: 'ERROR_JOIN_TO_JOIN', 139: 'ERROR_SUBST_TO_SUBST', 140: 'ERROR_JOIN_TO_SUBST', 141: 'ERROR_SUBST_TO_JOIN', 142: 'ERROR_BUSY_DRIVE', 143: 'ERROR_SAME_DRIVE', 144: 'ERROR_DIR_NOT_ROOT', 145: 'ERROR_DIR_NOT_EMPTY', 146: 'ERROR_IS_SUBST_PATH', 147: 'ERROR_IS_JOIN_PATH', 148: 'ERROR_PATH_BUSY', 149: 'ERROR_IS_SUBST_TARGET', 150: 'ERROR_SYSTEM_TRACE', 151: 'ERROR_INVALID_EVENT_COUNT', 152: 'ERROR_TOO_MANY_MUXWAITERS', 153: 'ERROR_INVALID_LIST_FORMAT', 154: 'ERROR_LABEL_TOO_LONG', 155: 'ERROR_TOO_MANY_TCBS', 156: 'ERROR_SIGNAL_REFUSED', 157: 'ERROR_DISCARDED', 158: 'ERROR_NOT_LOCKED', 159: 'ERROR_BAD_THREADID_ADDR', 160: 'ERROR_BAD_ARGUMENTS', 161: 'ERROR_BAD_PATHNAME', 162: 'ERROR_SIGNAL_PENDING', 164: 'ERROR_MAX_THRDS_REACHED', 167: 'ERROR_LOCK_FAILED', 170: 'ERROR_BUSY', 171: 'ERROR_DEVICE_SUPPORT_IN_PROGRESS', 173: 'ERROR_CANCEL_VIOLATION', 174: 'ERROR_ATOMIC_LOCKS_NOT_SUPPORTED', 180: 'ERROR_INVALID_SEGMENT_NUMBER', 182: 'ERROR_INVALID_ORDINAL', 183: 'ERROR_ALREADY_EXISTS', 186: 'ERROR_INVALID_FLAG_NUMBER', 187: 'ERROR_SEM_NOT_FOUND', 188: 'ERROR_INVALID_STARTING_CODESEG', 189: 'ERROR_INVALID_STACKSEG', 190: 'ERROR_INVALID_MODULETYPE', 191: 'ERROR_INVALID_EXE_SIGNATURE', 192: 'ERROR_EXE_MARKED_INVALID', 193: 'ERROR_BAD_EXE_FORMAT', 194: 'ERROR_ITERATED_DATA_EXCEEDS_64k', 195: 'ERROR_INVALID_MINALLOCSIZE', 196: 'ERROR_DYNLINK_FROM_INVALID_RING', 197: 'ERROR_IOPL_NOT_ENABLED', 198: 'ERROR_INVALID_SEGDPL', 199: 'ERROR_AUTODATASEG_EXCEEDS_64k', 200: 'ERROR_RING2SEG_MUST_BE_MOVABLE', 201: 'ERROR_RELOC_CHAIN_XEEDS_SEGLIM', 202: 'ERROR_INFLOOP_IN_RELOC_CHAIN', 203: 'ERROR_ENVVAR_NOT_FOUND', 205: 'ERROR_NO_SIGNAL_SENT', 206: 'ERROR_FILENAME_EXCED_RANGE', 207: 'ERROR_RING2_STACK_IN_USE', 208: 'ERROR_META_EXPANSION_TOO_LONG', 209: 'ERROR_INVALID_SIGNAL_NUMBER', 210: 'ERROR_THREAD_1_INACTIVE', 212: 'ERROR_LOCKED', 214: 'ERROR_TOO_MANY_MODULES', 215: 'ERROR_NESTING_NOT_ALLOWED', 216: 'ERROR_EXE_MACHINE_TYPE_MISMATCH', 217: 'ERROR_EXE_CANNOT_MODIFY_SIGNED_BINARY', 218: 'ERROR_EXE_CANNOT_MODIFY_STRONG_SIGNED_BINARY', 220: 'ERROR_FILE_CHECKED_OUT', 221: 'ERROR_CHECKOUT_REQUIRED', 222: 'ERROR_BAD_FILE_TYPE', 223: 'ERROR_FILE_TOO_LARGE', 224: 'ERROR_FORMS_AUTH_REQUIRED', 225: 'ERROR_VIRUS_INFECTED', 226: 'ERROR_VIRUS_DELETED', 229: 'ERROR_PIPE_LOCAL', 230: 'ERROR_BAD_PIPE', 231: 'ERROR_PIPE_BUSY', 232: 'ERROR_NO_DATA', 233: 'ERROR_PIPE_NOT_CONNECTED', 234: 'ERROR_MORE_DATA', 240: 'ERROR_VC_DISCONNECTED', 254: 'ERROR_INVALID_EA_NAME', 255: 'ERROR_EA_LIST_INCONSISTENT', 258: 'WAIT_TIMEOUT', 259: 'ERROR_NO_MORE_ITEMS', 266: 'ERROR_CANNOT_COPY', 267: 'ERROR_DIRECTORY', 275: 'ERROR_EAS_DIDNT_FIT', 276: 'ERROR_EA_FILE_CORRUPT', 277: 'ERROR_EA_TABLE_FULL', 278: 'ERROR_INVALID_EA_HANDLE', 282: 'ERROR_EAS_NOT_SUPPORTED', 288: 'ERROR_NOT_OWNER', 298: 'ERROR_TOO_MANY_POSTS', 299: 'ERROR_PARTIAL_COPY', 300: 'ERROR_OPLOCK_NOT_GRANTED', 301: 'ERROR_INVALID_OPLOCK_PROTOCOL', 302: 'ERROR_DISK_TOO_FRAGMENTED', 303: 'ERROR_DELETE_PENDING', 304: 'ERROR_INCOMPATIBLE_WITH_GLOBAL_SHORT_NAME_REGISTRY_SETTING', 305: 'ERROR_SHORT_NAMES_NOT_ENABLED_ON_VOLUME', 306: 'ERROR_SECURITY_STREAM_IS_INCONSISTENT', 307: 'ERROR_INVALID_LOCK_RANGE', 308: 'ERROR_IMAGE_SUBSYSTEM_NOT_PRESENT', 309: 'ERROR_NOTIFICATION_GUID_ALREADY_DEFINED', 310: 'ERROR_INVALID_EXCEPTION_HANDLER', 311: 'ERROR_DUPLICATE_PRIVILEGES', 312: 'ERROR_NO_RANGES_PROCESSED', 313: 'ERROR_NOT_ALLOWED_ON_SYSTEM_FILE', 314: 'ERROR_DISK_RESOURCES_EXHAUSTED', 315: 'ERROR_INVALID_TOKEN', 316: 'ERROR_DEVICE_FEATURE_NOT_SUPPORTED', 317: 'ERROR_MR_MID_NOT_FOUND', 318: 'ERROR_SCOPE_NOT_FOUND', 319: 'ERROR_UNDEFINED_SCOPE', 320: 'ERROR_INVALID_CAP', 321: 'ERROR_DEVICE_UNREACHABLE', 322: 'ERROR_DEVICE_NO_RESOURCES', 323: 'ERROR_DATA_CHECKSUM_ERROR', 324: 'ERROR_INTERMIXED_KERNEL_EA_OPERATION', 326: 'ERROR_FILE_LEVEL_TRIM_NOT_SUPPORTED', 327: 'ERROR_OFFSET_ALIGNMENT_VIOLATION', 328: 'ERROR_INVALID_FIELD_IN_PARAMETER_LIST', 329: 'ERROR_OPERATION_IN_PROGRESS', 330: 'ERROR_BAD_DEVICE_PATH', 331: 'ERROR_TOO_MANY_DESCRIPTORS', 332: 'ERROR_SCRUB_DATA_DISABLED', 333: 'ERROR_NOT_REDUNDANT_STORAGE', 334: 'ERROR_RESIDENT_FILE_NOT_SUPPORTED', 335: 'ERROR_COMPRESSED_FILE_NOT_SUPPORTED', 336: 'ERROR_DIRECTORY_NOT_SUPPORTED', 337: 'ERROR_NOT_READ_FROM_COPY', 350: 'ERROR_FAIL_NOACTION_REBOOT', 351: 'ERROR_FAIL_SHUTDOWN', 352: 'ERROR_FAIL_RESTART', 353: 'ERROR_MAX_SESSIONS_REACHED', 400: 'ERROR_THREAD_MODE_ALREADY_BACKGROUND', 401: 'ERROR_THREAD_MODE_NOT_BACKGROUND', 402: 'ERROR_PROCESS_MODE_ALREADY_BACKGROUND', 403: 'ERROR_PROCESS_MODE_NOT_BACKGROUND', 487: 'ERROR_INVALID_ADDRESS'}
+    global lastErrorCode
+
+    lastErrorCode = pVals[0]
+
+    pVals[0] = getLookUpVal(pVals[0],ErrorCodeReverseLookUp)
+
+    #create strings for everything except ones in our skip
+    skip=[0]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retValStr='None'
+
+    logged_calls= ("SetLastErrorEx", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GetLastError(uc: Uc, eip, esp, export_dict, callAddr):
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 0)
+    pTypes=[]
+    pNames=[]
+    ErrorCodeReverseLookUp = {0: 'ERROR_SUCCESS', 1: 'ERROR_INVALID_FUNCTION', 2: 'ERROR_FILE_NOT_FOUND', 3: 'ERROR_PATH_NOT_FOUND', 4: 'ERROR_TOO_MANY_OPEN_FILES', 5: 'ERROR_ACCESS_DENIED', 6: 'ERROR_INVALID_HANDLE', 7: 'ERROR_ARENA_TRASHED', 8: 'ERROR_NOT_ENOUGH_MEMORY', 9: 'ERROR_INVALID_BLOCK', 10: 'ERROR_BAD_ENVIRONMENT', 11: 'ERROR_BAD_FORMAT', 12: 'ERROR_INVALID_ACCESS', 13: 'ERROR_INVALID_DATA', 14: 'ERROR_OUTOFMEMORY', 15: 'ERROR_INVALID_DRIVE', 16: 'ERROR_CURRENT_DIRECTORY', 17: 'ERROR_NOT_SAME_DEVICE', 18: 'ERROR_NO_MORE_FILES', 19: 'ERROR_WRITE_PROTECT', 20: 'ERROR_BAD_UNIT', 21: 'ERROR_NOT_READY', 22: 'ERROR_BAD_COMMAND', 23: 'ERROR_CRC', 24: 'ERROR_BAD_LENGTH', 25: 'ERROR_SEEK', 26: 'ERROR_NOT_DOS_DISK', 27: 'ERROR_SECTOR_NOT_FOUND', 28: 'ERROR_OUT_OF_PAPER', 29: 'ERROR_WRITE_FAULT', 30: 'ERROR_READ_FAULT', 31: 'ERROR_GEN_FAILURE', 32: 'ERROR_SHARING_VIOLATION', 33: 'ERROR_LOCK_VIOLATION', 34: 'ERROR_WRONG_DISK', 36: 'ERROR_SHARING_BUFFER_EXCEEDED', 38: 'ERROR_HANDLE_EOF', 39: 'ERROR_HANDLE_DISK_FULL', 50: 'ERROR_NOT_SUPPORTED', 51: 'ERROR_REM_NOT_LIST', 52: 'ERROR_DUP_NAME', 53: 'ERROR_BAD_NETPATH', 54: 'ERROR_NETWORK_BUSY', 55: 'ERROR_DEV_NOT_EXIST', 56: 'ERROR_TOO_MANY_CMDS', 57: 'ERROR_ADAP_HDW_ERR', 58: 'ERROR_BAD_NET_RESP', 59: 'ERROR_UNEXP_NET_ERR', 60: 'ERROR_BAD_REM_ADAP', 61: 'ERROR_PRINTQ_FULL', 62: 'ERROR_NO_SPOOL_SPACE', 63: 'ERROR_PRINT_CANCELLED', 64: 'ERROR_NETNAME_DELETED', 65: 'ERROR_NETWORK_ACCESS_DENIED', 66: 'ERROR_BAD_DEV_TYPE', 67: 'ERROR_BAD_NET_NAME', 68: 'ERROR_TOO_MANY_NAMES', 69: 'ERROR_TOO_MANY_SESS', 70: 'ERROR_SHARING_PAUSED', 71: 'ERROR_REQ_NOT_ACCEP', 72: 'ERROR_REDIR_PAUSED', 80: 'ERROR_FILE_EXISTS', 82: 'ERROR_CANNOT_MAKE', 83: 'ERROR_FAIL_I24', 84: 'ERROR_OUT_OF_STRUCTURES', 85: 'ERROR_ALREADY_ASSIGNED', 86: 'ERROR_INVALID_PASSWORD', 87: 'ERROR_INVALID_PARAMETER', 88: 'ERROR_NET_WRITE_FAULT', 89: 'ERROR_NO_PROC_SLOTS', 100: 'ERROR_TOO_MANY_SEMAPHORES', 101: 'ERROR_EXCL_SEM_ALREADY_OWNED', 102: 'ERROR_SEM_IS_SET', 103: 'ERROR_TOO_MANY_SEM_REQUESTS', 104: 'ERROR_INVALID_AT_INTERRUPT_TIME', 105: 'ERROR_SEM_OWNER_DIED', 106: 'ERROR_SEM_USER_LIMIT', 107: 'ERROR_DISK_CHANGE', 108: 'ERROR_DRIVE_LOCKED', 109: 'ERROR_BROKEN_PIPE', 110: 'ERROR_OPEN_FAILED', 111: 'ERROR_BUFFER_OVERFLOW', 112: 'ERROR_DISK_FULL', 113: 'ERROR_NO_MORE_SEARCH_HANDLES', 114: 'ERROR_INVALID_TARGET_HANDLE', 117: 'ERROR_INVALID_CATEGORY', 118: 'ERROR_INVALID_VERIFY_SWITCH', 119: 'ERROR_BAD_DRIVER_LEVEL', 120: 'ERROR_CALL_NOT_IMPLEMENTED', 121: 'ERROR_SEM_TIMEOUT', 122: 'ERROR_INSUFFICIENT_BUFFER', 123: 'ERROR_INVALID_NAME', 124: 'ERROR_INVALID_LEVEL', 125: 'ERROR_NO_VOLUME_LABEL', 126: 'ERROR_MOD_NOT_FOUND', 127: 'ERROR_PROC_NOT_FOUND', 128: 'ERROR_WAIT_NO_CHILDREN', 129: 'ERROR_CHILD_NOT_COMPLETE', 130: 'ERROR_DIRECT_ACCESS_HANDLE', 131: 'ERROR_NEGATIVE_SEEK', 132: 'ERROR_SEEK_ON_DEVICE', 133: 'ERROR_IS_JOIN_TARGET', 134: 'ERROR_IS_JOINED', 135: 'ERROR_IS_SUBSTED', 136: 'ERROR_NOT_JOINED', 137: 'ERROR_NOT_SUBSTED', 138: 'ERROR_JOIN_TO_JOIN', 139: 'ERROR_SUBST_TO_SUBST', 140: 'ERROR_JOIN_TO_SUBST', 141: 'ERROR_SUBST_TO_JOIN', 142: 'ERROR_BUSY_DRIVE', 143: 'ERROR_SAME_DRIVE', 144: 'ERROR_DIR_NOT_ROOT', 145: 'ERROR_DIR_NOT_EMPTY', 146: 'ERROR_IS_SUBST_PATH', 147: 'ERROR_IS_JOIN_PATH', 148: 'ERROR_PATH_BUSY', 149: 'ERROR_IS_SUBST_TARGET', 150: 'ERROR_SYSTEM_TRACE', 151: 'ERROR_INVALID_EVENT_COUNT', 152: 'ERROR_TOO_MANY_MUXWAITERS', 153: 'ERROR_INVALID_LIST_FORMAT', 154: 'ERROR_LABEL_TOO_LONG', 155: 'ERROR_TOO_MANY_TCBS', 156: 'ERROR_SIGNAL_REFUSED', 157: 'ERROR_DISCARDED', 158: 'ERROR_NOT_LOCKED', 159: 'ERROR_BAD_THREADID_ADDR', 160: 'ERROR_BAD_ARGUMENTS', 161: 'ERROR_BAD_PATHNAME', 162: 'ERROR_SIGNAL_PENDING', 164: 'ERROR_MAX_THRDS_REACHED', 167: 'ERROR_LOCK_FAILED', 170: 'ERROR_BUSY', 171: 'ERROR_DEVICE_SUPPORT_IN_PROGRESS', 173: 'ERROR_CANCEL_VIOLATION', 174: 'ERROR_ATOMIC_LOCKS_NOT_SUPPORTED', 180: 'ERROR_INVALID_SEGMENT_NUMBER', 182: 'ERROR_INVALID_ORDINAL', 183: 'ERROR_ALREADY_EXISTS', 186: 'ERROR_INVALID_FLAG_NUMBER', 187: 'ERROR_SEM_NOT_FOUND', 188: 'ERROR_INVALID_STARTING_CODESEG', 189: 'ERROR_INVALID_STACKSEG', 190: 'ERROR_INVALID_MODULETYPE', 191: 'ERROR_INVALID_EXE_SIGNATURE', 192: 'ERROR_EXE_MARKED_INVALID', 193: 'ERROR_BAD_EXE_FORMAT', 194: 'ERROR_ITERATED_DATA_EXCEEDS_64k', 195: 'ERROR_INVALID_MINALLOCSIZE', 196: 'ERROR_DYNLINK_FROM_INVALID_RING', 197: 'ERROR_IOPL_NOT_ENABLED', 198: 'ERROR_INVALID_SEGDPL', 199: 'ERROR_AUTODATASEG_EXCEEDS_64k', 200: 'ERROR_RING2SEG_MUST_BE_MOVABLE', 201: 'ERROR_RELOC_CHAIN_XEEDS_SEGLIM', 202: 'ERROR_INFLOOP_IN_RELOC_CHAIN', 203: 'ERROR_ENVVAR_NOT_FOUND', 205: 'ERROR_NO_SIGNAL_SENT', 206: 'ERROR_FILENAME_EXCED_RANGE', 207: 'ERROR_RING2_STACK_IN_USE', 208: 'ERROR_META_EXPANSION_TOO_LONG', 209: 'ERROR_INVALID_SIGNAL_NUMBER', 210: 'ERROR_THREAD_1_INACTIVE', 212: 'ERROR_LOCKED', 214: 'ERROR_TOO_MANY_MODULES', 215: 'ERROR_NESTING_NOT_ALLOWED', 216: 'ERROR_EXE_MACHINE_TYPE_MISMATCH', 217: 'ERROR_EXE_CANNOT_MODIFY_SIGNED_BINARY', 218: 'ERROR_EXE_CANNOT_MODIFY_STRONG_SIGNED_BINARY', 220: 'ERROR_FILE_CHECKED_OUT', 221: 'ERROR_CHECKOUT_REQUIRED', 222: 'ERROR_BAD_FILE_TYPE', 223: 'ERROR_FILE_TOO_LARGE', 224: 'ERROR_FORMS_AUTH_REQUIRED', 225: 'ERROR_VIRUS_INFECTED', 226: 'ERROR_VIRUS_DELETED', 229: 'ERROR_PIPE_LOCAL', 230: 'ERROR_BAD_PIPE', 231: 'ERROR_PIPE_BUSY', 232: 'ERROR_NO_DATA', 233: 'ERROR_PIPE_NOT_CONNECTED', 234: 'ERROR_MORE_DATA', 240: 'ERROR_VC_DISCONNECTED', 254: 'ERROR_INVALID_EA_NAME', 255: 'ERROR_EA_LIST_INCONSISTENT', 258: 'WAIT_TIMEOUT', 259: 'ERROR_NO_MORE_ITEMS', 266: 'ERROR_CANNOT_COPY', 267: 'ERROR_DIRECTORY', 275: 'ERROR_EAS_DIDNT_FIT', 276: 'ERROR_EA_FILE_CORRUPT', 277: 'ERROR_EA_TABLE_FULL', 278: 'ERROR_INVALID_EA_HANDLE', 282: 'ERROR_EAS_NOT_SUPPORTED', 288: 'ERROR_NOT_OWNER', 298: 'ERROR_TOO_MANY_POSTS', 299: 'ERROR_PARTIAL_COPY', 300: 'ERROR_OPLOCK_NOT_GRANTED', 301: 'ERROR_INVALID_OPLOCK_PROTOCOL', 302: 'ERROR_DISK_TOO_FRAGMENTED', 303: 'ERROR_DELETE_PENDING', 304: 'ERROR_INCOMPATIBLE_WITH_GLOBAL_SHORT_NAME_REGISTRY_SETTING', 305: 'ERROR_SHORT_NAMES_NOT_ENABLED_ON_VOLUME', 306: 'ERROR_SECURITY_STREAM_IS_INCONSISTENT', 307: 'ERROR_INVALID_LOCK_RANGE', 308: 'ERROR_IMAGE_SUBSYSTEM_NOT_PRESENT', 309: 'ERROR_NOTIFICATION_GUID_ALREADY_DEFINED', 310: 'ERROR_INVALID_EXCEPTION_HANDLER', 311: 'ERROR_DUPLICATE_PRIVILEGES', 312: 'ERROR_NO_RANGES_PROCESSED', 313: 'ERROR_NOT_ALLOWED_ON_SYSTEM_FILE', 314: 'ERROR_DISK_RESOURCES_EXHAUSTED', 315: 'ERROR_INVALID_TOKEN', 316: 'ERROR_DEVICE_FEATURE_NOT_SUPPORTED', 317: 'ERROR_MR_MID_NOT_FOUND', 318: 'ERROR_SCOPE_NOT_FOUND', 319: 'ERROR_UNDEFINED_SCOPE', 320: 'ERROR_INVALID_CAP', 321: 'ERROR_DEVICE_UNREACHABLE', 322: 'ERROR_DEVICE_NO_RESOURCES', 323: 'ERROR_DATA_CHECKSUM_ERROR', 324: 'ERROR_INTERMIXED_KERNEL_EA_OPERATION', 326: 'ERROR_FILE_LEVEL_TRIM_NOT_SUPPORTED', 327: 'ERROR_OFFSET_ALIGNMENT_VIOLATION', 328: 'ERROR_INVALID_FIELD_IN_PARAMETER_LIST', 329: 'ERROR_OPERATION_IN_PROGRESS', 330: 'ERROR_BAD_DEVICE_PATH', 331: 'ERROR_TOO_MANY_DESCRIPTORS', 332: 'ERROR_SCRUB_DATA_DISABLED', 333: 'ERROR_NOT_REDUNDANT_STORAGE', 334: 'ERROR_RESIDENT_FILE_NOT_SUPPORTED', 335: 'ERROR_COMPRESSED_FILE_NOT_SUPPORTED', 336: 'ERROR_DIRECTORY_NOT_SUPPORTED', 337: 'ERROR_NOT_READ_FROM_COPY', 350: 'ERROR_FAIL_NOACTION_REBOOT', 351: 'ERROR_FAIL_SHUTDOWN', 352: 'ERROR_FAIL_RESTART', 353: 'ERROR_MAX_SESSIONS_REACHED', 400: 'ERROR_THREAD_MODE_ALREADY_BACKGROUND', 401: 'ERROR_THREAD_MODE_NOT_BACKGROUND', 402: 'ERROR_PROCESS_MODE_ALREADY_BACKGROUND', 403: 'ERROR_PROCESS_MODE_NOT_BACKGROUND', 487: 'ERROR_INVALID_ADDRESS'}
+    global lastErrorCode
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    retVal = lastErrorCode
+    retValStr = getLookUpVal(retVal,ErrorCodeReverseLookUp)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+
+    logged_calls= ("GetlastError", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+#handle in handle dict
+def hook_GetFileType(uc: Uc, eip, esp, export_dict, callAddr):
+    #'GetFileType': (1, ['HANDLE'], ['hFile'], 'DWORD'
+    # match the filetypes to the HandleType list
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes= ['HANDLE']
+    pNames=['hFile']
+
+    if( pVals[0] in HandlesDict ):
+       fileTypeHandle = HandlesDict[pVals[0]]
+       if( fileTypeHandle.type == HandleType.CreateFileW or fileTypeHandle.type == HandleType.CreateFileA):
+           retVal = 0x0001
+           retValStr='FILE_TYPE_DISK'
+       elif ( fileTypeHandle.type == HandleType.FtpOpenFileA or fileTypeHandle.type == HandleType.FtpOpenFileW):
+           retVal = 0x8000
+           retValStr='FILE_TYPE_REMOTE'
+       elif ( fileTypeHandle.type == HandleType.charName ):
+           retVal = 0x0002
+           retValStr='FILE_TYPE_CHAR'
+       elif ( fileTypeHandle.type == HandleType.pipeName ):
+           retVal = 0x0003
+           retValStr='FILE_TYPE_PIPE'
+       else:
+           retVal = 0x0000
+           retValStr='FILE_TYPE_UNKNOWN'
+    else:
+         retVal = 0x0000
+         retValStr='FILE_TYPE_UNKNOWN'
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+ 
+    uc.reg_write(UC_X86_REG_EAX, retVal)        ## The return value can be of 4 differnt things, what do i do in this situation?
+
+    logged_calls= ("GetFileType", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GlobalLock(uc: Uc, eip, esp, export_dict, callAddr):
+    #'FlushFileBuffers': (1, ['HANDLE'], ['hFile'], 'BOOL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+    pTypes= ['HGLOBAL']
+    pNames=['hMem']
+    global availMem
+
+    print('test01')
+    if ( pVals[0] in HandlesDict):
+        #return pointer
+        print('test1')
+        retVal = HandlesDict[pVals[0]].data 
+        retValStr = hex(retVal)
+        print('test2')
+    else:
+        #return pointer
+        print('test03')
+        allocMemoryVal = availMem
+        uc.mem_map(availMem,4096)
+        availMem += 4096
+        retHandle = Handle(HandleType.HGLOBAL,allocMemoryVal,pVals[0])
+        retVal = retHandle.data 
+        retValStr = hex(retVal)
+
+
+    #create strings for everything except ones in our skip
+    skip=[]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+    uc.reg_write(UC_X86_REG_EAX, retVal)       
+
+    logged_calls= ("GlobalLock", hex(callAddr), (retValStr), 'LPVOID ', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
+def hook_GlobalAlloc(uc: Uc, eip, esp, export_dict, callAddr):
+    #''GlobalAlloc': (2, ['UINT', 'SIZE_T'], ['uFlags', 'dwBytes'], 'HGLOBAL')
+    pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    pTypes= ['UINT', 'SIZE_T']
+    pNames= ['uFlags', 'dwBytes']
+    uFlags_ReverseLookUp = {66: 'GHND', 0: 'GMEM_FIXED', 2: 'GMEM_MOVEABLE', 64: 'GPTR'}
+    global availMem
+
+    if(pVals[0] == 0 or pVals[0] == 0x0040):
+        #GMEM_FIXED
+        # gptr
+        try:
+            retVal = availMem
+            pVals[1] = ((pVals[1]//4096)+1) * 4096
+            uc.mem_map(availMem,pVals[1])
+            availMem += pVals[1]
+            retValStr = hex(retVal)
+        except:
+            pass
+    elif (pVals[0] == 0x0002 or pVals[0] == 0x0042 ):
+        #GMEM_MOVEABLE
+        # GHND
+        try:
+            allocMemoryVal = availMem
+            pVals[1] = ((pVals[1]//4096)+1) * 4096
+            uc.mem_map(availMem,pVals[1])
+            availMem += pVals[1]
+            retHandle = Handle(HandleType.HGLOBAL,data = allocMemoryVal)
+            retVal = retHandle.value  
+            retValStr = hex(retVal)
+        except:
+            pass
+    else:
+        retVal = 0
+        retValStr = 'NULL'
+
+
+    pVals[0] = getLookUpVal(pVals[0],uFlags_ReverseLookUp)
+    #create strings for everything except ones in our skip
+    skip=[0]   # we need to skip this value (index) later-let's put it in skip
+    pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+    cleanBytes=len(pTypes)*4
+
+    
+    
+    uc.reg_write(UC_X86_REG_EAX, retVal)        ## The return value can be of 4 differnt things, what do i do in this situation?
+
+    logged_calls= ("GlobalAlloc", hex(callAddr), (retValStr), 'HGLOBAL', pVals, pTypes, pNames, False)
+    return logged_calls, cleanBytes
+
