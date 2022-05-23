@@ -243,6 +243,7 @@ syscallRawHexOverride = False
 heavRawHexOverride = False
 fstenvRawHexOverride = False
 
+emuSyscallSelection = SYSCALL_BOOL_DICT
 
 
 
@@ -1677,8 +1678,9 @@ def giveLoadedModules(mode=None):
 		# out = cleanColors(out)
 		if mode =="save":
 			out2 = cleanColors(out)
+			outfileNoExt = outfile.split(".", 1)[0]
 			outfileName = outfileName.split("\\")[-1]
-			txtFileName =  os.getcwd() + slash + outfile + slash + outfileName + "_" + "loaded_Modules" + ".txt"
+			txtFileName =  os.getcwd() + slash + outfileNoExt + slash + outfileName + "_" + "loaded_Modules" + ".txt"
 			print(txtFileName)
 			os.makedirs(os.path.dirname(txtFileName), exist_ok=True)
 			text = open(txtFileName, "w")
@@ -19694,6 +19696,9 @@ def emulationSubmenu():
 			# 		print(red + "\tPlease enter only a number." + res)
 			# 		break
 			# emulatorUI(emuObj)
+		elif choice == "s":
+			# syscallSelectionMenu()
+			emuSyscallSubMenu()
 
 
 
@@ -21084,6 +21089,35 @@ def uiPrintSyscallSubMenu(): #Printing/settings for syscalls
 			print("\tShow disassembly set to " + str(showDisassembly)+".")
 		# print("\n................\nSyscall Settings\n................\n")
 
+
+def emuSyscallSubMenu(): #Printing/settings for syscalls
+	global emuSyscallSelection
+	global shellbit
+	global showDisassembly
+	global syscallPrintBit
+
+	print(yel + "\n ...................\n Syscall Settings\n ...................\n" + res)
+	emuSyscallPrintSubMenu(emuSyscallSelection, showDisassembly, syscallPrintBit, True)
+	x = ""
+	while x != "e":
+		print(cya + " Sharem>" + gre + "Print>" + yel + "Syscalls> " + res, end="")
+		syscallIN = input()
+		if(re.match("^x$", syscallIN, re.IGNORECASE)):
+			# print("Returning to print menu.")
+			break
+		elif(re.match("^h$", syscallIN, re.IGNORECASE)):
+			emuSyscallSubMenu()
+		elif(re.match("^g$", syscallIN, re.IGNORECASE)):
+			emuSyscallSelectionsSubMenu()
+			print("\nChanges applied: ")
+			emuSyscallSubMenu()
+		elif(re.match("^c$", syscallIN, re.IGNORECASE)):
+			for key in emuSyscallSelection.keys():
+				emuSyscallSelection[key] = False
+			print("\nChanges applied: ")
+			emuSyscallSubMenu()			
+
+
 def uiModulesSubMenu():		#Find and display loaded modules
 	global bpModules
 	
@@ -21759,6 +21793,24 @@ def findAll():  #Find everything
 	print("\n")
 	# print(".........................\n")
 	print(" Search completed.\n")
+
+def emuSyscallSelectionsSubMenu(): #Select osversions for syscalls
+	global emuSyscallSelection
+	x = ''
+
+	print("\nEnter input deliminted by commas or spaces.\n\tE.g. v3, xp2, r3\n")
+	# while x != 'e':
+	sysSelectIN = input("> ")
+	selections = sysSelectIN.replace(",", " ")
+	selectionList = selections.split()
+
+	validKeys = emuSyscallSelection.keys()
+	for selection in selectionList:
+		if(selection in validKeys):
+			emuSyscallSelection[selection] = (not emuSyscallSelection[selection])
+		else:
+			print("Code ", selection, " is not valid.")
+
 
 def syscallSelectionsSubMenu(): #Select osversions for syscalls
 	global syscallSelection
@@ -22628,6 +22680,8 @@ def printToJson(bpAll, outputData):	#Output data to json
 	js_ob = json.dumps(outputData, indent = 3)
 
 	outfile.write(js_ob)
+
+
 
 	jsonOut = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs", "default", "jsondefault.json"), "w")
 	jsonOut.write(js_ob)
@@ -23988,11 +24042,12 @@ def printToText(outputData):	#Output data to text doc
 	# binFileName = output_dir + slash + outfile + filler+slash + outfileName + "-raw.bin"
 
 
-	disFileName = os.path.join(output_dir, outfile + filler, outfileName + "-disassembly.txt")
+	# print("output_dir: ", output_dir, "outfile: ", outfile, " filler: ", filler, "outfileName: ", outfileName)
+	disFileName = os.path.join(output_dir, outfileName.split("\\")[-1], outfileName.split("\\")[-1] + "-disassembly.txt")
 	binFileName = os.path.join(output_dir, outfile + filler, outfileName + "-raw.bin")
 
 	if mBool[o].bEvilImportsFound:
-		importsName =  os.path.join(output_dir, outfile + filler, outfileName + "-imports.txt")
+		importsName =  os.path.join(output_dir,  outfileName.split("\\")[-1], outfileName.split("\\")[-1] + "-imports.txt")
 		importData = showImports(out2File=True)
 		importFp = open(importsName, "w")
 		importFp.write(importData)
