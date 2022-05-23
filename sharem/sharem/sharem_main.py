@@ -21355,7 +21355,7 @@ def uiPrint(): 	#Print instructions
 				else:
 					print("No heaven's gate instructions found.\n")
 			if bPrintEmulation and p2screen:
-				if len(loggedList) >0:
+				if len(loggedList) >0 or  len(logged_syscalls) >0:
 					emulation_txt_out(loggedList, logged_syscalls)
 				else:
 					print ("\nNo emulation results.")
@@ -22365,7 +22365,7 @@ def clearImports():
 	FoundApisName.clear()
 	mBool[o].bEvilImportsFound = False
 
-def emulation_json_out(apiList):
+def emulation_json_out(apiList, logged_syscalls):
 
 
 	# api1 = {"api_name": "winexec",
@@ -22382,6 +22382,7 @@ def emulation_json_out(apiList):
 
 	# }
 	path_artifacts, file_artifacts, commandLine_artifacts, web_artifacts, registry_artifacts,	exe_dll_artifacts = findArtifacts()
+	# syscall_names, syscall_params_values, syscall_params_types, syscall_params_names, syscall_address, ret_values, ret_type, syscall_bruteforce, syscallID = build_emu_results(logged_syscalls)
 
 
 
@@ -22419,6 +22420,7 @@ def emulation_json_out(apiList):
 
 
 	emulation_dict = {"api_calls":[],
+					  "syscalls_emulation":[],
 					  "dlls":[],
 					  "path_artifacts":[],
 					  "file_artifacts":[],
@@ -22454,7 +22456,33 @@ def emulation_json_out(apiList):
 												"value":pVal})
 		# list_of_apis.append(api_dict)
 		emulation_dict["api_calls"].append(api_dict)
+	
+	for i in logged_syscalls:
+		syscalls_dict = {}
+		syscall_name = i[0]
+		syscall_address = i[1]
+		syscall_value = i[2]
+		syscall_type = i[3]
+		syscall_params_values = i[4]
+		syscall_params_types = i[5]
+		syscall_params_names = i[6]
+		syscall_callID = i[8]
 
+		syscalls_dict["syscall_name"] = syscall_name
+		syscalls_dict["return_value"] = syscall_type + " "+syscall_value
+		syscalls_dict["address"] = syscall_address
+
+		syscalls_dict["parameters"] = []
+
+		for pTyp, pName, pVal in zip(syscall_params_types, syscall_params_names, syscall_params_values):
+			syscalls_dict['parameters'].append({"type":pTyp + " " + pName,
+												"value":pVal})
+
+		syscalls_dict["syscall_callID"] = hex(syscall_callID)
+		syscalls_dict["OS_Release_SP"] = em.winVersion+", SP "+em.winSP
+
+		# print(syscall_name)
+		emulation_dict["syscalls_emulation"].append(syscalls_dict)
 
 	emulation_dict["dlls"].extend(logged_dlls)
 	emulation_dict["path_artifacts"].extend(path_artifacts)
@@ -22622,19 +22650,19 @@ def emulation_txt_out(apiList, logged_syscalls):
 			# no_colors_out += "\t{} {}\n\n".format( "Return:", retVal)
 
 	if len(logged_syscalls) > 0:
-		api_names, api_params_values, api_params_types, api_params_names, api_address, ret_values, ret_type, api_bruteforce, syscallID = build_emu_results(logged_syscalls)
+		syscall_names, syscall_params_values, syscall_params_types, syscall_params_names, syscall_address, ret_values, ret_type, syscall_bruteforce, syscallID = build_emu_results(logged_syscalls)
 		txt_output += mag + "\n************* Syscalls *************\n\n" + res
 		verbose_mode = emulation_verbose
 		t = 0
-		for eachApi in api_names:
-			apName = api_names[t]
-			offset = api_address[t]
-			pType = api_params_types[t]
-			pName = api_params_names[t]
+		for eachApi in syscall_names:
+			apName = syscall_names[t]
+			offset = syscall_address[t]
+			pType = syscall_params_types[t]
+			pName = syscall_params_names[t]
 			TypeBundle = []
 			retVal = ret_values[t]
 			retType = ret_type[t]
-			paramVal = api_params_values[t]
+			paramVal = syscall_params_values[t]
 			# DLL = dll_name[t]
 			for v, typ in zip(pType, pName):
 				TypeBundle.append(v + " " + typ)
@@ -22657,7 +22685,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 					txt_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
 				txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
 				txt_output += "\t{} {} - ({}, SP {})\n".format(red + "EAX: " + res, hex(syscallID) + res, em.winVersion + res, em.winSP + res)
-				if api_bruteforce:
+				if syscall_bruteforce:
 					txt_output += "\t{}\n\n".format(whi + "Brute-forced" + res, )
 				else:
 					txt_output += "\n"
@@ -23262,7 +23290,7 @@ def generateOutputData(): #Generate the dictionary for json out
 		
 
 
-	jsonData['emulation'] = emulation_json_out(loggedList)
+	jsonData['emulation'] = emulation_json_out(loggedList,logged_syscalls)
 
 	#We grab the saved info, and loop through it, adding an object to the respective category's list and add a new object for each. The method is the same as the printsaved____() functions
 	if(bit32):
@@ -24694,7 +24722,7 @@ def printToText(outputData):	#Output data to text doc
 	#outString += disassembly
 	bPrintEmulation = False
 
-	if len(loggedList) > 0:
+	if len(loggedList) > 0 or  len(logged_syscalls) >0:
 		outString += emulation_txt_out(loggedList, logged_syscalls)
 	else:
 		outString += "\nNo APIs or artifacts discovered through emulation.\n"
