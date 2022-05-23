@@ -66,7 +66,7 @@ def showOptions(shellBit, rawHex, name,hMd5):
 		showType="PE file"
 		showType2="\n\tPE file: "
 	print(gre + banner() + res)
-	print (whi+"  Shellcode Analysis & Emulation Framework, v. 1.0"+res)
+	print (whi+"  Shellcode Analysis & Emulation Framework, v. 1.01"+res)
 	
 	print (gre+showType2+ cya+name+gre +"\tMd5: "+cya+hMd5+res)
 	optionsLabel = """

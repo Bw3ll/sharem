@@ -5,7 +5,6 @@ import re
 NAME = "sharem"
 VERSION = "0.0.1"
 REQUIREMENTS = [
-    NAME, 
     #"ssdeep>=3.4",
     "capstone",
     "Cython==0.29.27",
