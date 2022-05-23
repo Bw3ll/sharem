@@ -426,7 +426,163 @@ def newSysCallPrint(syscallSelection):
 	# 		else:
 	# 			print("{}  {} []".format(code1, name1))
 
+def emuNewSysCallPrint(emuSyscallSelection):
 
+	syscallNameStrings = ["xp  Windows XP","\txp1  SP1","\txp2  SP2","s3  Windows Server 2003","\ts30  SP0","\ts32  SP2","\ts3r  R2","\ts3r2  R2 SP2","v  Windows Vista","\tv0  SP0","\tv1  SP1","\tv2  SP2","s8  Windows Server 2008","\ts80  SP0","\ts82  SP2","\ts8r  R2","\ts8r1  R2 SP1","w7  Windows 7","\tw70  SP0","\tw71  SP1","s12  Windows Server 2012","\ts120  SP0","\ts12r  R2","w8  Windows 8","\tw80  8.0","\tw81  8.1","w10  Windows 10","\tr0  release 1507","\tr1  release 1511","\tr2  release 1607","\tr3  release 1703","\tr4  release 1709","\tr5  release 1803","\tr6  release 1809","\tr7  release 1903","\tr8  release 1909","\tr9  release 2004","\tr10  release 20H2","all  All releases","\tl  Only latest releases","\td  Current Windows 10","\tD  Current Windows 10 and Windows 7"]
+	# codes = ['xp', 'v', 'w7', 'w8', 'w10', 's3', 's8', 's12', 'all']
+	for line in syscallNameStrings:
+		line = line.split(maxsplit = 1)
+		code = line[0]
+		description = line[1]
+
+		if(emuSyscallSelection[code]):
+			tog = 'x'
+		else:
+			tog = ' '
+		if(description.split()[0] == "Windows" or description.split()[0] == "All"):
+			print("\n{}  {}  {}".format( "[" + red + tog + res + "]",gre + code + res, cya + description + res))
+		else:
+			print("{}\t{}  {}".format("[" + red + tog + res + "]", yel + code + res, description))
+		
+
+
+	
+
+def syscallSelectionMenu():
+	print("#### WINDOWS XP ####")
+	print("Windows XP (SP1)")
+		# code = "xp1"
+	print("Windows XP (SP2)\n")
+		# code = "xp2"
+
+	print("#### WINDOWS VISTA ####")
+	print("Windows Vista (SP0)")
+		# code = "v0"
+	print("Windows Vista (SP1)")
+		# code = "v1"
+	print("Windows Vista (SP2)\n")
+		# code = "v2"
+
+	print("#### WINDOWS 7 ####")
+	print("Windows 7 (SP0)")
+		# code = "w70"
+	print("Windows 7 (SP1)\n")
+		# code = "w71"
+
+	print("#### WINDOWS 8 ####")
+	print("Windows 8 (8.0)")
+		# code = "w80"
+	print("Windows 8 (8.1)\n")
+		# code = "w81"
+
+	print("#### WINDOWS 10 ####")
+	print("Windows 10 (1507)")
+		# code = "r0"
+	print("Windows 10 (1511)")
+		# code = "r1"
+	print("Windows 10 (1607)")
+		# code = "r2"
+	print("Windows 10 (1703)")
+		# code = "r3"
+	print("Windows 10 (1709)")
+		# code = "r4"
+	print("Windows 10 (1803)")
+		# code = "r5"
+	print("Windows 10 (1809)")
+		# code = "r6"
+	print("Windows 10 (1903)")
+		# code = "r7"
+	print("Windows 10 (1909)")
+		# code = "r8"
+	print("Windows 10 (2004)")
+		# code = "r9"
+	print("Windows 10 (20H2)\n")
+		# code = "r10"
+
+	print("#### WINDOWS SERVER 2003 ####")
+	print("Windows Server 2003 (SP0)")
+		# code = "s30"
+	print("Windows Server 2003 (SP2)")
+		# code = "s32"
+	print("Windows Server 2003 (R2)")
+		# code = "s3r"
+	print("Windows Server 2003 (R2 SP2)\n")
+		# code = "s3r2"
+
+	print("#### WINDOWS SERVER 2008 ####")
+	print("Windows Server 2008 (SP0)")
+		# code = "s80"
+	print("Windows Server 2008 (SP2)")
+		# code = "s82"
+	print("Windows Server 2008 (R2)")
+		# code = "s8r"
+	print("Windows Server 2008 (R2 SP1)\n")
+		# code = "s8r1"
+
+	print("#### WINDOWS SERVER 2012 ####")
+	print("Windows Server 2012 (SP0)")
+		# code = "s120"
+	print("Windows Server 2012 (R2)\n")
+		# code = "s12r"
+
+	print("#### WINDOWS 2000 ####")
+	print("Windows 2000 (SP0)")
+		# code = "w200"
+	print("Windows 2000 (SP1)")
+		# code = "w201"
+	print("Windows 2000 (SP2)")
+		# code = "w202"
+	print("Windows 2000 (SP3)")
+		# code = "w203"
+	print("Windows 2000 (SP4)\n")
+		# code = "w204"
+
+	print("#### WINDOWS NT ####")
+	print("Windows NT (SP3 TS)")
+		# code = "nt3t"
+	print("Windows NT (SP3)")
+		# code = "nt3"
+	print("Windows NT (SP4)")
+		# code = "nt4"
+	print("Windows NT (SP5)")
+		# code = "nt5"
+	print("Windows NT (SP6)")
+		# code = "nt6"
+
+
+
+def emuSyscallPrintSubMenu(emuSyscallSelection, showDisassembly, syscallPrintBit, showOptions):
+	vMenu = ""
+
+	#Used for list of OSVersions to print for syscall
+	# def _init_(self, name, category, toggle, code):
+	# 	self.name = name 			#Version, e.g. SP1
+	# 	self.category = category 	#OS, e.g. Windows 10
+	# 	self.toggle = toggle 		#To print or not
+	# 	self.code = code 			#The opcode, e.g. xp1
+
+	#  xp   Windows XP         [ ]      s3   Windows Server 2003                 [ ]
+ #       xp1  SP1          [ ]             s30   SP0                         [ ]
+ #       xp2  SP2          [ ]             s32   SP2                         [ ]
+ #                                         s3r   R2                          [ ]
+ # v    Windows Vista      [ ]             s3r2  R2 SP2                      [ ]
+	
+
+		# print(x.category, x.name, x.toggle, x.code)
+	if(showOptions):
+		print(mag + " \n Selections:\n" + res)
+		emuNewSysCallPrint(emuSyscallSelection)
+
+
+	vMenu = ""
+	if showOptions:
+		vMenu += mag+" \n\n Functional Commands:\n\n"+res
+		vMenu += " {} - Options.\n".format(cya + "h" + res)
+		vMenu += " {} - Clear syscall selections.\n".format(cya + "c" + res)
+		vMenu += " {} - Enter syscall selections.\n".format(cya + "g" + res)
+		vMenu += " {} - Exit.\n".format(cya + "x" + res)
+
+	print(vMenu)
 
 def syscallPrintSubMenu(syscallSelection, showDisassembly, syscallPrintBit, showOptions):
 	vMenu = ""
@@ -556,6 +712,7 @@ def syscallPrintSubMenu(syscallSelection, showDisassembly, syscallPrintBit, show
 		vMenu += " {} - Exit.\n".format(cya + "x" + res)
 
 	print(vMenu)
+	choice = input(">")
 
 def printModulesMenu(modulesMode):
 	# gMS_API_MIN_skip
@@ -721,6 +878,7 @@ def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 
 
 	text += "  {}        \n".format(cya + "z"+res+" -"+yel+"  Initiate emulation."+ res)
+	text += "  {}        \n".format(cya + "s"+res+" -"+yel+"  Select syscall versions."+ res)
 	text += "  {}{:>3} [{}]\n".format(cya + "m"+res+" -"+yel+"  Maximum instructions to emulate."+ res, "", cya + str(maxinst)+ res)
 
 
