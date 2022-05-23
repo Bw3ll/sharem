@@ -276,7 +276,6 @@ def iter_and_dump_dlls(mu, em, export_dict, source_path, save_path, mods):
             dllPath = source_path + dll_file
             rawDll, padding = padDLL(dllPath, dll_file, save_path)
 
-            print(f"DLL NAME: {dll_name}, PADDING: {hex(padding)}, BASE: {hex(base)}")
             with disable_file_system_redirection():
                 pe = pefile.PE(source_path+dll_file)
             for exp in pe.DIRECTORY_ENTRY_EXPORT.symbols:
