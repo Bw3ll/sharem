@@ -2,7 +2,7 @@ import traceback
 
 import struct
 def getPattern(pattern,test):
-	found=9999999999
+	found=None
 	try:
 		found=test.index(pattern)
 		# print ("found1", found)

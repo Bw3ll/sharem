@@ -21,6 +21,8 @@ def read_unicode(uc, address):
     c = uc.mem_read(address, 1)[0]
     read_bytes = 0
 
+    if c == 0x0: ret = "[NULL]" # Option for NULL String
+
     while c != 0x0:
         c = uc.mem_read(address + read_bytes, 1)[0]
         ret += chr(c)

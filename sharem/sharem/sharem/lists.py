@@ -10,6 +10,50 @@ global objs
 
 
 
+SYSCALL_BOOL_DICT = {
+"l": False,
+"d": False,
+"D": False,
+"all": False,
+"xp": False,
+"xp1": False,
+"xp2": False,
+"s3": False,
+"s30": False,
+"s32": False,
+"s3r": False,
+"s3r2": False,
+"v": False,
+"v0": False,
+"v1": False,
+"v2": False,
+"s8": False,
+"s80": False,
+"s82": False,
+"s8r": False,
+"s8r1": False,
+"w7": False,
+"w70": False,
+"w71": False,
+"s12": False,
+"s120": False,
+"s12r": False,
+"w8": False,
+"w80": False,
+"w81": False,
+"w10": False,
+"r0": False,
+"r1": False,
+"r2": False,
+"r3": False,
+"r4": False,
+"r5": False,
+"r6": False,
+"r7": False,
+"r8": False,
+"r9": False,
+"r10": False}
+
 
 #MOV <REG>, [FS:0x30]
 PEB_WALK_MOV_OLD = {
