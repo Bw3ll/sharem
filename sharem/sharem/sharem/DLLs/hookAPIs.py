@@ -4,7 +4,7 @@ from unicorn.x86_const import *
 from struct import pack, unpack
 from ..helper.emuHelpers import Uc
 from ..modules import allDllsDict
-# from .structures import struct_PROCESSENTRY32, struct_MODULEENTRY32, struct_SYSTEMTIME, struct_THREADENTRY32
+from .structures import struct_PROCESSENTRY32, struct_MODULEENTRY32, struct_SYSTEMTIME, struct_THREADENTRY32
 import traceback
 
 FakeProcess = 0xbadd0000
@@ -29,172 +29,6 @@ availMem = 0x25000000
 lastErrorCode = 0x0
 HeapsDict = {}  # Dictionary of All Heaps
 HandlesDict = {}  # Dictionary of All Handles
-
-# Helper Functions
-def makeArgVals2(uc, eip, esp, export_dict, callAddr, cnt):
-    arg1 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 4, 4)
-    arg1 = unpack('<I', arg1)[0]
-    arg2 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 8, 4)
-    arg2 = unpack('<I', arg2)[0]
-    arg3 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 12, 4)
-    arg3 = unpack('<I', arg3)[0]
-    arg4 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 16, 4)
-    arg4 = unpack('<I', arg4)[0]
-    arg5 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 20, 4)
-    arg5 = unpack('<I', arg5)[0]
-    arg6 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 24, 4)
-    arg6 = unpack('<I', arg6)[0]
-    arg7 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 28, 4)
-    arg7 = unpack('<I', arg7)[0]
-    arg8 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 32, 4)
-    arg8 = unpack('<I', arg8)[0]
-    arg9 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 36, 4)
-    arg9 = unpack('<I', arg9)[0]
-    arg10 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 40, 4)
-    arg10 = unpack('<I', arg10)[0]
-    arg11 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 44, 4)
-    arg11 = unpack('<I', arg11)[0]
-    arg12 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 48, 4)
-    arg12 = unpack('<I', arg12)[0]
-    arg13 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 52, 4)
-    arg13 = unpack('<I', arg13)[0]
-    arg14 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 56, 4)
-    arg14 = unpack('<I', arg14)[0]
-    arg15 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 60, 4)
-    arg15 = unpack('<I', arg15)[0]
-    arg16 = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 64, 4)
-    arg16 = unpack('<I', arg16)[0]
-
-    if cnt == 0:
-        return []
-    elif cnt == 1:
-        return [arg1]
-    elif cnt == 2:
-        return [arg1, arg2]
-    elif cnt == 3:
-        return [arg1, arg2, arg3]
-    elif cnt == 4:
-        return [arg1, arg2, arg3, arg4]
-    elif cnt == 5:
-        return [arg1, arg2, arg3, arg4, arg5]
-    elif cnt == 6:
-        return [arg1, arg2, arg3, arg4, arg5, arg6]
-    elif cnt == 7:
-        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7]
-    elif cnt == 8:
-        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8]
-    elif cnt == 9:
-        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9]
-    elif cnt == 10:
-        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10]
-    elif cnt == 11:
-        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11]
-    elif cnt == 12:
-        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12]
-    elif cnt == 13:
-        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13]
-    elif cnt == 14:
-        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14]
-    elif cnt == 15:
-        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15]
-    elif cnt == 16:
-        return [arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11, arg12, arg13, arg14, arg15, arg16]
-
-
-def findStringsParms(uc, pTypes, pVals, skip):
-    i = 0
-    for each in pTypes:
-        if i not in skip:
-            if "STR" in pTypes[i]:  # finding ones with string
-                try:
-                    # print ("looking", i, pTypes[i], pVals[i])
-                    if "WSTR" in pTypes[i]:
-                        pVals[i] = read_unicode2(uc, pVals[i])
-                    else:
-                        pVals[i] = read_string(uc, pVals[i])
-                    # print (pVals[i],"*")
-                except:
-                    # print ("pass", i)
-                    pass
-            # elif pTypes[i][0] == 'P': # Pointer Builder
-            #     try:
-            #         pointerVal = getPointerVal(uc,pVals[i])
-            #         pVals[i] = buildPtrString(pVals[i], pointerVal)
-            #     except:
-            #         pass
-            else:
-                pVals[i] = hex(pVals[i])
-
-        i += 1
-    return pTypes, pVals
-
-
-def read_string(uc, address):
-    ret = ""
-    c = uc.mem_read(address, 1)[0]
-    read_bytes = 1
-
-    if c == 0x0: ret = "[NULL]"  # Option for NULL String
-
-    while c != 0x0:
-        ret += chr(c)
-        c = uc.mem_read(address + read_bytes, 1)[0]
-        read_bytes += 1
-    return ret
-
-
-# New Version Works for More Unicode Chars
-# def read_unicode_extended(uc, address):
-#     ret = ""
-#     mem = uc.mem_read(address, 2)[::-1]
-#     read_bytes = 2
-
-#     unicodeString = str(hex(mem[0])) + str(hex(mem[1])[2::])
-#     unicodeInt = int(unicodeString, 0)
-
-#     if unicodeInt == 0x0000: ret="NULL" # Option for NULL String
-
-#     while unicodeInt != 0x0000:
-#         ret += chr(unicodeInt)
-#         mem = uc.mem_read(address + read_bytes, 2)[::-1]
-#         unicodeString = str(hex(mem[0])) + str(hex(mem[1])[2::])
-#         unicodeInt = int(unicodeString, 0)
-#         read_bytes += 2
-
-#     return ret
-
-# Old Version Only Works for First 256/Ascii
-def read_unicode2(uc, address):
-    ret = ""
-    c = uc.mem_read(address, 1)[0]
-    read_bytes = 0
-
-    if c == 0x0: ret = "[NULL]"  # Option for NULL String
-
-    while c != 0x0:
-        c = uc.mem_read(address + read_bytes, 1)[0]
-        ret += chr(c)
-        read_bytes += 2
-
-    ret = ret.rstrip('\x00')
-    return ret
-
-
-def buildPtrString(pointer, val):
-    return hex(pointer) + " -> " + hex(val)
-
-
-def getPointerVal(uc, pointer):
-    val = uc.mem_read(pointer, 4)
-    return unpack('<I', val)[0]
-
-
-def getLookUpVal(search, dictionary: dict):
-    if search in dictionary:
-        return dictionary[search]
-    else:
-        return hex(search)
-
 
 class HandleType(Enum):
     CreateThread = auto()
@@ -447,86 +281,6 @@ class CustomWinAPIs():
         cleanBytes = 12
         return logged_calls, cleanBytes
 
-    def HeapCreate(uc, eip, esp, export_dict, callAddr):
-        # HANDLE HeapCreate([in] DWORD  flOptions,[in] SIZE_T dwInitialSize,[in] SIZE_T dwMaximumSize);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
-        pTypes = ['DWORD', 'SIZE_T', 'SIZE_T']
-        pNames = ['flOptions', 'dwInitialSize', 'dwMaximumSize']
-        flOptionsReverseLookUp = {0x00040000: 'HEAP_CREATE_ENABLE_EXECUTE', 0x00000004: 'HEAP_GENERATE_EXCEPTIONS',
-                                  0x00000001: 'HEAP_NO_SERIALIZE'}
-
-        heap = Heap(uc, 0, pVals[2])
-
-        pVals[0] = getLookUpVal(pVals[0], flOptionsReverseLookUp)
-
-        # create strings for everything except ones in our skip
-        skip = [0]  # we need to skip this value (index) later-let's put it in skip
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
-
-        cleanBytes = len(pTypes) * 4
-        retVal = heap.handle
-        retValStr = hex(retVal)
-        uc.reg_write(UC_X86_REG_EAX, retVal)
-
-        logged_calls = ("HeapCreate", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
-
-    def HeapCreate2(self, uc, eip, esp, export_dict, callAddr, em):
-        # HANDLE HeapCreate([in] DWORD  flOptions,[in] SIZE_T dwInitialSize,[in] SIZE_T dwMaximumSize);
-        pVals = makeArgVals(uc, em, esp, 3)
-        pTypes = ['DWORD', 'SIZE_T', 'SIZE_T']
-        pNames = ['flOptions', 'dwInitialSize', 'dwMaximumSize']
-        flOptionsReverseLookUp = {0x00040000: 'HEAP_CREATE_ENABLE_EXECUTE', 0x00000004: 'HEAP_GENERATE_EXCEPTIONS',
-                                  0x00000001: 'HEAP_NO_SERIALIZE'}
-
-        # Round up to next page (4096)
-        pVals[1] = ((pVals[1] // 4096) + 1) * 4096
-        pVals[2] = ((pVals[2] // 4096) + 1) * 4096
-
-        search = pVals[0]
-        if search in flOptionsReverseLookUp:
-            pVals[0] = flOptionsReverseLookUp[search]
-        else:
-            pVals[0] = hex(pVals[0])
-
-        # create strings for everything except ones in our skip
-        skip = [0]  # we need to skip this value (index) later-let's put it in skip
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
-
-        cleanBytes = len(pTypes) * 4
-        retVal = FakeProcess  # Figure out how to return HANDLE
-        retValStr = hex(retVal)
-        uc.reg_write(UC_X86_REG_EAX, retVal)
-
-        logged_calls = ("HeapCreate", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
-
-    def HeapAlloc2(self, uc, eip, esp, export_dict, callAddr, em):
-        # DECLSPEC_ALLOCATOR LPVOID HeapAlloc([in] HANDLE hHeap, [in] DWORD  dwFlags, [in] SIZE_T dwBytes)
-        pVals = makeArgVals(uc, em, esp, 3)
-        pTypes = ['HANDLE', 'DWORD', 'SIZE_T']
-        pNames = ['hHeap', 'dwFlags', 'dwBytes']
-        dwFlagsReverseLookUp = {0x00000008: 'HEAP_ZERO_MEMORY', 0x00000004: 'HEAP_GENERATE_EXCEPTIONS',
-                                0x00000001: 'HEAP_NO_SERIALIZE'}
-
-        search = pVals[1]
-        if search in dwFlagsReverseLookUp:
-            pVals[1] = dwFlagsReverseLookUp[search]
-        else:
-            pVals[1] = hex(pVals[1])
-
-        # create strings for everything except ones in our skip
-        skip = [1]  # we need to skip this value (index) later-let's put it in skip
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
-
-        cleanBytes = len(pTypes) * 4
-        retVal = 0x20  # Return pointer to allocated memory block
-        retValStr = hex(retVal)
-        uc.reg_write(UC_X86_REG_EAX, retVal)
-
-        logged_calls = ("HeapAlloc", hex(callAddr), (retValStr), 'PTR', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
-
     def VirtualAlloc(self, uc, eip, esp, export_dict, callAddr, em):
         global availMem
 
@@ -669,26 +423,10 @@ class CustomWinAPIs():
                                              134217728: 'FILE_FLAG_SEQUENTIAL_SCAN',
                                              2147483648: 'FILE_FLAG_WRITE_THROUGH'}
 
-        search = pVals[1]
-        if search in dwDesiredAccessReverseLookUp:
-            pVals[1] = dwDesiredAccessReverseLookUp[search]
-        else:
-            pVals[1] = hex(pVals[1])
-        search = pVals[2]
-        if search in dwShareModeReverseLookUp:
-            pVals[2] = dwShareModeReverseLookUp[search]
-        else:
-            pVals[2] = hex(pVals[2])
-        search = pVals[4]
-        if search in dwCreationDistributionReverseLookUp:
-            pVals[4] = dwCreationDistributionReverseLookUp[search]
-        else:
-            pVals[4] = hex(pVals[4])
-        search = pVals[5]
-        if search in dwFlagsAndAttributesReverseLookUp:
-            pVals[5] = dwFlagsAndAttributesReverseLookUp[search]
-        else:
-            pVals[5] = hex(pVals[5])
+        pVals[1] = getLookUpVal(pVals[1],dwDesiredAccessReverseLookUp)
+        pVals[2] = getLookUpVal(pVals[2],dwShareModeReverseLookUp)
+        pVals[4] = getLookUpVal(pVals[4],dwCreationDistributionReverseLookUp)
+        pVals[5] = getLookUpVal(pVals[5],dwFlagsAndAttributesReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [1, 2, 4, 5]  # we need to skip this value (index) later-let's put it in skip
@@ -794,26 +532,10 @@ class CustomWinAPIs():
                                              134217728: 'FILE_FLAG_SEQUENTIAL_SCAN',
                                              2147483648: 'FILE_FLAG_WRITE_THROUGH'}
 
-        search = pVals[1]
-        if search in dwDesiredAccessReverseLookUp:
-            pVals[1] = dwDesiredAccessReverseLookUp[search]
-        else:
-            pVals[1] = hex(pVals[1])
-        search = pVals[2]
-        if search in dwShareModeReverseLookUp:
-            pVals[2] = dwShareModeReverseLookUp[search]
-        else:
-            pVals[2] = hex(pVals[2])
-        search = pVals[4]
-        if search in dwCreationDistributionReverseLookUp:
-            pVals[4] = dwCreationDistributionReverseLookUp[search]
-        else:
-            pVals[4] = hex(pVals[4])
-        search = pVals[5]
-        if search in dwFlagsAndAttributesReverseLookUp:
-            pVals[5] = dwFlagsAndAttributesReverseLookUp[search]
-        else:
-            pVals[5] = hex(pVals[5])
+        pVals[1] = getLookUpVal(pVals[1],dwDesiredAccessReverseLookUp)
+        pVals[2] = getLookUpVal(pVals[2],dwShareModeReverseLookUp)
+        pVals[4] = getLookUpVal(pVals[4],dwCreationDistributionReverseLookUp)
+        pVals[5] = getLookUpVal(pVals[5],dwFlagsAndAttributesReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [1, 2, 4, 5]  # we need to skip this value (index) later-let's put it in skip
@@ -838,12 +560,7 @@ class CustomWinAPIs():
         pNames = ['lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles',
                   'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation']
 
-        # searching a dictionary for string to replace hex with
-        search = pVals[5]
-        if search in ProcessCreationReverseLookUp:
-            pVals[5] = ProcessCreationReverseLookUp[search]
-        else:
-            pVals[5] = hex(pVals[5])
+        pVals[5] = getLookUpVal(pVals[5], ProcessCreationReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [5]  # we need to skip this value (index) later-let's put it in skip
@@ -883,11 +600,7 @@ class CustomWinAPIs():
                                 4: 'SW_SHOWNOACTIVATE', 5: 'SW_SHOW', 6: 'SW_MINIMIZE', 7: 'SW_SHOWMINNOACTIVE',
                                 8: 'SW_SHOWNA', 9: 'SW_RESTORE', 16: 'SW_SHOWDEFAULT', 17: 'SW_FORCEMINIMIZE'}
 
-        search = pVals[1]
-        if search in cmdShowReverseLookUp:
-            pVals[1] = cmdShowReverseLookUp[search]
-        else:
-            pVals[1] = hex(pVals[1])
+        pVals[1] = getLookUpVal(pVals[1],cmdShowReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
@@ -911,11 +624,8 @@ class CustomWinAPIs():
         cmdShowReverseLookUp = {0: 'SW_HIDE', 1: 'SW_NORMAL', 2: 'SW_SHOWMINIMIZED', 3: 'SW_MAXIMIZE',
                                 4: 'SW_SHOWNOACTIVATE', 5: 'SW_SHOW', 6: 'SW_MINIMIZE', 7: 'SW_SHOWMINNOACTIVE',
                                 8: 'SW_SHOWNA', 9: 'SW_RESTORE', 16: 'SW_SHOWDEFAULT', 17: 'SW_FORCEMINIMIZE'}
-        search = pVals[5]
-        if search in cmdShowReverseLookUp:
-            pVals[5] = cmdShowReverseLookUp[search]
-        else:
-            pVals[5] = hex(pVals[5])
+        
+        pVals[5] = getLookUpVal(pVals[5],cmdShowReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [5]  # we need to skip this value (index) later-let's put it in skip
@@ -938,11 +648,8 @@ class CustomWinAPIs():
         cmdShowReverseLookUp = {0: 'SW_HIDE', 1: 'SW_NORMAL', 2: 'SW_SHOWMINIMIZED', 3: 'SW_MAXIMIZE',
                                 4: 'SW_SHOWNOACTIVATE', 5: 'SW_SHOW', 6: 'SW_MINIMIZE', 7: 'SW_SHOWMINNOACTIVE',
                                 8: 'SW_SHOWNA', 9: 'SW_RESTORE', 16: 'SW_SHOWDEFAULT', 17: 'SW_FORCEMINIMIZE'}
-        search = pVals[5]
-        if search in cmdShowReverseLookUp:
-            pVals[5] = cmdShowReverseLookUp[search]
-        else:
-            pVals[5] = hex(pVals[5])
+        
+        pVals[5] = getLookUpVal(pVals[5],cmdShowReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [5]  # we need to skip this value (index) later-let's put it in skip
@@ -962,11 +669,7 @@ class CustomWinAPIs():
         pTypes = ['LPVOID', 'SIZE_T', 'DWORD', 'PDWORD']
         pNames = ['lpAddress', 'dwSize', 'flNewProtect', 'lpflOldProtect']
 
-        search = pVals[2]
-        if search in MemReverseLookUp:
-            pVals[2] = MemReverseLookUp[search]
-        else:
-            pVals[2] = hex(pVals[2])
+        pVals[2] = getLookUpVal(pVals[2],MemReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [2]  # we need to skip this value (index) later-let's put it in skip
@@ -987,11 +690,7 @@ class CustomWinAPIs():
         pTypes = ['HANDLE', 'LPVOID', 'SIZE_T', 'DWORD', 'PDWORD']
         pNames = ['hProcess', 'lpAddress', 'dwSize', 'flNewProtect', 'lpflOldProtect']
 
-        search = pVals[3]
-        if search in MemReverseLookUp:
-            pVals[3] = MemReverseLookUp[search]
-        else:
-            pVals[3] = hex(pVals[3])
+        pVals[3] = getLookUpVal(pVals[3],MemReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [3]  # we need to skip this value (index) later-let's put it in skip
@@ -1016,12 +715,8 @@ class CustomWinAPIs():
                                    0x00004002: 'MEM_DECOMMIT | MEM_PRESERVE_PLACEHOLDER',
                                    0x00008001: 'MEM_RELEASE | MEM_COALESCE_PLACEHOLDERS',
                                    0x00008002: 'MEM_RELEASE | MEM_PRESERVE_PLACEHOLDER'}
-        search = pVals[2]
-
-        if search in memReleaseReverseLookUp:
-            pVals[2] = memReleaseReverseLookUp[search]
-        else:
-            pVals[2] = hex(pVals[2])
+        
+        pVals[2] = getLookUpVal(pVals[2],memReleaseReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [2]  # we need to skip this value (index) later-let's put it in skip
@@ -1051,32 +746,12 @@ class CustomWinAPIs():
                                 128: 'WSA_FLAG_NO_HANDLE_INHERIT'}
         groupReverseLookUp = {1: 'SG_UNCONSTRAINED_GROUP', 2: 'SG_CONSTRAINED_GROUP'}
 
-        search = pVals[0]
-        if search in aFReverseLookUp:
-            pVals[0] = aFReverseLookUp[search]
-        else:
-            pVals[0] = hex(pVals[0])
-        search = pVals[1]
-        if search in sockTypeReverseLookUp:
-            pVals[1] = sockTypeReverseLookUp[search]
-        else:
-            pVals[1] = hex(pVals[1])
-        search = pVals[2]
-        if search in sockProtocolReverseLookUp:
-            pVals[2] = sockProtocolReverseLookUp[search]
-        else:
-            pVals[2] = hex(pVals[2])
-        search = pVals[5]
-        if search in dwFlagsReverseLookUp:
-            pVals[5] = dwFlagsReverseLookUp[search]
-        else:
-            pVals[5] = hex(pVals[5])
-        search = pVals[5]
-
-        if search in groupReverseLookUp:
-            pVals[4] = groupReverseLookUp[search]
-        else:
-            pVals[4] = hex(pVals[4])
+        pVals[0] = getLookUpVal(pVals[0],aFReverseLookUp)
+        pVals[1] = getLookUpVal(pVals[1],sockTypeReverseLookUp)
+        pVals[2] = getLookUpVal(pVals[2],sockProtocolReverseLookUp)
+        pVals[4] = getLookUpVal(pVals[4],groupReverseLookUp)
+        pVals[5] = getLookUpVal(pVals[5],dwFlagsReverseLookUp)
+        
         # create strings for everything except ones in our skip
         skip = [0, 1, 2, 4, 5]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
@@ -1105,31 +780,11 @@ class CustomWinAPIs():
                                 16: 'WSA_FLAG_MULTIPOINT_D_LEAF', 64: 'WSA_FLAG_ACCESS_SYSTEM_SECURITY',
                                 128: 'WSA_FLAG_NO_HANDLE_INHERIT'}
 
-        search = pVals[0]
-        if search in aFReverseLookUp:
-            pVals[0] = aFReverseLookUp[search]
-        else:
-            pVals[0] = hex(pVals[0])
-        search = pVals[1]
-        if search in sockTypeReverseLookUp:
-            pVals[1] = sockTypeReverseLookUp[search]
-        else:
-            pVals[1] = hex(pVals[1])
-        search = pVals[2]
-        if search in sockProtocolReverseLookUp:
-            pVals[2] = sockProtocolReverseLookUp[search]
-        else:
-            pVals[2] = hex(pVals[2])
-        search = pVals[5]
-        if search in groupReverseLookUp:
-            pVals[4] = groupReverseLookUp[search]
-        else:
-            pVals[4] = hex(pVals[4])
-        if search in dwFlagsReverseLookUp:
-            pVals[5] = dwFlagsReverseLookUp[search]
-        else:
-            pVals[5] = hex(pVals[5])
-        search = pVals[4]
+        pVals[0] = getLookUpVal(pVals[0],aFReverseLookUp)
+        pVals[1] = getLookUpVal(pVals[1],sockTypeReverseLookUp)
+        pVals[2] = getLookUpVal(pVals[2],sockProtocolReverseLookUp)
+        pVals[4] = getLookUpVal(pVals[4],groupReverseLookUp)
+        pVals[5] = getLookUpVal(pVals[5],dwFlagsReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [0, 1, 2, 4, 5]  # we need to skip this value (index) later-let's put it in skip
@@ -1154,21 +809,9 @@ class CustomWinAPIs():
         sockProtocolReverseLookUp = {1: 'IPPROTO_ICMP', 2: 'IPPROTO_IGMP', 3: 'BTHPROTO_RFCOMM', 6: 'IPPROTO_TCP',
                                      17: 'IPPROTO_UDP', 58: 'IPPROTO_ICMPV6', 113: 'IPPROTO_RM'}
 
-        search = pVals[0]
-        if search in aFReverseLookUp:
-            pVals[0] = aFReverseLookUp[search]
-        else:
-            pVals[0] = hex(pVals[0])
-        search = pVals[1]
-        if search in sockTypeReverseLookUp:
-            pVals[1] = sockTypeReverseLookUp[search]
-        else:
-            pVals[1] = hex(pVals[1])
-        search = pVals[2]
-        if search in sockProtocolReverseLookUp:
-            pVals[2] = sockProtocolReverseLookUp[search]
-        else:
-            pVals[2] = hex(pVals[2])
+        pVals[0] = getLookUpVal(pVals[0],aFReverseLookUp)
+        pVals[1] = getLookUpVal(pVals[1],sockTypeReverseLookUp)
+        pVals[2] = getLookUpVal(pVals[2],sockProtocolReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [0, 1, 2]  # we need to skip this value (index) later-let's put it in skip
@@ -1195,17 +838,8 @@ class CustomWinAPIs():
         lpInfoReverseLookUp = {0x00000000: 'BSM_ALLCOMPONENTS', 0x00000010: 'BSM_ALLDESKTOPS',
                                0x00000008: 'BSM_APPLICATIONS'}
 
-        search = pVals[0]
-        if search in flagsReverseLookUp:
-            pVals[0] = flagsReverseLookUp[search]
-        else:
-            pVals[0] = hex(pVals[0])
-        search = pVals[1]
-        if search in lpInfoReverseLookUp:
-            pVals[1] = lpInfoReverseLookUp[search]
-        else:
-            pVals[1] = hex(pVals[1])
-        search = pVals[2]
+        pVals[0] = getLookUpVal(pVals[0],flagsReverseLookUp)
+        pVals[1] = getLookUpVal(pVals[1],lpInfoReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [0, 1]  # we need to skip this value (index) later-let's put it in skip
@@ -1232,17 +866,8 @@ class CustomWinAPIs():
         lpInfoReverseLookUp = {0x00000000: 'BSM_ALLCOMPONENTS', 0x00000010: 'BSM_ALLDESKTOPS',
                                0x00000008: 'BSM_APPLICATIONS'}
 
-        search = pVals[0]
-        if search in flagsReverseLookUp:
-            pVals[0] = flagsReverseLookUp[search]
-        else:
-            pVals[0] = hex(pVals[0])
-        search = pVals[1]
-        if search in lpInfoReverseLookUp:
-            pVals[1] = lpInfoReverseLookUp[search]
-        else:
-            pVals[1] = hex(pVals[1])
-        search = pVals[2]
+        pVals[0] = getLookUpVal(pVals[0],flagsReverseLookUp)
+        pVals[1] = getLookUpVal(pVals[1],lpInfoReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [0, 1]  # we need to skip this value (index) later-let's put it in skip
@@ -1306,11 +931,8 @@ class CustomWinAPIs():
         pNames = ['lpThreadAttributes', 'dwStackSize', 'lpStartAddress', 'lpParameter', 'dwCreationFlags', 'lpThreadId']
         dwCreateFlagsReverseLookUp = {4: 'CREATE_SUSPENDED', 65536: 'STACK_SIZE_PARAM_IS_A_RESERVATION'}
 
-        search = pVals[4]
-        if search in dwCreateFlagsReverseLookUp:
-            pVals[4] = dwCreateFlagsReverseLookUp[search]
-        else:
-            pVals[4] = hex(pVals[4])
+        pVals[4] = getLookUpVal(pVals[4],dwCreateFlagsReverseLookUp)
+
         # create strings for everything except ones in our skip
         skip = [4]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
@@ -1348,26 +970,10 @@ class CustomWinAPIs():
         dwErrorControlReverseLookUp = {0x00000003: 'SERVICE_ERROR_CRITICAL', 0x00000000: 'SERVICE_ERROR_IGNORE',
                                        0x00000001: 'SERVICE_ERROR_NORMAL', 0x00000002: 'SERVICE_ERROR_SEVERE'}
 
-        search = pVals[3]
-        if search in dwDesiredAccessReverseLookUp:
-            pVals[3] = dwDesiredAccessReverseLookUp[search]
-        else:
-            pVals[3] = hex(pVals[3])
-        search = pVals[4]
-        if search in dwServiceTypeReverseLookUp:
-            pVals[4] = dwServiceTypeReverseLookUp[search]
-        else:
-            pVals[4] = hex(pVals[4])
-        search = pVals[5]
-        if search in dwStartTypeReverseLookUp:
-            pVals[5] = dwStartTypeReverseLookUp[search]
-        else:
-            pVals[5] = hex(pVals[5])
-        search = pVals[6]
-        if search in dwErrorControlReverseLookUp:
-            pVals[6] = dwErrorControlReverseLookUp[search]
-        else:
-            pVals[6] = hex(pVals[6])
+        pVals[3] = getLookUpVal(pVals[3],dwDesiredAccessReverseLookUp)
+        pVals[4] = getLookUpVal(pVals[4],dwServiceTypeReverseLookUp)
+        pVals[5] = getLookUpVal(pVals[5],dwStartTypeReverseLookUp)
+        pVals[6] = getLookUpVal(pVals[6],dwErrorControlReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [3, 4, 5, 6]  # we need to skip this value (index) later-let's put it in skip
@@ -1406,26 +1012,10 @@ class CustomWinAPIs():
         dwErrorControlReverseLookUp = {0x00000003: 'SERVICE_ERROR_CRITICAL', 0x00000000: 'SERVICE_ERROR_IGNORE',
                                        0x00000001: 'SERVICE_ERROR_NORMAL', 0x00000002: 'SERVICE_ERROR_SEVERE'}
 
-        search = pVals[3]
-        if search in dwDesiredAccessReverseLookUp:
-            pVals[3] = dwDesiredAccessReverseLookUp[search]
-        else:
-            pVals[3] = hex(pVals[3])
-        search = pVals[4]
-        if search in dwServiceTypeReverseLookUp:
-            pVals[4] = dwServiceTypeReverseLookUp[search]
-        else:
-            pVals[4] = hex(pVals[4])
-        search = pVals[5]
-        if search in dwStartTypeReverseLookUp:
-            pVals[5] = dwStartTypeReverseLookUp[search]
-        else:
-            pVals[5] = hex(pVals[5])
-        search = pVals[6]
-        if search in dwErrorControlReverseLookUp:
-            pVals[6] = dwErrorControlReverseLookUp[search]
-        else:
-            pVals[6] = hex(pVals[6])
+        pVals[3] = getLookUpVal(pVals[3],dwDesiredAccessReverseLookUp)
+        pVals[4] = getLookUpVal(pVals[4],dwServiceTypeReverseLookUp)
+        pVals[5] = getLookUpVal(pVals[5],dwStartTypeReverseLookUp)
+        pVals[6] = getLookUpVal(pVals[6],dwErrorControlReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [3, 4, 5, 6]  # we need to skip this value (index) later-let's put it in skip
@@ -1448,17 +1038,8 @@ class CustomWinAPIs():
                                      3: 'INTERNET_OPEN_TYPE_PROXY', 4: 'INTERNET_OPEN_TYPE_PRECONFIG_WITH_NO_AUTOPROXY'}
         dwFlagsReverseLookUp = {268435456: 'INTERNET_FLAG_ASYNC', 16777216: 'INTERNET_FLAG_FROM_CACHE'}
 
-        search = pVals[1]
-        if search in dwAccessTypeReverseLookUp:
-            pVals[1] = dwAccessTypeReverseLookUp[search]
-        else:
-            pVals[1] = hex(pVals[1])
-
-        search = pVals[4]
-        if search in dwFlagsReverseLookUp:
-            pVals[4] = dwFlagsReverseLookUp[search]
-        else:
-            pVals[4] = hex(pVals[4])
+        pVals[1] = getLookUpVal(pVals[1],dwAccessTypeReverseLookUp)
+        pVals[4] = getLookUpVal(pVals[4],dwFlagsReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [1, 4]  # we need to skip this value (index) later-let's put it in skip
@@ -1484,21 +1065,10 @@ class CustomWinAPIs():
         dwServiceReverseLookUp = {1: 'INTERNET_SERVICE_FTP', 2: 'INTERNET_SERVICE_GOPHER', 3: 'INTERNET_SERVICE_HTTP'}
         dwFlagsReverseLookUp = {134217728: 'INTERNET_FLAG_PASSIVE'}
 
-        search = pVals[2]
-        if search in nServerPortReverseLookUp:
-            pVals[2] = nServerPortReverseLookUp[search]
-        else:
-            pVals[2] = hex(pVals[2])
-        search = pVals[5]
-        if search in dwServiceReverseLookUp:
-            pVals[5] = dwServiceReverseLookUp[search]
-        else:
-            pVals[5] = hex(pVals[5])
-        search = pVals[6]
-        if search in dwFlagsReverseLookUp:
-            pVals[6] = dwFlagsReverseLookUp[search]
-        else:
-            pVals[6] = hex(pVals[6])
+        pVals[2] = getLookUpVal(pVals[2],nServerPortReverseLookUp)
+        pVals[5] = getLookUpVal(pVals[5],dwServiceReverseLookUp)
+        pVals[6] = getLookUpVal(pVals[6],dwFlagsReverseLookUp)
+
         # create strings for everything except ones in our skip
         skip = [2, 5, 6]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
@@ -1519,11 +1089,7 @@ class CustomWinAPIs():
 
         dwCreationFlagsReverseLookUp = {4: 'CREATE_SUSPENDED', 65536: 'STACK_SIZE_PARAM_IS_A_RESERVATION'}
 
-        search = pVals[5]
-        if search in dwCreationFlagsReverseLookUp:
-            pVals[5] = dwCreationFlagsReverseLookUp[search]
-        else:
-            pVals[5] = hex(pVals[5])
+        pVals[5] = getLookUpVal(pVals[5],dwCreationFlagsReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [5]  # we need to skip this value (index) later-let's put it in skip
@@ -1589,7 +1155,7 @@ class CustomWinAPIs():
 
         return logged_calls, cleanBytes
 
-    def RegCreateKeyExA2(self, uc, eip, esp, export_dict, callAddr, em):
+    def RegCreateKeyExA(self, uc, eip, esp, export_dict, callAddr, em):
         # LSTATUS RegCreateKeyExA([in] HKEY hKey,[in] LPCSTR lpSubKey,DWORD Reserved,[in, optional]  LPSTR lpClass,[in] DWORD dwOptions,[in] REGSAM samDesired,[in, optional] const LPSECURITY_ATTRIBUTES lpSecurityAttributes,[out] PHKEY phkResult,[out, optional] LPDWORD lpdwDisposition);
         pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HKEY', 'LPCSTR', 'DWORD', 'LPSTR', 'DWORD', 'REGSAM', 'LPSECURITY_ATTRIBUTES', 'PHKEY', 'LPDWORD']
@@ -1603,21 +1169,9 @@ class CustomWinAPIs():
                                    1: 'KEY_QUERY_VALUE', 2: 'KEY_SET_VALUE', 512: 'KEY_WOW64_32KEY',
                                    256: 'KEY_WOW64_64KEY', 131078: 'KEY_WRITE'}
 
-        search = pVals[4]
-        if search in dwOptionsReverseLookUp:
-            pVals[4] = dwOptionsReverseLookUp[search]
-        else:
-            pVals[4] = hex(pVals[4])
-        search = pVals[5]
-        if search in dwOptionsReverseLookUp:
-            pVals[5] = dwOptionsReverseLookUp[search]
-        else:
-            pVals[5] = hex(pVals[5])
-        search = pVals[8]
-        if search in dwOptionsReverseLookUp:
-            pVals[8] = dwOptionsReverseLookUp[search]
-        else:
-            pVals[8] = hex(pVals[8])
+        pVals[4] = getLookUpVal(pVals[4],dwOptionsReverseLookUp)
+        pVals[5] = getLookUpVal(pVals[5],samDesiredReverseLookUp)
+        pVals[8] = getLookUpVal(pVals[8],lpdwDispostitionReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [4, 5, 8]  # we need to skip this value (index) later-let's put it in skip
@@ -1638,11 +1192,7 @@ class CustomWinAPIs():
 
         samDesiredReverseLookUp = {512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY'}
 
-        search = pVals[2]
-        if search in samDesiredReverseLookUp:
-            pVals[2] = samDesiredReverseLookUp[search]
-        else:
-            pVals[2] = hex(pVals[2])
+        pVals[2]  = getLookUpVal(pVals[2],samDesiredReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [2]  # we need to skip this value (index) later-let's put it in skip
@@ -1667,11 +1217,7 @@ class CustomWinAPIs():
                                 268435456: 'RRF_NOEXPAND', 536870912: 'RRF_ZEROONFAILURE',
                                 65536: 'RRF_SUBKEY_WOW6464KEY', 131072: 'RRF_SUBKEY_WOW6432KEY'}
 
-        search = pVals[3]
-        if search in dwFlagsReverseLookUp:
-            pVals[3] = dwFlagsReverseLookUp[search]
-        else:
-            pVals[3] = hex(pVals[3])
+        pVals[3] = getLookUpVal(pVals[3],dwFlagsReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [3]  # we need to skip this value (index) later-let's put it in skip
@@ -1692,11 +1238,8 @@ class CustomWinAPIs():
 
         dwFlagsReverseLookUp = {64: 'CRYPT_OAEP', 32: 'CRYPT_DECRYPT_RSA_NO_PADDING_CHECK'}
 
-        search = pVals[3]
-        if search in dwFlagsReverseLookUp:
-            pVals[3] = dwFlagsReverseLookUp[search]
-        else:
-            pVals[3] = hex(pVals[3])
+        pVals[3] = getLookUpVal(pVals[3],dwFlagsReverseLookUp)
+
         # create strings for everything except ones in our skip
         skip = [3]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
@@ -1719,11 +1262,7 @@ class CustomWinAPIs():
                                0: 'WH_JOURNALRECORD', 2: 'WH_KEYBOARD', 19: 'WH_KEYBOARD_LL', 7: 'WH_MOUSE',
                                20: 'WH_MOUSE_LL', -1: 'WH_MSGFILTER', 16: 'WH_SHELL', 6: 'WH_SYSMSGFILTER'}
 
-        search = pVals[0]
-        if search in idHookReverseLookUp:
-            pVals[0] = idHookReverseLookUp[search]
-        else:
-            pVals[0] = hex(pVals[0])
+        pVals[0] = getLookUpVal(pVals[0],idHookReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [0]  # we need to skip this value (index) later-let's put it in skip
@@ -1746,11 +1285,7 @@ class CustomWinAPIs():
                                 8: 'TH32CS_SNAPMODULE', 16: 'TH32CS_SNAPMODULE32', 2: 'TH32CS_SNAPPROCESS',
                                 4: 'TH32CS_SNAPTHREAD'}
 
-        search = pVals[0]
-        if search in dwFlagsReverseLookUp:
-            pVals[0] = dwFlagsReverseLookUp[search]
-        else:
-            pVals[0] = hex(pVals[0])
+        pVals[0] = getLookUpVal(pVals[0],dwFlagsReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [0]  # we need to skip this value (index) later-let's put it in skip
@@ -1772,11 +1307,7 @@ class CustomWinAPIs():
 
         howReverseLookUp = {0: 'SD_RECEIVE', 1: 'SD_SEND', 2: 'SD_BOTH'}
 
-        search = pVals[1]
-        if search in howReverseLookUp:
-            pVals[1] = howReverseLookUp[search]
-        else:
-            pVals[1] = hex(pVals[1])
+        pVals[1] = getLookUpVal(pVals[1],howReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
@@ -1799,11 +1330,8 @@ class CustomWinAPIs():
         dwReplaceFlagsReverseLookUp = {1: 'REPLACEFILE_WRITE_THROUGH', 2: 'REPLACEFILE_IGNORE_MERGE_ERRORS',
                                        4: 'REPLACEFILE_IGNORE_ACL_ERRORS'}
 
-        search = pVals[3]
-        if search in dwReplaceFlagsReverseLookUp:
-            pVals[3] = dwReplaceFlagsReverseLookUp[search]
-        else:
-            pVals[3] = hex(pVals[3])
+        pVals[3] = getLookUpVal(pVals[3],dwReplaceFlagsReverseLookUp)
+
         # create strings for everything except ones in our skip
         skip = [3]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
@@ -1828,11 +1356,7 @@ class CustomWinAPIs():
                                        16: 'FILE_NOTIFY_CHANGE_LAST_WRITE', 32: 'FILE_NOTIFY_CHANGE_LAST_ACCESS',
                                        64: 'FILE_NOTIFY_CHANGE_CREATION', 256: 'FILE_NOTIFY_CHANGE_SECURITY'}
 
-        search = pVals[4]
-        if search in dwNotifyFilterReverseLookUp:
-            pVals[4] = dwNotifyFilterReverseLookUp[search]
-        else:
-            pVals[4] = hex(pVals[4])
+        pVals[4] = getLookUpVal(pVals[4],dwNotifyFilterReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [4]  # we need to skip this value (index) later-let's put it in skip
@@ -1855,11 +1379,8 @@ class CustomWinAPIs():
                                 67108864: 'ICU_ENCODE_SPACES_ONLY', 33554432: 'ICU_BROWSER_MODE',
                                 4096: 'ICU_ENCODE_PERCENT'}
 
-        search = pVals[4]
-        if search in dwFlagsReverseLookUp:
-            pVals[4] = dwFlagsReverseLookUp[search]
-        else:
-            pVals[4] = hex(pVals[4])
+        pVals[4] = getLookUpVal(pVals[4],dwFlagsReverseLookUp)
+
         # create strings for everything except ones in our skip
         skip = [4]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
@@ -1898,16 +1419,8 @@ class CustomWinAPIs():
                                  3: 'SHTDN_REASON_MINOR_UPGRADE', 21: 'SHTDN_REASON_MINOR_WMI',
                                  1073741824: 'SHTDN_REASON_FLAG_USER_DEFINED', 2147483648: 'SHTDN_REASON_FLAG_PLANNED'}
 
-        search = pVals[0]
-        if search in uFlagsReverseLookUp:
-            pVals[0] = uFlagsReverseLookUp[search]
-        else:
-            pVals[0] = hex(pVals[0])
-        search = pVals[1]
-        if search in dwReasonReverseLookUp:
-            pVals[1] = dwReasonReverseLookUp[search]
-        else:
-            pVals[1] = hex(pVals[1])
+        pVals[0] = getLookUpVal(pVals[0],uFlagsReverseLookUp)
+        pVals[1] = getLookUpVal(pVals[1],dwReasonReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [0, 1]  # we need to skip this value (index) later-let's put it in skip
@@ -1931,11 +1444,7 @@ class CustomWinAPIs():
                                          4096: 'FILE_ATTRIBUTE_OFFLINE', 4: 'FILE_ATTRIBUTE_SYSTEM',
                                          256: 'FILE_ATTRIBUTE_TEMPORARY'}
 
-        search = pVals[1]
-        if search in dwFileAttributesReverseLookUp:
-            pVals[1] = dwFileAttributesReverseLookUp[search]
-        else:
-            pVals[1] = hex(pVals[1])
+        pVals[1] = getLookUpVal(pVals[1],dwFileAttributesReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
@@ -1960,11 +1469,7 @@ class CustomWinAPIs():
                                   6: 'SERVICE_CONTROL_PARAMCHANGE', 2: 'SERVICE_CONTROL_PAUSE',
                                   1: 'SERVICE_CONTROL_STOP'}
 
-        search = pVals[1]
-        if search in dwControlReverseLookUp:
-            pVals[1] = dwControlReverseLookUp[search]
-        else:
-            pVals[1] = hex(pVals[1])
+        pVals[1] = getLookUpVal(pVals[1],dwControlReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
@@ -1989,11 +1494,7 @@ class CustomWinAPIs():
                                   2147483648: 'SEC_LARGE_PAGES', 268435456: 'SEC_NOCACHE', 67108864: 'SEC_RESERVE',
                                   1073741824: 'SEC_WRITECOMBINE'}
 
-        search = pVals[2]
-        if search in flProtectReverseLookUp:
-            pVals[2] = flProtectReverseLookUp[search]
-        else:
-            pVals[2] = hex(pVals[2])
+        pVals[2] = getLookUpVal(pVals[2],flProtectReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [2]  # we need to skip this value (index) later-let's put it in skip
@@ -2018,17 +1519,9 @@ class CustomWinAPIs():
         dwFlagsReverseLookUp = {4026531840: 'CRYPT_VERIFYCONTEXT', 8: 'CRYPT_NEWKEYSET', 16: 'CRYPT_DELETEKEYSET',
                                 32: 'CRYPT_MACHINE_KEYSET', 64: 'CRYPT_SILENT', 128: 'CRYPT_DEFAULT_CONTAINER_OPTIONAL'}
 
-        search = pVals[3]
-        if search in dwProvTypeReverseLookUp:
-            pVals[3] = dwProvTypeReverseLookUp[search]
-        else:
-            pVals[3] = hex(pVals[3])
+        pVals[3] = getLookUpVal(pVals[3],dwProvTypeReverseLookUp)
+        pVals[4] = getLookUpVal(pVals[4],dwFlagsReverseLookUp)
 
-        search = pVals[4]
-        if search in dwFlagsReverseLookUp:
-            pVals[4] = dwFlagsReverseLookUp[search]
-        else:
-            pVals[4] = hex(pVals[4])
         # create strings for everything except ones in our skip
         skip = [3, 4]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
@@ -2041,48 +1534,6 @@ class CustomWinAPIs():
         logged_calls = ("CryptAcquireContextA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def Toolhelp32ReadProcessMemory(self, uc, eip, esp, export_dict, callAddr, em):
-        global availMem
-
-        th32ProcessID = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 4, 4)
-        th32ProcessID = unpack('<I', th32ProcessID)[0]
-        lpBaseAddress = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 8, 4)
-        lpBaseAddress = unpack('<I', lpBaseAddress)[0]
-        lpBuffer = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 12, 4)
-        lpBuffer = unpack('<I', lpBuffer)[0]
-        cbRead = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 16, 4)
-        cbRead = unpack('<I', cbRead)[0]
-        lpNumberOfBytesRead = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 20, 4)
-        lpNumberOfBytesRead = unpack('<I', lpNumberOfBytesRead)[0]
-
-        # Round up to next page (4096)
-        cbRead = ((cbRead // 4096) + 1) * 4096
-
-        retAddr = 0
-        try:
-            uc.mem_map(lpBuffer, cbRead)
-            retAddr = lpBuffer
-        except:
-            try:
-                allocLoc = availMem
-                uc.mem_map(allocLoc, cbRead)
-                availMem += cbRead + 20
-                lpBuffer = allocLoc
-            except:
-                success = False
-                retAddr = 0xbadd0000
-
-        retVal = 0x1
-        retValStr = 'TRUE'
-        uc.reg_write(UC_X86_REG_EAX, retVal)
-        logged_calls = ("Toolhelp32ReadProcessMemory", hex(callAddr), (retValStr), 'BOOL',
-                        [(th32ProcessID), hex(lpBaseAddress), hex(lpBuffer), hex(cbRead), hex(lpNumberOfBytesRead)],
-                        ['DWORD', 'LPCVOID', 'LPVOID', 'SIZE_T', 'SIZE_T'],
-                        ['th32ProcessID', 'lpBaseAddress', 'lpBuffer', 'cbRead', 'lpNumberOfBytesRead'], False)
-        cleanBytes = 20
-
-        return logged_calls, cleanBytes
-
     def OpenSCManagerA(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['LPCSTR', 'LPCSTR', 'DWORD']
@@ -2093,11 +1544,7 @@ class CustomWinAPIs():
                                         8: 'SC_MANAGER_LOCK', 32: 'SC_MANAGER_MODIFY_BOOT_CONFIG',
                                         16: 'SC_MANAGER_QUERY_LOCK_STATUS'}
 
-        search = pVals[2]
-        if search in dwDesiredAccessReverseLookUp:
-            pVals[2] = dwDesiredAccessReverseLookUp[search]
-        else:
-            pVals[2] = hex(pVals[2])
+        pVals[2] = getLookUpVal(pVals[2],dwDesiredAccessReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [2]  # we need to skip this value (index) later-let's put it in skip
@@ -2111,9 +1558,33 @@ class CustomWinAPIs():
         logged_calls = ("OpenSCManagerA", hex(callAddr), (retValStr), 'SC_HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def HeapAlloc(uc, eip, esp, export_dict, callAddr):
+    def HeapCreate(self, uc, eip, esp, export_dict, callAddr, em):
+        # HANDLE HeapCreate([in] DWORD  flOptions,[in] SIZE_T dwInitialSize,[in] SIZE_T dwMaximumSize);
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['DWORD', 'SIZE_T', 'SIZE_T']
+        pNames = ['flOptions', 'dwInitialSize', 'dwMaximumSize']
+        flOptionsReverseLookUp = {0x00040000: 'HEAP_CREATE_ENABLE_EXECUTE', 0x00000004: 'HEAP_GENERATE_EXCEPTIONS',
+                                  0x00000001: 'HEAP_NO_SERIALIZE'}
+
+        heap = Heap(uc, 0, pVals[2])
+
+        pVals[0] = getLookUpVal(pVals[0], flOptionsReverseLookUp)
+
+        # create strings for everything except ones in our skip
+        skip = [0]  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = len(pTypes) * 4
+        retVal = heap.handle
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("HeapCreate", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def HeapAlloc(self, uc, eip, esp, export_dict, callAddr, em):
         # DECLSPEC_ALLOCATOR LPVOID HeapAlloc([in] HANDLE hHeap, [in] DWORD  dwFlags, [in] SIZE_T dwBytes)
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['HANDLE', 'DWORD', 'SIZE_T']
         pNames = ['hHeap', 'dwFlags', 'dwBytes']
         dwFlagsReverseLookUp = {0x00000008: 'HEAP_ZERO_MEMORY', 0x00000004: 'HEAP_GENERATE_EXCEPTIONS',
@@ -2139,9 +1610,9 @@ class CustomWinAPIs():
         logged_calls = ("HeapAlloc", hex(callAddr), (retValStr), 'LPVOID', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def HeapDestroy(uc, eip, esp, export_dict, callAddr):
+    def HeapDestroy(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL HeapDestroy([in] HANDLE hHeap);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['HANDLE']
         pNames = ['hHeap']
 
@@ -2163,9 +1634,9 @@ class CustomWinAPIs():
         logged_calls = ("HeapDestroy", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def HeapFree(uc, eip, esp, export_dict, callAddr):
+    def HeapFree(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL HeapFree([in] HANDLE hHeap,[in] DWORD dwFlags,[in] _Frees_ptr_opt_ LPVOID lpMem);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['HANDLE', 'DWORD', '_Frees_ptr_opt_ LPVOID']
         pNames = ['hHeap', 'dwFlags', 'lpMem']
         dwFlagsReverseLookUp = {0x00000008: 'HEAP_ZERO_MEMORY', 0x00000004: 'HEAP_GENERATE_EXCEPTIONS',
@@ -2191,9 +1662,9 @@ class CustomWinAPIs():
         logged_calls = ("HeapFree", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def HeapSize(uc, eip, esp, export_dict, callAddr):
+    def HeapSize(self, uc, eip, esp, export_dict, callAddr, em):
         # SIZE_T HeapSize([in] HANDLE  hHeap,[in] DWORD   dwFlags,[in] LPCVOID lpMem);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['HANDLE', 'DWORD', 'LPCVOID']
         pNames = ['hHeap', 'dwFlags', 'lpMem']
         dwFlagsReverseLookUp = {0x00000008: 'HEAP_ZERO_MEMORY', 0x00000004: 'HEAP_GENERATE_EXCEPTIONS',
@@ -2220,9 +1691,9 @@ class CustomWinAPIs():
         logged_calls = ("HeapSize", hex(callAddr), (retValStr), 'SIZE_T', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def HeapReAlloc(uc, eip, esp, export_dict, callAddr):
+    def HeapReAlloc(self, uc, eip, esp, export_dict, callAddr, em):
         # DECLSPEC_ALLOCATOR LPVOID HeapReAlloc([in] HANDLE hHeap,[in] DWORD dwFlags,[in] _Frees_ptr_opt_ LPVOID lpMem,[in] SIZE_T dwBytes);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HANDLE', 'DWORD', '_Frees_ptr_opt_ LPVOID', 'SIZE_T']
         pNames = ['hHeap', 'dwFlags', 'lpMem', 'dwBytes']
         dwFlagsReverseLookUp = {0x00000008: 'HEAP_ZERO_MEMORY', 0x00000004: 'HEAP_GENERATE_EXCEPTIONS',
@@ -2252,9 +1723,9 @@ class CustomWinAPIs():
         logged_calls = ("HeapReAlloc", hex(callAddr), (retValStr), 'LPVOID', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetProcessHeap(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetProcessHeap(self, uc, eip, esp, export_dict, callAddr, em):
         # HANDLE GetProcessHeap()
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 0)
+        pVals = makeArgVals(uc, em, esp, 0)
         pTypes = []
         pNames = []
 
@@ -2273,9 +1744,9 @@ class CustomWinAPIs():
         logged_calls = ("GetProcessHeap", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetProcessHeaps(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetProcessHeaps(self, uc, eip, esp, export_dict, callAddr, em):
         # 'GetProcessHeaps': (2, ['DWORD', 'PHANDLE'], ['NumberOfHeaps', 'ProcessHeaps'], 'DWORD'),
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['DWORD', 'PHANDLE']
         pNames = ['NumberOfHeaps', 'ProcessHeaps']
 
@@ -2299,8 +1770,8 @@ class CustomWinAPIs():
         logged_calls = ("GetProcessHeaps", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CreateToolhelp32Snapshot(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    def CreateToolhelp32Snapshot(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['DWORD', 'DWORD']
         pNames = ['dwFlags', 'th32ProcessID']
         dwFlagsReverseLookUp = {2147483648: 'TH32CS_INHERIT', 15: 'TH32CS_SNAPALL', 1: 'TH32CS_SNAPHEAPLIST',
@@ -2324,9 +1795,9 @@ class CustomWinAPIs():
         logged_calls = ("CreateToolhelp32Snapshot", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def Process32First(uc: Uc, eip, esp, export_dict, callAddr):
+    def Process32First(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL Process32First([in] HANDLE hSnapshot,[in, out] LPPROCESSENTRY32 lppe);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['HANDLE', 'LPPROCESSENTRY32']
         pNames = ['hSnapshot', 'lppe']
 
@@ -2360,9 +1831,9 @@ class CustomWinAPIs():
         logged_calls = ("Process32First", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def Process32Next(uc: Uc, eip, esp, export_dict, callAddr):
+    def Process32Next(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL Process32Next([in]  HANDLE hSnapshot,[out] LPPROCESSENTRY32 lppe);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['HANDLE', 'LPPROCESSENTRY32']
         pNames = ['hSnapshot', 'lppe']
 
@@ -2403,9 +1874,9 @@ class CustomWinAPIs():
         logged_calls = ("Process32Next", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def Process32FirstW(uc: Uc, eip, esp, export_dict, callAddr):
+    def Process32FirstW(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL Process32FirstW([in] HANDLE hSnapshot,[in, out] LPPROCESSENTRY32W lppe);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['HANDLE', 'LPPROCESSENTRY32W']
         pNames = ['hSnapshot', 'lppe']
 
@@ -2439,9 +1910,9 @@ class CustomWinAPIs():
         logged_calls = ("Process32FirstW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def Process32NextW(uc: Uc, eip, esp, export_dict, callAddr):
+    def Process32NextW(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL Process32NextW([in]  HANDLE hSnapshot,[out] LPPROCESSENTRY32W lppe);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['HANDLE', 'LPPROCESSENTRY32W']
         pNames = ['hSnapshot', 'lppe']
 
@@ -2482,9 +1953,9 @@ class CustomWinAPIs():
         logged_calls = ("Process32NextW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def Thread32First(uc: Uc, eip, esp, export_dict, callAddr):
+    def Thread32First(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL Thread32First([in] HANDLE hSnapshot,[in, out] LPTHREADENTRY32 lpte);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['HANDLE', 'LPTHREADENTRY32']
         pNames = ['hSnapshot', 'lpte']
 
@@ -2520,9 +1991,9 @@ class CustomWinAPIs():
         logged_calls = ("Thread32First", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def Thread32Next(uc: Uc, eip, esp, export_dict, callAddr):
+    def Thread32Next(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL Thread32Next([in] HANDLE hSnapshot,[out] LPTHREADENTRY32 lpte);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['HANDLE', 'LPTHREADENTRY32']
         pNames = ['hSnapshot', 'lpte']
 
@@ -2563,9 +2034,9 @@ class CustomWinAPIs():
         logged_calls = ("Thread32Next", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def Module32First(uc: Uc, eip, esp, export_dict, callAddr):
+    def Module32First(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL Module32First([in] HANDLE hSnapshot,[in, out] LPMODULEENTRY32 lpme);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['HANDLE', 'LPMODULEENTRY32']
         pNames = ['hSnapshot', 'lpme']
 
@@ -2599,9 +2070,9 @@ class CustomWinAPIs():
         logged_calls = ("Module32First", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def Module32Next(uc: Uc, eip, esp, export_dict, callAddr):
+    def Module32Next(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL Module32Next([in] HANDLE hSnapshot,[in, out] LPMODULEENTRY32 lpme);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['HANDLE', 'LPMODULEENTRY32']
         pNames = ['hSnapshot', 'lpme']
 
@@ -2641,9 +2112,9 @@ class CustomWinAPIs():
         logged_calls = ("Module32Next", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def Module32FirstW(uc: Uc, eip, esp, export_dict, callAddr):
+    def Module32FirstW(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL Module32FirstW([in] HANDLE hSnapshot,[in, out] LPMODULEENTRY32W lpme);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['HANDLE', 'LPMODULEENTRY32']
         pNames = ['hSnapshot', 'lpme']
 
@@ -2677,9 +2148,9 @@ class CustomWinAPIs():
         logged_calls = ("Module32FirstW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def Module32NextW(uc: Uc, eip, esp, export_dict, callAddr):
+    def Module32NextW(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL Module32NextW([in] HANDLE hSnapshot,[in, out] LPMODULEENTRY32W lpme);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['HANDLE', 'LPMODULEENTRY32W']
         pNames = ['hSnapshot', 'lpme']
 
@@ -2719,9 +2190,9 @@ class CustomWinAPIs():
         logged_calls = ("Module32NextW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def Toolhelp32ReadProcessMemory2(uc: Uc, eip, esp, export_dict, callAddr):
+    def Toolhelp32ReadProcessMemory2(self, uc, eip, esp, export_dict, callAddr, em):
         # Needs to be Redone
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+        pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['DWORD', 'LPCVOID', 'LPVOID', 'SIZE_T', 'SIZE_T']
         pNames = ['th32ProcessID', 'lpBaseAddress', 'lpBuffer', 'cbRead', 'lpNumberOfBytesRead']
 
@@ -2764,7 +2235,7 @@ class CustomWinAPIs():
         logged_calls = ("Toolhelp32ReadProcessMemory", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def VirtualAlloc(uc, eip, esp, export_dict, callAddr):
+    def VirtualAlloc(self, uc, eip, esp, export_dict, callAddr, em):
         global availMem
 
         lpAddress = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 4, 4)
@@ -2815,9 +2286,9 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     # Memory Functions
-    def WriteProcessMemory(uc: Uc, eip, esp, export_dict, callAddr):
+    def WriteProcessMemory(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL WriteProcessMemory([in]  HANDLE  hProcess,[in]  LPVOID  lpBaseAddress,[in]  LPCVOID lpBuffer,[in]  SIZE_T  nSize,[out] SIZE_T  *lpNumberOfBytesWritten);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+        pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['HANDLE', 'LPVOID', 'LPCVOID', 'SIZE_T', 'SIZE_T']
         pNames = ['hProcess', 'lpBaseAddress', 'lpBuffer', 'nSize', '*lpNumberOfBytesWritten']
 
@@ -2840,8 +2311,8 @@ class CustomWinAPIs():
         logged_calls = ("WriteProcessMemory", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def memcpy(uc: Uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    def memcpy(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['void', 'const void', 'size_t']
         pNames = ['*dest', '*src', 'count']
 
@@ -2865,8 +2336,8 @@ class CustomWinAPIs():
         logged_calls = ("memcpy", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def memcpy_s(uc: Uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    def memcpy_s(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['void', 'size_t', 'const void', 'size_t']
         pNames = ['*dest', 'destSize', '*src', 'count']
 
@@ -2889,8 +2360,8 @@ class CustomWinAPIs():
         logged_calls = ("memcpy_s", hex(callAddr), (retValStr), 'errno_t', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def memmove(uc: Uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    def memmove(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['void', 'const void', 'size_t']
         pNames = ['*dest', '*src', 'count']
 
@@ -2914,8 +2385,8 @@ class CustomWinAPIs():
         logged_calls = ("memmove", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def memmove_s(uc: Uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    def memmove_s(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['void', 'size_t', 'const void', 'size_t']
         pNames = ['*dest', 'numberOfElements', '*src', 'count']
 
@@ -2938,8 +2409,8 @@ class CustomWinAPIs():
         logged_calls = ("memcpy_s", hex(callAddr), (retValStr), 'errno_t', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def memset(uc: Uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    def memset(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['void', 'int', 'size_t']
         pNames = ['*dest', 'c', 'count']
 
@@ -2965,8 +2436,8 @@ class CustomWinAPIs():
         logged_calls = ("memset", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def memcmp(uc: Uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    def memcmp(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['const void', 'const void', 'size_t']
         pNames = ['*buffer1', '*buffer2', 'count']
 
@@ -2998,8 +2469,8 @@ class CustomWinAPIs():
         logged_calls = ("memcmp", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def memchr(uc: Uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    def memchr(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['const void', 'int', 'size_t']
         pNames = ['*buffer', 'c', 'count']
 
@@ -3031,8 +2502,8 @@ class CustomWinAPIs():
         logged_calls = ("memchr", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def RtlMoveMemory(uc: Uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    def RtlMoveMemory(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['VOID UNALIGNED', 'VOID UNALIGNED', 'SIZE_T']
         pNames = ['*Destination', '*Source', 'Length']
 
@@ -3053,9 +2524,9 @@ class CustomWinAPIs():
         logged_calls = ("RtlMoveMemory", hex(callAddr), (retValStr), 'VOID', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def ReadProcessMemory(uc: Uc, eip, esp, export_dict, callAddr):
+    def ReadProcessMemory(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL ReadProcessMemory([in]  HANDLE  hProcess,[in]  LPCVOID lpBaseAddress,[out] LPVOID  lpBuffer,[in]  SIZE_T  nSize,[out] SIZE_T  *lpNumberOfBytesRead);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+        pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['HANDLE', 'LPCVOID', 'LPVOID', 'SIZE_T', 'SIZE_T']
         pNames = ['hProcess', 'lpBaseAddress', 'lpBuffer', 'nSize', '*lpNumberOfBytesRead']
 
@@ -3080,7 +2551,7 @@ class CustomWinAPIs():
         logged_calls = ("ReadProcessMemory", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def ExitProcess(uc, eip, esp, export_dict, callAddr):
+    def ExitProcess(self, uc, eip, esp, export_dict, callAddr, em):
         # print("Using custom function...")
         uExitCode = uc.mem_read(esp + 4, 4)
         uExitCode = unpack('<I', uExitCode)[0]
@@ -3089,7 +2560,7 @@ class CustomWinAPIs():
         logged_calls = ("ExitProcess", hex(callAddr), 'None', '', [uExitCode], ['UINT'], ['uExitCode'], False)
         return logged_calls, cleanBytes
 
-    def CreateFileA(uc, eip, esp, export_dict, callAddr):
+    def CreateFileA(self, uc, eip, esp, export_dict, callAddr, em):
         """  HANDLE CreateFile(
           LPCTSTR lpFileName, // pointer to name of the file
           DWORD dwDesiredAccess,      // access (read-write) mode
@@ -3149,9 +2620,9 @@ class CustomWinAPIs():
 
         return logged_calls, cleanBytes
 
-    def CreateFileW(uc, eip, esp, export_dict, callAddr):
+    def CreateFileW(self, uc, eip, esp, export_dict, callAddr, em):
         # HANDLE CreateFileW([in] LPCWSTR lpFileName,[in] DWORD dwDesiredAccess,[in] DWORD dwShareMode,[in, optional] LPSECURITY_ATTRIBUTES lpSecurityAttributes,[in] DWORD dwCreationDisposition,[in] DWORD dwFlagsAndAttributes,[in, optional] HANDLE hTemplateFile);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 8)
+        pVals = makeArgVals(uc, em, esp, 8)
         pTypes = ['LPCWSTR', 'lpFileName', 'DWORD', 'DWORD', 'LPSECURITY_ATTRIBUTES', 'DWORD', 'DWORD', 'HANDLE']
         pNames = ["lpFileName", "dwDesiredAccess", "dwShareMode", "lpSecurityAttributes", "dwCreationDistribution",
                   "dwFlagsAndAttributes", "hTemplateFile"]
@@ -3195,12 +2666,12 @@ class CustomWinAPIs():
         logged_calls = ("CreateFileW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CreateProcessA(uc, eip, esp, export_dict, callAddr):
+    def CreateProcessA(self, uc, eip, esp, export_dict, callAddr, em):
         # print ("CreateProcessA2")
         """'CreateProcess': (10, ['LPCSTR', 'LPSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID', 'LPCSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION'], ['lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles', 'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation'], 'BOOL'),"""
 
         # function to get values for parameters - count as specified at the end - returned as a list
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 10)
+        pVals = makeArgVals(uc, em, esp, 10)
         pTypes = ['LPCSTR', 'LPSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID',
                   'LPCSTR',
                   'LPSTARTUPINFO', 'LPPROCESS_INFORMATION']
@@ -3221,8 +2692,8 @@ class CustomWinAPIs():
         logged_calls = ("CreateProcessA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CreateProcessW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 10)
+    def CreateProcessW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 10)
         pTypes = ['LPCWSTR', 'LPWSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID',
                   'LPCWSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION']
         pNames = ['lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles',
@@ -3242,8 +2713,8 @@ class CustomWinAPIs():
         logged_calls = ("CreateProcessW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CreateProcessInternalA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 12)
+    def CreateProcessInternalA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 12)
         pTypes = ['DWORD', 'LPCTSTR', 'LPTSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD',
                   'LPVOID',
                   'LPCSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION', 'DWORD']
@@ -3265,8 +2736,8 @@ class CustomWinAPIs():
         logged_calls = ("CreateProcessInternalA", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CreateProcessInternalW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 12)
+    def CreateProcessInternalW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 12)
         pTypes = ['DWORD', 'LPCTWSTR', 'LPTWSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD',
                   'LPVOID', 'LPCSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION', 'DWORD']
         pNames = ['unknown1', 'lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes',
@@ -3287,8 +2758,8 @@ class CustomWinAPIs():
         logged_calls = ("CreateProcessInternalW", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CreateProcessAsUserA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 11)
+    def CreateProcessAsUserA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 11)
         pTypes = ['HANDLE', 'LPCSTR', 'LPSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD',
                   'LPVOID',
                   'LPCSTR', 'LPSTARTUPINFOA', 'LPPROCESS_INFORMATION']
@@ -3310,8 +2781,8 @@ class CustomWinAPIs():
         logged_calls = ("CreateProcessAsUserA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CreateProcessAsUserW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 11)
+    def CreateProcessAsUserW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 11)
         pTypes = ['HANDLE', 'LPCWSTR', 'LPWSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD',
                   'LPVOID', 'LPCWSTR', 'LPSTARTUPINFOW', 'LPPROCESS_INFORMATION']
         pNames = ['hToken', 'lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes',
@@ -3332,9 +2803,9 @@ class CustomWinAPIs():
         logged_calls = ("CreateProcessAsUserW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def URLDownloadToFileA(uc, eip, esp, export_dict, callAddr):
+    def URLDownloadToFileA(self, uc, eip, esp, export_dict, callAddr, em):
         # function to get values for parameters - count as specified at the end - returned as a list
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+        pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['LPUNKNOWN', 'LPCSTR', 'LPCSTR', 'DWORD', 'LPBINDSTATUSCALLBACK']
         pNames = ['pCaller', 'szURL', 'szFileName', 'dwReserved', 'lpfnCB']
 
@@ -3350,8 +2821,8 @@ class CustomWinAPIs():
         logged_calls = ("URLDownloadToFileA", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def URLDownloadToFileW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    def URLDownloadToFileW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['LPUNKNOWN', 'LPCWSTR', 'LPCWSTR', 'DWORD', 'LPBINDSTATUSCALLBACK']
         pNames = ['pCaller', 'szURL', 'szFileName', 'dwReserved', 'lpfnCB']
 
@@ -3367,8 +2838,8 @@ class CustomWinAPIs():
         logged_calls = ("URLDownloadToFileW", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def WinExec(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    def WinExec(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['LPCSTR', 'UINT']
         pNames = ['lpCmdLine', 'uCmdShow']
         cmdShowReverseLookUp = {0: 'SW_HIDE', 1: 'SW_NORMAL', 2: 'SW_SHOWMINIMIZED', 3: 'SW_MAXIMIZE',
@@ -3389,10 +2860,10 @@ class CustomWinAPIs():
         logged_calls = ("WinExec", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def ShellExecuteA(uc, eip, esp, export_dict, callAddr):
+    def ShellExecuteA(self, uc, eip, esp, export_dict, callAddr, em):
         # HINSTANCE ShellExecuteA([in, optional] HWND   hwnd, [in, optional] LPCSTR lpOperation,[in] LPCSTR lpFile,
         # [in, optional] LPCSTR lpParameters, [in, optional] LPCSTR lpDirectory, [in] INT    nShowCmd);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+        pVals = makeArgVals(uc, em, esp, 6)
         pTypes = ['HWND', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'INT']
         pNames = ['hwnd', 'lpOperation', 'lpFile', 'lpParameters', 'lpDirectory', 'nShowCmd']
         cmdShowReverseLookUp = {0: 'SW_HIDE', 1: 'SW_NORMAL', 2: 'SW_SHOWMINIMIZED', 3: 'SW_MAXIMIZE',
@@ -3413,10 +2884,10 @@ class CustomWinAPIs():
         logged_calls = ("ShellExecuteA", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def ShellExecuteW(uc, eip, esp, export_dict, callAddr):
+    def ShellExecuteW(self, uc, eip, esp, export_dict, callAddr, em):
         # HINSTANCE ShellExecuteW([in, optional] HWND   hwnd, [in, optional] LPCSTR lpOperation,[in] LPCSTR lpFile,
         # [in, optional] LPCSTR lpParameters, [in, optional] LPCSTR lpDirectory, [in] INT    nShowCmd);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+        pVals = makeArgVals(uc, em, esp, 6)
         pTypes = ['HWND', 'LPCWSTR', 'LPCWSTR', 'LPCWSTR', 'LPCWSTR', 'INT']
         pNames = ['hwnd', 'lpOperation', 'lpFile', 'lpParameters', 'lpDirectory', 'nShowCmd']
         cmdShowReverseLookUp = {0: 'SW_HIDE', 1: 'SW_NORMAL', 2: 'SW_SHOWMINIMIZED', 3: 'SW_MAXIMIZE',
@@ -3437,9 +2908,9 @@ class CustomWinAPIs():
         logged_calls = ("ShellExecuteW", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def system(uc: Uc, eip, esp, export_dict, callAddr):
+    def system(self, uc, eip, esp, export_dict, callAddr, em):
         # int system(const char *command);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['const char']
         pNames = ['*command']
 
@@ -3457,13 +2928,13 @@ class CustomWinAPIs():
         logged_calls = ("system", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def _wsystem(uc: Uc, eip, esp, export_dict, callAddr):
+    def _wsystem(self, uc, eip, esp, export_dict, callAddr, em):
         # int _wsystem(const wchar_t *command);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['const wchar_t']
         pNames = ['*command']
 
-        pVals[0] = read_unicode2(uc, pVals[0])
+        pVals[0] = read_unicode(uc, pVals[0])
 
         # create strings for everything except ones in our skip
         skip = [0]  # we need to skip this value (index) later-let's put it in skip
@@ -3477,9 +2948,9 @@ class CustomWinAPIs():
         logged_calls = ("_wsystem", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def VirtualProtect(uc, eip, esp, export_dict, callAddr):
+    def VirtualProtect(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL VirtualProtect([in]  LPVOID lpAddress,[in]  SIZE_T dwSize, [in]  DWORD  flNewProtect, [out] PDWORD lpflOldProtect)
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['LPVOID', 'SIZE_T', 'DWORD', 'PDWORD']
         pNames = ['lpAddress', 'dwSize', 'flNewProtect', 'lpflOldProtect']
 
@@ -3497,9 +2968,9 @@ class CustomWinAPIs():
         logged_calls = ("VirtualProtect", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def VirtualProtectEx(uc, eip, esp, export_dict, callAddr):
+    def VirtualProtectEx(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL VirtualProtectEx([in]  HANDLE hProcess, [in]  LPVOID lpAddress, [in]  SIZE_T dwSize, [in]  DWORD  flNewProtect, [out] PDWORD lpflOldProtect);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+        pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['HANDLE', 'LPVOID', 'SIZE_T', 'DWORD', 'PDWORD']
         pNames = ['hProcess', 'lpAddress', 'dwSize', 'flNewProtect', 'lpflOldProtect']
 
@@ -3517,9 +2988,9 @@ class CustomWinAPIs():
         logged_calls = ("VirtualProtectEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def VirtualFree(uc, eip, esp, export_dict, callAddr):
+    def VirtualFree(self, uc, eip, esp, export_dict, callAddr, em):
         # 'VirtualFree': (3, ['LPVOID', 'SIZE_T', 'DWORD'], ['lpAddress', 'dwSize', 'dwFreeType'], 'BOOL'),
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['LPVOID', 'SIZE_T', 'DWORD']
         pNames = ['lpAddress', 'dwSize', 'dwFreeType']
         memReleaseReverseLookUp = {16384: 'MEM_DECOMMIT', 32768: 'MEM_RELEASE', 1: 'MEM_COALESCE_PLACEHOLDERS',
@@ -3543,9 +3014,9 @@ class CustomWinAPIs():
         logged_calls = ("VirtualFree", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def WSASocketA(uc, eip, esp, export_dict, callAddr):
+    def WSASocketA(self, uc, eip, esp, export_dict, callAddr, em):
         # 'WSASocketA': (6, ['INT', 'INT', 'INT', 'LPWSAPROTOCOL_INFOA', 'GROUP', 'DWORD'], ['af', 'type', 'protocol', 'lpProtocolInfo', 'g', 'dwFlags'], 'SOCKET'),
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+        pVals = makeArgVals(uc, em, esp, 6)
         pTypes = ['int', 'int', 'int', 'LPWSAPROTOCOL_INFOA', 'GROUP', 'DWORD']
         pNames = ['af', 'type', 'protocol', 'lpProtocolInfo', 'g', 'dwFlags']
         aFReverseLookUp = {0: 'AF_UNSPEC', 2: 'AF_INET', 6: 'AF_IPX', 22: 'AF_APPLETALK', 23: 'AF_NETBIOS',
@@ -3578,9 +3049,9 @@ class CustomWinAPIs():
         logged_calls = ("WSASocketA", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def WSASocketW(uc, eip, esp, export_dict, callAddr):
+    def WSASocketW(self, uc, eip, esp, export_dict, callAddr, em):
         # 'WSASocketW': (6, ['INT', 'INT', 'INT', 'LPWSAPROTOCOL_INFOW', 'GROUP', 'DWORD'], ['af', 'type', 'protocol', 'lpProtocolInfo', 'g', 'dwFlags'], 'SOCKET'),
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+        pVals = makeArgVals(uc, em, esp, 6)
         pTypes = ['int', 'int', 'int', 'LPWSAPROTOCOL_INFOW', 'GROUP', 'DWORD']
         pNames = ['af', 'type', 'protocol', 'lpProtocolInfo', 'g', 'dwFlags']
         aFReverseLookUp = {0: 'AF_UNSPEC', 2: 'AF_INET', 6: 'AF_IPX', 16: 'AF_APPLETALK', 17: 'AF_NETBIOS',
@@ -3613,9 +3084,9 @@ class CustomWinAPIs():
         logged_calls = ("WSASocketW", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def socket(uc, eip, esp, export_dict, callAddr):
+    def socket(self, uc, eip, esp, export_dict, callAddr, em):
         # SOCKET WSAAPI socket([in] int af, [in] int type, [in] int protocol)
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['int', 'int', 'int']
         pNames = ['af', 'type', 'protocol']
         aFReverseLookUp = {0: 'AF_UNSPEC', 2: 'AF_INET', 6: 'AF_IPX', 16: 'AF_APPLETALK', 17: 'AF_NETBIOS',
@@ -3641,10 +3112,10 @@ class CustomWinAPIs():
         logged_calls = ("socket", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def BroadcastSystemMessageA(uc, eip, esp, export_dict, callAddr):
+    def BroadcastSystemMessageA(self, uc, eip, esp, export_dict, callAddr, em):
         # long BroadcastSystemMessage([in] DWORD   flags, [in, out, optional] LPDWORD lpInfo,
         # [in] UINT Msg, [in]  WPARAM  wParam, [in]  LPARAM  lParam );
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+        pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['DWORD', 'LPDWORD', 'UINT', 'WPARAM', 'LPARAM']
         pNames = ['flags', 'lpInfo', 'Msg', 'wParam', 'lParam']
         flagsReverseLookUp = {0x00000080: 'BSF_ALLOWSFW', 0x00000004: 'BSF_FLUSHDISK', 0x00000020: 'BSF_FORCEIFHUNG',
@@ -3670,10 +3141,10 @@ class CustomWinAPIs():
         logged_calls = ("BroadcastSystemMessageA", hex(callAddr), (retValStr), 'long', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def BroadcastSystemMessageW(uc, eip, esp, export_dict, callAddr):
+    def BroadcastSystemMessageW(self, uc, eip, esp, export_dict, callAddr, em):
         # long BroadcastSystemMessage([in] DWORD   flags, [in, out, optional] LPDWORD lpInfo,
         # [in] UINT Msg, [in]  WPARAM  wParam, [in]  LPARAM  lParam );
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+        pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['DWORD', 'LPDWORD', 'UINT', 'WPARAM', 'LPARAM']
         pNames = ['flags', 'lpInfo', 'Msg', 'wParam', 'lParam']
         flagsReverseLookUp = {0x00000080: 'BSF_ALLOWSFW', 0x00000004: 'BSF_FLUSHDISK', 0x00000020: 'BSF_FORCEIFHUNG',
@@ -3788,8 +3259,8 @@ class CustomWinAPIs():
 
         return logged_calls
 
-    def CreateThread(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    def CreateThread(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 6)
         pTypes = ['LPSECURITY_ATTRIBUTES', 'SIZE_T', 'LPTHREAD_START_ROUTINE', 'LPVOID', 'DWORD', 'LPDWORD']
         pNames = ['lpThreadAttributes', 'dwStackSize', 'lpStartAddress', 'lpParameter', 'dwCreationFlags', 'lpThreadId']
         dwCreateFlagsReverseLookUp = {4: 'CREATE_SUSPENDED', 65536: 'STACK_SIZE_PARAM_IS_A_RESERVATION'}
@@ -3808,9 +3279,9 @@ class CustomWinAPIs():
         logged_calls = ("CreateThread", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CreateServiceA(uc, eip, esp, export_dict, callAddr):
+    def CreateServiceA(self, uc, eip, esp, export_dict, callAddr, em):
         # SC_HANDLE CreateServiceA([in]SC_HANDLE hSCManager,[in] LPCSTR lpServiceName,[in, optional]  LPCSTR lpDisplayName,[in] DWORD dwDesiredAccess,[in] DWORD dwServiceType,[in] DWORD dwStartType,[in] DWORD dwErrorControl,[in, optional]  LPCSTR    lpBinaryPathName,[in, optional]  LPCSTR    lpLoadOrderGroup,[out, optional] LPDWORD lpdwTagId,[in, optional]  LPCSTR lpDependencies,[in, optional]  LPCSTR lpServiceStartName,[in, optional] LPCSTR lpPassword);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 13)
+        pVals = makeArgVals(uc, em, esp, 13)
         pTypes = ['SC_HANDLE', 'LPCSTR', 'LPCSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPCSTR', 'LPCSTR', 'LPDWORD',
                   'LPCSTR', 'LPCSTR', 'LPCSTR']
         pNames = ['hSCManager', 'lpServiceName', 'lpDisplayName', 'dwDesiredAccess', 'dwServiceType', 'dwStartType',
@@ -3853,9 +3324,9 @@ class CustomWinAPIs():
         logged_calls = ("CreateServiceA", hex(callAddr), (retValStr), 'SC_HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CreateServiceW(uc, eip, esp, export_dict, callAddr):
+    def CreateServiceW(self, uc, eip, esp, export_dict, callAddr, em):
         # SC_HANDLE CreateServiceW([in]SC_HANDLE hSCManager,[in] LPCSTR lpServiceName,[in, optional]  LPCSTR lpDisplayName,[in] DWORD dwDesiredAccess,[in] DWORD dwServiceType,[in] DWORD dwStartType,[in] DWORD dwErrorControl,[in, optional]  LPCSTR    lpBinaryPathName,[in, optional]  LPCSTR    lpLoadOrderGroup,[out, optional] LPDWORD lpdwTagId,[in, optional]  LPCSTR lpDependencies,[in, optional]  LPCSTR lpServiceStartName,[in, optional] LPCSTR lpPassword);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 13)
+        pVals = makeArgVals(uc, em, esp, 13)
         pTypes = ['SC_HANDLE', 'LPCWSTR', 'LPCWSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPCWSTR', 'LPCWSTR',
                   'LPDWORD',
                   'LPCWSTR', 'LPCWSTR', 'LPCWSTR']
@@ -3899,8 +3370,8 @@ class CustomWinAPIs():
         logged_calls = ("CreateServiceW", hex(callAddr), (retValStr), 'SC_HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def InternetOpenA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    def InternetOpenA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['LPCSTR', 'DWORD', 'LPCSTR', 'LPCSTR', 'DWORD']
         pNames = ['lpszAgent', 'dwAccessType', 'lpszProxy', 'lpszProxyBypass', 'dwFlags']
 
@@ -3923,8 +3394,8 @@ class CustomWinAPIs():
         logged_calls = ("InternetOpenA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def InternetOpenW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    def InternetOpenW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['LPCWSTR', 'DWORD', 'LPCWSTR', 'LPCWSTR', 'DWORD']
         pNames = ['lpszAgent', 'dwAccessType', 'lpszProxy', 'lpszProxyBypass', 'dwFlags']
 
@@ -3947,8 +3418,8 @@ class CustomWinAPIs():
         logged_calls = ("InternetOpenW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def InternetConnectA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 8)
+    def InternetConnectA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 8)
         pTypes = ['HINTERNET', 'LPCSTR', 'INTERNET_PORT', 'LPCSTR', 'LPCSTR', 'DWORD', 'DWORD', 'DWORD_PTR']
         pNames = ['hInternet', 'lpszServerName', 'nServerPort', 'lpszUserName', 'lpszPassword', 'dwService', 'dwFlags',
                   'dwContext']
@@ -3976,8 +3447,8 @@ class CustomWinAPIs():
         logged_calls = ("InternetConnectA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def InternetConnectW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 8)
+    def InternetConnectW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 8)
         pTypes = ['HINTERNET', 'LPCWSTR', 'INTERNET_PORT', 'LPCWSTR', 'LPCWSTR', 'DWORD', 'DWORD', 'DWORD_PTR']
         pNames = ['hInternet', 'lpszServerName', 'nServerPort', 'lpszUserName', 'lpszPassword', 'dwService', 'dwFlags',
                   'dwContext']
@@ -4005,8 +3476,8 @@ class CustomWinAPIs():
         logged_calls = ("InternetConnectW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CreateRemoteThread(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 7)
+    def CreateRemoteThread(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 7)
         pTypes = ['HANDLE', 'LPSECURITY_ATTRIBUTES', 'SIZE_T', 'LPTHREAD_START_ROUTINE', 'LPVOID', 'DWORD', 'LPDWORD']
         pNames = ['hProcess', 'lpThreadAttributes', 'dwStackSize', 'lpStartAddress', 'lpParameter', 'dwCreationFlags',
                   'lpThreadId']
@@ -4027,7 +3498,7 @@ class CustomWinAPIs():
         logged_calls = ("CreateRemoteThread", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def VirtualAllocEx(uc, eip, esp, export_dict, callAddr):
+    def VirtualAllocEx(self, uc, eip, esp, export_dict, callAddr, em):
         global availMem
 
         hProcess = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 4, 4)
@@ -4079,9 +3550,9 @@ class CustomWinAPIs():
 
         return logged_calls, cleanBytes
 
-    def RegCreateKeyExA(uc, eip, esp, export_dict, callAddr):
+    def RegCreateKeyExA(self, uc, eip, esp, export_dict, callAddr, em):
         # LSTATUS RegCreateKeyExA([in] HKEY hKey,[in] LPCSTR lpSubKey,DWORD Reserved,[in, optional]  LPSTR lpClass,[in] DWORD dwOptions,[in] REGSAM samDesired,[in, optional] const LPSECURITY_ATTRIBUTES lpSecurityAttributes,[out] PHKEY phkResult,[out, optional] LPDWORD lpdwDisposition);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 9)
+        pVals = makeArgVals(uc, em, esp, 9)
         pTypes = ['HKEY', 'LPCSTR', 'DWORD', 'LPSTR', 'DWORD', 'REGSAM', 'LPSECURITY_ATTRIBUTES', 'PHKEY', 'LPDWORD']
         pNames = ['hKey', 'lpSubKey', 'Reserved', 'lpClass', 'dwOptions', 'samDesired', 'lpSecurityAttributes',
                   'phkResult',
@@ -4112,9 +3583,9 @@ class CustomWinAPIs():
         logged_calls = ("RegCreateKeyExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def RegCreateKeyExW(uc, eip, esp, export_dict, callAddr):
+    def RegCreateKeyExW(self, uc, eip, esp, export_dict, callAddr, em):
         # LSTATUS RegCreateKeyExA([in] HKEY hKey,[in] LPCSTR lpSubKey,DWORD Reserved,[in, optional]  LPSTR lpClass,[in] DWORD dwOptions,[in] REGSAM samDesired,[in, optional] const LPSECURITY_ATTRIBUTES lpSecurityAttributes,[out] PHKEY phkResult,[out, optional] LPDWORD lpdwDisposition);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 9)
+        pVals = makeArgVals(uc, em, esp, 9)
         pTypes = ['HKEY', 'LPCWSTR', 'DWORD', 'LPWSTR', 'DWORD', 'REGSAM', 'LPSECURITY_ATTRIBUTES', 'PHKEY', 'LPDWORD']
         pNames = ['hKey', 'lpSubKey', 'Reserved', 'lpClass', 'dwOptions', 'samDesired', 'lpSecurityAttributes',
                   'phkResult',
@@ -4145,8 +3616,8 @@ class CustomWinAPIs():
         logged_calls = ("RegCreateKeyExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def RegDeleteKeyExA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    def RegDeleteKeyExA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HKEY', 'LPCSTR', 'REGSAM', 'DWORD']
         pNames = ['hKey', 'lpSubKey', 'samDesired', 'Reserved']
 
@@ -4166,8 +3637,8 @@ class CustomWinAPIs():
         logged_calls = ("RegDeleteKeyExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def RegDeleteKeyExW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    def RegDeleteKeyExW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HKEY', 'LPCWSTR', 'REGSAM', 'DWORD']
         pNames = ['hKey', 'lpSubKey', 'samDesired', 'Reserved']
 
@@ -4187,8 +3658,8 @@ class CustomWinAPIs():
         logged_calls = ("RegDeleteKeyExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def RegGetValueA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 7)
+    def RegGetValueA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 7)
         pTypes = ['HKEY', 'LPCSTR', 'LPCSTR', 'DWORD', 'LPDWORD', 'PVOID', 'LPDWORD']
         pNames = ['hKey', 'lpSubKey', 'lpValue', 'dwFlags', 'pdwType', 'pvData', 'pcbData']
 
@@ -4213,8 +3684,8 @@ class CustomWinAPIs():
         logged_calls = ("RegGetValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def RegGetValueW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 7)
+    def RegGetValueW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 7)
         pTypes = ['HKEY', 'LPCWSTR', 'LPCWSTR', 'DWORD', 'LPDWORD', 'PVOID', 'LPDWORD']
         pNames = ['hKey', 'lpSubKey', 'lpValue', 'dwFlags', 'pdwType', 'pvData', 'pcbData']
 
@@ -4239,8 +3710,8 @@ class CustomWinAPIs():
         logged_calls = ("RegGetValueW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CryptDecrypt(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    def CryptDecrypt(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 6)
         pTypes = ['HCRYPTKEY', 'HCRYPTHASH', 'BOOL', 'DWORD', 'BYTE', 'DWORD']
         pNames = ['hKey', 'hHash', 'Final', 'dwFlags', 'pbData', 'pdwDataLen']
 
@@ -4260,8 +3731,8 @@ class CustomWinAPIs():
         logged_calls = ("CryptDecrypt", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def SetWindowsHookExA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    def SetWindowsHookExA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['int', 'HOOKPROC', 'HINSTANCE', 'DWORD']
         pNames = ['idHook', 'lpfn', 'hmod', 'dwThreadId']
 
@@ -4286,8 +3757,8 @@ class CustomWinAPIs():
         logged_calls = ("SetWindowsHookExA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def SetWindowsHookExW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    def SetWindowsHookExW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['int', 'HOOKPROC', 'HINSTANCE', 'DWORD']
         pNames = ['idHook', 'lpfn', 'hmod', 'dwThreadId']
 
@@ -4312,8 +3783,8 @@ class CustomWinAPIs():
         logged_calls = ("SetWindowsHookExW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def shutdown(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    def shutdown(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['SOCKET', 'int']
         pNames = ['s', 'how']
 
@@ -4333,8 +3804,8 @@ class CustomWinAPIs():
         logged_calls = ("shutdown", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def ReplaceFileA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    def ReplaceFileA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 6)
         pTypes = ['LPCSTR', 'LPCSTR', 'LPCSTR', 'DWORD', 'LPVOID', 'LPVOID']
         pNames = ['lpReplacedFileName', 'lpReplacementFileName', 'lpBackupFileName', 'dwReplaceFlags', 'lpExclude',
                   'lpReserved']
@@ -4356,8 +3827,8 @@ class CustomWinAPIs():
         logged_calls = ("ReplaceFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def ReplaceFileW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    def ReplaceFileW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 6)
         pTypes = ['LPCWSTR', 'LPCWSTR', 'LPCWSTR', 'DWORD', 'LPVOID', 'LPVOID']
         pNames = ['lpReplacedFileName', 'lpReplacementFileName', 'lpBackupFileName', 'dwReplaceFlags', 'lpExclude',
                   'lpReserved']
@@ -4379,8 +3850,8 @@ class CustomWinAPIs():
         logged_calls = ("ReplaceFileW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def ReadDirectoryChangesW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 8)
+    def ReadDirectoryChangesW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 8)
         pTypes = ['HANDLE', 'LPVOID', 'DWORD', 'BOOL', 'DWORD', 'LPDWORD', 'LPOVERLAPPED',
                   'LPOVERLAPPED_COMPLETION_ROUTINE']
         pNames = ['hDirectory', 'lpBuffer', 'nBufferLength', 'bWatchSubtree', 'dwNotifyFilter', 'lpBytesReturned',
@@ -4405,8 +3876,8 @@ class CustomWinAPIs():
         logged_calls = ("ReadDirectoryChangesW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def InternetCombineUrlA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    def InternetCombineUrlA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['LPCSTR', 'LPCSTR', 'LPSTR', 'LPDWORD', 'DWORD']
         pNames = ['lpszBaseUrl', 'lpszRelativeUrl', 'lpszBuffer', 'lpdwBufferLength', 'dwFlags']
 
@@ -4428,8 +3899,8 @@ class CustomWinAPIs():
         logged_calls = ("InternetCombineUrlA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def InternetCombineUrlW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    def InternetCombineUrlW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['LPCWSTR', 'LPCWSTR', 'LPWSTR', 'LPDWORD', 'DWORD']
         pNames = ['lpszBaseUrl', 'lpszRelativeUrl', 'lpszBuffer', 'lpdwBufferLength', 'dwFlags']
 
@@ -4451,8 +3922,8 @@ class CustomWinAPIs():
         logged_calls = ("InternetCombineUrlW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def ExitWindowsEx(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    def ExitWindowsEx(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['UINT', 'DWORD']
         pNames = ['uFlags', 'dwReason']
 
@@ -4492,8 +3963,8 @@ class CustomWinAPIs():
         logged_calls = ("ExitWindowsEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def SetFileAttributesA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    def SetFileAttributesA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['LPCSTR', 'DWORD']
         pNames = ['lpFileName', 'dwFileAttributes']
 
@@ -4516,8 +3987,8 @@ class CustomWinAPIs():
         logged_calls = ("SetFileAttributesA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def SetFileAttributesW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+    def SetFileAttributesW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['LPCWSTR', 'DWORD']
         pNames = ['lpFileName', 'dwFileAttributes']
 
@@ -4540,8 +4011,8 @@ class CustomWinAPIs():
         logged_calls = ("SetFileAttributesW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def ControlService(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    def ControlService(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['SC_HANDLE', 'DWORD', 'LPSERVICE_STATUS']
         pNames = ['hService', 'dwControl', 'lpServiceStatus']
 
@@ -4565,8 +4036,8 @@ class CustomWinAPIs():
         logged_calls = ("ControlService", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CreateFileMappingA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    def CreateFileMappingA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 6)
         pTypes = ['HANDLE', 'LPSECURITY_ATTRIBUTES', 'DWORD', 'DWORD', 'DWORD', 'LPCSTR']
         pNames = ['hFile', 'lpFileMappingAttributes', 'flProtect', 'dwMaximumSizeHigh', 'dwMaximumSizeLow', 'lpName']
 
@@ -4590,8 +4061,8 @@ class CustomWinAPIs():
         logged_calls = ("CreateFileMappingA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CreateFileMappingW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    def CreateFileMappingW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 6)
         pTypes = ['HANDLE', 'LPSECURITY_ATTRIBUTES', 'DWORD', 'DWORD', 'DWORD', 'LPCWSTR']
         pNames = ['hFile', 'lpFileMappingAttributes', 'flProtect', 'dwMaximumSizeHigh', 'dwMaximumSizeLow', 'lpName']
 
@@ -4615,8 +4086,8 @@ class CustomWinAPIs():
         logged_calls = ("CreateFileMappingW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CryptAcquireContextA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    def CryptAcquireContextA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['HCRYPTPROV', 'LPCSTR', 'LPCSTR', 'DWORD', 'DWORD']
         pNames = ['phProv', 'szContainer', 'szProvider', 'dwProvType', 'dwFlags']
 
@@ -4641,8 +4112,8 @@ class CustomWinAPIs():
         logged_calls = ("CryptAcquireContextA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CryptAcquireContextW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    def CryptAcquireContextW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['HCRYPTPROV', 'LPCWSTR', 'LPCWSTR', 'DWORD', 'DWORD']
         pNames = ['phProv', 'szContainer', 'szProvider', 'dwProvType', 'dwFlags']
 
@@ -4667,8 +4138,8 @@ class CustomWinAPIs():
         logged_calls = ("CryptAcquireContextW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def OpenSCManagerA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    def OpenSCManagerA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['LPCSTR', 'LPCSTR', 'DWORD']
         pNames = ['lpMachineName', 'lpDatabaseName', 'dwDesiredAccess']
 
@@ -4691,8 +4162,8 @@ class CustomWinAPIs():
         logged_calls = ("OpenSCManagerA", hex(callAddr), (retValStr), 'SC_HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def OpenSCManagerW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    def OpenSCManagerW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['LPCWSTR', 'LPCWSTR', 'DWORD']
         pNames = ['lpMachineName', 'lpDatabaseName', 'dwDesiredAccess']
 
@@ -4715,8 +4186,8 @@ class CustomWinAPIs():
         logged_calls = ("OpenSCManagerW", hex(callAddr), (retValStr), 'SC_HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def FtpPutFileA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    def FtpPutFileA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['HINTERNET', 'LPCSTR', 'LPCSTR', 'DWORD', 'DWORD_PTR']
         pNames = ['hConnect', 'lpszLocalFile', 'lpszNewRemoteFile', 'dwFlags', 'dwContext']
 
@@ -4739,8 +4210,8 @@ class CustomWinAPIs():
         logged_calls = ("FtpPutFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def FtpPutFileW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    def FtpPutFileW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['HINTERNET', 'LPCWSTR', 'LPCWSTR', 'DWORD', 'DWORD_PTR']
         pNames = ['hConnect', 'lpszLocalFile', 'lpszNewRemoteFile', 'dwFlags', 'dwContext']
 
@@ -4763,8 +4234,8 @@ class CustomWinAPIs():
         logged_calls = ("FtpPutFileW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def InternetQueryOptionA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    def InternetQueryOptionA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HINTERNET', 'DWORD', 'LPVOID', 'LPDWORD']
         pNames = ['hInternet', 'dwOption', 'lpBuffer', 'lpdwBufferLength']
 
@@ -4823,8 +4294,8 @@ class CustomWinAPIs():
         logged_calls = ("InternetQueryOptionA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def InternetQueryOptionW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    def InternetQueryOptionW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HINTERNET', 'DWORD', 'LPVOID', 'LPDWORD']
         pNames = ['hInternet', 'dwOption', 'lpBuffer', 'lpdwBufferLength']
 
@@ -4883,8 +4354,8 @@ class CustomWinAPIs():
         logged_calls = ("InternetQueryOptionW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def InternetSetOptionA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    def InternetSetOptionA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HINTERNET', 'DWORD', 'LPVOID', 'DWORD']
         pNames = ['hInternet', 'dwOption', 'lpBuffer', 'dwBufferLength']
 
@@ -4942,8 +4413,8 @@ class CustomWinAPIs():
         logged_calls = ("InternetSetOptionA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def InternetSetOptionW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    def InternetSetOptionW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HINTERNET', 'DWORD', 'LPVOID', 'DWORD']
         pNames = ['hInternet', 'dwOption', 'lpBuffer', 'dwBufferLength']
 
@@ -5001,8 +4472,8 @@ class CustomWinAPIs():
         logged_calls = ("InternetSetOptionW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def HttpOpenRequestA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 8)
+    def HttpOpenRequestA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 8)
         pTypes = ['HINTERNET', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'DWORD', 'DWORD_PTR']
         pNames = ['hConnect', 'lpszVerb', 'lpszObjectName', 'lpszVersion', 'lpszReferrer', 'lplpszAcceptTypes',
                   'dwFlags',
@@ -5037,8 +4508,8 @@ class CustomWinAPIs():
         logged_calls = ("HttpOpenRequestA", hex(callAddr), (retValStr), 'HINTERNET', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def HttpOpenRequestW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 8)
+    def HttpOpenRequestW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 8)
         pTypes = ['HINTERNET', 'LPCWSTR', 'LPCWSTR', 'LPCWSTR', 'LPCWSTR', 'LPCWSTR', 'DWORD', 'DWORD_PTR']
         pNames = ['hConnect', 'lpszVerb', 'lpszObjectName', 'lpszVersion', 'lpszReferrer', 'lplpszAcceptTypes',
                   'dwFlags',
@@ -5073,8 +4544,8 @@ class CustomWinAPIs():
         logged_calls = ("HttpOpenRequestW", hex(callAddr), (retValStr), 'HINTERNET', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def HttpAddRequestHeadersA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    def HttpAddRequestHeadersA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HINTERNET', 'LPCSTR', 'DWORD', 'DWORD']
         pNames = ['hRequest', 'lpszHeaders', 'dwHeadersLength', 'dwModifiers']
 
@@ -5097,8 +4568,8 @@ class CustomWinAPIs():
         logged_calls = ("HttpAddRequestHeadersA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def HttpAddRequestHeadersW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    def HttpAddRequestHeadersW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HINTERNET', 'LPCWSTR', 'DWORD', 'DWORD']
         pNames = ['hRequest', 'lpszHeaders', 'dwHeadersLength', 'dwModifiers']
 
@@ -5121,8 +4592,8 @@ class CustomWinAPIs():
         logged_calls = ("HttpAddRequestHeadersW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def HttpQueryInfoA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    def HttpQueryInfoA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['HINTERNET', 'DWORD', 'LPVOID', 'LPDWORD', 'LPDWORD']
         pNames = ['hRequest', 'dwInfoLevel', 'lpBuffer', 'lpdwBufferLength', 'lpdwIndex']
 
@@ -5179,8 +4650,8 @@ class CustomWinAPIs():
         logged_calls = ("HttpQueryInfoA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def HttpQueryInfoW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    def HttpQueryInfoW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['HINTERNET', 'DWORD', 'LPVOID', 'LPDWORD', 'LPDWORD']
         pNames = ['hRequest', 'dwInfoLevel', 'lpBuffer', 'lpdwBufferLength', 'lpdwIndex']
 
@@ -5237,8 +4708,8 @@ class CustomWinAPIs():
         logged_calls = ("HttpQueryInfoW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def FtpGetFileA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 7)
+    def FtpGetFileA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 7)
         pTypes = ['HINTERNET', 'LPCSTR', 'LPCSTR', 'BOOL', 'DWORD', 'DWORD', 'DWORD_PTR']
         pNames = ['hConnect', 'lpszRemoteFile', 'lpszNewFile', 'fFailIfExists', 'dwFlagsAndAttributes', 'dwFlags',
                   'dwContext']
@@ -5267,8 +4738,8 @@ class CustomWinAPIs():
         logged_calls = ("FtpGetFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def FtpGetFileW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 7)
+    def FtpGetFileW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 7)
         pTypes = ['HINTERNET', 'LPCWSTR', 'LPCWSTR', 'BOOL', 'DWORD', 'DWORD', 'DWORD_PTR']
         pNames = ['hConnect', 'lpszRemoteFile', 'lpszNewFile', 'fFailIfExists', 'dwFlagsAndAttributes', 'dwFlags',
                   'dwContext']
@@ -5297,8 +4768,8 @@ class CustomWinAPIs():
         logged_calls = ("FtpGetFileW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def FtpOpenFileA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    def FtpOpenFileA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['HINTERNET', 'LPCSTR', 'DWORD', 'DWORD', 'DWORD_PTR']
         pNames = ['hConnect', 'lpszFileName', 'dwAccess', 'dwFlags', 'dwContext']
 
@@ -5323,8 +4794,8 @@ class CustomWinAPIs():
         logged_calls = ("FtpOpenFileA", hex(callAddr), (retValStr), 'HINTERNET', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def FtpOpenFileW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 5)
+    def FtpOpenFileW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['HINTERNET', 'LPCWSTR', 'DWORD', 'DWORD', 'DWORD_PTR']
         pNames = ['hConnect', 'lpszFileName', 'dwAccess', 'dwFlags', 'dwContext']
 
@@ -5349,8 +4820,8 @@ class CustomWinAPIs():
         logged_calls = ("FtpOpenFileW", hex(callAddr), (retValStr), 'HINTERNET', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def InternetOpenUrlA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    def InternetOpenUrlA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 6)
         pTypes = ['HINTERNET', 'LPCSTR', 'LPCSTR', 'DWORD', 'DWORD', 'DWORD_PTR']
         pNames = ['hInternet', 'lpszUrl', 'lpszHeaders', 'dwHeadersLength', 'dwFlags', 'dwContext']
 
@@ -5381,8 +4852,8 @@ class CustomWinAPIs():
         logged_calls = ("InternetOpenUrlA", hex(callAddr), (retValStr), 'HINTERNET', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def InternetOpenUrlW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    def InternetOpenUrlW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 6)
         pTypes = ['HINTERNET', 'LPCWSTR', 'LPCWSTR', 'DWORD', 'DWORD', 'DWORD_PTR']
         pNames = ['hInternet', 'lpszUrl', 'lpszHeaders', 'dwHeadersLength', 'dwFlags', 'dwContext']
 
@@ -5413,8 +4884,8 @@ class CustomWinAPIs():
         logged_calls = ("InternetOpenUrlW", hex(callAddr), (retValStr), 'HINTERNET', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def MoveFileExA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    def MoveFileExA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['LPCSTR', 'LPCSTR', 'DWORD']
         pNames = ['lpExistingFileName', 'lpNewFileName', 'dwFlags']
 
@@ -5436,8 +4907,8 @@ class CustomWinAPIs():
         logged_calls = ("MoveFileExA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def MoveFileExW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+    def MoveFileExW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['LPCWSTR', 'LPCWSTR', 'DWORD']
         pNames = ['lpExistingFileName', 'lpNewFileName', 'dwFlags']
 
@@ -5459,8 +4930,8 @@ class CustomWinAPIs():
         logged_calls = ("MoveFileExW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CopyFileExA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    def CopyFileExA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 6)
         pTypes = ['LPCSTR', 'LPCSTR', 'LPPROGRESS_ROUTINE', 'LPVOID', 'LPBOOL', 'DWORD']
         pNames = ['lpExistingFileName', 'lpNewFileName', 'lpProgressRoutine', 'lpData', 'pbCancel', 'dwCopyFlags']
 
@@ -5483,8 +4954,8 @@ class CustomWinAPIs():
         logged_calls = ("CopyFileExA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CopyFileExW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    def CopyFileExW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 6)
         pTypes = ['LPCWSTR', 'LPCWSTR', 'LPPROGRESS_ROUTINE', 'LPVOID', 'LPBOOL', 'DWORD']
         pNames = ['lpExistingFileName', 'lpNewFileName', 'lpProgressRoutine', 'lpData', 'pbCancel', 'dwCopyFlags']
 
@@ -5507,8 +4978,8 @@ class CustomWinAPIs():
         logged_calls = ("CopyFileExW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def DuplicateHandle(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 7)
+    def DuplicateHandle(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 7)
         pTypes = ['HANDLE', 'HANDLE', 'HANDLE', 'LPHANDLE', 'DWORD', 'BOOL', 'DWORD']
         pNames = ['hSourceProcessHandle', 'hSourceHandle', 'hTargetProcessHandle', 'lpTargetHandle', 'dwDesiredAccess',
                   'bInheritHandle', 'dwOptions']
@@ -5534,8 +5005,8 @@ class CustomWinAPIs():
         logged_calls = ("DuplicateHandle", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CreateFileMappingNumaA(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 7)
+    def CreateFileMappingNumaA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 7)
         pTypes = ['HANDLE', 'LPSECURITY_ATTRIBUTES', 'DWORD', 'DWORD', 'DWORD', 'LPCSTR', 'DWORD']
         pNames = ['hFile', 'lpFileMappingAttributes', 'flProtect', 'dwMaximumSizeHigh', 'dwMaximumSizeLow', 'lpName',
                   'nndPreferred']
@@ -5562,8 +5033,8 @@ class CustomWinAPIs():
         logged_calls = ("CreateFileMappingNumaA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CreateFileMappingNumaW(uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 7)
+    def CreateFileMappingNumaW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 7)
         pTypes = ['HANDLE', 'LPSECURITY_ATTRIBUTES', 'DWORD', 'DWORD', 'DWORD', 'LPCWSTR', 'DWORD']
         pNames = ['hFile', 'lpFileMappingAttributes', 'flProtect', 'dwMaximumSizeHigh', 'dwMaximumSizeLow', 'lpName',
                   'nndPreferred']
@@ -5590,9 +5061,9 @@ class CustomWinAPIs():
         logged_calls = ("CreateFileMappingNumaW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CreateMutexA(uc, eip, esp, export_dict, callAddr):
+    def CreateMutexA(self, uc, eip, esp, export_dict, callAddr, em):
         # HANDLE CreateMutexA([in, optional] LPSECURITY_ATTRIBUTES lpMutexAttributes,[in] BOOL bInitialOwner,[in, optional] LPCSTR lpName)
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['LPSECURITY_ATTRIBUTES', 'BOOL', 'LPCSTR']
         pNames = ['lpMutexAttributes', 'bInitialOwner', 'lpName']
 
@@ -5610,9 +5081,9 @@ class CustomWinAPIs():
         logged_calls = ("CreateMutexA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CreateMutexW(uc, eip, esp, export_dict, callAddr):
+    def CreateMutexW(self, uc, eip, esp, export_dict, callAddr, em):
         # HANDLE CreateMutexW([in, optional] LPSECURITY_ATTRIBUTES lpMutexAttributes,[in] BOOL bInitialOwner,[in, optional] LPCWSTR lpName)
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['LPSECURITY_ATTRIBUTES', 'BOOL', 'LPCWSTR']
         pNames = ['lpMutexAttributes', 'bInitialOwner', 'lpName']
 
@@ -5630,9 +5101,9 @@ class CustomWinAPIs():
         logged_calls = ("CreateMutexW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CreateMutexExA(uc, eip, esp, export_dict, callAddr):
+    def CreateMutexExA(self, uc, eip, esp, export_dict, callAddr, em):
         # HANDLE CreateMutexExA([in, optional] LPSECURITY_ATTRIBUTES lpMutexAttributes,[in, optional] LPCSTR lpName,[in] DWORD dwFlags,[in] DWORD dwDesiredAccess);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['LPSECURITY_ATTRIBUTES', 'LPCSTR', 'DWORD', 'DWORD']
         pNames = ['lpMutexAttributes', 'lpName', 'dwFlags', 'dwDesiredAccess']
         dwFlagsReverseLookUp = {0x00000001: 'CREATE_MUTEX_INITIAL_OWNER'}
@@ -5660,9 +5131,9 @@ class CustomWinAPIs():
         logged_calls = ("CreateMutexExA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CreateMutexExW(uc, eip, esp, export_dict, callAddr):
+    def CreateMutexExW(self, uc, eip, esp, export_dict, callAddr, em):
         # HANDLE CreateMutexExW([in, optional] LPSECURITY_ATTRIBUTES lpMutexAttributes,[in, optional] LPCWSTR lpName,[in] DWORD dwFlags,[in] DWORD dwDesiredAccess);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['LPSECURITY_ATTRIBUTES', 'LPCWSTR', 'DWORD', 'DWORD']
         pNames = ['lpMutexAttributes', 'lpName', 'dwFlags', 'dwDesiredAccess']
         dwFlagsReverseLookUp = {0x00000001: 'CREATE_MUTEX_INITIAL_OWNER'}
@@ -5691,9 +5162,9 @@ class CustomWinAPIs():
         logged_calls = ("CreateMutexExW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def ReleaseMutex(uc: Uc, eip, esp, export_dict, callAddr):
+    def ReleaseMutex(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL ReleaseMutex([in] HANDLE hMutex);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['HANDLE']
         pNames = ['hMutex']
 
@@ -5713,8 +5184,8 @@ class CustomWinAPIs():
         logged_calls = ("ReleaseMutex", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CreatePipe(uc: Uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+    def CreatePipe(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['PHANDLE', 'PHANDLE', 'LPSECURITY_ATTRIBUTES', 'DWORD']
         pNames = ['hReadPipe', 'hWritePipe', 'lpPipeAttributes', 'nSize']
 
@@ -5741,8 +5212,8 @@ class CustomWinAPIs():
         logged_calls = ("CreatePipe", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CreateNamedPipeA(uc: Uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 8)
+    def CreateNamedPipeA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 8)
         pTypes = ['LPCSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPSECURITY_ATTRIBUTES']
         pNames = ['lpName', 'dwOpenMode', 'dwPipeMode', 'nMaxInstances', 'nOutBufferSize', 'nInBufferSize',
                   'nDefaultTimeOut', 'lpSecurityAttributes']
@@ -5871,8 +5342,8 @@ class CustomWinAPIs():
         logged_calls = ("CreateNamedPipeA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CreateNamedPipeW(uc: Uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 8)
+    def CreateNamedPipeW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 8)
         pTypes = ['LPCWSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPSECURITY_ATTRIBUTES']
         pNames = ['lpName', 'dwOpenMode', 'dwPipeMode', 'nMaxInstances', 'nOutBufferSize', 'nInBufferSize',
                   'nDefaultTimeOut', 'lpSecurityAttributes']
@@ -6001,8 +5472,8 @@ class CustomWinAPIs():
         logged_calls = ("CreateNamedPipeW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def MultiByteToWideChar(uc: Uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 6)
+    def MultiByteToWideChar(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 6)
         pTypes = ['UINT', 'DWORD', 'LPCSTR', 'int', 'LPWSTR', 'int']
         pNames = ['CodePage', 'dwFlags', 'lpMultiByteStr', 'cbMultiByte', 'lpWideCharStr', 'cchWideChar']
 
@@ -6028,15 +5499,15 @@ class CustomWinAPIs():
         logged_calls = ("MultiByteToWideChar", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def WideCharToMultiByte(uc: Uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 8)
+    def WideCharToMultiByte(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 8)
         pTypes = ['UINT', 'DWORD', 'LPCWSTR', 'int', 'LPSTR', 'int', 'LPCSTR', 'LPBOOL']
         pNames = ['CodePage', 'dwFlags', 'lpWideCharStr', 'cchWideChar', 'lpMultiByteStr', 'cbMultiByte',
                   'lpDefaultChar',
                   'lpUsedDefaultChar']
 
         try:
-            stringToConvert = read_unicode2(uc, pVals[2])
+            stringToConvert = read_unicode(uc, pVals[2])
             ascii = stringToConvert.encode('ascii', errors="replace")  # Attempt to encode replace unknown with ?
             if pVals[5] == 0:
                 retVal = len(ascii) + 1
@@ -6057,9 +5528,9 @@ class CustomWinAPIs():
         logged_calls = ("WideCharToMultiByte", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetComputerNameA(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetComputerNameA(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL GetComputerNameA([out] LPSTR lpBuffer,[in, out] LPDWORD nSize);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['LPSTR', 'LPDWORD']
         pNames = ['lpBuffer', 'nSize']
 
@@ -6079,9 +5550,9 @@ class CustomWinAPIs():
         logged_calls = ("GetComputerNameA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetComputerNameW(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetComputerNameW(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL GetComputerNameW([out] LPWSTR lpBuffer,[in, out] LPDWORD nSize);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['LPWSTR', 'LPDWORD']
         pNames = ['lpBuffer', 'nSize']
 
@@ -6101,9 +5572,9 @@ class CustomWinAPIs():
         logged_calls = ("GetComputerNameW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetComputerNameExA(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetComputerNameExA(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL GetComputerNameExA([in] COMPUTER_NAME_FORMAT NameType,[out] LPSTR  lpBuffer,[in, out] LPDWORD nSize);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['COMPUTER_NAME_FORMAT', 'LPSTR', 'LPDWORD']
         pNames = ['NameType', 'lpBuffer', 'nSize']
         nameTypeReverseLookup = {0: 'ComputerNameNetBIOS', 1: 'ComputerNameDnsHostname', 2: 'ComputerNameDnsDomain',
@@ -6129,9 +5600,9 @@ class CustomWinAPIs():
         logged_calls = ("GetComputerNameExA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetComputerNameExW(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetComputerNameExW(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL GetComputerNameExW([in] COMPUTER_NAME_FORMAT NameType,[out] LPWSTR  lpBuffer,[in, out] LPDWORD nSize);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['COMPUTER_NAME_FORMAT', 'LPWSTR', 'LPDWORD']
         pNames = ['NameType', 'lpBuffer', 'nSize']
         nameTypeReverseLookup = {0: 'ComputerNameNetBIOS', 1: 'ComputerNameDnsHostname', 2: 'ComputerNameDnsDomain',
@@ -6157,9 +5628,9 @@ class CustomWinAPIs():
         logged_calls = ("GetComputerNameExW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def gethostname(uc: Uc, eip, esp, export_dict, callAddr):
+    def gethostname(self, uc, eip, esp, export_dict, callAddr, em):
         # int gethostname([out] char *name,[in]  int  namelen);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['char', 'int']
         pNames = ['*name', 'namelen']
 
@@ -6180,9 +5651,9 @@ class CustomWinAPIs():
         logged_calls = ("gethostname", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetWindowsDirectoryA(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetWindowsDirectoryA(self, uc, eip, esp, export_dict, callAddr, em):
         # UINT GetWindowsDirectoryA([out] LPSTR lpBuffer,[in]  UINT  uSize);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['LPSTR', 'UNINT']
         pNames = ['lpBuffer', 'uSize']
 
@@ -6201,9 +5672,9 @@ class CustomWinAPIs():
         logged_calls = ("GetWindowsDirectoryA", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetWindowsDirectoryW(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetWindowsDirectoryW(self, uc, eip, esp, export_dict, callAddr, em):
         # UINT GetWindowsDirectoryW([out] LPWSTR lpBuffer,[in]  UINT  uSize);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['LPWSTR', 'UNINT']
         pNames = ['lpBuffer', 'uSize']
 
@@ -6222,9 +5693,9 @@ class CustomWinAPIs():
         logged_calls = ("GetWindowsDirectoryW", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetSystemWindowsDirectoryA(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetSystemWindowsDirectoryA(self, uc, eip, esp, export_dict, callAddr, em):
         # UINT GetSystemWindowsDirectoryA([out] LPSTR lpBuffer,[in]  UINT  uSize);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['LPSTR', 'UNINT']
         pNames = ['lpBuffer', 'uSize']
 
@@ -6243,9 +5714,9 @@ class CustomWinAPIs():
         logged_calls = ("GetSystemWindowsDirectoryA", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetSystemWindowsDirectoryW(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetSystemWindowsDirectoryW(self, uc, eip, esp, export_dict, callAddr, em):
         # UINT GetSystemWindowsDirectoryW([out] LPWSTR lpBuffer,[in]  UINT  uSize);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['LPWSTR', 'UNINT']
         pNames = ['lpBuffer', 'uSize']
 
@@ -6264,9 +5735,9 @@ class CustomWinAPIs():
         logged_calls = ("GetSystemWindowsDirectoryW", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetTempPathA(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetTempPathA(self, uc, eip, esp, export_dict, callAddr, em):
         # DWORD GetTempPathA([in]  DWORD nBufferLength,[out] LPSTR lpBuffer);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['DWORD', 'LPSTR', ]
         pNames = ['nBufferLength', 'lpBuffer', ]
 
@@ -6285,9 +5756,9 @@ class CustomWinAPIs():
         logged_calls = ("GetTempPathA", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetTempPathW(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetTempPathW(self, uc, eip, esp, export_dict, callAddr, em):
         # DWORD GetTempPathW([in]  DWORD nBufferLength,[out] LPWSTR lpBuffer);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['DWORD', 'LPWSTR', ]
         pNames = ['nBufferLength', 'lpBuffer', ]
 
@@ -6306,9 +5777,9 @@ class CustomWinAPIs():
         logged_calls = ("GetTempPathW", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetTempFileNameA(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetTempFileNameA(self, uc, eip, esp, export_dict, callAddr, em):
         # UINT GetTempFileNameA([in]  LPCSTR lpPathName,[in]  LPCSTR lpPrefixString,[in]  UINT   uUnique,[out] LPSTR  lpTempFileName);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['LPCSTR', 'LPCSTR', 'UINT', 'LPSTR']
         pNames = ['lpPathName', 'lpPrefixString', 'uUnique', 'lpTempFileName']
 
@@ -6348,14 +5819,14 @@ class CustomWinAPIs():
         logged_calls = ("GetTempFileNameA", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetTempFileNameW(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetTempFileNameW(self, uc, eip, esp, export_dict, callAddr, em):
         # UINT GetTempFileNameW([in]  LPCWSTR lpPathName,[in]  LPCWSTR lpPrefixString,[in]  UINT   uUnique,[out] LPWSTR  lpTempFileName);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 4)
+        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['LPCWSTR', 'LPCWSTR', 'UINT', 'LPWSTR']
         pNames = ['lpPathName', 'lpPrefixString', 'uUnique', 'lpTempFileName']
 
-        tempPath = read_unicode2(uc, pVals[0])
-        preFix = read_unicode2(uc, pVals[1])
+        tempPath = read_unicode(uc, pVals[0])
+        preFix = read_unicode(uc, pVals[1])
 
         if pVals[2] == 0x0:
             retVal = randint(0x0, 0xffff)
@@ -6391,9 +5862,9 @@ class CustomWinAPIs():
         logged_calls = ("GetTempFileNameW", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetSystemWow64DirectoryA(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetSystemWow64DirectoryA(self, uc, eip, esp, export_dict, callAddr, em):
         # UINT GetSystemWow64DirectoryA([out] LPSTR lpBuffer,[in]  UINT  uSize);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['LPSTR', 'UNINT']
         pNames = ['lpBuffer', 'uSize']
 
@@ -6412,9 +5883,9 @@ class CustomWinAPIs():
         logged_calls = ("GetSystemWow64DirectoryA", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetSystemWow64DirectoryW(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetSystemWow64DirectoryW(self, uc, eip, esp, export_dict, callAddr, em):
         # UINT GetSystemWow64DirectoryW([out] LPWSTR lpBuffer,[in]  UINT  uSize);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['LPWSTR', 'UNINT']
         pNames = ['lpBuffer', 'uSize']
 
@@ -6433,9 +5904,9 @@ class CustomWinAPIs():
         logged_calls = ("GetSystemWow64DirectoryW", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetSystemTime(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetSystemTime(self, uc, eip, esp, export_dict, callAddr, em):
         # void GetSystemTime([out] LPSYSTEMTIME lpSystemTime);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['LPSYSTEMTIME']
         pNames = ['lpSystemTime']
 
@@ -6453,9 +5924,9 @@ class CustomWinAPIs():
         logged_calls = ("GetSystemTime", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetLocalTime(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetLocalTime(self, uc, eip, esp, export_dict, callAddr, em):
         # void GetLocalTime([out] LPSYSTEMTIME lpSystemTime);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['LPSYSTEMTIME']
         pNames = ['lpSystemTime']
 
@@ -6473,9 +5944,9 @@ class CustomWinAPIs():
         logged_calls = ("GetLocalTime", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetUserNameA(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetUserNameA(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL GetUserNameA([out] LPSTR lpBuffer,[in, out] LPDWORD pcbBuffer);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['LPSTR', 'LPDWORD']
         pNames = ['lpBuffer', 'pcbBuffer']
 
@@ -6495,9 +5966,9 @@ class CustomWinAPIs():
         logged_calls = ("GetUserNameA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetUserNameW(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetUserNameW(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL GetUserNameW([out] LPWSTR lpBuffer,[in, out] LPDWORD pcbBuffer);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['LPWSTR', 'LPDWORD']
         pNames = ['lpBuffer', 'pcbBuffer']
 
@@ -6517,9 +5988,9 @@ class CustomWinAPIs():
         logged_calls = ("GetUserNameW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetUserNameExA(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetUserNameExA(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOLEAN SEC_ENTRY GetUserNameExA([in] EXTENDED_NAME_FORMAT NameFormat,[out] LPSTR lpNameBuffer,[in, out] PULONG nSize);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['EXTENDED_NAME_FORMAT', 'LPSTR', 'LPDWORD']
         pNames = ['NameFormat', 'lpBuffer', 'pcbBuffer']
         nameFormatReverseLookup = {0: 'NameUnknown', 1: 'NameFullyQualifiedDN', 2: 'NameSamCompatible',
@@ -6546,9 +6017,9 @@ class CustomWinAPIs():
         logged_calls = ("GetUserNameExA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetUserNameExW(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetUserNameExW(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOLEAN SEC_ENTRY GetUserNameExW([in] EXTENDED_NAME_FORMAT NameFormat,[out] LPWSTR lpNameBuffer,[in, out] PULONG nSize);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['EXTENDED_NAME_FORMAT', 'LPWSTR', 'LPDWORD']
         pNames = ['NameFormat', 'lpBuffer', 'pcbBuffer']
         nameFormatReverseLookup = {0: 'NameUnknown', 1: 'NameFullyQualifiedDN', 2: 'NameSamCompatible',
@@ -6575,9 +6046,9 @@ class CustomWinAPIs():
         logged_calls = ("GetUserNameExW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def TerminateProcess(uc: Uc, eip, esp, export_dict, callAddr):
+    def TerminateProcess(self, uc, eip, esp, export_dict, callAddr, em):
         # 'TerminateProcess': (2, ['HANDLE', 'UINT'], ['hProcess', 'uExitCode'], 'BOOL')
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['HANDLE', 'UINT']
         pNames = ['hProcess', 'uExitCode']
 
@@ -6593,9 +6064,9 @@ class CustomWinAPIs():
         logged_calls = ("TerminateProcess", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def Sleep(uc: Uc, eip, esp, export_dict, callAddr):
+    def Sleep(self, uc, eip, esp, export_dict, callAddr, em):
         # 'Sleep': (1, ['DWORD'], ['dwMilliseconds'], 'thunk void')
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['DWORD']
         pNames = ['dwMilliseconds']
 
@@ -6610,9 +6081,9 @@ class CustomWinAPIs():
         logged_calls = ("Sleep", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def CloseHandle(uc: Uc, eip, esp, export_dict, callAddr):
+    def CloseHandle(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL CloseHandle( [in] HANDLE hObject);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['HANDLE']
         pNames = ['hObject']
 
@@ -6630,9 +6101,9 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     ### Has a structure of OSVERSIONINFOA, need help with.
-    def GetVersionExA(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetVersionExA(self, uc, eip, esp, export_dict, callAddr, em):
         # 'GetVersionExA': (1, ['LPOSVERSIONINFOA'], ['lpVersionInformation'], 'BOOL')
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['LPOSVERSIONINFOA']
         pNames = ['lpVersionInformation']
 
@@ -6649,9 +6120,9 @@ class CustomWinAPIs():
         logged_calls = ("GetVersionExA", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def SetErrorMode(uc: Uc, eip, esp, export_dict, callAddr):
+    def SetErrorMode(self, uc, eip, esp, export_dict, callAddr, em):
         # 'SetErrorMode': (1, ['UINT'], ['uMode'], 'UINT'),
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['UINT']
         pNames = ['uMode']
         SetErrorModeFormatReverseLookup = {0: '', 1: 'SEM_FAILCRITICALERRORS', 4: 'SEM_NOALIGNMENTFAULTEXCEPT',
@@ -6670,9 +6141,9 @@ class CustomWinAPIs():
         logged_calls = ("SetErrorMode", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def SetEndOfFile(uc: Uc, eip, esp, export_dict, callAddr):
+    def SetEndOfFile(self, uc, eip, esp, export_dict, callAddr, em):
         # 'GetVersionExA': (1, ['LPOSVERSIONINFOA'], ['lpVersionInformation'], 'BOOL')
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['HANDLE']
         pNames = ['hFile']
 
@@ -6689,9 +6160,9 @@ class CustomWinAPIs():
         logged_calls = ("SetEndOfFile", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def ResetEvent(uc: Uc, eip, esp, export_dict, callAddr):
+    def ResetEvent(self, uc, eip, esp, export_dict, callAddr, em):
         # 'GetVersionExA': (1, ['LPOSVERSIONINFOA'], ['lpVersionInformation'], 'BOOL')
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['HANDLE']
         pNames = ['hEvent']
 
@@ -6708,9 +6179,9 @@ class CustomWinAPIs():
         logged_calls = ("ResetEvent", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def WaitForSingleObjectEx(uc: Uc, eip, esp, export_dict, callAddr):
+    def WaitForSingleObjectEx(self, uc, eip, esp, export_dict, callAddr, em):
         # 'WaitForSingleObjectEx': (3, ['HANDLE', 'DWORD', 'BOOL'], ['hHandle', 'dwMilliseconds', 'bAlertable'], 'thunk DWORD')
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['HANDLE', 'DWORD', 'BOOL']
         pNames = ['hHandle', 'dwMilliseconds', 'bAlertable']
 
@@ -6726,9 +6197,9 @@ class CustomWinAPIs():
         logged_calls = ("WaitForSingleObjectEx", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetModuleHandleW(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetModuleHandleW(self, uc, eip, esp, export_dict, callAddr, em):
         # GetModuleHandleW': (1, ['LPCWSTR'], ['lpModuleName'], 'HMODULE'),
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 3)
+        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['LPCWSTR']
         pNames = ['lpModuleName']
 
@@ -6745,9 +6216,9 @@ class CustomWinAPIs():
         logged_calls = ("GetModuleHandleW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def TlsFree(uc: Uc, eip, esp, export_dict, callAddr):
+    def TlsFree(self, uc, eip, esp, export_dict, callAddr, em):
         # ''TlsFree': (1, ['DWORD'], ['dwTlsIndex'], 'BOOL')
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['DWORD']
         pNames = ['dwTlsIndex']
 
@@ -6765,9 +6236,9 @@ class CustomWinAPIs():
         logged_calls = ("TlsFree", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def FlsFree(uc: Uc, eip, esp, export_dict, callAddr):
+    def FlsFree(self, uc, eip, esp, export_dict, callAddr, em):
         # ''TlsFree': (1, ['DWORD'], ['dwTlsIndex'], 'BOOL')
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['DWORD']
         pNames = ['dwFlsIndex']
 
@@ -6785,9 +6256,9 @@ class CustomWinAPIs():
         logged_calls = ("FlsFree", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GlobalFree(uc: Uc, eip, esp, export_dict, callAddr):
+    def GlobalFree(self, uc, eip, esp, export_dict, callAddr, em):
         # 'GlobalFree': (1, ['HGLOBAL'], ['hMem'], 'HGLOBAL')
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['HGLOBAL']
         pNames = ['hMem']
 
@@ -6805,9 +6276,9 @@ class CustomWinAPIs():
         logged_calls = ("GlobalFree", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def LocalFree(uc: Uc, eip, esp, export_dict, callAddr):
+    def LocalFree(self, uc, eip, esp, export_dict, callAddr, em):
         # ''LocalFree': (1, ['HLOCAL'], ['hMem'], 'HLOCAL')
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['HLOCAL']
         pNames = ['hMem']
 
@@ -6825,9 +6296,9 @@ class CustomWinAPIs():
         logged_calls = ("LocalFree", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def FlushFileBuffers(uc: Uc, eip, esp, export_dict, callAddr):
+    def FlushFileBuffers(self, uc, eip, esp, export_dict, callAddr, em):
         # 'FlushFileBuffers': (1, ['HANDLE'], ['hFile'], 'BOOL')
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['HANDLE']
         pNames = ['hFile']
 
@@ -6845,9 +6316,9 @@ class CustomWinAPIs():
         logged_calls = ("FlushFileBuffers", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def FlushFileBuffers(uc: Uc, eip, esp, export_dict, callAddr):
+    def FlushFileBuffers(self, uc, eip, esp, export_dict, callAddr, em):
         # 'FlushFileBuffers': (1, ['HANDLE'], ['hFile'], 'BOOL')
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['HANDLE']
         pNames = ['hFile']
 
@@ -6865,9 +6336,9 @@ class CustomWinAPIs():
         logged_calls = ("FlushFileBuffers", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def IsDebuggerPresent(uc: Uc, eip, esp, export_dict, callAddr):
+    def IsDebuggerPresent(self, uc, eip, esp, export_dict, callAddr, em):
         # 'FlushFileBuffers': (1, ['HANDLE'], ['hFile'], 'BOOL')
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 0)
+        pVals = makeArgVals(uc, em, esp, 0)
         pTypes = []
         pNames = []
 
@@ -6885,9 +6356,9 @@ class CustomWinAPIs():
         logged_calls = ("IsDebuggerPresent", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def SetLastError(uc: Uc, eip, esp, export_dict, callAddr):
+    def SetLastError(self, uc, eip, esp, export_dict, callAddr, em):
         # void SetLastError([in] DWORD dwErrCode);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['DWORD']
         pNames = ['dwErrCode']
         ErrorCodeReverseLookUp = {0: 'ERROR_SUCCESS', 1: 'ERROR_INVALID_FUNCTION', 2: 'ERROR_FILE_NOT_FOUND',
@@ -7015,9 +6486,9 @@ class CustomWinAPIs():
         logged_calls = ("SetLastError", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def SetLastErrorEx(uc: Uc, eip, esp, export_dict, callAddr):
+    def SetLastErrorEx(self, uc, eip, esp, export_dict, callAddr, em):
         # void SetLastErrorEx([in] DWORD dwErrCode,[in] DWORD dwType);
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['DWORD', 'DWORD']
         pNames = ['dwErrCode', 'dwType']
         ErrorCodeReverseLookUp = {0: 'ERROR_SUCCESS', 1: 'ERROR_INVALID_FUNCTION', 2: 'ERROR_FILE_NOT_FOUND',
@@ -7145,8 +6616,8 @@ class CustomWinAPIs():
         logged_calls = ("SetLastErrorEx", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetLastError(uc: Uc, eip, esp, export_dict, callAddr):
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 0)
+    def GetLastError(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 0)
         pTypes = []
         pNames = []
         ErrorCodeReverseLookUp = {0: 'ERROR_SUCCESS', 1: 'ERROR_INVALID_FUNCTION', 2: 'ERROR_FILE_NOT_FOUND',
@@ -7273,10 +6744,10 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     # handle in handle dict
-    def GetFileType(uc: Uc, eip, esp, export_dict, callAddr):
+    def GetFileType(self, uc, eip, esp, export_dict, callAddr, em):
         # 'GetFileType': (1, ['HANDLE'], ['hFile'], 'DWORD'
         # match the filetypes to the HandleType list
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['HANDLE']
         pNames = ['hFile']
 
@@ -7313,9 +6784,9 @@ class CustomWinAPIs():
         logged_calls = ("GetFileType", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GlobalLock(uc: Uc, eip, esp, export_dict, callAddr):
+    def GlobalLock(self, uc, eip, esp, export_dict, callAddr, em):
         # 'FlushFileBuffers': (1, ['HANDLE'], ['hFile'], 'BOOL')
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['HGLOBAL']
         pNames = ['hMem']
         global availMem
@@ -7347,9 +6818,9 @@ class CustomWinAPIs():
         logged_calls = ("GlobalLock", hex(callAddr), (retValStr), 'LPVOID ', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GlobalAlloc(uc: Uc, eip, esp, export_dict, callAddr):
+    def GlobalAlloc(self, uc, eip, esp, export_dict, callAddr, em):
         # ''GlobalAlloc': (2, ['UINT', 'SIZE_T'], ['uFlags', 'dwBytes'], 'HGLOBAL')
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 2)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['UINT', 'SIZE_T']
         pNames = ['uFlags', 'dwBytes']
         uFlags_ReverseLookUp = {66: 'GHND', 0: 'GMEM_FIXED', 2: 'GMEM_MOVEABLE', 64: 'GPTR'}
@@ -7617,10 +7088,19 @@ def findStringsParms(uc, pTypes, pVals, skip):
             if "STR" in pTypes[i]:  # finding ones with string
                 try:
                     # print ("looking", i, pTypes[i], pVals[i])
-                    pVals[i] = read_string(uc, pVals[i])
+                    if "WSTR" in pTypes[i]:
+                        pVals[i] = read_unicode(uc, pVals[i])
+                    else:
+                        pVals[i] = read_string(uc, pVals[i])
                     # print (pVals[i],"*")
                 except:
                     # print ("pass", i)
+                    pass
+            elif pTypes[i][0] == 'P': # Pointer Builder
+                try:
+                    pointerVal = getPointerVal(uc,pVals[i])
+                    pVals[i] = buildPtrString(pVals[i], pointerVal)
+                except:
                     pass
             else:
                 pVals[i] = hex(pVals[i])
@@ -7628,10 +7108,25 @@ def findStringsParms(uc, pTypes, pVals, skip):
         i += 1
     return pTypes, pVals
 
+def read_string(uc, address):
+    ret = ""
+    c = uc.mem_read(address, 1)[0]
+    read_bytes = 1
+
+    if c == 0x0: ret = "[NULL]"  # Option for NULL String
+
+    while c != 0x0:
+        ret += chr(c)
+        c = uc.mem_read(address + read_bytes, 1)[0]
+        read_bytes += 1
+    return ret
+
 def read_unicode(uc, address):
     ret = ""
     c = uc.mem_read(address, 1)[0]
     read_bytes = 0
+
+    if c == 0x0: ret = "[NULL]"  # Option for NULL String
 
     while c != 0x0:
         c = uc.mem_read(address + read_bytes, 1)[0]
@@ -7641,13 +7136,34 @@ def read_unicode(uc, address):
     ret = ret.rstrip('\x00')
     return ret
 
-def read_string(uc, address):
+def read_unicode_extended(uc, address): # Able to read more utf-16 chars
     ret = ""
-    c = uc.mem_read(address, 1)[0]
-    read_bytes = 1
+    mem = uc.mem_read(address, 2)[::-1]
+    read_bytes = 2
 
-    while c != 0x0:
-        ret += chr(c)
-        c = uc.mem_read(address + read_bytes, 1)[0]
-        read_bytes += 1
+    unicodeString = str(hex(mem[0])) + str(hex(mem[1])[2::])
+    unicodeInt = int(unicodeString, 0)
+
+    if unicodeInt == 0x0000: ret="NULL" # Option for NULL String
+
+    while unicodeInt != 0x0000:
+        ret += chr(unicodeInt)
+        mem = uc.mem_read(address + read_bytes, 2)[::-1]
+        unicodeString = str(hex(mem[0])) + str(hex(mem[1])[2::])
+        unicodeInt = int(unicodeString, 0)
+        read_bytes += 2
+
     return ret
+
+def buildPtrString(pointer, val):
+    return hex(pointer) + " -> " + hex(val)
+
+def getPointerVal(uc, pointer):
+    val = uc.mem_read(pointer, 4)
+    return unpack('<I', val)[0]
+
+def getLookUpVal(search, dictionary: dict):
+    if search in dictionary:
+        return dictionary[search]
+    else:
+        return hex(search)
