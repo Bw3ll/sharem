@@ -24758,7 +24758,7 @@ def printToText(outputData):	#Output data to text doc
 	# text.write(emulation_txt)
 	text.close()
 	rawSh = binaryToText(m[o].rawData2, "json")[1]
-	# generateTester(outfile, rawSh)
+	generateTester(outfile, rawSh)
 
 def returnSyscalls(callNum, bit = 64):
 	#works the same as getsyscallrecent()
