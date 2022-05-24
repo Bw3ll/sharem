@@ -19446,7 +19446,7 @@ def modConf():
 	global bPrintEmulation
 	global emulation_verbose
 	global emulation_multiline
-	global emuObj
+	global emuObj  
 
 	listofStrings = ['pushret', 
 					'callpop', 
@@ -19523,7 +19523,7 @@ def emulationConf(conr):
 	global bPrintEmulation
 	global emulation_verbose
 	global emulation_multiline
-	global emuObj
+	global emuObj  
 
 	bPrintEmulation = conr.getboolean('SHAREM EMULATION', 'print_emulation_result')
 	emulation_verbose = conr.getboolean('SHAREM EMULATION', 'emulation_verbose_mode')
@@ -19908,7 +19908,7 @@ def under_dev_function():
 	
 
 def emu_max_instruction():
-	global emuObj
+	global emuObj  
 	while True:
 		try:
 			minst = input(" Enter maximum instructions number: ")
@@ -19992,8 +19992,10 @@ def emuCheckDeobfSuccess():
 			emuDeobfuSuccess(fRaw.merged2, mode)
 
 def emulationSubmenu():
-	global emuObj
+	global emuObj  
 	global shellEntry
+	global shellBit
+	global bit32
 	em.maxCounter=emuObj.maxEmuInstr
 	global emulation_verbose
 	global emulation_multiline
@@ -20002,7 +20004,7 @@ def emulationSubmenu():
 		print(yel + " Sharem>" + cya + "Emulator> " +res, end="")
 		choice = input()
 		if choice == "z":
-			emuArch = emuObj.cpuArch
+			emuArch = shellBit
 			startEmu(emuArch, m[o].rawData2, emuObj.verbose)
 			emulation_txt_out(loggedList, logged_syscalls)
 			emuCheckDeobfSuccess()
@@ -20117,6 +20119,15 @@ def emulationSubmenu():
 			# 		break
 		elif choice == "a":
 			under_dev_function()
+			if em.arch == 64: 
+				em.arch = 32 
+				shellBit=32
+				bit32 = True
+			elif em.arch == 32: 
+				em.arch = 64
+				shellBit=64 
+				bit32 = False
+			print(cya + " \tArchitecture changed to " +str(em.arch) + "-bit.\n" + res)
 			# while True:
 			# 	try:
 			# 		minst = input(" Enter cpu architecture: ")
@@ -20310,7 +20321,7 @@ def ui(): #UI menu loop
 	
 	global configOptions
 	global rawhex
-	global emuObj
+	global emuObj  
 
 	bStrings = True
 	bModules = True
@@ -20448,11 +20459,13 @@ def uiBits():	#Change the bit mode
 		if bitIN == "32":
 			bit32 = True
 			shellBit = 32
+			em.arch=32
 			print("\nBits set to 32\n")
 			break
 		elif bitIN == "64":
 			bit32 = False
 			shellBit = 64
+			em.arch=64
 			print("\nBits set to 64\n")
 			break
 		elif bitIN == "x":
@@ -20465,7 +20478,7 @@ def uiBits():	#Change the bit mode
 
 def discoverEmulation(maxLen=None):
 	global shellBit
-	global emuObj 
+	global emuObj   
 
 	if maxLen==None:
 		maxLen=42
@@ -20476,7 +20489,7 @@ def discoverEmulation(maxLen=None):
 		print(cya + " Starting emulation of shellcode..."+res, flush=True)
 		
 
-		emuArch = emuObj.cpuArch										# temporary way of invoking emulator - may change later
+		emuArch = shellBit										# temporary way of invoking emulator - may change later
 		startEmu(emuArch, m[o].rawData2, emuObj.verbose)
 		emuCheckDeobfSuccess()
 		mBool[o].bEmulationFound=True									# if we run it, it is done - if we have not objective way of quantifying how successful it issues
@@ -24848,7 +24861,7 @@ def testTarek():
 def SharemMain(parserNamespace: Namespace):
 
 	global shHash
-	global emuObj
+	global emuObj  
 	global patt
 	global sBy
 	global sh

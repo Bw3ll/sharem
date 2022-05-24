@@ -921,9 +921,14 @@ def test_i386(mode, code):
 
 
 def startEmu(arch, data, vb):
+    print ("startEmu arch", arch)
     global verbose
     verbose = vb
-
+    if arch == 32:
+        em.arch=32
+    elif arch == 64:
+        em.arch=64
+        
     while True:
         if em.arch == 32:
             test_i386(UC_MODE_32, data)
@@ -942,9 +947,9 @@ def startEmu(arch, data, vb):
 
     outFile.close()
 
-
+def emuInit():
+    pass
 def haha():
     fRaw.show()
 
-
-em = EMU()
+em = EMU()  
