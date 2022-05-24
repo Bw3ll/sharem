@@ -5717,6 +5717,13 @@ def makeArgVals(uc, em, esp, numParams):
 
     return args
 
+def stackCleanup(uc, em, esp, numParams):
+    if em.arch == 32:
+        bytes = numParams * 4
+    else:
+        bytes = numParams * 8
+
+    uc.reg_write(UC_X86_REG_ESP, esp + bytes)
 
 def findStringsParms(uc, pTypes, pVals, skip):
     i = 0
