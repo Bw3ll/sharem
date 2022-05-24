@@ -41,7 +41,7 @@ def giveRegs(uc, arch):
         instructLine += "\n"
         return instructLine
     elif arch == 64:
-        regs64 = {"RAX": UC_X86_REG_RAX, "RBX": UC_X86_REG_RBX, "RCX": UC_X86_REG_RCX, "RDX": UC_X86_REG_RDX, "RSI": UC_X86_REG_RSI, "RDI": UC_X86_REG_RDI, "R8": UC_X86_REG_R8, "R9": UC_X86_REG_R9, "R10": UC_X86_REG_R10, "R11": UC_X86_REG_R11, "R12": UC_X86_REG_R12, "R13": UC_X86_REG_R13, "R14": UC_X86_REG_R14, "R15": UC_X86_REG_R15}
+        regs64 = {"RAX": UC_X86_REG_RAX, "RBX": UC_X86_REG_RBX, "RCX": UC_X86_REG_RCX, "RDX": UC_X86_REG_RDX, "RSI": UC_X86_REG_RSI, "RDI": UC_X86_REG_RDI, "R8": UC_X86_REG_R8, "R9": UC_X86_REG_R9, "R10": UC_X86_REG_R10, "R11": UC_X86_REG_R11, "R12": UC_X86_REG_R12, "R13": UC_X86_REG_R13, "R14": UC_X86_REG_R14, "R15": UC_X86_REG_R15, "RBP": UC_X86_REG_RBP, "RSP": UC_X86_REG_RSP}
         for regName, regConst in regs64.items():
             regVal = uc.reg_read(regConst)
             instructLine += f"{regName}: {hex(regVal)} "
@@ -116,13 +116,21 @@ def signedNegHexTo(signedVal):
     new = (int.from_bytes(ba, byteorder='big', signed=True))
     return new
 
-def push(uc, val):
-    # read and subtract 4 from esp
-    esp = uc.reg_read(UC_X86_REG_ESP) - 4
-    uc.reg_write(UC_X86_REG_ESP, esp)
+def push(uc, arch, val):
+    if arch == 64:
+        # read and subtract 8 from esp
+        esp = uc.reg_read(UC_X86_REG_RSP) - 8
+        uc.reg_write(UC_X86_REG_ESP, esp)
 
-    # insert new value onto the stack
-    uc.mem_write(esp, pack("<i", val))
+        # insert new value onto the stack
+        uc.mem_write(esp, pack("<Q", val))
+    else:
+        # read and subtract 4 from esp
+        esp = uc.reg_read(UC_X86_REG_ESP) - 4
+        uc.reg_write(UC_X86_REG_ESP, esp)
+
+        # insert new value onto the stack
+        uc.mem_write(esp, pack("<I", val))
 
 def set_register(uc, reg, val):
     if reg == 'eax':
