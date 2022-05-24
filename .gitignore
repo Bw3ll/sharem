@@ -4,6 +4,8 @@
 *.pyc
 work2.bin
 **/DLLs/*.dll
+**/DLLs/x86/*.dll
+**/DLLs/x64/*.dll
 **/logs/**
 foundDLLAddresses.txt
 out.txt
@@ -39,3 +41,5 @@ work.asm
 
 sharem/sharem/sharem/logs/logging.txt
 sharem/sharem/sharem/emulationLog.txt
+sharem/sharem/sharem/foundDLLAddresses32.json
+sharem/sharem/sharem/foundDLLAddresses64.json

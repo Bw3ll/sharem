@@ -837,7 +837,7 @@ def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 
 	vmode = emuObj.verbose
 	maxinst = emuObj.maxEmuInstr
-	arch = emuObj.cpuArch
+	arch = em.arch
 	bloop = em.maxLoop #emuObj.breakLoop  old
 	# iternum = emuObj.numOfIter
 	ent = em.entryOffset
@@ -889,7 +889,7 @@ def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 
 	
 	text += "  {}{:>13}       [{}]\n".format(cya + "a"+res+" -"+yel+"  CPU Architecture"+ res, "", cya + str(arch)+ res)
-	text += "\t{}\n".format(whi + "* 64 Bit"+whi + " Under Development" + res)
+	text += "\t{}\n".format(whi + "* x86_64"+whi + " Under Development" + res)
 	text += "  {}{:>7} [{}]\n".format(cya + "b"+res+" -"+yel+"  Break out of infinite loops."+ res, "", cya + bloopTog+ res)
 
 	text += "  {}{:>1} [{}]\n".format(cya + "n"+res+" -"+yel+"  Number of iterations before break."+ res, "", cya + str(bloop)+ res)
