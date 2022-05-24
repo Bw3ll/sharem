@@ -5691,7 +5691,6 @@ def stackCleanup(uc, em, esp, numParams):
 
     uc.reg_write(UC_X86_REG_ESP, esp + bytes)
 
-
 def findStringsParms(uc, pTypes, pVals, skip):
     i = 0
     for each in pTypes:
