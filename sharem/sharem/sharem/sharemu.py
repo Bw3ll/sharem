@@ -15,7 +15,7 @@ from .DLLs.hookAPIs import *
 from .DLLs.syscall_signatures import *
 from .helper.emuHelpers import *
 from .helper.sharemuDeob import *
-from.sharem_debugger import *
+from .sharem_debugger import *
 
 import json
 import re
@@ -196,9 +196,9 @@ def catch_windows_api(uc, addr, ret, size, funcAddress):
     global cleanBytes
 
     bprint("funcName", funcAddress, hex(addr))
-    # input()
+
     ret += size
-    push(uc, ret)
+    push(uc, em.arch, ret)
     eip = uc.reg_read(UC_X86_REG_EIP)
     esp = uc.reg_read(UC_X86_REG_ESP)
 
@@ -228,9 +228,6 @@ def catch_windows_api(uc, addr, ret, size, funcAddress):
     fRaw.add(int(funcAddress, 16), funcName)
     if exitAPI(funcName):
         stopProcess = True
-    # if 'LoadLibrary' in funcName and uc.reg_read(UC_X86_REG_EAX) == 0:
-    #     print("\t[*] LoadLibrary failed. Emulation ceasing.")
-    #     stopProcess = True
 
     uc.reg_write(UC_X86_REG_EIP, EXTRA_ADDR)
 
@@ -247,8 +244,6 @@ def hook_code(uc, address, size, user_data):
     global coverage_objects
     global em
     global bad_instruct_count
-
-
 
     funcName = ""
 
@@ -418,8 +413,7 @@ def hook_syscallDefault(uc, eip, esp, funcAddress, funcName, sysCallID, callLoc)
         returnType = nt_tuple[3]
         retVal = findRetVal(funcName, syscallRS)
 
-        funcInfo = (
-        funcName, hex(callLoc), hex(retVal), returnType, paramVals, paramTypes, paramNames, False, sysCallID)
+        funcInfo = (funcName, hex(callLoc), hex(retVal), returnType, paramVals, paramTypes, paramNames, False, sysCallID)
         logSysCall(funcName, funcInfo)
     except:
         hook_syscallBackup(uc, eip, esp, funcAddress, funcName, callLoc, sysCallID)
@@ -430,7 +424,7 @@ def hook_sysCall(uc, address, size):
     global stopProcess
 
     ret = address + size
-    push(uc, ret)
+    push(uc, em.arch, ret)
 
     syscallID = uc.reg_read(UC_X86_REG_EAX)
     sysCallName = syscall_dict[em.winVersion][em.winSP][str(syscallID)]
@@ -552,6 +546,12 @@ def getParams(uc, esp, apiDict, dictName):
 
         cleanBytes = numParams * 4
 
+    if em.arch == 64:
+        if cleanBytes <= 16:
+            cleanBytes = 0
+        else:
+            cleanBytes = cleanBytes - 16
+
     return paramVals
 
 
@@ -612,7 +612,7 @@ def findArtifacts():
     commandLine_artifacts = []
     web_artifacts = []
     registry_artifacts = []
-    exe_dll_artifacts =[]
+    exe_dll_artifacts = []
 
     ## ============================================================================
     ## PATHs
@@ -636,7 +636,7 @@ def findArtifacts():
     find_videoAudio = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:mp4|mpg|mpeg|avi|mp3|wav|aac|adt|adts|aif|aifc|aiff|cda|flv|m4a)(?:\b)"
     find_totalFiles = find_genericFiles+"|"+find_images+"|"+find_programming+"|"+find_workRelated+"|"+find_videoAudio
     find_totalFilesBeginning = "^"+find_genericFiles+"|^"+find_images+"|^"+find_programming+"|^"+find_workRelated+"|^"+find_videoAudio
-    
+
     ##*****************************************************************************
     ## COMMAND LINE ARGUMENTS
     ## -----------------------------
@@ -654,7 +654,7 @@ def findArtifacts():
     netsh_args = find_netsh+valid_cmd_characters
     schtask_args = find_schtasksCMD+valid_cmd_characters
     total_commandLineArguments = cmdline_args+"|"+powershell_args+ "|"+reg_args+"|"+net_args+"|"+netsh_args+"|"+schtask_args
-    
+
     ##*****************************************************************************
     ## WEB
     ## -----------------------------
@@ -685,25 +685,25 @@ def findArtifacts():
     find_LocalMachine = r"(?:(?:SOFTWARE|SYSTEM|HARDWARE|SAM|BCD00000000)(?:\\[^\n]+){+)"
     find_Users = r"(?:(?:\.DEFAULT|S[\-0-9]+(?:_Classes)?)(?:\\[^\n]+)+)"
     find_CurrentConfig = r"(?:(?:SOFTWARE|SYSTEM)(?:\\[^\n]+)+)"
-    total_Registry = find_HKEY +"|"+ find_CurrentUser +"|"+ find_LocalMachine +"|"+ find_Users +"|"+ find_CurrentConfig
-    
+    total_Registry = find_HKEY + "|" + find_CurrentUser + "|" + find_LocalMachine + "|" + find_Users + "|" + find_CurrentConfig
+
     ##*****************************************************************************
     ## EXE OR DLL
     ## -----------------------------
     find_exe_dll = r"(?:.*)(?:\.exe|\.dll)(?:\b)"
 
     for p in paramValues:
-        #-------------------------------------------
+        # -------------------------------------------
         #       Finding Paths
-        #-------------------------------------------   
+        # -------------------------------------------
         # path_artifacts += re.findall(find_environment,str(p))
         # path_artifacts += re.findall(find_letterDrives,str(p))
         # path_artifacts += re.findall(find_relativePaths,str(p))
         # path_artifacts += re.findall(find_networkShares,str(p))
-        paths += re.findall(total_findPaths,str(p),re.IGNORECASE)
+        paths += re.findall(total_findPaths, str(p), re.IGNORECASE)
         # -------------------------------------------
         #       Finding Files
-        #-------------------------------------------        
+        # -------------------------------------------
         # file_artifacts += re.findall(find_files,str(p))
         # file_artifacts += re.findall(find_genericFiles,str(p))
         # file_artifacts += re.findall(find_zip,str(p))
@@ -712,10 +712,10 @@ def findArtifacts():
         # file_artifacts += re.findall(find_workRelated,str(p))
         # file_artifacts += re.findall(find_videoAudio,str(p))
         # file_artifacts += re.findall(find_totalFiles,str(p))
-        file_artifacts += re.findall(find_totalFilesBeginning,str(p),re.IGNORECASE)
-        #-------------------------------------------
+        file_artifacts += re.findall(find_totalFilesBeginning, str(p), re.IGNORECASE)
+        # -------------------------------------------
         #       Finding Command line
-        #-------------------------------------------   
+        # -------------------------------------------
         # commandLine_artifacts += re.findall(cmdline_args,str(p))
         # commandLine_artifacts += re.findall(powershell_args,str(p))
         # commandLine_artifacts += re.findall(reg_args,str(p))
@@ -723,39 +723,40 @@ def findArtifacts():
         # commandLine_artifacts += re.findall(netsh_args,str(p))
         # commandLine_artifacts += re.findall(schtask_args,str(p),re.IGNORECASE)
         # commandLine_artifacts += re.findall(sc_args,str(p))
-        commandLine_artifacts += re.findall(total_commandLineArguments,str(p),re.IGNORECASE)
-        #-------------------------------------------
+        commandLine_artifacts += re.findall(total_commandLineArguments, str(p), re.IGNORECASE)
+        # -------------------------------------------
         #       Finding WEB
-        #-------------------------------------------   
+        # -------------------------------------------
         # web_artifacts += re.findall(find_website,str(p))
         # web_artifacts += re.findall(find_ftp,str(p))
-        web_artifacts += re.findall(total_webTraffic,str(p),re.IGNORECASE)
-        #-------------------------------------------
+        web_artifacts += re.findall(total_webTraffic, str(p), re.IGNORECASE)
+        # -------------------------------------------
         #       Finding Registry
-        #-------------------------------------------   
+        # -------------------------------------------
         # registry_artifacts += re.findall(find_HKEY,str(p))
         # registry_artifacts += re.findall(find_CurrentUser,str(p))
         # registry_artifacts += re.findall(find_LocalMachine,str(p))
         # registry_artifacts += re.findall(find_Users,str(p))
         # registry_artifacts += re.findall(find_CurrentConfig,str(p))
-        registry_artifacts += re.findall(total_Registry,str(p),re.IGNORECASE)
-        #-------------------------------------------
+        registry_artifacts += re.findall(total_Registry, str(p), re.IGNORECASE)
+        # -------------------------------------------
         #       Finding Exe / DLL
-        #-------------------------------------------
-         
+        # -------------------------------------------
 
     for item in paths:
         # print(item)
-        if("exe" in item or "EXE" in item):
+        if ("exe" in item or "EXE" in item):
             exe_dll_artifacts.append(item)
-        elif("dll" in item or "DLL" in item):
+        elif ("dll" in item or "DLL" in item):
             exe_dll_artifacts.append(item)
         else:
             path_artifacts.append(item)
 
-        
+    return list(dict.fromkeys(path_artifacts)), list(dict.fromkeys(file_artifacts)), list(
+        dict.fromkeys(commandLine_artifacts)), list(dict.fromkeys(web_artifacts)), list(
+        dict.fromkeys(registry_artifacts)), list(dict.fromkeys(exe_dll_artifacts))
 
-    return list(dict.fromkeys(path_artifacts)), list(dict.fromkeys(file_artifacts)), list(dict.fromkeys(commandLine_artifacts)), list(dict.fromkeys(web_artifacts)), list(dict.fromkeys(registry_artifacts)), list(dict.fromkeys(exe_dll_artifacts))
+
 """
 def findArtifactsOLD():
     artifacts = []
@@ -801,8 +802,10 @@ def findArtifactsOLD():
     return list(dict.fromkeys(artifacts)), list(dict.fromkeys(net_artifacts)), list(dict.fromkeys(file_artifacts)), list(dict.fromkeys(exec_artifacts))
 """
 
+
 def getArtifacts():
     artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
+
 
 def test_i386(mode, code):
     global artifacts2
@@ -877,7 +880,7 @@ def test_i386(mode, code):
         mu.reg_write(UC_X86_REG_EBP, STACK_ADDR)
 
         # Push entry point addr to top of stack. Represents calling of entry point.
-        push(mu, ENTRY_ADDR)
+        push(mu, em.arch, ENTRY_ADDR)
         mu.mem_write(ENTRY_ADDR, b'\x90\x90\x90\x90')
 
         if mode == UC_MODE_32:
@@ -912,23 +915,20 @@ def test_i386(mode, code):
     except Exception as e:
         print(e)
         print(traceback.format_exc())
-        
-    if len(coverage_objects) <= 0 and em.codeCoverage == False:
-        print(cya + "\t[*]" + res2 + " CPU counter: " + str(programCounter))
-        print(cya + "\t[*]" + res2 + " Emulation complete")
-    
-    path_artifacts, file_artifacts, commandLine_artifacts, web_artifacts, registry_artifacts,   exe_dll_artifacts = findArtifacts()
+
+    path_artifacts, file_artifacts, commandLine_artifacts, web_artifacts, registry_artifacts, exe_dll_artifacts = findArtifacts()
 
 
 def startEmu(arch, data, vb):
-    print ("startEmu arch", arch)
+    print("startEmu arch", arch)
     global verbose
     verbose = vb
+
     if arch == 32:
         em.arch=32
     elif arch == 64:
         em.arch=64
-        
+
     while True:
         if em.arch == 32:
             test_i386(UC_MODE_32, data)
@@ -949,7 +949,8 @@ def startEmu(arch, data, vb):
 
 def emuInit():
     pass
+
 def haha():
     fRaw.show()
 
-em = EMU()  
+em = EMU()

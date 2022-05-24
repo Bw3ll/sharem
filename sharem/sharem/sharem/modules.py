@@ -5,17 +5,20 @@ import pefile
 from pathlib import Path
 import json
 from .helper.moduleHelpers import *
+import platform
+platformType = platform.uname()[0]
 
-# https://code.activestate.com/recipes/578035-disable-file-system-redirector/
-class disable_file_system_redirection:
-    _disable = ctypes.windll.kernel32.Wow64DisableWow64FsRedirection
-    _revert = ctypes.windll.kernel32.Wow64RevertWow64FsRedirection
-    def __enter__(self):
-        self.old_value = ctypes.c_long()
-        self.success = self._disable(ctypes.byref(self.old_value))
-    def __exit__(self, type, value, traceback):
-        if self.success:
-            self._revert(self.old_value)
+if platformType == "Windows":
+    # https://code.activestate.com/recipes/578035-disable-file-system-redirector/
+    class disable_file_system_redirection:
+        _disable = ctypes.windll.kernel32.Wow64DisableWow64FsRedirection
+        _revert = ctypes.windll.kernel32.Wow64RevertWow64FsRedirection
+        def __enter__(self):
+            self.old_value = ctypes.c_long()
+            self.success = self._disable(ctypes.byref(self.old_value))
+        def __exit__(self, type, value, traceback):
+            if self.success:
+                self._revert(self.old_value)
 
 # PROCESS_BASE = 0x14000000
 # PEB_ADDR = 0x11017000
@@ -257,15 +260,29 @@ def iter_and_dump_dlls(mu, em, export_dict, source_path, save_path, mods):
 
         allDllsDict[dll_file] = base
         mods[dll_name].base = base
-        with disable_file_system_redirection():
-            if os.path.exists(source_path+dll_file) == False:
+        if platformType == "Windows":
+            with disable_file_system_redirection():
+                if os.path.exists(source_path+dll_file) == False:
+                    continue
+        else:
+            if os.path.exists(source_path + dll_file) == False:
                 continue
+
+
         if os.path.exists(save_path+dll_file):
             rawDll = readRaw(save_path + dll_file)
         # Inflate dlls so PE offsets are correct
         else:
             if not runOnce:
-                with disable_file_system_redirection():
+                if platformType == "Windows":
+                    with disable_file_system_redirection():
+                        if os.path.exists(source_path+dll_file) == False:
+                            print("[*] Unable to locate ", source_path,
+                                  ". It is likely that this file is not included in your version of Windows.")
+                        print(
+                            "Warning: DLLs must be parsed and inflated from a Windows OS.\n\tThis may take several minutes to generate the initial emulation files.\n\tThis initial step must be completed only once from a Windows machine.\n\tThe emulation will not work without these.")
+                        runOnce = True
+                else:
                     if os.path.exists(source_path+dll_file) == False:
                         print("[*] Unable to locate ", source_path,
                               ". It is likely that this file is not included in your version of Windows.")
@@ -276,13 +293,21 @@ def iter_and_dump_dlls(mu, em, export_dict, source_path, save_path, mods):
             dllPath = source_path + dll_file
             rawDll, padding = padDLL(dllPath, dll_file, save_path)
 
-            with disable_file_system_redirection():
+            if platformType == "Windows":
+                with disable_file_system_redirection():
+                    pe = pefile.PE(source_path+dll_file)
+                for exp in pe.DIRECTORY_ENTRY_EXPORT.symbols:
+                    try:
+                        export_dict[hex(base + exp.address)] = (exp.name.decode(), dll_file)
+                    except:
+                        export_dict[hex(base + exp.address)] = ("unknown_function", dll_file)
+            else:
                 pe = pefile.PE(source_path+dll_file)
-            for exp in pe.DIRECTORY_ENTRY_EXPORT.symbols:
-                try:
-                    export_dict[hex(base + exp.address)] = (exp.name.decode(), dll_file)
-                except:
-                    export_dict[hex(base + exp.address)] = ("unknown_function", dll_file)
+                for exp in pe.DIRECTORY_ENTRY_EXPORT.symbols:
+                    try:
+                        export_dict[hex(base + exp.address)] = (exp.name.decode(), dll_file)
+                    except:
+                        export_dict[hex(base + exp.address)] = ("unknown_function", dll_file)
 
         # Dump the dll into emulation memory
         mu.mem_write(base, rawDll)
@@ -294,7 +319,10 @@ def iter_and_dump_dlls(mu, em, export_dict, source_path, save_path, mods):
 
 
 def padDLL(dllPath, dllName, expandedDLLsPath):
-    with disable_file_system_redirection():
+    if platformType == "Windows":
+        with disable_file_system_redirection():
+            pe = pefile.PE(dllPath)
+    else:
         pe = pefile.PE(dllPath)
 
     virtualAddress = pe.NT_HEADERS.OPTIONAL_HEADER.DATA_DIRECTORY[0].VirtualAddress
