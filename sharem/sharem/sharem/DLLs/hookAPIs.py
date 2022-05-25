@@ -109,8 +109,7 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
         uc.reg_write(UC_X86_REG_EAX, retVal)
-        stackCleanup(uc, em, esp, len(pTypes))
-        cleanBytes = 0
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         logged_calls = ("GetProcAddress", hex(callAddr), hex(retVal), 'FARPROC', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
@@ -137,8 +136,7 @@ class CustomWinAPIs():
         retVal = 0
         retValStr = 'STATUS_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
-        stackCleanup(uc, em, esp, len(pTypes))
-        cleanBytes = 0
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         logged_calls = ("LdrGetProcedureAddress", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
@@ -170,8 +168,7 @@ class CustomWinAPIs():
         
         retValStr=hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
-        stackCleanup(uc, em, esp, len(pTypes))
-        cleanBytes = 0
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         logged_calls = ("LoadLibraryA", hex(callAddr), retValStr, 'HMODULE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
@@ -203,8 +200,7 @@ class CustomWinAPIs():
         
         retValStr=hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
-        stackCleanup(uc, em, esp, len(pTypes))
-        cleanBytes = 0
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         logged_calls = ("LoadLibraryW", hex(callAddr), retValStr, 'HMODULE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
@@ -239,8 +235,7 @@ class CustomWinAPIs():
 
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
-        stackCleanup(uc, em, esp, len(pTypes))
-        cleanBytes = 0
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         logged_calls = ("LoadLibraryExA", hex(callAddr), retValStr, 'HMODULE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
@@ -275,8 +270,7 @@ class CustomWinAPIs():
 
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
-        stackCleanup(uc, em, esp, len(pTypes))
-        cleanBytes = 0
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         logged_calls = ("LoadLibraryExW", hex(callAddr), retValStr, 'HMODULE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
@@ -354,8 +348,7 @@ class CustomWinAPIs():
         skip = [2, 3]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        stackCleanup(uc, em, esp, len(pTypes))
-        cleanBytes = 0 # Ask before commit
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("VirtualAlloc", hex(callAddr), hex(retVal), 'INT',pVals, pTypes, pNames, False)
@@ -392,8 +385,7 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
         uc.reg_write(UC_X86_REG_EAX, retVal)
-        stackCleanup(uc, em, esp, len(pTypes))
-        cleanBytes = 0
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         logged_calls = ("VirtualAllocEx", hex(callAddr), hex(retVal), 'INT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
@@ -402,8 +394,11 @@ class CustomWinAPIs():
         pTypes = ['UINT']
         pNames = ['uExitCode']
 
-        stackCleanup(uc, em, esp, len(pTypes))
-        cleanBytes = 0
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         logged_calls = ("ExitProcess", hex(callAddr), 'None', 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
@@ -456,7 +451,7 @@ class CustomWinAPIs():
         skip = [1, 2, 4, 5]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -476,7 +471,7 @@ class CustomWinAPIs():
         skip = [2]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -496,7 +491,7 @@ class CustomWinAPIs():
         skip = [3]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -522,7 +517,7 @@ class CustomWinAPIs():
         skip = [2]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x20
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -556,7 +551,7 @@ class CustomWinAPIs():
         skip = [0, 1, 2, 4, 5]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x20
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -590,7 +585,7 @@ class CustomWinAPIs():
         skip = [0, 1, 2, 4, 5]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x20
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -617,7 +612,7 @@ class CustomWinAPIs():
         skip = [0, 1, 2]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x20
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -645,7 +640,7 @@ class CustomWinAPIs():
         skip = [0, 1]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -673,7 +668,7 @@ class CustomWinAPIs():
         skip = [0, 1]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -693,7 +688,7 @@ class CustomWinAPIs():
         skip = [4]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00616161  # Implement handle later
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -722,7 +717,7 @@ class CustomWinAPIs():
         skip = [3, 4, 5, 6]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -751,7 +746,7 @@ class CustomWinAPIs():
         skip = [3, 4, 5, 6]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -773,7 +768,7 @@ class CustomWinAPIs():
         skip = [5]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00646464
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -794,7 +789,7 @@ class CustomWinAPIs():
         skip = [3]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -819,7 +814,7 @@ class CustomWinAPIs():
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -843,7 +838,7 @@ class CustomWinAPIs():
         skip = [0]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = heap.handle
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -871,7 +866,7 @@ class CustomWinAPIs():
 
         pVals[1] = getLookUpVal(pVals[1], dwFlagsReverseLookUp)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = allocation.address
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -895,7 +890,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -923,7 +918,7 @@ class CustomWinAPIs():
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -953,7 +948,7 @@ class CustomWinAPIs():
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -984,7 +979,7 @@ class CustomWinAPIs():
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = allocation.address
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -1005,7 +1000,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = heap.handle
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -1031,7 +1026,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = total
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -1056,7 +1051,7 @@ class CustomWinAPIs():
         skip = [0]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -1094,7 +1089,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("Process32First", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
@@ -1137,7 +1132,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("Process32Next", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
@@ -1173,7 +1168,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("Process32FirstW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
@@ -1216,7 +1211,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("Process32NextW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
@@ -1252,7 +1247,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -1297,7 +1292,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("Thread32Next", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
@@ -1333,7 +1328,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("Module32First", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
@@ -1375,7 +1370,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("Module32Next", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
@@ -1411,7 +1406,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("Module32FirstW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
@@ -1453,7 +1448,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("Module32NextW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
@@ -1495,7 +1490,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -1521,7 +1516,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -1547,7 +1542,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -1570,7 +1565,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -1596,7 +1591,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -1619,7 +1614,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -1647,7 +1642,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -1680,7 +1675,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -1710,7 +1705,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         if retVal == 0:
             retValStr = 'NULL'
         else:
@@ -1736,7 +1731,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retValStr = ''
 
         logged_calls = ("RtlMoveMemory", hex(callAddr), (retValStr), 'VOID', pVals, pTypes, pNames, False)
@@ -1761,7 +1756,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -1787,7 +1782,7 @@ class CustomWinAPIs():
         skip = [5]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -1808,7 +1803,7 @@ class CustomWinAPIs():
         skip = [5]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -1831,7 +1826,7 @@ class CustomWinAPIs():
         skip = [6]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -1853,7 +1848,7 @@ class CustomWinAPIs():
         skip = [6]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -1876,7 +1871,7 @@ class CustomWinAPIs():
         skip = [6]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -1898,7 +1893,7 @@ class CustomWinAPIs():
         skip = [6]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -1916,7 +1911,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
         retValStr = 'S_OK'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -1933,7 +1928,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
         retValStr = 'S_OK'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -1955,7 +1950,7 @@ class CustomWinAPIs():
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x20
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -1979,7 +1974,7 @@ class CustomWinAPIs():
         skip = [5]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x20
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2003,7 +1998,7 @@ class CustomWinAPIs():
         skip = [5]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x20
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2023,7 +2018,7 @@ class CustomWinAPIs():
         skip = [0]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2043,7 +2038,7 @@ class CustomWinAPIs():
         skip = [0]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2067,7 +2062,7 @@ class CustomWinAPIs():
         skip = [1, 4]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00626262
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2091,7 +2086,7 @@ class CustomWinAPIs():
         skip = [1, 4]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00737373
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2120,7 +2115,7 @@ class CustomWinAPIs():
         skip = [2, 5, 6]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00636363
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2149,7 +2144,7 @@ class CustomWinAPIs():
         skip = [2, 5, 6]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00727272
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2182,7 +2177,7 @@ class CustomWinAPIs():
         skip = [4, 5, 8]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2215,7 +2210,7 @@ class CustomWinAPIs():
         skip = [4, 5, 8]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2236,7 +2231,7 @@ class CustomWinAPIs():
         skip = [2]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2257,7 +2252,7 @@ class CustomWinAPIs():
         skip = [2]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2283,7 +2278,7 @@ class CustomWinAPIs():
         skip = [3]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2309,7 +2304,7 @@ class CustomWinAPIs():
         skip = [3]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2335,7 +2330,7 @@ class CustomWinAPIs():
         skip = [0]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00656565
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2361,7 +2356,7 @@ class CustomWinAPIs():
         skip = [0]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00717171
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2382,7 +2377,7 @@ class CustomWinAPIs():
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2405,7 +2400,7 @@ class CustomWinAPIs():
         skip = [3]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2428,7 +2423,7 @@ class CustomWinAPIs():
         skip = [3]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2454,7 +2449,7 @@ class CustomWinAPIs():
         skip = [4]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2477,7 +2472,7 @@ class CustomWinAPIs():
         skip = [4]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2500,7 +2495,7 @@ class CustomWinAPIs():
         skip = [4]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2541,7 +2536,7 @@ class CustomWinAPIs():
         skip = [0, 1]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2565,7 +2560,7 @@ class CustomWinAPIs():
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2589,7 +2584,7 @@ class CustomWinAPIs():
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2614,7 +2609,7 @@ class CustomWinAPIs():
         skip = [2]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00676767
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2639,7 +2634,7 @@ class CustomWinAPIs():
         skip = [2]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00707070
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2665,7 +2660,7 @@ class CustomWinAPIs():
         skip = [3, 4]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2691,7 +2686,7 @@ class CustomWinAPIs():
         skip = [3, 4]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2715,7 +2710,7 @@ class CustomWinAPIs():
         skip = [2]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00686868
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2739,7 +2734,7 @@ class CustomWinAPIs():
         skip = [2]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00696969
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2763,7 +2758,7 @@ class CustomWinAPIs():
         skip = [3]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2787,7 +2782,7 @@ class CustomWinAPIs():
         skip = [3]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2847,7 +2842,7 @@ class CustomWinAPIs():
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2907,7 +2902,7 @@ class CustomWinAPIs():
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2966,7 +2961,7 @@ class CustomWinAPIs():
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3025,7 +3020,7 @@ class CustomWinAPIs():
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3061,7 +3056,7 @@ class CustomWinAPIs():
         if pVals[3] == '[NULL]':
             pVals[3] = 'HTTP/1.1'
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00747474
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3097,7 +3092,7 @@ class CustomWinAPIs():
         if pVals[3] == '[NULL]':
             pVals[3] = 'HTTP/1.1'
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00757575
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3121,7 +3116,7 @@ class CustomWinAPIs():
         skip = [3]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3145,7 +3140,7 @@ class CustomWinAPIs():
         skip = [3]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3203,7 +3198,7 @@ class CustomWinAPIs():
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3261,7 +3256,7 @@ class CustomWinAPIs():
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3291,7 +3286,7 @@ class CustomWinAPIs():
         skip = [4, 5]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3321,7 +3316,7 @@ class CustomWinAPIs():
         skip = [4, 5]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3347,7 +3342,7 @@ class CustomWinAPIs():
         skip = [2, 3]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00767676
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3373,7 +3368,7 @@ class CustomWinAPIs():
         skip = [2, 3]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00777777
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3405,7 +3400,7 @@ class CustomWinAPIs():
         skip = [4]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00787878
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3437,7 +3432,7 @@ class CustomWinAPIs():
         skip = [4]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00797979
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3460,7 +3455,7 @@ class CustomWinAPIs():
         skip = [2]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3483,7 +3478,7 @@ class CustomWinAPIs():
         skip = [2]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3507,7 +3502,7 @@ class CustomWinAPIs():
         skip = [5]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3531,7 +3526,7 @@ class CustomWinAPIs():
         skip = [5]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3558,7 +3553,7 @@ class CustomWinAPIs():
         skip = [4, 6]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3586,7 +3581,7 @@ class CustomWinAPIs():
         skip = [2, 6]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00808080
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3614,7 +3609,7 @@ class CustomWinAPIs():
         skip = [2, 6]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00818181
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3634,7 +3629,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3654,7 +3649,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3684,7 +3679,7 @@ class CustomWinAPIs():
         # create strings for everything except ones in our skip
         skip = [2, 3]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3715,7 +3710,7 @@ class CustomWinAPIs():
         skip = [2, 3]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3737,7 +3732,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3765,7 +3760,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -3895,7 +3890,7 @@ class CustomWinAPIs():
         skip = [1, 2, 3]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = pipeHandle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4025,7 +4020,7 @@ class CustomWinAPIs():
         skip = [1, 2, 3]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = pipeHandle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4053,7 +4048,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -4082,7 +4077,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -4103,7 +4098,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4125,7 +4120,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4153,7 +4148,7 @@ class CustomWinAPIs():
         skip = [0]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4181,7 +4176,7 @@ class CustomWinAPIs():
         skip = [0]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4204,7 +4199,7 @@ class CustomWinAPIs():
         skip = [0]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4225,7 +4220,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = len(path)
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4246,7 +4241,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = len(path)
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4267,7 +4262,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = len(path)
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4288,7 +4283,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = len(path)
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4309,7 +4304,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = len(path)
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4330,7 +4325,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = len(path)
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4373,7 +4368,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -4416,7 +4411,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -4436,7 +4431,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = len(path)
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4457,7 +4452,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = len(path)
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4479,7 +4474,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retValStr = 'None'
 
         logged_calls = ("GetSystemTime", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
@@ -4499,7 +4494,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retValStr = 'None'
 
         logged_calls = ("GetLocalTime", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
@@ -4519,7 +4514,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4541,7 +4536,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4570,7 +4565,7 @@ class CustomWinAPIs():
         skip = [0]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4599,7 +4594,7 @@ class CustomWinAPIs():
         skip = [0]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4617,7 +4612,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4635,7 +4630,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
 
         retValStr = 'None'
 
@@ -4652,7 +4647,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
 
         retVal = 0x1
         retValStr = 'TRUE'
@@ -4672,7 +4667,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
 
         retVal = 0x1
         retValStr = 'TRUE'
@@ -4693,7 +4688,7 @@ class CustomWinAPIs():
         skip = [0]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
 
         retVal = 0x0  # returns a the previous state of the error-mode bit flags
         retValStr = ''
@@ -4712,7 +4707,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
 
         retVal = 0x1
         retValStr = 'TRUE'
@@ -4731,7 +4726,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
 
         retVal = 0x1
         retValStr = 'TRUE'
@@ -4750,7 +4745,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
 
         retVal = 0x00000000
         retValStr = 'WAIT_OBJECT_0'
@@ -4768,7 +4763,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
 
         retVal = 0x00808080
         retValStr = hex(retVal)
@@ -4787,7 +4782,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
 
         retVal = 0x1
         retValStr = 'TRUE'
@@ -4807,7 +4802,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
 
         retVal = 0x1
         retValStr = 'TRUE'
@@ -4827,7 +4822,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
 
         retVal = 0
         retValStr = 'NULL'
@@ -4847,7 +4842,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
 
         retVal = 0
         retValStr = 'NULL'
@@ -4867,7 +4862,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
 
         retVal = 0x1
         retValStr = 'TRUE'
@@ -4885,7 +4880,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
 
         retVal = 0
         retValStr = 'False'
@@ -5018,7 +5013,7 @@ class CustomWinAPIs():
         skip = [0]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retValStr = 'None'
 
         logged_calls = ("SetLastError", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
@@ -5148,7 +5143,7 @@ class CustomWinAPIs():
         skip = [0]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retValStr = 'None'
 
         logged_calls = ("SetLastErrorEx", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
@@ -5273,7 +5268,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = lastErrorCode
         retValStr = getLookUpVal(retVal, ErrorCodeReverseLookUp)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -5314,7 +5309,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
 
         uc.reg_write(UC_X86_REG_EAX,
                      retVal)  ## The return value can be of 4 differnt things, what do i do in this situation?
@@ -5350,7 +5345,7 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("GlobalLock", hex(callAddr), (retValStr), 'LPVOID ', pVals, pTypes, pNames, False)
@@ -5397,7 +5392,7 @@ class CustomWinAPIs():
         skip = [0]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = len(pTypes) * 4
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
 
         uc.reg_write(UC_X86_REG_EAX,
                      retVal)  ## The return value can be of 4 differnt things, what do i do in this situation?
@@ -5667,8 +5662,8 @@ def getStackVal(uc, em, esp, loc):
         arg = uc.reg_read(UC_X86_REG_R9)
     else:
         if em.arch == 64:
-            arg = uc.mem_read(esp + (8 * loc), 8)
-            arg = unpack('<q', arg)[0]
+            arg = uc.mem_read(esp + (8 * (loc-4)), 8)
+            arg = unpack('<Q', arg)[0]
         else:
             arg = uc.mem_read(esp + (4 * loc), 4)
             arg = unpack('<I', arg)[0]
@@ -5680,7 +5675,6 @@ def makeArgVals(uc, em, esp, numParams):
     args = [0] * numParams
     for i in range(len(args)):
         args[i] = getStackVal(uc, em, esp, i + 1)
-
     return args
 
 def stackCleanup(uc, em, esp, numParams):
@@ -5688,8 +5682,8 @@ def stackCleanup(uc, em, esp, numParams):
         bytes = numParams * 4
     else:
         bytes = numParams * 8
-
-    uc.reg_write(UC_X86_REG_ESP, esp + bytes)
+    return bytes
+    # uc.reg_write(UC_X86_REG_ESP, esp + bytes)
 
 def findStringsParms(uc, pTypes, pVals, skip):
     i = 0
