@@ -921,7 +921,7 @@ def test_i386(mode, code):
 
 
 def startEmu(arch, data, vb):
-    print ("startEmu arch", arch)
+    # print ("startEmu arch", arch)
     global verbose
     verbose = vb
     if arch == 32:
