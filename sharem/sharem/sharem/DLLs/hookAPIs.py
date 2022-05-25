@@ -5662,8 +5662,8 @@ def getStackVal(uc, em, esp, loc):
         arg = uc.reg_read(UC_X86_REG_R9)
     else:
         if em.arch == 64:
-            arg = uc.mem_read(esp + (8 * loc), 8)
-            arg = unpack('<q', arg)[0]
+            arg = uc.mem_read(esp + (8 * (loc-4)), 8)
+            arg = unpack('<Q', arg)[0]
         else:
             arg = uc.mem_read(esp + (4 * loc), 4)
             arg = unpack('<I', arg)[0]
@@ -5677,7 +5677,7 @@ def makeArgVals(uc, em, esp, numParams):
         args[i] = getStackVal(uc, em, esp, i + 1)
     return args
 
-def stackCleanup(uc: Uc, em, esp, numParams):
+def stackCleanup(uc, em, esp, numParams):
     if em.arch == 32:
         bytes = numParams * 4
     else:
