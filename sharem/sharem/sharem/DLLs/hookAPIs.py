@@ -153,13 +153,12 @@ class CustomWinAPIs():
             retVal = handle.value
         except:
             try:
-                nameL = name.lower()
+                nameL = name.lower() + '.dll'
                 foundVal = allDllsDict[nameL]
                 handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
                 retVal = handle.value
             except:
                 print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
-                print(hex(eip), (len(name)))
                 retVal = 0
 
         # create strings for everything except ones in our skip
@@ -5682,6 +5681,9 @@ def stackCleanup(uc, em, esp, numParams):
         bytes = numParams * 4
     else:
         bytes = numParams * 8
+        bytes -= 32
+        if bytes < 0:
+            bytes = 0
     return bytes
     # uc.reg_write(UC_X86_REG_ESP, esp + bytes)
 

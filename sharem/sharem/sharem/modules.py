@@ -151,8 +151,9 @@ class LDR_Module64():
 def allocateWinStructs32(mu, mods):
     wa = Win32Addresses()
 
-    # Put location of PEB at FS:30
+    # Put location of PEB at FS:30 and FS:18
     mu.mem_write(wa.tib_addr+0x30, pack("<Q", wa.peb_addr))
+    mu.mem_write(wa.tib_addr+0x18, pack("<Q", wa.peb_addr))
     # Fastcall at FS:c0
     mu.mem_write(wa.tib_addr+0xC0, pack("<Q", wa.fast_addr))
     mu.mem_write((wa.peb_addr-10), b'\x4a\x41\x43\x4f\x42\x41\x41\x41\x41\x42')
