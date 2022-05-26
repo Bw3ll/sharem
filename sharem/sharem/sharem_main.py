@@ -15492,7 +15492,10 @@ def regenerateDisassemblyForPrint():
 	disassembly, disassemblyC=createDisassemblyLists(True,"final")
 	gDisassemblyText =disassemblyC
 	gDisassemblyTextNoC = disassembly
+
+commentsGiven=False
 def addComments():
+	global commentsGiven
 	global sBy
 	# print("addcomments:", hex(len(sBy.comments)), hex(len(sBy.bytesType)))
 
@@ -15503,6 +15506,7 @@ def addComments():
 	# loggedList.append(('VirtualAlloc', '0x120001a8', 0, 0, (0, 0, 0, 0, 0)))
 	# loggedList.append(('VirtualAlloc', '0x120001a9', '0x25000000', 'INT', ['0x0', '0x9999', 'MEM_COMMIT', 'PAGE_EXECUTE_READWRITE'], ['LPVOID', 'SIZE_T', 'DWORD', 'DWORD'], ['lpAddress', 'dwSize', 'flAllocationType', 'flProtect'], False))
 	# print (loggedList)
+
 	for each in loggedList:
 		params=parC0+"("+res2
 		api=each[0]
@@ -15530,14 +15534,18 @@ def addComments():
 		apiAddress=apiAddress-0x12000000
 		# print("---->", hex(apiAddress))
 		# print (hex(apiAddress))
-		try:
-			if sBy.comments[apiAddress] !="":
-				sBy.comments[apiAddress]+=res +"\n      "+params
-			else:
-				sBy.comments[apiAddress]=mag+"; call to " + api +res +"\n      "+params
+		if commentsGiven:
+			params=""
+		if not commentsGiven:
+			try:
+				if sBy.comments[apiAddress] !="":
+					sBy.comments[apiAddress]+=res +"\n      "+params
+				else:
+					sBy.comments[apiAddress]=mag+"; call to " + api +res +"\n      "+params
 
-		except:
-			print ("error logging API address to disassembly - ", api)
+			except:
+				print ("error logging API address to disassembly - ", api)
+	commentsGiven=True
 		# print (api, apiAddress, each[1])
 # 	input()
 # 1107296317 
@@ -22356,13 +22364,13 @@ def clearInstructions(): 	#Clears
 		secNum.save_PushRet_info.clear()
 
 	# o = 0
-	for o in m:
-		m[o].save_PEB_info.clear()
-		m[o].save_FSTENV_info.clear()
-		m[o].save_Egg_info.clear()
-		m[o].save_Heaven_info.clear()
-		m[o].save_Callpop_info.clear()
-		m[o].save_PushRet_info.clear()
+	for d in m:
+		m[d].save_PEB_info.clear()
+		m[d].save_FSTENV_info.clear()
+		m[d].save_Egg_info.clear()
+		m[d].save_Heaven_info.clear()
+		m[d].save_Callpop_info.clear()
+		m[d].save_PushRet_info.clear()
 		# o+= 1
 	# s.clear()
 	# print("S --> after clear", s)
@@ -22381,18 +22389,19 @@ def clearMods():			#Clears our module list
 	mBool[o].bModulesFound = False
 
 def clearFoundBooleans(): 	#Clears bools saying we've found data
-
-	mBool[o].bPushRetFound = False
-	mBool[o].bFstenvFound = False
-	mBool[o].bSyscallFound = False
-	mBool[o].bHeavenFound = False
-	mBool[o].bPEBFound = False
-	mBool[o].bCallPopFound = False
-	mBool[o].bStringsFound = False
-	mBool[o].bEvilImportsFound = False
-	mBool[o].bModulesFound = False
-	mBool[o].bWideStringFound = False
-	mBool[o].bPushStringsFound = False
+	for d in m:
+		mBool[d].bPushRetFound = False
+		mBool[d].bFstenvFound = False
+		mBool[d].bSyscallFound = False
+		mBool[d].bHeavenFound = False
+		mBool[d].bPEBFound = False
+		mBool[d].bCallPopFound = False
+		mBool[d].bStringsFound = False
+		mBool[d].bEvilImportsFound = False
+		mBool[d].bModulesFound = False
+		mBool[d].bWideStringFound = False
+		mBool[d].bPushStringsFound = False
+	
 
 def clearAll():		#Clears all found data and booleans
 	clearInstructions()
@@ -22400,6 +22409,7 @@ def clearAll():		#Clears all found data and booleans
 	clearFoundBooleans()
 	clearStrings()
 	clearImports()
+	commentsGiven=False
 
 def clearStrings():
 	
@@ -22407,11 +22417,11 @@ def clearStrings():
 	global stringsTempWide
 	global pushStringsTemp
 	
-	
+	for d in m:
 
-	mBool[o].bStringsFound = False
-	mBool[o].bWideStringFound=False
-	mBool[o].bPushStringsFound=False
+		mBool[d].bStringsFound = False
+		mBool[d].bWideStringFound=False
+		mBool[d].bPushStringsFound=False
 	try:
 		t = 0
 		for sec in s:
@@ -22425,6 +22435,7 @@ def clearStrings():
 	stringsTempWide.clear()
 	pushStringsTemp.clear()
 	stringsTemp.clear()
+	clearFoundBooleans()
 
 def clearImports():
 	
@@ -24799,8 +24810,8 @@ def printToText(outputData):	#Output data to text doc
 	text.write (outString)
 	# text.write(emulation_txt)
 	text.close()
-	rawSh = binaryToText(m[o].rawData2, "json")[1]
-	generateTester(outfile, rawSh)
+	rawSh = binaryToText(m["shellcode"].rawData2, "json")[1]
+	generateTester(outfile, rawSh, shellEntry)
 
 def returnSyscalls(callNum, bit = 64):
 	#works the same as getsyscallrecent()

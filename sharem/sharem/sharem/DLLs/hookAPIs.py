@@ -153,13 +153,12 @@ class CustomWinAPIs():
             retVal = handle.value
         except:
             try:
-                nameL = name.lower()
+                nameL = name.lower() + '.dll'
                 foundVal = allDllsDict[nameL]
                 handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
                 retVal = handle.value
             except:
                 print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
-                print(hex(eip), (len(name)))
                 retVal = 0
 
         # create strings for everything except ones in our skip
@@ -210,7 +209,7 @@ class CustomWinAPIs():
         pNames = ['lpLibFileName', 'hFile', 'dwFlags']
         dwFlagsReverseLookUp = {1: 'DONT_RESOLVE_DLL_REFERENCES', 16: 'LOAD_IGNORE_CODE_AUTHZ_LEVEL', 2: 'LOAD_LIBRARY_AS_DATAFILE', 64: 'LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE', 32: 'LOAD_LIBRARY_AS_IMAGE_RESOURCE', 512: 'LOAD_LIBRARY_SEARCH_APPLICATION_DIR', 4096: 'LOAD_LIBRARY_SEARCH_DEFAULT_DIRS', 256: 'LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR', 2048: 'LOAD_LIBRARY_SEARCH_SYSTEM32', 1024: 'LOAD_LIBRARY_SEARCH_USER_DIRS', 8: 'LOAD_WITH_ALTERED_SEARCH_PATH', 128: 'LOAD_LIBRARY_REQUIRE_SIGNED_TARGET', 8192: 'LOAD_LIBRARY_SAFE_CURRENT_DIRS'}
         
-        name = read_unicode(uc, pVals[0])
+        name = read_string(uc, pVals[0])
 
         try:
             foundVal = allDllsDict[name]
@@ -241,7 +240,7 @@ class CustomWinAPIs():
 
     def LoadLibraryExW(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 3)
-        pTypes = ['LPCTSTR', 'HANDLE', 'DWORD']
+        pTypes = ['LPCWSTR', 'HANDLE', 'DWORD']
         pNames = ['lpLibFileName', 'hFile', 'dwFlags']
         dwFlagsReverseLookUp = {1: 'DONT_RESOLVE_DLL_REFERENCES', 16: 'LOAD_IGNORE_CODE_AUTHZ_LEVEL', 2: 'LOAD_LIBRARY_AS_DATAFILE', 64: 'LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE', 32: 'LOAD_LIBRARY_AS_IMAGE_RESOURCE', 512: 'LOAD_LIBRARY_SEARCH_APPLICATION_DIR', 4096: 'LOAD_LIBRARY_SEARCH_DEFAULT_DIRS', 256: 'LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR', 2048: 'LOAD_LIBRARY_SEARCH_SYSTEM32', 1024: 'LOAD_LIBRARY_SEARCH_USER_DIRS', 8: 'LOAD_WITH_ALTERED_SEARCH_PATH', 128: 'LOAD_LIBRARY_REQUIRE_SIGNED_TARGET', 8192: 'LOAD_LIBRARY_SAFE_CURRENT_DIRS'}
 
@@ -1619,7 +1618,7 @@ class CustomWinAPIs():
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls = ("memcpy_s", hex(callAddr), (retValStr), 'errno_t', pVals, pTypes, pNames, False)
+        logged_calls = ("memmove_s", hex(callAddr), (retValStr), 'errno_t', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def memset(self, uc, eip, esp, export_dict, callAddr, em):
@@ -5682,6 +5681,9 @@ def stackCleanup(uc, em, esp, numParams):
         bytes = numParams * 4
     else:
         bytes = numParams * 8
+        bytes -= 32
+        if bytes < 0:
+            bytes = 0
     return bytes
     # uc.reg_write(UC_X86_REG_ESP, esp + bytes)
 

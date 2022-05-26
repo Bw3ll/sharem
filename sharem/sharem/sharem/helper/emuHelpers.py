@@ -133,7 +133,39 @@ def push(uc, arch, val):
         uc.mem_write(esp, pack("<I", val))
 
 def set_register(uc, reg, val):
-    if reg == 'eax':
+    if reg == 'rax':
+        uc.reg_write(UC_X86_REG_RAX, val)
+    elif reg == 'rbx':
+        uc.reg_write(UC_X86_REG_RBX, val)
+    elif reg == 'rcx':
+        uc.reg_write(UC_X86_REG_RCX, val)
+    elif reg == 'rdx':
+        uc.reg_write(UC_X86_REG_RDX, val)
+    elif reg == 'rdi':
+        uc.reg_write(UC_X86_REG_RDI, val)
+    elif reg == 'rsi':
+        uc.reg_write(UC_X86_REG_RSI, val)
+    elif reg == 'r8':
+        uc.reg_write(UC_X86_REG_R8, val)
+    elif reg == 'r9':
+        uc.reg_write(UC_X86_REG_R9, val)
+    elif reg == 'r10':
+        uc.reg_write(UC_X86_REG_R10, val)
+    elif reg == 'r11':
+        uc.reg_write(UC_X86_REG_R11, val)
+    elif reg == 'r12':
+        uc.reg_write(UC_X86_REG_R12, val)
+    elif reg == 'r13':
+        uc.reg_write(UC_X86_REG_R13, val)
+    elif reg == 'r14':
+        uc.reg_write(UC_X86_REG_R14, val)
+    elif reg == 'r15':
+        uc.reg_write(UC_X86_REG_R15, val)
+    elif reg == 'rbp':
+        uc.reg_write(UC_X86_REG_RBP, val)
+    elif reg == 'rsp':
+        uc.reg_write(UC_X86_REG_RSP, val)
+    elif reg == 'eax':
         uc.reg_write(UC_X86_REG_EAX, val)
     elif reg == 'ebx':
         uc.reg_write(UC_X86_REG_EBX, val)
