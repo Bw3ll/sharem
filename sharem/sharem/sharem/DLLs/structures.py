@@ -1,6 +1,6 @@
 from enum import Enum
 from struct import pack, unpack
-from time import gmtime, localtime
+from time import gmtime, localtime,time_ns, localtime
 from ..helper.emuHelpers import Uc
 
 class struct_PROCESSENTRY32:
@@ -211,3 +211,52 @@ class struct_SYSTEM_INFO:
         self.wMinute = unpackedStruct[5]
         self.wSecond = unpackedStruct[6]
         self.wMilliseconds = unpackedStruct[7]
+
+class struct_FILETIME:
+    def __init__(self):
+        # time is in epoch 100 nanoseconds split into low and high
+         timeEpoch = time_ns()
+         #print("a0")
+         ##timeEpoch = hex(timeEpoch)
+         #print(timeEpoch)
+         #print(hex(timeEpoch))
+         #print("a1")
+         #split into low and high end
+         #test64Bit = 0xbbbbccccddddffff
+         #print(hex(test64Bit))
+         #testUpper = test64Bit >> 32
+         #testLower = test64Bit & 0xffffffff
+         #print(testUpper)
+         #print(hex(testUpper))
+         #print(testLower)
+         #print(hex(testLower))
+
+         highEndData = timeEpoch >> 32
+         lowEndData = timeEpoch & 0xffffffff
+
+         #print("high create")
+         #print(highEndData)
+         #print(hex(highEndData))
+         #print("low create")
+         #print(lowEndData)
+         #print(hex(lowEndData))
+         self.dwLowDateTime = lowEndData
+         self.dwHighDateTime = highEndData
+    def writeToMemory(self, uc, address):
+        #print("memWrite entry filetime")
+        ##print(address)
+        #print("low")
+        #print(self.dwLowDateTime)
+        #print("high")
+        #print(self.dwHighDateTime)
+        packedStruct = pack('<II', self.dwLowDateTime, self.dwHighDateTime)
+        #print("a1")
+        uc.mem_write(address, packedStruct)
+        #print("end memwrite")
+   
+    def readFromMemory(self, uc, address):
+        #print("read from Filetime")
+        data = uc.mem_read(address, 8) # Size of two dwords
+        unPacked = unpack('<II', data)
+        self.dwLowDateTime = unPacked[0]         
+        self.dwHighDateTime = unPacked[1]
