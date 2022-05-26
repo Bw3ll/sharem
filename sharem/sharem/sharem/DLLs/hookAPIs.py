@@ -5398,6 +5398,300 @@ class CustomWinAPIs():
 
         logged_calls = ("GlobalAlloc", hex(callAddr), (retValStr), 'HGLOBAL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
+    def CreateDirectoryA(self, uc, eip, esp, export_dict, callAddr, em):
+        #'CreateDirectoryA': (2, ['LPCSTR', 'LPSECURITY_ATTRIBUTES'], ['lpPathName', 'lpSecurityAttributes'], 'thunk BOOL')
+        pVals = makeArgVals(uc, em, esp, 2)
+        pTypes= ['LPCSTR', 'LPSECURITY_ATTRIBUTES']
+        pNames= ['lpPathName', 'lpSecurityAttributes']
+
+        #create strings for everything except ones in our skip
+        skip=[]   # we need to skip this value (index) later-let's put it in skip
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes=len(pTypes)*4
+
+        retVal = 0x1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CreateDirectoryA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def CreateDirectoryW(self, uc, eip, esp, export_dict, callAddr, em):
+        #'CreateDirectoryA': (2, ['LPCSTR', 'LPSECURITY_ATTRIBUTES'], ['lpPathName', 'lpSecurityAttributes'], 'thunk BOOL')
+        pVals = makeArgVals(uc, em, esp, 2)
+        pTypes= ['LPCWSTR', 'LPSECURITY_ATTRIBUTES']
+        pNames= ['lpPathName', 'lpSecurityAttributes']
+
+        #create strings for everything except ones in our skip
+        skip=[]   # we need to skip this value (index) later-let's put it in skip
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes=len(pTypes)*4
+
+        retVal = 0x1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CreateDirectoryW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def RemoveDirectoryW(self, uc, eip, esp, export_dict, callAddr, em):
+         #'RemoveDirectoryW': (1, ['LPCWSTR'], ['lpPathName'], 'thunk BOOL')
+        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
+        pVals = makeArgVals(uc, em, esp, 1)
+        pTypes= ['LPCWSTR']
+        pNames= ['lpPathName']
+
+        #create strings for everything except ones in our skip
+        skip=[]   # we need to skip this value (index) later-let's put it in skip
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes=len(pTypes)*4
+
+        retVal = 0x1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("RemoveDirectoryW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+    def RemoveDirectoryA(self, uc, eip, esp, export_dict, callAddr, em):
+        #RemoveDirectoryA': (1, ['LPCSTR'], ['lpPathName'], 'thunk BOOL')
+        pVals = makeArgVals(uc, em, esp, 1)
+        pTypes= ['LPCSTR']
+        pNames= ['lpPathName']
+
+        #create strings for everything except ones in our skip
+        skip=[]   # we need to skip this value (index) later-let's put it in skip
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes=len(pTypes)*4
+
+        retVal = 0x1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("RemoveDirectoryA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def ResumeThread(self, uc, eip, esp, export_dict, callAddr, em):
+        #'ResumeThread': (1, ['HANDLE'], ['hThread'], 'DWORD')
+        pVals = makeArgVals(uc, em, esp, 1)
+        pTypes= ['HANDLE']
+        pNames= ['hThread']
+
+
+        #create strings for everything except ones in our skip
+        skip=[]   # we need to skip this value (index) later-let's put it in skip
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes=len(pTypes)*4
+
+        retVal = 0x1
+        retValStr=hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("ResumeThread", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def GetThreadContext(self, uc, eip, esp, export_dict, callAddr, em):
+        #'ResumeThread': (1, ['HANDLE'], ['hThread'], 'DWORD')
+        pVals = makeArgVals(uc, em, esp, 2)
+        pTypes= ['HANDLE', 'LPCONTEXT']
+        pNames=['hThread', 'lpContext']
+
+        ### RETURN WEIRD
+
+        #create strings for everything except ones in our skip
+        skip=[]   # we need to skip this value (index) later-let's put it in skip
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes=len(pTypes)*4
+
+        retVal = 1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetThreadContext", hex(callAddr), (retValStr), 'Bool', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def AllocConsole(self, uc, eip, esp, export_dict, callAddr, em):
+        #'AllocConsole': (0, [], [], 'BOOL')
+        pVals = makeArgVals(uc, em, esp, 0)
+        pTypes= []
+        pNames=[]
+
+
+        #create strings for everything except ones in our skip
+        skip=[]   # we need to skip this value (index) later-let's put it in skip
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes=len(pTypes)*4
+
+        retVal = 1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("AllocConsole", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def FreeLibrary(self, uc, eip, esp, export_dict, callAddr, em):
+        ##'FreeLibrary': (1, ['HMODULE'], ['hLibModule'], 'BOOL')
+        pVals = makeArgVals(uc, em, esp, 1)
+        pTypes= ['HMODULE']
+        pNames= ['hLibModule']
+
+        #create strings for everything except ones in our skip
+        skip=[]   # we need to skip this value (index) later-let's put it in skip
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes=len(pTypes)*4
+
+        retVal = 1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("FreeLibrary", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def SetEnvironmentVariableA(self, uc, eip, esp, export_dict, callAddr, em):
+        #'SetEnvironmentVariableA': (2, ['LPCSTR', 'LPCSTR'], ['lpName', 'lpValue'], 'BOOL')
+        pVals = makeArgVals(uc, em, esp, 2)
+        pTypes= ['LPCSTR', 'LPCSTR']
+        pNames= ['lpName', 'lpValue']
+
+        #create strings for everything except ones in our skip
+        skip=[]   # we need to skip this value (index) later-let's put it in skip
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes=len(pTypes)*4
+
+        retVal = 0x1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("SetEnvironmentVariableA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+    
+    def OpenProcess(self, uc, eip, esp, export_dict, callAddr, em):
+        #'OpenProcess': (3, ['DWORD', 'BOOL', 'DWORD'], ['dwDesiredAccess', 'bInheritHandle', 'dwProcessId'], 'HANDLE')
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes= ['DWORD', 'BOOL', 'DWORD']
+        pNames= ['dwDesiredAccess', 'bInheritHandle', 'dwProcessId']
+
+        dwDesiredAccess_ReverseLookUp = {65536: 'DELETE', 131072: 'READ_CONTROL', 1048576: 'SYNCHRONIZE', 262144: 'WRITE_DAC', 983040: 'STANDARD_RIGHTS_REQUIRED', 128:'PROCESS_CREATE_PROCESS', 2: 'PROCESS_CREATE_THREAD', 64:'PROCESS_DUP_HANDLE', 1024: 'PROCESS_QUERY_INFORMATION', 4096:'PROCESS_QUERY_LIMITED_INFORMATION', 512: 'PROCESS_SET_INFORMATION', 256: 'PROCESS_SET_QUOTA', 2048: 'PROCESS_SUSPEND_RESUME', 1: 'PROCESS_TERMINATE', 8: 'PROCESS_VM_OPERATION', 16: 'PROCESS_VM_READ', 32: 'PROCESS_VM_WRITE'}
+
+        pVals[0] = getLookUpVal(pVals[0], dwDesiredAccess_ReverseLookUp)
+        #create strings for everything except ones in our skip
+        skip=[0]   # we need to skip this value (index) later-let's put it in skip
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes=len(pTypes)*4
+
+        retVal = FakeProcess
+        retValStr=hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("OpenProcess", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+    
+    def CreateEventA(self, uc, eip, esp, export_dict, callAddr, em):
+        #'CreateEvent': (4, ['LPSECURITY_ATTRIBUTES', 'BOOL', 'BOOL', 'LPCTSTR'], ['lpEventAttributes', 'bManualReset', 'bInitialState', 'lpName'], 'HANDLE')
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes= ['LPSECURITY_ATTRIBUTES', 'BOOL', 'BOOL', 'LPCTSTR']
+        pNames= ['lpEventAttributes', 'bManualReset', 'bInitialState', 'lpName']
+
+        
+        #pVals[0] = getLookUpVal(pVals[0], dwDesiredAccess_ReverseLookUp)
+        #create strings for everything except ones in our skip
+        skip=[0]   # we need to skip this value (index) later-let's put it in skip
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes=len(pTypes)*4
+
+        retVal = 0x9090909
+        retValStr=hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CreateEventA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+	def GetSystemTimeAsFileTime(self, uc, eip, esp, export_dict, callAddr, em):
+        #GetSystemTimeAsFileTime': (1, ['LPFILETIME'], ['lpSystemTimeAsFileTime'], 'VOID')
+        pVals = makeArgVals(uc, em, esp, 1)
+        pTypes= ['LPFILETIME']
+        pNames= ['lpSystemTimeAsFileTime']
+
+        fileTime = struct_FILETIME()
+        fileTime.writeToMemory(uc, pVals[0])
+        #fileTime.writeToMemory(uc, address)​
+        #pVals[0] = getLookUpVal(pVals[0], dwDesiredAccess_ReverseLookUp)
+        #create strings for everything except ones in our skip
+        skip=[0]   # we need to skip this value (index) later-let's put it in skip
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes=len(pTypes)*4
+
+        retVal = 0
+        retValStr='NONE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetSystemTimeAsFileTime", hex(callAddr), (retValStr), 'VOID', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+    def GetFileTime(self, uc, eip, esp, export_dict, callAddr, em):
+        #'GetFileTime': (4, ['HANDLE', 'LPFILETIME', 'LPFILETIME', 'LPFILETIME'], ['hFile', 'lpCreationTime', 'lpLastAccessTime', 'lpLastWriteTime'], 'thunk BOOL')
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes= ['HANDLE', 'LPFILETIME', 'LPFILETIME', 'LPFILETIME']
+        pNames= ['hFile', 'lpCreationTime', 'lpLastAccessTime', 'lpLastWriteTime']
+
+
+        if pVals[1] != 0x0:
+            fileTime = struct_FILETIME()
+            fileTime.writeToMemory(uc, pVals[1])
+        else:
+            pass
+        if pVals[2] != 0x0:
+            fileTime = struct_FILETIME()
+            fileTime.writeToMemory(uc, pVals[2])
+        else:
+            pass
+        if pVals[3] != 0x0:
+            fileTime = struct_FILETIME()
+            fileTime.writeToMemory(uc, pVals[3])
+        else:
+            pass
+        #pVals[0] = getLookUpVal(pVals[0], dwDesiredAccess_ReverseLookUp)
+        #create strings for everything except ones in our skip
+        skip=[0]   # we need to skip this value (index) later-let's put it in skip
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes=len(pTypes)*4
+
+        retVal = 0x1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetFileTime", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+
+    def bind(self, uc, eip, esp, export_dict, callAddr, em):
+        #'bind': (3, ['SOCKET', 'const struct sockaddr *', 'int'], ['s', 'addr', 'len'], 'int')
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes= ['SOCKET', 'const struct sockaddr *', 'int']
+        pNames= ['s', 'addr', 'len']
+
+        
+        #pVals[0] = getLookUpVal(pVals[0], dwDesiredAccess_ReverseLookUp)
+        #create strings for everything except ones in our skip
+        skip=[0]   # we need to skip this value (index) later-let's put it in skip
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes=len(pTypes)*4
+
+        retVal = 0
+        retValStr=hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("bind", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
 
 class CustomWinSysCalls():
     def NtTerminateProcess(self, uc, eip, esp, callAddr): # Needs to be redone
