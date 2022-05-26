@@ -31,8 +31,8 @@ HeapsDict = {}  # Dictionary of All Heaps
 HandlesDict = {}  # Dictionary of All Handles
 
 class HandleType(Enum):
-    CreateThread = auto()
-    CreateRemoteThread = auto()
+    # Threads
+    Thread = auto()
     SetWindowsHookExA = auto()
     SetWindowsHookExW = auto()
     CreateToolhelp32Snapshot = auto()
@@ -54,15 +54,10 @@ class HandleType(Enum):
     CreateFileMappingW = auto()
     CreateFileMappingNumaA = auto()
     CreateFileMappingNumaW = auto()
-    CreateMutexA = auto()
-    CreateMutexW = auto()
-    CreateMutexExA = auto()
-    CreateMutexExW = auto()
+    # Mutex
+    Mutex = auto()
     # Service Handles
-    OpenSCManagerA = auto()
-    OpenSCManagerW = auto()
-    CreateServiceA = auto()
-    CreateServiceW = auto()
+    SC_HANDLE = auto()
     # PIPE
     pipeName = auto()
     ReadPipe = auto()
@@ -79,13 +74,14 @@ class HandleType(Enum):
 class Handle:
     nextValue = 0x80800000  # Start of Handle IDs
 
-    def __init__(self, type: HandleType, data=None, handleValue=0):
+    def __init__(self, type: HandleType, data=None, name=None, handleValue=0):
         if handleValue == 0:
             # Generate Handle Value
             handleValue = Handle.nextValue
             Handle.nextValue += 8
         self.value = handleValue
         self.type = type
+        self.name = name
         self.data = data
         HandlesDict.update({self.value: self})
 
@@ -149,7 +145,7 @@ class CustomWinAPIs():
 
         try:
             foundVal = allDllsDict[name]
-            handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
+            handle = Handle(HandleType.HMODULE,name=name,handleValue=foundVal)
             retVal = handle.value
         except:
             try:
@@ -180,13 +176,13 @@ class CustomWinAPIs():
 
         try:
             foundVal = allDllsDict[name]
-            handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
+            handle = Handle(HandleType.HMODULE,name=name,handleValue=foundVal)
             retVal = handle.value
         except:
             try:
                 nameL = name.lower()
                 foundVal = allDllsDict[nameL]
-                handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
+                handle = Handle(HandleType.HMODULE,name=name,handleValue=foundVal)
                 retVal = handle.value
             except:
                 print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
@@ -213,13 +209,13 @@ class CustomWinAPIs():
 
         try:
             foundVal = allDllsDict[name]
-            handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
+            handle = Handle(HandleType.HMODULE,name=name,handleValue=foundVal)
             retVal = handle.value
         except:
             try:
                 nameL = name.lower()
                 foundVal = allDllsDict[nameL]
-                handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
+                handle = Handle(HandleType.HMODULE,name=name,handleValue=foundVal)
                 retVal = handle.value
             except:
                 print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
@@ -248,13 +244,13 @@ class CustomWinAPIs():
 
         try:
             foundVal = allDllsDict[name]
-            handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
+            handle = Handle(HandleType.HMODULE,name=name,handleValue=foundVal)
             retVal = handle.value
         except:
             try:
                 nameL = name.lower()
                 foundVal = allDllsDict[nameL]
-                handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
+                handle = Handle(HandleType.HMODULE,name=name,handleValue=foundVal)
                 retVal = handle.value
             except:
                 print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
@@ -681,6 +677,11 @@ class CustomWinAPIs():
         pNames = ['lpThreadAttributes', 'dwStackSize', 'lpStartAddress', 'lpParameter', 'dwCreationFlags', 'lpThreadId']
         dwCreateFlagsReverseLookUp = {4: 'CREATE_SUSPENDED', 65536: 'STACK_SIZE_PARAM_IS_A_RESERVATION'}
 
+        handle = Handle(HandleType.Thread)
+
+        # Round up to next page (4096)
+        pVals[1] = ((pVals[1] // 4096) + 1) * 4096
+
         pVals[4] = getLookUpVal(pVals[4],dwCreateFlagsReverseLookUp)
 
         # create strings for everything except ones in our skip
@@ -688,11 +689,63 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
-        retVal = 0x00616161  # Implement handle later
+        retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("CreateThread", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def CreateRemoteThread(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 7)
+        pTypes = ['HANDLE', 'LPSECURITY_ATTRIBUTES', 'SIZE_T', 'LPTHREAD_START_ROUTINE', 'LPVOID', 'DWORD', 'LPDWORD']
+        pNames = ['hProcess', 'lpThreadAttributes', 'dwStackSize', 'lpStartAddress', 'lpParameter', 'dwCreationFlags',
+                  'lpThreadId']
+        dwCreationFlagsReverseLookUp = {4: 'CREATE_SUSPENDED', 65536: 'STACK_SIZE_PARAM_IS_A_RESERVATION'}
+
+        handle = Handle(HandleType.Thread)
+
+        # Round up to next page (4096)
+        pVals[2] = ((pVals[2] // 4096) + 1) * 4096
+
+        pVals[5] = getLookUpVal(pVals[5],dwCreationFlagsReverseLookUp)
+
+        # create strings for everything except ones in our skip
+        skip = [5]  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = handle.value
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("CreateRemoteThread", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+
+    def CreateRemoteThreadEx(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 8)
+        pTypes = ['HANDLE', 'LPSECURITY_ATTRIBUTES', 'SIZE_T', 'LPTHREAD_START_ROUTINE', 'LPVOID', 'DWORD', 'LPPROC_THREAD_ATTRIBUTE_LIST', 'LPDWORD']
+        pNames = ['hProcess', 'lpThreadAttributes', 'dwStackSize', 'lpStartAddress', 'lpParameter', 'dwCreationFlags', 'lpAttributeList', 'lpThreadId']
+        dwCreationFlagsReverseLookUp = {4: 'CREATE_SUSPENDED', 65536: 'STACK_SIZE_PARAM_IS_A_RESERVATION'}
+
+        handle = Handle(HandleType.Thread)
+
+        # Round up to next page (4096)
+        pVals[2] = ((pVals[2] // 4096) + 1) * 4096
+
+        pVals[5] = getLookUpVal(pVals[5],dwCreationFlagsReverseLookUp)
+
+        # create strings for everything except ones in our skip
+        skip = [5]  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = handle.value
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("CreateRemoteThreadEx", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def CreateServiceA(self, uc, eip, esp, export_dict, callAddr, em):
@@ -705,7 +758,7 @@ class CustomWinAPIs():
         dwStartTypeReverseLookUp={0x00000002: 'SERVICE_AUTO_START', 0x00000000: 'SERVICE_BOOT_START', 0x00000003: 'SERVICE_DEMAND_START', 0x00000004: 'SERVICE_DISABLED', 0x00000001: 'SERVICE_SYSTEM_START'}
         dwErrorControlReverseLookUp={0x00000003: 'SERVICE_ERROR_CRITICAL', 0x00000000: 'SERVICE_ERROR_IGNORE', 0x00000001: 'SERVICE_ERROR_NORMAL', 0x00000002: 'SERVICE_ERROR_SEVERE'}
 
-        handle = Handle(HandleType.CreateServiceA)
+        handle = Handle(HandleType.SC_HANDLE)
 
         pVals[3] = getLookUpVal(pVals[3],dwDesiredAccessReverseLookUp)
         pVals[4] = getLookUpVal(pVals[4],dwServiceTypeReverseLookUp)
@@ -734,7 +787,7 @@ class CustomWinAPIs():
         dwStartTypeReverseLookUp={0x00000002: 'SERVICE_AUTO_START', 0x00000000: 'SERVICE_BOOT_START', 0x00000003: 'SERVICE_DEMAND_START', 0x00000004: 'SERVICE_DISABLED', 0x00000001: 'SERVICE_SYSTEM_START'}
         dwErrorControlReverseLookUp={0x00000003: 'SERVICE_ERROR_CRITICAL', 0x00000000: 'SERVICE_ERROR_IGNORE', 0x00000001: 'SERVICE_ERROR_NORMAL', 0x00000002: 'SERVICE_ERROR_SEVERE'}
 
-        handle = Handle(HandleType.CreateServiceW)
+        handle = Handle(HandleType.SC_HANDLE)
 
         pVals[3] = getLookUpVal(pVals[3],dwDesiredAccessReverseLookUp)
         pVals[4] = getLookUpVal(pVals[4],dwServiceTypeReverseLookUp)
@@ -751,28 +804,6 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("CreateServiceW", hex(callAddr), (retValStr), 'SC_HANDLE', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
-
-    def CreateRemoteThread(self, uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, 7)
-        pTypes = ['HANDLE', 'LPSECURITY_ATTRIBUTES', 'SIZE_T', 'LPTHREAD_START_ROUTINE', 'LPVOID', 'DWORD', 'LPDWORD']
-        pNames = ['hProcess', 'lpThreadAttributes', 'dwStackSize', 'lpStartAddress', 'lpParameter', 'dwCreationFlags',
-                  'lpThreadId']
-
-        dwCreationFlagsReverseLookUp = {4: 'CREATE_SUSPENDED', 65536: 'STACK_SIZE_PARAM_IS_A_RESERVATION'}
-
-        pVals[5] = getLookUpVal(pVals[5],dwCreationFlagsReverseLookUp)
-
-        # create strings for everything except ones in our skip
-        skip = [5]  # we need to skip this value (index) later-let's put it in skip
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
-
-        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
-        retVal = 0x00646464
-        retValStr = hex(retVal)
-        uc.reg_write(UC_X86_REG_EAX, retVal)
-
-        logged_calls = ("CreateRemoteThread", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def CryptDecrypt(self, uc, eip, esp, export_dict, callAddr, em):
@@ -2703,6 +2734,8 @@ class CustomWinAPIs():
                                         8: 'SC_MANAGER_LOCK',
                                         32: 'SC_MANAGER_MODIFY_BOOT_CONFIG', 16: 'SC_MANAGER_QUERY_LOCK_STATUS'}
 
+        handle = Handle(HandleType.SC_HANDLE)
+
         pVals[2] = getLookUpVal(pVals[2], dwDesiredAccessReverseLookUp)
 
         # create strings for everything except ones in our skip
@@ -2710,7 +2743,7 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
-        retVal = 0x00686868
+        retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -2727,6 +2760,8 @@ class CustomWinAPIs():
                                         8: 'SC_MANAGER_LOCK',
                                         32: 'SC_MANAGER_MODIFY_BOOT_CONFIG', 16: 'SC_MANAGER_QUERY_LOCK_STATUS'}
 
+        handle = Handle(HandleType.SC_HANDLE)
+
         pVals[2] = getLookUpVal(pVals[2], dwDesiredAccessReverseLookUp)
 
         # create strings for everything except ones in our skip
@@ -2734,7 +2769,7 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
-        retVal = 0x00696969
+        retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -3622,7 +3657,8 @@ class CustomWinAPIs():
         pTypes = ['LPSECURITY_ATTRIBUTES', 'BOOL', 'LPCSTR']
         pNames = ['lpMutexAttributes', 'bInitialOwner', 'lpName']
 
-        handle = Handle(HandleType.CreateMutexA)
+        name = read_string(uc, pVals[2])
+        handle = Handle(HandleType.Mutex, name = name)
 
         # create strings for everything except ones in our skip
         skip = []  # we need to skip this value (index) later-let's put it in skip
@@ -3642,7 +3678,8 @@ class CustomWinAPIs():
         pTypes = ['LPSECURITY_ATTRIBUTES', 'BOOL', 'LPCWSTR']
         pNames = ['lpMutexAttributes', 'bInitialOwner', 'lpName']
 
-        handle = Handle(HandleType.CreateMutexW)
+        name = read_unicode(uc, pVals[2])
+        handle = Handle(HandleType.Mutex, name = name)
 
         # create strings for everything except ones in our skip
         skip = []  # we need to skip this value (index) later-let's put it in skip
@@ -3670,7 +3707,8 @@ class CustomWinAPIs():
                                         0x20000: 'READ_CONTROL',
                                         0x40000: 'WRITE_DAC', 0x80000: 'WRITE_OWNER'}
 
-        handle = Handle(HandleType.CreateMutexExA)
+        name = read_string(uc, pVals[1])
+        handle = Handle(HandleType.Mutex, name = name)
 
         pVals[2] = getLookUpVal(pVals[2], dwFlagsReverseLookUp)
         pVals[3] = getLookUpVal(pVals[3], dwDesiredAccessReverseLookUp)
@@ -3699,8 +3737,9 @@ class CustomWinAPIs():
                                         0x0100: 'SERVICE_USER_DEFINED_CONTROL', 0x10000: 'DELETE',
                                         0x20000: 'READ_CONTROL',
                                         0x40000: 'WRITE_DAC', 0x80000: 'WRITE_OWNER'}
-
-        handle = Handle(HandleType.CreateMutexExW)
+        
+        name = read_unicode(uc, pVals[1])
+        handle = Handle(HandleType.Mutex, name = name)
 
         pVals[2] = getLookUpVal(pVals[2], dwFlagsReverseLookUp)
         pVals[3] = getLookUpVal(pVals[3], dwDesiredAccessReverseLookUp)
@@ -3717,6 +3756,82 @@ class CustomWinAPIs():
         logged_calls = ("CreateMutexExW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
+    def OpenMutexA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['DWORD', 'BOOL', 'LPCSTR']
+        pNames = ['dwDesiredAccess', 'bInheritHandle', 'lpName']
+        dwDesiredAccessReverseLookUp = {0xf01ff: 'SERVICE_ALL_ACCESS', 0x0002: 'SERVICE_CHANGE_CONFIG',
+                                        0x0008: 'SERVICE_ENUMERATE_DEPENDENTS', 0x0080: 'SERVICE_INTERROGATE',
+                                        0x0040: 'SERVICE_PAUSE_COUNTINUE', 0x0001: 'SERVICE_QUERY_CONFIG',
+                                        0x0004: 'SERVICE_QUERY_STATUS', 0X0010: 'SERVICE_START', 0x0020: 'SERVICE_STOP',
+                                        0x0100: 'SERVICE_USER_DEFINED_CONTROL', 0x10000: 'DELETE',
+                                        0x20000: 'READ_CONTROL',
+                                        0x40000: 'WRITE_DAC', 0x80000: 'WRITE_OWNER'}
+        
+        name = read_string(uc, pVals[2])
+
+        handle = None
+        for key, val in HandlesDict.items():
+            if val.type == HandleType.Mutex:
+                if val.name == name:
+                    handle = val
+                    break
+
+        if handle is None: # Create New Mutex if Not Found
+            handle = Handle(HandleType.Mutex, name = name)
+
+        pVals[0] = getLookUpVal(pVals[0], dwDesiredAccessReverseLookUp)
+
+        # create strings for everything except ones in our skip
+        skip = [0]  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = handle.value
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("OpenMutexA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def OpenMutexW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['DWORD', 'BOOL', 'LPCWSTR']
+        pNames = ['dwDesiredAccess', 'bInheritHandle', 'lpName']
+        dwDesiredAccessReverseLookUp = {0xf01ff: 'SERVICE_ALL_ACCESS', 0x0002: 'SERVICE_CHANGE_CONFIG',
+                                        0x0008: 'SERVICE_ENUMERATE_DEPENDENTS', 0x0080: 'SERVICE_INTERROGATE',
+                                        0x0040: 'SERVICE_PAUSE_COUNTINUE', 0x0001: 'SERVICE_QUERY_CONFIG',
+                                        0x0004: 'SERVICE_QUERY_STATUS', 0X0010: 'SERVICE_START', 0x0020: 'SERVICE_STOP',
+                                        0x0100: 'SERVICE_USER_DEFINED_CONTROL', 0x10000: 'DELETE',
+                                        0x20000: 'READ_CONTROL',
+                                        0x40000: 'WRITE_DAC', 0x80000: 'WRITE_OWNER'}
+
+        name = read_unicode(uc, pVals[2])
+
+        handle = None
+        for key, val in HandlesDict.items():
+            if val.type == HandleType.Mutex:
+                if val.name == name:
+                    handle = val
+                    break
+
+        if handle is None: # Create New Mutex if Not Found
+            handle = Handle(HandleType.Mutex,data=name)
+
+        pVals[0] = getLookUpVal(pVals[0], dwDesiredAccessReverseLookUp)
+
+        # create strings for everything except ones in our skip
+        skip = [0]  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = handle.value
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("OpenMutexW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
     def ReleaseMutex(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL ReleaseMutex([in] HANDLE hMutex);
         pVals = makeArgVals(uc, em, esp, 1)
@@ -3725,7 +3840,8 @@ class CustomWinAPIs():
 
         # Remove Handle from HandlesDict
         if pVals[0] in HandlesDict:
-            HandlesDict.pop(pVals[0])
+            if HandlesDict[pVals[0]].type == HandleType.Mutex:
+                HandlesDict.pop(pVals[0])
 
         # create strings for everything except ones in our skip
         skip = []  # we need to skip this value (index) later-let's put it in skip
@@ -5599,8 +5715,8 @@ class System_SnapShot:
         self.moduleList: list[struct_MODULEENTRY32] = []
         if fakeThreads:
             self.fakeThreads()
-        if fakeModules:
-            self.fakeModules()
+        # if fakeModules: # Need To Fix Modules Thing
+            # self.fakeModules()
         self.resetOffsets()
 
     def fakeThreads(self):
