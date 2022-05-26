@@ -46,7 +46,7 @@ dict4_kernelbase =  {'AllocConsole': (0, [], [], 'BOOL'), 'CtrlRoutine': (0, [],
 dictRS_kernelbase =  {'RegOpenCurrentUser': 'ERROR_SUCCESS', 'RegEnumKeyExW': 'ERROR_SUCCESS', 'RegQueryInfoKeyW': 'ERROR_SUCCESS', 'RegQueryInfoKeyA': 'ERROR_SUCCESS', 'RegGetValueW': 'ERROR_SUCCESS', 'RegEnumValueW': 'ERROR_SUCCESS', 'RegDeleteValueA': 'ERROR_SUCCESS', 'RegLoadKeyW': 'ERROR_SUCCESS', 'RegRestoreKeyW': 'ERROR_SUCCESS', 'RegUnLoadKeyW': 'ERROR_SUCCESS', 'RegSetKeySecurity': 'ERROR_SUCCESS', 'RegGetKeySecurity': 'ERROR_SUCCESS', 'RegFlushKey': 'ERROR_SUCCESS', 'RegNotifyChangeKeyValue': 'ERROR_SUCCESS', 'RegOpenUserClassesRoot': 'ERROR_SUCCESS', 'RegLoadMUIStringW': 'ERROR_SUCCESS'}
 
 
-dict4_msvcrt =  {'wWinMain': (0, [], [], 'int'), 'DllMain': (3, ['HINSTANCE', 'DWORD', 'LPVOID'], ['hinstDLL', 'fdwReason', 'lpvReserved'], 'BOOL'), 'GetDaylightFlag': (0, [], [], 'BOOL'), 'getchar': (0, [""], [""], 'int')}
+dict4_msvcrt =  {'wWinMain': (0, [], [], 'int'), 'DllMain': (3, ['HINSTANCE', 'DWORD', 'LPVOID'], ['hinstDLL', 'fdwReason', 'lpvReserved'], 'BOOL'), 'GetDaylightFlag': (0, [], [], 'BOOL'), 'getchar': (0, [], [], 'int')}
 
 
 dictRS_msvcrt =  {}
