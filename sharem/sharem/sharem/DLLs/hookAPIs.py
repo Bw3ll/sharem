@@ -7,6 +7,8 @@ from ..modules import allDllsDict
 from .structures import struct_PROCESSENTRY32, struct_MODULEENTRY32, struct_SYSTEMTIME, struct_THREADENTRY32
 import traceback
 
+commandLine_arg = set()
+
 FakeProcess = 0xbadd0000
 ProcessCreationReverseLookUp = {16777216: 'CREATE_BREAKAWAY_FROM_JOB', 67108864: 'CREATE_DEFAULT_ERROR_MODE',
                                 16: 'CREATE_NEW_CONSOLE', 512: 'CREATE_NEW_PROCESS_GROUP',
@@ -1936,6 +1938,7 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def WinExec(self, uc, eip, esp, export_dict, callAddr, em):
+        global commandLine_arg
         pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['LPCSTR', 'UINT']
         pNames = ['lpCmdLine', 'uCmdShow']
@@ -1948,6 +1951,11 @@ class CustomWinAPIs():
         # create strings for everything except ones in our skip
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        #get the commandline from the arguments
+        winexec_args = (pVals[0])
+        commandLine_arg.add(winexec_args)
+
 
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x20
@@ -2006,6 +2014,7 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def system(self, uc, eip, esp, export_dict, callAddr, em):
+        global commandLine_arg
         # int system(const char *command);
         pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['const char']
@@ -2017,6 +2026,9 @@ class CustomWinAPIs():
         skip = [0]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
+        system_args = (pVals[0])
+        commandLine_arg.add(system_args)
+
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
         retValStr = hex(retVal)
@@ -2026,6 +2038,7 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def _wsystem(self, uc, eip, esp, export_dict, callAddr, em):
+        global commandLine_arg
         # int _wsystem(const wchar_t *command);
         pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['const wchar_t']
@@ -2036,6 +2049,9 @@ class CustomWinAPIs():
         # create strings for everything except ones in our skip
         skip = [0]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        wsystem_args = (pVals[0])
+        commandLine_arg.add(wsystem_args)
 
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
@@ -5615,7 +5631,8 @@ class CustomWinAPIs():
 
         logged_calls= ("CreateEventA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
-	def GetSystemTimeAsFileTime(self, uc, eip, esp, export_dict, callAddr, em):
+
+    def GetSystemTimeAsFileTime(self, uc, eip, esp, export_dict, callAddr, em):
         #GetSystemTimeAsFileTime': (1, ['LPFILETIME'], ['lpSystemTimeAsFileTime'], 'VOID')
         pVals = makeArgVals(uc, em, esp, 1)
         pTypes= ['LPFILETIME']
@@ -5672,11 +5689,11 @@ class CustomWinAPIs():
 
         logged_calls= ("GetFileTime", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
 
-    def bind(self, uc, eip, esp, export_dict, callAddr, em):
-        #'bind': (3, ['SOCKET', 'const struct sockaddr *', 'int'], ['s', 'addr', 'len'], 'int')
-        pVals = makeArgVals(uc, em, esp, 3)
-        pTypes= ['SOCKET', 'const struct sockaddr *', 'int']
-        pNames= ['s', 'addr', 'len']
+    def send(self, uc, eip, esp, export_dict, callAddr, em):
+        #'send': (4, ['SOCKET', 'const char *', 'int', 'int'], ['s', 'buf', 'len', 'flags'], 'int')
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes= ['SOCKET', 'const char *', 'int', 'int']
+        pNames= ['s', 'buf', 'len', 'flags']
 
         
         #pVals[0] = getLookUpVal(pVals[0], dwDesiredAccess_ReverseLookUp)
@@ -5686,11 +5703,14 @@ class CustomWinAPIs():
 
         cleanBytes=len(pTypes)*4
 
-        retVal = 0
-        retValStr=hex(retVal)
+        #return is len of bytes sent.
+        print(pVals[2])
+        retVal = int(pVals[2],16)
+        retValStr= hex(retVal)
+        print(retValStr)
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
-        logged_calls= ("bind", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
+        logged_calls= ("send", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
 class CustomWinSysCalls():
