@@ -265,8 +265,6 @@ def iter_and_dump_dlls(mu, em, export_dict, source_path, save_path, mods):
         if platformType == "Windows":
             with disable_file_system_redirection():
                 if os.path.exists(source_path+dll_file) == False:
-                    print("[*] Unable to locate ", source_path,
-                          ". It is likely that this file is not included in your version of Windows.")
                     continue
 
         if os.path.exists(save_path+dll_file):
