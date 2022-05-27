@@ -228,10 +228,17 @@ def catch_windows_api(uc, addr, ret, size, funcAddress):
         dll = dll[0:-4]
 
         # Log usage of DLL
-        if dll not in logged_dlls:
+        dllL=dll.lower()
+        foundAlready=False
+        for each in logged_dlls:
+            if dll == each or dllL == each.lower():
+                foundAlready=True
+        if not foundAlready:
             logged_dlls.append(dll)
+        
+
     except:
-        funcName = "DIDNOTFIND- " + funcAddress
+        funcName = "funcname: DID NOT FIND address - " + funcAddress
 
     try:
         funcInfo, cleanBytes = getattr(WinAPI, funcName)(uc, eip, esp, export_dict, addr, em)
@@ -505,13 +512,25 @@ def findDict(funcAddress, funcName, dll=None):
             dll = dll[0:-4]
         paramVals = []
 
+        # dll=dll.lower()
         dict4 = tryDictLocate('dict4', dll)
         dict2 = tryDictLocate('dict2', dll)
         dict1 = tryDictLocate('dict', dll)
-
+        
+        if (len(dict4)==0) and (len(dict2)==0) and (len(dict1)==0): 
+            dll=dll.lower()
+            dict4 = tryDictLocate('dict4', dll)
+            dict2 = tryDictLocate('dict2', dll)
+            dict1 = tryDictLocate('dict', dll)
         bprint("dll", dll)
         # Log usage of DLL
-        if dll not in logged_dlls:
+        dllL=dll.lower()
+        foundAlready=False
+
+        for each in logged_dlls:
+            if dll == each or dllL == each.lower():
+                foundAlready=True
+        if not foundAlready:
             logged_dlls.append(dll)
 
         # Use dict three if we find a record for it
@@ -530,7 +549,7 @@ def findDict(funcAddress, funcName, dll=None):
         elif funcName in dict1:
             return dict1[funcName], 'dict1', dll
         else:
-            bprint("NOT FOUND!")
+            print(funcName + " from "  + dll + " was not found in dictionaries.")
             return "none", "none", dll
     except Exception as e:
         bprint("Oh no!!!", e)
@@ -546,6 +565,7 @@ def getParams(uc, esp, apiDict, dictName):
         paramVals = makeArgVals(uc, em, esp, numParams)
         cleanBytes = apiDict[1]
     else:
+        # print ("dictName", dictName)
         numParams = apiDict[0]
         paramVals = makeArgVals(uc, em, esp, numParams)
         for i in range(numParams):
@@ -590,12 +610,14 @@ def hook_default(uc, eip, esp, funcAddress, funcName, callLoc):
     try:
         dictName = apiDict = ""
         bprint(funcAddress, funcName)
+
         apiDict, dictName, dll = findDict(funcAddress, funcName)
         # bprint ("", apiDict, dictName, dll, funcName)
         if apiDict == "none" and dll == "wsock32":
             apiDict, dictName, dll = findDict(funcAddress, funcName, "ws2_32")
             bprint("", apiDict, dictName, dll)
 
+        # print ("funcName, dll")
         paramVals = getParams(uc, esp, apiDict, dictName)
 
         if dictName != 'dict1':
