@@ -22443,6 +22443,8 @@ def clearImports():
 	mBool[o].bEvilImportsFound = False
 
 def emulation_json_out(apiList, logged_syscalls):
+	global commandLine_arg
+
 
 
 	# api1 = {"api_name": "winexec",
@@ -22459,6 +22461,9 @@ def emulation_json_out(apiList, logged_syscalls):
 
 	# }
 	path_artifacts, file_artifacts, commandLine_artifacts, web_artifacts, registry_artifacts,	exe_dll_artifacts = findArtifacts()
+
+	for each in commandLine_artifacts:
+		commandLine_arg.add(each)
 	# syscall_names, syscall_params_values, syscall_params_types, syscall_params_names, syscall_address, ret_values, ret_type, syscall_bruteforce, syscallID = build_emu_results(logged_syscalls)
 
 
@@ -22564,7 +22569,7 @@ def emulation_json_out(apiList, logged_syscalls):
 	emulation_dict["dlls"].extend(logged_dlls)
 	emulation_dict["path_artifacts"].extend(path_artifacts)
 	emulation_dict["file_artifacts"].extend(file_artifacts)	
-	emulation_dict["commandLine_artifacts"].extend(commandLine_artifacts)
+	emulation_dict["commandLine_artifacts"].extend(commandLine_arg)
 	emulation_dict["web_artifacts"].extend(web_artifacts)
 	emulation_dict["registry_artifacts"].extend(registry_artifacts)
 	emulation_dict["exe_dll_artifacts"].extend(exe_dll_artifacts)
@@ -22653,6 +22658,10 @@ def build_emu_results(apiList):
 	return api_names, api_params_values, api_params_types, api_params_names, api_address, ret_values, ret_type, api_bruteforce, sysCallID
 
 def emulation_txt_out(apiList, logged_syscalls):
+	global commandLine_arg
+	
+	#test printing the set of commandline values found inthe hook apis
+
 	# for each in apiList:
 		# print (type(each), each, "\n\n")
 	sample = [('WinExec', '0x123123', '0x20', 'INT', ['cmd.exe /c ping google.com > C:\\result.txt', '0x5'], ['LPCSTR', 'UINT'], ['lpCmdLine', 'uCmdShow'], False, "kernel32.dll"), ('EncyptFileA', '0x321321', '0x20', 'INT', ['C:\\result.txt'], ['LPCSTR'], ['lpFileName'], False, "kernel32.dll"),
@@ -22667,12 +22676,13 @@ def emulation_txt_out(apiList, logged_syscalls):
 	# 	api_par_bundle.append(v + " " + t)
 
 	# artifacts = ["c:\\result.txt", "cmd.exe", "google.com", "result.txt", "user32.dll", "www.msn.com", "http://74.32.123.2:8080", "c:\\windows\\system32\\ipconfig.exe"]
-
+	for each in commandLine_artifacts:
+		commandLine_arg.add(each)
 
 	# web_artifacts = ["www.msn.com", "http://74.32.123.2:8080", "google.com"]
 	# file_artifacts = ["c:\\result.txt", "cmd.exe", "result.txt"]
 	# executables = ["c:\\windows\\system32\\ipconfig.exe", "cmd.exe"]
-
+	# print(commandLine_arg)
 	txt_output = ""
 	# no_colors_out = ""
 
@@ -22778,15 +22788,15 @@ def emulation_txt_out(apiList, logged_syscalls):
 			emu_path_list = "\n"
 			emu_path_list += "\n".join(path_artifacts)
 			emu_path_list += "\n"
-
+		
 		if(len(file_artifacts) > 0):
 			emu_fileArtifacts_list = "\n"
 			emu_fileArtifacts_list += "\n".join(file_artifacts)
 			emu_fileArtifacts_list += "\n"
 
-		if(len(commandLine_artifacts) > 0):
+		if(len(commandLine_arg) > 0):
 			emu_commandline_list = "\n"
-			emu_commandline_list += "\n".join(commandLine_artifacts)
+			emu_commandline_list += "\n".join(commandLine_arg)
 			emu_commandline_list += "\n"
 
 		if(len(web_artifacts) > 0):
@@ -22814,7 +22824,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 		txt_output += "{}{:<18} {}\n".format(cya + "DLLs" + res, "",emu_dll_list)
 		emu_path_list = ', '.join(path_artifacts)
 		emu_fileArtifacts_list = ", ".join(file_artifacts)
-		emu_commandline_list = ", ".join(commandLine_artifacts)
+		emu_commandline_list = ", ".join(commandLine_arg)
 		emu_webArtifacts_list = ', '.join(web_artifacts)
 		emu_registry_list = ", ".join(registry_artifacts)
 		emu_exe_dll_list = ", ".join(exe_dll_artifacts)
@@ -22835,7 +22845,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 		txt_output += "{}{:<13} {}\n".format(cya + "*** Paths ***" + res,"", emu_path_list)
 	if len(file_artifacts) > 0:
 		txt_output += "{}{:<9} {}\n".format(cya + "*** Files ***" + res,"", emu_fileArtifacts_list)
-	if len(commandLine_artifacts) > 0:
+	if len(commandLine_arg) > 0:
 		txt_output += "{}{:<8} {}\n".format(cya + "*** Command Line ***" + res,"", emu_commandline_list)
 	if len(web_artifacts) > 0:
 		txt_output += "{}{:<13} {}\n".format(cya + "*** Web ***" + res,"", emu_webArtifacts_list)
