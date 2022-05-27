@@ -532,15 +532,16 @@ def findRetVal(funcName, rs_dict):
         retValStr= rs_dict[funcName]
         if retValStr in rsLookUp:
             retVal=rsLookUp[retValStr]
-            return retVal
+            # print (retValStr)
+            return retVal, retValStr
         else:
             test=isinstance(retValStr,int)
             if test:
-                return retValStr
+                return retValStr, hex(retValStr)
             else:
-                return 32
+                return 32, hex(32)
     else:
-        return 32
+        return 32, hex(32)
 
 def getRetVal(retVal, retType=""):
     rsReverseLookUp = {0x00000000: 'S_OK', 0x80004001: 'E_NOTIMPL', 0x80004002: 'E_NOINTERFACE',
