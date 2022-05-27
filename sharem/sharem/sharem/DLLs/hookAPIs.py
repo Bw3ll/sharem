@@ -1949,8 +1949,6 @@ class CustomWinAPIs():
         # create strings for everything except ones in our skip
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
-        print (pVals)
-        print ("pvals", pVals[0],"\n")
 
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x20
