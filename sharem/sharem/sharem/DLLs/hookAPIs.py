@@ -5816,6 +5816,30 @@ class CustomWinAPIs():
 
         logged_calls= ("GetFileTime", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
 
+    def recv(self, uc, eip, esp, export_dict, callAddr, em):
+        #'recv': (4, ['SOCKET', 'char *', 'int', 'int'], ['s', 'buf', 'len', 'flags'], 'int')
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes= ['SOCKET', 'char *', 'int', 'int']
+        pNames= ['s', 'buf', 'len', 'flags']
+
+        
+        #pVals[0] = getLookUpVal(pVals[0], dwDesiredAccess_ReverseLookUp)
+        #create strings for everything except ones in our skip
+        skip=[0]   # we need to skip this value (index) later-let's put it in skip
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes=len(pTypes)*4
+
+        #return is len of bytes sent.
+        #print(pVals[2])
+        retVal = int(pVals[2],16)
+        retValStr= hex(retVal)
+        #print(retValStr)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("recv", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
     def send(self, uc, eip, esp, export_dict, callAddr, em):
         #'send': (4, ['SOCKET', 'const char *', 'int', 'int'], ['s', 'buf', 'len', 'flags'], 'int')
         pVals = makeArgVals(uc, em, esp, 4)
@@ -5831,10 +5855,10 @@ class CustomWinAPIs():
         cleanBytes=len(pTypes)*4
 
         #return is len of bytes sent.
-        print(pVals[2])
+        #print(pVals[2])
         retVal = int(pVals[2],16)
         retValStr= hex(retVal)
-        print(retValStr)
+        #print(retValStr)
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
         logged_calls= ("send", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
