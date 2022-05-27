@@ -5672,7 +5672,7 @@ def getStackVal(uc, em, esp, loc):
 
 
 def makeArgVals(uc, em, esp, numParams):
-    print ("numParams", numParams)
+    # print ("numParams", numParams)
     args = [0] * numParams
     for i in range(len(args)):
         args[i] = getStackVal(uc, em, esp, i + 1)
