@@ -4,7 +4,7 @@ from unicorn.x86_const import *
 from struct import pack, unpack
 from ..helper.emuHelpers import Uc
 from ..modules import allDllsDict
-from .structures import struct_PROCESSENTRY32, struct_MODULEENTRY32, struct_SYSTEMTIME, struct_THREADENTRY32
+from .structures import struct_FILETIME, struct_PROCESSENTRY32, struct_MODULEENTRY32, struct_SYSTEMTIME, struct_THREADENTRY32
 import traceback
 
 FakeProcess = 0xbadd0000
@@ -33,6 +33,8 @@ HandlesDict = {}  # Dictionary of All Handles
 class HandleType(Enum):
     # Threads
     Thread = auto()
+    # Process
+    Process = auto()
     SetWindowsHookExA = auto()
     SetWindowsHookExW = auto()
     CreateToolhelp32Snapshot = auto()
@@ -393,6 +395,8 @@ class CustomWinAPIs():
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
+        retVal = 0
+        uc.reg_write(UC_X86_REG_EAX, retVal)
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         logged_calls = ("ExitProcess", hex(callAddr), 'None', 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
@@ -4747,8 +4751,9 @@ class CustomWinAPIs():
 
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
 
+        retVal = 0
         retValStr = 'None'
-
+        uc.reg_write(UC_X86_REG_EAX, retVal)
         logged_calls = ("Sleep", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
@@ -5129,8 +5134,9 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0
         retValStr = 'None'
-
+        uc.reg_write(UC_X86_REG_EAX, retVal)
         logged_calls = ("SetLastError", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
@@ -5260,7 +5266,8 @@ class CustomWinAPIs():
 
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retValStr = 'None'
-
+        retVal = 0
+        uc.reg_write(UC_X86_REG_EAX, retVal)
         logged_calls = ("SetLastErrorEx", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
@@ -5731,7 +5738,8 @@ class CustomWinAPIs():
 
         logged_calls= ("CreateEventA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
-	def GetSystemTimeAsFileTime(self, uc, eip, esp, export_dict, callAddr, em):
+
+    def GetSystemTimeAsFileTime(self, uc, eip, esp, export_dict, callAddr, em):
         #GetSystemTimeAsFileTime': (1, ['LPFILETIME'], ['lpSystemTimeAsFileTime'], 'VOID')
         pVals = makeArgVals(uc, em, esp, 1)
         pTypes= ['LPFILETIME']
@@ -5753,6 +5761,7 @@ class CustomWinAPIs():
 
         logged_calls= ("GetSystemTimeAsFileTime", hex(callAddr), (retValStr), 'VOID', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
+
     def GetFileTime(self, uc, eip, esp, export_dict, callAddr, em):
         #'GetFileTime': (4, ['HANDLE', 'LPFILETIME', 'LPFILETIME', 'LPFILETIME'], ['hFile', 'lpCreationTime', 'lpLastAccessTime', 'lpLastWriteTime'], 'thunk BOOL')
         pVals = makeArgVals(uc, em, esp, 4)
