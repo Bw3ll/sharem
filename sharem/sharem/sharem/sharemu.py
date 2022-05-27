@@ -648,9 +648,10 @@ def findArtifacts():
     ## -----------------------------
     find_environment = r"(?:(?:\%[A-Za-z86]+\%)(?:(?:\\|\/|\\\\)(?:[^<>\"\*\/\\\|\?\n])+)+)"
     find_letterDrives = r"(?:(?:[A-za-z]:)(?:(?:\\|\/|\\\\)(?:[^<>\"\*\/\\\|\?\n])+)+)"
+    find_letterDrives2 = r"(?:(?:[A-za-z]:)(?:(?:\\|\/|\\\\)(?:[^<>\"\*\/\\\|\?\n])+)+(?:\.[^<>\"\*\/\\\|\?\n]{2,4}))"
     find_relativePaths = r"(?:(?:\.\.)(?:(?:\\|\/|\\\\)(?:[^<>\"\*\/\\\|\?\n]+))+)"
     find_networkShares = r"(?:(?:\\\\)(?:[^<>\"\*\/\\\|\?\n]+)(?:(?:\\|\/|\\\\)(?:[^<>\"\*\/\\\|\?\n]+(?:\$|\:)?))+)"
-    total_findPaths = find_letterDrives+"|"+find_relativePaths+"|"+find_networkShares+"|"+find_environment
+    total_findPaths = find_letterDrives2 +"|"+find_letterDrives+"|"+find_relativePaths+"|"+find_networkShares+"|"+find_environment
     ##*****************************************************************************
     ## FILES
     ## -----------------------------
@@ -658,10 +659,10 @@ def findArtifacts():
     # gives a couple false positives, but this can be improved upon slowly
     ## works best when paired with other regex.
     find_zip = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:7z|zip|rar|tar|tar.gz)(?:\b)"
-    find_genericFiles = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:bin|log|exe|dll|txt|ini|ico|lnk|tmp|bak|cfg|config|msi|dat|rtf|cer|sys|cab|iso|db|asp|  aspx|html|htm)(?:\b)"
+    find_genericFiles = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:bin|log|exe|dll|txt|ini|ico|lnk|tmp|bak|cfg|config|msi|dat|rtf|cer|sys|cab|iso|db|asp|aspx|html|htm)(?:\b)"
     find_images = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:jpg|gid|gmp|jpeg|png|tif|gif|bmp|tiff)(?:\b)"
-    find_programming = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:com|cpp|java|js|php|py|bat|c|pyc|py3|pyw|jar|eps)(?:\b)"
-    find_workRelated = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:xls|xlsm|xlsx|ppt|pptx|doc|docx|pdf|wpd|odt|dodp|pps|key|diff|docm|eml|email|msg|pst|pub|    sldm|sldx|wbk|xll|xla|xps|dbf|accdb|accde|accdr|accdt|sql|sqlite|mdb)(?:\b)"
+    find_programming = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:com|cpp|java|js|php|py|bat|c|pyc|py3|pyw|jar|eps|vbs)(?:\b)"
+    find_workRelated = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:xls|xlsm|xlsx|ppt|pptx|doc|docx|pdf|wpd|odt|dodp|pps|key|diff|docm|eml|email|msg|pst|pub|sldm|sldx|wbk|xll|xla|xps|dbf|accdb|accde|accdr|accdt|sql|sqlite|mdb)(?:\b)"
     find_videoAudio = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:mp4|mpg|mpeg|avi|mp3|wav|aac|adt|adts|aif|aifc|aiff|cda|flv|m4a)(?:\b)"
     find_totalFiles = find_genericFiles+"|"+find_images+"|"+find_programming+"|"+find_workRelated+"|"+find_videoAudio
     find_totalFilesBeginning = "^"+find_genericFiles+"|^"+find_images+"|^"+find_programming+"|^"+find_workRelated+"|^"+find_videoAudio
@@ -673,9 +674,9 @@ def findArtifacts():
     find_cmdLine = r"(?:(?:cmd(?:\.exe)?)(?:\s+(?:\/[cCkKaAuUdDxXqQ]|\/[eEfFvV]:..|\/[tT]:[0-9a-fA-F])+)+)"
     find_powershell = r"(?:powershell(?:\.exe)?)"
     find_regCMD = r"(?:reg(?:\.exe)?(?:\s+(?:add|compare|copy|delete|export|import|load|query|restore|save|unload))+)"
-    find_netCMD = r"(?:net(?:\.exe)?(?:\s+(?:accounts|computer|config|continue|file|group|help|helpmsg|localgroup|name|pause|print|send|session|    share|start|statistics|stop|time|use|user|view))+)"
+    find_netCMD = r"(?:net(?:\.exe)?(?:\s+(?:accounts|computer|config|continue|file|group|help|helpmsg|localgroup|name|pause|print|send|session|share|start|statistics|stop|time|use|user|view))+)"
     find_schtasksCMD = r"(?:schtasks(?:\.exe)?\s+)(?:\/(?:change|create|delete|end|query|run))"
-    find_netsh = r"(?:netsh(?:\.exe)?\s+(?:abort|add|advfirewall|alias|branchcache|bridge|bye|commit|delete|dhcpclient|dnsclient|dump|exec|exit|    firewall|help|http|interface|ipsec|ipsecdosprotection|lan|namespace|netio|offline|online|popd|pushd|quit|ras|rpc|set|show|trace|unalias|    wfp|winhttp|winsock))"
+    find_netsh = r"(?:netsh(?:\.exe)?\s+(?:abort|add|advfirewall|alias|branchcache|bridge|bye|commit|delete|dhcpclient|dnsclient|dump|exec|exit|firewall|help|http|interface|ipsec|ipsecdosprotection|lan|namespace|netio|offline|online|popd|pushd|quit|ras|rpc|set|show|trace|unalias|    wfp|winhttp|winsock))"
     cmdline_args = find_cmdLine+valid_cmd_characters
     powershell_args= find_powershell+valid_cmd_characters
     reg_args = find_regCMD+valid_cmd_characters
@@ -690,10 +691,10 @@ def findArtifacts():
     valid_web_ending1 = r"(?:\\|\/|\\\\|:)(?:[^\s\'\",]+)"
     valid_web_ending2 = r"(?:\b)"
     find_website = r"(?:(?:(?:http|https):\/\/|www)(?:[^\s\'\",]+))"
-    find_doubleLetterDomains = r"(?:www)?(?:[^\\\s\'\",])+\.(?:cn|bd|it|ul|cd|ch|br|ml|ga|us|pw|eu|cf|uk|ws|zw|ke|am|vn|tk|gq|pl|ca|pe|su|de|me|    au|fr|be|pk|th|it|nid|tw|cc|ng|tz|lk|sa|ru)"
-    find_tripleLetterDomains = r"(?:www)?(?:[^\\\s\'\",])+\.(?:xyz|top|bar|cam|sbs|org|win|arn|moe|fun|uno|mail|stream|club|vip|ren|kim|mom|pro|    gdn|biz|ooo|xin|cfd|men|com|net|edu|gov|mil|org|int)"
-    find_4LettersDomains = r"(?:www)?(?:[^\\\s\'\",])+\.(?:host|rest|shot|buss|cyou|surf|info|help|life|best|live|archi|acam|load|part|mobi|loan|   asia|jetzt|email|space|site|date|want|casa|link|bond|store|click|work|mail)"
-    find_5MoreDomains = r"(?:www)?(?:[^\\\s\'\",])+\.(?:monster|name|reset|quest|finance|cloud|kenya|accountants|support|solar|online|yokohama| ryukyu|country|download|website|racing|digital|tokyo|world)"
+    find_doubleLetterDomains = r"(?:www)?(?:[^\\\s\'\",])+\.(?:cn|bd|it|ul|cd|ch|br|ml|ga|us|pw|eu|cf|uk|ws|zw|ke|am|vn|tk|gq|pl|ca|pe|su|de|me|au|fr|be|pk|th|it|nid|tw|cc|ng|tz|lk|sa|ru)"
+    find_tripleLetterDomains = r"(?:www)?(?:[^\\\s\'\",])+\.(?:xyz|top|bar|cam|sbs|org|win|arn|moe|fun|uno|mail|stream|club|vip|ren|kim|mom|pro|gdn|biz|ooo|xin|cfd|men|com|net|edu|gov|mil|org|int)"
+    find_4LettersDomains = r"(?:www)?(?:[^\\\s\'\",])+\.(?:host|rest|shot|buss|cyou|surf|info|help|life|best|live|archi|acam|load|part|mobi|loan|asia|jetzt|email|space|site|date|want|casa|link|bond|store|click|work|mail)"
+    find_5MoreDomains = r"(?:www)?(?:[^\\\s\'\",])+\.(?:monster|name|reset|quest|finance|cloud|kenya|accountants|support|solar|online|yokohama|ryukyu|country|download|website|racing|digital|tokyo|world)"
     find_2_valid1 = find_doubleLetterDomains + valid_web_ending1
     find_2_valid2 = find_doubleLetterDomains + valid_web_ending2
     find_3_valid1 = find_tripleLetterDomains + valid_web_ending1
