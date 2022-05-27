@@ -1943,11 +1943,14 @@ class CustomWinAPIs():
                                 4: 'SW_SHOWNOACTIVATE', 5: 'SW_SHOW', 6: 'SW_MINIMIZE', 7: 'SW_SHOWMINNOACTIVE',
                                 8: 'SW_SHOWNA', 9: 'SW_RESTORE', 16: 'SW_SHOWDEFAULT', 17: 'SW_FORCEMINIMIZE'}
 
+    
         pVals[1] = getLookUpVal(pVals[1], cmdShowReverseLookUp)
-
+        
         # create strings for everything except ones in our skip
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+        print (pVals)
+        print ("pvals", pVals[0],"\n")
 
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x20

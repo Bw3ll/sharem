@@ -414,9 +414,11 @@ def hook_syscallBackup(uc, eip, esp, funcAddress, funcName, callLoc, syscallID):
         paramTypes = ['DWORD'] * len(paramVals)
         paramNames = ['arg'] * len(paramVals)
 
-        retVal = 32
+        retVal, retValStr = findRetVal(funcName, syscallRS)
+
         uc.reg_write(UC_X86_REG_EAX, retVal)
-        funcInfo = (funcName, hex(callLoc), hex(retVal), 'INT', paramVals, paramTypes, paramNames, False, syscallID)
+
+        funcInfo = (funcName, hex(callLoc),retValStr, 'INT', paramVals, paramTypes, paramNames, False, syscallID)
         logSysCall(funcName, funcInfo)
     except Exception as e:
         print("Error!", e)
@@ -426,21 +428,28 @@ def hook_syscallBackup(uc, eip, esp, funcAddress, funcName, callLoc, syscallID):
 def hook_syscallDefault(uc, eip, esp, funcAddress, funcName, sysCallID, callLoc):
     returnType, paramVals, paramTypes, paramNames, nt_tuple = '', '', '', '', ()
     dll = 'ntdll'
+
     try:
+        print (1, funcName)
+
         nt_tuple = syscall_signature[funcName]
         paramVals = getParams(uc, esp, nt_tuple, 'ntdict')
         paramTypes = nt_tuple[1]
+        
         paramNames = nt_tuple[2]
         returnType = nt_tuple[3]
-        retVal = findRetVal(funcName, syscallRS)
+        
+        retVal, retValStr = findRetVal(funcName, syscallRS)
+        
 
-        funcInfo = (funcName, hex(callLoc), hex(retVal), returnType, paramVals, paramTypes, paramNames, False, sysCallID)
+        funcInfo = (funcName, hex(callLoc), retValStr, returnType, paramVals, paramTypes, paramNames, False, sysCallID)
         logSysCall(funcName, funcInfo)
     except:
         hook_syscallBackup(uc, eip, esp, funcAddress, funcName, callLoc, sysCallID)
 
 
 def hook_sysCall(uc, address, size):
+    print ("hook_sysCall")
     global logged_dlls
     global stopProcess
 
@@ -592,11 +601,11 @@ def hook_default(uc, eip, esp, funcAddress, funcName, callLoc):
             paramNames = ['arg'] * len(paramVals)
 
         dictR1 = globals()['dictRS_' + dll]
-        retVal = findRetVal(funcName, dictR1)
+        retVal, retValStr = findRetVal(funcName, dictR1)
         bprint("returnVal", funcName, retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        retValStr = getRetVal(retVal)
+        # retValStr = getRetVal(retVal)
         if retValStr == 32:
             funcInfo = (funcName, hex(callLoc), hex(retValStr), 'INT', paramVals, paramTypes, paramNames, False)
         else:
