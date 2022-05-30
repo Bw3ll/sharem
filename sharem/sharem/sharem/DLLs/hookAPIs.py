@@ -6071,12 +6071,14 @@ class CustomWinSysCalls():
         pTypes = ['HANDLE', 'NTSTATUS']
         pNames = ['ProcessHandle', 'ExitStatus']
 
-        retVal = 0
+        if pVals[0] in HandlesDict:
+            HandlesDict.pop(pVals[0])
 
         pVals[1] = getLookUpVal(pVals[1], self.NTSTATUSReverseLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
 
+        retVal = 0
         retValStr = getLookUpVal(retVal, self.NTSTATUSReverseLookUp)
         uc.reg_write(UC_X86_REG_EAX, retVal)
         logged_calls = ["NtTerminateProcess", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
@@ -6175,6 +6177,96 @@ class CustomWinSysCalls():
         uc.reg_write(UC_X86_REG_EAX, retVal)
         retValStr = getLookUpVal(retVal, self.NTSTATUSReverseLookUp)
         logged_calls = ["NtWriteVirtualMemory", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+
+        return logged_calls
+
+    def NtShutdownSystem(self, uc: Uc, eip, esp, callAddr, em):
+        pVals = self.makeArgVals(uc, em, esp, 1)
+        pTypes = ['SHUTDOWN_ACTION']
+        pNames = ['Action']
+        actionReversLookup = {0: 'ShutdownNoReboot', 1: 'ShutdownReboot', 2: 'ShutdownPowerOff'}
+
+        pVals[0] = getLookUpVal(pVals[0], actionReversLookup)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
+        
+        retVal = 0
+        retValStr = getLookUpVal(retVal, self.NTSTATUSReverseLookUp)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        logged_calls = ["NtShutdownSystem", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+
+        return logged_calls
+
+    def NtCreateThread(self, uc: Uc, eip, esp, callAddr, em):
+        pVals = self.makeArgVals(uc, em, esp, 8)
+        pTypes = ['PHANDLE', 'ACCESS_MASK', 'POBJECT_ATTRIBUTES', 'HANDLE', 'PCLIENT_ID', 'PCONTEXT', 'PINITIAL_TEB', 'BOOLEAN']
+        pNames = ['ThreadHandle', 'DesiredAccess', 'ObjectAttributes', 'ProcessHandle', 'ClientId', 'ThreadContext', 'InitialTeb', 'CreateSuspended']
+        dwDesiredAccessReverseLookUp = {2147483648: 'GENERIC_READ', 1073741824: 'GENERIC_WRITE', 536870912: 'GENERIC_EXECUTE', 268435456: 'GENERIC_ALL', 0xC0000000: 'GENERIC_READ | GENERIC_WRITE'}
+
+        handle = Handle(HandleType.Thread)
+
+        try:
+            uc.mem_write(pVals[0], pack('<I', handle.value))
+            # uc.mem_write(pVals[4], PCLIENT_ID)
+            # Maybe create PCLIENT_ID need to determing how to generate process and thread IDs
+        except:
+            pass
+
+        pVals[1] = getLookUpVal(pVals[1], dwDesiredAccessReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
+        
+        retVal = 0
+        retValStr = getLookUpVal(retVal, self.NTSTATUSReverseLookUp)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        logged_calls = ["NtCreateThread", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+
+        return logged_calls
+
+    def NtCreateThreadEx(self, uc: Uc, eip, esp, callAddr, em):
+        pVals = self.makeArgVals(uc, em, esp, 11)
+        pTypes = ['PHANDLE', 'ACCESS_MASK', 'POBJECT_ATTRIBUTES', 'HANDLE', 'PVOID', 'PVOID', 'ULONG', 'ULONG', 'ULONG', 'ULONG', 'PVOID']
+        pNames = ['ThreadHandle', 'DesiredAccess', 'ObjectAttributes', 'ProcessHandle', 'StartR__OUTine', 'Argument', 'CreateFlags', 'ZeroBits', 'StackSize', 'MaximumStackSize', 'AttributeList']
+        dwDesiredAccessReverseLookUp = {2147483648: 'GENERIC_READ', 1073741824: 'GENERIC_WRITE', 536870912: 'GENERIC_EXECUTE', 268435456: 'GENERIC_ALL', 0xC0000000: 'GENERIC_READ | GENERIC_WRITE'}
+        dwCreateFlagsReverseLookUp = {4: 'CREATE_SUSPENDED', 65536: 'STACK_SIZE_PARAM_IS_A_RESERVATION'}
+
+        handle = Handle(HandleType.Thread)
+
+        try:
+            uc.mem_write(pVals[0], pack('<I', handle.value))
+            # uc.mem_write(pVals[4], PCLIENT_ID)
+            # Maybe create PCLIENT_ID need to determing how to generate process and thread IDs
+        except:
+            pass
+
+        pVals[1] = getLookUpVal(pVals[1], dwDesiredAccessReverseLookUp)
+        pVals[6] = getLookUpVal(pVals[6], dwCreateFlagsReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,6])
+        
+        retVal = 0
+        retValStr = getLookUpVal(retVal, self.NTSTATUSReverseLookUp)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        logged_calls = ["NtCreateThreadEx", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+
+        return logged_calls
+
+    def NtTerminateThread(self, uc: Uc, eip, esp, callAddr, em):
+        pVals = self.makeArgVals(uc, em, esp, 2)
+        pTypes = ['HANDLE', 'NTSTATUS']
+        pNames = ['ThreadHandle', 'ExitStatus']
+
+        if pVals[0] in HandlesDict:
+            HandlesDict.pop(pVals[0])
+
+        pVals[1] = getLookUpVal(pVals[1], self.NTSTATUSReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
+
+        retVal = 0
+        retValStr = getLookUpVal(retVal, self.NTSTATUSReverseLookUp)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        logged_calls = ["NtTerminateThread", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
 
         return logged_calls
 
