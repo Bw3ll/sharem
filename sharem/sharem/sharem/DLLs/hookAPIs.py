@@ -764,7 +764,9 @@ class CustomWinAPIs():
         dwStartTypeReverseLookUp={0x00000002: 'SERVICE_AUTO_START', 0x00000000: 'SERVICE_BOOT_START', 0x00000003: 'SERVICE_DEMAND_START', 0x00000004: 'SERVICE_DISABLED', 0x00000001: 'SERVICE_SYSTEM_START'}
         dwErrorControlReverseLookUp={0x00000003: 'SERVICE_ERROR_CRITICAL', 0x00000000: 'SERVICE_ERROR_IGNORE', 0x00000001: 'SERVICE_ERROR_NORMAL', 0x00000002: 'SERVICE_ERROR_SEVERE'}
 
-        handle = Handle(HandleType.SC_HANDLE)
+        serviceName = read_string(uc, pVals[1])
+
+        handle = Handle(HandleType.SC_HANDLE, name=serviceName)
 
         pVals[3] = getLookUpVal(pVals[3],dwDesiredAccessReverseLookUp)
         pVals[4] = getLookUpVal(pVals[4],dwServiceTypeReverseLookUp)
@@ -775,13 +777,12 @@ class CustomWinAPIs():
         skip = [3, 4, 5, 6]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("CreateServiceA", hex(callAddr), (retValStr), 'SC_HANDLE', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def CreateServiceW(self, uc, eip, esp, export_dict, callAddr, em):
         # SC_HANDLE CreateServiceW([in]SC_HANDLE hSCManager,[in] LPCSTR lpServiceName,[in, optional]  LPCSTR lpDisplayName,[in] DWORD dwDesiredAccess,[in] DWORD dwServiceType,[in] DWORD dwStartType,[in] DWORD dwErrorControl,[in, optional]  LPCSTR    lpBinaryPathName,[in, optional]  LPCSTR    lpLoadOrderGroup,[out, optional] LPDWORD lpdwTagId,[in, optional]  LPCSTR lpDependencies,[in, optional]  LPCSTR lpServiceStartName,[in, optional] LPCSTR lpPassword);
@@ -793,7 +794,9 @@ class CustomWinAPIs():
         dwStartTypeReverseLookUp={0x00000002: 'SERVICE_AUTO_START', 0x00000000: 'SERVICE_BOOT_START', 0x00000003: 'SERVICE_DEMAND_START', 0x00000004: 'SERVICE_DISABLED', 0x00000001: 'SERVICE_SYSTEM_START'}
         dwErrorControlReverseLookUp={0x00000003: 'SERVICE_ERROR_CRITICAL', 0x00000000: 'SERVICE_ERROR_IGNORE', 0x00000001: 'SERVICE_ERROR_NORMAL', 0x00000002: 'SERVICE_ERROR_SEVERE'}
 
-        handle = Handle(HandleType.SC_HANDLE)
+        serviceName = read_unicode(uc, pVals[1])
+
+        handle = Handle(HandleType.SC_HANDLE, name=serviceName)
 
         pVals[3] = getLookUpVal(pVals[3],dwDesiredAccessReverseLookUp)
         pVals[4] = getLookUpVal(pVals[4],dwServiceTypeReverseLookUp)
@@ -804,13 +807,189 @@ class CustomWinAPIs():
         skip = [3, 4, 5, 6]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("CreateServiceW", hex(callAddr), (retValStr), 'SC_HANDLE', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def OpenServiceA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['SC_HANDLE', 'LPCSTR', 'DWORD']
+        pNames = ['hSCManager', 'lpServiceName', 'dwDesiredAccess']
+        dwDesiredAccessReverseLookUp = {0xf01ff: 'SERVICE_ALL_ACCESS', 0x0002: 'SERVICE_CHANGE_CONFIG', 0x0008: 'SERVICE_ENUMERATE_DEPENDENTS', 0x0080: 'SERVICE_INTERROGATE', 0x0040: 'SERVICE_PAUSE_COUNTINUE', 0x0001: 'SERVICE_QUERY_CONFIG', 0x0004: 'SERVICE_QUERY_STATUS', 0X0010: 'SERVICE_START', 0x0020: 'SERVICE_STOP', 0x0100: 'SERVICE_USER_DEFINED_CONTROL', 0x10000: 'DELETE', 0x20000: 'READ_CONTROL', 0x40000: 'WRITE_DAC', 0x80000: 'WRITE_OWNER'}
+
+        serviceName = read_string(uc, pVals[1])
+
+        retVal = 0
+        for key, handle in HandlesDict.items():
+            if handle.name == serviceName:
+                retVal = handle.value
+                break
+
+        pVals[2] = getLookUpVal(pVals[2],dwDesiredAccessReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+        
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("OpenServiceA", hex(callAddr), (retValStr), 'SC_HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def OpenServiceW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['SC_HANDLE', 'LPCWSTR', 'DWORD']
+        pNames = ['hSCManager', 'lpServiceName', 'dwDesiredAccess']
+        dwDesiredAccessReverseLookUp = {0xf01ff: 'SERVICE_ALL_ACCESS', 0x0002: 'SERVICE_CHANGE_CONFIG', 0x0008: 'SERVICE_ENUMERATE_DEPENDENTS', 0x0080: 'SERVICE_INTERROGATE', 0x0040: 'SERVICE_PAUSE_COUNTINUE', 0x0001: 'SERVICE_QUERY_CONFIG', 0x0004: 'SERVICE_QUERY_STATUS', 0X0010: 'SERVICE_START', 0x0020: 'SERVICE_STOP', 0x0100: 'SERVICE_USER_DEFINED_CONTROL', 0x10000: 'DELETE', 0x20000: 'READ_CONTROL', 0x40000: 'WRITE_DAC', 0x80000: 'WRITE_OWNER'}
+
+        serviceName = read_unicode(uc, pVals[1])
+
+        retVal = 0
+        for key, handle in HandlesDict.items():
+            if handle.name == serviceName:
+                retVal = handle.value
+                break
+
+        pVals[2] = getLookUpVal(pVals[2],dwDesiredAccessReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+        
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("OpenServiceW", hex(callAddr), (retValStr), 'SC_HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def StartServiceA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['SC_HANDLE', 'DWORD', 'LPCSTR *']
+        pNames = ['hService', 'dwNumServiceArgs', 'lpServiceArgVectors']
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("StartServiceA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def StartServiceW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['SC_HANDLE', 'DWORD', 'LPCWSTR *']
+        pNames = ['hService', 'dwNumServiceArgs', 'lpServiceArgVectors']
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("StartServiceW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def ControlService(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['SC_HANDLE', 'DWORD', 'LPSERVICE_STATUS']
+        pNames = ['hService', 'dwControl', 'lpServiceStatus']
+        dwControlReverseLookUp = {3: 'SERVICE_CONTROL_CONTINUE', 4: 'SERVICE_CONTROL_INTERROGATE',
+                                  7: 'SERVICE_CONTROL_NETBINDADD', 10: 'SERVICE_CONTROL_NETBINDDISABLE',
+                                  9: 'SERVICE_CONTROL_NETBINDENABLE', 8: 'SERVICE_CONTROL_NETBINDREMOVE',
+                                  6: 'SERVICE_CONTROL_PARAMCHANGE', 2: 'SERVICE_CONTROL_PAUSE',
+                                  1: 'SERVICE_CONTROL_STOP'}
+
+        pVals[1] = getLookUpVal(pVals[1], dwControlReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
+
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("ControlService", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def ControlServiceExA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes = ['SC_HANDLE', 'DWORD', 'DWORD', 'PVOID']
+        pNames = ['hService', 'dwControl', 'dwInfoLevel', 'pControlParams']
+        dwControlReverseLookUp = {3: 'SERVICE_CONTROL_CONTINUE', 4: 'SERVICE_CONTROL_INTERROGATE',
+                                  7: 'SERVICE_CONTROL_NETBINDADD', 10: 'SERVICE_CONTROL_NETBINDDISABLE',
+                                  9: 'SERVICE_CONTROL_NETBINDENABLE', 8: 'SERVICE_CONTROL_NETBINDREMOVE',
+                                  6: 'SERVICE_CONTROL_PARAMCHANGE', 2: 'SERVICE_CONTROL_PAUSE',
+                                  1: 'SERVICE_CONTROL_STOP'}
+        dwInfoLevelReverseLookUp = {1: 'SERVICE_CONTROL_STATUS_REASON_INFO'}
+
+        pVals[1] = getLookUpVal(pVals[1], dwControlReverseLookUp)
+        pVals[2] = getLookUpVal(pVals[2], dwInfoLevelReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2])
+
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("ControlServiceExA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def ControlServiceExW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes = ['SC_HANDLE', 'DWORD', 'DWORD', 'PVOID']
+        pNames = ['hService', 'dwControl', 'dwInfoLevel', 'pControlParams']
+        dwControlReverseLookUp = {3: 'SERVICE_CONTROL_CONTINUE', 4: 'SERVICE_CONTROL_INTERROGATE',
+                                  7: 'SERVICE_CONTROL_NETBINDADD', 10: 'SERVICE_CONTROL_NETBINDDISABLE',
+                                  9: 'SERVICE_CONTROL_NETBINDENABLE', 8: 'SERVICE_CONTROL_NETBINDREMOVE',
+                                  6: 'SERVICE_CONTROL_PARAMCHANGE', 2: 'SERVICE_CONTROL_PAUSE',
+                                  1: 'SERVICE_CONTROL_STOP'}
+        dwInfoLevelReverseLookUp = {1: 'SERVICE_CONTROL_STATUS_REASON_INFO'}
+
+        pVals[1] = getLookUpVal(pVals[1], dwControlReverseLookUp)
+        pVals[2] = getLookUpVal(pVals[2], dwInfoLevelReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2])
+
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("ControlServiceExW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def DeleteService(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 1)
+        pTypes = ['SC_HANDLE']
+        pNames = ['hService']
+
+        if pVals[0] in HandlesDict:
+            HandlesDict.pop(pVals[0])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("DeleteService", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CloseServiceHandle(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 1)
+        pTypes = ['SC_HANDLE']
+        pNames = ['hSCObject']
+
+        if pVals[0] in HandlesDict:
+            HandlesDict.pop(pVals[0])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("CloseServiceHandle", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def CryptDecrypt(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 6)
@@ -831,31 +1010,6 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("CryptDecrypt", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
-
-    def ControlService(self, uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, 3)
-        pTypes = ['SC_HANDLE', 'DWORD', 'LPSERVICE_STATUS']
-        pNames = ['hService', 'dwControl', 'lpServiceStatus']
-
-        dwControlReverseLookUp = {3: 'SERVICE_CONTROL_CONTINUE', 4: 'SERVICE_CONTROL_INTERROGATE',
-                                  7: 'SERVICE_CONTROL_NETBINDADD', 10: 'SERVICE_CONTROL_NETBINDDISABLE',
-                                  9: 'SERVICE_CONTROL_NETBINDENABLE', 8: 'SERVICE_CONTROL_NETBINDREMOVE',
-                                  6: 'SERVICE_CONTROL_PARAMCHANGE', 2: 'SERVICE_CONTROL_PAUSE',
-                                  1: 'SERVICE_CONTROL_STOP'}
-
-        pVals[1] = getLookUpVal(pVals[1],dwControlReverseLookUp)
-
-        # create strings for everything except ones in our skip
-        skip = [1]  # we need to skip this value (index) later-let's put it in skip
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
-
-        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
-        retVal = 0x1
-        retValStr = 'TRUE'
-        uc.reg_write(UC_X86_REG_EAX, retVal)
-
-        logged_calls = ("ControlService", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def HeapCreate(self, uc, eip, esp, export_dict, callAddr, em):
