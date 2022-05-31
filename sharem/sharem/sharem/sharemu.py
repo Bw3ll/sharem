@@ -783,7 +783,7 @@ def findArtifacts():
          
 
     for item in path_artifacts1:
-        print(item)
+        # print(item)
         if("exe" in item or "EXE" in item):
             exe_dll_artifacts.append(item)
         elif("dll" in item or "DLL" in item):
