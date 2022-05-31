@@ -635,9 +635,9 @@ def logSysCall(syscallName, syscallInfo):
     paramValues += syscallInfo[4]
 
 def findArtifacts():
-    path_artifacts1 = []
     path_artifacts = []
-    file_artifacts = []
+    path_artifacts = []
+    file_artifacts1 = []
     commandLine_artifacts = []
     web_artifacts = []
     registry_artifacts = []
@@ -666,7 +666,7 @@ def findArtifacts():
     find_zip = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:7z|zip|rar|tar|tar\.gz|gzip|bzip2|wim|xz)(?:\b)"
     find_genericFiles = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:bin|log|exe|dll|txt|ini|ico|lnk|tmp|bak|cfg|config|msi|dat|rtf|cer|sys|cab|iso|db|asp|aspx|html|htm|rdp|temp)(?:\b)"
     find_images = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:jpg|gid|gmp|jpeg|png|tif|gif|bmp|tiff|svg)(?:\b)"
-    find_programming = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:com|cpp|java|js|php|py|bat|c|pyc|py3|pyw|jar|eps|vbs|scr|cs|ps1|ps1xml|ps2|ps2xml|psc1|psc2|r|rb|php3|vbx)(?:\b)"
+    find_programming = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:cpp|java|js|php|py|bat|c|pyc|py3|pyw|jar|eps|vbs|scr|cs|ps1|ps1xml|ps2|ps2xml|psc1|psc2|r|rb|php3|vbx)(?:\b)"
     find_workRelated = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:xls|xlsm|xlsx|ppt|pptx|doc|docx|pdf|wpd|odt|dodp|pps|key|diff|docm|eml|email|msg|pst|pub|sldm|sldx|wbk|xll|xla|xps|dbf|accdb|accde|accdr|accdt|sql|sqlite|mdb)(?:\b)"
     find_videoAudio = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:mp4|mpg|mpeg|avi|mp3|wav|aac|adt|adts|aif|aifc|aiff|cda|flv|m4a)(?:\b)"
     find_misc1 = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:reg|inf|application|gadget|msp|hta|cpl|msc|vb|vbe|jse|ws|wsf|wsc|wsh|scf|sh|csv|vmdk|cmx|vdi|yaml|raw|msh|msh1|msh1xml|msh2|msh2xml|mshxml|mst|ops|osd|pcd|pl|plg|prf|prg|printerexport|psd1|psdm1|pssc|pyo)(?:\b)"
@@ -738,7 +738,7 @@ def findArtifacts():
         # path_artifacts += re.findall(find_letterDrives,str(p))
         # path_artifacts += re.findall(find_relativePaths,str(p))
         # path_artifacts += re.findall(find_networkShares,str(p))
-        path_artifacts1 += re.findall(total_findPaths,str(p),re.IGNORECASE)
+        path_artifacts += re.findall(total_findPaths,str(p),re.IGNORECASE)
         # -------------------------------------------
         #       Finding Files
         #-------------------------------------------        
@@ -749,8 +749,8 @@ def findArtifacts():
         # file_artifacts += re.findall(find_programming,str(p))
         # file_artifacts += re.findall(find_workRelated,str(p))
         # file_artifacts += re.findall(find_videoAudio,str(p))
-        file_artifacts += re.findall(find_totalFiles,str(p))
-        file_artifacts += re.findall(find_totalFilesBeginning,str(p),re.IGNORECASE)
+        file_artifacts1 += re.findall(find_totalFiles,str(p))
+        file_artifacts1 += re.findall(find_totalFilesBeginning,str(p),re.IGNORECASE)
         #-------------------------------------------
         #       Finding Command line
         #-------------------------------------------   
@@ -782,16 +782,7 @@ def findArtifacts():
         #-------------------------------------------
          
 
-    for item in path_artifacts1:
-        # print(item)
-        if("exe" in item or "EXE" in item):
-            exe_dll_artifacts.append(item)
-        elif("dll" in item or "DLL" in item):
-            exe_dll_artifacts.append(item)
-        else:
-            path_artifacts.append(item)
-
-    for item in file_artifacts:
+    for item in path_artifacts:
         # print(item)
         if("exe" in item or "EXE" in item):
             exe_dll_artifacts.append(item)
@@ -799,6 +790,20 @@ def findArtifacts():
             exe_dll_artifacts.append(item)
         else:
             pass
+
+    for item in file_artifacts1:
+        # print(item)
+        if("exe" in item or "EXE" in item):
+            if ('cmd.exe' in item.lower()):
+                exe_dll_artifacts.append('cmd.exe')
+            elif ("powershell.exe" in item.lower() or 'powershell' in item.lower()):
+                exe_dll_artifacts.append('powershell.exe')
+            else:
+                exe_dll_artifacts.append(item)
+        elif("dll" in item or "DLL" in item):
+            exe_dll_artifacts.append(item)
+        else:
+            file_artifacts.append(item)
         
 
     return list(dict.fromkeys(path_artifacts)), list(dict.fromkeys(file_artifacts)), list(dict.fromkeys(commandLine_artifacts)), list(dict.fromkeys(web_artifacts)), list(dict.fromkeys(registry_artifacts)), list(dict.fromkeys(exe_dll_artifacts))
