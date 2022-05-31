@@ -635,7 +635,7 @@ def logSysCall(syscallName, syscallInfo):
     paramValues += syscallInfo[4]
 
 def findArtifacts():
-    paths = []
+    path_artifacts1 = []
     path_artifacts = []
     file_artifacts = []
     commandLine_artifacts = []
@@ -646,12 +646,17 @@ def findArtifacts():
     ## ============================================================================
     ## PATHs
     ## -----------------------------
-    find_environment = r"(?:(?:\%[A-Za-z86]+\%)(?:(?:\\|\/|\\\\)(?:[^<>\"\*\/\\\|\?\n])+)+)"
-    find_letterDrives = r"(?:(?:[A-za-z]:)(?:(?:\\|\/|\\\\)(?:[^<>\"\*\/\\\|\?\n])+)+)"
-    find_letterDrives2 = r"(?:(?:[A-za-z]:)(?:(?:\\|\/|\\\\)(?:[^<>\"\*\/\\\|\?\n])+)+(?:\.[^<>\"\*\/\\\|\?\n]{2,4}))"
-    find_relativePaths = r"(?:(?:\.\.)(?:(?:\\|\/|\\\\)(?:[^<>\"\*\/\\\|\?\n]+))+)"
-    find_networkShares = r"(?:(?:\\\\)(?:[^<>\"\*\/\\\|\?\n]+)(?:(?:\\|\/|\\\\)(?:[^<>\"\*\/\\\|\?\n]+(?:\$|\:)?))+)"
-    total_findPaths = find_letterDrives2 +"|"+find_letterDrives+"|"+find_relativePaths+"|"+find_networkShares+"|"+find_environment
+    find_environment = r"(?:(?:\%[A-Za-z86]+\%)(?:(?:\\|\\\\)(?:[^<>\"\*\/\\\|\?\n])+)+)"
+    find_environment_2 = r"(?:(?:\%[A-Za-z86]+\%)(?:(?:\/)(?:[^<>\"\*\/\\\|\?\n])+)+)"
+    find_letterDrives = r"(?:(?:[A-za-z]:)(?:(?:\\|\\\\)(?:[^<>\"\*\/\\\|\?\n])+)+)"
+    find_letterDrives_2 = r"(?:(?:[A-za-z]:)(?:(?:\/)(?:[^<>\"\*\/\\\|\?\n])+)+)"
+    find_letterDrives2 = r"(?:(?:[A-za-z]:)(?:(?:\\|\\\\)(?:[^<>\"\*\/\\\|\?\n])+)+(?:\.[^<>\"\*\/\\\|\?\n]{2,4}))"
+    find_letterDrives2_2 = r"(?:(?:[A-za-z]:)(?:(?:\/)(?:[^<>\"\*\/\\\|\?\n])+)+(?:\.[^<>\"\*\/\\\|\?\n]{2,4}))"
+    find_relativePaths = r"(?:(?:\.\.)(?:(?:\\|\\\\)(?:[^<>\"\*\/\\\|\?\n]+))+)"
+    find_relativePaths_2 = r"(?:(?:\.\.)(?:(?:\/)(?:[^<>\"\*\/\\\|\?\n]+))+)"
+    find_networkShares = r"(?:(?:\\\\)(?:[^<>\"\*\/\\\|\?\n]+)(?:(?:\\|\\\\)(?:[^<>\"\*\/\\\|\?\n]+(?:\$|\:)?))+)"
+    find_networkShares_2 = r"(?:(?:\\\\)(?:[^<>\"\*\/\\\|\?\n]+)(?:(?:\/)(?:[^<>\"\*\/\\\|\?\n]+(?:\$|\:)?))+)"
+    total_findPaths = find_letterDrives2 +"|"+find_letterDrives2_2+"|"+find_letterDrives+"|"+find_letterDrives_2+"|"+find_relativePaths+"|"+find_relativePaths_2+"|"+find_networkShares+"|"+find_networkShares_2+"|"+find_environment+"|"+find_environment_2
     ##*****************************************************************************
     ## FILES
     ## -----------------------------
@@ -723,7 +728,7 @@ def findArtifacts():
     ##*****************************************************************************
     ## EXE OR DLL
     ## -----------------------------
-    find_exe_dll = r"(?:.*)(?:\.exe|\.dll)(?:\b)"
+    find_exe_dll = r"(?:.*)(?:\.exe|\.dll)"
 
     for p in paramValues:
         #-------------------------------------------
@@ -733,7 +738,7 @@ def findArtifacts():
         # path_artifacts += re.findall(find_letterDrives,str(p))
         # path_artifacts += re.findall(find_relativePaths,str(p))
         # path_artifacts += re.findall(find_networkShares,str(p))
-        paths += re.findall(total_findPaths,str(p),re.IGNORECASE)
+        path_artifacts1 += re.findall(total_findPaths,str(p),re.IGNORECASE)
         # -------------------------------------------
         #       Finding Files
         #-------------------------------------------        
@@ -744,7 +749,7 @@ def findArtifacts():
         # file_artifacts += re.findall(find_programming,str(p))
         # file_artifacts += re.findall(find_workRelated,str(p))
         # file_artifacts += re.findall(find_videoAudio,str(p))
-        # file_artifacts += re.findall(find_totalFiles,str(p))
+        file_artifacts += re.findall(find_totalFiles,str(p))
         file_artifacts += re.findall(find_totalFilesBeginning,str(p),re.IGNORECASE)
         #-------------------------------------------
         #       Finding Command line
@@ -777,8 +782,8 @@ def findArtifacts():
         #-------------------------------------------
          
 
-    for item in paths:
-        # print(item)
+    for item in path_artifacts1:
+        print(item)
         if("exe" in item or "EXE" in item):
             exe_dll_artifacts.append(item)
         elif("dll" in item or "DLL" in item):
@@ -786,6 +791,14 @@ def findArtifacts():
         else:
             path_artifacts.append(item)
 
+    for item in file_artifacts:
+        # print(item)
+        if("exe" in item or "EXE" in item):
+            exe_dll_artifacts.append(item)
+        elif("dll" in item or "DLL" in item):
+            exe_dll_artifacts.append(item)
+        else:
+            pass
         
 
     return list(dict.fromkeys(path_artifacts)), list(dict.fromkeys(file_artifacts)), list(dict.fromkeys(commandLine_artifacts)), list(dict.fromkeys(web_artifacts)), list(dict.fromkeys(registry_artifacts)), list(dict.fromkeys(exe_dll_artifacts))
