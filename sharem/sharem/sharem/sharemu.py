@@ -658,14 +658,17 @@ def findArtifacts():
     find_files = r"(?:[^<>:\"\*\/\\\|\?\n]+)(?:\.[A-Za-z1743]{2,5})"
     # gives a couple false positives, but this can be improved upon slowly
     ## works best when paired with other regex.
-    find_zip = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:7z|zip|rar|tar|tar.gz)(?:\b)"
-    find_genericFiles = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:bin|log|exe|dll|txt|ini|ico|lnk|tmp|bak|cfg|config|msi|dat|rtf|cer|sys|cab|iso|db|asp|aspx|html|htm)(?:\b)"
-    find_images = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:jpg|gid|gmp|jpeg|png|tif|gif|bmp|tiff)(?:\b)"
-    find_programming = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:com|cpp|java|js|php|py|bat|c|pyc|py3|pyw|jar|eps|vbs)(?:\b)"
+    find_zip = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:7z|zip|rar|tar|tar\.gz|gzip|bzip2|wim|xz)(?:\b)"
+    find_genericFiles = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:bin|log|exe|dll|txt|ini|ico|lnk|tmp|bak|cfg|config|msi|dat|rtf|cer|sys|cab|iso|db|asp|aspx|html|htm|rdp|temp)(?:\b)"
+    find_images = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:jpg|gid|gmp|jpeg|png|tif|gif|bmp|tiff|svg)(?:\b)"
+    find_programming = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:com|cpp|java|js|php|py|bat|c|pyc|py3|pyw|jar|eps|vbs|scr|cs|ps1|ps1xml|ps2|ps2xml|psc1|psc2|r|rb|php3|vbx)(?:\b)"
     find_workRelated = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:xls|xlsm|xlsx|ppt|pptx|doc|docx|pdf|wpd|odt|dodp|pps|key|diff|docm|eml|email|msg|pst|pub|sldm|sldx|wbk|xll|xla|xps|dbf|accdb|accde|accdr|accdt|sql|sqlite|mdb)(?:\b)"
     find_videoAudio = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:mp4|mpg|mpeg|avi|mp3|wav|aac|adt|adts|aif|aifc|aiff|cda|flv|m4a)(?:\b)"
-    find_totalFiles = find_genericFiles+"|"+find_images+"|"+find_programming+"|"+find_workRelated+"|"+find_videoAudio
-    find_totalFilesBeginning = "^"+find_genericFiles+"|^"+find_images+"|^"+find_programming+"|^"+find_workRelated+"|^"+find_videoAudio
+    find_misc1 = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:reg|inf|application|gadget|msp|hta|cpl|msc|vb|vbe|jse|ws|wsf|wsc|wsh|scf|sh|csv|vmdk|cmx|vdi|yaml|raw|msh|msh1|msh1xml|msh2|msh2xml|mshxml|mst|ops|osd|pcd|pl|plg|prf|prg|printerexport|psd1|psdm1|pssc|pyo)(?:\b)"
+    find_misc2 = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:swf|aru|shs|pgm|pif|vba|hlp|apk|dotm|xltm|xlam|pptm|potm|ppam|ppsm|css|chm|drv|vxd|isp|its|jnlp|ksh|mad|maf|mag|mam|maq|mar|mas|mat|mau|mav|maw|mcf|mda|mde|mdt|mdw|mdz|msu)(?:\b)"
+    find_misc3 = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:md|info|epub|tga|url|sym|a\.out|btm|lua|ade|adp|app|appcontent-ms|appref-ms|bas|cdxml|cmd|cnt|crt|csh|der|diagcab|fxp|grp|hpj|ins|settingcontent-ms|shb|theme|udl|vbp|vsmacros|vsw|webpnp|website|wsb|xbap|xnk|pyz|sct|pyzw)(?:\b)"
+    find_totalFiles = find_genericFiles+"|"+find_images+"|"+find_programming+"|"+find_workRelated+"|"+find_videoAudio+"|"+find_misc1+"|"+find_misc2+"|"+find_misc3
+    find_totalFilesBeginning = "^"+find_genericFiles+"|^"+find_images+"|^"+find_programming+"|^"+find_workRelated+"|^"+find_videoAudio+"|^"+find_misc1+"|^"+find_misc2+"|^"+find_misc3
     
     ##*****************************************************************************
     ## COMMAND LINE ARGUMENTS
