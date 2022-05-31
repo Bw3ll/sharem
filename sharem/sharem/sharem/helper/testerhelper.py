@@ -1,7 +1,7 @@
 
 import os
 
-def generateTester(filename, rawSh):
+def generateTester(filename, rawSh,shellEntry):
 
 	prevDir = '\\'.join((os.path.join(os.path.dirname(__file__))).split("\\")[:-1])
 	# print(prevDir)
@@ -15,13 +15,15 @@ def generateTester(filename, rawSh):
 	rawSh = rawSh.replace("String Literal:", "").strip()
 	newData = fpData.replace("<code>", rawSh)
 
-	newData = newData.replace("<size>", str(len(rawSh)))
+	newData = newData.replace("<size>", str(len(rawSh)+1))
+	newData2 = newData.replace("<offset>", str(shellEntry))
+
 	# print(newData)
 	
 	fp.close()
 
 	fp = open(testerPath, "w")
-	fp.write(newData)
+	fp.write(newData2)
 	fp.close()
 	# print(os.path.join(os.path.dirname(__file__), "..\\"))
 

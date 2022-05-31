@@ -3,7 +3,9 @@
 *.egg-info
 *.pyc
 work2.bin
-**/DLLS/*.dll
+**/DLLs/*.dll
+**/DLLs/x86/*.dll
+**/DLLs/x64/*.dll
 **/logs/**
 foundDLLAddresses.txt
 out.txt
@@ -16,6 +18,8 @@ outputs/shellcode.bin
 *.bin
 outputs/**
 shellcodes/**
+sharem_cli/*.bin
+sharem_cli/format.py
 shDis.py
 testing.txt
 testing10.py
@@ -36,3 +40,6 @@ test2.txt
 work.asm
 
 sharem/sharem/sharem/logs/logging.txt
+sharem/sharem/sharem/emulationLog.txt
+sharem/sharem/sharem/foundDLLAddresses32.json
+sharem/sharem/sharem/foundDLLAddresses64.json

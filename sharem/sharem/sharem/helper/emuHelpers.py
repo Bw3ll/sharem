@@ -1,3 +1,6 @@
+import json
+
+from unicorn.x86_const import *
 from unicorn.x86_const import *
 from struct import pack, unpack
 from unicorn import *
@@ -10,11 +13,8 @@ from ..DLLs.hookAPIs import *
 from ..DLLs.syscall_signatures import *
 import re
 import binascii
-import pefile
-import os
+from pathlib import Path
 import sys
-
-PEB_ADDR = 0x11017000
 
 def read_unicode(uc, address):
     ret = ""
@@ -31,17 +31,22 @@ def read_unicode(uc, address):
     ret = ret.rstrip('\x00')
     return ret
 
-def giveRegs(uc):
-    EAX = uc.reg_read(UC_X86_REG_EAX)   # do not delete!
-    EBX = uc.reg_read(UC_X86_REG_EBX)
-    ECX = uc.reg_read(UC_X86_REG_ECX)
-    EDX = uc.reg_read(UC_X86_REG_EDX)
-    ESI = uc.reg_read(UC_X86_REG_ESI)
-    EDI = uc.reg_read(UC_X86_REG_EDI)
-    ESP = uc.reg_read(UC_X86_REG_ESP)
-    EBP = uc.reg_read(UC_X86_REG_EBP)
-    instructLine=("\n\t>>> EAX: 0x%x\tEBX: 0x%x\tECX: 0x%x\tEDX: 0x%x\tEDI: 0x%x\tESI: 0x%x\tEBP: 0x%x\tESP: 0x%x\n" %(EAX, EBX, ECX, EDX, EDI,ESI, EBP, ESP))
-    return instructLine
+def giveRegs(uc, arch):
+    instructLine = "\n\t>>> "
+    if arch == 32:
+        regs32 = {"EAX": UC_X86_REG_EAX, "EBX": UC_X86_REG_EBX, "ECX": UC_X86_REG_ECX, "EDX": UC_X86_REG_EDX, "ESI": UC_X86_REG_ESI, "EDI": UC_X86_REG_EDI, "EBP": UC_X86_REG_EBP, "ESP": UC_X86_REG_ESP}
+        for regName, regConst in regs32.items():
+            regVal = uc.reg_read(regConst)
+            instructLine += f"{regName}: {hex(regVal)} "
+        instructLine += "\n"
+        return instructLine
+    elif arch == 64:
+        regs64 = {"RAX": UC_X86_REG_RAX, "RBX": UC_X86_REG_RBX, "RCX": UC_X86_REG_RCX, "RDX": UC_X86_REG_RDX, "RSI": UC_X86_REG_RSI, "RDI": UC_X86_REG_RDI, "R8": UC_X86_REG_R8, "R9": UC_X86_REG_R9, "R10": UC_X86_REG_R10, "R11": UC_X86_REG_R11, "R12": UC_X86_REG_R12, "R13": UC_X86_REG_R13, "R14": UC_X86_REG_R14, "R15": UC_X86_REG_R15, "RBP": UC_X86_REG_RBP, "RSP": UC_X86_REG_RSP}
+        for regName, regConst in regs64.items():
+            regVal = uc.reg_read(regConst)
+            instructLine += f"{regName}: {hex(regVal)} "
+        instructLine += "\n"
+        return instructLine
 
 def ord2(x):
     return x
@@ -111,83 +116,56 @@ def signedNegHexTo(signedVal):
     new = (int.from_bytes(ba, byteorder='big', signed=True))
     return new
 
-def readRaw(appName):
-    f = open(appName, "rb")
-    myBinary = f.read()
-    f.close()
-    return myBinary
+def push(uc, arch, val):
+    if arch == 64:
+        # read and subtract 8 from esp
+        esp = uc.reg_read(UC_X86_REG_RSP) - 8
+        uc.reg_write(UC_X86_REG_ESP, esp)
 
-def insertIntoBytes(binaryBlob, start, size, value):
-    lBinary = list(binaryBlob)
-    for x in range (size):
-        lBinary.insert(start, value)
-    final=bytes(lBinary)
-    return final
+        # insert new value onto the stack
+        uc.mem_write(esp, pack("<Q", val))
+    else:
+        # read and subtract 4 from esp
+        esp = uc.reg_read(UC_X86_REG_ESP) - 4
+        uc.reg_write(UC_X86_REG_ESP, esp)
 
-def padDLL(dllPath, dllName, expandedDLLsPath):
-    pe = pefile.PE(dllPath)
-
-    virtualAddress = pe.NT_HEADERS.OPTIONAL_HEADER.DATA_DIRECTORY[0].VirtualAddress
-    i = 0
-    padding = 0
-    while True:
-        try:
-            section = pe.sections[i]
-
-            pointerToRaw = section.PointerToRawData
-            sectionVA = section.VirtualAddress
-            sizeOfRawData = section.SizeOfRawData
-
-            if (virtualAddress >= sectionVA and virtualAddress < (sectionVA + sizeOfRawData)):
-                padding = virtualAddress - (virtualAddress - sectionVA + pointerToRaw)
-                break
-        except:
-            break
-
-        i += 1
-
-
-    # Replace e_lfanew value
-    elfanew = pe.DOS_HEADER.e_lfanew
-    pe.DOS_HEADER.e_lfanew = elfanew + padding
-
-    tmpPath = expandedDLLsPath + dllName
-    # print("-->", os.getcwd())
-    pe.write(tmpPath)
-
-    # Add padding to dll, then save it.
-    out = readRaw(tmpPath)
-    final = insertIntoBytes(out, 0x40, padding, 0x00)
-    newBin = open(tmpPath, "wb")
-    newBin.write(final)
-    newBin.close()
-
-    rawDll = readRaw(tmpPath)
-
-    return rawDll
-
-def saveDLLsToFile(export_dict, foundDLLAddresses):       # help function called by loadDLLs
-    output=""
-    for address in export_dict:
-        apiName=export_dict[address][0]
-        dllName=export_dict[address][1]
-
-        output+=str(hex(address)) +", " + apiName+ ", "  + dllName + "\n"
-
-    with open(foundDLLAddresses, 'a') as out:
-        out.write(output)
-        out.close()
-
-def push(uc, val):
-    # read and subtract 4 from esp
-    esp = uc.reg_read(UC_X86_REG_ESP) - 4
-    uc.reg_write(UC_X86_REG_ESP, esp)
-
-    # insert new value onto the stack
-    uc.mem_write(esp, pack("<i", val))
+        # insert new value onto the stack
+        uc.mem_write(esp, pack("<I", val))
 
 def set_register(uc, reg, val):
-    if reg == 'eax':
+    if reg == 'rax':
+        uc.reg_write(UC_X86_REG_RAX, val)
+    elif reg == 'rbx':
+        uc.reg_write(UC_X86_REG_RBX, val)
+    elif reg == 'rcx':
+        uc.reg_write(UC_X86_REG_RCX, val)
+    elif reg == 'rdx':
+        uc.reg_write(UC_X86_REG_RDX, val)
+    elif reg == 'rdi':
+        uc.reg_write(UC_X86_REG_RDI, val)
+    elif reg == 'rsi':
+        uc.reg_write(UC_X86_REG_RSI, val)
+    elif reg == 'r8':
+        uc.reg_write(UC_X86_REG_R8, val)
+    elif reg == 'r9':
+        uc.reg_write(UC_X86_REG_R9, val)
+    elif reg == 'r10':
+        uc.reg_write(UC_X86_REG_R10, val)
+    elif reg == 'r11':
+        uc.reg_write(UC_X86_REG_R11, val)
+    elif reg == 'r12':
+        uc.reg_write(UC_X86_REG_R12, val)
+    elif reg == 'r13':
+        uc.reg_write(UC_X86_REG_R13, val)
+    elif reg == 'r14':
+        uc.reg_write(UC_X86_REG_R14, val)
+    elif reg == 'r15':
+        uc.reg_write(UC_X86_REG_R15, val)
+    elif reg == 'rbp':
+        uc.reg_write(UC_X86_REG_RBP, val)
+    elif reg == 'rsp':
+        uc.reg_write(UC_X86_REG_RSP, val)
+    elif reg == 'eax':
         uc.reg_write(UC_X86_REG_EAX, val)
     elif reg == 'ebx':
         uc.reg_write(UC_X86_REG_EBX, val)
@@ -205,7 +183,40 @@ def set_register(uc, reg, val):
         uc.reg_write(UC_X86_REG_ESP, val)
 
 def constConvert(uc, string):
-    if (string == 'eax'):
+    if (string == 'rax'):
+        return str(uc.reg_read(UC_X86_REG_RAX))
+    elif (string == 'rbx'):
+        return str(uc.reg_read(UC_X86_REG_RBX))
+    elif (string == 'rcx'):
+        return str(uc.reg_read(UC_X86_REG_RCX))
+    elif (string == 'rdx'):
+        return str(uc.reg_read(UC_X86_REG_RDX))
+    elif (string == 'rsi'):
+        return str(uc.reg_read(UC_X86_REG_RSI))
+    elif (string == 'rdi'):
+        return str(uc.reg_read(UC_X86_REG_RDI))
+    elif (string == 'rsp'):
+        return str(uc.reg_read(UC_X86_REG_RSP))
+    elif (string == 'rbp'):
+        return str(uc.reg_read(UC_X86_REG_RBP))
+    elif (string == 'r8'):
+        return str(uc.reg_read(UC_X86_REG_R8))
+    elif (string == 'r9'):
+        return str(uc.reg_read(UC_X86_REG_R9))
+    elif (string == 'r10'):
+        return str(uc.reg_read(UC_X86_REG_R10))
+    elif (string == 'r11'):
+        return str(uc.reg_read(UC_X86_REG_R11))
+    elif (string == 'r12'):
+        return str(uc.reg_read(UC_X86_REG_R12))
+    elif (string == 'r13'):
+        return str(uc.reg_read(UC_X86_REG_R13))
+    elif (string == 'r14'):
+        return str(uc.reg_read(UC_X86_REG_R14))
+    elif (string == 'r15'):
+        return str(uc.reg_read(UC_X86_REG_R15))
+
+    elif (string == 'eax'):
         return str(uc.reg_read(UC_X86_REG_EAX))
     elif (string == 'ebx'):
         return str(uc.reg_read(UC_X86_REG_EBX))
@@ -221,6 +232,22 @@ def constConvert(uc, string):
         return str(uc.reg_read(UC_X86_REG_ESP))
     elif (string == 'ebp'):
         return str(uc.reg_read(UC_X86_REG_EBP))
+    elif (string == 'r8d'):
+        return str(uc.reg_read(UC_X86_REG_R8D))
+    elif (string == 'r9d'):
+        return str(uc.reg_read(UC_X86_REG_R9D))
+    elif (string == 'r10d'):
+        return str(uc.reg_read(UC_X86_REG_R10D))
+    elif (string == 'r11d'):
+        return str(uc.reg_read(UC_X86_REG_R11D))
+    elif (string == 'r12d'):
+        return str(uc.reg_read(UC_X86_REG_R12D))
+    elif (string == 'r13d'):
+        return str(uc.reg_read(UC_X86_REG_R13D))
+    elif (string == 'r14d'):
+        return str(uc.reg_read(UC_X86_REG_R14D))
+    elif (string == 'r15d'):
+        return str(uc.reg_read(UC_X86_REG_R15D))
 
     # Support smaller ebp and esp registers
     elif (string == 'ax'):
@@ -290,7 +317,6 @@ def controlFlow(uc, mnemonic, op_str):
     # print ("cf", mnemonic, op_str)
     controlFlow = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(jns)|(call))", mnemonic, re.M|re.I)
 
-
     which=0
     address = -1
     if controlFlow:
@@ -301,12 +327,12 @@ def controlFlow(uc, mnemonic, op_str):
 
             # Support for 64 bit as well.
             # Come up with some more test cases to make sure this works
-            regs = re.findall('e[abcdsipx]+', expr)
+            regs = re.findall('([er][abcdsipx]+|r[8910234]+)', expr)
             for i in range(0, len(regs)):
                 regs[i] = constConvert(uc, regs[i])
 
             callback.v=iter(regs)
-            expr = re.sub('e[abcdsipx]+', callback, expr)
+            expr = re.sub('([er][abcdsipx]+|r[8910234]+)', callback, expr)
 
             address = eval(expr)
             # print ("address", hex(address))
@@ -314,20 +340,18 @@ def controlFlow(uc, mnemonic, op_str):
             which=1
         elif re.match('dword ptr fs:\[0xc0]', op_str):
             address = 0x5000
-        elif re.match('e[abcdsipx]+', op_str):
-            regs = re.findall('e[abcdsipx]+', op_str)
+        elif re.match('([er][abcdsipx]+|r[8910234]+)', op_str):
+            regs = re.findall('([er][abcdsipx]+|r[8910234]+)', op_str)
+
             for i in range(0, len(regs)):
                 regs[i] = constConvert(uc, regs[i])
 
             callback.v=iter(regs)
-            address = int(re.sub('e[abcdsipx]+', callback, op_str))
+            address = int(re.sub('([er][abcdsipx]+|r[8910234]+)', callback, op_str))
             which=2
         elif re.match('0x[(0-9)|(a-f)]+', op_str):
             address = int(op_str, 16)
             which=3
-
-    if str(hex(address))=="0x44370b7b":
-        print (mnemonic, op_str, which)
 
     return address
 
@@ -508,15 +532,16 @@ def findRetVal(funcName, rs_dict):
         retValStr= rs_dict[funcName]
         if retValStr in rsLookUp:
             retVal=rsLookUp[retValStr]
-            return retVal
+            # print (retValStr)
+            return retVal, retValStr
         else:
             test=isinstance(retValStr,int)
             if test:
-                return retValStr
+                return retValStr, hex(retValStr)
             else:
-                return 32
+                return 32, hex(32)
     else:
-        return 32
+        return 32, hex(32)
 
 def getRetVal(retVal, retType=""):
     rsReverseLookUp = {0x00000000: 'S_OK', 0x80004001: 'E_NOTIMPL', 0x80004002: 'E_NOINTERFACE',

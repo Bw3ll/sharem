@@ -243,6 +243,7 @@ syscallRawHexOverride = False
 heavRawHexOverride = False
 fstenvRawHexOverride = False
 
+emuSyscallSelection = SYSCALL_BOOL_DICT
 
 
 
@@ -1677,11 +1678,14 @@ def giveLoadedModules(mode=None):
 		# out = cleanColors(out)
 		if mode =="save":
 			out2 = cleanColors(out)
+			outfileNoExt = outfile.split(".", 1)[0]
 			outfileName = outfileName.split("\\")[-1]
-			txtFileName =  os.getcwd() + slash + outfile + slash + outfileName + "_" + "loaded_Modules" + ".txt"
-			print(txtFileName)
-			os.makedirs(os.path.dirname(txtFileName), exist_ok=True)
-			text = open(txtFileName, "w")
+			# txtFileName =  os.getcwd() + slash + outfileNoExt + slash + outfileName + "_" + "loaded_Modules" + ".txt"
+			txtFileName = outfileNoExt + slash + outfileName + "_" + "loaded_Modules" + ".txt"
+			saveFile = os.path.join(os.path.dirname(__file__), "sharem", "logs", txtFileName)
+
+			os.makedirs(os.path.dirname(saveFile), exist_ok=True)
+			text = open(saveFile, "w")
 			text.write(out2)
 	return (out)
 
@@ -12299,7 +12303,7 @@ def disHereMakeDB2Edited(data,offset, end, mode, CheckingForDB):  #### new one
 				# print ("beforeS", sVal, beforeS)
 				sVal=""
 				startAddString=str(hex(offset))
-				stringVala=sBy.stringsValue[offset]+" ; string1"
+				stringVala=sBy.stringsValue[offset]+" ; string"
 				# bprint ("\t\t\tmaking strings", stringVala)
 
 				# input()
@@ -12683,7 +12687,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 			# dprint2("FoundSTRING", hex(stringStart), hex(offset),"off")
 			if stringStart==offset:
 				startAddString=str(hex(offset))
-				stringVala=sBy.stringsValue[offset]+mag+" ; string2"+res2+"\t\t"
+				stringVala=sBy.stringsValue[offset]+mag+" ; string"+res2+"\t\t"
 				# print ("stringVala", stringVala, len(stringVala))
 				# bprint ("\t\t\tmaking strings2", stringVala)
 			# if ApiTable[offset]
@@ -12784,7 +12788,7 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 			# print(data[offset-2:offset+1].hex())
 			# print(data.hex())
 			if dbFlag==True:
-				stringVala=sBy.stringsValue[offset-1]+mag+" ; string3"+res2+"\t\t"
+				stringVala=sBy.stringsValue[offset-1]+mag+" ; string"+res2+"\t\t"
 				# print("-->", startAddString, stringVala)
 				try:
 					addDis(int(startAddString,16),"",stringVala, "", "EndStringMaker")
@@ -15488,22 +15492,60 @@ def regenerateDisassemblyForPrint():
 	disassembly, disassemblyC=createDisassemblyLists(True,"final")
 	gDisassemblyText =disassemblyC
 	gDisassemblyTextNoC = disassembly
+
+commentsGiven=False
 def addComments():
+	global commentsGiven
 	global sBy
 	# print("addcomments:", hex(len(sBy.comments)), hex(len(sBy.bytesType)))
 
 	# print (loggedList)
+	parC=mag
+	parC0=mag
+	parC1=blu
+	# loggedList.append(('VirtualAlloc', '0x120001a8', 0, 0, (0, 0, 0, 0, 0)))
+	# loggedList.append(('VirtualAlloc', '0x120001a9', '0x25000000', 'INT', ['0x0', '0x9999', 'MEM_COMMIT', 'PAGE_EXECUTE_READWRITE'], ['LPVOID', 'SIZE_T', 'DWORD', 'DWORD'], ['lpAddress', 'dwSize', 'flAllocationType', 'flProtect'], False))
+	# print (loggedList)
+
 	for each in loggedList:
+		params=parC0+"("+res2
 		api=each[0]
+		vals=each[4]
+		limit=len(vals)-1
+		t=0
+		for v in vals:
+			try:
+				v=parC1+v
+			except:
+				v=parC1+hex(v)
+
+			if t!=limit:
+					params+=v +parC+ ", "+res2
+			else:
+					params+=v
+			t+=1
+
+		params+=parC0+")"+res2
+		# print (api)
+		# print (vals)
+		# print ("p", params)
 		apiAddress=int(each[1],16)
 		# print (hex(apiAddress), 42000000, each[1])
 		apiAddress=apiAddress-0x12000000
 		# print("---->", hex(apiAddress))
 		# print (hex(apiAddress))
-		try:
-			sBy.comments[apiAddress]=mag+"; call to " + api +res +" "
-		except:
-			print ("error logging API address to disassembly - ", api)
+		if commentsGiven:
+			params=""
+		if not commentsGiven:
+			try:
+				if sBy.comments[apiAddress] !="":
+					sBy.comments[apiAddress]+=res +"\n      "+params
+				else:
+					sBy.comments[apiAddress]=mag+"; call to " + api +res +"\n      "+params
+
+			except:
+				print ("error logging API address to disassembly - ", api)
+	commentsGiven=True
 		# print (api, apiAddress, each[1])
 # 	input()
 # 1107296317 
@@ -19412,7 +19454,7 @@ def modConf():
 	global bPrintEmulation
 	global emulation_verbose
 	global emulation_multiline
-	global emuObj
+	global emuObj  
 
 	listofStrings = ['pushret', 
 					'callpop', 
@@ -19434,7 +19476,7 @@ def modConf():
 					'fast_mode', 
 					'find_all', 
 					'dist_mode', 
-					'cpu_count', 'nodes_file', 'output_file', 'dec_operation_type', 'decrypt_file', 'stub_file', 'use_same_file', 'stub_entry_point', 'stub_end', 'shellEntry', 'pebpoints', 'minimum_str_length', 'max_callpop_distance', 'default_outdir', 'print_emulation_result', 'emulation_verbose_mode', 'emulation_multiline','max_num_of_instr','iterations_before_break','break_infinite_loops','timeless_debugging']
+					'cpu_count', 'nodes_file', 'output_file', 'dec_operation_type', 'decrypt_file', 'stub_file', 'use_same_file', 'stub_entry_point', 'stub_end', 'shellEntry', 'pebpoints', 'minimum_str_length', 'max_callpop_distance', 'default_outdir', 'print_emulation_result', 'emulation_verbose_mode', 'emulation_multiline','max_num_of_instr','iterations_before_break','break_infinite_loops','timeless_debugging',"complete_code_coverage"]
 
 
 
@@ -19445,7 +19487,7 @@ def modConf():
 	numOfIter = em.maxLoop
 
 
-	listofBools = [bPushRet, bCallPop, bFstenv, bSyscall, bHeaven, bPEB, bDisassembly, pebPresent, bit32, bytesForward, bytesBack, linesForward, linesBack,p2screen, bPushStackStrings, bAsciiStrings, bWideCharStrings, dFastMode, dFindAll, dDistr, dCPUcount, dNodesFile, dOutputFile, decryptOpTypes, decryptFile, stubFile, sameFile, stubEntry, stubEnd, shellEntry, pebPoints, minStrLen, maxDistance, sharem_out_dir, bPrintEmulation, emulation_verbose, emulation_multiline, maxEmuInstr, numOfIter, emuObj.breakLoop, emuObj.verbose]
+	listofBools = [bPushRet, bCallPop, bFstenv, bSyscall, bHeaven, bPEB, bDisassembly, pebPresent, bit32, bytesForward, bytesBack, linesForward, linesBack,p2screen, bPushStackStrings, bAsciiStrings, bWideCharStrings, dFastMode, dFindAll, dDistr, dCPUcount, dNodesFile, dOutputFile, decryptOpTypes, decryptFile, stubFile, sameFile, stubEntry, stubEnd, shellEntry, pebPoints, minStrLen, maxDistance, sharem_out_dir, bPrintEmulation, emulation_verbose, emulation_multiline, maxEmuInstr, numOfIter, emuObj.breakLoop, emuObj.verbose,em.codeCoverage]
 
 	listofSyscalls = []
 	for osv in syscallSelection:
@@ -19489,7 +19531,7 @@ def emulationConf(conr):
 	global bPrintEmulation
 	global emulation_verbose
 	global emulation_multiline
-	global emuObj
+	global emuObj  
 
 	bPrintEmulation = conr.getboolean('SHAREM EMULATION', 'print_emulation_result')
 	emulation_verbose = conr.getboolean('SHAREM EMULATION', 'emulation_verbose_mode')
@@ -19502,7 +19544,7 @@ def emulationConf(conr):
 	emuObj.breakLoop = conr.getboolean('SHAREM EMULATION', 'break_infinite_loops')
 	em.breakOutOfLoops = conr.getboolean('SHAREM EMULATION', 'break_infinite_loops')
 	emuObj.verbose = conr.getboolean('SHAREM EMULATION', 'timeless_debugging')
-
+	em.codeCoverage = conr.getboolean('SHAREM EMULATION',"complete_code_coverage")
 
 
 def SharemSearchConfig(conr):
@@ -19874,7 +19916,7 @@ def under_dev_function():
 	
 
 def emu_max_instruction():
-	global emuObj
+	global emuObj  
 	while True:
 		try:
 			minst = input(" Enter maximum instructions number: ")
@@ -19958,8 +20000,10 @@ def emuCheckDeobfSuccess():
 			emuDeobfuSuccess(fRaw.merged2, mode)
 
 def emulationSubmenu():
-	global emuObj
+	global emuObj  
 	global shellEntry
+	global shellBit
+	global bit32
 	em.maxCounter=emuObj.maxEmuInstr
 	global emulation_verbose
 	global emulation_multiline
@@ -19968,7 +20012,7 @@ def emulationSubmenu():
 		print(yel + " Sharem>" + cya + "Emulator> " +res, end="")
 		choice = input()
 		if choice == "z":
-			emuArch = emuObj.cpuArch
+			emuArch = shellBit
 			startEmu(emuArch, m[o].rawData2, emuObj.verbose)
 			emulation_txt_out(loggedList, logged_syscalls)
 			emuCheckDeobfSuccess()
@@ -20083,6 +20127,15 @@ def emulationSubmenu():
 			# 		break
 		elif choice == "a":
 			under_dev_function()
+			if em.arch == 64: 
+				em.arch = 32 
+				shellBit=32
+				bit32 = True
+			elif em.arch == 32: 
+				em.arch = 64
+				shellBit=64 
+				bit32 = False
+			print(cya + " \tArchitecture changed to " +str(em.arch) + "-bit.\n" + res)
 			# while True:
 			# 	try:
 			# 		minst = input(" Enter cpu architecture: ")
@@ -20100,6 +20153,9 @@ def emulationSubmenu():
 			# 		print(red + "\tPlease enter only a number." + res)
 			# 		break
 			# emulatorUI(emuObj)
+		elif choice == "s":
+			# syscallSelectionMenu()
+			emuSyscallSubMenu()
 
 
 
@@ -20214,6 +20270,7 @@ def startupPrint():
 	return outputData
 
 def saveConf(con):
+	global configOptions
 	try:
 		con.changeConf(configOptions)
 		con.save()
@@ -20272,7 +20329,7 @@ def ui(): #UI menu loop
 	
 	global configOptions
 	global rawhex
-	global emuObj
+	global emuObj  
 
 	bStrings = True
 	bModules = True
@@ -20410,11 +20467,13 @@ def uiBits():	#Change the bit mode
 		if bitIN == "32":
 			bit32 = True
 			shellBit = 32
+			em.arch=32
 			print("\nBits set to 32\n")
 			break
 		elif bitIN == "64":
 			bit32 = False
 			shellBit = 64
+			em.arch=64
 			print("\nBits set to 64\n")
 			break
 		elif bitIN == "x":
@@ -20427,7 +20486,7 @@ def uiBits():	#Change the bit mode
 
 def discoverEmulation(maxLen=None):
 	global shellBit
-	global emuObj 
+	global emuObj   
 
 	if maxLen==None:
 		maxLen=42
@@ -20438,7 +20497,7 @@ def discoverEmulation(maxLen=None):
 		print(cya + " Starting emulation of shellcode..."+res, flush=True)
 		
 
-		emuArch = emuObj.cpuArch										# temporary way of invoking emulator - may change later
+		emuArch = shellBit										# temporary way of invoking emulator - may change later
 		startEmu(emuArch, m[o].rawData2, emuObj.verbose)
 		emuCheckDeobfSuccess()
 		mBool[o].bEmulationFound=True									# if we run it, it is done - if we have not objective way of quantifying how successful it issues
@@ -21323,7 +21382,7 @@ def uiPrint(): 	#Print instructions
 				else:
 					print("No heaven's gate instructions found.\n")
 			if bPrintEmulation and p2screen:
-				if len(loggedList) >0:
+				if len(loggedList) >0 or  len(logged_syscalls) >0:
 					emulation_txt_out(loggedList, logged_syscalls)
 				else:
 					print ("\nNo emulation results.")
@@ -21489,6 +21548,35 @@ def uiPrintSyscallSubMenu(): #Printing/settings for syscalls
 			showDisassembly = False if showDisassembly else True
 			print("\tShow disassembly set to " + str(showDisassembly)+".")
 		# print("\n................\nSyscall Settings\n................\n")
+
+
+def emuSyscallSubMenu(): #Printing/settings for syscalls
+	global emuSyscallSelection
+	global shellbit
+	global showDisassembly
+	global syscallPrintBit
+
+	print(yel + "\n ...................\n Syscall Settings\n ...................\n" + res)
+	emuSyscallPrintSubMenu(emuSyscallSelection, showDisassembly, syscallPrintBit, True)
+	x = ""
+	while x != "e":
+		print(cya + " Sharem>" + gre + "Print>" + yel + "Syscalls> " + res, end="")
+		syscallIN = input()
+		if(re.match("^x$", syscallIN, re.IGNORECASE)):
+			# print("Returning to print menu.")
+			break
+		elif(re.match("^h$", syscallIN, re.IGNORECASE)):
+			emuSyscallSubMenu()
+		elif(re.match("^g$", syscallIN, re.IGNORECASE)):
+			emuSyscallSelectionsSubMenu()
+			print("\nChanges applied: ")
+			emuSyscallSubMenu()
+		elif(re.match("^c$", syscallIN, re.IGNORECASE)):
+			for key in emuSyscallSelection.keys():
+				emuSyscallSelection[key] = False
+			print("\nChanges applied: ")
+			emuSyscallSubMenu()			
+
 
 def uiModulesSubMenu():		#Find and display loaded modules
 	global bpModules
@@ -22166,6 +22254,24 @@ def findAll():  #Find everything
 	# print(".........................\n")
 	print(" Search completed.\n")
 
+def emuSyscallSelectionsSubMenu(): #Select osversions for syscalls
+	global emuSyscallSelection
+	x = ''
+
+	print("\nEnter input deliminted by commas or spaces.\n\tE.g. v3, xp2, r3\n")
+	# while x != 'e':
+	sysSelectIN = input("> ")
+	selections = sysSelectIN.replace(",", " ")
+	selectionList = selections.split()
+
+	validKeys = emuSyscallSelection.keys()
+	for selection in selectionList:
+		if(selection in validKeys):
+			emuSyscallSelection[selection] = (not emuSyscallSelection[selection])
+		else:
+			print("Code ", selection, " is not valid.")
+
+
 def syscallSelectionsSubMenu(): #Select osversions for syscalls
 	global syscallSelection
 	x = ''
@@ -22258,13 +22364,13 @@ def clearInstructions(): 	#Clears
 		secNum.save_PushRet_info.clear()
 
 	# o = 0
-	for o in m:
-		m[o].save_PEB_info.clear()
-		m[o].save_FSTENV_info.clear()
-		m[o].save_Egg_info.clear()
-		m[o].save_Heaven_info.clear()
-		m[o].save_Callpop_info.clear()
-		m[o].save_PushRet_info.clear()
+	for d in m:
+		m[d].save_PEB_info.clear()
+		m[d].save_FSTENV_info.clear()
+		m[d].save_Egg_info.clear()
+		m[d].save_Heaven_info.clear()
+		m[d].save_Callpop_info.clear()
+		m[d].save_PushRet_info.clear()
 		# o+= 1
 	# s.clear()
 	# print("S --> after clear", s)
@@ -22283,18 +22389,19 @@ def clearMods():			#Clears our module list
 	mBool[o].bModulesFound = False
 
 def clearFoundBooleans(): 	#Clears bools saying we've found data
-
-	mBool[o].bPushRetFound = False
-	mBool[o].bFstenvFound = False
-	mBool[o].bSyscallFound = False
-	mBool[o].bHeavenFound = False
-	mBool[o].bPEBFound = False
-	mBool[o].bCallPopFound = False
-	mBool[o].bStringsFound = False
-	mBool[o].bEvilImportsFound = False
-	mBool[o].bModulesFound = False
-	mBool[o].bWideStringFound = False
-	mBool[o].bPushStringsFound = False
+	for d in m:
+		mBool[d].bPushRetFound = False
+		mBool[d].bFstenvFound = False
+		mBool[d].bSyscallFound = False
+		mBool[d].bHeavenFound = False
+		mBool[d].bPEBFound = False
+		mBool[d].bCallPopFound = False
+		mBool[d].bStringsFound = False
+		mBool[d].bEvilImportsFound = False
+		mBool[d].bModulesFound = False
+		mBool[d].bWideStringFound = False
+		mBool[d].bPushStringsFound = False
+	
 
 def clearAll():		#Clears all found data and booleans
 	clearInstructions()
@@ -22302,6 +22409,7 @@ def clearAll():		#Clears all found data and booleans
 	clearFoundBooleans()
 	clearStrings()
 	clearImports()
+	commentsGiven=False
 
 def clearStrings():
 	
@@ -22309,11 +22417,11 @@ def clearStrings():
 	global stringsTempWide
 	global pushStringsTemp
 	
-	
+	for d in m:
 
-	mBool[o].bStringsFound = False
-	mBool[o].bWideStringFound=False
-	mBool[o].bPushStringsFound=False
+		mBool[d].bStringsFound = False
+		mBool[d].bWideStringFound=False
+		mBool[d].bPushStringsFound=False
 	try:
 		t = 0
 		for sec in s:
@@ -22327,13 +22435,14 @@ def clearStrings():
 	stringsTempWide.clear()
 	pushStringsTemp.clear()
 	stringsTemp.clear()
+	clearFoundBooleans()
 
 def clearImports():
 	
 	FoundApisName.clear()
 	mBool[o].bEvilImportsFound = False
 
-def emulation_json_out(apiList):
+def emulation_json_out(apiList, logged_syscalls):
 
 
 	# api1 = {"api_name": "winexec",
@@ -22350,6 +22459,7 @@ def emulation_json_out(apiList):
 
 	# }
 	path_artifacts, file_artifacts, commandLine_artifacts, web_artifacts, registry_artifacts,	exe_dll_artifacts = findArtifacts()
+	# syscall_names, syscall_params_values, syscall_params_types, syscall_params_names, syscall_address, ret_values, ret_type, syscall_bruteforce, syscallID = build_emu_results(logged_syscalls)
 
 
 
@@ -22387,6 +22497,7 @@ def emulation_json_out(apiList):
 
 
 	emulation_dict = {"api_calls":[],
+					  "syscalls_emulation":[],
 					  "dlls":[],
 					  "path_artifacts":[],
 					  "file_artifacts":[],
@@ -22422,7 +22533,33 @@ def emulation_json_out(apiList):
 												"value":pVal})
 		# list_of_apis.append(api_dict)
 		emulation_dict["api_calls"].append(api_dict)
+	
+	for i in logged_syscalls:
+		syscalls_dict = {}
+		syscall_name = i[0]
+		syscall_address = i[1]
+		syscall_value = i[2]
+		syscall_type = i[3]
+		syscall_params_values = i[4]
+		syscall_params_types = i[5]
+		syscall_params_names = i[6]
+		syscall_callID = i[8]
 
+		syscalls_dict["syscall_name"] = syscall_name
+		syscalls_dict["return_value"] = syscall_type + " "+syscall_value
+		syscalls_dict["address"] = syscall_address
+
+		syscalls_dict["parameters"] = []
+
+		for pTyp, pName, pVal in zip(syscall_params_types, syscall_params_names, syscall_params_values):
+			syscalls_dict['parameters'].append({"type":pTyp + " " + pName,
+												"value":pVal})
+
+		syscalls_dict["syscall_callID"] = hex(syscall_callID)
+		syscalls_dict["OS_Release_SP"] = em.winVersion+", SP "+em.winSP
+
+		# print(syscall_name)
+		emulation_dict["syscalls_emulation"].append(syscalls_dict)
 
 	emulation_dict["dlls"].extend(logged_dlls)
 	emulation_dict["path_artifacts"].extend(path_artifacts)
@@ -22590,19 +22727,19 @@ def emulation_txt_out(apiList, logged_syscalls):
 			# no_colors_out += "\t{} {}\n\n".format( "Return:", retVal)
 
 	if len(logged_syscalls) > 0:
-		api_names, api_params_values, api_params_types, api_params_names, api_address, ret_values, ret_type, api_bruteforce, syscallID = build_emu_results(logged_syscalls)
+		syscall_names, syscall_params_values, syscall_params_types, syscall_params_names, syscall_address, ret_values, ret_type, syscall_bruteforce, syscallID = build_emu_results(logged_syscalls)
 		txt_output += mag + "\n************* Syscalls *************\n\n" + res
 		verbose_mode = emulation_verbose
 		t = 0
-		for eachApi in api_names:
-			apName = api_names[t]
-			offset = api_address[t]
-			pType = api_params_types[t]
-			pName = api_params_names[t]
+		for eachApi in syscall_names:
+			apName = syscall_names[t]
+			offset = syscall_address[t]
+			pType = syscall_params_types[t]
+			pName = syscall_params_names[t]
 			TypeBundle = []
 			retVal = ret_values[t]
 			retType = ret_type[t]
-			paramVal = api_params_values[t]
+			paramVal = syscall_params_values[t]
 			# DLL = dll_name[t]
 			for v, typ in zip(pType, pName):
 				TypeBundle.append(v + " " + typ)
@@ -22625,7 +22762,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 					txt_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
 				txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
 				txt_output += "\t{} {} - ({}, SP {})\n".format(red + "EAX: " + res, hex(syscallID) + res, em.winVersion + res, em.winSP + res)
-				if api_bruteforce:
+				if syscall_bruteforce:
 					txt_output += "\t{}\n\n".format(whi + "Brute-forced" + res, )
 				else:
 					txt_output += "\n"
@@ -23067,6 +23204,8 @@ def printToJson(bpAll, outputData):	#Output data to json
 
 	outfile.write(js_ob)
 
+
+
 	jsonOut = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs", "default", "jsondefault.json"), "w")
 	jsonOut.write(js_ob)
 
@@ -23230,7 +23369,7 @@ def generateOutputData(): #Generate the dictionary for json out
 		
 
 
-	jsonData['emulation'] = emulation_json_out(loggedList)
+	jsonData['emulation'] = emulation_json_out(loggedList,logged_syscalls)
 
 	#We grab the saved info, and loop through it, adding an object to the respective category's list and add a new object for each. The method is the same as the printsaved____() functions
 	if(bit32):
@@ -24426,11 +24565,12 @@ def printToText(outputData):	#Output data to text doc
 	# binFileName = output_dir + slash + outfile + filler+slash + outfileName + "-raw.bin"
 
 
-	disFileName = os.path.join(output_dir, outfile + filler, outfileName + "-disassembly.txt")
+	# print("output_dir: ", output_dir, "outfile: ", outfile, " filler: ", filler, "outfileName: ", outfileName)
+	disFileName = os.path.join(output_dir, outfileName.split("\\")[-1], outfileName.split("\\")[-1] + "-disassembly.txt")
 	binFileName = os.path.join(output_dir, outfile + filler, outfileName + "-raw.bin")
 
 	if mBool[o].bEvilImportsFound:
-		importsName =  os.path.join(output_dir, outfile + filler, outfileName + "-imports.txt")
+		importsName =  os.path.join(output_dir,  outfileName.split("\\")[-1], outfileName.split("\\")[-1] + "-imports.txt")
 		importData = showImports(out2File=True)
 		importFp = open(importsName, "w")
 		importFp.write(importData)
@@ -24662,7 +24802,7 @@ def printToText(outputData):	#Output data to text doc
 	#outString += disassembly
 	bPrintEmulation = False
 
-	if len(loggedList) > 0:
+	if len(loggedList) > 0 or  len(logged_syscalls) >0:
 		outString += emulation_txt_out(loggedList, logged_syscalls)
 	else:
 		outString += "\nNo APIs or artifacts discovered through emulation.\n"
@@ -24670,8 +24810,8 @@ def printToText(outputData):	#Output data to text doc
 	text.write (outString)
 	# text.write(emulation_txt)
 	text.close()
-	rawSh = binaryToText(m[o].rawData2, "json")[1]
-	# generateTester(outfile, rawSh)
+	rawSh = binaryToText(m["shellcode"].rawData2, "json")[1]
+	generateTester(outfile, rawSh, shellEntry)
 
 def returnSyscalls(callNum, bit = 64):
 	#works the same as getsyscallrecent()
@@ -24732,7 +24872,7 @@ def testTarek():
 def SharemMain(parserNamespace: Namespace):
 
 	global shHash
-	global emuObj
+	global emuObj  
 	global patt
 	global sBy
 	global sh
