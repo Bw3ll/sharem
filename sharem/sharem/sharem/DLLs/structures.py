@@ -1,5 +1,5 @@
 from enum import Enum
-from struct import pack, unpack
+from struct import calcsize, pack, unpack
 from time import gmtime, localtime,time_ns, localtime
 from ..helper.emuHelpers import Uc
 
@@ -149,7 +149,7 @@ class struct_SYSTEMTIME:
         self.wYear = timeVal.tm_year
         self.wMonth = timeVal.tm_mon
         dayOfWeek = timeVal.tm_wday + 1 # Convert Monday 0 to Sunday 0
-        if dayOfWeek is 7: dayOfWeek = 0
+        if dayOfWeek == 7: dayOfWeek = 0
         self.wDayOfWeek = dayOfWeek
         self.wDay = timeVal.tm_mday
         self.wHour = timeVal.tm_hour
@@ -260,3 +260,31 @@ class struct_FILETIME:
         unPacked = unpack('<II', data)
         self.dwLowDateTime = unPacked[0]         
         self.dwHighDateTime = unPacked[1]
+
+class struct_UNICODE_STRING:
+    # UNICODE_STRING, *PUNICODE_STRING
+    def __init__(self, length: int, PWSTR: int):
+        self.Length = length
+        self.MaximumLength = length
+        self.Buffer = PWSTR
+    
+    def writeToMemory(self, uc: Uc, address):
+        packedStruct = pack(f'<HHI', self.Length, self.MaximumLength, self.Buffer)
+        uc.mem_write(address, packedStruct)
+
+    def readFromMemory(self, uc: Uc, address):
+        data = uc.mem_read(address, 8)
+        unpackedStruct = unpack('<HHI', data)
+        self.Length = unpackedStruct[0]
+        self.MaximumLength = unpackedStruct[1]
+        self.Buffer = unpackedStruct[2]
+
+# class struct_OBJECT_ATTRIBUTES: # To Be Finished Later 
+#     def __init__(self):
+#         self.Length = calcsize('<LIILII')
+#         self.RootDirectory
+#         self.ObjectName
+#         self.Attributes
+#         self.SecurityDescriptor
+#         self.SecurityQualityOfService
+        

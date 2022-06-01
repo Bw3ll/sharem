@@ -4,7 +4,7 @@ from unicorn.x86_const import *
 from struct import pack, unpack
 from ..helper.emuHelpers import Uc
 from ..modules import allDllsDict
-from .structures import struct_FILETIME, struct_PROCESSENTRY32, struct_MODULEENTRY32, struct_SYSTEMTIME, struct_THREADENTRY32
+from .structures import struct_FILETIME, struct_PROCESSENTRY32, struct_MODULEENTRY32, struct_SYSTEMTIME, struct_THREADENTRY32, struct_UNICODE_STRING
 import traceback
 
 commandLine_arg = set()
@@ -273,49 +273,44 @@ class CustomWinAPIs():
         logged_calls = ("LoadLibraryExW", hex(callAddr), retValStr, 'HMODULE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def LdrLoadDll(self, uc, eip, esp, export_dict, callAddr, em): # Needs Redone
-        # print("Doing manual function")
-        arg1 = uc.mem_read(esp + 4, 4)
-        arg1 = unpack('<I', arg1)[0]
-        arg1 = read_string(uc, arg1)
+    def LdrLoadDll(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['PWCHAR', 'ULONG', 'PUNICODE_STRING', 'PHANDLE']
+        pNames = ['PathToFile', 'Flags', 'ModuleFileName', 'ModuleHandle']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        arg2 = uc.mem_read(esp + 8, 4)
-        arg2 = hex(unpack('<I', arg2)[0])
+        flagsReverseLookUp = {1: 'DONT_RESOLVE_DLL_REFERENCES', 16: 'LOAD_IGNORE_CODE_AUTHZ_LEVEL', 2: 'LOAD_LIBRARY_AS_DATAFILE', 64: 'LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE', 32: 'LOAD_LIBRARY_AS_IMAGE_RESOURCE', 512: 'LOAD_LIBRARY_SEARCH_APPLICATION_DIR', 4096: 'LOAD_LIBRARY_SEARCH_DEFAULT_DIRS', 256: 'LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR', 2048: 'LOAD_LIBRARY_SEARCH_SYSTEM32', 1024: 'LOAD_LIBRARY_SEARCH_USER_DIRS', 8: 'LOAD_WITH_ALTERED_SEARCH_PATH', 128: 'LOAD_LIBRARY_REQUIRE_SIGNED_TARGET', 8192: 'LOAD_LIBRARY_SAFE_CURRENT_DIRS'}
 
-        arg3 = uc.mem_read(esp + 12, 4)
-        arg3 = unpack('<I', arg3)[0]
-        arg3 = uc.mem_read(arg3 + 4, 4)
-        arg3 = unpack('<I', arg3)[0]
-        arg3 = read_unicode(uc, arg3)
+        unicode_string = struct_UNICODE_STRING(0, 0)
+        unicode_string.readFromMemory(uc, pVals[2])
+        name = read_unicode(uc, unicode_string.Buffer)
 
-        arg4 = uc.mem_read(esp + 16, 4)
-        arg4 = unpack('<I', arg4)[0]
-
-        # Return base address of passed library
         try:
-            retVal = allDllsDict[arg1]
+            moduleLoc = allDllsDict[name]
         except:
             try:
-                arg3 = arg3.lower()
-                retVal = allDllsDict[arg3]
+                nameL = name.lower()
+                moduleLoc = allDllsDict[nameL]
             except:
-                print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", arg1)
-                print(hex(eip), (len(arg1)))
-                retVal = 0
+                print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
+                moduleLoc = 0
 
         # uc.reg_write(UC_X86_REG_EAX, retVal)
-        uc.mem_write(arg4, pack("<Q", retVal))
+        if moduleLoc != 0:
+            handle = Handle(HandleType.HMODULE,name=name,handleValue=moduleLoc)
+            uc.mem_write(pVals[3], pack("<I", handle.value))
+        retVal = 0
 
-        check = uc.mem_read(arg4, 4)
-        check = unpack('<I', arg4)[0]
-        print("Check: ", check)
+        pVals[0] = read_unicode(uc, pVals[0])
+        pVals[1] = getLookUpVal(pVals[1], flagsReverseLookUp)
+        pVals[2] = name
 
-        logged_calls = ("LdrLoadDll", hex(callAddr), hex(retVal), 'ModuleHandle', [arg1, arg2, arg3, arg4],
-                        ['PWCHAR', 'ULONG', 'PUNICODE_STRING', 'PHANDLE'],
-                        ['PathToFile', 'Flags', 'ModuleFileName', 'ModuleHandle'], False)
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0,1,2])
 
-        cleanBytes = 16
-        return logged_calls, cleanBytes
+        retValStr = getLookUpVal(retVal, CustomWinSysCalls.NTSTATUSReverseLookUp)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("LdrLoadDll", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def VirtualAlloc(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 4)
@@ -6270,6 +6265,38 @@ class CustomWinSysCalls():
 
         return logged_calls
 
+    def NtCreateNamedPipeFile(self, uc: Uc, eip, esp, callAddr, em):
+        pVals = self.makeArgVals(uc, em, esp, 14)
+        pTypes = ['PHANDLE', 'ACCESS_MASK', 'POBJECT_ATTRIBUTES', 'PIO_STATUS_BLOCK', 'ULONG', 'ULONG', 'ULONG', 'BOOLEAN', 'BOOLEAN', 'BOOLEAN', 'ULONG', 'ULONG', 'ULONG', 'PLARGE_INTEGER']
+        pNames = ['NamedPipeFileHandle', 'DesiredAccess', 'ObjectAttributes', 'IoStatusBlock', 'ShareAccess', 'CreateDisposition', 'CreateOptions', 'WriteModeMessage', 'ReadModeMessage', 'NonBlocking', 'MaxInstances', 'InBufferSize', 'OutBufferSize', 'DefaultTimeOut']
+        desiredAccessReverseLookUp = {0x0001: 'FILE_READ_DATA', 0x0002: 'FILE_WRITE_DATA', 0x0004: 'FILE_CREATE_PIPE_INSTANCE', 0x0080: 'FILE_READ_ATTRIBUTES', 0x0100: 'FILE_WRITE_ATTRIBUTES', 0x00100000: 'SYNCHRONIZE', 0x00200000: 'READ_CONTROL', 0x00080000: 'WRITE_OWNER', 0x00040000: 'WRITE_DAC', 0x01000000: 'ACCESS_SYSTEM_SECURITY'}
+        shareAccessReverseLookUp = {0x1: 'FILE_SHARE_READ', 0x2: 'FILE_SHARE_WRITE', 0x4: 'FILE_SHARE_DELETE'}
+        createDispositionReverseLookUp = {0x00000000: 'FILE_SUPERSEDE', 0x00000001: 'FILE_OPEN', 0x00000002: 'FILE_CREATE', 0x00000003: 'FILE_OPEN_IF', 0x00000004: 'FILE_OVERWRITE', 0x00000005: 'FILE_OVERWRITE_IF', 0x00000005: 'FILE_MAXIMUM_DISPOSITION'}
+        createOptionsReverseLookup = {1: 'FILE_DIRECTORY_FILE', 2: 'FILE_WRITE_THROUGH', 4: 'FILE_SEQUENTIAL_ONLY', 8: 'FILE_NO_INTERMEDIATE_BUFFERING', 16: 'FILE_SYNCHRONOUS_IO_ALERT', 32: 'FILE_SYNCHRONOUS_IO_NONALERT', 64: 'FILE_NON_DIRECTORY_FILE', 128: 'FILE_CREATE_TREE_CONNECTION', 256: 'FILE_COMPLETE_IF_OPLOCKED', 512: 'FILE_NO_EA_KNOWLEDGE', 1024: 'FILE_OPEN_REMOTE_INSTANCE', 2048: 'FILE_RANDOM_ACCESS', 4096: 'FILE_DELETE_ON_CLOSE', 8192: 'FILE_OPEN_BY_FILE_ID', 16384: 'FILE_OPEN_FOR_BACKUP_INTENT', 32768: 'FILE_NO_COMPRESSION', 65536: 'FILE_OPEN_REQUIRING_OPLOCK', 1048576: 'FILE_RESERVE_OPFILTER', 2097152: 'FILE_OPEN_REPARSE_POINT', 4194304: 'FILE_OPEN_NO_RECALL', 8388608: 'FILE_OPEN_FOR_FREE_SPACE_QUERY', 16777215: 'FILE_VALID_OPTION_FLAGS', 50: 'FILE_VALID_MAILSLOT_OPTION_FLAGS', 54: 'FILE_VALID_SET_FLAGS'}
+        maxInstancesReverseLookUp = {255: 'PIPE_UNLIMITED_INSTANCES'}
+  
+        try:
+            # Possibly Parse ObjectAttributes Struct for Name
+            handle = Handle(HandleType.ReadWritePipe)
+            uc.mem_write(pVals[0], pack('<I', handle.value))
+        except:
+            pass
+
+        pVals[1] = getLookUpVal(pVals[1], desiredAccessReverseLookUp)
+        pVals[4] = getLookUpVal(pVals[4], shareAccessReverseLookUp)
+        pVals[5] = getLookUpVal(pVals[5], createDispositionReverseLookUp)
+        pVals[6] = getLookUpVal(pVals[6], createOptionsReverseLookup)
+        pVals[10] = getLookUpVal(pVals[10], maxInstancesReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,4,5,6,10])
+
+        retVal = 0
+        retValStr = getLookUpVal(retVal, self.NTSTATUSReverseLookUp)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        logged_calls = ["NtCreateNamedPipeFile", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+
+        return logged_calls
+
 
 # Heap Functions
 class Heap:
@@ -6490,6 +6517,13 @@ def findStringsParms(uc, pTypes, pVals, skip):
                     pVals[i] = buildPtrString(pVals[i], pointerVal)
                 except:
                     pass
+            elif pTypes[i] == 'BOOLEAN' or pTypes[i] == 'BOOL':
+                if pVals[i] == 0x1:
+                    pVals[i] = 'TRUE'
+                elif pVals[i] == 0x0:
+                    pVals[i] = 'FALSE'
+                else:
+                    pVals[i] = hex(pVals[i])
             else:
                 pVals[i] = hex(pVals[i])
 
