@@ -22534,10 +22534,10 @@ def emulation_json_out(apiList, logged_syscalls):
 		except:
 			dll_name = "kernel32.dll"
 
-		# ret_val=getRetVal(ret_value,ret_type)
+		
 		api_dict["api_name"] = api_name
 		api_dict["dll_name"] = dll_name
-		api_dict["return_value"]= ret_type+" " + ret_value
+		api_dict["return_value"]= ret_type+" " + str(ret_value)
 		api_dict["address"] = api_address
 		api_dict['parameters'] = []
 
@@ -22546,7 +22546,7 @@ def emulation_json_out(apiList, logged_syscalls):
 		api_params_names = i[6]
 		for pTyp, pName, pVal in zip(api_params_types, api_params_names, api_params_values):
 			api_dict['parameters'].append({"type":pTyp + " " + pName,
-												"value":pVal})
+												"value":str(pVal)})
 		# list_of_apis.append(api_dict)
 		emulation_dict["api_calls"].append(api_dict)
 	
@@ -22561,17 +22561,17 @@ def emulation_json_out(apiList, logged_syscalls):
 		syscall_params_names = i[6]
 		syscall_callID = i[8]
 
-		syscalls_dict["syscall_name"] = syscall_name
-		syscalls_dict["return_value"] = syscall_type + " "+syscall_value
-		syscalls_dict["address"] = syscall_address
+		syscalls_dict["syscall_name"] = str(syscall_name)
+		syscalls_dict["return_value"] = str(syscall_type + " "+syscall_value)
+		syscalls_dict["address"] = str(syscall_address)
 
 		syscalls_dict["parameters"] = []
 
 		for pTyp, pName, pVal in zip(syscall_params_types, syscall_params_names, syscall_params_values):
-			syscalls_dict['parameters'].append({"type":pTyp + " " + pName,
-												"value":pVal})
+			syscalls_dict['parameters'].append({"type":str(pTyp) + " " + str(pName),
+												"value":str(pVal)})
 
-		syscalls_dict["syscall_callID"] = hex(syscall_callID)
+		syscalls_dict["syscall_callID"] = str(hex(syscall_callID))
 		syscalls_dict["OS_Release_SP"] = em.winVersion+", SP "+em.winSP
 
 		# print(syscall_name)
