@@ -442,7 +442,7 @@ def hook_syscallDefault(uc, eip, esp, funcAddress, funcName, sysCallID, callLoc)
     dll = 'ntdll'
 
     try:
-        print (1, funcName)
+        # print (1, funcName)
 
         nt_tuple = syscall_signature[funcName]
         paramVals = getParams(uc, esp, nt_tuple, 'ntdict')
@@ -461,7 +461,7 @@ def hook_syscallDefault(uc, eip, esp, funcAddress, funcName, sysCallID, callLoc)
 
 
 def hook_sysCall(uc, address, size):
-    print ("hook_sysCall")
+    # print ("hook_sysCall")
     global logged_dlls
     global stopProcess
 
