@@ -7,16 +7,7 @@ import binascii
 import copy
 import os
 from collections import OrderedDict
-import random
-
-try:
-	import win32api
-	import win32con
-	import win32file
-	import _win32sysloader
-except:
-	print ("Pywin32 needs to be installed.\nhttps://pypi.org/project/pywin32/\n\tThe setup.py is not always effective at installing Pywin32, so it may need to be manually done.\n")
-	
+import random	
 import ctypes
 from ctypes import *
 
@@ -44,6 +35,16 @@ try:
 except:
 	print ("Ssdeep needs to be installed. A Windows Python wrapper is available:\nhttps://github.com/DinoTools/python-ssdeep")
 
+try:
+	if platformType == "Windows":
+		import win32api
+		import win32con
+		import win32file
+		import _win32sysloader
+except:
+	print ("Pywin32 needs to be installed.\nhttps://pypi.org/project/pywin32/\n\tThe setup.py is not always effective at installing Pywin32, so it may need to be manually done.\n")
+	
+	
 colorama.init()
 # readRegs()
 # testingAssembly()
