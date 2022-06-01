@@ -75,6 +75,7 @@ class HandleType(Enum):
     HMODULE = auto()
     # Desktop/Window
     HWND = auto()
+    ClipBoard = auto()
 
 
 class Handle:
@@ -2138,8 +2139,6 @@ class CustomWinAPIs():
         # create strings for everything except ones in our skip
         skip = [1]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
-        print (pVals)
-        print ("pvals", pVals[0],"\n")
 
         #get the commandline from the arguments
         winexec_args = (pVals[0])
@@ -5250,6 +5249,146 @@ class CustomWinAPIs():
         logged_calls = ("CheckRemoteDebuggerPresent", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def SetClipboardData(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['UINT', 'HANDLE'] 
+        pNames = ['uFormat', 'hMem'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        # ClipBoard = auto() handle type at top
+        FormatReverseLookUp = {2: 'CF_BITMAP', 8: 'CF_DIB', 17: 'CF_DIBV5', 5: 'CF_DIF', 130: 'CF_DSPBITMAP', 142: 'CF_DSPENHMETAFILE', 131: 'CF_DSPMETAFILEPICT', 129: 'CF_DSPTEXT', 14: 'CF_ENHMETAFILE', 768: 'CF_GDIOBJFIRST', 1023: 'CF_GDIOBJLAST', 15: 'CF_HDROP', 16: 'CF_LOCALE', 3: 'CF_METAFILEPICT', 7: 'CF_OEMTEXT', 128: 'CF_OWNERDISPLAY', 9: 'CF_PALETTE', 10: 'CF_PENDATA', 512: 'CF_PRIVATEFIRST', 767: 'CF_PRIVATELAST', 11: 'CF_RIFF', 4: 'CF_SYLK', 1: 'CF_TEXT', 6: 'CF_TIFF', 13: 'CF_UNICODETEXT', 12: 'CF_WAVE'}
+
+        pVals[0] = getLookUpVal(pVals[0], FormatReverseLookUp)
+
+        skip = [0]
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        handle = Handle(HandleType.Clipboard)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal =  handle.value # if success, return val is handle to data
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls= ("SetClipboardData", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def GetClipboardData(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['UINT'] 
+        pNames = ['uFormat'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        # ClipBoard = auto() handle type at top
+        FormatReverseLookUp = {2: 'CF_BITMAP', 8: 'CF_DIB', 17: 'CF_DIBV5', 5: 'CF_DIF', 130: 'CF_DSPBITMAP', 142: 'CF_DSPENHMETAFILE', 131: 'CF_DSPMETAFILEPICT', 129: 'CF_DSPTEXT', 14: 'CF_ENHMETAFILE', 768: 'CF_GDIOBJFIRST', 1023: 'CF_GDIOBJLAST', 15: 'CF_HDROP', 16: 'CF_LOCALE', 3: 'CF_METAFILEPICT', 7: 'CF_OEMTEXT', 128: 'CF_OWNERDISPLAY', 9: 'CF_PALETTE', 10: 'CF_PENDATA', 512: 'CF_PRIVATEFIRST', 767: 'CF_PRIVATELAST', 11: 'CF_RIFF', 4: 'CF_SYLK', 1: 'CF_TEXT', 6: 'CF_TIFF', 13: 'CF_UNICODETEXT', 12: 'CF_WAVE'}
+
+        pVals[0] = getLookUpVal(pVals[0], FormatReverseLookUp)
+
+        skip = [0]
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        handle = Handle(HandleType.Clipboard)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal =  handle.value 
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls= ("GetClipboardData", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def OpenClipboard(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['HWND'] 
+        pNames = ['hWndNewOwner'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        skip = []
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = "TRUE"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("OpenClipboard", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def SetTimer(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['HWND', 'UINT_PTR', 'UINT', 'TIMERPROC'] 
+        pNames = ['hWnd', 'nIDEvent', 'uElapse', 'lpTimerFunc'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        skip = []
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = "SUCCESS - New integer identified as timer"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("SetTimer", hex(callAddr), (retValStr), 'UINT_PTR', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def MoveFileA(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['LPCSTR', 'LPCSTR'] 
+        pNames = ['lpExistingFileName', 'lpNewFileName'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        skip = []
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = "TRUE"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("MoveFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def CopyFile(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['LPCSTR', 'LPCSTR', 'BOOL'] 
+        pNames = ['lpExistingFileName', 'lpNewFileName', 'bFailIfExists'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        skip = []
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = "SUCCESSFUL"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        # "0x15e17a55": ["CopyFile", "kernel32.dll"],
+        logged_calls= ("CopyFile", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def ReadFile(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['HANDLE', 'LPVOID', 'DWORD', 'LPDWORD', 'LPOVERLAPPED'] 
+        pNames = ['hFile', 'lpBuffer', 'nNumberOfBytesToRead', 'lpNumberOfBytesRead', 'lpOverlapped'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        skip = []
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = "TRUE"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        
+        logged_calls= ("ReadFile", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def SetForegroundWindow(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['HWND'] 
+        pNames = ['hWnd'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        skip = []
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = "Window Successfully Brought to Foreground"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+       
+        logged_calls= ("SetForegroundWindow", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
     def SetLastError(self, uc, eip, esp, export_dict, callAddr, em):
         # void SetLastError([in] DWORD dwErrCode);
         pVals = makeArgVals(uc, em, esp, 1)
@@ -6553,6 +6692,7 @@ def getStackVal(uc, em, esp, loc):
 
 
 def makeArgVals(uc, em, esp, numParams):
+    # print ("numParams", numParams)
     args = [0] * numParams
     for i in range(len(args)):
         args[i] = getStackVal(uc, em, esp, i + 1)
