@@ -4912,6 +4912,86 @@ class CustomWinAPIs():
         logged_calls= ("SetClipboardData", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
+    def OpenClipboard(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['HWND'] 
+        pNames = ['hWndNewOwner'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        skip = []
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = "TRUE"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("OpenClipboard", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def MoveFileA(self, uc, eip, esp, export_dict, callAddr, em):
+            pTypes =['LPCSTR', 'LPCSTR'] 
+            pNames = ['lpExistingFileName', 'lpNewFileName'] 
+            pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+            skip = []
+            pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+            cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+            retVal = 0x1
+            retValStr = "TRUE"
+            uc.reg_write(UC_X86_REG_EAX, retVal)
+
+            logged_calls= ("MoveFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+            return logged_calls, cleanBytes
+
+    def CopyFile(self, uc, eip, esp, export_dict, callAddr, em):
+            pTypes =['LPCSTR', 'LPCSTR', 'BOOL'] 
+            pNames = ['lpExistingFileName', 'lpNewFileName', 'bFailIfExists'] 
+            pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+            skip = []
+            pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+            cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+            retVal = 0x1
+            retValStr = "SUCCESSFUL"
+            uc.reg_write(UC_X86_REG_EAX, retVal)
+            # "0x15e17a55": ["CopyFile", "kernel32.dll"],
+            logged_calls= ("CopyFile", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+            return logged_calls, cleanBytes
+
+    def ReadFile(self, uc, eip, esp, export_dict, callAddr, em):
+            pTypes =['HANDLE', 'LPVOID', 'DWORD', 'LPDWORD', 'LPOVERLAPPED'] 
+            pNames = ['hFile', 'lpBuffer', 'nNumberOfBytesToRead', 'lpNumberOfBytesRead', 'lpOverlapped'] 
+            pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+            skip = []
+            pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+            cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+            retVal = 0x1
+            retValStr = "TRUE"
+            uc.reg_write(UC_X86_REG_EAX, retVal)
+            
+            logged_calls= ("ReadFile", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+            return logged_calls, cleanBytes
+
+    def SetForegroundWindow(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['HWND'] 
+        pNames = ['hWnd'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        skip = []
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = "Window Successfully Brought to Foreground"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+       
+        logged_calls= ("SetForegroundWindow", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
     def SetLastError(self, uc, eip, esp, export_dict, callAddr, em):
         # void SetLastError([in] DWORD dwErrCode);
         pVals = makeArgVals(uc, em, esp, 1)
