@@ -73,6 +73,8 @@ class HandleType(Enum):
     HGLOBAL = auto()
     # Module
     HMODULE = auto()
+    # Desktop/Window
+    HWND = auto()
 
 
 class Handle:
@@ -4925,11 +4927,63 @@ class CustomWinAPIs():
         logged_calls = ("Sleep", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
+    def GetDesktopWindow(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes = []
+        pNames = []
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        handle = Handle(HandleType.HWND, name='DesktopWindow')
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        retVal = handle.value
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("GetDesktopWindow", hex(callAddr), (retValStr), 'HWND', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetForegroundWindow(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes = []
+        pNames = []
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        handle = Handle(HandleType.HWND, name='ForegroundWindow')
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        retVal = handle.value
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("GetForegroundWindow", hex(callAddr), (retValStr), 'HWND', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+    
+    def GetDesktopWindow(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes = []
+        pNames = []
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        handle = Handle(HandleType.HWND, name='DesktopWindow')
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        retVal = handle.value
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("GetDesktopWindow", hex(callAddr), (retValStr), 'HWND', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+
     def CloseHandle(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL CloseHandle( [in] HANDLE hObject);
         pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['HANDLE']
         pNames = ['hObject']
+
+        if pVals[0] in HandlesDict:
+            HandlesDict.pop(pVals[0])
 
         # create strings for everything except ones in our skip
         skip = []  # we need to skip this value (index) later-let's put it in skip
@@ -5176,6 +5230,25 @@ class CustomWinAPIs():
 
         logged_calls = ("IsDebuggerPresent", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
+
+    def CheckRemoteDebuggerPresent(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['HANDLE', 'PBOOL']
+        pNames = ['hProcess', 'pbDebuggerPresent']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        try:
+            uc.mem_write(pVals[1], pack('<?',0))
+        except:
+            pass
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        retVal = 0
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("CheckRemoteDebuggerPresent", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def SetLastError(self, uc, eip, esp, export_dict, callAddr, em):
         # void SetLastError([in] DWORD dwErrCode);
