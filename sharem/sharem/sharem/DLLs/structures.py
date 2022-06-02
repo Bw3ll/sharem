@@ -91,6 +91,40 @@ def makeStructVals(uc: Uc, struct, unicode: bool = False):
     
     return (pTypes, pNames, pVals)
 
+class struct_PROCESS_INFORMATION:
+    # Backs PROCESS_INFORMATION, *PPROCESS_INFORMATION, *LPPROCESS_INFORMATION
+    types = ['HANDLE','HANDLE','DWORD','DWORD']
+    names = ['hProcess','hThread','dwProcessId','dwThreadId']
+
+    nextProcessID = 10000
+    nextThreadID = 20000
+
+    def __init__(self, hProcess: int, hThread: int, pID: int = 0, tID: int = 0):
+        self.hProcess = hProcess
+        self.hThread = hThread
+        if pID != 0:
+            self.dwProcessId = pID
+        else:
+            self.dwProcessId = struct_PROCESS_INFORMATION.nextProcessID
+            struct_PROCESS_INFORMATION.nextProcessID += 1
+        if tID != 0:
+            self.dwThreadId = tID
+        else:
+            self.dwThreadId = struct_PROCESS_INFORMATION.nextThreadID
+            struct_PROCESS_INFORMATION.nextThreadID += 1
+
+    def writeToMemory(self, uc: Uc, address: int):
+        packedStruct = pack('<IIII', self.hProcess, self.hThread, self.dwProcessId, self.dwThreadId)
+        uc.mem_write(address, packedStruct)
+
+    def readFromMemory(self, uc: Uc, address: int):
+        data = uc.mem_read(address, 16)
+        unpackedStruct = unpack('<IIII', data)
+        self.hProcess = unpackedStruct[0]
+        self.hThread = unpackedStruct[1]
+        self.dwProcessId = unpackedStruct[2]
+        self.dwThreadId = unpackedStruct[3]
+
 
 class struct_PROCESSENTRY32:
     # Backs both PROCESSENTRY32 and PROCESSENTRY32W
@@ -147,6 +181,9 @@ class struct_PROCESSENTRY32:
         self.szExeFile = unpackedStruct[9].decode()
 
 class struct_THREADENTRY32:
+    types = ['DWORD','DWORD','DWORD','DWORD','DWORD','DWORD','LONG','LONG','DWORD']
+    names = ['dwSize','cntUsage','th32ThreadID','th32OwnerProcessID','tpBasePri','tpDeltaPri','dwFlags']
+    
     def __init__(self, ThreadID, OwnerProcessID, tpBasePri):
         self.dwSize = 28
         self.cntUsage = 0 # No Longer Used
@@ -175,6 +212,9 @@ class struct_THREADENTRY32:
 
 class struct_MODULEENTRY32:
     # Backs both MODULEENTRY32 and MODULEENTRY32W
+    types = ['DWORD','DWORD','DWORD','DWORD','DWORD','BYTE','DWORD','HMODULE','char','char']
+    names = ['dwSize','th32ModuleID','th32ProcessID','GlblcntUsage','ProccntUsage','*modBaseAddr','modBaseSize','hModule','szModule','szExePath']
+    
     def __init__(self, th32ProcessID, modBaseAddr, modBaseSize, hModule, szModule: str, szExePath: str):
         self.dwSizeA = 548 # Ascii Size
         self.dwSizeW = 1064 # unicode Size
@@ -281,7 +321,7 @@ class struct_SYSTEM_INFO:
     def __init__(self, PA: Processor, numProcessors: int):
         self.wProcessorArchitecture = PA
         self.wReserved = 0
-        self.dwPageSize = 4096 #KB
+        self.dwPageSize = 4096 # 4 KB
         self.lpMinimumApplicationAddress = 0x25000000 # Ask someone
         self.lpMaximumApplicationAddress = 0
         self.dwPageSizedwActiveProcessorMask = 0 # Check
@@ -308,6 +348,9 @@ class struct_SYSTEM_INFO:
         self.wMilliseconds = unpackedStruct[7]
 
 class struct_FILETIME:
+    types = ['DWORD','DWORD']
+    names = ['dwLowDateTime','dwHighDateTime']
+
     def __init__(self):
         # time is in epoch 100 nanoseconds split into low and high
          timeEpoch = time_ns()
