@@ -1,10 +1,102 @@
 from enum import Enum
+from operator import contains
 from struct import calcsize, pack, unpack
 from time import gmtime, localtime,time_ns, localtime
 from ..helper.emuHelpers import Uc
 
+# Helpers
+def read_string(uc, address):
+    ret = ""
+    c = uc.mem_read(address, 1)[0]
+    read_bytes = 1
+
+    if c == 0x0: ret = "[NULL]"  # Option for NULL String
+
+    while c != 0x0:
+        ret += chr(c)
+        c = uc.mem_read(address + read_bytes, 1)[0]
+        read_bytes += 1
+    return ret
+
+def read_unicode(uc, address):
+    ret = ""
+    c = uc.mem_read(address, 1)[0]
+    read_bytes = 0
+
+    if c == 0x0: ret = "[NULL]"  # Option for NULL String
+
+    while c != 0x0:
+        c = uc.mem_read(address + read_bytes, 1)[0]
+        ret += chr(c)
+        read_bytes += 2
+
+    ret = ret.rstrip('\x00')
+    return ret
+
+def buildPtrString(pointer, val):
+    return hex(pointer) + " -> " + hex(val)
+
+def getPointerVal(uc, pointer):
+    val = uc.mem_read(pointer, 4)
+    return unpack('<I', val)[0]
+
+def makeStructVals(uc: Uc, struct, unicode: bool = False):
+    pTypes = struct.types
+    pNames = struct.names
+    pVals = []
+    for name in pNames:
+        try:
+            value = getattr(struct, name)
+        except:
+            # Some Struct Implementations are both Unicode and Ascii 
+            # So some attributes have A or W Suffix.
+            if not unicode: 
+                name = name + 'A'
+                value = getattr(struct, name) 
+            else:
+                name = name + 'W'
+                value = getattr(struct, name)
+        pVals.append(value)
+
+    for i in range(len(pTypes)):
+        if "STR" in pTypes[i]:  # finding ones with string
+            try:
+                if "WSTR" in pTypes[i]:
+                    pVals[i] = read_unicode(uc, pVals[i])
+                else:
+                    pVals[i] = read_string(uc, pVals[i])
+            except:
+                pass
+        elif pTypes[i][0] == 'P': # Pointer Builder
+            try:
+                pointerVal = getPointerVal(uc,pVals[i])
+                pVals[i] = buildPtrString(pVals[i], pointerVal)
+            except:
+                pass
+        elif pTypes[i] == 'BOOLEAN' or pTypes[i] == 'BOOL':
+            if pVals[i] == 0x1:
+                pVals[i] = 'TRUE'
+            elif pVals[i] == 0x0:
+                pVals[i] = 'FALSE'
+            else:
+                pVals[i] = hex(pVals[i])
+        else:
+            try:
+                pVals[i] = hex(pVals[i])
+            except:
+                pass
+                # If fail then Param is Probably String and Just Display value
+
+    # zipped = tuple(zip(pTypes, pNames, pVals))
+    
+    return (pTypes, pNames, pVals)
+
+
 class struct_PROCESSENTRY32:
     # Backs both PROCESSENTRY32 and PROCESSENTRY32W
+    types = ['DWORD','DWORD','DWORD','ULONG_PTR','DWORD','DWORD','DWORD','LONG','DWORD','CHAR'] 
+    names = ['dwSize','cntUsage','th32ProcessID','th32DefaultHeapID','th32ModuleID','cntThreads','th32ParentProcessID','pcPriClassBase','dwFlags','szExeFile']
+
     def __init__(self, processID, threadCount, parent_pID, baseThreadPriority, exeFile: str):
         self.dwSizeA = 296 # Ascii Size
         self.dwSizeW = 556 # Unicode Size
@@ -134,6 +226,9 @@ class struct_MODULEENTRY32:
 
 class struct_SYSTEMTIME:
     # Backs SYSTEMTIME, *PSYSTEMTIME, *LPSYSTEMTIME
+    types = ['WORD','WORD','WORD','WORD','WORD','WORD','WORD','WORD']
+    names = ['wYear','wMonth','wDayOfWeek','wDay','wHour','wMinute','wSecond','wMilliseconds']
+
     def __init__(self, utc: bool, customTime= 0):
         if utc:
             if customTime == 0:
@@ -263,6 +358,9 @@ class struct_FILETIME:
 
 class struct_UNICODE_STRING:
     # UNICODE_STRING, *PUNICODE_STRING
+    types = ['USHORT', 'USHORT', 'PWSTR',]
+    names = ['Length', 'MaximumLength', 'Buffer']
+
     def __init__(self, length: int, PWSTR: int):
         self.Length = length
         self.MaximumLength = length
@@ -278,6 +376,13 @@ class struct_UNICODE_STRING:
         self.Length = unpackedStruct[0]
         self.MaximumLength = unpackedStruct[1]
         self.Buffer = unpackedStruct[2]
+
+    def toString(self, uc: Uc):
+        unicode_string = read_unicode(uc, self.Buffer)
+        structString = {'USHORT Length': self.Length, 'USHORT MaximumLength': self.MaximumLength, 'PWSTR Buffer': unicode_string}
+        structString = ('USHORT Length', self.Length, 'USHORT MaximumLength', self.MaximumLength, 'PWSTR Buffer', unicode_string)
+        structString = f'{{USHORT Length: {self.Length}, USHORT MaximumLength: {self.MaximumLength}, PWSTR Buffer: {unicode_string}}}'
+        return structString
 
 # class struct_OBJECT_ATTRIBUTES: # To Be Finished Later 
 #     def __init__(self):

@@ -4,7 +4,7 @@ from unicorn.x86_const import *
 from struct import pack, unpack
 from ..helper.emuHelpers import Uc
 from ..modules import allDllsDict
-from .structures import struct_FILETIME, struct_PROCESSENTRY32, struct_MODULEENTRY32, struct_SYSTEMTIME, struct_THREADENTRY32, struct_UNICODE_STRING
+from .structures import makeStructVals, struct_FILETIME, struct_PROCESSENTRY32, struct_MODULEENTRY32, struct_SYSTEMTIME, struct_THREADENTRY32, struct_UNICODE_STRING
 import traceback
 
 commandLine_arg = set()
@@ -305,7 +305,7 @@ class CustomWinAPIs():
 
         pVals[0] = read_unicode(uc, pVals[0])
         pVals[1] = getLookUpVal(pVals[1], flagsReverseLookUp)
-        pVals[2] = name
+        pVals[2] = makeStructVals(uc, unicode_string)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0,1,2])
 
@@ -1272,10 +1272,10 @@ class CustomWinAPIs():
         else:
             retVal = 0x0
             retValStr = 'FALSE'
-
-            # create strings for everything except ones in our skip
-        skip = []  # we need to skip this value (index) later-let's put it in skip
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+        
+        pVals[1] = makeStructVals(uc, process)
+        
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
 
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4748,45 +4748,47 @@ class CustomWinAPIs():
         logged_calls = ("GetSystemWow64DirectoryW", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GetSystemTime(self, uc, eip, esp, export_dict, callAddr, em):
+    def GetSystemTime(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         # void GetSystemTime([out] LPSYSTEMTIME lpSystemTime);
-        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['LPSYSTEMTIME']
         pNames = ['lpSystemTime']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         if pVals[0] != 0x0:
             timeVal = struct_SYSTEMTIME(True)
             timeVal.writeToMemory(uc, pVals[0])
 
-        # create strings for everything except ones in our skip
-        skip = []  # we need to skip this value (index) later-let's put it in skip
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+        pVals[0] = makeStructVals(uc, timeVal)
 
-        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
+
+        retVal= 0
         retValStr = 'None'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("GetSystemTime", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def GetLocalTime(self, uc, eip, esp, export_dict, callAddr, em):
         # void GetLocalTime([out] LPSYSTEMTIME lpSystemTime);
-        pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['LPSYSTEMTIME']
         pNames = ['lpSystemTime']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         if pVals[0] != 0x0:
             timeVal = struct_SYSTEMTIME(False)
             timeVal.writeToMemory(uc, pVals[0])
 
-        # create strings for everything except ones in our skip
-        skip = []  # we need to skip this value (index) later-let's put it in skip
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+        pVals[0] = makeStructVals(uc, timeVal)
 
-        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
+
+        retVal= 0
         retValStr = 'None'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("GetLocalTime", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def GetUserNameA(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL GetUserNameA([out] LPSTR lpBuffer,[in, out] LPDWORD pcbBuffer);
