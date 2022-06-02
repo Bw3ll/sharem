@@ -3090,7 +3090,7 @@ def disHerePEB_64(address, NumOpsDis, secNum, data): ############## AUSTIN #####
 			modSecName = section.sectionName
 		# print("SAVING PEB SEQUENCE: PEBPOINTS = ", pebPoints, "FOUND ", points, " POINTS")
 		# print(disString)
-		print("saveBasePEBWalk", address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, (loadModList_offset, listEntryText	), advanceDLL_Offset)
+		# print("saveBasePEBWalk", address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, (loadModList_offset, listEntryText	), advanceDLL_Offset)
 		saveBasePEBWalk(address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, (loadModList_offset, listEntryText	), advanceDLL_Offset)
 
 
@@ -23074,6 +23074,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 	filename = filename.split(slash)[-1]
 	noExtension = peName[0:t]
 
+
 	if filename == "":
 		outfile = peName.split(".")[0]
 		outfileName = peName
@@ -23111,6 +23112,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 		filler = ""
 	else:
 		filler = "-output"
+		filler=""
 
 
 	
@@ -23153,6 +23155,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 # }
 	# emulationOut = output_dir + slash + outfile+filler + slash  + "Test" +"-32"  + ".json"
 	#jsonFileName =  os.getcwd() + slash + noExtension + "\\output_" + peName + "_" + filetime + ".json"
+	outfile=outfile.strip()
 	if useDirectory and not known_arch:
 		if current_arch == 32:
 			jsonFileName =  os.path.join(output_dir, outfile+filler, outfileName +"-32" + "_" + filetime + ".json")			
@@ -23177,7 +23180,6 @@ def printToJson(bpAll, outputData):	#Output data to json
 	# print("outfile: ", outfile, "outfileName", outfileName)
 	# input()
 	os.makedirs(os.path.dirname(jsonFileName), exist_ok=True)
-
 	#Just clear the output data pushed here if it's not selected
 	if not bpAll:
 		if not bpPushRet:
@@ -24509,6 +24511,9 @@ def printToText(outputData):	#Output data to text doc
 	# print("File name in printtotext", filename)
 	#print("********************************** ", peName, " **********************")
 	filename = filename.split(slash)[-1]
+	
+
+
 	if filename == "":
 		outfile = peName.split(".")[0]
 		outfileName = peName
@@ -24528,6 +24533,7 @@ def printToText(outputData):	#Output data to text doc
 		filler = ""
 	else:
 		filler = "-output"
+		filler=""
 	output_dir = os.getcwd()
 
 
@@ -24538,6 +24544,7 @@ def printToText(outputData):	#Output data to text doc
 
 
 	# txtFileName =  os.getcwd() + slash + outfile + "\\output_" + outfileName + "_" + filetime + ".txt"
+	outfile=outfile.strip()
 	if useDirectory and not known_arch:
 		if current_arch == 32:
 			# txtFileName =  output_dir + slash + outfile + filler+slash + slash + outfileName+"-32" + "_" + filetime + ".txt"
@@ -24576,6 +24583,7 @@ def printToText(outputData):	#Output data to text doc
 # res = '\u001b[0m'
 	os.makedirs(os.path.dirname(txtFileName), exist_ok=True)
 	text = open(txtFileName, "w")
+	
 
 
 	# disFileName = output_dir + slash + outfile + filler+slash + outfileName + "-disassembly.txt"
@@ -24583,16 +24591,20 @@ def printToText(outputData):	#Output data to text doc
 
 
 	# print("output_dir: ", output_dir, "outfile: ", outfile, " filler: ", filler, "outfileName: ", outfileName)
-	disFileName = os.path.join(output_dir, outfileName.split("\\")[-1], outfileName.split("\\")[-1] + "-disassembly.txt")
+	output_dir=output_dir.strip()
+	disFileName = os.path.join(output_dir, outfileName.split("\\")[-1].strip(), outfileName.split("\\")[-1].strip() + "-disassembly.txt")
 	binFileName = os.path.join(output_dir, outfile + filler, outfileName + "-raw.bin")
 
 	if mBool[o].bEvilImportsFound:
-		importsName =  os.path.join(output_dir,  outfileName.split("\\")[-1], outfileName.split("\\")[-1] + "-imports.txt")
+		importsName =  os.path.join(output_dir,  outfileName.split("\\")[-1].strip(), outfileName.split("\\")[-1].strip() + "-imports.txt")
 		importData = showImports(out2File=True)
 		importFp = open(importsName, "w")
 		importFp.write(importData)
 		importFp.close()
 
+	os.makedirs(os.path.dirname(disFileName), exist_ok=True)
+
+	# print ("size", len(gDisassemblyTextNoC))
 	disasm = open(disFileName, "w")
 	disasm.write(gDisassemblyTextNoC)
 	disasm.close()
