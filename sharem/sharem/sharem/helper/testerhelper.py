@@ -5,9 +5,9 @@ def generateTester(filename, rawSh,shellEntry):
 
 	prevDir = '\\'.join((os.path.join(os.path.dirname(__file__))).split("\\")[:-1])
 	# print(prevDir)
-	templatePath = os.path.join(prevDir,"tester_template.txt")
+	templatePath = os.path.join(os.path.dirname(__file__),"tester_template.txt")
 
-	testerPath = os.path.join(prevDir, "logs", filename, filename+"_tester.c")
+	testerPath = os.path.join(os.path.dirname(__file__), "..", "logs", filename, filename+"_tester.c")
 	fp = open(templatePath, "r")
 	fpData = fp.read()
 

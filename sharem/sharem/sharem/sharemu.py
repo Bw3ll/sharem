@@ -295,7 +295,6 @@ def hook_code(uc, address, size, user_data):
         uc.emu_stop()
 
     instructLine = ""
-
     if verbose:
         instructLine += giveRegs(uc, em.arch)
         instructLine += "0x%x" % address + '\t'
@@ -993,10 +992,13 @@ def test_i386(mode, code):
     try:
         # Start the emulation
         mu.emu_start(startLoc, (CODE_ADDR + em.entryOffset) + len(code))
-        print("\n")
+        # mu.release_handle(True)
+  
     except Exception as e:
         print(e)
         print(traceback.format_exc())
+
+
 
     path_artifacts, file_artifacts, commandLine_artifacts, web_artifacts, registry_artifacts, exe_dll_artifacts = findArtifacts()
 

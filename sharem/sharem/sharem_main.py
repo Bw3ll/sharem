@@ -7,16 +7,7 @@ import binascii
 import copy
 import os
 from collections import OrderedDict
-import random
-
-try:
-	import win32api
-	import win32con
-	import win32file
-	import _win32sysloader
-except:
-	print ("Pywin32 needs to be installed.\nhttps://pypi.org/project/pywin32/\n\tThe setup.py is not always effective at installing Pywin32, so it may need to be manually done.\n")
-	
+import random	
 import ctypes
 from ctypes import *
 
@@ -44,6 +35,16 @@ try:
 except:
 	print ("Ssdeep needs to be installed. A Windows Python wrapper is available:\nhttps://github.com/DinoTools/python-ssdeep")
 
+try:
+	if platformType == "Windows":
+		import win32api
+		import win32con
+		import win32file
+		import _win32sysloader
+except:
+	print ("Pywin32 needs to be installed.\nhttps://pypi.org/project/pywin32/\n\tThe setup.py is not always effective at installing Pywin32, so it may need to be manually done.\n")
+	
+	
 colorama.init()
 # readRegs()
 # testingAssembly()
@@ -5607,7 +5608,12 @@ def identifySyscall(callNum): # returns two lists containing lists of the format
 	result64 = []
 	result32 = []
 	callNum = format(callNum, '#06x')
-	with open(os.path.join(os.path.dirname(__file__), '\\sharem\\nt64.csv'), 'r') as file:
+	# with open(os.path.join(os.path.dirname(__file__), '\\sharem\\nt64.csv'), 'r') as file:
+	with open(os.path.join(os.path.dirname(__file__), 'sharem','nt64.csv'), 'r') as file:
+		# C:\sharem\github\sharem\sharem\sharem\sharem
+		# c:\sharem\github\sharem\sharem_cli>   current
+
+
 		nt64Csv = csv.reader(file)
 		# print(format(callNum, '#06x'))
 		nt64Header = next(nt64Csv)
@@ -5626,7 +5632,9 @@ def identifySyscall(callNum): # returns two lists containing lists of the format
 
 	# print("################### WIN32K #########################")
 
-	with open(os.path.join(os.path.dirname(__file__), '\\sharem\\win32k64.csv'), 'r') as file:
+	# with open(os.path.join(os.path.dirname(__file__), '\\sharem\\win32k64.csv'), 'r') as file:
+	with open(os.path.join(os.path.dirname(__file__), 'sharem','win32k64.csv'), 'r') as file:
+
 		w3264Csv = csv.reader(file)
 		# print(format(callNum, '#06x'))
 		w3264header = next(w3264Csv)
@@ -5643,7 +5651,9 @@ def identifySyscall(callNum): # returns two lists containing lists of the format
 				result64.append(newEntry)
 
 
-	with open(os.path.join(os.path.dirname(__file__), '\\sharem\\nt.csv'), 'r') as file:
+	# with open(os.path.join(os.path.dirname(__file__), '\\sharem\\nt.csv'), 'r') as file:
+	with open(os.path.join(os.path.dirname(__file__), 'sharem','nt.csv'), 'r') as file:
+
 		ntCsv = csv.reader(file)
 		# print(format(callNum, '#06x'))
 		ntHeader = next(ntCsv)
@@ -5662,7 +5672,9 @@ def identifySyscall(callNum): # returns two lists containing lists of the format
 
 	# print("################### WIN32K #########################")
 
-	with open(os.path.join(os.path.dirname(__file__), '\\sharem\\win32k.csv'), 'r') as file:
+	# with open(os.path.join(os.path.dirname(__file__), '\\sharem\\win32k.csv'), 'r') as file:
+	with open(os.path.join(os.path.dirname(__file__), 'sharem','win32k.csv'), 'r') as file:
+
 		w32Csv = csv.reader(file)
 		# print(format(callNum, '#06x'))
 		w32header = next(w32Csv)
@@ -5742,14 +5754,19 @@ def getSyscallRecent(callNum, bit = 64, print2File=None, jsonFormat=None):
 	# print("inAPI")
 
 	if(bit == 64):
-		with open(os.path.join(os.path.dirname(__file__), '\\sharem\\nt64.csv'), 'r') as file:
+		# with open(os.path.join(os.path.dirname(__file__), '\\sharem\\nt64.csv'), 'r') as file:
+		with open(os.path.join(os.path.dirname(__file__), 'sharem','nt64.csv'), 'r') as file:
+
+
 				nt64Csv = csv.reader(file)
 				# print(format(callNum, '#06x'))
 				versions = next(nt64Csv)
 				versions = versions[1:]
 
 	else:
-		with open(os.path.join(os.path.dirname(__file__), '\\sharem\\nt32.csv'), 'r') as file:
+		# with open(os.path.join(os.path.dirname(__file__), '\\sharem\\nt32.csv'), 'r') as file:
+		with open(os.path.join(os.path.dirname(__file__), 'sharem','nt32.csv'), 'r') as file:
+
 				nt32Csv = csv.reader(file)
 				# print(format(callNum, '#06x'))
 				versions = next(nt32Csv)
@@ -23195,6 +23212,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 
 
 	disJsonOut = str(createDisassemblyJson())
+	# print (disJsonOut)
 	#create the json file, and write our data to it
 	outfile = open(jsonFileName, "w")
 	if not rawHex:
@@ -23214,7 +23232,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 
 	outfile.write(js_ob)
 
-
+	
 
 	jsonOut = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs", "default", "jsondefault.json"), "w")
 	jsonOut.write(js_ob)
