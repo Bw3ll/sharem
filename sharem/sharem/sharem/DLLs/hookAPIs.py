@@ -56,6 +56,7 @@ class HandleType(Enum):
     # File Handles
     CreateFileA = auto()
     CreateFileW = auto()
+    CreateFile2 = auto()
     CreateFileMappingA = auto()
     CreateFileMappingW = auto()
     CreateFileMappingNumaA = auto()
@@ -5459,6 +5460,36 @@ class CustomWinAPIs():
         logged_calls= ("GetClipboardData", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
+    def CreateFile2(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['LPCWSTR', 'DWORD', 'DWORD', 'DWORD', 'LPSCREATEFILE2_EXTENDED_PARAMETERS'] 
+        pNames = ['lpFileName', 'dwDesiredAccess', 'dwShareMode', 'dwCreationDistribution', 'pCreateExParams'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        
+        dwDesiredAccessReverseLookUp = {2147483648: 'GENERIC_READ', 1073741824: 'GENERIC_WRITE', 536870912: 'GENERIC_EXECUTE', 268435456: 'GENERIC_ALL', 0xC0000000: 'GENERIC_READ | GENERIC_WRITE'}
+        dwShareModeReverseLookUp = {0: 'FILE_NO_OPEN', 1: 'FILE_SHARE_READ', 2: 'FILE_SHARE_WRITE', 4: 'FILE_SHARE_DELETE'}
+        dwCreationDistributionReverseLookUp = {2: 'CREATE_ALWAYS', 1: 'CREATE_NEW', 4: 'TRUNCATE_EXISTING', 3: 'OPEN_EXISTING', 5: 'TRUNCATE_EXISTING'}
+        dwFlagsAndAttributesReverseLookUp = {32: 'FILE_ATTRIBUTE_ARCHIVE', 16384: 'FILE_ATTRIBUTE_ENCRYPTED', 2: 'FILE_ATTRIBUTE_HIDDEN', 128: 'FILE_ATTRIBUTE_NORMAL', 4096: 'FILE_ATTRIBUTE_OFFLINE', 1: 'FILE_ATTRIBUTE_READONLY', 4: 'FILE_ATTRIBUTE_SYSTEM', 256: 'FILE_ATTRIBUTE_TEMPORARY', 33554432: 'FILE_FLAG_BACKUP_SEMANTICS', 67108864: 'FILE_FLAG_DELETE_ON_CLOSE', 536870912: 'FILE_FLAG_NO_BUFFERING', 1048576: 'FILE_FLAG_OPEN_NO_RECALL', 2097152: 'FILE_FLAG_OPEN_REPARSE_POINT', 1073741824: 'FILE_FLAG_OVERLAPPED', 16777216: 'FILE_FLAG_POSIX_SEMANTICS', 268435456: 'FILE_FLAG_RANDOM_ACCESS', 8388608: 'FILE_FLAG_SESSION_AWARE', 134217728: 'FILE_FLAG_SEQUENTIAL_SCAN', 2147483648: 'FILE_FLAG_WRITE_THROUGH'}
+        
+        handle = Handle(HandleType.CreateFile2)
+
+        pVals[1] = getLookUpVal(pVals[1],dwDesiredAccessReverseLookUp)
+        pVals[2] = getLookUpVal(pVals[2],dwShareModeReverseLookUp)
+        pVals[4] = getLookUpVal(pVals[3],dwCreationDistributionReverseLookUp)
+        pVals[5] = getLookUpVal(pVals[4],dwFlagsAndAttributesReverseLookUp)
+
+        # create strings for everything except ones in our skip
+        skip = [1, 2, 3, 4]  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal =  handle.value 
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls= ("CreateFile2", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
     def OpenClipboard(self, uc, eip, esp, export_dict, callAddr, em):
         pTypes =['HWND'] 
         pNames = ['hWndNewOwner'] 
@@ -5954,7 +5985,7 @@ class CustomWinAPIs():
 
         if (pVals[0] in HandlesDict):
             fileTypeHandle = HandlesDict[pVals[0]]
-            if (fileTypeHandle.type == HandleType.CreateFileW or fileTypeHandle.type == HandleType.CreateFileA):
+            if (fileTypeHandle.type == HandleType.CreateFileW or fileTypeHandle.type == HandleType.CreateFileA or fileTypeHandle.type == HandleType.CreateFile2):
                 retVal = 0x0001
                 retValStr = 'FILE_TYPE_DISK'
             elif (fileTypeHandle.type == HandleType.FtpOpenFileA or fileTypeHandle.type == HandleType.FtpOpenFileW):

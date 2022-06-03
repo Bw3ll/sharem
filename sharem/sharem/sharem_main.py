@@ -3091,7 +3091,7 @@ def disHerePEB_64(address, NumOpsDis, secNum, data): ############## AUSTIN #####
 			modSecName = section.sectionName
 		# print("SAVING PEB SEQUENCE: PEBPOINTS = ", pebPoints, "FOUND ", points, " POINTS")
 		# print(disString)
-		print("saveBasePEBWalk", address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, (loadModList_offset, listEntryText	), advanceDLL_Offset)
+		# print("saveBasePEBWalk", address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, (loadModList_offset, listEntryText	), advanceDLL_Offset)
 		saveBasePEBWalk(address, NumOpsDis, modSecName, secNum, points, loadTIB_offset, loadLDR_offset, (loadModList_offset, listEntryText	), advanceDLL_Offset)
 
 
@@ -14483,7 +14483,7 @@ def disHereAnalysis(data,offset, end, mode, CheckingForDB): #
 	for i in cs.disasm(CODED3, offset):
 		offsets.add((int(i.address)))
 		# print ("dAnalysis, i.address", i.address, hex(i.address))
-		# if fRaw.status and fRaw.bytesInst[i.address]=="INST":
+		# if fRaw.status() and fRaw.bytesInst[i.address]=="INST":
 		# 	print ("skipping")
 		val_a=hex(int(i.address))#"\t"#\t"
 		val_b1=i.mnemonic
@@ -15934,7 +15934,7 @@ def getNextBool(pattern,test, current):
 		# print ("found1", found, "success", success, "pattern", pattern)
 		if success and pattern==False:
 			return  found, False
-		# if fRaw.status and fRaw.bytesInst[current]=="INST":
+		# if fRaw.status() and fRaw.bytesInst[current]=="INST":
 
 		if pattern:
 			seeking2="INST"
@@ -15946,7 +15946,7 @@ def getNextBool(pattern,test, current):
 			# typeBytes=False
 
 		if fRaw.status():
-			# print ("fraw.status", fRaw.status())
+			# print ("fRaw.status()", fRaw.status())
 			test2=fRaw.bytesInst[current:]
 			# try:
 			# 	found2=test2.index(seeking2)s
@@ -16068,11 +16068,15 @@ def findRange2(current):
 	global sBy
 	# print (sBy.bytesType)
 	# print ("findRange2", hex(current))
-	if fRaw.status and fRaw.bytesInst[current]=="INST":
+	# print (("info"))
+	# print (len(fRaw.bytesInst))
+	# print (fRaw.status())
+	# print ("current", hex(current))
+	if fRaw.status() and fRaw.bytesInst[current]=="INST":
 		try:
 			startF, endF, distF=fRaw.startEnd[current]
 			# print ("fRaw status!", hex(startF), hex(endF), hex(distF))
-			if fRaw.status and fRaw.bytesInst[current]=="INST":
+			if fRaw.status() and fRaw.bytesInst[current]=="INST":
 		# print ("fRaw status!", hex(startF), hex(endF), hex(distF))
 				return	startF, endF, distF, True, True  # final True means skip static analysis disassembly
 		except:
@@ -16263,7 +16267,7 @@ def anaFindStrings(data, startingAddress):
 
 		if goodString(data,word,6):
 
-			if fRaw.status:
+			if fRaw.status():
 				if fRaw.bytesInst[offset]!="INST":
 					# print ("making strings")
 					modifysByRange(data, offset, offset+distance, "d", "anaFindStrings")
@@ -19966,7 +19970,7 @@ def emulationEntryPoint():
 def emuCheckDeobfSuccess():
 	if fRaw.status():
 		# print ("emulated!", fRaw.status())
-		# print(fRaw.status)
+		# print(fRaw.status())
 		ssdeepHash1 = ssdeep.hash(fRaw.originalRaw)
 		ssdeepHash2 = ssdeep.hash(fRaw.merged2)
 
@@ -20178,7 +20182,6 @@ def emulationSubmenu():
 
 
 def startupPrint():
-	# print ("startupPrint o", o)
 	global bAsciiStrings
 	global bWideCharStrings
 	global bPushStackStrings
@@ -20207,6 +20210,7 @@ def startupPrint():
 	l_of_strings = ["Finding Ascii strings..", "Finding unicode strings..", "Finding push stack strings..","Searching for disassembly..", "Searching for Fstenv instructions..", "Searching for push ret instructions..", "Searching for call pop instructions..", "Searching for heaven's gate instructions..", "Searching for syscall instructions..", "Searching for PEB instructions.."]
 	max_len = get_max_length(l_of_strings)
 
+	print ("\n\n Analyzing ", filename)
 	if bPrintEmulation and not mBool[o].bEmulationFound:
 		newTime	= discoverEmulation(max_len)
 		elapsed_time += newTime
@@ -20273,11 +20277,11 @@ def startupPrint():
 
 	bpPushRet = bpSyscall = bpHeaven = bpFstenv = bpPEB = bpStrings = bpCallPop = bpEvilImports = bpModules = True
 	outputData = generateOutputData()
-	print(cya + "\n\nSaving to Json.." , end='')
+	print(cya + "\n\nSaving to Json..." , end='')
 	printToJson(False, outputData)
 	print(gre + 'Done' + res)
 
-	print(cya + "\nSaving to Text.." , end='')
+	print(cya + "\nSaving to Text..." , end='')
 
 	printToText(outputData)
 	print(gre + 'Done\n\n' + res)
@@ -20618,12 +20622,11 @@ def discoverDisassembly(maxLen=None):
 	start = time.time()
 	
 	if rawHex:
-		if bit32:
-			# dontPrint()
-			shellDisassemblyInit(m[o].rawData2, "silent")
-			# allowPrint()
-			colorama.init()
-			# elapsed_time += end - start
+
+		shellDisassemblyInit(m[o].rawData2, "silent")
+		# allowPrint()
+		colorama.init()
+		# elapsed_time += end - start
 	if gDisassemblyText != "":
 		print("{:>{x}}[{}]".format("", gre + "Found"+res, x=15+(maxLen-curLen)))
 		mBool[o].bDisassemblyFound = True
@@ -23159,6 +23162,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 	filename = filename.split(slash)[-1]
 	noExtension = peName[0:t]
 
+
 	if filename == "":
 		outfile = peName.split(".")[0]
 		outfileName = peName
@@ -23170,7 +23174,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 		outfileName = filename
 		if outfileName[-4]==".":
 			outfileName=outfileName[:-4]
-			print (outfileName)
+			# print (outfileName)
 		chkExt = filename[-4]
 
 
@@ -23196,6 +23200,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 		filler = ""
 	else:
 		filler = "-output"
+		filler=""
 
 
 	
@@ -23238,6 +23243,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 # }
 	# emulationOut = output_dir + slash + outfile+filler + slash  + "Test" +"-32"  + ".json"
 	#jsonFileName =  os.getcwd() + slash + noExtension + "\\output_" + peName + "_" + filetime + ".json"
+	outfile=outfile.strip()
 	if useDirectory and not known_arch:
 		if current_arch == 32:
 			jsonFileName =  os.path.join(output_dir, outfile+filler, outfileName +"-32" + "_" + filetime + ".json")			
@@ -23262,7 +23268,6 @@ def printToJson(bpAll, outputData):	#Output data to json
 	# print("outfile: ", outfile, "outfileName", outfileName)
 	# input()
 	os.makedirs(os.path.dirname(jsonFileName), exist_ok=True)
-
 	#Just clear the output data pushed here if it's not selected
 	if not bpAll:
 		if not bpPushRet:
@@ -24594,6 +24599,9 @@ def printToText(outputData):	#Output data to text doc
 	# print("File name in printtotext", filename)
 	#print("********************************** ", peName, " **********************")
 	filename = filename.split(slash)[-1]
+	
+
+
 	if filename == "":
 		outfile = peName.split(".")[0]
 		outfileName = peName
@@ -24605,7 +24613,7 @@ def printToText(outputData):	#Output data to text doc
 		outfileName = filename
 		if outfileName[-4]==".":
 			outfileName=outfileName[:-4]
-			print (outfileName)
+			# print (outfileName)
 		chkExt = filename[-4]
 
 	filler = ""
@@ -24613,6 +24621,7 @@ def printToText(outputData):	#Output data to text doc
 		filler = ""
 	else:
 		filler = "-output"
+		filler=""
 	output_dir = os.getcwd()
 
 
@@ -24623,6 +24632,7 @@ def printToText(outputData):	#Output data to text doc
 
 
 	# txtFileName =  os.getcwd() + slash + outfile + "\\output_" + outfileName + "_" + filetime + ".txt"
+	outfile=outfile.strip()
 	if useDirectory and not known_arch:
 		if current_arch == 32:
 			# txtFileName =  output_dir + slash + outfile + filler+slash + slash + outfileName+"-32" + "_" + filetime + ".txt"
@@ -24661,6 +24671,7 @@ def printToText(outputData):	#Output data to text doc
 # res = '\u001b[0m'
 	os.makedirs(os.path.dirname(txtFileName), exist_ok=True)
 	text = open(txtFileName, "w")
+	
 
 
 	# disFileName = output_dir + slash + outfile + filler+slash + outfileName + "-disassembly.txt"
@@ -24668,15 +24679,18 @@ def printToText(outputData):	#Output data to text doc
 
 
 	# print("output_dir: ", output_dir, "outfile: ", outfile, " filler: ", filler, "outfileName: ", outfileName)
-	disFileName = os.path.join(output_dir, outfileName.split("\\")[-1], outfileName.split("\\")[-1] + "-disassembly.txt")
+	output_dir=output_dir.strip()
+	disFileName = os.path.join(output_dir, outfileName.split("\\")[-1].strip(), outfileName.split("\\")[-1].strip() + "-disassembly.txt")
 	binFileName = os.path.join(output_dir, outfile + filler, outfileName + "-raw.bin")
 
 	if mBool[o].bEvilImportsFound:
-		importsName =  os.path.join(output_dir,  outfileName.split("\\")[-1], outfileName.split("\\")[-1] + "-imports.txt")
+		importsName =  os.path.join(output_dir,  outfileName.split("\\")[-1].strip(), outfileName.split("\\")[-1].strip() + "-imports.txt")
 		importData = showImports(out2File=True)
 		importFp = open(importsName, "w")
 		importFp.write(importData)
 		importFp.close()
+
+	os.makedirs(os.path.dirname(disFileName), exist_ok=True)
 
 	disasm = open(disFileName, "w")
 	disasm.write(gDisassemblyTextNoC)
