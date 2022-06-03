@@ -22561,13 +22561,13 @@ def emulation_json_out(apiList, logged_syscalls):
 				tuple_flag = 1
 				
 		if (tuple_flag == 1):
-			unamedIterator = 0
-			for unamedIterator in range(len(api_params_values)):
-				if( type(api_params_values[unamedIterator]) == tuple):
+			t = 0
+			for pv in api_params_values:
+				if( type(api_params_values[t]) == tuple):
 					api_struct_values_list = []
-					api_struct_name = api_params_values[unamedIterator][0]
-					api_struct_type = api_params_values[unamedIterator][1]
-					api_struct_value = api_params_values[unamedIterator][2]
+					api_struct_name = api_params_values[t][0]
+					api_struct_type = api_params_values[t][1]
+					api_struct_value = api_params_values[t][2]
 					# print(api_struct_name)
 					# print(api_struct_type)
 					# print(api_struct_value)
@@ -22576,7 +22576,7 @@ def emulation_json_out(apiList, logged_syscalls):
 						 							"structure_value":str(sVal)})
 					# print(api_struct_values_list)
 					# print("1a")
-					api_dict['parameters'].append({"type":api_params_types[unamedIterator] + " " + api_params_names[unamedIterator],
+					api_dict['parameters'].append({"type":api_params_types[t] + " " + api_params_names[t],
 											"value":api_struct_values_list})
 					# for pTyp, pName, pVal in zip(api_params_types, api_params_names, api_params_values):
 					# 	api_dict['parameters'].append({"type":pTyp + " " + pName,
@@ -22584,8 +22584,9 @@ def emulation_json_out(apiList, logged_syscalls):
 					# 	# api_dict['parameters'].append({"structure_type":sTyp + " " + sName,
 						# 							"structure_value":str(sVal)})
 				else:
-					api_dict['parameters'].append({"type":api_params_types[unamedIterator] + " " + api_params_names[unamedIterator],
-											"value":str(api_params_values[unamedIterator])})
+					api_dict['parameters'].append({"type":api_params_types[t] + " " + api_params_names[t],
+											"value":str(api_params_values[t])})
+				t+= 1
 		else:
 			for pTyp, pName, pVal in zip(api_params_types, api_params_names, api_params_values):
 				api_dict['parameters'].append({"type":pTyp + " " + pName,
@@ -22791,15 +22792,15 @@ def emulation_txt_out(apiList, logged_syscalls):
 		t += 1
 		if verbose_mode:
 			if (tuple_flag == 1):
-				unamedIterator = 0
-				for unamedIterator in range(len(paramVal)):
-					# print(paramVal[unamedIterator])
+				index = 0
+				for pv in paramVal:
+					# print(paramVal[index])
 					# if there is a tuple in the list
-					if(type(paramVal[unamedIterator]) == tuple):
+					if(type(paramVal[index]) == tuple):
 						# print(paramVal[1])
-						structure_names = paramVal[unamedIterator][0]
-						structure_types = paramVal[unamedIterator][1]
-						structure_values = paramVal[unamedIterator][2]
+						structure_names = paramVal[index][0]
+						structure_types = paramVal[index][1]
+						structure_values = paramVal[index][2]
 						#if there is only one tuple in the list.
 						# for ptyp, pname in zip(pType, pName):
 							# print(ptyp)
@@ -22808,16 +22809,16 @@ def emulation_txt_out(apiList, logged_syscalls):
 							# print(stype)
 							# print(sval)
 							#gre ,structure_names, structure_types + res, structure_values
-						txt_output += '\t{} {} \n'.format(cya + pType[unamedIterator], pName[unamedIterator] + ":")
-						nameholder_iterator = 0
-						for nameholder_iterator in range(len(structure_names)):
-							txt_output += '\t\t{} {} {}\n'.format(gre + structure_names[nameholder_iterator], structure_types[nameholder_iterator] +":"+ res, structure_values[nameholder_iterator])
-							nameholder_iterator += 1
+						txt_output += '\t{} {} \n'.format(cya + pType[index], pName[index] + ":")
+						z = 0
+						for sn in structure_names:
+							txt_output += '\t\t{} {} {}\n'.format(gre + structure_names[z], structure_types[z] +":"+ res, structure_values[z])
+							z += 1
 					##normal printing
 					else:
 						# for ptyp, pname, pval in zip(pType, pName, potentialTuple):
-						txt_output += '\t{} {} {}\n'.format(cya + pType[unamedIterator], pName[unamedIterator] + ":" + res, paramVal[unamedIterator])
-					unamedIterator += 1
+						txt_output += '\t{} {} {}\n'.format(cya + pType[index], pName[index] + ":" + res, paramVal[index])
+					index += 1
 				txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
 			else:
 				for ptyp, pname, pval in zip(pType, pName, paramVal):
