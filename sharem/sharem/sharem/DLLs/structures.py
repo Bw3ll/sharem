@@ -89,7 +89,7 @@ def makeStructVals(uc: Uc, struct, address: int,unicode: bool = False):
 
     # zipped = tuple(zip(pTypes, pNames, pVals))
     
-    return (pTypes, pNames, pVals, address)
+    return (pTypes, pNames, pVals, hex(address))
 
 class struct_PROCESS_INFORMATION:
     # Backs PROCESS_INFORMATION, *PPROCESS_INFORMATION, *LPPROCESS_INFORMATION
