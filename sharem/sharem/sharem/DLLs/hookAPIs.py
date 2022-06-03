@@ -4927,17 +4927,21 @@ class CustomWinAPIs():
 
     def GetSystemTime(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         # void GetSystemTime([out] LPSYSTEMTIME lpSystemTime);
-        pTypes = ['LPSYSTEMTIME']
-        pNames = ['lpSystemTime']
+        pTypes = ['LPSYSTEMTIME','LPSYSTEMTIME2','test']
+        pNames = ['lpSystemTime','lpSystemTime2','test']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
         
         if pVals[0] != 0x0:
             timeVal = struct_SYSTEMTIME(True)
             timeVal.writeToMemory(uc, pVals[0])
+        if pVals[1] != 0x0:
+            timeVal = struct_SYSTEMTIME(True)
+            timeVal.writeToMemory(uc, pVals[0])
 
         pVals[0] = makeStructVals(uc, timeVal, pVals[0])
+        pVals[1] = makeStructVals(uc, timeVal, pVals[1])
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0,1])
 
         retVal= 0
         retValStr = 'None'

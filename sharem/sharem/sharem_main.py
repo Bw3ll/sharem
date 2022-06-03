@@ -22543,7 +22543,7 @@ def emulation_json_out(apiList, logged_syscalls):
 			dll_name = i[8]
 		except:
 			dll_name = "kernel32.dll"
-
+			
 		
 		api_dict["api_name"] = api_name
 		api_dict["dll_name"] = dll_name
