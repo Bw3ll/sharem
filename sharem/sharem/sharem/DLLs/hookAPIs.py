@@ -2395,11 +2395,6 @@ class CustomWinAPIs():
         dwOptionsReverseLookUp = {4: 'REG_OPTION_BACKUP_RESTORE', 2: 'REG_OPTION_CREATE_LINK',
                                   0: 'REG_OPTION_NON_VOLATILE',
                                   1: 'REG_OPTION_VOLATILE'}
-        samDesiredReverseLookUp = {983103: 'KEY_ALL_ACCESS', 32: 'KEY_CREATE_LINK', 4: 'KEY_CREATE_SUB_KEY',
-                                   8: 'KEY_ENUMERATE_SUB_KEYS', 131097: 'KEY_READ', 16: 'KEY_NOTIFY',
-                                   1: 'KEY_QUERY_VALUE',
-                                   2: 'KEY_SET_VALUE', 512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY',
-                                   131078: 'KEY_WRITE'}
         lpdwDispostitionReverseLookUp = {1: 'REG_CREATED_NEW_KEY', 2: 'REG_OPENED_EXISTING_KEY'}
 
         lpSubKey = read_string(uc, pVals[1])
@@ -2441,7 +2436,7 @@ class CustomWinAPIs():
             pass
         
         pVals[4] = getLookUpVal(pVals[4], dwOptionsReverseLookUp)
-        pVals[5] = getLookUpVal(pVals[5], samDesiredReverseLookUp)
+        pVals[5] = getLookUpVal(pVals[5], RegKey.securityAccessRights)
         pVals[8] = getLookUpVal(pVals[8], lpdwDispostitionReverseLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4, 5, 8])
@@ -2461,11 +2456,6 @@ class CustomWinAPIs():
         dwOptionsReverseLookUp = {4: 'REG_OPTION_BACKUP_RESTORE', 2: 'REG_OPTION_CREATE_LINK',
                                   0: 'REG_OPTION_NON_VOLATILE',
                                   1: 'REG_OPTION_VOLATILE'}
-        samDesiredReverseLookUp = {983103: 'KEY_ALL_ACCESS', 32: 'KEY_CREATE_LINK', 4: 'KEY_CREATE_SUB_KEY',
-                                   8: 'KEY_ENUMERATE_SUB_KEYS', 131097: 'KEY_READ', 16: 'KEY_NOTIFY',
-                                   1: 'KEY_QUERY_VALUE',
-                                   2: 'KEY_SET_VALUE', 512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY',
-                                   131078: 'KEY_WRITE'}
         lpdwDispostitionReverseLookUp = {1: 'REG_CREATED_NEW_KEY', 2: 'REG_OPENED_EXISTING_KEY'}
 
         lpSubKey = read_unicode(uc, pVals[1])
@@ -2507,7 +2497,7 @@ class CustomWinAPIs():
             pass
 
         pVals[4] = getLookUpVal(pVals[4], dwOptionsReverseLookUp)
-        pVals[5] = getLookUpVal(pVals[5], samDesiredReverseLookUp)
+        pVals[5] = getLookUpVal(pVals[5], RegKey.securityAccessRights)
         pVals[8] = getLookUpVal(pVals[8], lpdwDispostitionReverseLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4, 5, 8] )
@@ -2709,9 +2699,8 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['REGSAM', 'PHKEY']
         pNames = ['access', 'retkey']
-        samDesiredReverseLookUp = {983103: 'KEY_ALL_ACCESS', 32: 'KEY_CREATE_LINK', 4: 'KEY_CREATE_SUB_KEY',8: 'KEY_ENUMERATE_SUB_KEYS', 131097: 'KEY_READ', 16: 'KEY_NOTIFY',1: 'KEY_QUERY_VALUE',2: 'KEY_SET_VALUE', 512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY',131078: 'KEY_WRITE'}
 
-        pVals[0] = getLookUpVal(pVals[0], samDesiredReverseLookUp)
+        pVals[0] = getLookUpVal(pVals[0], RegKey.securityAccessRights)
 
         try:
             uc.mem_write(pVals[1], pack('<I',0x80000001))
@@ -6994,6 +6983,11 @@ class RegValueTypes(Enum):
 class RegKey:
     PreDefinedKeys = {0x80000000: 'HKEY_CLASSES_ROOT',0x80000001: 'HKEY_CURRENT_USER',0x80000002: 'HKEY_LOCAL_MACHINE',0x80000003: 'HKEY_USERS',0x80000004: 'HKEY_PERFORMANCE_DATA',0x80000005: 'HKEY_CURRENT_CONFIG',0x80000006: 'HKEY_DYN_DATA'}
     nextHandleValue = 0x80000010 # Registry Uses Different Range of Handles
+    securityAccessRights = {983103: 'KEY_ALL_ACCESS', 32: 'KEY_CREATE_LINK', 4: 'KEY_CREATE_SUB_KEY',
+                                   8: 'KEY_ENUMERATE_SUB_KEYS', 131097: 'KEY_READ', 16: 'KEY_NOTIFY',
+                                   1: 'KEY_QUERY_VALUE',
+                                   2: 'KEY_SET_VALUE', 512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY',
+                                   131078: 'KEY_WRITE'}
 
     def __init__(self, name: str, path: str, handle=0):
         self.name = name
