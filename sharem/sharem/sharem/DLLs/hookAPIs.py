@@ -5550,6 +5550,22 @@ class CustomWinAPIs():
         logged_calls= ("CopyFileW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
+    def DeleteFileA(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['LPCSTR'] 
+        pNames = ['lpFilename'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        skip = []
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = "SUCCESS"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("DeleteFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
     def OpenClipboard(self, uc, eip, esp, export_dict, callAddr, em):
         pTypes =['HWND'] 
         pNames = ['hWndNewOwner'] 
