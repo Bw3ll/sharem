@@ -320,6 +320,7 @@ def hook_code(uc, address, size, user_data):
     t = 0
     bad_instruct = False
 
+
     fRaw.addBytes(shells, addressF - CODE_ADDR, size)
     finalOut = uc.mem_read(CODE_ADDR + em.entryOffset, codeLen)
     fRaw.giveEnd(finalOut)
@@ -885,7 +886,6 @@ def findArtifactsOLD():
 def getArtifacts():
     artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
 
-
 def test_i386(mode, code):
     global artifacts2
     global outFile
@@ -941,13 +941,16 @@ def test_i386(mode, code):
     # code = b"\x48\xC7\xC0\x37\x13\x00\x00\x48\x85\xC0\x75\x06\x48\xFF\xC6\x48\xFF\xC7\x90\xC3"
     # code = b"\x90\x90\x90\x40"
 
+    mu = Uc(UC_ARCH_X86, mode)
+  
+    startLoc=CODE_ADDR + em.entryOffset
     try:
         codeLen = len(code)
 
         # Initialize emulator
-        mu = Uc(UC_ARCH_X86, mode)
-        mu.mem_map(0x00000000, 0x20050000)
-
+        try:
+            mu.mem_map(0x00000000, 0x20050000)
+        except:
         mods = loadDlls(mu)
 
         # write machine code to be emulated to memory
@@ -1008,6 +1011,8 @@ def startEmu(arch, data, vb):
     global verbose
     verbose = vb
 
+    fRaw.giveSize(data)
+
     if arch == 32:
         em.arch=32
     elif arch == 64:
@@ -1036,5 +1041,6 @@ def emuInit():
 
 def haha():
     fRaw.show()
+fRaw=sharDeobf()
 
 em = EMU()

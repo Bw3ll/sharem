@@ -47,7 +47,11 @@ class sharDeobf:
 # shDec="decoded shellcode (full)"
 	def __init__(self, rawData=None):
 		# print ("init")
-		# print ("HELLO, I AM STARTING")
+		print ("HELLO, I AM STARTING, sharDeobf")
+		try:
+			print ("size sharDeobf", len(rawData))
+		except:
+			print ("NONE!")
 		rawFinal=[]
 		
 		self.rawFinal=[]
@@ -62,18 +66,52 @@ class sharDeobf:
 		self.APIs=set()
 		self.originalRaw=[]
 
+	def create(self, rawData):
+		# self.original=rawData
+
+		sizeRaw=len(rawData)
+		rawFinal=[]
+		for each in rawData:
+			rawFinal.append(None)
+
+		self.rawFinal=rawFinal
+		self.original=list(rawData) # original rawdata2    #0
+		self.originalRaw=rawData
+		self.bytesInst=rawFinal.copy()
+		self.rawFinalAll=rawFinal.copy()
+		self.startEnd=rawFinal.copy()
+
+
+	def giveSize(self, rawData):
+		# print (binaryToStr(rawData))
+		# print ("size", len(rawData))
+		sizeRaw=len(rawData)
+		rawFinal=[]
+		for each in rawData:
+			rawFinal.append(None)
+
+		self.rawFinal=rawFinal
+		self.original=list(rawData) # original rawdata2    #0
+		self.originalRaw=rawData
+		self.bytesInst=rawFinal.copy()
+		self.rawFinalAll=rawFinal.copy()
+		self.startEnd=rawFinal.copy()
+		# print ("size", len(rawData), len(self.rawFinal))
+		# print (len(self.rawFinal), len(self.original))
+
+
 	def completed(self):
 		self.started=True
 	def status(self):
 		return self.started
 	def setRawData2(self, rawData):
-		self.rawData2 = rawData
+		self.original = rawData
 
     # fRaw.addBytes(shells, address, size)
 
 	# def addBytes(self, offset, instSize, values):
 	def addBytes(self, shells, address, size):
-		# print ("addBytes")
+		# print ("addBytes", shells, address, size)
 		# print ("**")
 		# print (shells)
 		# print (hex(address))
@@ -285,5 +323,5 @@ class sharDeobf:
 		# print (self.original)
 
 		self.rawFinalAll
-fRaw=sharDeobf()
+# fRaw=sharDeobf()
 
