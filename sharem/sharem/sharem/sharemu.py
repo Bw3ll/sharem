@@ -475,7 +475,7 @@ def hook_sysCall(uc, address, size):
     esp = uc.reg_read(UC_X86_REG_ESP)
 
     try:
-        funcInfo = getattr(WinSysCall, sysCallName)(uc, eip, esp, address)
+        funcInfo = getattr(WinSysCall, sysCallName)(uc, eip, esp, address, em)
         funcInfo.append(syscallID)
         logSysCall(sysCallName, funcInfo)
     except:

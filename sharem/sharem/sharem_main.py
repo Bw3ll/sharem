@@ -22463,6 +22463,8 @@ def clearImports():
 	mBool[o].bEvilImportsFound = False
 
 def emulation_json_out(apiList, logged_syscalls):
+	global commandLine_arg
+
 
 
 	# api1 = {"api_name": "winexec",
@@ -22479,6 +22481,9 @@ def emulation_json_out(apiList, logged_syscalls):
 
 	# }
 	path_artifacts, file_artifacts, commandLine_artifacts, web_artifacts, registry_artifacts,	exe_dll_artifacts = findArtifacts()
+
+	for each in commandLine_artifacts:
+		commandLine_arg.add(each)
 	# syscall_names, syscall_params_values, syscall_params_types, syscall_params_names, syscall_address, ret_values, ret_type, syscall_bruteforce, syscallID = build_emu_results(logged_syscalls)
 
 
@@ -22511,7 +22516,7 @@ def emulation_json_out(apiList, logged_syscalls):
 	# api_address = []
 	# ret_values = []
 	# ret_type = []
-
+	
 	list_of_apis = []
 
 
@@ -22528,6 +22533,7 @@ def emulation_json_out(apiList, logged_syscalls):
 	}
 
 	for i in apiList:
+		tuple_flag = 0
 		api_dict = {}
 		api_name = i[0]
 		api_address = i[1]
@@ -22548,9 +22554,42 @@ def emulation_json_out(apiList, logged_syscalls):
 		api_params_values = i[4]
 		api_params_types = i[5]
 		api_params_names = i[6]
-		for pTyp, pName, pVal in zip(api_params_types, api_params_names, api_params_values):
-			api_dict['parameters'].append({"type":pTyp + " " + pName,
-												"value":str(pVal)})
+		for potentialTuple in api_params_values:
+			if( type(potentialTuple) == tuple):
+				# print("is a tuple")
+				# print(potentialTuple)
+				tuple_flag = 1
+				
+		if (tuple_flag == 1):
+			unamedIterator = 0
+			for unamedIterator in range(len(api_params_values)):
+				if( type(api_params_values[unamedIterator]) == tuple):
+					api_struct_values_list = []
+					api_struct_name = api_params_values[unamedIterator][0]
+					api_struct_type = api_params_values[unamedIterator][1]
+					api_struct_value = api_params_values[unamedIterator][2]
+					# print(api_struct_name)
+					# print(api_struct_type)
+					# print(api_struct_value)
+					for sType, sName, sVal in zip(api_struct_name, api_struct_type, api_struct_value):
+						api_struct_values_list.append({"structure_type":sType + " " + sName,
+						 							"structure_value":str(sVal)})
+					# print(api_struct_values_list)
+					# print("1a")
+					api_dict['parameters'].append({"type":api_params_types[unamedIterator] + " " + api_params_names[unamedIterator],
+											"value":api_struct_values_list})
+					# for pTyp, pName, pVal in zip(api_params_types, api_params_names, api_params_values):
+					# 	api_dict['parameters'].append({"type":pTyp + " " + pName,
+					# 								"value":api_struct_values_list})
+					# 	# api_dict['parameters'].append({"structure_type":sTyp + " " + sName,
+						# 							"structure_value":str(sVal)})
+				else:
+					api_dict['parameters'].append({"type":api_params_types[unamedIterator] + " " + api_params_names[unamedIterator],
+											"value":str(api_params_values[unamedIterator])})
+		else:
+			for pTyp, pName, pVal in zip(api_params_types, api_params_names, api_params_values):
+				api_dict['parameters'].append({"type":pTyp + " " + pName,
+											"value":str(pVal)})
 		# list_of_apis.append(api_dict)
 		emulation_dict["api_calls"].append(api_dict)
 	
@@ -22584,7 +22623,7 @@ def emulation_json_out(apiList, logged_syscalls):
 	emulation_dict["dlls"].extend(logged_dlls)
 	emulation_dict["path_artifacts"].extend(path_artifacts)
 	emulation_dict["file_artifacts"].extend(file_artifacts)	
-	emulation_dict["commandLine_artifacts"].extend(commandLine_artifacts)
+	emulation_dict["commandLine_artifacts"].extend(commandLine_arg)
 	emulation_dict["web_artifacts"].extend(web_artifacts)
 	emulation_dict["registry_artifacts"].extend(registry_artifacts)
 	emulation_dict["exe_dll_artifacts"].extend(exe_dll_artifacts)
@@ -22673,6 +22712,10 @@ def build_emu_results(apiList):
 	return api_names, api_params_values, api_params_types, api_params_names, api_address, ret_values, ret_type, api_bruteforce, sysCallID
 
 def emulation_txt_out(apiList, logged_syscalls):
+	global commandLine_arg
+	
+	#test printing the set of commandline values found inthe hook apis
+
 	# for each in apiList:
 		# print (type(each), each, "\n\n")
 	sample = [('WinExec', '0x123123', '0x20', 'INT', ['cmd.exe /c ping google.com > C:\\result.txt', '0x5'], ['LPCSTR', 'UINT'], ['lpCmdLine', 'uCmdShow'], False, "kernel32.dll"), ('EncyptFileA', '0x321321', '0x20', 'INT', ['C:\\result.txt'], ['LPCSTR'], ['lpFileName'], False, "kernel32.dll"),
@@ -22687,12 +22730,13 @@ def emulation_txt_out(apiList, logged_syscalls):
 	# 	api_par_bundle.append(v + " " + t)
 
 	# artifacts = ["c:\\result.txt", "cmd.exe", "google.com", "result.txt", "user32.dll", "www.msn.com", "http://74.32.123.2:8080", "c:\\windows\\system32\\ipconfig.exe"]
-
+	for each in commandLine_artifacts:
+		commandLine_arg.add(each)
 
 	# web_artifacts = ["www.msn.com", "http://74.32.123.2:8080", "google.com"]
 	# file_artifacts = ["c:\\result.txt", "cmd.exe", "result.txt"]
 	# executables = ["c:\\windows\\system32\\ipconfig.exe", "cmd.exe"]
-
+	# print(commandLine_arg)
 	txt_output = ""
 	# no_colors_out = ""
 
@@ -22709,7 +22753,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 	verbose_mode = emulation_verbose
 	t = 0
 	for eachApi in api_names:
-
+		tuple_flag = 0
 		apName = api_names[t]
 		offset = api_address[t]
 		pType = api_params_types[t]
@@ -22718,12 +22762,22 @@ def emulation_txt_out(apiList, logged_syscalls):
 		retVal = ret_values[t]
 		retType = ret_type[t]
 		paramVal = api_params_values[t]
+		paramVal_tuple = api_params_values[t]
+		# print(paramVal)
+		for potentialTuple in paramVal:
+			if( type(potentialTuple) == tuple):
+				# print("is a tuple")
+				# print(potentialTuple)
+				tuple_flag = 1
+				
+
 		# DLL = dll_name[t]
 		for v, typ in zip(pType, pName):
 			TypeBundle.append(v + " " + typ)
 		joinedBund = ', '.join(TypeBundle)
 		joinedBundclr = joinedBund.replace(",", cya + "," + res)
 		retBundle = retType + " " + retVal
+
 
 		if verbose_mode:
 			txt_output += '{} {}{}\n'.format(gre + offset + res, yel + apName + res,
@@ -22736,9 +22790,39 @@ def emulation_txt_out(apiList, logged_syscalls):
 
 		t += 1
 		if verbose_mode:
-			for ptyp, pname, pval in zip(pType, pName, paramVal):
-				txt_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
-			txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
+			if (tuple_flag == 1):
+				unamedIterator = 0
+				for unamedIterator in range(len(paramVal)):
+					# print(paramVal[unamedIterator])
+					# if there is a tuple in the list
+					if(type(paramVal[unamedIterator]) == tuple):
+						# print(paramVal[1])
+						structure_names = paramVal[unamedIterator][0]
+						structure_types = paramVal[unamedIterator][1]
+						structure_values = paramVal[unamedIterator][2]
+						#if there is only one tuple in the list.
+						# for ptyp, pname in zip(pType, pName):
+							# print(ptyp)
+							# print(type(pname))
+							# print(sname)
+							# print(stype)
+							# print(sval)
+							#gre ,structure_names, structure_types + res, structure_values
+						txt_output += '\t{} {} \n'.format(cya + pType[unamedIterator], pName[unamedIterator] + ":")
+						nameholder_iterator = 0
+						for nameholder_iterator in range(len(structure_names)):
+							txt_output += '\t\t{} {} {}\n'.format(gre + structure_names[nameholder_iterator], structure_types[nameholder_iterator] +":"+ res, structure_values[nameholder_iterator])
+							nameholder_iterator += 1
+					##normal printing
+					else:
+						# for ptyp, pname, pval in zip(pType, pName, potentialTuple):
+						txt_output += '\t{} {} {}\n'.format(cya + pType[unamedIterator], pName[unamedIterator] + ":" + res, paramVal[unamedIterator])
+					unamedIterator += 1
+				txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
+			else:
+				for ptyp, pname, pval in zip(pType, pName, paramVal):
+					txt_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
+				txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
 			if api_bruteforce:
 				txt_output += "\t{}\n\n".format(whi + "Brute-forced" + res, )
 			else:
@@ -22798,15 +22882,15 @@ def emulation_txt_out(apiList, logged_syscalls):
 			emu_path_list = "\n"
 			emu_path_list += "\n".join(path_artifacts)
 			emu_path_list += "\n"
-
+		
 		if(len(file_artifacts) > 0):
 			emu_fileArtifacts_list = "\n"
 			emu_fileArtifacts_list += "\n".join(file_artifacts)
 			emu_fileArtifacts_list += "\n"
 
-		if(len(commandLine_artifacts) > 0):
+		if(len(commandLine_arg) > 0):
 			emu_commandline_list = "\n"
-			emu_commandline_list += "\n".join(commandLine_artifacts)
+			emu_commandline_list += "\n".join(commandLine_arg)
 			emu_commandline_list += "\n"
 
 		if(len(web_artifacts) > 0):
@@ -22834,7 +22918,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 		txt_output += "{}{:<18} {}\n".format(cya + "DLLs" + res, "",emu_dll_list)
 		emu_path_list = ', '.join(path_artifacts)
 		emu_fileArtifacts_list = ", ".join(file_artifacts)
-		emu_commandline_list = ", ".join(commandLine_artifacts)
+		emu_commandline_list = ", ".join(commandLine_arg)
 		emu_webArtifacts_list = ', '.join(web_artifacts)
 		emu_registry_list = ", ".join(registry_artifacts)
 		emu_exe_dll_list = ", ".join(exe_dll_artifacts)
@@ -22855,7 +22939,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 		txt_output += "{}{:<13} {}\n".format(cya + "*** Paths ***" + res,"", emu_path_list)
 	if len(file_artifacts) > 0:
 		txt_output += "{}{:<9} {}\n".format(cya + "*** Files ***" + res,"", emu_fileArtifacts_list)
-	if len(commandLine_artifacts) > 0:
+	if len(commandLine_arg) > 0:
 		txt_output += "{}{:<8} {}\n".format(cya + "*** Command Line ***" + res,"", emu_commandline_list)
 	if len(web_artifacts) > 0:
 		txt_output += "{}{:<13} {}\n".format(cya + "*** Web ***" + res,"", emu_webArtifacts_list)

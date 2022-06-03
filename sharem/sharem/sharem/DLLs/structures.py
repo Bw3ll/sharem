@@ -1,10 +1,136 @@
 from enum import Enum
-from struct import pack, unpack
-from time import gmtime, localtime
+from operator import contains
+from struct import calcsize, pack, unpack
+from time import gmtime, localtime,time_ns, localtime
 from ..helper.emuHelpers import Uc
+
+# Helpers
+def read_string(uc, address):
+    ret = ""
+    c = uc.mem_read(address, 1)[0]
+    read_bytes = 1
+
+    if c == 0x0: ret = "[NULL]"  # Option for NULL String
+
+    while c != 0x0:
+        ret += chr(c)
+        c = uc.mem_read(address + read_bytes, 1)[0]
+        read_bytes += 1
+    return ret
+
+def read_unicode(uc, address):
+    ret = ""
+    c = uc.mem_read(address, 1)[0]
+    read_bytes = 0
+
+    if c == 0x0: ret = "[NULL]"  # Option for NULL String
+
+    while c != 0x0:
+        c = uc.mem_read(address + read_bytes, 1)[0]
+        ret += chr(c)
+        read_bytes += 2
+
+    ret = ret.rstrip('\x00')
+    return ret
+
+def buildPtrString(pointer, val):
+    return hex(pointer) + " -> " + hex(val)
+
+def getPointerVal(uc, pointer):
+    val = uc.mem_read(pointer, 4)
+    return unpack('<I', val)[0]
+
+def makeStructVals(uc: Uc, struct, unicode: bool = False):
+    pTypes = struct.types
+    pNames = struct.names
+    pVals = []
+    for name in pNames:
+        try:
+            value = getattr(struct, name)
+        except:
+            # Some Struct Implementations are both Unicode and Ascii 
+            # So some attributes have A or W Suffix.
+            if not unicode: 
+                name = name + 'A'
+                value = getattr(struct, name) 
+            else:
+                name = name + 'W'
+                value = getattr(struct, name)
+        pVals.append(value)
+
+    for i in range(len(pTypes)):
+        if "STR" in pTypes[i]:  # finding ones with string
+            try:
+                if "WSTR" in pTypes[i]:
+                    pVals[i] = read_unicode(uc, pVals[i])
+                else:
+                    pVals[i] = read_string(uc, pVals[i])
+            except:
+                pass
+        elif pTypes[i][0] == 'P': # Pointer Builder
+            try:
+                pointerVal = getPointerVal(uc,pVals[i])
+                pVals[i] = buildPtrString(pVals[i], pointerVal)
+            except:
+                pass
+        elif pTypes[i] == 'BOOLEAN' or pTypes[i] == 'BOOL':
+            if pVals[i] == 0x1:
+                pVals[i] = 'TRUE'
+            elif pVals[i] == 0x0:
+                pVals[i] = 'FALSE'
+            else:
+                pVals[i] = hex(pVals[i])
+        else:
+            try:
+                pVals[i] = hex(pVals[i])
+            except:
+                pass
+                # If fail then Param is Probably String and Just Display value
+
+    # zipped = tuple(zip(pTypes, pNames, pVals))
+    
+    return (pTypes, pNames, pVals)
+
+class struct_PROCESS_INFORMATION:
+    # Backs PROCESS_INFORMATION, *PPROCESS_INFORMATION, *LPPROCESS_INFORMATION
+    types = ['HANDLE','HANDLE','DWORD','DWORD']
+    names = ['hProcess','hThread','dwProcessId','dwThreadId']
+
+    nextProcessID = 10000
+    nextThreadID = 20000
+
+    def __init__(self, hProcess: int, hThread: int, pID: int = 0, tID: int = 0):
+        self.hProcess = hProcess
+        self.hThread = hThread
+        if pID != 0:
+            self.dwProcessId = pID
+        else:
+            self.dwProcessId = struct_PROCESS_INFORMATION.nextProcessID
+            struct_PROCESS_INFORMATION.nextProcessID += 1
+        if tID != 0:
+            self.dwThreadId = tID
+        else:
+            self.dwThreadId = struct_PROCESS_INFORMATION.nextThreadID
+            struct_PROCESS_INFORMATION.nextThreadID += 1
+
+    def writeToMemory(self, uc: Uc, address: int):
+        packedStruct = pack('<IIII', self.hProcess, self.hThread, self.dwProcessId, self.dwThreadId)
+        uc.mem_write(address, packedStruct)
+
+    def readFromMemory(self, uc: Uc, address: int):
+        data = uc.mem_read(address, 16)
+        unpackedStruct = unpack('<IIII', data)
+        self.hProcess = unpackedStruct[0]
+        self.hThread = unpackedStruct[1]
+        self.dwProcessId = unpackedStruct[2]
+        self.dwThreadId = unpackedStruct[3]
+
 
 class struct_PROCESSENTRY32:
     # Backs both PROCESSENTRY32 and PROCESSENTRY32W
+    types = ['DWORD','DWORD','DWORD','ULONG_PTR','DWORD','DWORD','DWORD','LONG','DWORD','CHAR'] 
+    names = ['dwSize','cntUsage','th32ProcessID','th32DefaultHeapID','th32ModuleID','cntThreads','th32ParentProcessID','pcPriClassBase','dwFlags','szExeFile']
+
     def __init__(self, processID, threadCount, parent_pID, baseThreadPriority, exeFile: str):
         self.dwSizeA = 296 # Ascii Size
         self.dwSizeW = 556 # Unicode Size
@@ -55,6 +181,9 @@ class struct_PROCESSENTRY32:
         self.szExeFile = unpackedStruct[9].decode()
 
 class struct_THREADENTRY32:
+    types = ['DWORD','DWORD','DWORD','DWORD','DWORD','DWORD','LONG','LONG','DWORD']
+    names = ['dwSize','cntUsage','th32ThreadID','th32OwnerProcessID','tpBasePri','tpDeltaPri','dwFlags']
+    
     def __init__(self, ThreadID, OwnerProcessID, tpBasePri):
         self.dwSize = 28
         self.cntUsage = 0 # No Longer Used
@@ -83,6 +212,9 @@ class struct_THREADENTRY32:
 
 class struct_MODULEENTRY32:
     # Backs both MODULEENTRY32 and MODULEENTRY32W
+    types = ['DWORD','DWORD','DWORD','DWORD','DWORD','BYTE','DWORD','HMODULE','char','char']
+    names = ['dwSize','th32ModuleID','th32ProcessID','GlblcntUsage','ProccntUsage','*modBaseAddr','modBaseSize','hModule','szModule','szExePath']
+    
     def __init__(self, th32ProcessID, modBaseAddr, modBaseSize, hModule, szModule: str, szExePath: str):
         self.dwSizeA = 548 # Ascii Size
         self.dwSizeW = 1064 # unicode Size
@@ -134,6 +266,9 @@ class struct_MODULEENTRY32:
 
 class struct_SYSTEMTIME:
     # Backs SYSTEMTIME, *PSYSTEMTIME, *LPSYSTEMTIME
+    types = ['WORD','WORD','WORD','WORD','WORD','WORD','WORD','WORD']
+    names = ['wYear','wMonth','wDayOfWeek','wDay','wHour','wMinute','wSecond','wMilliseconds']
+
     def __init__(self, utc: bool, customTime= 0):
         if utc:
             if customTime == 0:
@@ -149,7 +284,7 @@ class struct_SYSTEMTIME:
         self.wYear = timeVal.tm_year
         self.wMonth = timeVal.tm_mon
         dayOfWeek = timeVal.tm_wday + 1 # Convert Monday 0 to Sunday 0
-        if dayOfWeek is 7: dayOfWeek = 0
+        if dayOfWeek == 7: dayOfWeek = 0
         self.wDayOfWeek = dayOfWeek
         self.wDay = timeVal.tm_mday
         self.wHour = timeVal.tm_hour
@@ -186,7 +321,7 @@ class struct_SYSTEM_INFO:
     def __init__(self, PA: Processor, numProcessors: int):
         self.wProcessorArchitecture = PA
         self.wReserved = 0
-        self.dwPageSize = 4096 #KB
+        self.dwPageSize = 4096 # 4 KB
         self.lpMinimumApplicationAddress = 0x25000000 # Ask someone
         self.lpMaximumApplicationAddress = 0
         self.dwPageSizedwActiveProcessorMask = 0 # Check
@@ -211,3 +346,93 @@ class struct_SYSTEM_INFO:
         self.wMinute = unpackedStruct[5]
         self.wSecond = unpackedStruct[6]
         self.wMilliseconds = unpackedStruct[7]
+
+class struct_FILETIME:
+    types = ['DWORD','DWORD']
+    names = ['dwLowDateTime','dwHighDateTime']
+
+    def __init__(self):
+        # time is in epoch 100 nanoseconds split into low and high
+         timeEpoch = time_ns()
+         #print("a0")
+         ##timeEpoch = hex(timeEpoch)
+         #print(timeEpoch)
+         #print(hex(timeEpoch))
+         #print("a1")
+         #split into low and high end
+         #test64Bit = 0xbbbbccccddddffff
+         #print(hex(test64Bit))
+         #testUpper = test64Bit >> 32
+         #testLower = test64Bit & 0xffffffff
+         #print(testUpper)
+         #print(hex(testUpper))
+         #print(testLower)
+         #print(hex(testLower))
+
+         highEndData = timeEpoch >> 32
+         lowEndData = timeEpoch & 0xffffffff
+
+         #print("high create")
+         #print(highEndData)
+         #print(hex(highEndData))
+         #print("low create")
+         #print(lowEndData)
+         #print(hex(lowEndData))
+         self.dwLowDateTime = lowEndData
+         self.dwHighDateTime = highEndData
+    def writeToMemory(self, uc, address):
+        #print("memWrite entry filetime")
+        ##print(address)
+        #print("low")
+        #print(self.dwLowDateTime)
+        #print("high")
+        #print(self.dwHighDateTime)
+        packedStruct = pack('<II', self.dwLowDateTime, self.dwHighDateTime)
+        #print("a1")
+        uc.mem_write(address, packedStruct)
+        #print("end memwrite")
+   
+    def readFromMemory(self, uc, address):
+        #print("read from Filetime")
+        data = uc.mem_read(address, 8) # Size of two dwords
+        unPacked = unpack('<II', data)
+        self.dwLowDateTime = unPacked[0]         
+        self.dwHighDateTime = unPacked[1]
+
+class struct_UNICODE_STRING:
+    # UNICODE_STRING, *PUNICODE_STRING
+    types = ['USHORT', 'USHORT', 'PWSTR',]
+    names = ['Length', 'MaximumLength', 'Buffer']
+
+    def __init__(self, length: int, PWSTR: int):
+        self.Length = length
+        self.MaximumLength = length
+        self.Buffer = PWSTR
+    
+    def writeToMemory(self, uc: Uc, address):
+        packedStruct = pack(f'<HHI', self.Length, self.MaximumLength, self.Buffer)
+        uc.mem_write(address, packedStruct)
+
+    def readFromMemory(self, uc: Uc, address):
+        data = uc.mem_read(address, 8)
+        unpackedStruct = unpack('<HHI', data)
+        self.Length = unpackedStruct[0]
+        self.MaximumLength = unpackedStruct[1]
+        self.Buffer = unpackedStruct[2]
+
+    def toString(self, uc: Uc):
+        unicode_string = read_unicode(uc, self.Buffer)
+        structString = {'USHORT Length': self.Length, 'USHORT MaximumLength': self.MaximumLength, 'PWSTR Buffer': unicode_string}
+        structString = ('USHORT Length', self.Length, 'USHORT MaximumLength', self.MaximumLength, 'PWSTR Buffer', unicode_string)
+        structString = f'{{USHORT Length: {self.Length}, USHORT MaximumLength: {self.MaximumLength}, PWSTR Buffer: {unicode_string}}}'
+        return structString
+
+# class struct_OBJECT_ATTRIBUTES: # To Be Finished Later 
+#     def __init__(self):
+#         self.Length = calcsize('<LIILII')
+#         self.RootDirectory
+#         self.ObjectName
+#         self.Attributes
+#         self.SecurityDescriptor
+#         self.SecurityQualityOfService
+        
