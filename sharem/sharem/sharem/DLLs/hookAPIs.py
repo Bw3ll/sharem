@@ -4753,7 +4753,7 @@ class CustomWinAPIs():
         pTypes = ['LPSYSTEMTIME']
         pNames = ['lpSystemTime']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-
+        
         if pVals[0] != 0x0:
             timeVal = struct_SYSTEMTIME(True)
             timeVal.writeToMemory(uc, pVals[0])

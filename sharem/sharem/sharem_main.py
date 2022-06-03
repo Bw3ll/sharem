@@ -22513,7 +22513,7 @@ def emulation_json_out(apiList, logged_syscalls):
 	# api_address = []
 	# ret_values = []
 	# ret_type = []
-
+	
 	list_of_apis = []
 
 
@@ -22530,6 +22530,7 @@ def emulation_json_out(apiList, logged_syscalls):
 	}
 
 	for i in apiList:
+		tuple_flag = 0
 		api_dict = {}
 		api_name = i[0]
 		api_address = i[1]
@@ -22550,9 +22551,42 @@ def emulation_json_out(apiList, logged_syscalls):
 		api_params_values = i[4]
 		api_params_types = i[5]
 		api_params_names = i[6]
-		for pTyp, pName, pVal in zip(api_params_types, api_params_names, api_params_values):
-			api_dict['parameters'].append({"type":pTyp + " " + pName,
-												"value":str(pVal)})
+		for potentialTuple in api_params_values:
+			if( type(potentialTuple) == tuple):
+				# print("is a tuple")
+				# print(potentialTuple)
+				tuple_flag = 1
+				
+		if (tuple_flag == 1):
+			unamedIterator = 0
+			for unamedIterator in range(len(api_params_values)):
+				if( type(api_params_values[unamedIterator]) == tuple):
+					api_struct_values_list = []
+					api_struct_name = api_params_values[unamedIterator][0]
+					api_struct_type = api_params_values[unamedIterator][1]
+					api_struct_value = api_params_values[unamedIterator][2]
+					# print(api_struct_name)
+					# print(api_struct_type)
+					# print(api_struct_value)
+					for sType, sName, sVal in zip(api_struct_name, api_struct_type, api_struct_value):
+						api_struct_values_list.append({"structure_type":sType + " " + sName,
+						 							"structure_value":str(sVal)})
+					# print(api_struct_values_list)
+					# print("1a")
+					api_dict['parameters'].append({"type":api_params_types[unamedIterator] + " " + api_params_names[unamedIterator],
+											"value":api_struct_values_list})
+					# for pTyp, pName, pVal in zip(api_params_types, api_params_names, api_params_values):
+					# 	api_dict['parameters'].append({"type":pTyp + " " + pName,
+					# 								"value":api_struct_values_list})
+					# 	# api_dict['parameters'].append({"structure_type":sTyp + " " + sName,
+						# 							"structure_value":str(sVal)})
+				else:
+					api_dict['parameters'].append({"type":api_params_types[unamedIterator] + " " + api_params_names[unamedIterator],
+											"value":str(api_params_values[unamedIterator])})
+		else:
+			for pTyp, pName, pVal in zip(api_params_types, api_params_names, api_params_values):
+				api_dict['parameters'].append({"type":pTyp + " " + pName,
+											"value":str(pVal)})
 		# list_of_apis.append(api_dict)
 		emulation_dict["api_calls"].append(api_dict)
 	
@@ -22716,7 +22750,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 	verbose_mode = emulation_verbose
 	t = 0
 	for eachApi in api_names:
-
+		tuple_flag = 0
 		apName = api_names[t]
 		offset = api_address[t]
 		pType = api_params_types[t]
@@ -22725,12 +22759,22 @@ def emulation_txt_out(apiList, logged_syscalls):
 		retVal = ret_values[t]
 		retType = ret_type[t]
 		paramVal = api_params_values[t]
+		paramVal_tuple = api_params_values[t]
+		# print(paramVal)
+		for potentialTuple in paramVal:
+			if( type(potentialTuple) == tuple):
+				# print("is a tuple")
+				# print(potentialTuple)
+				tuple_flag = 1
+				
+
 		# DLL = dll_name[t]
 		for v, typ in zip(pType, pName):
 			TypeBundle.append(v + " " + typ)
 		joinedBund = ', '.join(TypeBundle)
 		joinedBundclr = joinedBund.replace(",", cya + "," + res)
 		retBundle = retType + " " + retVal
+
 
 		if verbose_mode:
 			txt_output += '{} {}{}\n'.format(gre + offset + res, yel + apName + res,
@@ -22743,9 +22787,39 @@ def emulation_txt_out(apiList, logged_syscalls):
 
 		t += 1
 		if verbose_mode:
-			for ptyp, pname, pval in zip(pType, pName, paramVal):
-				txt_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
-			txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
+			if (tuple_flag == 1):
+				unamedIterator = 0
+				for unamedIterator in range(len(paramVal)):
+					# print(paramVal[unamedIterator])
+					# if there is a tuple in the list
+					if(type(paramVal[unamedIterator]) == tuple):
+						# print(paramVal[1])
+						structure_names = paramVal[unamedIterator][0]
+						structure_types = paramVal[unamedIterator][1]
+						structure_values = paramVal[unamedIterator][2]
+						#if there is only one tuple in the list.
+						# for ptyp, pname in zip(pType, pName):
+							# print(ptyp)
+							# print(type(pname))
+							# print(sname)
+							# print(stype)
+							# print(sval)
+							#gre ,structure_names, structure_types + res, structure_values
+						txt_output += '\t{} {} \n'.format(cya + pType[unamedIterator], pName[unamedIterator] + ":")
+						nameholder_iterator = 0
+						for nameholder_iterator in range(len(structure_names)):
+							txt_output += '\t\t{} {} {}\n'.format(gre + structure_names[nameholder_iterator], structure_types[nameholder_iterator] +":"+ res, structure_values[nameholder_iterator])
+							nameholder_iterator += 1
+					##normal printing
+					else:
+						# for ptyp, pname, pval in zip(pType, pName, potentialTuple):
+						txt_output += '\t{} {} {}\n'.format(cya + pType[unamedIterator], pName[unamedIterator] + ":" + res, paramVal[unamedIterator])
+					unamedIterator += 1
+				txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
+			else:
+				for ptyp, pname, pval in zip(pType, pName, paramVal):
+					txt_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
+				txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
 			if api_bruteforce:
 				txt_output += "\t{}\n\n".format(whi + "Brute-forced" + res, )
 			else:
