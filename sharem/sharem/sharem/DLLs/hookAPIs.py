@@ -6977,14 +6977,6 @@ class System_SnapShot:
         except:
             pass
 
-class RegPredfinedKeys(Enum): # Might Not Need
-    HKEY_CLASSES_ROOT = 0x80000000
-    HKEY_CURRENT_USER = 0x80000001
-    HKEY_LOCAL_MACHINE = 0x80000002
-    HKEY_USERS = 0x80000003
-    HKEY_PERFORMANCE_DATA = 0x80000004
-    HKEY_CURRENT_CONFIG = 0x80000005
-    HKEY_DYN_DATA = 0x80000006
 
 class RegValueTypes(Enum):
     REG_BINARY = 3  # Binary data in any form.
@@ -6998,12 +6990,6 @@ class RegValueTypes(Enum):
     REG_QWORD = 11	# A 64-bit number.
     REG_QWORD_LITTLE_ENDIAN	= 11  # A 64-bit number in little-endian format. Windows is designed to run on little-endian computer architectures. Therefore, this value is defined as REG_QWORD in the Windows header files.
     REG_SZ = 1  # A null-terminated string. This will be either a Unicode or an ANSI string, depending on whether you use the Unicode or ANSI functions.
-
-class RegEvents(Enum): # Might Not Need
-    CREATE_KEY = auto()
-    DELETE_KEY = auto()
-    DELETE_VALUE = auto()
-    SET_VALUE = auto()
 
 class RegKey:
     PreDefinedKeys = {0x80000000: 'HKEY_CLASSES_ROOT',0x80000001: 'HKEY_CURRENT_USER',0x80000002: 'HKEY_LOCAL_MACHINE',0x80000003: 'HKEY_USERS',0x80000004: 'HKEY_PERFORMANCE_DATA',0x80000005: 'HKEY_CURRENT_CONFIG',0x80000006: 'HKEY_DYN_DATA'}
