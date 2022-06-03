@@ -15534,8 +15534,10 @@ def addComments():
 			try:
 				v=parC1+v
 			except:
-				v=parC1+hex(v)
-
+				try:
+					v=parC1+hex(v)
+				except:
+					v=parC1+" tuple "
 			if t!=limit:
 					params+=v +parC+ ", "+res2
 			else:
