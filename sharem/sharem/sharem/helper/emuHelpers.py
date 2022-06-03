@@ -315,7 +315,7 @@ def getJmpFlag(mnemonic):
 
 def controlFlow(uc, mnemonic, op_str):
     # print ("cf", mnemonic, op_str)
-    controlFlow = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(jns)|(call))", mnemonic, re.M|re.I)
+    controlFlow = re.match("^((jmp)|(ljmp)|(jo)|(jno)|(jsn)|(js)|(je)|(jz)|(jne)|(jnz)|(jb)|(jnae)|(jc)|(jnb)|(jae)|(jnc)|(jbe)|(jna)|(ja)|(jnben)|(jl)|(jnge)|(jge)|(jnl)|(jle)|(jng)|(jg)|(jnle)|(jp)|(jpe)|(jnp)|(jpo)|(jczz)|(jecxz)|(jmp)|(jns)|(call)|(syscall))", mnemonic, re.M|re.I)
 
     which=0
     address = -1
@@ -338,7 +338,9 @@ def controlFlow(uc, mnemonic, op_str):
             # print ("address", hex(address))
             address = unpack("<I", uc.mem_read(address, 4))[0]
             which=1
-        elif re.match('dword ptr fs:\[0xc0]', op_str):
+        elif re.match('syscall', mnemonic): # 64bit Windows Syscall
+            address = 0x5000
+        elif re.match('dword ptr fs:\[0xc0]', op_str): # 32bit Windows Syscall
             address = 0x5000
         elif re.match('([er][abcdsipx]+|r[8910234]+)', op_str):
             regs = re.findall('([er][abcdsipx]+|r[8910234]+)', op_str)
