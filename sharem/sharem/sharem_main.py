@@ -15537,7 +15537,12 @@ def addComments():
 				try:
 					v=parC1+hex(v)
 				except:
-					v=parC1+" tuple "
+					if type(v)== tuple:
+						print ("tuple")
+						print (v)
+						v=v[3]
+						v=parC1+v
+						v=parC1+" tuple "
 			if t!=limit:
 					params+=v +parC+ ", "+res2
 			else:
@@ -22766,7 +22771,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 		retType = ret_type[t]
 		paramVal = api_params_values[t]
 		paramVal_tuple = api_params_values[t]
-		# print(paramVal)
+		print(paramVal)
 		for potentialTuple in paramVal:
 			if( type(potentialTuple) == tuple):
 				# print("is a tuple")

@@ -47,11 +47,11 @@ class sharDeobf:
 # shDec="decoded shellcode (full)"
 	def __init__(self, rawData=None):
 		# print ("init")
-		print ("HELLO, I AM STARTING, sharDeobf")
-		try:
-			print ("size sharDeobf", len(rawData))
-		except:
-			print ("NONE!")
+		# print ("HELLO, I AM STARTING, sharDeobf")
+		# try:
+		# 	print ("size sharDeobf", len(rawData))
+		# except:
+		# 	print ("NONE!")
 		rawFinal=[]
 		
 		self.rawFinal=[]
