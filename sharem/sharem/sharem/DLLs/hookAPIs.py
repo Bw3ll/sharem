@@ -5475,8 +5475,8 @@ class CustomWinAPIs():
 
         pVals[1] = getLookUpVal(pVals[1],dwDesiredAccessReverseLookUp)
         pVals[2] = getLookUpVal(pVals[2],dwShareModeReverseLookUp)
-        pVals[4] = getLookUpVal(pVals[3],dwCreationDistributionReverseLookUp)
-        pVals[5] = getLookUpVal(pVals[4],dwFlagsAndAttributesReverseLookUp)
+        pVals[3] = getLookUpVal(pVals[3],dwCreationDistributionReverseLookUp)
+        pVals[4] = getLookUpVal(pVals[4],dwFlagsAndAttributesReverseLookUp)
 
         # create strings for everything except ones in our skip
         skip = [1, 2, 3, 4]  # we need to skip this value (index) later-let's put it in skip
@@ -5488,6 +5488,54 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
     
         logged_calls= ("CreateFile2", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def lstrcatW(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['LPWSTR', 'LPCWSTR'] 
+        pNames = ['lpString1', 'lpString2'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        skip = []
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = allocation.address
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("lstrcatW", hex(callAddr), (retValStr), 'LPWSTR', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def lstrcpynA(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['LPSTR', 'LPCSTR', 'int'] 
+        pNames = ['lpString1', 'lpString2', 'iMaxLength'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        skip = []
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = allocation.address
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("lstrcpynA", hex(callAddr), (retValStr), 'LPSTR', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def CopyFileW(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['LPSTR', 'LPCSTR', 'int'] 
+        pNames = ['lpString1', 'lpString2', 'iMaxLength'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        skip = []
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = allocation.address
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("CopyFileW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def OpenClipboard(self, uc, eip, esp, export_dict, callAddr, em):
