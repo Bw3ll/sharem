@@ -953,7 +953,7 @@ def test_i386(mode, code):
         except:
             print ("memory loading erorr")
         mods = loadDlls(mu)
-
+        
         # write machine code to be emulated to memory
         mu.mem_write(CODE_ADDR, code)
         address_range.append([CODE_ADDR, len(code)])
