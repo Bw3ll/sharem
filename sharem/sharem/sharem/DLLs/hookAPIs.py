@@ -2402,44 +2402,44 @@ class CustomWinAPIs():
                                    131078: 'KEY_WRITE'}
         lpdwDispostitionReverseLookUp = {1: 'REG_CREATED_NEW_KEY', 2: 'REG_OPENED_EXISTING_KEY'}
 
-        hKey = pVals[0]
-
         lpSubKey = read_string(uc, pVals[1])
         if lpSubKey != '[NULL]':
             if lpSubKey[0] != '\\':
                 lpSubKey = '\\' + lpSubKey
                 pVals[1] = lpSubKey
 
-        keyPath = ''
-        if pVals[0] in HandlesDict:
-            hKey = HandlesDict[pVals[0]]
-            if hKey.name in RegistryKeys:
-                rKey = RegistryKeys[hKey.name]
-                keyPath = rKey.path + lpSubKey
-
+            keyPath = ''
+            if pVals[0] in HandlesDict:
+                hKey = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path + lpSubKey
+                    if keyPath in RegistryKeys: # If Key Found Return Handle
+                        foundKey = RegistryKeys[keyPath]
+                        hKey = foundKey.handle.value
+                        createKey = False
+                    else:
+                        createKey = True
+                else:
+                    createKey = True
+                    keyPath = hKey.name + lpSubKey
             else:
-                pass # Create New
-        else: # Create New
-            pass
+                createKey = True
+                keyPath += lpSubKey
+        else: # [NULL] lpSubKey Return hKey
+            createKey = False
+            hKey = pVals[0]
+            
+        if createKey: # Create New
+            keyName = keyPath.split('\\')[-1] # Get Key Name
+            newKey = RegKey(keyName,keyPath)
+            hKey = newKey.handle.value
 
-
-        # if pVals[0] in RegKey.PreDefinedKeys:
-        #     keyPath = getLookUpVal(pVals[0], RegKey.PreDefinedKeys)
-        # elif pVals[0] in RegistryKeys:
-        #     foundKey = RegistryKeys[pVals[0]]
-        #     keyPath += foundKey.path
-        # else: 
-        #     keyPath = '' # Ask If We want Default hKey if Not Found 
-
-        
-        
-
-            # hKey = newKey.handle.value
         try:
             uc.mem_write(pVals[7], pack('<I',hKey))
         except:
             pass
-
+        
         pVals[4] = getLookUpVal(pVals[4], dwOptionsReverseLookUp)
         pVals[5] = getLookUpVal(pVals[5], samDesiredReverseLookUp)
         pVals[8] = getLookUpVal(pVals[8], lpdwDispostitionReverseLookUp)
@@ -2453,7 +2453,7 @@ class CustomWinAPIs():
         logged_calls = ("RegCreateKeyExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def RegCreateKeyExW(self, uc, eip, esp, export_dict, callAddr, em):
+    def RegCreateKeyExW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         # LSTATUS RegCreateKeyExA([in] HKEY hKey,[in] LPCSTR lpSubKey,DWORD Reserved,[in, optional]  LPSTR lpClass,[in] DWORD dwOptions,[in] REGSAM samDesired,[in, optional] const LPSECURITY_ATTRIBUTES lpSecurityAttributes,[out] PHKEY phkResult,[out, optional] LPDWORD lpdwDisposition);
         pVals = makeArgVals(uc, em, esp, 9)
         pTypes = ['HKEY', 'LPCWSTR', 'DWORD', 'LPWSTR', 'DWORD', 'REGSAM', 'LPSECURITY_ATTRIBUTES', 'PHKEY', 'LPDWORD']
@@ -2468,21 +2468,56 @@ class CustomWinAPIs():
                                    131078: 'KEY_WRITE'}
         lpdwDispostitionReverseLookUp = {1: 'REG_CREATED_NEW_KEY', 2: 'REG_OPENED_EXISTING_KEY'}
 
+        lpSubKey = read_unicode(uc, pVals[1])
+        if lpSubKey != '[NULL]':
+            if lpSubKey[0] != '\\':
+                lpSubKey = '\\' + lpSubKey
+                pVals[1] = lpSubKey
+
+            keyPath = ''
+            if pVals[0] in HandlesDict:
+                hKey = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path + lpSubKey
+                    if keyPath in RegistryKeys: # If Key Found Return Handle
+                        foundKey = RegistryKeys[keyPath]
+                        hKey = foundKey.handle.value
+                        createKey = False
+                    else:
+                        createKey = True
+                else:
+                    createKey = True
+                    keyPath = hKey.name + lpSubKey
+            else:
+                createKey = True
+                keyPath += lpSubKey
+        else: # [NULL] lpSubKey Return hKey
+            createKey = False
+            hKey = pVals[0]
+            
+        if createKey: # Create New
+            keyName = keyPath.split('\\')[-1] # Get Key Name
+            newKey = RegKey(keyName,keyPath)
+            hKey = newKey.handle.value
+
+        try:
+            uc.mem_write(pVals[7], pack('<I',hKey))
+        except:
+            pass
+
         pVals[4] = getLookUpVal(pVals[4], dwOptionsReverseLookUp)
         pVals[5] = getLookUpVal(pVals[5], samDesiredReverseLookUp)
         pVals[8] = getLookUpVal(pVals[8], lpdwDispostitionReverseLookUp)
 
-        # create strings for everything except ones in our skip
-        skip = [4, 5, 8]  # we need to skip this value (index) later-let's put it in skip
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4, 5, 8] )
 
-        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("RegCreateKeyExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def RegOpenKeyA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 3)
@@ -6974,13 +7009,7 @@ class RegKey:
     PreDefinedKeys = {0x80000000: 'HKEY_CLASSES_ROOT',0x80000001: 'HKEY_CURRENT_USER',0x80000002: 'HKEY_LOCAL_MACHINE',0x80000003: 'HKEY_USERS',0x80000004: 'HKEY_PERFORMANCE_DATA',0x80000005: 'HKEY_CURRENT_CONFIG',0x80000006: 'HKEY_DYN_DATA'}
     nextHandleValue = 0x80000010 # Registry Uses Different Range of Handles
 
-    def createPreDefinedKeys():
-        # Create Default Keys
-        for key, val in RegKey.PreDefinedKeys.items():
-            newKey = RegKey()
-            newKey.create(val,val,key)
-
-    def create(self, name: str, path: str, handle=0):
+    def __init__(self, name: str, path: str, handle=0):
         self.name = name
         self.path = path
         self.values: dict[str,KeyValue] = {}
@@ -6989,6 +7018,11 @@ class RegKey:
             RegKey.nextHandleValue += 8
         self.handle = Handle(HandleType.HKEY, handleValue=handle, name=self.path)
         RegistryKeys.update({self.path: self})
+
+    def createPreDefinedKeys():
+        # Create Default Keys
+        for key, val in RegKey.PreDefinedKeys.items():
+            RegKey(val, val, key)
 
     def setValue(self, valueType: RegValueTypes, data, valueName = '(Default)'):
         val = KeyValue(valueType, data, valueName)
