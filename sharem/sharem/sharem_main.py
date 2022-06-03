@@ -15534,8 +15534,10 @@ def addComments():
 			try:
 				v=parC1+v
 			except:
-				v=parC1+hex(v)
-
+				try:
+					v=parC1+hex(v)
+				except:
+					v=parC1+" tuple "
 			if t!=limit:
 					params+=v +parC+ ", "+res2
 			else:
@@ -22543,7 +22545,7 @@ def emulation_json_out(apiList, logged_syscalls):
 			dll_name = i[8]
 		except:
 			dll_name = "kernel32.dll"
-
+			
 		
 		api_dict["api_name"] = api_name
 		api_dict["dll_name"] = dll_name
