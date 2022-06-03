@@ -40,7 +40,7 @@ def getPointerVal(uc, pointer):
     val = uc.mem_read(pointer, 4)
     return unpack('<I', val)[0]
 
-def makeStructVals(uc: Uc, struct, unicode: bool = False):
+def makeStructVals(uc: Uc, struct, address: int,unicode: bool = False):
     pTypes = struct.types
     pNames = struct.names
     pVals = []
@@ -89,7 +89,7 @@ def makeStructVals(uc: Uc, struct, unicode: bool = False):
 
     # zipped = tuple(zip(pTypes, pNames, pVals))
     
-    return (pTypes, pNames, pVals)
+    return (pTypes, pNames, pVals, address)
 
 class struct_PROCESS_INFORMATION:
     # Backs PROCESS_INFORMATION, *PPROCESS_INFORMATION, *LPPROCESS_INFORMATION

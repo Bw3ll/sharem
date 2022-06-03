@@ -310,7 +310,7 @@ class CustomWinAPIs():
 
         pVals[0] = read_unicode(uc, pVals[0])
         pVals[1] = getLookUpVal(pVals[1], flagsReverseLookUp)
-        pVals[2] = makeStructVals(uc, unicode_string)
+        pVals[2] = makeStructVals(uc, unicode_string, pVals[2])
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0,1,2])
 
@@ -1278,7 +1278,7 @@ class CustomWinAPIs():
             retVal = 0x0
             retValStr = 'FALSE'
         
-        pVals[1] = makeStructVals(uc, process)
+        pVals[1] = makeStructVals(uc, process, pVals[1])
         
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
 
@@ -1977,7 +1977,7 @@ class CustomWinAPIs():
         processInfo = struct_PROCESS_INFORMATION(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[9])
 
-        pVals[9] = makeStructVals(uc, processInfo)
+        pVals[9] = makeStructVals(uc, processInfo, pVals[9])
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[5,9])
 
@@ -2002,7 +2002,7 @@ class CustomWinAPIs():
         processInfo = struct_PROCESS_INFORMATION(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[9])
 
-        pVals[9] = makeStructVals(uc, processInfo)
+        pVals[9] = makeStructVals(uc, processInfo, pVals[9])
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[5,9])
 
@@ -2029,7 +2029,7 @@ class CustomWinAPIs():
         processInfo = struct_PROCESS_INFORMATION(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[10])
 
-        pVals[10] = makeStructVals(uc, processInfo)
+        pVals[10] = makeStructVals(uc, processInfo, pVals[10])
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[6,10])
 
@@ -2055,7 +2055,7 @@ class CustomWinAPIs():
         processInfo = struct_PROCESS_INFORMATION(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[10])
 
-        pVals[10] = makeStructVals(uc, processInfo)
+        pVals[10] = makeStructVals(uc, processInfo, pVals[10])
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[6,10])
 
@@ -2082,7 +2082,7 @@ class CustomWinAPIs():
         processInfo = struct_PROCESS_INFORMATION(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[10])
 
-        pVals[10] = makeStructVals(uc, processInfo)
+        pVals[10] = makeStructVals(uc, processInfo, pVals[10])
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[6,10])
 
@@ -2109,7 +2109,7 @@ class CustomWinAPIs():
         processInfo = struct_PROCESS_INFORMATION(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[10])
 
-        pVals[10] = makeStructVals(uc, processInfo)
+        pVals[10] = makeStructVals(uc, processInfo, pVals[10])
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[6,10])
 
@@ -2404,25 +2404,37 @@ class CustomWinAPIs():
 
         hKey = pVals[0]
 
-        if pVals[0] in RegKey.PreDefinedKeys:
-            keyPath = getLookUpVal(pVals[0], RegKey.PreDefinedKeys)
-        elif pVals[0] in RegistryKeys:
-            foundKey = RegistryKeys[pVals[0]]
-            keyPath += foundKey.path
-        else: 
-            keyPath = '' # Ask If We want Default hKey if Not Found 
-
         lpSubKey = read_string(uc, pVals[1])
         if lpSubKey != '[NULL]':
-            if '\\' not in lpSubKey:
+            if lpSubKey[0] != '\\':
                 lpSubKey = '\\' + lpSubKey
                 pVals[1] = lpSubKey
-            keyPath = keyPath + lpSubKey 
-            keyName = keyPath.split('\\')[-1] # Get Last Value
-            newKey = RegKey()
-            newKey.create(keyName, keyPath)
 
-            hKey = newKey.handle.value
+        keyPath = ''
+        if pVals[0] in HandlesDict:
+            hKey = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey = RegistryKeys[hKey.name]
+                keyPath = rKey.path + lpSubKey
+
+            else:
+                pass # Create New
+        else: # Create New
+            pass
+
+
+        # if pVals[0] in RegKey.PreDefinedKeys:
+        #     keyPath = getLookUpVal(pVals[0], RegKey.PreDefinedKeys)
+        # elif pVals[0] in RegistryKeys:
+        #     foundKey = RegistryKeys[pVals[0]]
+        #     keyPath += foundKey.path
+        # else: 
+        #     keyPath = '' # Ask If We want Default hKey if Not Found 
+
+        
+        
+
+            # hKey = newKey.handle.value
         try:
             uc.mem_write(pVals[7], pack('<I',hKey))
         except:
@@ -4923,7 +4935,7 @@ class CustomWinAPIs():
             timeVal = struct_SYSTEMTIME(True)
             timeVal.writeToMemory(uc, pVals[0])
 
-        pVals[0] = makeStructVals(uc, timeVal)
+        pVals[0] = makeStructVals(uc, timeVal, pVals[0])
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
 
@@ -4944,7 +4956,7 @@ class CustomWinAPIs():
             timeVal = struct_SYSTEMTIME(False)
             timeVal.writeToMemory(uc, pVals[0])
 
-        pVals[0] = makeStructVals(uc, timeVal)
+        pVals[0] = makeStructVals(uc, timeVal, pVals[0])
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
 
@@ -6946,6 +6958,12 @@ class RegKey:
     PreDefinedKeys = {0x80000000: 'HKEY_CLASSES_ROOT',0x80000001: 'HKEY_CURRENT_USER',0x80000002: 'HKEY_LOCAL_MACHINE',0x80000003: 'HKEY_USERS',0x80000004: 'HKEY_PERFORMANCE_DATA',0x80000005: 'HKEY_CURRENT_CONFIG',0x80000006: 'HKEY_DYN_DATA'}
     nextHandleValue = 0x80000010 # Registry Uses Different Range of Handles
 
+    def createPreDefinedKeys():
+        # Create Default Keys
+        for key, val in RegKey.PreDefinedKeys.items():
+            newKey = RegKey()
+            newKey.create(val,val,key)
+
     def create(self, name: str, path: str, handle=0):
         self.name = name
         self.path = path
@@ -6996,6 +7014,9 @@ class KeyValue():
         self.name = valueName
         self.type = valueType
         self.data = data
+
+# Create Default Registry Keys
+RegKey.createPreDefinedKeys()
 
 def getStackVal(uc, em, esp, loc):
     # x64 Windows parameter order: rcx, rdx, r8, r9, stack
