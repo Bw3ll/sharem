@@ -22753,7 +22753,8 @@ def emulation_txt_out(apiList, logged_syscalls):
 	txt_output += "**************************\n\n"
 
 	# no_colors_out += txt_output
-
+	# print(registry_values)
+	# print(registry_keys)
 
 	txt_output += mag + "\n************* APIs *************\n\n" + res
 	# no_colors_out += "\n************* APIs *************\n\n"
@@ -22771,7 +22772,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 		retType = ret_type[t]
 		paramVal = api_params_values[t]
 		paramVal_tuple = api_params_values[t]
-		print(paramVal)
+		# print(paramVal)
 		for potentialTuple in paramVal:
 			if( type(potentialTuple) == tuple):
 				# print("is a tuple")
@@ -22906,9 +22907,9 @@ def emulation_txt_out(apiList, logged_syscalls):
 			emu_webArtifacts_list += "\n".join(web_artifacts)
 			emu_webArtifacts_list += "\n"
 
-		if(len(registry_artifacts) > 0):
+		if(len(registry_keys) > 0):
 			emu_registry_list = "\n"
-			emu_registry_list += "\n".join(registry_artifacts)
+			emu_registry_list += "\n".join(registry_keys)
 			emu_registry_list += "\n"
 
 		if(len(exe_dll_artifacts) > 0):
@@ -22951,7 +22952,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 		txt_output += "{}{:<8} {}\n".format(cya + "*** Command Line ***" + res,"", emu_commandline_list)
 	if len(web_artifacts) > 0:
 		txt_output += "{}{:<13} {}\n".format(cya + "*** Web ***" + res,"", emu_webArtifacts_list)
-	if len(registry_artifacts) > 0:
+	if len(registry_keys) > 0:
 		txt_output += "{}{:<9} {}\n".format(cya + "*** Registry ***" + res,"", emu_registry_list)
 	if len(exe_dll_artifacts) > 0:
 		txt_output += "{}{:<8} {}\n".format(cya + "*** EXE / DLLs ***" + res,"", emu_exe_dll_list)
