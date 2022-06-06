@@ -2849,7 +2849,7 @@ class CustomWinAPIs():
         logged_calls = ("RegDeleteKeyExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def RegGetValueA(self, uc, eip, esp, export_dict, callAddr, em):
+    def RegGetValueA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 7)
         pTypes = ['HKEY', 'LPCSTR', 'LPCSTR', 'DWORD', 'LPDWORD', 'PVOID', 'LPDWORD']
         pNames = ['hKey', 'lpSubKey', 'lpValue', 'dwFlags', 'pdwType', 'pvData', 'pcbData']
@@ -2864,11 +2864,64 @@ class CustomWinAPIs():
                                 536870912: 'RRF_ZEROONFAILURE', 65536: 'RRF_SUBKEY_WOW6464KEY',
                                 131072: 'RRF_SUBKEY_WOW6432KEY'}
 
+        lpSubKey = read_string(uc, pVals[1])
+        lpValue = read_string(uc, pVals[2])
+
+        keyPath = ''
+        keyValue = None
+
+        if lpSubKey == '[NULL]':
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path
+                    if keyPath in RegistryKeys: # If Key Found Get Value
+                        foundKey: RegKey = RegistryKeys[keyPath]
+                        if lpValue == '[NULL]':
+                            keyValue = foundKey.getValue()
+                        else:
+                            keyValue = foundKey.getValue(lpValue)
+                    else:
+                        print('key not found')
+                        # Figure out return value
+        else:
+            if lpSubKey[0] != '\\':
+                lpSubKey = '\\' + lpSubKey
+                pVals[1] = lpSubKey
+
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    print(rKey.path)
+                    keyPath = rKey.path + lpSubKey
+                    print(keyPath)
+                    if keyPath in RegistryKeys: # If Key Found Get Value
+                        foundKey: RegKey = RegistryKeys[keyPath]
+                        if lpValue == '[NULL]':
+                            keyValue = foundKey.getValue()
+                        else:
+                            keyValue = foundKey.getValue(lpValue)
+                    else:
+                        print('key not found')
+                        # Figure out return value
+                            
+
+        if keyValue is not None:
+            try:
+                uc.mem_write(pVals[4],pack('<I',keyValue.type.value))
+                uc.mem_write(pVals[5],pack(f'<{len(keyValue.data)}s',bytes(keyValue.data,encoding='ascii')))
+                uc.mem_write(pVals[6],pack('<I',len(keyValue.data)))
+            except:
+                pass
+        else:
+            print('Value Not Found')
+            # Figure out Return Value
+
         pVals[3] = getLookUpVal(pVals[3], dwFlagsReverseLookUp)
 
-        # create strings for everything except ones in our skip
-        skip = [3]  # we need to skip this value (index) later-let's put it in skip
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
 
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
@@ -3876,6 +3929,40 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("HttpAddRequestHeadersA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def HttpSendRequestA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes = ['HINTERNET', 'LPINTERNET_BUFFERSA', 'LPINTERNET_BUFFERSA', 'DWORD', 'DWORD_PTR']
+        pNames = ['hRequest', 'lpBuffersIn', 'lpBuffersOut', 'dwFlags', 'dwContext']
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("HttpSendRequestA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def HttpSendRequestExA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes = ['HINTERNET', 'LPCSTR', 'DWORD', 'LPVOID', 'DWORD']
+        pNames = ['hRequest', 'lpszHeaders', 'dwHeadersLength', 'lpOptional', 'dwOptionalLength']
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("HttpSendRequestExA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def HttpAddRequestHeadersW(self, uc, eip, esp, export_dict, callAddr, em):
@@ -5660,6 +5747,23 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("GetModuleHandleW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def GetModuleFileNameA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['HMODULE', 'LPSTR', 'DWORD']
+        pNames = ['hModule', 'lpFilename', 'nSize']
+
+        skip = []  
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+
+        retVal = allocation.address
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("GetModuleFileNameA", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def TlsFree(self, uc, eip, esp, export_dict, callAddr, em):
