@@ -9,6 +9,8 @@ from .structures import makeStructVals, struct_FILETIME, struct_PROCESS_INFORMAT
 import traceback
 
 commandLine_arg = set()
+registry_values = set()
+registry_keys = set()
 
 FakeProcess = 0xbadd0000
 ProcessCreationReverseLookUp = {16777216: 'CREATE_BREAKAWAY_FROM_JOB', 67108864: 'CREATE_DEFAULT_ERROR_MODE',
@@ -2139,6 +2141,42 @@ class CustomWinAPIs():
         logged_calls = ("URLDownloadToFileA", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
+    def URLDownloadToCacheFileA(self, uc, eip, esp, export_dict, callAddr, em):
+        # function to get values for parameters - count as specified at the end - returned as a list
+        pVals = makeArgVals(uc, em, esp, 5)
+        pTypes = ['LPUNKNOWN', 'LPCSTR', 'LPTSTR', 'DWORD', 'DWORD', 'IBindStatusCallback']
+        pNames = ['pCaller', 'szURL', 'szFileName', 'cchFileName', 'dwReserved', '*pBSC']
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x0
+        retValStr = 'S_OK'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("URLDownloadToCacheFileA", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def URLDownloadToCacheFilew(self, uc, eip, esp, export_dict, callAddr, em):
+        # function to get values for parameters - count as specified at the end - returned as a list
+        pVals = makeArgVals(uc, em, esp, 5)
+        pTypes = ['LPUNKNOWN', 'LPCSTR', 'LPTSTR', 'DWORD', 'DWORD', 'IBindStatusCallback']
+        pNames = ['pCaller', 'szURL', 'szFileName', 'cchFileName', 'dwReserved', '*pBSC']
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x0
+        retValStr = 'S_OK'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("URLDownloadToCacheFilew", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
     def URLDownloadToFileW(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['LPUNKNOWN', 'LPCWSTR', 'LPCWSTR', 'DWORD', 'LPBINDSTATUSCALLBACK']
@@ -2388,19 +2426,16 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def RegCreateKeyExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        # LSTATUS RegCreateKeyExA([in] HKEY hKey,[in] LPCSTR lpSubKey,DWORD Reserved,[in, optional]  LPSTR lpClass,[in] DWORD dwOptions,[in] REGSAM samDesired,[in, optional] const LPSECURITY_ATTRIBUTES lpSecurityAttributes,[out] PHKEY phkResult,[out, optional] LPDWORD lpdwDisposition);
         pVals = makeArgVals(uc, em, esp, 9)
         pTypes = ['HKEY', 'LPCSTR', 'DWORD', 'LPSTR', 'DWORD', 'REGSAM', 'LPSECURITY_ATTRIBUTES', 'PHKEY', 'LPDWORD']
         pNames = ['hKey', 'lpSubKey', 'Reserved', 'lpClass', 'dwOptions', 'samDesired', 'lpSecurityAttributes','phkResult','lpdwDisposition']
         dwOptionsReverseLookUp = {4: 'REG_OPTION_BACKUP_RESTORE', 2: 'REG_OPTION_CREATE_LINK',
                                   0: 'REG_OPTION_NON_VOLATILE',
                                   1: 'REG_OPTION_VOLATILE'}
-        samDesiredReverseLookUp = {983103: 'KEY_ALL_ACCESS', 32: 'KEY_CREATE_LINK', 4: 'KEY_CREATE_SUB_KEY',
-                                   8: 'KEY_ENUMERATE_SUB_KEYS', 131097: 'KEY_READ', 16: 'KEY_NOTIFY',
-                                   1: 'KEY_QUERY_VALUE',
-                                   2: 'KEY_SET_VALUE', 512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY',
-                                   131078: 'KEY_WRITE'}
         lpdwDispostitionReverseLookUp = {1: 'REG_CREATED_NEW_KEY', 2: 'REG_OPENED_EXISTING_KEY'}
+
+        global registry_values
+        global registry_keys
 
         lpSubKey = read_string(uc, pVals[1])
         if lpSubKey != '[NULL]':
@@ -2441,7 +2476,7 @@ class CustomWinAPIs():
             pass
         
         pVals[4] = getLookUpVal(pVals[4], dwOptionsReverseLookUp)
-        pVals[5] = getLookUpVal(pVals[5], samDesiredReverseLookUp)
+        pVals[5] = getLookUpVal(pVals[5], RegKey.securityAccessRights)
         pVals[8] = getLookUpVal(pVals[8], lpdwDispostitionReverseLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4, 5, 8])
@@ -2450,23 +2485,23 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
+        registry_keys.add(keyPath)
+
         logged_calls = ("RegCreateKeyExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def RegCreateKeyExW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        # LSTATUS RegCreateKeyExA([in] HKEY hKey,[in] LPCSTR lpSubKey,DWORD Reserved,[in, optional]  LPSTR lpClass,[in] DWORD dwOptions,[in] REGSAM samDesired,[in, optional] const LPSECURITY_ATTRIBUTES lpSecurityAttributes,[out] PHKEY phkResult,[out, optional] LPDWORD lpdwDisposition);
+        # LSTATUS RegCreateKeyExW([in] HKEY hKey,[in] LPCSTR lpSubKey,DWORD Reserved,[in, optional]  LPSTR lpClass,[in] DWORD dwOptions,[in] REGSAM samDesired,[in, optional] const LPSECURITY_ATTRIBUTES lpSecurityAttributes,[out] PHKEY phkResult,[out, optional] LPDWORD lpdwDisposition);
         pVals = makeArgVals(uc, em, esp, 9)
         pTypes = ['HKEY', 'LPCWSTR', 'DWORD', 'LPWSTR', 'DWORD', 'REGSAM', 'LPSECURITY_ATTRIBUTES', 'PHKEY', 'LPDWORD']
         pNames = ['hKey', 'lpSubKey', 'Reserved', 'lpClass', 'dwOptions', 'samDesired', 'lpSecurityAttributes','phkResult','lpdwDisposition']
         dwOptionsReverseLookUp = {4: 'REG_OPTION_BACKUP_RESTORE', 2: 'REG_OPTION_CREATE_LINK',
                                   0: 'REG_OPTION_NON_VOLATILE',
                                   1: 'REG_OPTION_VOLATILE'}
-        samDesiredReverseLookUp = {983103: 'KEY_ALL_ACCESS', 32: 'KEY_CREATE_LINK', 4: 'KEY_CREATE_SUB_KEY',
-                                   8: 'KEY_ENUMERATE_SUB_KEYS', 131097: 'KEY_READ', 16: 'KEY_NOTIFY',
-                                   1: 'KEY_QUERY_VALUE',
-                                   2: 'KEY_SET_VALUE', 512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY',
-                                   131078: 'KEY_WRITE'}
         lpdwDispostitionReverseLookUp = {1: 'REG_CREATED_NEW_KEY', 2: 'REG_OPENED_EXISTING_KEY'}
+
+        global registry_keys
+        global registry_values
 
         lpSubKey = read_unicode(uc, pVals[1])
         if lpSubKey != '[NULL]':
@@ -2507,7 +2542,7 @@ class CustomWinAPIs():
             pass
 
         pVals[4] = getLookUpVal(pVals[4], dwOptionsReverseLookUp)
-        pVals[5] = getLookUpVal(pVals[5], samDesiredReverseLookUp)
+        pVals[5] = getLookUpVal(pVals[5], RegKey.securityAccessRights)
         pVals[8] = getLookUpVal(pVals[8], lpdwDispostitionReverseLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4, 5, 8] )
@@ -2516,36 +2551,109 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
+        registry_keys.add(keyPath)
+
         logged_calls = ("RegCreateKeyExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def RegOpenKeyA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+    def RegCreateKeyA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['HKEY', 'LPCSTR', 'PHKEY']
         pNames = ['hkey', 'lpSubKey', 'phkResult']
 
-        hKey = pVals[0]
-
-        if pVals[0] in RegKey.PreDefinedKeys:
-            keyPath = getLookUpVal(pVals[0], RegKey.PreDefinedKeys)
-        elif pVals[0] in HandlesDict:
-            handle = HandlesDict[pVals[0]]
-            foundKey = RegistryKeys[handle.name]
-            keyPath += foundKey.path
-        else: 
-            keyPath = '' # Ask If We want Default hKey if Not Found 
+        global registry_keys
+        global registry_values
 
         lpSubKey = read_string(uc, pVals[1])
         if lpSubKey != '[NULL]':
-            if lpSubKey[0] != '\\': # Add Slash to beginning
+            if lpSubKey[0] != '\\':
                 lpSubKey = '\\' + lpSubKey
                 pVals[1] = lpSubKey
-            keyPath = keyPath + lpSubKey 
-            keyName = keyPath.split('\\')[-1] # Get Last Value
-            newKey = RegKey()
-            newKey.create(keyName, keyPath)
 
+            keyPath = ''
+            if pVals[0] in HandlesDict:
+                hKey = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path + lpSubKey
+                    if keyPath in RegistryKeys: # If Key Found Return Handle
+                        foundKey = RegistryKeys[keyPath]
+                        hKey = foundKey.handle.value
+                        createKey = False
+                    else:
+                        createKey = True
+                else:
+                    createKey = True
+                    keyPath = hKey.name + lpSubKey
+            else:
+                createKey = True
+                keyPath += lpSubKey
+        else: # [NULL] lpSubKey Return hKey
+            createKey = False
+            hKey = pVals[0]
+            
+        if createKey: # Create New
+            keyName = keyPath.split('\\')[-1] # Get Key Name
+            newKey = RegKey(keyName,keyPath)
             hKey = newKey.handle.value
+
+        try:
+            uc.mem_write(pVals[2], pack('<I',hKey))
+        except:
+            pass
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+           
+        registry_keys.add(keyPath)
+
+        logged_calls = ("RegCreateKeyA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegCreateKeyW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['HKEY', 'LPCWSTR', 'PHKEY']
+        pNames = ['hkey', 'lpSubKey', 'phkResult']
+
+        global registry_keys
+        global registry_values
+
+        lpSubKey = read_unicode(uc, pVals[1])
+        if lpSubKey != '[NULL]':
+            if lpSubKey[0] != '\\':
+                lpSubKey = '\\' + lpSubKey
+                pVals[1] = lpSubKey
+
+            keyPath = ''
+            if pVals[0] in HandlesDict:
+                hKey = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path + lpSubKey
+                    if keyPath in RegistryKeys: # If Key Found Return Handle
+                        foundKey = RegistryKeys[keyPath]
+                        hKey = foundKey.handle.value
+                        createKey = False
+                    else:
+                        createKey = True
+                else:
+                    createKey = True
+                    keyPath = hKey.name + lpSubKey
+            else:
+                createKey = True
+                keyPath += lpSubKey
+        else: # [NULL] lpSubKey Return hKey
+            createKey = False
+            hKey = pVals[0]
+            
+        if createKey: # Create New
+            keyName = keyPath.split('\\')[-1] # Get Key Name
+            newKey = RegKey(keyName,keyPath)
+            hKey = newKey.handle.value
+
         try:
             uc.mem_write(pVals[2], pack('<I',hKey))
         except:
@@ -2557,17 +2665,161 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
+        registry_keys.add(keyPath)
+    
+        logged_calls = ("RegCreateKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegOpenKeyA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['HKEY', 'LPCSTR', 'PHKEY']
+        pNames = ['hkey', 'lpSubKey', 'phkResult']
+
+        global registry_keys
+        global registry_values
+
+        lpSubKey = read_string(uc, pVals[1])
+        if lpSubKey != '[NULL]':
+            if lpSubKey[0] != '\\':
+                lpSubKey = '\\' + lpSubKey
+                pVals[1] = lpSubKey
+
+            keyPath = ''
+            if pVals[0] in HandlesDict:
+                hKey = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path + lpSubKey
+                    if keyPath in RegistryKeys: # If Key Found Return Handle
+                        foundKey = RegistryKeys[keyPath]
+                        hKey = foundKey.handle.value
+                        createKey = False
+                    else:
+                        createKey = True
+                else:
+                    createKey = True
+                    keyPath = hKey.name + lpSubKey
+            else:
+                createKey = True
+                keyPath += lpSubKey
+        else: # [NULL] lpSubKey Return hKey
+            createKey = False
+            hKey = pVals[0]
+            
+        if createKey: # Create New
+            keyName = keyPath.split('\\')[-1] # Get Key Name
+            newKey = RegKey(keyName,keyPath)
+            hKey = newKey.handle.value
+
+        try:
+            uc.mem_write(pVals[2], pack('<I',hKey))
+        except:
+            pass
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        registry_keys.add(keyPath)
+ 
         logged_calls = ("RegOpenKeyA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegOpenKeyW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['HKEY', 'LPCWSTR', 'PHKEY']
+        pNames = ['hkey', 'lpSubKey', 'phkResult']
+
+        global registry_keys
+        global registry_values
+
+        lpSubKey = read_unicode(uc, pVals[1])
+        if lpSubKey != '[NULL]':
+            if lpSubKey[0] != '\\':
+                lpSubKey = '\\' + lpSubKey
+                pVals[1] = lpSubKey
+
+            keyPath = ''
+            if pVals[0] in HandlesDict:
+                hKey = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path + lpSubKey
+                    if keyPath in RegistryKeys: # If Key Found Return Handle
+                        foundKey = RegistryKeys[keyPath]
+                        hKey = foundKey.handle.value
+                        createKey = False
+                    else:
+                        createKey = True
+                else:
+                    createKey = True
+                    keyPath = hKey.name + lpSubKey
+            else:
+                createKey = True
+                keyPath += lpSubKey
+        else: # [NULL] lpSubKey Return hKey
+            createKey = False
+            hKey = pVals[0]
+            
+        if createKey: # Create New
+            keyName = keyPath.split('\\')[-1] # Get Key Name
+            newKey = RegKey(keyName,keyPath)
+            hKey = newKey.handle.value
+
+        try:
+            uc.mem_write(pVals[2], pack('<I',hKey))
+        except:
+            pass
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        registry_keys.add(keyPath)
+        
+        logged_calls = ("RegOpenKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def RegDeleteKeyExA(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HKEY', 'LPCSTR', 'REGSAM', 'DWORD']
         pNames = ['hKey', 'lpSubKey', 'samDesired', 'Reserved']
+        
+        global registry_keys
+        global registry_values
 
         samDesiredReverseLookUp = {512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY'}
 
         pVals[2] = getLookUpVal(pVals[2], samDesiredReverseLookUp)
+
+        lpSubKey = read_unicode(uc, pVals[1])
+        if lpSubKey != '[NULL]':
+            if lpSubKey[0] != '\\':
+                lpSubKey = '\\' + lpSubKey
+                pVals[1] = lpSubKey
+
+            keyPath = ''
+            if pVals[0] in HandlesDict:
+                hKey = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path + lpSubKey
+                    if keyPath in RegistryKeys: # If Key Found Return Handle
+                        foundKey = RegistryKeys[keyPath]
+                        hKey = foundKey.handle.value
+                    else:
+                        pass
+                else:
+                    keyPath = hKey.name + lpSubKey
+            else:
+                keyPath += lpSubKey
+        else: # [NULL] lpSubKey Return hKey
+            hKey = pVals[0]
+
 
         # create strings for everything except ones in our skip
         skip = [2]  # we need to skip this value (index) later-let's put it in skip
@@ -2577,6 +2829,8 @@ class CustomWinAPIs():
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        registry_keys.add(keyPath)
 
         logged_calls = ("RegDeleteKeyExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
@@ -2586,9 +2840,36 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCWSTR', 'REGSAM', 'DWORD']
         pNames = ['hKey', 'lpSubKey', 'samDesired', 'Reserved']
 
+        global registry_keys
+        global registry_values
+
         samDesiredReverseLookUp = {512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY'}
 
         pVals[2] = getLookUpVal(pVals[2], samDesiredReverseLookUp)
+
+        lpSubKey = read_unicode(uc, pVals[1])
+        if lpSubKey != '[NULL]':
+            if lpSubKey[0] != '\\':
+                lpSubKey = '\\' + lpSubKey
+                pVals[1] = lpSubKey
+
+            keyPath = ''
+            if pVals[0] in HandlesDict:
+                hKey = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path + lpSubKey
+                    if keyPath in RegistryKeys: # If Key Found Return Handle
+                        foundKey = RegistryKeys[keyPath]
+                        hKey = foundKey.handle.value
+                    else:
+                        pass
+                else:
+                    keyPath = hKey.name + lpSubKey
+            else:
+                keyPath += lpSubKey
+        else: # [NULL] lpSubKey Return hKey
+            hKey = pVals[0]
 
         # create strings for everything except ones in our skip
         skip = [2]  # we need to skip this value (index) later-let's put it in skip
@@ -2599,14 +2880,19 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
+        registry_keys.add(keyPath)
+
         logged_calls = ("RegDeleteKeyExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def RegGetValueA(self, uc, eip, esp, export_dict, callAddr, em):
+    def RegGetValueA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 7)
         pTypes = ['HKEY', 'LPCSTR', 'LPCSTR', 'DWORD', 'LPDWORD', 'PVOID', 'LPDWORD']
         pNames = ['hKey', 'lpSubKey', 'lpValue', 'dwFlags', 'pdwType', 'pvData', 'pcbData']
 
+        global registry_keys
+        global registry_values
+
         dwFlagsReverseLookUp = {65535: 'RRF_RT_ANY', 24: 'RRF_RT_DWORD', 72: 'RRF_RT_QWORD', 8: 'RRF_RT_REG_BINARY',
                                 16: 'RRF_RT_REG_DWORD', 4: 'RRF_RT_REG_EXPAND_SZ', 32: 'RRF_RT_REG_MULTI_SZ',
                                 1: 'RRF_RT_REG_NONE', 64: 'RRF_RT_REG_QWORD', 2: 'RRF_RT_REG_SZ',
@@ -2614,25 +2900,74 @@ class CustomWinAPIs():
                                 536870912: 'RRF_ZEROONFAILURE', 65536: 'RRF_SUBKEY_WOW6464KEY',
                                 131072: 'RRF_SUBKEY_WOW6432KEY'}
 
+        lpSubKey = read_string(uc, pVals[1])
+        lpValue = read_string(uc, pVals[2])
+
+        keyPath = ''
+        keyValue = None
+
+        if lpSubKey == '[NULL]':
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path
+                    if keyPath in RegistryKeys: # If Key Found Get Value
+                        foundKey: RegKey = RegistryKeys[keyPath]
+                        if lpValue == '[NULL]':
+                            keyValue = foundKey.getValue()
+                        else:
+                            keyValue = foundKey.getValue(lpValue)
+        else:
+            if lpSubKey[0] != '\\':
+                lpSubKey = '\\' + lpSubKey
+                pVals[1] = lpSubKey
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path + lpSubKey
+                    if keyPath in RegistryKeys: # If Key Found Get Value
+                        foundKey: RegKey = RegistryKeys[keyPath]
+                        if lpValue == '[NULL]':
+                            keyValue = foundKey.getValue()
+                        else:
+                            keyValue = foundKey.getValue(lpValue)
+
+        if keyValue is not None:
+            # info grab here 
+            registry_keys.add()
+            print(keyValue.name)
+            try: # Need Different Mem Write Depending on Value Type will Fix Later
+                uc.mem_write(pVals[4],pack('<I',keyValue.type.value))
+                uc.mem_write(pVals[5],pack(f'<{len(keyValue.data)}s',bytes(keyValue.data,encoding='ascii')))
+                uc.mem_write(pVals[6],pack('<I',len(keyValue.data)))
+            except:
+                pass
+            retVal = 0x0
+            retValStr = 'ERROR_SUCCESS'
+        else:
+            retVal = 0x2 
+            retValStr = 'ERROR_FILE_NOT_FOUND'
+             # Another Possible ErrorCode 161: 'ERROR_BAD_PATHNAME'
+
         pVals[3] = getLookUpVal(pVals[3], dwFlagsReverseLookUp)
 
-        # create strings for everything except ones in our skip
-        skip = [3]  # we need to skip this value (index) later-let's put it in skip
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
-
-        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
-        retVal = 0x0
-        retValStr = 'ERROR_SUCCESS'
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
+        
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("RegGetValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def RegGetValueW(self, uc, eip, esp, export_dict, callAddr, em):
+    def RegGetValueW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 7)
         pTypes = ['HKEY', 'LPCWSTR', 'LPCWSTR', 'DWORD', 'LPDWORD', 'PVOID', 'LPDWORD']
         pNames = ['hKey', 'lpSubKey', 'lpValue', 'dwFlags', 'pdwType', 'pvData', 'pcbData']
 
+        global registry_keys
+        global registry_values
+
         dwFlagsReverseLookUp = {65535: 'RRF_RT_ANY', 24: 'RRF_RT_DWORD', 72: 'RRF_RT_QWORD', 8: 'RRF_RT_REG_BINARY',
                                 16: 'RRF_RT_REG_DWORD', 4: 'RRF_RT_REG_EXPAND_SZ', 32: 'RRF_RT_REG_MULTI_SZ',
                                 1: 'RRF_RT_REG_NONE', 64: 'RRF_RT_REG_QWORD', 2: 'RRF_RT_REG_SZ',
@@ -2640,59 +2975,118 @@ class CustomWinAPIs():
                                 536870912: 'RRF_ZEROONFAILURE', 65536: 'RRF_SUBKEY_WOW6464KEY',
                                 131072: 'RRF_SUBKEY_WOW6432KEY'}
 
+        lpSubKey = read_unicode(uc, pVals[1])
+        lpValue = read_unicode(uc, pVals[2])
+
+        keyPath = ''
+        keyValue = None
+
+        if lpSubKey == '[NULL]':
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path
+                    if keyPath in RegistryKeys: # If Key Found Get Value
+                        foundKey: RegKey = RegistryKeys[keyPath]
+                        if lpValue == '[NULL]':
+                            keyValue = foundKey.getValue()
+                        else:
+                            keyValue = foundKey.getValue(lpValue)
+        else:
+            if lpSubKey[0] != '\\':
+                lpSubKey = '\\' + lpSubKey
+                pVals[1] = lpSubKey
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path + lpSubKey
+                    if keyPath in RegistryKeys: # If Key Found Get Value
+                        foundKey: RegKey = RegistryKeys[keyPath]
+                        if lpValue == '[NULL]':
+                            keyValue = foundKey.getValue()
+                        else:
+                            keyValue = foundKey.getValue(lpValue)
+
+        if keyValue is not None:
+            # info grab here 
+            print(keyValue.name)
+            try: # Need Different Mem Write Depending on Value Type will Fix Later
+                uc.mem_write(pVals[4],pack('<I',keyValue.type.value))
+                uc.mem_write(pVals[5],pack(f'<{len(keyValue.data)*2}s',bytes(keyValue.data,encoding='utf-16')))
+                uc.mem_write(pVals[6],pack('<I',len(keyValue.data)))
+            except:
+                pass
+            retVal = 0x0
+            retValStr = 'ERROR_SUCCESS'
+        else:
+            retVal = 0x2 
+            retValStr = 'ERROR_FILE_NOT_FOUND'
+             # Another Possible ErrorCode 161: 'ERROR_BAD_PATHNAME'
+
         pVals[3] = getLookUpVal(pVals[3], dwFlagsReverseLookUp)
 
-        # create strings for everything except ones in our skip
-        skip = [3]  # we need to skip this value (index) later-let's put it in skip
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
-
-        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
-        retVal = 0x0
-        retValStr = 'ERROR_SUCCESS'
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
+        
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls = ("RegGetValueW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        logged_calls = ("RegGetValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def RegSetValueA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['HKEY', 'LPCSTR', 'DWORD', 'LPCSTR', 'DWORD']
         pNames = ['hKey', 'lpSubKey', 'dwType', 'lpData', 'cbData']
 
-        lpData = read_string(uc, pVals[3])
+        global registry_keys
+        global registry_values
+
         lpSubKey = read_string(uc, pVals[1])
+        lpData = read_string(uc, pVals[3])
 
         if lpSubKey != '[NULL]':
-            if lpSubKey[0] != '\\': # Add Slash to beginning
+            if lpSubKey[0] != '\\':
                 lpSubKey = '\\' + lpSubKey
                 pVals[1] = lpSubKey
-            keyName = lpSubKey.split('\\')[-1] # Get Last Value
-            found = False
-            if pVals[0] in RegistryKeys: # Search Dictionary for hKey
-                foundKey = RegistryKeys[pVals[0]]
-                if foundKey.name == keyName:
-                    foundKey.setValue(RegValueTypes(pVals[2]),lpData)
-                    found = True
-            if not found: # Loop Search through Dictionary for Name
-                for key, val in RegistryKeys.items():
-                    if keyName == val.name:
-                        val.setValue(RegValueTypes(pVals[2]),lpData)
-                        found = True
-                        break
-        else:
-            if pVals[0] in RegistryKeys: # Search Dictionary for hKey
-                foundKey = RegistryKeys[pVals[0]]
-                if foundKey.name == keyName:
-                    foundKey.setValue(RegValueTypes(pVals[2]),lpData)
-            elif pVals[0] in RegKey.PreDefinedKeys:
-                name = getLookUpVal(pVals[0],RegKey.PreDefinedKeys)
-                newKey = RegKey()
-                newKey.create(name, name, pVals[0])
-                newKey.setValue(RegValueTypes(pVals[2]),lpData)
+
+            keyPath = ''
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path + lpSubKey
+                    if keyPath in RegistryKeys: # If Key Found Set Value
+                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey.setValue(RegValueTypes(pVals[2]),lpData)
+                        createKey = False
+                        registry_key_address = foundKey
+                    else:
+                        createKey = True
+                else:
+                    createKey = True
+                    keyPath = hKey.name + lpSubKey
             else:
-                # Add Create New Key if Doesn't Exist
-                pass
-        
+                createKey = True
+                keyPath += lpSubKey
+        else: # [NULL] lpSubKey 
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    if rKey.path in RegistryKeys: # If Key Found Set Value
+                        foundKey: RegKey = RegistryKeys[rKey.path]
+                        foundKey.setValue(RegValueTypes(pVals[2]),lpData)
+                        registry_key_address = foundKey
+            createKey = False
+            
+        if createKey: # Create New Key
+            keyName = keyPath.split('\\')[-1] # Get Key Name
+            newKey = RegKey(keyName,keyPath)
+            newKey.setValue(RegValueTypes(pVals[2]),lpData)
+            registry_key_address = newKey
+
         pVals[2] = RegValueTypes(pVals[2]).name
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
@@ -2701,17 +3095,270 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
+        registry_keys.add(keyPath)
+        written_values = registry_key_address.getValue()
+        registry_values.add((written_values.name,written_values.data))
+
         logged_calls = ("RegSetValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def RegSetValueW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 5)
+        pTypes = ['HKEY', 'LPCWSTR', 'DWORD', 'LPCWSTR', 'DWORD']
+        pNames = ['hKey', 'lpSubKey', 'dwType', 'lpData', 'cbData']
+
+        global registry_keys
+        global registry_values
+
+        lpSubKey = read_unicode(uc, pVals[1])
+        lpData = read_unicode(uc, pVals[3])
+        
+        if lpSubKey != '[NULL]':
+            if lpSubKey[0] != '\\':
+                lpSubKey = '\\' + lpSubKey
+                pVals[1] = lpSubKey
+
+            keyPath = ''
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path + lpSubKey
+                    if keyPath in RegistryKeys: # If Key Found Set Value
+                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey.setValue(RegValueTypes(pVals[2]),lpData)
+                        createKey = False
+                        registry_key_address = foundKey
+                    else:
+                        createKey = True
+                else:
+                    createKey = True
+                    keyPath = hKey.name + lpSubKey
+            else:
+                createKey = True
+                keyPath += lpSubKey
+        else: # [NULL] lpSubKey 
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    if rKey.path in RegistryKeys: # If Key Found Set Value
+                        foundKey: RegKey = RegistryKeys[rKey.path]
+                        foundKey.setValue(RegValueTypes(pVals[2]),lpData)
+                        registry_key_address = foundKey
+            createKey = False
+            
+        if createKey: # Create New Key
+            keyName = keyPath.split('\\')[-1] # Get Key Name
+            newKey = RegKey(keyName,keyPath)
+            newKey.setValue(RegValueTypes(pVals[2]),lpData)
+            registry_key_address = newKey
+
+        pVals[2] = RegValueTypes(pVals[2]).name
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        registry_keys.add(keyPath)
+        written_values = registry_key_address.getValue()
+        registry_values.add((written_values.name,written_values.data))
+
+        logged_calls = ("RegSetValueW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegSetValueExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+            #'RegSetValueExA': (6, ['HKEY', 'LPCSTR', 'DWORD', 'DWORD', 'BYTE *', 'DWORD'], ['hKey', 'lpValueName', 'Reserved', 'dwType', 'lpData', 'cbData'], 'LSTATUS')
+        pVals = makeArgVals(uc, em, esp, 6)
+        pTypes = ['HKEY', 'LPCSTR', 'DWORD', 'DWORD', 'BYTE *', 'DWORD']
+        pNames = ['hKey', 'lpValueName', 'Reserved', 'dwType', 'lpData', 'cbData']
+
+        global registry_keys
+        global registry_values
+
+        valType = RegValueTypes(pVals[3])
+        valName = read_string(uc,pVals[1])
+
+        if pVals[0] in HandlesDict: # Handle Not Found
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name] # Key Found
+                if valType == RegValueTypes.REG_BINARY:
+                    bin = uc.mem_read(pVals[4],pVals[5])
+                    rKey.setValue(valType,bin,valName)
+                    pVals[4] = hex(pVals[4])
+                elif valType == RegValueTypes.REG_DWORD:
+                    if em.arch == 64:
+                        mem = uc.mem_read(esp+(8*1),4)
+                    else:
+                        mem = uc.mem_read(esp+(4*5),4)
+                    val = unpack('<I',mem)[0]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_DWORD_BIG_ENDIAN:
+                    if em.arch == 64:
+                        mem = uc.mem_read(esp+(8*1),4)
+                    else:
+                        mem = uc.mem_read(esp+(4*5),4)
+                    val = unpack('>I',mem)[0]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_QWORD:
+                    if em.arch == 64:
+                        mem = uc.mem_read(esp+(8*1),8)
+                    else:
+                        mem = uc.mem_read(esp+(4*5),8)
+                    val = unpack('<Q',mem)[0]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_SZ:
+                    val = read_string(uc, pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_EXPAND_SZ:
+                    val = read_string(uc, pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_LINK:
+                    val = read_unicode(uc,pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_MULTI_SZ:
+                    multiString = []
+                    mem = uc.mem_read(pVals[4],pVals[5])
+                    hexStrings = mem.hex()
+                    hexStrings = hexStrings.split('00')[:-1]
+                    for hexStr in hexStrings:
+                        string = bytes.fromhex(hexStr).decode('ascii') 
+                        multiString.append(string)   
+                    rKey.setValue(valType,multiString,valName)
+                    kVal = rKey.getValue(valName)
+                    pVals[4] = kVal.dataAsStr
+                elif valType == RegValueTypes.REG_NONE:
+                    rKey.setValue(valType,pVals[4],valName)
+                registry_key_address = rKey
+            else: # Key Not Found
+                pass
+        else: # Handle Not Found
+            pass
+        
+        # registry_key_address.printInfo()
+
+        pVals[3] = RegValueTypes(pVals[3]).name
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3,4])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        # registry_keys.add(registry_key_address.path)
+        # written_values = registry_key_address.getValue()
+        # registry_values.add((written_values.name,written_values.data))
+
+        logged_calls = ("RegSetValueExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegSetValueExW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+            #'RegSetValueExW': (6, ['HKEY', 'LPCWSTR', 'DWORD', 'DWORD', 'BYTE *', 'DWORD'], ['hKey', 'lpValueName', 'Reserved', 'dwType', 'lpData', 'cbData'], 'LSTATUS'
+        pVals = makeArgVals(uc, em, esp, 6)
+        pTypes = ['HKEY', 'LPCWSTR', 'DWORD', 'DWORD', 'BYTE *', 'DWORD']
+        pNames = ['hKey', 'lpValueName', 'Reserved', 'dwType', 'lpData', 'cbData']
+
+        global registry_keys
+        global registry_values
+
+        valType = RegValueTypes(pVals[3])
+        valName = read_unicode(uc,pVals[1])
+
+        if pVals[0] in HandlesDict: # Handle Not Found
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name] # Key Found
+                if valType == RegValueTypes.REG_BINARY:
+                    bin = uc.mem_read(pVals[4],pVals[5])
+                    rKey.setValue(valType,bin,valName)
+                    pVals[4] = hex(pVals[4])
+                elif valType == RegValueTypes.REG_DWORD:
+                    if em.arch == 64:
+                        mem = uc.mem_read(esp+(8*1),4)
+                    else:
+                        mem = uc.mem_read(esp+(4*5),4)
+                    val = unpack('<I',mem)[0]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_DWORD_BIG_ENDIAN:
+                    if em.arch == 64:
+                        mem = uc.mem_read(esp+(8*1),4)
+                    else:
+                        mem = uc.mem_read(esp+(4*5),4)
+                    val = unpack('>I',mem)[0]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_QWORD:
+                    if em.arch == 64:
+                        mem = uc.mem_read(esp+(8*1),8)
+                    else:
+                        mem = uc.mem_read(esp+(4*5),8)
+                    val = unpack('<Q',mem)[0]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_SZ:
+                    val = read_unicode(uc, pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_EXPAND_SZ:
+                    val = read_unicode(uc, pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_LINK:
+                    val = read_unicode(uc,pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_MULTI_SZ:
+                    multiString = []
+                    mem = uc.mem_read(pVals[4],pVals[5])
+                    hexStrings = mem.hex()
+                    hexStrings = hexStrings.split('0000')[:-1]
+                    for hexStr in hexStrings:
+                        string = bytes.fromhex(hexStr).decode('utf-16')
+                        multiString.append(string[2:])   
+                    rKey.setValue(valType,multiString,valName)
+                    kVal = rKey.getValue(valName)
+                    pVals[4] = kVal.dataAsStr
+                elif valType == RegValueTypes.REG_NONE:
+                    rKey.setValue(valType,pVals[4],valName)
+                registry_key_address = rKey
+            else: # Key Not Found
+                pass
+        else: # Handle Not Found
+            pass
+
+        
+
+        pVals[3] = RegValueTypes(pVals[3]).name
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3,4])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        #registry_keys.add(keyPath)
+        #written_values = registry_key_address.getValue()
+        #registry_values.add((written_values.name,written_values.data))
+
+        logged_calls = ("RegSetValueExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def RegOpenCurrentUser(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['REGSAM', 'PHKEY']
         pNames = ['access', 'retkey']
-        samDesiredReverseLookUp = {983103: 'KEY_ALL_ACCESS', 32: 'KEY_CREATE_LINK', 4: 'KEY_CREATE_SUB_KEY',8: 'KEY_ENUMERATE_SUB_KEYS', 131097: 'KEY_READ', 16: 'KEY_NOTIFY',1: 'KEY_QUERY_VALUE',2: 'KEY_SET_VALUE', 512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY',131078: 'KEY_WRITE'}
 
-        pVals[0] = getLookUpVal(pVals[0], samDesiredReverseLookUp)
+        pVals[0] = getLookUpVal(pVals[0], RegKey.securityAccessRights)
 
         try:
             uc.mem_write(pVals[1], pack('<I',0x80000001))
@@ -2727,6 +3374,191 @@ class CustomWinAPIs():
         logged_calls = ("RegOpenCurrentUser", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def RegOpenUserClassesRoot(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes = ['HANDLE', 'DWORD', 'REGSAM', 'PHKEY']
+        pNames = ['hToken', 'dwOptions', 'samDesired', 'phkResult']
+       
+        pVals[0] = getLookUpVal(pVals[2], RegKey.securityAccessRights)
+
+        try:
+            uc.mem_write(pVals[3], pack('<I',0x80000000))
+        except:
+            pass
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegOpenUserClassesRoot", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegOpenKeyExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+            #'RegOpenKeyExA': (5, ['HKEY', 'LPCSTR', 'DWORD', 'REGSAM', 'PHKEY'], ['hKey', 'lpSubKey', 'ulOptions', 'samDesired', 'phkResult'], 'LSTATUS')
+        pVals = makeArgVals(uc, em, esp, 5)
+        pTypes = ['HKEY', 'LPCSTR', 'DWORD', 'REGSAM', 'PHKEY']
+        pNames = ['hKey', 'lpSubKey', 'ulOptions', 'samDesired', 'phkResult']
+
+        samDesiredReverseLookUp = {512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY'}
+
+        pVals[3] = getLookUpVal(pVals[3], samDesiredReverseLookUp)
+
+        global registry_keys
+        global registry_values
+
+        lpSubKey = read_string(uc, pVals[1])
+        if lpSubKey != '[NULL]':
+            if lpSubKey[0] != '\\':
+                lpSubKey = '\\' + lpSubKey
+                pVals[1] = lpSubKey
+
+            keyPath = ''
+            if pVals[0] in HandlesDict:
+                hKey = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path + lpSubKey
+                    if keyPath in RegistryKeys: # If Key Found Return Handle
+                        foundKey = RegistryKeys[keyPath]
+                        hKey = foundKey.handle.value
+                        createKey = False
+                    else:
+                        createKey = True
+                else:
+                    createKey = True
+                    keyPath = hKey.name + lpSubKey
+            else:
+                createKey = True
+                keyPath += lpSubKey
+        else: # [NULL] lpSubKey Return hKey
+            createKey = False
+            hKey = pVals[0]
+            
+        if createKey: # Create New
+            keyName = keyPath.split('\\')[-1] # Get Key Name
+            newKey = RegKey(keyName,keyPath)
+            hKey = newKey.handle.value
+
+        try:
+            uc.mem_write(pVals[4], pack('<I',hKey))
+        except:
+            pass
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        registry_keys.add(keyPath)
+        #written_values = registry_key_address.getValue()
+        #registry_values.add((written_values.name,written_values.data))
+
+        logged_calls = ("RegOpenKeyExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegOpenKeyExW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+            #RegOpenKeyExW': (5, ['HKEY', 'LPCWSTR', 'DWORD', 'REGSAM', 'PHKEY'], ['hKey', 'lpSubKey', 'ulOptions', 'samDesired', 'phkResult'], 'LSTATUS')
+        pVals = makeArgVals(uc, em, esp, 5)
+        pTypes = ['HKEY', 'LPCWSTR', 'DWORD', 'REGSAM', 'PHKEY']
+        pNames = ['hKey', 'lpSubKey', 'ulOptions', 'samDesired', 'phkResult']
+
+        samDesiredReverseLookUp = {512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY'}
+
+        pVals[3] = getLookUpVal(pVals[3], samDesiredReverseLookUp)
+
+        global registry_keys
+        global registry_values
+
+        lpSubKey = read_string(uc, pVals[1])
+        if lpSubKey != '[NULL]':
+            if lpSubKey[0] != '\\':
+                lpSubKey = '\\' + lpSubKey
+                pVals[1] = lpSubKey
+
+            keyPath = ''
+            if pVals[0] in HandlesDict:
+                hKey = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path + lpSubKey
+                    if keyPath in RegistryKeys: # If Key Found Return Handle
+                        foundKey = RegistryKeys[keyPath]
+                        hKey = foundKey.handle.value
+                        createKey = False
+                    else:
+                        createKey = True
+                else:
+                    createKey = True
+                    keyPath = hKey.name + lpSubKey
+            else:
+                createKey = True
+                keyPath += lpSubKey
+        else: # [NULL] lpSubKey Return hKey
+            createKey = False
+            hKey = pVals[0]
+            
+        if createKey: # Create New
+            keyName = keyPath.split('\\')[-1] # Get Key Name
+            newKey = RegKey(keyName,keyPath)
+            hKey = newKey.handle.value
+
+        try:
+            uc.mem_write(pVals[4], pack('<I',hKey))
+        except:
+            pass
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        registry_keys.add(keyPath)
+        #written_values = registry_key_address.getValue()
+        #registry_values.add((written_values.name,written_values.data))
+
+        logged_calls = ("RegOpenKeyExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegFlushKey(self, uc, eip, esp, export_dict, callAddr, em):
+        #'RegFlushKey': (1, ['HKEY'], ['hKey'], 'LSTATUS')
+        pVals = makeArgVals(uc, em, esp, 1)
+        pTypes = ['HKEY']
+        pNames = ['hKey']
+
+        global registry_keys
+        global registry_values
+
+        keyPath =''
+        if pVals[0] in HandlesDict:
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+                keyPath = rKey.path
+            else: # RegKey Not Found Use handle Name Instead Might Not Be KeyPath
+              keyPath = hKey.name 
+        else:
+            #print("figure out what to do in the case of key not in dict")
+            keyPath = 'Error in retreving key'
+             
+
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        registry_keys.add(keyPath)
+
+        logged_calls = ("RegFlushKey", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
     def SetWindowsHookExA(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['int', 'HOOKPROC', 'HINSTANCE', 'DWORD']
@@ -3575,6 +4407,40 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("HttpSendRequestExA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def InternetCloseHandle(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes = ['HINTERNET']
+        pNames = ['hInternet']
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("InternetCloseHandle", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def InternetReadFile(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes = ['HINTERNET', 'LPVOID', 'DWORD', 'LPDWORD']
+        pNames = ['hFile', 'lpBuffer', 'dwNumberOfBytesToRead', 'lpdwNumberOfBytesToRead']
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("InternetReadFile", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def HttpAddRequestHeadersW(self, uc, eip, esp, export_dict, callAddr, em):
@@ -5366,16 +6232,39 @@ class CustomWinAPIs():
         pTypes = ['HMODULE', 'LPSTR', 'DWORD']
         pNames = ['hModule', 'lpFilename', 'nSize']
 
+        string1 = read_string(uc, pVals[1])
+        try:
+            uc.mem_write(pVals[0], pack(f'<{pVals[2]}s', string1.encode("ascii")))
+        except:
+            pass
+
+        retVal = pVals[0]
+
         skip = []  
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
-
-        retVal = allocation.address
+        #retVal = 0x1
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("GetModuleFileNameA", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def SleepEx(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['DWORD', 'BOOL']
+        pNames = ['dwMilliseconds', 'bAlertable']
+
+        skip = []  
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x0
+        retValStr = "SUCCESS - Specified Time Interval Expired"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("SleepEx", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def TlsFree(self, uc, eip, esp, export_dict, callAddr, em):
@@ -5609,15 +6498,51 @@ class CustomWinAPIs():
         pNames = ['lpString1', 'lpString2', 'iMaxLength'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
+        
+
+        string2 = read_string(uc, pVals[1])
+        try:
+            uc.mem_write(pVals[0], pack(f'<{pVals[2]}s', string2.encode("ascii")))
+        except:
+            pass
+
+        retVal = pVals[0]
+
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
+
         cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
-        retVal = allocation.address
+        #retVal =  # pointer to buffer
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("lstrcpynA", hex(callAddr), (retValStr), 'LPSTR', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def lstrcpynW(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['LPWSTR', 'LPCWSTR', 'int'] 
+        pNames = ['lpString1', 'lpString2', 'iMaxLength'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        string2 = read_unicode(uc, pVals[1])
+        try:
+            uc.mem_write(pVals[0], pack(f'<{pVals[2]*2}s', string2.encode("utf-16")[2:]))
+        except:
+            pass
+
+        retVal = pVals[0]
+
+        skip = []
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        #retVal =  # pointer to buffer
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("lstrcpynW", hex(callAddr), (retValStr), 'LPSTR', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def CopyFileW(self, uc, eip, esp, export_dict, callAddr, em):
@@ -5629,7 +6554,7 @@ class CustomWinAPIs():
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
         cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
-        retVal = allocation.address
+        retVal = "SUCCESS"
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -7028,16 +7953,8 @@ class System_SnapShot:
         except:
             pass
 
-class RegPredfinedKeys(Enum): # Might Not Need
-    HKEY_CLASSES_ROOT = 0x80000000
-    HKEY_CURRENT_USER = 0x80000001
-    HKEY_LOCAL_MACHINE = 0x80000002
-    HKEY_USERS = 0x80000003
-    HKEY_PERFORMANCE_DATA = 0x80000004
-    HKEY_CURRENT_CONFIG = 0x80000005
-    HKEY_DYN_DATA = 0x80000006
 
-class RegValueTypes(Enum):
+class RegValueTypes(Enum): # Ask Bramwell about duplicates dword/qword
     REG_BINARY = 3  # Binary data in any form.
     REG_DWORD = 4  # A 32-bit number.
     REG_DWORD_LITTLE_ENDIAN	= 4  # A 32-bit number in little-endian format. Windows is designed to run on little-endian computer architectures. Therefore, this value is defined as REG_DWORD in the Windows header files.
@@ -7050,15 +7967,10 @@ class RegValueTypes(Enum):
     REG_QWORD_LITTLE_ENDIAN	= 11  # A 64-bit number in little-endian format. Windows is designed to run on little-endian computer architectures. Therefore, this value is defined as REG_QWORD in the Windows header files.
     REG_SZ = 1  # A null-terminated string. This will be either a Unicode or an ANSI string, depending on whether you use the Unicode or ANSI functions.
 
-class RegEvents(Enum): # Might Not Need
-    CREATE_KEY = auto()
-    DELETE_KEY = auto()
-    DELETE_VALUE = auto()
-    SET_VALUE = auto()
-
 class RegKey:
     PreDefinedKeys = {0x80000000: 'HKEY_CLASSES_ROOT',0x80000001: 'HKEY_CURRENT_USER',0x80000002: 'HKEY_LOCAL_MACHINE',0x80000003: 'HKEY_USERS',0x80000004: 'HKEY_PERFORMANCE_DATA',0x80000005: 'HKEY_CURRENT_CONFIG',0x80000006: 'HKEY_DYN_DATA'}
     nextHandleValue = 0x80000010 # Registry Uses Different Range of Handles
+    securityAccessRights = {983103: 'KEY_ALL_ACCESS', 32: 'KEY_CREATE_LINK', 4: 'KEY_CREATE_SUB_KEY', 8: 'KEY_ENUMERATE_SUB_KEYS', 131097: 'KEY_READ', 16: 'KEY_NOTIFY', 1: 'KEY_QUERY_VALUE', 2: 'KEY_SET_VALUE', 512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY', 131078: 'KEY_WRITE'}
 
     def __init__(self, name: str, path: str, handle=0):
         self.name = name
@@ -7082,6 +7994,9 @@ class RegKey:
     def getValue(self, valueName: str = '(Default)'):
         if valueName in self.values:
             return self.values[valueName]
+        else: # Return Value Not Set
+            value = KeyValue(RegValueTypes.REG_SZ,data='(value not set)',valueName=valueName)
+            return value
 
     def deleteValue(self, valueName: str = '(Default)'):
         if valueName in self.values:
@@ -7095,7 +8010,7 @@ class RegKey:
         if len(self.values) > 0:
             print ("{:<20} {:<20} {:<20}".format('Name','Type','Data'))
             for key, val in self.values.items():
-                print ("{:<20} {:<20} {:<20}".format(val.name,val.type.name,val.data))
+                print ("{:<20} {:<20} {:<20}".format(val.name,val.type.name,val.dataAsStr))
 
     def printInfoAllKeys():
         print(f'Number of Registry Keys: {len(RegistryKeys)}')
@@ -7107,7 +8022,7 @@ class RegKey:
             if len(rval.values) > 0:
                 print ("{:<20} {:<20} {:<20}".format('Name','Type','Data'))
                 for key, val in rval.values.items():
-                    print ("{:<20} {:<20} {:<20}".format(val.name,val.type.name,val.data))
+                    print ("{:<20} {:<20} {:<20}".format(val.name,val.type.name,val.dataAsStr))
             print('\n')
             
 class KeyValue():
@@ -7115,6 +8030,16 @@ class KeyValue():
         self.name = valueName
         self.type = valueType
         self.data = data
+        if isinstance(data, str):
+            self.dataAsStr = data
+        elif isinstance(data, int):
+            self.dataAsStr = hex(data)
+        elif isinstance(data, bytearray):
+            self.dataAsStr = data.hex()
+        elif isinstance(data, list):
+            self.dataAsStr = (' ').join(data)
+        else:
+            self.dataAsStr = str(data)
 
 # Create Default Registry Keys
 RegKey.createPreDefinedKeys()

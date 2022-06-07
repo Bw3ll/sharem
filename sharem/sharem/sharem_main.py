@@ -20475,6 +20475,10 @@ def ui(): #UI menu loop
 			elif userIN[0:1] == "m":	# "find modules in the iat and beyond"
 				uiModulesSubMenu()
 				# print("\nReturning to main menu.\n")
+			elif userIN[0:1] == "r":	# reset
+				# SharemMainResetGlobals()
+				# print('reseting')
+				pass
 			else:
 				print("\nInvalid input.\n")
 
@@ -22766,7 +22770,8 @@ def emulation_txt_out(apiList, logged_syscalls):
 	txt_output += "**************************\n\n"
 
 	# no_colors_out += txt_output
-
+	# print(registry_values)
+	# print(registry_keys)
 
 	txt_output += mag + "\n************* APIs *************\n\n" + res
 	# no_colors_out += "\n************* APIs *************\n\n"
@@ -22919,9 +22924,9 @@ def emulation_txt_out(apiList, logged_syscalls):
 			emu_webArtifacts_list += "\n".join(web_artifacts)
 			emu_webArtifacts_list += "\n"
 
-		if(len(registry_artifacts) > 0):
+		if(len(registry_keys) > 0):
 			emu_registry_list = "\n"
-			emu_registry_list += "\n".join(registry_artifacts)
+			emu_registry_list += "\n".join(registry_keys)
 			emu_registry_list += "\n"
 
 		if(len(exe_dll_artifacts) > 0):
@@ -22964,7 +22969,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 		txt_output += "{}{:<8} {}\n".format(cya + "*** Command Line ***" + res,"", emu_commandline_list)
 	if len(web_artifacts) > 0:
 		txt_output += "{}{:<13} {}\n".format(cya + "*** Web ***" + res,"", emu_webArtifacts_list)
-	if len(registry_artifacts) > 0:
+	if len(registry_keys) > 0:
 		txt_output += "{}{:<9} {}\n".format(cya + "*** Registry ***" + res,"", emu_registry_list)
 	if len(exe_dll_artifacts) > 0:
 		txt_output += "{}{:<8} {}\n".format(cya + "*** EXE / DLLs ***" + res,"", emu_exe_dll_list)
@@ -25180,6 +25185,35 @@ def SharemMainResetGlobals():
 	global bComments
 	global shellBit
 	global filename
+	# HookAPI Emulation Values
+	global HandlesDict
+	global HeapsDict
+	global RegistryKeys
+	global availMem
+	global lastErrorCode
+	global commandLine_arg
+	global registry_values
+	global registry_keys
+	# Sharemu values
+	global artifacts
+	global net_artifacts
+	global file_artifacts
+	global exec_artifacts
+	global coverage_objects
+	global programCounter
+	global loggedList
+	global logged_syscalls
+	global logged_dlls
+	global paramValues
+	global network_activity
+	global jmpInstructs
+	global traversedAdds
+	global coverageAdds
+	global loadModsFromFile 
+	global cleanStackFlag
+	global stopProcess
+	global cleanBytes
+	global bad_instruct_count
 	#endregion Setting up global locals end
 
 
@@ -25349,7 +25383,7 @@ def SharemMainResetGlobals():
 	debugging=False
 
 	shHash=""
-	emuObj=None
+	# emuObj=None
 	patt=None
 	sBy=None
 	sh=None
@@ -25387,6 +25421,39 @@ def SharemMainResetGlobals():
 	bfindShellFound = False
 	bComments = True
 	shellBit=32
+
+	# HookAPI Emulation Reset
+	HandlesDict = {}
+	HeapsDict = {}
+	RegistryKeys = {}
+	availMem = 0x25000000
+	lastErrorCode = 0x0
+	commandLine_arg = set()
+	registry_values = set()
+	registry_keys = set()
+
+	# Sharemu values
+	artifacts = []
+	net_artifacts = []
+	file_artifacts = []
+	exec_artifacts = []
+	coverage_objects = []
+	programCounter = 0
+
+	loggedList = []
+	logged_syscalls = []
+	logged_dlls = []
+	paramValues = []
+	network_activity = {}
+	jmpInstructs = {}
+
+	traversedAdds = set()
+	coverageAdds = set()
+	loadModsFromFile = True
+	cleanStackFlag = False
+	stopProcess = False
+	cleanBytes = 0
+	bad_instruct_count = 0
 
 	#####SAME AS FROM SHAREM
 	filename=""
