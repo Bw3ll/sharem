@@ -2141,6 +2141,42 @@ class CustomWinAPIs():
         logged_calls = ("URLDownloadToFileA", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
+    def URLDownloadToCacheFileA(self, uc, eip, esp, export_dict, callAddr, em):
+        # function to get values for parameters - count as specified at the end - returned as a list
+        pVals = makeArgVals(uc, em, esp, 5)
+        pTypes = ['LPUNKNOWN', 'LPCSTR', 'LPTSTR', 'DWORD', 'DWORD', 'IBindStatusCallback']
+        pNames = ['pCaller', 'szURL', 'szFileName', 'cchFileName', 'dwReserved', '*pBSC']
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x0
+        retValStr = 'S_OK'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("URLDownloadToCacheFileA", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def URLDownloadToCacheFilew(self, uc, eip, esp, export_dict, callAddr, em):
+        # function to get values for parameters - count as specified at the end - returned as a list
+        pVals = makeArgVals(uc, em, esp, 5)
+        pTypes = ['LPUNKNOWN', 'LPCSTR', 'LPTSTR', 'DWORD', 'DWORD', 'IBindStatusCallback']
+        pNames = ['pCaller', 'szURL', 'szFileName', 'cchFileName', 'dwReserved', '*pBSC']
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x0
+        retValStr = 'S_OK'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("URLDownloadToCacheFilew", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
     def URLDownloadToFileW(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['LPUNKNOWN', 'LPCWSTR', 'LPCWSTR', 'DWORD', 'LPBINDSTATUSCALLBACK']
