@@ -2141,6 +2141,42 @@ class CustomWinAPIs():
         logged_calls = ("URLDownloadToFileA", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
+    def URLDownloadToCacheFileA(self, uc, eip, esp, export_dict, callAddr, em):
+        # function to get values for parameters - count as specified at the end - returned as a list
+        pVals = makeArgVals(uc, em, esp, 5)
+        pTypes = ['LPUNKNOWN', 'LPCSTR', 'LPTSTR', 'DWORD', 'DWORD', 'IBindStatusCallback']
+        pNames = ['pCaller', 'szURL', 'szFileName', 'cchFileName', 'dwReserved', '*pBSC']
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x0
+        retValStr = 'S_OK'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("URLDownloadToCacheFileA", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def URLDownloadToCacheFilew(self, uc, eip, esp, export_dict, callAddr, em):
+        # function to get values for parameters - count as specified at the end - returned as a list
+        pVals = makeArgVals(uc, em, esp, 5)
+        pTypes = ['LPUNKNOWN', 'LPCSTR', 'LPTSTR', 'DWORD', 'DWORD', 'IBindStatusCallback']
+        pNames = ['pCaller', 'szURL', 'szFileName', 'cchFileName', 'dwReserved', '*pBSC']
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x0
+        retValStr = 'S_OK'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("URLDownloadToCacheFilew", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
     def URLDownloadToFileW(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['LPUNKNOWN', 'LPCWSTR', 'LPCWSTR', 'DWORD', 'LPBINDSTATUSCALLBACK']
@@ -2900,6 +2936,7 @@ class CustomWinAPIs():
 
         if keyValue is not None:
             # info grab here 
+            registry_keys.add()
             print(keyValue.name)
             try: # Need Different Mem Write Depending on Value Type will Fix Later
                 uc.mem_write(pVals[4],pack('<I',keyValue.type.value))
@@ -3405,6 +3442,42 @@ class CustomWinAPIs():
         logged_calls = ("RegOpenKeyExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def RegFlushKey(self, uc, eip, esp, export_dict, callAddr, em):
+        #'RegFlushKey': (1, ['HKEY'], ['hKey'], 'LSTATUS')
+        pVals = makeArgVals(uc, em, esp, 1)
+        pTypes = ['HKEY']
+        pNames = ['hKey']
+
+        global registry_keys
+        global registry_values
+
+        keyPath =''
+        if pVals[0] in HandlesDict:
+            hKey = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey = RegistryKeys[hKey.name]
+                keyPath = rKey.path
+            else:
+                keyPath = hKey.name + lpSubKey
+        else:
+            #print("figure out what to do in the case of key not in dict")
+            keyPath = 'Error in retreving key'
+             
+
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        registry_keys.add(keyPath)
+
+        logged_calls = ("RegFlushKey", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
     def SetWindowsHookExA(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['int', 'HOOKPROC', 'HINSTANCE', 'DWORD']
@@ -4253,6 +4326,40 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("HttpSendRequestExA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def InternetCloseHandle(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes = ['HINTERNET']
+        pNames = ['hInternet']
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("InternetCloseHandle", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def InternetReadFile(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes = ['HINTERNET', 'LPVOID', 'DWORD', 'LPDWORD']
+        pNames = ['hFile', 'lpBuffer', 'dwNumberOfBytesToRead', 'lpdwNumberOfBytesToRead']
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("InternetReadFile", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def HttpAddRequestHeadersW(self, uc, eip, esp, export_dict, callAddr, em):
