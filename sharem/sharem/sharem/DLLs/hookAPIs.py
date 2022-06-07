@@ -3174,13 +3174,18 @@ class CustomWinAPIs():
                     rKey.setValue(valType,val,valName)
                     pVals[4] = val
                 elif valType == RegValueTypes.REG_MULTI_SZ:
-                    address = pVals[4] # Need to Expand for Multiple Strings
-                    val = read_string(uc,pVals[4])
-                    rKey.setValue(valType,val,valName)
-                    pVals[4] = val
+                    multiString = []
+                    mem = uc.mem_read(pVals[4],pVals[5])
+                    hexStrings = mem.hex()
+                    hexStrings = hexStrings.split('00')[:-1]
+                    for hexStr in hexStrings:
+                        string = bytes.fromhex(hexStr).decode('ascii') 
+                        multiString.append(string)   
+                    rKey.setValue(valType,multiString,valName)
+                    kVal = rKey.getValue(valName)
+                    pVals[4] = kVal.dataAsStr
                 elif valType == RegValueTypes.REG_NONE:
                     rKey.setValue(valType,pVals[4],valName)
-
                 registry_key_address = rKey
             else: # Key Not Found
                 pass
@@ -7843,6 +7848,8 @@ class KeyValue():
             self.dataAsStr = hex(data)
         elif isinstance(data, bytearray):
             self.dataAsStr = data.hex()
+        elif isinstance(data, list):
+            self.dataAsStr = (' ').join(data)
         else:
             self.dataAsStr = str(data)
 
