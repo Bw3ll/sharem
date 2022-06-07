@@ -6215,15 +6215,51 @@ class CustomWinAPIs():
         pNames = ['lpString1', 'lpString2', 'iMaxLength'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
+        
+
+        string2 = read_string(uc, pVals[1])
+        try:
+            uc.mem_write(pVals[0], pack(f'<{pVals[2]}s', string2.encode("ascii")))
+        except:
+            pass
+
+        retVal = pVals[0]
+
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
+
         cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
-        retVal = allocation.address
+        #retVal =  # pointer to buffer
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("lstrcpynA", hex(callAddr), (retValStr), 'LPSTR', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def lstrcpynW(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['LPWSTR', 'LPCWSTR', 'int'] 
+        pNames = ['lpString1', 'lpString2', 'iMaxLength'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        string2 = read_unicode(uc, pVals[1])
+        try:
+            uc.mem_write(pVals[0], pack(f'<{pVals[2]*2}s', string2.encode("utf-16")[2:]))
+        except:
+            pass
+
+        retVal = pVals[0]
+
+        skip = []
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        #retVal =  # pointer to buffer
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("lstrcpynW", hex(callAddr), (retValStr), 'LPSTR', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def CopyFileW(self, uc, eip, esp, export_dict, callAddr, em):
