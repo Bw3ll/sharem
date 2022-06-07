@@ -4323,6 +4323,40 @@ class CustomWinAPIs():
         logged_calls = ("HttpSendRequestExA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
+    def InternetCloseHandle(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes = ['HINTERNET']
+        pNames = ['hInternet']
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("InternetCloseHandle", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def InternetReadFile(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes = ['HINTERNET', 'LPVOID', 'DWORD', 'LPDWORD']
+        pNames = ['hFile', 'lpBuffer', 'dwNumberOfBytesToRead', 'lpdwNumberOfBytesToRead']
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("InternetReadFile", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
     def HttpAddRequestHeadersW(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HINTERNET', 'LPCWSTR', 'DWORD', 'DWORD']
