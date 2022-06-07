@@ -25005,6 +25005,392 @@ def testTarek():
 	bPushRet = bFstenv = bSyscall = bHeaven = bPEB = bCallPop = bDisassembly = bShellcodeAll = bWideCharStrings = bAsciiStrings = bPushStackStrings = True
 
 
+def SharemMainResetGlobals():
+	#region Setting up global locals start		
+	global iatList
+	global m 
+	global mBool
+	global mL
+	global s
+	global list_of_files
+	global list_of_files32
+	global list_of_files64
+	global list_of_pe32
+	global list_of_pe64
+	global list_of_unk_files
+	global current_arch
+	global sharem_out_dir
+	global emulation_verbose
+	global labels
+	global offsets
+	global off_Label
+	global off_PossibleBad
+	global elapsed_time
+	global pebPresent
+	global doneAlready1
+	global syscallString
+	global chMode
+	global sections
+	global numArgs
+	global peName
+	global modName
+	global PEsList
+	global PE_path
+	global PEsList_Index
+	global skipZero
+	global numPE
+	global skipPath
+	global FoundApisAddress
+	global FoundApisName
+	global saveAPI
+	global shellEntry
+	global decodedBytes
+	global maxZeroes
+	global shellEntry
+	global useDirectory
+	global VP
+	global VA
+	global MA
+	global GPA
+	global pe
+	global MemCpyAddress
+	global VPl
+	global VAl
+	global GPAl
+	global MAl
+	global Remove
+	global badChars
+	global fname
+	global entryPoint
+	global VirtualAdd
+	global ImageBase
+	global vSize
+	global startAddress
+	global endAddy
+	global gName
+	global o
+	global shOrg
+	global shBody
+	global shStub
+	global shDec
+	global t
+	global sectionName
+	global cs 
+	global cs64 
+	global directory
+	global newpath 
+	global PEtemp
+	global PE_DLL
+	global PE_DLLS 
+	global PE_DLLS2
+	global paths
+	global DLL_Protect
+	global bit32
+	global PE_Protect
+	global index
+	global CheckallModules
+	global present
+	global new
+	global new2
+	global deeperLevel
+	global asciiMode
+	global stringsTemp
+	global stringsTempWide
+	global pushStringsTemp
+	global filename
+	global filename2
+	global filenameRaw
+	global skipExtraction
+	global rawHex
+	global rawData2
+	global useHash
+	global known_arch
+	global numArgs
+	global rawBin
+	global isPe
+	global pointsLimit
+	global maxDistance
+	global useStringsFile
+	global minStrLen
+	global mEAX
+	global mEBX
+	global mEDX
+	global mECX
+	global mEBP
+	global mESP
+	global gDisassemblyText
+	global gDisassemblyTextNoC
+	global emulation_multiline
+	global linesForward
+	global bPushRet
+	global bFstenv
+	global bSyscall
+	global bHeaven
+	global bCallPop
+	global bPrintEmulation
+	global bDisassembly 
+	global bAnaHiddenCallsDone
+	global bAnaConvertBytesDone
+	global bAnaFindStrDone
+	global deobfShell 
+	global fastMode
+	global pebPoints
+	global p2screen
+	global configOptions
+	global print_style
+	global stubFile
+	global sameFile
+	global stubEntry
+	global stubEnd
+	global shellSizeLimit
+	global conFile
+	global workDir
+	global bit32_argparse
+	global save_bin_file
+	global linesForward
+	global linesBack
+	global bytesForward
+	global bytesBack
+	global unencryptedShell
+	global decoderShell
+	global unencryptedBodyShell
+	global sample
+	global allObject
+	global gDirectory
+	global debugging
+	global shHash
+	global emuObj
+	global patt
+	global sBy
+	global sh
+	global IATs
+	global syscallRawHexOverride
+	global heavRawHexOverride
+	global fstenvRawHexOverride
+	global emuSyscallSelection
+	global GoodStrings
+	global toggList 
+	global brawHex 
+	global bstrLit
+	global bfindString
+	global bdeobfCode
+	global bdeobfCodeFound 
+	global bfindShell
+	global bfindShellFound
+	global bComments
+	global shellBit
+	global filename
+	#endregion Setting up global locals end
+
+
+	#region Resetting Globals Start
+	iatList=[]
+	m = {} #[]   # start modules CHANGED to dicitonary
+	mBool = {} #[]   # start modules CHANGED to dicitonary
+
+	mL=[]
+	s = []  # start sections
+	list_of_files = []
+	list_of_files32 = []
+	list_of_files64 = []
+	list_of_pe32 = []
+	list_of_pe64 = []
+
+	list_of_unk_files = []
+	current_arch = 0
+	sharem_out_dir = "current_dir"
+	emulation_verbose = True
+
+	labels=set()
+	offsets=set()
+	off_Label=set()
+	off_PossibleBad=set()
+
+	elapsed_time = 0
+	pebPresent = False
+	doneAlready1 = []
+	syscallString = ''
+	chMode = False
+	sections = []
+	numArgs = len(sys.argv)
+	peName = ''
+	modName = peName
+	PEsList = []
+	PE_path =""
+	PEsList_Index = 0
+	skipZero = False
+	numPE = 1
+	skipPath = False
+	FoundApisAddress = []
+	FoundApisName = []
+	saveAPI=0x00
+
+	shellEntry=0x00
+	decodedBytes=b''
+	maxZeroes = 0
+	shellEntry=0x0
+	useDirectory = False
+
+	VP = 0
+	VA=""
+	MA=""
+	GPA=""
+	pe=""
+	MemCpyAddress=""
+	VPl = []
+	VAl=[]
+	GPAl=[]
+	MAl=[]
+	Remove=[]
+	badChars = ["zz"]
+	fname=""
+	entryPoint = 0 
+	VirtualAdd= 0 
+	ImageBase= 0 
+	vSize= 0 
+	startAddress= 0 
+	endAddy= 0 
+	# o=0
+	gName=""
+	o="shellcode"
+	shOrg="shellcode"
+	shBody="decoded body"
+	shStub="decoder stub"
+	shDec="decoded shellcode (full)"
+	t=0
+	sectionName=""
+	cs = Cs(CS_ARCH_X86, CS_MODE_32)
+	cs64 = Cs(CS_ARCH_X86, CS_MODE_64)
+	directory =""
+	newpath =""
+	PEtemp=""
+	PE_DLL = []
+	PE_DLLS = []
+	PE_DLLS2 = []
+	paths=[]
+	DLL_Protect = []
+	bit32 = True
+	PE_Protect=""
+	index=0
+	CheckallModules = False
+	present=[]
+	new=[]
+	new2=[]
+	deeperLevel=[]
+	asciiMode="ascii"
+	stringsTemp=[]
+	stringsTempWide=[]
+	pushStringsTemp=[]
+	filename=""
+	filename2=""
+	filenameRaw=""
+	skipExtraction=False
+	rawHex = False
+	rawData2 = b''
+	useHash=False
+	known_arch = False
+	numArgs = len(sys.argv)
+	rawBin=False  # only if .bin, not .txt
+	isPe=False
+	pointsLimit = 3
+	maxDistance = 15
+	useStringsFile = False
+	minStrLen = 6
+	mEAX = ''
+	mEBX = ''
+	mEDX = ''
+	mECX = ''
+	mEBP = ''
+	mESP = ''
+
+
+	gDisassemblyText=""
+	gDisassemblyTextNoC=""
+	emulation_multiline = False
+	# Moved from viewBool's work area
+	linesForward = 40
+	bPushRet = True
+	bFstenv = True
+	bSyscall = True
+	bHeaven = True
+	bCallPop = True
+	bPrintEmulation = True
+	bDisassembly = True
+	bAnaHiddenCallsDone=False
+	bAnaConvertBytesDone=False
+	bAnaFindStrDone=False
+	deobfShell = True
+	fastMode=False
+	pebPoints = 3
+	p2screen = True
+	configOptions = {}
+	print_style = "left"
+	stubFile = "stub.txt"
+	sameFile = True
+	stubEntry = 0
+	stubEnd = 0
+	# mBool[o].ignoreDisDiscovery=False
+	shellSizeLimit=120
+	conFile = str("config.cfg")
+	workDir = False
+	bit32_argparse = False
+	save_bin_file = True
+	linesForward = 7
+	linesBack = 10
+	bytesForward = 15
+	bytesBack = 15
+	unencryptedShell=0x0
+	decoderShell=0x1
+	unencryptedBodyShell=0x3
+	sample=0x4
+	allObject=0x5
+	gDirectory="" # #used to hold original directory --immutable 
+	# debugging=True
+	debugging=False
+
+	shHash=""
+	emuObj=None
+	patt=None
+	sBy=None
+	sh=None
+	IATs = None
+
+	syscallRawHexOverride = False
+	heavRawHexOverride = False
+	fstenvRawHexOverride = False
+
+	emuSyscallSelection = SYSCALL_BOOL_DICT
+
+
+
+	GoodStrings={"cmd",  "net","add", "win", "http", "dll", "sub", "calc", "https","recv"}
+	toggList = {'findString':True, 
+				'deobfCode':False,
+				'findShell':False,
+				'comments':True,
+				'hidden_calls':True,
+				'show_ascii':True,
+				'ignore_dis_discovery':False,
+				'opcodes':True,
+				'labels':True,
+				'offsets':True,
+				'max_opcodes':8,
+				'binary_to_string':3}
+
+	brawHex = ''
+	bstrLit = ''
+	bfindString = True
+	bdeobfCode = False
+	bdeobfCodeFound = False
+
+	bfindShell = True
+	bfindShellFound = False
+	bComments = True
+	shellBit=32
+
+	#####SAME AS FROM SHAREM
+	filename=""
+	#endregion Resetting Global End
 
 def SharemMain(parserNamespace: Namespace):
 
