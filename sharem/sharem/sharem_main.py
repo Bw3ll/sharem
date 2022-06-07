@@ -22591,13 +22591,26 @@ def emulation_json_out(apiList, logged_syscalls):
 					# 	# api_dict['parameters'].append({"structure_type":sTyp + " " + sName,
 						# 							"structure_value":str(sVal)})
 				else:
-					api_dict['parameters'].append({"type":api_params_types[t] + " " + api_params_names[t],
+					api_type_value = []
+					api_type_value.append({"type":api_params_types[t],
 											"value":str(api_params_values[t])})
+					api_dict['parameters'].append({"type":api_params_names[t],
+											"value":api_type_value})
+					# api_dict['parameters'].append({"type":api_params_types[t] + " " + api_params_names[t],
+											# "value":str(api_params_values[t])})
 				t+= 1
 		else:
-			for pTyp, pName, pVal in zip(api_params_types, api_params_names, api_params_values):
-				api_dict['parameters'].append({"type":pTyp + " " + pName,
-											"value":str(pVal)})
+			p = 0
+			# for pTyp, pName, pVal in zip(api_params_types, api_params_names, api_params_values):
+			# 	api_dict['parameters'].append({"type":pTyp + " " + pName,
+			# 								"value":str(pVal)})
+			for pName in api_params_names:
+				api_type_value = []
+				api_type_value.append({"type":api_params_types[p],
+											"value":str(api_params_values[p])})
+				api_dict['parameters'].append({"type":api_params_names[p],
+											"value":api_type_value})
+				p+=1
 		# list_of_apis.append(api_dict)
 		emulation_dict["api_calls"].append(api_dict)
 	
@@ -22771,7 +22784,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 		retType = ret_type[t]
 		paramVal = api_params_values[t]
 		paramVal_tuple = api_params_values[t]
-		print(paramVal)
+		# print(paramVal)
 		for potentialTuple in paramVal:
 			if( type(potentialTuple) == tuple):
 				# print("is a tuple")
