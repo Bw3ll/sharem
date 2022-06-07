@@ -3170,26 +3170,72 @@ class CustomWinAPIs():
 
     def RegSetValueExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
             #'RegSetValueExA': (6, ['HKEY', 'LPCSTR', 'DWORD', 'DWORD', 'BYTE *', 'DWORD'], ['hKey', 'lpValueName', 'Reserved', 'dwType', 'lpData', 'cbData'], 'LSTATUS')
-        pVals = makeArgVals(uc, em, esp, 5)
+        pVals = makeArgVals(uc, em, esp, 6)
         pTypes = ['HKEY', 'LPCSTR', 'DWORD', 'DWORD', 'BYTE *', 'DWORD']
         pNames = ['hKey', 'lpValueName', 'Reserved', 'dwType', 'lpData', 'cbData']
 
         global registry_keys
         global registry_values
 
+        valType = RegValueTypes(pVals[3])
+        valName = read_string(uc,pVals[1])
+
+        if pVals[0] in HandlesDict: # Handle Not Found
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name] # Key Found
+                if valType == RegValueTypes.REG_BINARY:
+                    bin = uc.mem_read(pVals[4],pVals[5])
+                    rKey.setValue(valType,bin,valName)
+                    pVals[4] = hex(pVals[4])
+                elif valType == RegValueTypes.REG_DWORD:
+                    rKey.setValue(valType,pVals[4],valName) # Might need Fixed
+                    pVals[4] = hex(pVals[4])
+                elif valType == RegValueTypes.REG_DWORD_BIG_ENDIAN:
+                    rKey.setValue(valType,pVals[4],valName) # Needs Fixed
+                    pVals[4] = hex(pVals[4])
+                elif valType == RegValueTypes.REG_QWORD:
+                    rKey.setValue(valType,pVals[4],valName) # Needs Fixed
+                    pVals[4] = hex(pVals[4])
+                elif valType == RegValueTypes.REG_SZ:
+                    val = read_string(uc, pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_EXPAND_SZ:
+                    val = read_string(uc, pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_LINK:
+                    val = read_unicode(uc,pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_MULTI_SZ:
+                    address = pVals[4] # Need to Expand for Multiple Strings
+                    val = read_string(uc,pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_NONE:
+                    rKey.setValue(valType,pVals[4],valName)
+
+                registry_key_address = rKey
+            else: # Key Not Found
+                pass
+        else: # Handle Not Found
+            pass
         
+        # registry_key_address.printInfo()
 
-        pVals[2] = RegValueTypes(pVals[2]).name
+        pVals[3] = RegValueTypes(pVals[3]).name
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3,4])
 
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        #registry_keys.add(keyPath)
-        #written_values = registry_key_address.getValue()
-        #registry_values.add((written_values.name,written_values.data))
+        # registry_keys.add(registry_key_address.path)
+        # written_values = registry_key_address.getValue()
+        # registry_values.add((written_values.name,written_values.data))
 
         logged_calls = ("RegSetValueExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -3239,6 +3285,27 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("RegOpenCurrentUser", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegOpenUserClassesRoot(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes = ['HANDLE', 'DWORD', 'REGSAM', 'PHKEY']
+        pNames = ['hToken', 'dwOptions', 'samDesired', 'phkResult']
+       
+        pVals[0] = getLookUpVal(pVals[2], RegKey.securityAccessRights)
+
+        try:
+            uc.mem_write(pVals[3], pack('<I',0x80000000))
+        except:
+            pass
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegOpenUserClassesRoot", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def RegOpenKeyExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
@@ -7730,7 +7797,7 @@ class System_SnapShot:
             pass
 
 
-class RegValueTypes(Enum):
+class RegValueTypes(Enum): # Ask Bramwell about duplicates dword/qword
     REG_BINARY = 3  # Binary data in any form.
     REG_DWORD = 4  # A 32-bit number.
     REG_DWORD_LITTLE_ENDIAN	= 4  # A 32-bit number in little-endian format. Windows is designed to run on little-endian computer architectures. Therefore, this value is defined as REG_DWORD in the Windows header files.
@@ -7786,7 +7853,7 @@ class RegKey:
         if len(self.values) > 0:
             print ("{:<20} {:<20} {:<20}".format('Name','Type','Data'))
             for key, val in self.values.items():
-                print ("{:<20} {:<20} {:<20}".format(val.name,val.type.name,val.data))
+                print ("{:<20} {:<20} {:<20}".format(val.name,val.type.name,val.dataAsStr))
 
     def printInfoAllKeys():
         print(f'Number of Registry Keys: {len(RegistryKeys)}')
@@ -7798,7 +7865,7 @@ class RegKey:
             if len(rval.values) > 0:
                 print ("{:<20} {:<20} {:<20}".format('Name','Type','Data'))
                 for key, val in rval.values.items():
-                    print ("{:<20} {:<20} {:<20}".format(val.name,val.type.name,val.data))
+                    print ("{:<20} {:<20} {:<20}".format(val.name,val.type.name,val.dataAsStr))
             print('\n')
             
 class KeyValue():
@@ -7806,6 +7873,14 @@ class KeyValue():
         self.name = valueName
         self.type = valueType
         self.data = data
+        if isinstance(data, str):
+            self.dataAsStr = data
+        elif isinstance(data, int):
+            self.dataAsStr = hex(data)
+        elif isinstance(data, bytearray):
+            self.dataAsStr = data.hex()
+        else:
+            self.dataAsStr = str(data)
 
 # Create Default Registry Keys
 RegKey.createPreDefinedKeys()
