@@ -25181,6 +25181,15 @@ def SharemMainResetGlobals():
 	global bComments
 	global shellBit
 	global filename
+	# HookAPI Emulation stuff 
+	global HandlesDict
+	global HeapsDict
+	global RegistryKeys
+	global availMem
+	global lastErrorCode
+	global commandLine_arg
+	global registry_values
+	global registry_keys
 	#endregion Setting up global locals end
 
 
@@ -25388,6 +25397,16 @@ def SharemMainResetGlobals():
 	bfindShellFound = False
 	bComments = True
 	shellBit=32
+
+	# HookAPI Emulation Reset
+	HandlesDict = {}
+	HeapsDict = {}
+	RegistryKeys = {}
+	availMem = 0x25000000
+	lastErrorCode = 0x0
+	commandLine_arg = set()
+	registry_values = set()
+	registry_keys = set()
 
 	#####SAME AS FROM SHAREM
 	filename=""
