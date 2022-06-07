@@ -20475,6 +20475,10 @@ def ui(): #UI menu loop
 			elif userIN[0:1] == "m":	# "find modules in the iat and beyond"
 				uiModulesSubMenu()
 				# print("\nReturning to main menu.\n")
+			elif userIN[0:1] == "r":	# reset
+				# SharemMainResetGlobals()
+				# print('reseting')
+				pass
 			else:
 				print("\nInvalid input.\n")
 
@@ -25181,7 +25185,7 @@ def SharemMainResetGlobals():
 	global bComments
 	global shellBit
 	global filename
-	# HookAPI Emulation stuff 
+	# HookAPI Emulation Values
 	global HandlesDict
 	global HeapsDict
 	global RegistryKeys
@@ -25190,6 +25194,26 @@ def SharemMainResetGlobals():
 	global commandLine_arg
 	global registry_values
 	global registry_keys
+	# Sharemu values
+	global artifacts
+	global net_artifacts
+	global file_artifacts
+	global exec_artifacts
+	global coverage_objects
+	global programCounter
+	global loggedList
+	global logged_syscalls
+	global logged_dlls
+	global paramValues
+	global network_activity
+	global jmpInstructs
+	global traversedAdds
+	global coverageAdds
+	global loadModsFromFile 
+	global cleanStackFlag
+	global stopProcess
+	global cleanBytes
+	global bad_instruct_count
 	#endregion Setting up global locals end
 
 
@@ -25359,7 +25383,7 @@ def SharemMainResetGlobals():
 	debugging=False
 
 	shHash=""
-	emuObj=None
+	# emuObj=None
 	patt=None
 	sBy=None
 	sh=None
@@ -25407,6 +25431,29 @@ def SharemMainResetGlobals():
 	commandLine_arg = set()
 	registry_values = set()
 	registry_keys = set()
+
+	# Sharemu values
+	artifacts = []
+	net_artifacts = []
+	file_artifacts = []
+	exec_artifacts = []
+	coverage_objects = []
+	programCounter = 0
+
+	loggedList = []
+	logged_syscalls = []
+	logged_dlls = []
+	paramValues = []
+	network_activity = {}
+	jmpInstructs = {}
+
+	traversedAdds = set()
+	coverageAdds = set()
+	loadModsFromFile = True
+	cleanStackFlag = False
+	stopProcess = False
+	cleanBytes = 0
+	bad_instruct_count = 0
 
 	#####SAME AS FROM SHAREM
 	filename=""
