@@ -2938,6 +2938,7 @@ class CustomWinAPIs():
             # info grab here 
             registry_keys.add()
             print(keyValue.name)
+            #registry_values.add(())
             try: # Need Different Mem Write Depending on Value Type will Fix Later
                 uc.mem_write(pVals[4],pack('<I',keyValue.type.value))
                 uc.mem_write(pVals[5],pack(f'<{len(keyValue.data)}s',bytes(keyValue.data,encoding='ascii')))
@@ -3473,6 +3474,152 @@ class CustomWinAPIs():
 
         logged_calls = ("RegFlushKey", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
+
+    def RegLoadKeyA(self, uc, eip, esp, export_dict, callAddr, em):
+        #'RegLoadKeyA': (3, ['HKEY', 'LPCSTR', 'LPCSTR'], ['hKey', 'lpSubKey', 'lpFile'], 'LSTATUS')
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['HKEY', 'LPCSTR', 'LPCSTR']
+        pNames = ['hKey', 'lpSubKey', 'lpFile']
+
+        global registry_keys
+        global registry_values
+
+        lpSubKey = read_unicode(uc, pVals[1])
+        if lpSubKey != '[NULL]':
+            if lpSubKey[0] != '\\':
+                lpSubKey = '\\' + lpSubKey
+                pVals[1] = lpSubKey
+
+            keyPath = ''
+            if pVals[0] in HandlesDict:
+                hKey = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path + lpSubKey
+                    if keyPath in RegistryKeys: # If Key Found Return Handle
+                        foundKey = RegistryKeys[keyPath]
+                        hKey = foundKey.handle.value
+                    else:
+                        pass
+                else:
+                    keyPath = hKey.name + lpSubKey
+            else:
+                keyPath += lpSubKey
+        else: # [NULL] lpSubKey Return hKey
+            hKey = pVals[0]
+             
+
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        registry_keys.add(keyPath)
+
+        logged_calls = ("RegFlushKey", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def RegCloseKey(self, uc, eip, esp, export_dict, callAddr, em):
+        #'RegCloseKey': (1, ['HKEY'], ['hKey'], 'LSTATUS')
+        pVals = makeArgVals(uc, em, esp, 1)
+        pTypes = ['HKEY']
+        pNames = ['hKey']
+
+        global registry_keys
+        global registry_values
+
+        keyPath =''
+        if pVals[0] in HandlesDict:
+            hKey = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey = RegistryKeys[hKey.name]
+                keyPath = rKey.path
+            else:
+                keyPath = hKey.name + lpSubKey
+        else:
+            #print("figure out what to do in the case of key not in dict")
+            keyPath = 'Error in retreving key - closeKey'
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        registry_keys.add(keyPath)
+
+        logged_calls = ("RegCloseKey", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def RegEnumKeyA(self, uc, eip, esp, export_dict, callAddr, em):
+        #'RegEnumKeyA': (4, ['HKEY', 'DWORD', 'LPSTR', 'DWORD'], ['hKey', 'dwIndex', 'lpName', 'cchName'], 'LSTATUS')
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes = ['HKEY', 'DWORD', 'LPSTR', 'DWORD']
+        pNames = ['hKey', 'dwIndex', 'lpName', 'cchName']
+
+        global registry_keys
+        global registry_values
+
+        #build out
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegEnumKeyA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def RegConnectRegistryA(self, uc, eip, esp, export_dict, callAddr, em):
+        #'RegConnectRegistryA': (3, ['LPCSTR', 'HKEY', 'PHKEY'], ['lpMachineName', 'hKey', 'phkResult'], 'LSTATUS')
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['LPCSTR', 'HKEY', 'PHKEY']
+        pNames = ['lpMachineName', 'hKey', 'phkResult']
+
+        global registry_keys
+        global registry_values
+
+        #build out
+        # it seems to return the result of the hKey but on the other computer.
+        #is ther a way to somehow define registry keys if they are being used remotely like this?
+        #like how 80000000 is the root for the current computer, can we do something like 90000000 for a remote computer?
+        # something to show that the shellcode attempted to connect to a remote registry and do something with it. 
+        keyPath =''
+        if pVals[1] in HandlesDict:
+            hKey = HandlesDict[pVals[1]]
+            if hKey.name in RegistryKeys:
+                rKey = RegistryKeys[hKey.name]
+                keyPath = rKey.path
+            else:
+                keyPath = hKey.name
+        else:
+            #print("figure out what to do in the case of key not in dict")
+            keyPath = 'Error in retreving key - ConnectRegistryA'
+
+        registry_keys.add(keyPath)
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegConnectRegistryA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
     def SetWindowsHookExA(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['int', 'HOOKPROC', 'HINSTANCE', 'DWORD']
