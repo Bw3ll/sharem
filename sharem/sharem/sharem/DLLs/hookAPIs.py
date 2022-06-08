@@ -4952,9 +4952,9 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def HttpSendRequestA(self, uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HINTERNET', 'LPINTERNET_BUFFERSA', 'LPINTERNET_BUFFERSA', 'DWORD', 'DWORD_PTR']
         pNames = ['hRequest', 'lpBuffersIn', 'lpBuffersOut', 'dwFlags', 'dwContext']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         # create strings for everything except ones in our skip
         skip = []  # we need to skip this value (index) later-let's put it in skip
@@ -4969,9 +4969,9 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def HttpSendRequestExA(self, uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HINTERNET', 'LPCSTR', 'DWORD', 'LPVOID', 'DWORD']
         pNames = ['hRequest', 'lpszHeaders', 'dwHeadersLength', 'lpOptional', 'dwOptionalLength']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         # create strings for everything except ones in our skip
         skip = []  # we need to skip this value (index) later-let's put it in skip
@@ -4986,9 +4986,9 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def InternetCloseHandle(self, uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HINTERNET']
         pNames = ['hInternet']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         # create strings for everything except ones in our skip
         skip = []  # we need to skip this value (index) later-let's put it in skip
@@ -5003,9 +5003,9 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def InternetReadFile(self, uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HINTERNET', 'LPVOID', 'DWORD', 'LPDWORD']
         pNames = ['hFile', 'lpBuffer', 'dwNumberOfBytesToRead', 'lpdwNumberOfBytesToRead']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         # create strings for everything except ones in our skip
         skip = []  # we need to skip this value (index) later-let's put it in skip
@@ -5020,9 +5020,9 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def InternetReadFileExA(self, uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HINTERNET', 'LPINTERNET_BUFFERSA', 'DWORD', 'DWORD_PTR']
         pNames = ['hFile', 'lpBuffersOut', 'dwFlags', 'dwContext']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         dwFlagsReverseLookUp = {1: 'IRF_ASYNC', 4: 'IRF_SYNC', 8: 'IRF_USE_CONTEXT', 0: 'IRF_NO_WAIT'}
         pVals[2] = getLookUpVal(pVals[2], dwFlagsReverseLookUp)
@@ -5039,9 +5039,9 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def InternetReadFileExW(self, uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HINTERNET', 'LPINTERNET_BUFFERSW', 'DWORD', 'DWORD_PTR']
         pNames = ['hFile', 'lpBuffersOut', 'dwFlags', 'dwContext']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         dwFlagsReverseLookUp = {1: 'IRF_ASYNC', 4: 'IRF_SYNC', 8: 'IRF_USE_CONTEXT', 0: 'IRF_NO_WAIT'}
         pVals[2] = getLookUpVal(pVals[2], dwFlagsReverseLookUp)
@@ -5055,6 +5055,23 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("InternetReadFileExW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def InternetWriteFile(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['HINTERNET', 'LPCVOID', 'DWORD', 'LPDWORD']
+        pNames = ['hFile', 'lpBuffer', 'dwNumberOfBytesToWrite', 'lpdwNumberOfBytesWritten']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("InternetWriteFile", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def HttpAddRequestHeadersW(self, uc, eip, esp, export_dict, callAddr, em):
@@ -6842,9 +6859,9 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def GetModuleFileNameA(self, uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['HMODULE', 'LPSTR', 'DWORD']
         pNames = ['hModule', 'lpFilename', 'nSize']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         string1 = read_string(uc, pVals[1])
         try:
@@ -6866,7 +6883,7 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def SleepEx(self, uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, 3)
+        pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['DWORD', 'BOOL']
         pNames = ['dwMilliseconds', 'bAlertable']
 
