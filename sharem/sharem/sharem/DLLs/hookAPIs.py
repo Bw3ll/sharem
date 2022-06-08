@@ -4436,6 +4436,44 @@ class CustomWinAPIs():
         logged_calls = ("InternetReadFile", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
+    def InternetReadFileExA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes = ['HINTERNET', 'LPINTERNET_BUFFERSA', 'DWORD', 'DWORD_PTR']
+        pNames = ['hFile', 'lpBuffersOut', 'dwFlags', 'dwContext']
+
+        dwFlagsReverseLookUp = {1: 'IRF_ASYNC', 4: 'IRF_SYNC', 8: 'IRF_USE_CONTEXT', 0: 'IRF_NO_WAIT'}
+        pVals[2] = getLookUpVal(pVals[2], dwFlagsReverseLookUp)
+        # create strings for everything except ones in our skip
+        skip = [2]  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("InternetReadFileExA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def InternetReadFileExW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes = ['HINTERNET', 'LPINTERNET_BUFFERSW', 'DWORD', 'DWORD_PTR']
+        pNames = ['hFile', 'lpBuffersOut', 'dwFlags', 'dwContext']
+
+        dwFlagsReverseLookUp = {1: 'IRF_ASYNC', 4: 'IRF_SYNC', 8: 'IRF_USE_CONTEXT', 0: 'IRF_NO_WAIT'}
+        pVals[2] = getLookUpVal(pVals[2], dwFlagsReverseLookUp)
+        # create strings for everything except ones in our skip
+        skip = [2]  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("InternetReadFileExW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
     def HttpAddRequestHeadersW(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HINTERNET', 'LPCWSTR', 'DWORD', 'DWORD']
