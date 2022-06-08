@@ -1,4 +1,5 @@
 from enum import Enum, auto
+from msilib.schema import Registry
 from multiprocessing.sharedctypes import Value
 from random import choice, randint
 from unicorn.x86_const import *
@@ -2784,6 +2785,108 @@ class CustomWinAPIs():
         logged_calls = ("RegOpenKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def RegDeleteKeyA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 2)
+        pTypes = ['HKEY', 'LPCSTR']
+        pNames = ['hKey', 'lpSubKey']
+        
+        global registry_keys
+        global registry_values
+
+        keyPath = ''
+        lpSubKey = read_string(uc, pVals[1])
+        if lpSubKey != '[NULL]':
+            if lpSubKey[0] != '\\':
+                lpSubKey = '\\' + lpSubKey
+            pVals[1] = lpSubKey
+
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path + lpSubKey
+                    if keyPath in RegistryKeys: # If Key Found Return Handle
+                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey.deleteKey()
+                    else: # KeyPath Not Found
+                        pass
+                else:
+                    keyPath = hKey.name + lpSubKey
+            else:
+                keyPath += lpSubKey
+        else: # [NULL] lpSubKey Return hKey
+            pVals[1] = lpSubKey
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path
+                    rKey.deleteKey()
+                else:
+                    keyPath = hKey.name
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        registry_keys.add(keyPath)
+
+        logged_calls = ("RegDeleteKeyA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegDeleteKeyW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 2)
+        pTypes = ['HKEY', 'LPCSTR']
+        pNames = ['hKey', 'lpSubKey']
+        
+        global registry_keys
+        global registry_values
+
+        keyPath = ''
+        lpSubKey = read_unicode(uc, pVals[1])
+        if lpSubKey != '[NULL]':
+            if lpSubKey[0] != '\\':
+                lpSubKey = '\\' + lpSubKey
+            pVals[1] = lpSubKey
+
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path + lpSubKey
+                    if keyPath in RegistryKeys: # If Key Found Return Handle
+                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey.deleteKey()
+                    else: # KeyPath Not Found
+                        pass
+                else:
+                    keyPath = hKey.name + lpSubKey
+            else:
+                keyPath += lpSubKey
+        else: # [NULL] lpSubKey Return hKey
+            pVals[1] = lpSubKey
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path
+                    rKey.deleteKey()
+                else:
+                    keyPath = hKey.name
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        registry_keys.add(keyPath)
+
+        logged_calls = ("RegDeleteKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def RegDeleteKeyExA(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HKEY', 'LPCSTR', 'REGSAM', 'DWORD']
@@ -2796,36 +2899,41 @@ class CustomWinAPIs():
 
         pVals[2] = getLookUpVal(pVals[2], samDesiredReverseLookUp)
 
-        lpSubKey = read_unicode(uc, pVals[1])
+        keyPath = ''
+        lpSubKey = read_string(uc, pVals[1])
         if lpSubKey != '[NULL]':
             if lpSubKey[0] != '\\':
                 lpSubKey = '\\' + lpSubKey
-                pVals[1] = lpSubKey
+            pVals[1] = lpSubKey
 
-            keyPath = ''
             if pVals[0] in HandlesDict:
-                hKey = HandlesDict[pVals[0]]
+                hKey: Handle = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey = RegistryKeys[hKey.name]
+                    rKey: RegKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Return Handle
-                        foundKey = RegistryKeys[keyPath]
-                        hKey = foundKey.handle.value
-                    else:
+                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey.deleteKey()
+                    else: # KeyPath Not Found
                         pass
                 else:
                     keyPath = hKey.name + lpSubKey
             else:
                 keyPath += lpSubKey
         else: # [NULL] lpSubKey Return hKey
-            hKey = pVals[0]
+            pVals[1] = lpSubKey
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path
+                    rKey.deleteKey()
+                else:
+                    keyPath = hKey.name
 
 
-        # create strings for everything except ones in our skip
-        skip = [2]  # we need to skip this value (index) later-let's put it in skip
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2])
 
-        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2833,7 +2941,7 @@ class CustomWinAPIs():
         registry_keys.add(keyPath)
 
         logged_calls = ("RegDeleteKeyExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def RegDeleteKeyExW(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 4)
@@ -2847,35 +2955,40 @@ class CustomWinAPIs():
 
         pVals[2] = getLookUpVal(pVals[2], samDesiredReverseLookUp)
 
+        keyPath = ''
         lpSubKey = read_unicode(uc, pVals[1])
         if lpSubKey != '[NULL]':
             if lpSubKey[0] != '\\':
                 lpSubKey = '\\' + lpSubKey
-                pVals[1] = lpSubKey
+            pVals[1] = lpSubKey
 
-            keyPath = ''
             if pVals[0] in HandlesDict:
-                hKey = HandlesDict[pVals[0]]
+                hKey: Handle = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey = RegistryKeys[hKey.name]
+                    rKey: RegKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Return Handle
-                        foundKey = RegistryKeys[keyPath]
-                        hKey = foundKey.handle.value
-                    else:
+                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey.deleteKey()
+                    else: # KeyPath Not Found
                         pass
                 else:
                     keyPath = hKey.name + lpSubKey
             else:
                 keyPath += lpSubKey
         else: # [NULL] lpSubKey Return hKey
-            hKey = pVals[0]
+            pVals[1] = lpSubKey
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path
+                    rKey.deleteKey()
+                else:
+                    keyPath = hKey.name
 
-        # create strings for everything except ones in our skip
-        skip = [2]  # we need to skip this value (index) later-let's put it in skip
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2])
 
-        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -2883,7 +2996,7 @@ class CustomWinAPIs():
         registry_keys.add(keyPath)
 
         logged_calls = ("RegDeleteKeyExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def RegGetValueA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 7)
@@ -8521,6 +8634,13 @@ class RegKey:
         # Create Default Keys
         for key, val in RegKey.PreDefinedKeys.items():
             RegKey(val, val, key)
+
+    def deleteKey(self):
+        if self.handle.value in HandlesDict: # Remove Handle
+            HandlesDict.pop(self.handle.value)
+        if self.path in RegistryKeys: # Delete Key
+            # print(f'Key: {self.name} deleted')
+            RegistryKeys.pop(self.path)
 
     def setValue(self, valueType: RegValueTypes, data, valueName = '(Default)'):
         val = KeyValue(valueType, data, valueName)
