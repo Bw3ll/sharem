@@ -3189,16 +3189,31 @@ class CustomWinAPIs():
                 if valType == RegValueTypes.REG_BINARY:
                     bin = uc.mem_read(pVals[4],pVals[5])
                     rKey.setValue(valType,bin,valName)
-                    pVals[4] = hex(pVals[4])
+                    pVals[4] = bin.hex()
                 elif valType == RegValueTypes.REG_DWORD:
-                    rKey.setValue(valType,pVals[4],valName) # Might need Fixed
-                    pVals[4] = hex(pVals[4])
+                    if em.arch == 64:
+                        mem = uc.mem_read(esp+(8*1),4)
+                    else:
+                        mem = uc.mem_read(esp+(4*5),4)
+                    val = unpack('<I',mem)[0]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
                 elif valType == RegValueTypes.REG_DWORD_BIG_ENDIAN:
-                    rKey.setValue(valType,pVals[4],valName) # Needs Fixed
-                    pVals[4] = hex(pVals[4])
-                elif valType == RegValueTypes.REG_QWORD:
-                    rKey.setValue(valType,pVals[4],valName) # Needs Fixed
-                    pVals[4] = hex(pVals[4])
+                    if em.arch == 64:
+                        mem = uc.mem_read(esp+(8*1),4)
+                    else:
+                        mem = uc.mem_read(esp+(4*5),4)
+                    val = unpack('>I',mem)[0]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_QWORD: # Needs to Be Tested with 64bit
+                    if em.arch == 32:
+                        mem = uc.mem_read(pVals[4],8)
+                        val = unpack('<Q',mem)[0]
+                    else:
+                        val = pVals[4]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
                 elif valType == RegValueTypes.REG_SZ:
                     val = read_string(uc, pVals[4])
                     rKey.setValue(valType,val,valName)
@@ -3212,13 +3227,15 @@ class CustomWinAPIs():
                     rKey.setValue(valType,val,valName)
                     pVals[4] = val
                 elif valType == RegValueTypes.REG_MULTI_SZ:
-                    address = pVals[4] # Need to Expand for Multiple Strings
-                    val = read_string(uc,pVals[4])
-                    rKey.setValue(valType,val,valName)
-                    pVals[4] = val
+                    mem = uc.mem_read(pVals[4],pVals[5])
+                    hexStrings = mem.hex()
+                    string = bytes.fromhex(hexStrings).decode('ascii')
+                    multiString = string.split('\x00')[:-1]
+                    rKey.setValue(valType,multiString,valName)
+                    kVal = rKey.getValue(valName)
+                    pVals[4] = kVal.dataAsStr
                 elif valType == RegValueTypes.REG_NONE:
                     rKey.setValue(valType,pVals[4],valName)
-
                 registry_key_address = rKey
             else: # Key Not Found
                 pass
@@ -3244,18 +3261,80 @@ class CustomWinAPIs():
 
     def RegSetValueExW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
             #'RegSetValueExW': (6, ['HKEY', 'LPCWSTR', 'DWORD', 'DWORD', 'BYTE *', 'DWORD'], ['hKey', 'lpValueName', 'Reserved', 'dwType', 'lpData', 'cbData'], 'LSTATUS'
-        pVals = makeArgVals(uc, em, esp, 5)
+        pVals = makeArgVals(uc, em, esp, 6)
         pTypes = ['HKEY', 'LPCWSTR', 'DWORD', 'DWORD', 'BYTE *', 'DWORD']
         pNames = ['hKey', 'lpValueName', 'Reserved', 'dwType', 'lpData', 'cbData']
 
         global registry_keys
         global registry_values
 
-        
+        valType = RegValueTypes(pVals[3])
+        valName = read_unicode(uc,pVals[1])
 
-        pVals[2] = RegValueTypes(pVals[2]).name
+        if pVals[0] in HandlesDict: # Handle Not Found
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name] # Key Found
+                if valType == RegValueTypes.REG_BINARY:
+                    bin = uc.mem_read(pVals[4],pVals[5])
+                    rKey.setValue(valType,bin,valName)
+                    pVals[4] = bin.hex()
+                elif valType == RegValueTypes.REG_DWORD:
+                    if em.arch == 64:
+                        mem = uc.mem_read(esp+(8*1),4)
+                    else:
+                        mem = uc.mem_read(esp+(4*5),4)
+                    val = unpack('<I',mem)[0]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_DWORD_BIG_ENDIAN:
+                    if em.arch == 64:
+                        mem = uc.mem_read(esp+(8*1),4)
+                    else:
+                        mem = uc.mem_read(esp+(4*5),4)
+                    val = unpack('>I',mem)[0]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_QWORD: # Needs to Be Tested with 64bit
+                    if em.arch == 32:
+                        mem = uc.mem_read(pVals[4],8)
+                        val = unpack('<Q',mem)[0]
+                    else:
+                        val = pVals[4]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_SZ:
+                    val = read_unicode(uc, pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_EXPAND_SZ:
+                    val = read_unicode(uc, pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_LINK:
+                    val = read_unicode(uc,pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_MULTI_SZ:
+                    mem = uc.mem_read(pVals[4],pVals[5])
+                    hexStrings = mem.hex()
+                    string = bytes.fromhex(hexStrings).decode('utf-16')
+                    multiString = string.split('\x00')[:-1]
+                    rKey.setValue(valType,multiString,valName)
+                    kVal = rKey.getValue(valName)
+                    pVals[4] = kVal.dataAsStr
+                elif valType == RegValueTypes.REG_NONE:
+                    rKey.setValue(valType,pVals[4],valName)
+                registry_key_address = rKey
+            else: # Key Not Found
+                pass
+        else: # Handle Not Found
+            pass
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+
+        pVals[3] = RegValueTypes(pVals[3]).name
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3,4])
 
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
@@ -3449,12 +3528,12 @@ class CustomWinAPIs():
 
         keyPath =''
         if pVals[0] in HandlesDict:
-            hKey = HandlesDict[pVals[0]]
+            hKey: Handle = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey = RegistryKeys[hKey.name]
+                rKey: RegKey = RegistryKeys[hKey.name]
                 keyPath = rKey.path
-            else:
-                keyPath = hKey.name + lpSubKey
+            else: # RegKey Not Found Use handle Name Instead Might Not Be KeyPath
+              keyPath = hKey.name 
         else:
             #print("figure out what to do in the case of key not in dict")
             keyPath = 'Error in retreving key'
@@ -6293,7 +6372,7 @@ class CustomWinAPIs():
         pTypes = ['HMODULE', 'LPSTR', 'DWORD']
         pNames = ['hModule', 'lpFilename', 'nSize']
 
-        string1 = read_string_string(uc, pVals[1])
+        string1 = read_string(uc, pVals[1])
         try:
             uc.mem_write(pVals[0], pack(f'<{pVals[2]}s', string1.encode("ascii")))
         except:
@@ -8097,6 +8176,8 @@ class KeyValue():
             self.dataAsStr = hex(data)
         elif isinstance(data, bytearray):
             self.dataAsStr = data.hex()
+        elif isinstance(data, list):
+            self.dataAsStr = (' ').join(data)
         else:
             self.dataAsStr = str(data)
 
