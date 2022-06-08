@@ -5257,6 +5257,23 @@ class CustomWinAPIs():
         logged_calls = ("InternetWriteFile", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
+    def URLOpenBlockingStreamA(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['LPUNKNOWN', 'LPCSTR', 'LPSTREAM', 'DWORD', 'LPBINDSTATUSCALLBACK']
+        pNames = ['pCaller', 'szURL', '*ppStream', 'dwReserved', 'lpfnCB']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = 'S_OK'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("URLOpenBlockingStreamA", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
     def HttpAddRequestHeadersW(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HINTERNET', 'LPCWSTR', 'DWORD', 'DWORD']
