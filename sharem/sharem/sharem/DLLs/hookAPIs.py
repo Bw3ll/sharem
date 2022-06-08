@@ -3188,7 +3188,7 @@ class CustomWinAPIs():
                 if valType == RegValueTypes.REG_BINARY:
                     bin = uc.mem_read(pVals[4],pVals[5])
                     rKey.setValue(valType,bin,valName)
-                    pVals[4] = hex(pVals[4])
+                    pVals[4] = bin.hex()
                 elif valType == RegValueTypes.REG_DWORD:
                     if em.arch == 64:
                         mem = uc.mem_read(esp+(8*1),4)
@@ -3205,12 +3205,12 @@ class CustomWinAPIs():
                     val = unpack('>I',mem)[0]
                     rKey.setValue(valType,val,valName)
                     pVals[4] = hex(val)
-                elif valType == RegValueTypes.REG_QWORD:
-                    if em.arch == 64:
-                        mem = uc.mem_read(esp+(8*1),8)
+                elif valType == RegValueTypes.REG_QWORD: # Needs to Be Tested with 64bit
+                    if em.arch == 32:
+                        mem = uc.mem_read(pVals[4],8)
+                        val = unpack('<Q',mem)[0]
                     else:
-                        mem = uc.mem_read(esp+(4*5),8)
-                    val = unpack('<Q',mem)[0]
+                        val = pVals[4]
                     rKey.setValue(valType,val,valName)
                     pVals[4] = hex(val)
                 elif valType == RegValueTypes.REG_SZ:
@@ -3226,13 +3226,10 @@ class CustomWinAPIs():
                     rKey.setValue(valType,val,valName)
                     pVals[4] = val
                 elif valType == RegValueTypes.REG_MULTI_SZ:
-                    multiString = []
                     mem = uc.mem_read(pVals[4],pVals[5])
                     hexStrings = mem.hex()
-                    hexStrings = hexStrings.split('00')[:-1]
-                    for hexStr in hexStrings:
-                        string = bytes.fromhex(hexStr).decode('ascii') 
-                        multiString.append(string)   
+                    string = bytes.fromhex(hexStrings).decode('ascii')
+                    multiString = string.split('\x00')[:-1]
                     rKey.setValue(valType,multiString,valName)
                     kVal = rKey.getValue(valName)
                     pVals[4] = kVal.dataAsStr
@@ -3280,7 +3277,7 @@ class CustomWinAPIs():
                 if valType == RegValueTypes.REG_BINARY:
                     bin = uc.mem_read(pVals[4],pVals[5])
                     rKey.setValue(valType,bin,valName)
-                    pVals[4] = hex(pVals[4])
+                    pVals[4] = bin.hex()
                 elif valType == RegValueTypes.REG_DWORD:
                     if em.arch == 64:
                         mem = uc.mem_read(esp+(8*1),4)
@@ -3297,12 +3294,12 @@ class CustomWinAPIs():
                     val = unpack('>I',mem)[0]
                     rKey.setValue(valType,val,valName)
                     pVals[4] = hex(val)
-                elif valType == RegValueTypes.REG_QWORD:
-                    if em.arch == 64:
-                        mem = uc.mem_read(esp+(8*1),8)
+                elif valType == RegValueTypes.REG_QWORD: # Needs to Be Tested with 64bit
+                    if em.arch == 32:
+                        mem = uc.mem_read(pVals[4],8)
+                        val = unpack('<Q',mem)[0]
                     else:
-                        mem = uc.mem_read(esp+(4*5),8)
-                    val = unpack('<Q',mem)[0]
+                        val = pVals[4]
                     rKey.setValue(valType,val,valName)
                     pVals[4] = hex(val)
                 elif valType == RegValueTypes.REG_SZ:
@@ -3318,13 +3315,10 @@ class CustomWinAPIs():
                     rKey.setValue(valType,val,valName)
                     pVals[4] = val
                 elif valType == RegValueTypes.REG_MULTI_SZ:
-                    multiString = []
                     mem = uc.mem_read(pVals[4],pVals[5])
                     hexStrings = mem.hex()
-                    hexStrings = hexStrings.split('0000')[:-1]
-                    for hexStr in hexStrings:
-                        string = bytes.fromhex(hexStr).decode('utf-16')
-                        multiString.append(string[2:])   
+                    string = bytes.fromhex(hexStrings).decode('utf-16')
+                    multiString = string.split('\x00')[:-1]
                     rKey.setValue(valType,multiString,valName)
                     kVal = rKey.getValue(valName)
                     pVals[4] = kVal.dataAsStr
@@ -3336,7 +3330,6 @@ class CustomWinAPIs():
         else: # Handle Not Found
             pass
 
-        
 
         pVals[3] = RegValueTypes(pVals[3]).name
 
