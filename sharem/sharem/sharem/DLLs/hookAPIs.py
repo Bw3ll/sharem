@@ -3180,6 +3180,9 @@ class CustomWinAPIs():
 
         valType = RegValueTypes(pVals[3])
         valName = read_string(uc,pVals[1])
+        if valName == '[NULL]':
+            valName = '(Default)'
+        pVals[1] = valName
 
         if pVals[0] in HandlesDict: # Handle Not Found
             hKey: Handle = HandlesDict[pVals[0]]
@@ -3241,11 +3244,10 @@ class CustomWinAPIs():
         else: # Handle Not Found
             pass
         
-        # registry_key_address.printInfo()
 
         pVals[3] = RegValueTypes(pVals[3]).name
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3,4])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,3,4])
 
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
@@ -3269,6 +3271,9 @@ class CustomWinAPIs():
 
         valType = RegValueTypes(pVals[3])
         valName = read_unicode(uc,pVals[1])
+        if valName == '[NULL]':
+            valName = '(Default)'
+        pVals[1] = valName
 
         if pVals[0] in HandlesDict: # Handle Not Found
             hKey: Handle = HandlesDict[pVals[0]]
@@ -3333,7 +3338,7 @@ class CustomWinAPIs():
 
         pVals[3] = RegValueTypes(pVals[3]).name
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3,4])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,3,4])
 
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
@@ -3344,6 +3349,324 @@ class CustomWinAPIs():
         #registry_values.add((written_values.name,written_values.data))
 
         logged_calls = ("RegSetValueExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegSetKeyValueA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 6)
+        pTypes = ['HKEY', 'LPCSTR', 'LPCSTR', 'DWORD', 'LPCVOID', 'DWORD']
+        pNames = ['hKey', 'lpSubKey', 'lpValueName', 'dwType', 'lpData', 'cbData']
+
+        global registry_keys
+        global registry_values
+
+        valType = RegValueTypes(pVals[3])
+        valName = read_string(uc,pVals[2])
+        if valName == '[NULL]':
+            valName = '(Default)'
+        pVals[2] = valName
+        lpSubKey = read_string(uc,pVals[1])
+    
+        if lpSubKey == '[NULL]':
+            pVals[1] = lpSubKey
+            if pVals[0] in HandlesDict: # Handle Not Found
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name] # Key Found
+                    if valType == RegValueTypes.REG_BINARY:
+                        bin = uc.mem_read(pVals[4],pVals[5])
+                        rKey.setValue(valType,bin,valName)
+                        pVals[4] = bin.hex()
+                    elif valType == RegValueTypes.REG_DWORD:
+                        if em.arch == 64:
+                            mem = uc.mem_read(esp+(8*1),4)
+                        else:
+                            mem = uc.mem_read(esp+(4*5),4)
+                        val = unpack('<I',mem)[0]
+                        rKey.setValue(valType,val,valName)
+                        pVals[4] = hex(val)
+                    elif valType == RegValueTypes.REG_DWORD_BIG_ENDIAN:
+                        if em.arch == 64:
+                            mem = uc.mem_read(esp+(8*1),4)
+                        else:
+                            mem = uc.mem_read(esp+(4*5),4)
+                        val = unpack('>I',mem)[0]
+                        rKey.setValue(valType,val,valName)
+                        pVals[4] = hex(val)
+                    elif valType == RegValueTypes.REG_QWORD: # Needs to Be Tested with 64bit
+                        if em.arch == 32:
+                            mem = uc.mem_read(pVals[4],8)
+                            val = unpack('<Q',mem)[0]
+                        else:
+                            val = pVals[4]
+                        rKey.setValue(valType,val,valName)
+                        pVals[4] = hex(val)
+                    elif valType == RegValueTypes.REG_SZ:
+                        val = read_string(uc, pVals[4])
+                        rKey.setValue(valType,val,valName)
+                        pVals[4] = val
+                    elif valType == RegValueTypes.REG_EXPAND_SZ:
+                        val = read_string(uc, pVals[4])
+                        rKey.setValue(valType,val,valName)
+                        pVals[4] = val
+                    elif valType == RegValueTypes.REG_LINK:
+                        val = read_unicode(uc,pVals[4])
+                        rKey.setValue(valType,val,valName)
+                        pVals[4] = val
+                    elif valType == RegValueTypes.REG_MULTI_SZ:
+                        mem = uc.mem_read(pVals[4],pVals[5])
+                        hexStrings = mem.hex()
+                        string = bytes.fromhex(hexStrings).decode('ascii')
+                        multiString = string.split('\x00')[:-1]
+                        rKey.setValue(valType,multiString,valName)
+                        kVal = rKey.getValue(valName)
+                        pVals[4] = kVal.dataAsStr
+                    elif valType == RegValueTypes.REG_NONE:
+                        rKey.setValue(valType,pVals[4],valName)
+                    registry_key_address = rKey
+                else: # Key Not Found
+                    pass
+            else: # Handle Not Found
+                pass
+        else:
+            if lpSubKey[0] != '\\':
+                lpSubKey = '\\' + lpSubKey
+            pVals[1] = lpSubKey
+
+            if pVals[0] in HandlesDict: # Handle Not Found
+                hKey: Handle = HandlesDict[pVals[0]]
+                keyPath = hKey.name + lpSubKey
+                if keyPath in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name] # Key Found
+                else: # Create Key
+                    keyName = keyPath.split('\\')[-1] # Get Key Name
+                    rKey = RegKey(keyName,keyPath)
+
+                if valType == RegValueTypes.REG_BINARY:
+                    bin = uc.mem_read(pVals[4],pVals[5])
+                    rKey.setValue(valType,bin,valName)
+                    pVals[4] = bin.hex()
+                elif valType == RegValueTypes.REG_DWORD:
+                    if em.arch == 64:
+                        mem = uc.mem_read(esp+(8*1),4)
+                    else:
+                        mem = uc.mem_read(esp+(4*5),4)
+                    val = unpack('<I',mem)[0]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_DWORD_BIG_ENDIAN:
+                    if em.arch == 64:
+                        mem = uc.mem_read(esp+(8*1),4)
+                    else:
+                        mem = uc.mem_read(esp+(4*5),4)
+                    val = unpack('>I',mem)[0]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_QWORD: # Needs to Be Tested with 64bit
+                    if em.arch == 32:
+                        mem = uc.mem_read(pVals[4],8)
+                        val = unpack('<Q',mem)[0]
+                    else:
+                        val = pVals[4]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_SZ:
+                    val = read_string(uc, pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_EXPAND_SZ:
+                    val = read_string(uc, pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_LINK:
+                    val = read_unicode(uc,pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_MULTI_SZ:
+                    mem = uc.mem_read(pVals[4],pVals[5])
+                    hexStrings = mem.hex()
+                    string = bytes.fromhex(hexStrings).decode('ascii')
+                    multiString = string.split('\x00')[:-1]
+                    rKey.setValue(valType,multiString,valName)
+                    kVal = rKey.getValue(valName)
+                    pVals[4] = kVal.dataAsStr
+                elif valType == RegValueTypes.REG_NONE:
+                    rKey.setValue(valType,pVals[4],valName)
+                registry_key_address = rKey
+            else: # Handle Not Found
+                pass
+        
+        pVals[3] = RegValueTypes(pVals[3]).name
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2,3,4])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        # registry_keys.add(registry_key_address.path)
+        # written_values = registry_key_address.getValue()
+        # registry_values.add((written_values.name,written_values.data))
+
+        logged_calls = ("RegSetKeyValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegSetKeyValueW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 6)
+        pTypes = ['HKEY', 'LPCWSTR', 'LPCWSTR', 'DWORD', 'LPCVOID', 'DWORD']
+        pNames = ['hKey', 'lpSubKey', 'lpValueName', 'dwType', 'lpData', 'cbData']
+
+        global registry_keys
+        global registry_values
+
+        valType = RegValueTypes(pVals[3])
+        valName = read_unicode(uc,pVals[2])
+        if valName == '[NULL]':
+            valName = '(Default)'
+        pVals[2] = valName
+        lpSubKey = read_unicode(uc,pVals[1])
+    
+        if lpSubKey == '[NULL]':
+            pVals[1] = lpSubKey
+            if pVals[0] in HandlesDict: # Handle Not Found
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name] # Key Found
+                if valType == RegValueTypes.REG_BINARY:
+                    bin = uc.mem_read(pVals[4],pVals[5])
+                    rKey.setValue(valType,bin,valName)
+                    pVals[4] = bin.hex()
+                elif valType == RegValueTypes.REG_DWORD:
+                    if em.arch == 64:
+                        mem = uc.mem_read(esp+(8*1),4)
+                    else:
+                        mem = uc.mem_read(esp+(4*5),4)
+                    val = unpack('<I',mem)[0]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_DWORD_BIG_ENDIAN:
+                    if em.arch == 64:
+                        mem = uc.mem_read(esp+(8*1),4)
+                    else:
+                        mem = uc.mem_read(esp+(4*5),4)
+                    val = unpack('>I',mem)[0]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_QWORD: # Needs to Be Tested with 64bit
+                    if em.arch == 32:
+                        mem = uc.mem_read(pVals[4],8)
+                        val = unpack('<Q',mem)[0]
+                    else:
+                        val = pVals[4]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_SZ:
+                    val = read_unicode(uc, pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_EXPAND_SZ:
+                    val = read_unicode(uc, pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_LINK:
+                    val = read_unicode(uc,pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_MULTI_SZ:
+                    mem = uc.mem_read(pVals[4],pVals[5])
+                    hexStrings = mem.hex()
+                    string = bytes.fromhex(hexStrings).decode('utf-16')
+                    multiString = string.split('\x00')[:-1]
+                    rKey.setValue(valType,multiString,valName)
+                    kVal = rKey.getValue(valName)
+                    pVals[4] = kVal.dataAsStr
+                elif valType == RegValueTypes.REG_NONE:
+                    rKey.setValue(valType,pVals[4],valName)
+                    registry_key_address = rKey
+                else: # Key Not Found
+                    pass
+            else: # Handle Not Found
+                pass
+        else:
+            if lpSubKey[0] != '\\':
+                lpSubKey = '\\' + lpSubKey
+            pVals[1] = lpSubKey
+
+            if pVals[0] in HandlesDict: # Handle Not Found
+                hKey: Handle = HandlesDict[pVals[0]]
+                keyPath = hKey.name + lpSubKey
+                if keyPath in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name] # Key Found
+                else: # Create Key
+                    keyName = keyPath.split('\\')[-1] # Get Key Name
+                    rKey = RegKey(keyName,keyPath)
+
+                if valType == RegValueTypes.REG_BINARY:
+                    bin = uc.mem_read(pVals[4],pVals[5])
+                    rKey.setValue(valType,bin,valName)
+                    pVals[4] = bin.hex()
+                elif valType == RegValueTypes.REG_DWORD:
+                    if em.arch == 64:
+                        mem = uc.mem_read(esp+(8*1),4)
+                    else:
+                        mem = uc.mem_read(esp+(4*5),4)
+                    val = unpack('<I',mem)[0]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_DWORD_BIG_ENDIAN:
+                    if em.arch == 64:
+                        mem = uc.mem_read(esp+(8*1),4)
+                    else:
+                        mem = uc.mem_read(esp+(4*5),4)
+                    val = unpack('>I',mem)[0]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_QWORD: # Needs to Be Tested with 64bit
+                    if em.arch == 32:
+                        mem = uc.mem_read(pVals[4],8)
+                        val = unpack('<Q',mem)[0]
+                    else:
+                        val = pVals[4]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_SZ:
+                    val = read_unicode(uc, pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_EXPAND_SZ:
+                    val = read_unicode(uc, pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_LINK:
+                    val = read_unicode(uc,pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_MULTI_SZ:
+                    mem = uc.mem_read(pVals[4],pVals[5])
+                    hexStrings = mem.hex()
+                    string = bytes.fromhex(hexStrings).decode('utf-16')
+                    multiString = string.split('\x00')[:-1]
+                    rKey.setValue(valType,multiString,valName)
+                    kVal = rKey.getValue(valName)
+                    pVals[4] = kVal.dataAsStr
+                elif valType == RegValueTypes.REG_NONE:
+                    rKey.setValue(valType,pVals[4],valName)
+                registry_key_address = rKey
+            else: # Handle Not Found
+                pass
+        
+        pVals[3] = RegValueTypes(pVals[3]).name
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2,3,4])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        # registry_keys.add(registry_key_address.path)
+        # written_values = registry_key_address.getValue()
+        # registry_values.add((written_values.name,written_values.data))
+
+        logged_calls = ("RegSetKeyValueW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def RegOpenCurrentUser(self, uc: Uc, eip, esp, export_dict, callAddr, em):
