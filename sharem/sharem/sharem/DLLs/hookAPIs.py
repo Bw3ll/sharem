@@ -2838,7 +2838,7 @@ class CustomWinAPIs():
 
     def RegDeleteKeyW(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 2)
-        pTypes = ['HKEY', 'LPCSTR']
+        pTypes = ['HKEY', 'LPCWSTR']
         pNames = ['hKey', 'lpSubKey']
         
         global registry_keys
@@ -3147,7 +3147,6 @@ class CustomWinAPIs():
 
         logged_calls = ("RegGetValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
-
 
     def RegSetValueA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 5)
@@ -3782,6 +3781,190 @@ class CustomWinAPIs():
 
         logged_calls = ("RegSetKeyValueW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegDeleteValueA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 2)
+        pTypes = ['HKEY', 'LPCSTR']
+        pNames = ['hKey', 'lpValueName']
+        
+        global registry_keys
+        global registry_values
+
+        valName = read_string(uc,pVals[1])
+        if valName == '[NULL]':
+            valName = '(Default)'
+        pVals[1] = valName
+
+        if pVals[0] in HandlesDict:
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+                deletedValue = rKey.deleteValue(valName)
+            else: # Key Not Found
+                pass
+        else: # Handle Not Found
+            pass
+            
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        print(deletedValue)
+        # registry_keys.add(keyPath)
+
+        logged_calls = ("RegDeleteValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegDeleteValueW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 2)
+        pTypes = ['HKEY', 'LPCWSTR']
+        pNames = ['hKey', 'lpValueName']
+        
+        global registry_keys
+        global registry_values
+
+        valName = read_unicode(uc,pVals[1])
+        if valName == '[NULL]':
+            valName = '(Default)'
+        pVals[1] = valName
+
+        if pVals[0] in HandlesDict:
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+                deletedValue = rKey.deleteValue(valName)
+            else: # Key Not Found
+                pass
+        else: # Handle Not Found
+            pass
+            
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        print(deletedValue)
+        # registry_keys.add(keyPath)
+
+        logged_calls = ("RegDeleteValueW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+
+    def RegDeleteKeyValueA(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['HKEY', 'LPCSTR', 'LPCSTR']
+        pNames = ['hKey', 'lpSubKey', 'lpValueName']
+        
+        global registry_keys
+        global registry_values
+
+        valName = read_string(uc,pVals[2])
+        if valName == '[NULL]':
+            valName = '(Default)'
+        pVals[2] = valName
+        lpSubKey = read_string(uc, pVals[1])
+
+        if lpSubKey != '[NULL]':
+            if lpSubKey[0] != '\\':
+                lpSubKey = '\\' + lpSubKey
+            pVals[1] = lpSubKey
+
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path + lpSubKey
+                    if keyPath in RegistryKeys: # If Key Found Return Handle
+                        foundKey: RegKey = RegistryKeys[keyPath]
+                        deletedValue = foundKey.deleteValue(valName)
+                    else: # KeyPath Not Found
+                        pass
+                else:
+                    keyPath = hKey.name + lpSubKey
+            else:
+                keyPath += lpSubKey
+        else: # [NULL] lpSubKey Return hKey
+            pVals[1] = lpSubKey
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path
+                    deletedValue = rKey.deleteValue(valName)
+                else:
+                    keyPath = hKey.name
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        print(deletedValue)
+        registry_keys.add(keyPath)
+
+        logged_calls = ("RegDeleteKeyValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegDeleteKeyValueW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['HKEY', 'LPCWSTR', 'LPCWSTR']
+        pNames = ['hKey', 'lpSubKey', 'lpValueName']
+        
+        global registry_keys
+        global registry_values
+
+        valName = read_unicode(uc,pVals[2])
+        if valName == '[NULL]':
+            valName = '(Default)'
+        pVals[2] = valName
+        lpSubKey = read_unicode(uc, pVals[1])
+
+        if lpSubKey != '[NULL]':
+            if lpSubKey[0] != '\\':
+                lpSubKey = '\\' + lpSubKey
+            pVals[1] = lpSubKey
+
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path + lpSubKey
+                    if keyPath in RegistryKeys: # If Key Found Return Handle
+                        foundKey: RegKey = RegistryKeys[keyPath]
+                        deletedValue = foundKey.deleteValue(valName)
+                    else: # KeyPath Not Found
+                        pass
+                else:
+                    keyPath = hKey.name + lpSubKey
+            else:
+                keyPath += lpSubKey
+        else: # [NULL] lpSubKey Return hKey
+            pVals[1] = lpSubKey
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path
+                    deletedValue = rKey.deleteValue(valName)
+                else:
+                    keyPath = hKey.name
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        print(deletedValue)
+        registry_keys.add(keyPath)
+
+        logged_calls = ("RegDeleteKeyValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def RegOpenCurrentUser(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 2)
@@ -8638,7 +8821,8 @@ class RegKey:
 
     def deleteValue(self, valueName: str = '(Default)'):
         if valueName in self.values:
-            self.values.pop(valueName)
+            print(f'Value: {self.values[valueName].name} deleted')
+            return self.values.pop(valueName)
 
     def printInfo(self):
         print(f'Name: {self.name}')
