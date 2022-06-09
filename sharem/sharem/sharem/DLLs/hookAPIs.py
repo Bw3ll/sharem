@@ -94,7 +94,7 @@ class HandleType(Enum):
 class Handle:
     nextValue = 0x80800000  # Start of Handle IDs
 
-    def __init__(self, type: HandleType, data=None, name=None, handleValue=0):
+    def __init__(self, type: HandleType, data=None, name='', handleValue=0):
         if handleValue == 0:
             # Generate Handle Value
             handleValue = Handle.nextValue
@@ -4353,7 +4353,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        print(deletedValue)
+        # print(deletedValue)
         # registry_keys.add(keyPath)
 
         logged_calls = ("RegDeleteValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
@@ -4388,7 +4388,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        print(deletedValue)
+        # print(deletedValue)
         # registry_keys.add(keyPath)
 
         logged_calls = ("RegDeleteValueW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
@@ -4445,7 +4445,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        print(deletedValue)
+        # print(deletedValue)
         registry_keys.add(keyPath)
 
         logged_calls = ("RegDeleteKeyValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
@@ -4501,7 +4501,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        print(deletedValue)
+        # print(deletedValue)
         registry_keys.add(keyPath)
 
         logged_calls = ("RegDeleteKeyValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
@@ -4913,7 +4913,7 @@ class CustomWinAPIs():
         logged_calls = ("RegEnumKeyA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def RegConnectRegistryA(self, uc, eip, esp, export_dict, callAddr, em):
+    def RegConnectRegistryA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         #'RegConnectRegistryA': (3, ['LPCSTR', 'HKEY', 'PHKEY'], ['lpMachineName', 'hKey', 'phkResult'], 'LSTATUS')
         pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['LPCSTR', 'HKEY', 'PHKEY']
@@ -4927,23 +4927,40 @@ class CustomWinAPIs():
         #is ther a way to somehow define registry keys if they are being used remotely like this?
         #like how 80000000 is the root for the current computer, can we do something like 90000000 for a remote computer?
         # something to show that the shellcode attempted to connect to a remote registry and do something with it. 
-        keyPath =''
-        if pVals[1] in HandlesDict:
-            hKey = HandlesDict[pVals[1]]
-            if hKey.name in RegistryKeys:
-                rKey = RegistryKeys[hKey.name]
-                keyPath = rKey.path
-            else:
+
+        machineName = read_string(uc, pVals[0])
+
+        phk = 0x0
+        keyPath = ''
+        if machineName != '[NULL]':
+            if machineName[0:2] != '\\\\':
+                machineName = '\\\\' + machineName
+            pVals[0] = machineName
+            preKey = getLookUpVal(pVals[1],RegKey.PreDefinedKeys)
+            keyPath = machineName + '\\' + preKey
+            key = RegKey(preKey,keyPath,remote=True)
+            phk = key.handle.value
+        else: # Local Computer Name Used
+            pVals[0] = machineName
+            if pVals[1] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[1]]
                 keyPath = hKey.name
-        else:
+                if hKey.name in RegistryKeys:
+                    key: RegKey = RegistryKeys[hKey.name]
+                    phk = key.handle.value
+                else:
+                    phk = hKey.value
+
             #print("figure out what to do in the case of key not in dict")
-            keyPath = 'Error in retreving key - ConnectRegistryA'
+            # keyPath = 'Error in retreving key - ConnectRegistryA'
 
-        # create strings for everything except ones in our skip
-        skip = []  # we need to skip this value (index) later-let's put it in skip
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+        try:
+            uc.mem_write(pVals[2],pack('<I',phk))
+        except:
+            pass
 
-        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
+
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -4952,7 +4969,181 @@ class CustomWinAPIs():
         registry_strings.add(pVals[0])
 
         logged_calls = ("RegConnectRegistryA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegConnectRegistryW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['LPCWSTR', 'HKEY', 'PHKEY']
+        pNames = ['lpMachineName', 'hKey', 'phkResult']
+
+        global registry_keys
+        global registry_values
+
+        #build out
+        # it seems to return the result of the hKey but on the other computer.
+        #is ther a way to somehow define registry keys if they are being used remotely like this?
+        #like how 80000000 is the root for the current computer, can we do something like 90000000 for a remote computer?
+        # something to show that the shellcode attempted to connect to a remote registry and do something with it. 
+
+        machineName = read_unicode(uc, pVals[0])
+
+        phk = 0x0
+        keyPath = ''
+        if machineName != '[NULL]':
+            if machineName[0:2] != '\\\\':
+                machineName = '\\\\' + machineName
+            pVals[0] = machineName
+            preKey = getLookUpVal(pVals[1],RegKey.PreDefinedKeys)
+            keyPath = machineName + '\\' + preKey
+            key = RegKey(preKey,keyPath,remote=True)
+            phk = key.handle.value
+        else: # Local Computer Name Used
+            pVals[0] = machineName
+            if pVals[1] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[1]]
+                keyPath = hKey.name
+                if hKey.name in RegistryKeys:
+                    key: RegKey = RegistryKeys[hKey.name]
+                    phk = key.handle.value
+                else:
+                    phk = hKey.value
+
+            #print("figure out what to do in the case of key not in dict")
+            # keyPath = 'Error in retreving key - ConnectRegistryA'
+
+        try:
+            uc.mem_write(pVals[2],pack('<I',phk))
+        except:
+            pass
+
+        registry_keys.add(keyPath)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegConnectRegistryW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegSaveKeyA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['HKEY', 'LPCSTR', 'const LPSECURITY_ATTRIBUTES']
+        pNames = ['hKey', 'lpFile', 'lpSecurityAttributes']
+
+        global registry_keys
+        global registry_values
+    
+        if pVals[0] in HandlesDict:
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+            else: # Key Not Found
+                pass
+        else: # Handle Not Found
+            pass
+          
+        # registry_keys.add(keyPath)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegSaveKeyA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegSaveKeyW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['HKEY', 'LPCWSTR', 'const LPSECURITY_ATTRIBUTES']
+        pNames = ['hKey', 'lpFile', 'lpSecurityAttributes']
+
+        global registry_keys
+        global registry_values
+    
+        if pVals[0] in HandlesDict:
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+            else: # Key Not Found
+                pass
+        else: # Handle Not Found
+            pass
+          
+        # registry_keys.add(keyPath)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegSaveKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegSaveKeyExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes = ['HKEY', 'LPCSTR', 'const LPSECURITY_ATTRIBUTES', 'DWORD']
+        pNames = ['hKey', 'lpFile', 'lpSecurityAttributes', 'Flags']
+        dwFlagsReversLookUp = {1: 'REG_STANDARD_FORMAT', 2: 'REG_LATEST_FORMAT', 4: 'REG_NO_COMPRESSION'}
+
+        global registry_keys
+        global registry_values
+    
+        if pVals[0] in HandlesDict:
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+            else: # Key Not Found
+                pass
+        else: # Handle Not Found
+            pass
+          
+        # registry_keys.add(keyPath)
+
+        pVals[3] = getLookUpVal(pVals[3],dwFlagsReversLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegSaveKeyExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegSaveKeyExW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes = ['HKEY', 'LPCWSTR', 'const LPSECURITY_ATTRIBUTES', 'DWORD']
+        pNames = ['hKey', 'lpFile', 'lpSecurityAttributes', 'Flags']
+        dwFlagsReversLookUp = {1: 'REG_STANDARD_FORMAT', 2: 'REG_LATEST_FORMAT', 4: 'REG_NO_COMPRESSION'}
+
+        global registry_keys
+        global registry_values
+    
+        if pVals[0] in HandlesDict:
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+            else: # Key Not Found
+                pass
+        else: # Handle Not Found
+            pass
+          
+        # registry_keys.add(keyPath)
+
+        pVals[3] = getLookUpVal(pVals[3],dwFlagsReversLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegSaveKeyExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def SetWindowsHookExA(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 4)
@@ -9528,17 +9719,24 @@ class RegValueTypes(Enum): # Ask Bramwell about duplicates dword/qword
 class RegKey:
     PreDefinedKeys = {0x80000000: 'HKEY_CLASSES_ROOT',0x80000001: 'HKEY_CURRENT_USER',0x80000002: 'HKEY_LOCAL_MACHINE',0x80000003: 'HKEY_USERS',0x80000004: 'HKEY_PERFORMANCE_DATA',0x80000005: 'HKEY_CURRENT_CONFIG',0x80000006: 'HKEY_DYN_DATA'}
     nextHandleValue = 0x80000010 # Registry Uses Different Range of Handles
+    nextRemoteHandleValues = 0x90000010 # Registry Start value for Remote Computer Handles
     securityAccessRights = {983103: 'KEY_ALL_ACCESS', 32: 'KEY_CREATE_LINK', 4: 'KEY_CREATE_SUB_KEY', 8: 'KEY_ENUMERATE_SUB_KEYS', 131097: 'KEY_READ', 16: 'KEY_NOTIFY', 1: 'KEY_QUERY_VALUE', 2: 'KEY_SET_VALUE', 512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY', 131078: 'KEY_WRITE'}
 
-    def __init__(self, name: str, path: str, handle=0):
+    def __init__(self, name: str, path: str, handle=0, remote: bool = False):
         self.name = name
         self.path = path
         self.values: dict[str,KeyValue] = {}
         if handle == 0:
-            handle = RegKey.nextHandleValue
-            RegKey.nextHandleValue += 8
+            if not remote:
+                handle = RegKey.nextHandleValue
+                RegKey.nextHandleValue += 8
+            else:
+                handle = RegKey.nextRemoteHandleValues
+                RegKey.nextRemoteHandleValues += 8
         self.handle = Handle(HandleType.HKEY, handleValue=handle, name=self.path)
         RegistryKeys.update({self.path: self})
+
+    
 
     def createPreDefinedKeys():
         # Create Default Keys
