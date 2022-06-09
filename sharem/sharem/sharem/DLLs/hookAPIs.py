@@ -5530,8 +5530,8 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def HttpSendRequestA(self, uc, eip, esp, export_dict, callAddr, em):
-        pTypes = ['HINTERNET', 'LPINTERNET_BUFFERSA', 'LPINTERNET_BUFFERSA', 'DWORD', 'DWORD_PTR']
-        pNames = ['hRequest', 'lpBuffersIn', 'lpBuffersOut', 'dwFlags', 'dwContext']
+        pTypes = ['HINTERNET', 'LPCSTR', 'DWORD', 'LPVOID', 'DWORD']
+        pNames = ['hRequest', 'lpszHeaders', 'dwHeadersLength', 'lpOptional', 'dwOptionalLength']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         # create strings for everything except ones in our skip
@@ -5547,8 +5547,8 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def HttpSendRequestExA(self, uc, eip, esp, export_dict, callAddr, em):
-        pTypes = ['HINTERNET', 'LPCSTR', 'DWORD', 'LPVOID', 'DWORD']
-        pNames = ['hRequest', 'lpszHeaders', 'dwHeadersLength', 'lpOptional', 'dwOptionalLength']
+        pTypes = ['HINTERNET', 'LPINTERNET_BUFFERSA', 'LPINTERNET_BUFFERSA', 'DWORD', 'DWORD_PTR']
+        pNames = ['hRequest', 'lpBuffersIn', 'lpBuffersOut', 'dwFlags', 'dwContext']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         # create strings for everything except ones in our skip
@@ -5667,6 +5667,23 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("URLOpenBlockingStreamA", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def URLOpenBlockingStreamW(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['LPUNKNOWN', 'LPCSTR', 'LPSTREAM', 'DWORD', 'LPBINDSTATUSCALLBACK']
+        pNames = ['pCaller', 'szURL', '*ppStream', 'dwReserved', 'lpfnCB']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # create strings for everything except ones in our skip
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = 'S_OK'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("URLOpenBlockingStreamW", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def HttpAddRequestHeadersW(self, uc, eip, esp, export_dict, callAddr, em):
@@ -7772,19 +7789,35 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def CopyFileW(self, uc, eip, esp, export_dict, callAddr, em):
-        pTypes =['LPSTR', 'LPCSTR', 'int'] 
-        pNames = ['lpString1', 'lpString2', 'iMaxLength'] 
+        pTypes =['LPCWSTR', 'LPCWSTR', 'BOOL'] 
+        pNames = ['lpExistingFileName', 'lpNewFileName', 'bFailIfExists'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
         cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
-        retVal = "SUCCESS"
-        retValStr = hex(retVal)
+        retVal = 0x1
+        retValStr = "SUCCESS"
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("CopyFileW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def DeleteFileW(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['LPCWSTR'] 
+        pNames = ['lpFileName'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        skip = []
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = "SUCCESS"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("DeleteFileW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def DeleteFileA(self, uc, eip, esp, export_dict, callAddr, em):
