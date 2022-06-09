@@ -2144,13 +2144,11 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def URLDownloadToCacheFileA(self, uc, eip, esp, export_dict, callAddr, em):
-        # function to get values for parameters - count as specified at the end - returned as a list
-        pVals = makeArgVals(uc, em, esp, 5)
+        pVals = makeArgVals(uc, em, esp, 6)
         pTypes = ['LPUNKNOWN', 'LPCSTR', 'LPTSTR', 'DWORD', 'DWORD', 'IBindStatusCallback']
-        pNames = ['pCaller', 'szURL', 'szFileName', 'cchFileName', 'dwReserved', '*pBSC']
+        pNames = ['lpUnkCaller', 'szURL', 'szFileName', 'cchFileName', 'dwReserved', '*pBSC']
 
-        # create strings for everything except ones in our skip
-        skip = []  # we need to skip this value (index) later-let's put it in skip
+        skip = []  
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
@@ -2161,14 +2159,12 @@ class CustomWinAPIs():
         logged_calls = ("URLDownloadToCacheFileA", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def URLDownloadToCacheFilew(self, uc, eip, esp, export_dict, callAddr, em):
-        # function to get values for parameters - count as specified at the end - returned as a list
-        pVals = makeArgVals(uc, em, esp, 5)
-        pTypes = ['LPUNKNOWN', 'LPCSTR', 'LPTSTR', 'DWORD', 'DWORD', 'IBindStatusCallback']
-        pNames = ['pCaller', 'szURL', 'szFileName', 'cchFileName', 'dwReserved', '*pBSC']
+    def URLDownloadToCacheFileW(self, uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 6)
+        pTypes = ['LPUNKNOWN', 'LPCWSTR', 'LPWSTR', 'DWORD', 'DWORD', 'IBindStatusCallback']
+        pNames = ['lpUnkCaller', 'szURL', 'szFileName', 'cchFileName', 'dwReserved', '*pBSC']
 
-        # create strings for everything except ones in our skip
-        skip = []  # we need to skip this value (index) later-let's put it in skip
+        skip = [] 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
@@ -2176,7 +2172,7 @@ class CustomWinAPIs():
         retValStr = 'S_OK'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls = ("URLDownloadToCacheFilew", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
+        logged_calls = ("URLDownloadToCacheFileW", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def URLDownloadToFileW(self, uc, eip, esp, export_dict, callAddr, em):
@@ -7475,23 +7471,47 @@ class CustomWinAPIs():
         pNames = ['hModule', 'lpFilename', 'nSize']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        string1 = read_string(uc, pVals[1])
-        try:
-            uc.mem_write(pVals[0], pack(f'<{pVals[2]}s', string1.encode("ascii")))
-        except:
-            pass
+        #string1 = read_string(uc, pVals[1])
+        #try:
+            #uc.mem_write(pVals[0], pack(f'<{pVals[2]}s', string1.encode("ascii")))
+        #except:
+            #pass
 
-        retVal = pVals[0]
+        #retVal = pVals[0]
 
         skip = []  
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
-        #retVal = 0x1
+        retVal = 0x1
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("GetModuleFileNameA", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def GetModuleFileNameExA(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['HMODULE', 'LPSTR', 'DWORD']
+        pNames = ['hModule', 'lpFilename', 'nSize']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        #string1 = read_string(uc, pVals[1])
+        #try:
+            #uc.mem_write(pVals[0], pack(f'<{pVals[2]}s', string1.encode("ascii")))
+        #except:
+            #pass
+
+        #retVal = pVals[0]
+
+        skip = []  
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("GetModuleFileNameExA", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def SleepEx(self, uc, eip, esp, export_dict, callAddr, em):
