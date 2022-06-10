@@ -5107,7 +5107,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCWSTR', 'LPCWSTR']
         pNames = ['hKey', 'lpSubKeyName', 'lpNewKeyName']
 
-        global registry_edit_keys
+        global registry_add_keys
 
         # RegKey.printInfoAllKeys()
         keysToRename = set()
@@ -5170,6 +5170,7 @@ class CustomWinAPIs():
             for key in keysToRename:
                 if isinstance(key,RegKey):
                     key.name = newKey
+                    registry_add_keys(newKey)
                     key.path = key.path.replace(oldKeyName,newKey)
                     key.handle.name = key.path
 
@@ -5181,7 +5182,6 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        #registry_edit_keys.add(keyPath)
 
         logged_calls = ("RegRenameKey", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
@@ -5579,7 +5579,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCSTR', 'LPCSTR', 'LPCSTR']
         pNames = ['hKey', 'lpSubKey', 'lpNewFile', 'lpOldFile']
 
-        global registry_edit_keys
+        global registry_add_keys
 
         lpSubKey = read_string(uc,pVals[1])
         pVals[1] = lpSubKey
@@ -5601,7 +5601,7 @@ class CustomWinAPIs():
         else: # Handle Not Found
             keyPath = ''
           
-        # registry_keys.add(keyPath)
+        registry_add_keys.add(keyPath)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
 
@@ -5617,7 +5617,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCWSTR', 'LPCWSTR', 'LPCWSTR']
         pNames = ['hKey', 'lpSubKey', 'lpNewFile', 'lpOldFile']
 
-        global registry_edit_keys
+        global registry_add_keys
 
         lpSubKey = read_unicode(uc,pVals[1])
         pVals[1] = lpSubKey
@@ -5639,7 +5639,7 @@ class CustomWinAPIs():
         else: # Handle Not Found
             keyPath = ''
           
-        # registry_keys.add(keyPath)
+        registry_add_keys.add(keyPath)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
 
