@@ -22667,7 +22667,7 @@ def emulation_json_out(apiList, logged_syscalls):
 								"value":""})
 	for i in registry_edit_keys:
 		editedKeysList.append({"key_path":i[0],
-								"value":str([i[1],i[2],i[3]])})
+								"value":str([i[1],i[2]])})
 	for i in registry_delete_keys:
 		deletedKeysList.append({"key_path":i,
 								"value":""})
