@@ -3616,7 +3616,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         written_values = registry_key_address.getValue()
-        registry_edit_keys.add((keyPath,written_values.name, written_values.type.name, written_values.dataAsStr))
+        registry_edit_keys.add((keyPath,written_values.name, written_values.dataAsStr))
 
         logged_calls = ("RegGetValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -3716,7 +3716,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
         
         written_values = registry_key_address.getValue()
-        registry_edit_keys.add((keyPath,written_values.name, written_values.type.name, written_values.dataAsStr))
+        registry_edit_keys.add((keyPath,written_values.name, written_values.dataAsStr))
 
 
         logged_calls = ("RegGetValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
@@ -4071,7 +4071,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         written_values = registry_key_address.getValue()
-        registry_edit_keys.add((keyPath,written_values.name, written_values.type.name, written_values.dataAsStr))
+        registry_edit_keys.add((keyPath,written_values.name, written_values.dataAsStr))
 
         logged_calls = ("RegSetValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -4137,7 +4137,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         written_values = registry_key_address.getValue()
-        registry_edit_keys.add((keyPath,written_values.name, written_values.type.name, written_values.dataAsStr))
+        registry_edit_keys.add((keyPath,written_values.name, written_values.dataAsStr))
 
         logged_calls = ("RegSetValueW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -4226,7 +4226,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         written_values = registry_key_address.getValue()
-        registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.type.name,written_values.data))
+        registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.data))
 
         logged_calls = ("RegSetValueExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -4315,7 +4315,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         written_values = registry_key_address.getValue()
-        registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.type.name,written_values.data))
+        registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.data))
 
         logged_calls = ("RegSetValueExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -4472,7 +4472,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         written_values = registry_key_address.getValue()
-        registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.type.name,written_values.data))
+        registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.data))
 
         logged_calls = ("RegSetKeyValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -4629,7 +4629,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         written_values = registry_key_address.getValue()
-        registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.type.name,written_values.data))
+        registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.data))
 
         logged_calls = ("RegSetKeyValueW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
