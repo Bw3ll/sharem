@@ -830,14 +830,10 @@ def findArtifacts():
             exe_dll_artifacts.append(item)
         else:
             file_artifacts.append(item)
-
-    for nextItem in registry_artifacts:
-        registry_keys.add(nextItem)
-        
-
+     
     return list(dict.fromkeys(path_artifacts)), list(dict.fromkeys(file_artifacts)), list(
         dict.fromkeys(commandLine_artifacts)), list(dict.fromkeys(web_artifacts)), list(
-        dict.fromkeys(registry_keys)), list(dict.fromkeys(exe_dll_artifacts))
+        dict.fromkeys(registry_artifacts)), list(dict.fromkeys(exe_dll_artifacts))
 
 
 """
