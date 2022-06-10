@@ -3570,10 +3570,36 @@ class CustomWinAPIs():
             # info grab here 
             print(keyValue.name)
             #registry_values.add(())
-            try: # Need Different Mem Write Depending on Value Type will Fix Later
+            type = keyValue.type
+            try:
                 uc.mem_write(pVals[4],pack('<I',keyValue.type.value))
-                uc.mem_write(pVals[5],pack(f'<{len(keyValue.data)}s',bytes(keyValue.data,encoding='ascii')))
-                uc.mem_write(pVals[6],pack('<I',len(keyValue.data)))
+                if type == RegValueTypes.REG_BINARY:
+                    uc.mem_write(pVals[5],pack(f'<{len(keyValue.data)}s',keyValue.data))
+                    uc.mem_write(pVals[6],pack('<I',len(keyValue.data)))
+                elif type == RegValueTypes.REG_DWORD:
+                    uc.mem_write(pVals[5],pack(f'<I',keyValue.data))
+                    uc.mem_write(pVals[6],pack('<I',4))
+                elif type == RegValueTypes.REG_DWORD_BIG_ENDIAN:
+                    uc.mem_write(pVals[5],pack(f'>I',keyValue.data))
+                    uc.mem_write(pVals[6],pack('<I',4))
+                elif type == RegValueTypes.REG_QWORD:
+                    uc.mem_write(pVals[5],pack(f'<Q',keyValue.data))
+                    uc.mem_write(pVals[6],pack('<I',8))
+                elif type == RegValueTypes.REG_SZ:
+                    uc.mem_write(pVals[5],pack(f'<{len(keyValue.dataAsStr)+1}s',keyValue.dataAsStr.encode('ascii')))
+                    uc.mem_write(pVals[6],pack('<I',len(keyValue.dataAsStr)+1))
+                elif type == RegValueTypes.REG_EXPAND_SZ:
+                    uc.mem_write(pVals[5],pack(f'<{len(keyValue.dataAsStr)+1}s',keyValue.dataAsStr.encode('ascii')))
+                    uc.mem_write(pVals[6],pack('<I',len(keyValue.dataAsStr)+1))
+                elif type == RegValueTypes.REG_MULTI_SZ:
+                    uc.mem_write(pVals[5],pack(f'<{len(keyValue.dataAsStr)+1}s',keyValue.dataAsStr.encode('ascii')))
+                    uc.mem_write(pVals[6],pack('<I',len(keyValue.dataAsStr)+1))
+                elif type == RegValueTypes.REG_LINK:
+                    uc.mem_write(pVals[5],pack(f'<{(len(keyValue.dataAsStr)*2)+2}s',keyValue.dataAsStr.encode('utf-16')))
+                    uc.mem_write(pVals[6],pack('<I',(len(keyValue.dataAsStr)*2)+2))
+                elif type == RegValueTypes.REG_NONE:
+                    uc.mem_write(pVals[5],pack(f'<{len(keyValue.dataAsStr)+1}s',keyValue.dataAsStr.encode('ascii')))
+                    uc.mem_write(pVals[6],pack('<I',len(keyValue.dataAsStr)+1))         
             except:
                 pass
             retVal = 0x0
@@ -3602,12 +3628,7 @@ class CustomWinAPIs():
 
         global registry_edit_keys
 
-        dwFlagsReverseLookUp = {65535: 'RRF_RT_ANY', 24: 'RRF_RT_DWORD', 72: 'RRF_RT_QWORD', 8: 'RRF_RT_REG_BINARY',
-                                16: 'RRF_RT_REG_DWORD', 4: 'RRF_RT_REG_EXPAND_SZ', 32: 'RRF_RT_REG_MULTI_SZ',
-                                1: 'RRF_RT_REG_NONE', 64: 'RRF_RT_REG_QWORD', 2: 'RRF_RT_REG_SZ',
-                                268435456: 'RRF_NOEXPAND',
-                                536870912: 'RRF_ZEROONFAILURE', 65536: 'RRF_SUBKEY_WOW6464KEY',
-                                131072: 'RRF_SUBKEY_WOW6432KEY'}
+        dwFlagsReverseLookUp = {65535: 'RRF_RT_ANY', 24: 'RRF_RT_DWORD', 72: 'RRF_RT_QWORD', 8: 'RRF_RT_REG_BINARY',16: 'RRF_RT_REG_DWORD', 4: 'RRF_RT_REG_EXPAND_SZ', 32: 'RRF_RT_REG_MULTI_SZ',1: 'RRF_RT_REG_NONE', 64: 'RRF_RT_REG_QWORD', 2: 'RRF_RT_REG_SZ',268435456: 'RRF_NOEXPAND',536870912: 'RRF_ZEROONFAILURE', 65536: 'RRF_SUBKEY_WOW6464KEY',131072: 'RRF_SUBKEY_WOW6432KEY'}
 
         lpSubKey = read_unicode(uc, pVals[1])
         lpValue = read_unicode(uc, pVals[2])
@@ -3649,10 +3670,36 @@ class CustomWinAPIs():
         if keyValue is not None:
             # info grab here 
             print(keyValue.name)
-            try: # Need Different Mem Write Depending on Value Type will Fix Later
+            type = keyValue.type
+            try:
                 uc.mem_write(pVals[4],pack('<I',keyValue.type.value))
-                uc.mem_write(pVals[5],pack(f'<{len(keyValue.data)*2}s',bytes(keyValue.data,encoding='utf-16')))
-                uc.mem_write(pVals[6],pack('<I',len(keyValue.data)))
+                if type == RegValueTypes.REG_BINARY:
+                    uc.mem_write(pVals[5],pack(f'<{len(keyValue.data)}s',keyValue.data))
+                    uc.mem_write(pVals[6],pack('<I',len(keyValue.data)))
+                elif type == RegValueTypes.REG_DWORD:
+                    uc.mem_write(pVals[5],pack(f'<I',keyValue.data))
+                    uc.mem_write(pVals[6],pack('<I',4))
+                elif type == RegValueTypes.REG_DWORD_BIG_ENDIAN:
+                    uc.mem_write(pVals[5],pack(f'>I',keyValue.data))
+                    uc.mem_write(pVals[6],pack('<I',4))
+                elif type == RegValueTypes.REG_QWORD:
+                    uc.mem_write(pVals[5],pack(f'<Q',keyValue.data))
+                    uc.mem_write(pVals[6],pack('<I',8))
+                elif type == RegValueTypes.REG_SZ:
+                    uc.mem_write(pVals[5],pack(f'<{(len(keyValue.dataAsStr)*2)+2}s',keyValue.dataAsStr.encode('utf-16')))
+                    uc.mem_write(pVals[6],pack('<I',(len(keyValue.dataAsStr)*2)+2))
+                elif type == RegValueTypes.REG_EXPAND_SZ:
+                    uc.mem_write(pVals[5],pack(f'<{(len(keyValue.dataAsStr)*2)+2}s',keyValue.dataAsStr.encode('utf-16')))
+                    uc.mem_write(pVals[6],pack('<I',(len(keyValue.dataAsStr)*2)+2))
+                elif type == RegValueTypes.REG_MULTI_SZ:
+                    uc.mem_write(pVals[5],pack(f'<{(len(keyValue.dataAsStr)*2)+2}s',keyValue.dataAsStr.encode('utf-16')))
+                    uc.mem_write(pVals[6],pack('<I',(len(keyValue.dataAsStr)*2)+2))
+                elif type == RegValueTypes.REG_LINK:
+                    uc.mem_write(pVals[5],pack(f'<{(len(keyValue.dataAsStr)*2)+2}s',keyValue.dataAsStr.encode('utf-16')))
+                    uc.mem_write(pVals[6],pack('<I',(len(keyValue.dataAsStr)*2)+2))
+                elif type == RegValueTypes.REG_NONE:
+                    uc.mem_write(pVals[5],pack(f'<{(len(keyValue.dataAsStr)*2)+2}s',keyValue.dataAsStr.encode('utf-16')))
+                    uc.mem_write(pVals[6],pack('<I',(len(keyValue.dataAsStr)*2)+2))         
             except:
                 pass
             retVal = 0x0
@@ -3674,6 +3721,295 @@ class CustomWinAPIs():
 
         logged_calls = ("RegGetValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+    
+    def RegQueryValueA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes = ['HKEY', 'LPCSTR', 'LPSTR', 'PLONG']
+        pNames = ['hKey', 'lpSubKey', 'lpData', 'lpcbData']
+
+        global registry_edit_keys
+
+        lpSubKey = read_string(uc, pVals[1])
+
+        keyPath = ''
+        keyValue = None
+
+        if lpSubKey == '[NULL]':
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path
+                    if keyPath in RegistryKeys: # If Key Found Get Value
+                        foundKey: RegKey = RegistryKeys[keyPath]
+                        keyValue = foundKey.getValue()
+        else:
+            if lpSubKey[0] != '\\':
+                lpSubKey = '\\' + lpSubKey
+                pVals[1] = lpSubKey
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path + lpSubKey
+                    if keyPath in RegistryKeys: # If Key Found Get Value
+                        foundKey: RegKey = RegistryKeys[keyPath]
+                        keyValue = foundKey.getValue()
+                    else:
+                        keyName = keyPath.split('\\')[-1] # Get Key Name
+                        rKey = RegKey(keyName,keyPath)
+                        keyValue = rKey.getValue()
+
+        if keyValue is not None:
+            # info grab here 
+            # registry_keys.add()
+            # print(keyValue.name)
+            #registry_values.add(())
+            try:
+                uc.mem_write(pVals[2],pack(f'<{len(keyValue.data)}s',keyValue.dataAsStr.encode('ascii')))
+                uc.mem_write(pVals[3],pack('<I',len(keyValue.data)))
+            except:
+                pass
+            retVal = 0x0
+            retValStr = 'ERROR_SUCCESS'
+        else:
+            retVal = 0x2 
+            retValStr = 'ERROR_FILE_NOT_FOUND'
+             # Another Possible ErrorCode 161: 'ERROR_BAD_PATHNAME'
+
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegQueryValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegQueryValueW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes = ['HKEY', 'LPCWSTR', 'LPWSTR', 'PLONG']
+        pNames = ['hKey', 'lpSubKey', 'lpData', 'lpcbData']
+
+        global registry_edit_keys
+
+        lpSubKey = read_unicode(uc, pVals[1])
+
+        keyPath = ''
+        keyValue = None
+
+        if lpSubKey == '[NULL]':
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path
+                    if keyPath in RegistryKeys: # If Key Found Get Value
+                        foundKey: RegKey = RegistryKeys[keyPath]
+                        keyValue = foundKey.getValue()
+        else:
+            if lpSubKey[0] != '\\':
+                lpSubKey = '\\' + lpSubKey
+                pVals[1] = lpSubKey
+            if pVals[0] in HandlesDict:
+                hKey: Handle = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path + lpSubKey
+                    if keyPath in RegistryKeys: # If Key Found Get Value
+                        foundKey: RegKey = RegistryKeys[keyPath]
+                        keyValue = foundKey.getValue()
+                    else:
+                        keyName = keyPath.split('\\')[-1] # Get Key Name
+                        rKey = RegKey(keyName,keyPath)
+                        keyValue = rKey.getValue()
+
+        if keyValue is not None:
+            # info grab here 
+            # registry_keys.add()
+            # print(keyValue.name)
+            #registry_values.add(())
+            try:
+                uc.mem_write(pVals[2],pack(f'<{len(keyValue.data)*2}s',keyValue.dataAsStr.encode('utf-16')[2:]))
+                uc.mem_write(pVals[3],pack('<I',(len(keyValue.data)*2)))
+            except:
+                pass
+            retVal = 0x0
+            retValStr = 'ERROR_SUCCESS'
+        else:
+            retVal = 0x2 
+            retValStr = 'ERROR_FILE_NOT_FOUND'
+             # Another Possible ErrorCode 161: 'ERROR_BAD_PATHNAME'
+
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegQueryValueW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegQueryValueExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 6)
+        pTypes = ['HKEY', 'LPCSTR', 'LPDWORD', 'LPDWORD', 'LPBYTE', 'LPDWORD']
+        pNames = ['hKey', 'lpValueName', 'lpReserved', 'lpType', 'lpData', 'lpcbData']
+
+        global registry_edit_keys
+
+        lpValue = read_string(uc, pVals[1])
+
+        keyPath = ''
+        keyValue = None
+        if pVals[0] in HandlesDict:
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+                if lpValue == '[NULL]':
+                    keyValue = rKey.getValue()
+                else:
+                    keyValue = rKey.getValue(lpValue)
+            else: # key Not Found
+                keyPath = hKey.name
+                keyName = keyPath.split('\\')[-1] # Get Key Name
+                rKey = RegKey(keyName,keyPath)
+                if lpValue == '[NULL]':
+                    keyValue = rKey.getValue()
+                else:
+                    keyValue = rKey.getValue(lpValue)
+        else: # Handle Not Found
+            pass
+
+        if keyValue is not None:
+            # info grab here 
+            # registry_keys.add()
+            # print(keyValue.name)
+            #registry_values.add(())
+            type = keyValue.type
+            try:
+                uc.mem_write(pVals[3],pack('<I',keyValue.type.value))
+                if type == RegValueTypes.REG_BINARY:
+                    uc.mem_write(pVals[4],pack(f'<{len(keyValue.data)}s',keyValue.data))
+                    uc.mem_write(pVals[5],pack('<I',len(keyValue.data)))
+                elif type == RegValueTypes.REG_DWORD:
+                    uc.mem_write(pVals[4],pack(f'<I',keyValue.data))
+                    uc.mem_write(pVals[5],pack('<I',4))
+                elif type == RegValueTypes.REG_DWORD_BIG_ENDIAN:
+                    uc.mem_write(pVals[4],pack(f'>I',keyValue.data))
+                    uc.mem_write(pVals[5],pack('<I',4))
+                elif type == RegValueTypes.REG_QWORD:
+                    uc.mem_write(pVals[4],pack(f'<Q',keyValue.data))
+                    uc.mem_write(pVals[5],pack('<I',8))
+                elif type == RegValueTypes.REG_SZ:
+                    uc.mem_write(pVals[4],pack(f'<{len(keyValue.dataAsStr)+1}s',keyValue.dataAsStr.encode('ascii')))
+                    uc.mem_write(pVals[5],pack('<I',len(keyValue.dataAsStr)+1))
+                elif type == RegValueTypes.REG_EXPAND_SZ:
+                    uc.mem_write(pVals[4],pack(f'<{len(keyValue.dataAsStr)+1}s',keyValue.dataAsStr.encode('ascii')))
+                    uc.mem_write(pVals[5],pack('<I',len(keyValue.dataAsStr)+1))
+                elif type == RegValueTypes.REG_MULTI_SZ:
+                    uc.mem_write(pVals[4],pack(f'<{len(keyValue.dataAsStr)+1}s',keyValue.dataAsStr.encode('ascii')))
+                    uc.mem_write(pVals[5],pack('<I',len(keyValue.dataAsStr)+1))
+                elif type == RegValueTypes.REG_LINK:
+                    uc.mem_write(pVals[4],pack(f'<{(len(keyValue.dataAsStr)*2)+2}s',keyValue.dataAsStr.encode('utf-16')))
+                    uc.mem_write(pVals[5],pack('<I',(len(keyValue.dataAsStr)*2)+2))
+                elif type == RegValueTypes.REG_NONE:
+                    uc.mem_write(pVals[4],pack(f'<{len(keyValue.dataAsStr)+1}s',keyValue.dataAsStr.encode('ascii')))
+                    uc.mem_write(pVals[5],pack('<I',len(keyValue.dataAsStr)+1))         
+            except:
+                pass
+            retVal = 0x0
+            retValStr = 'ERROR_SUCCESS'
+        else:
+            retVal = 0x2 
+            retValStr = 'ERROR_FILE_NOT_FOUND'
+             # Another Possible ErrorCode 161: 'ERROR_BAD_PATHNAME'
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegQueryValueExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegQueryValueExW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 6)
+        pTypes = ['HKEY', 'LPCWSTR', 'LPDWORD', 'LPDWORD', 'LPBYTE', 'LPDWORD']
+        pNames = ['hKey', 'lpValueName', 'lpReserved', 'lpType', 'lpData', 'lpcbData']
+
+        global registry_edit_keys
+
+        lpValue = read_unicode(uc, pVals[1])
+
+        keyPath = ''
+        keyValue = None
+        if pVals[0] in HandlesDict:
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+                if lpValue == '[NULL]':
+                    keyValue = rKey.getValue()
+                else:
+                    keyValue = rKey.getValue(lpValue)
+            else: # key Not Found
+                keyPath = hKey.name
+                keyName = keyPath.split('\\')[-1] # Get Key Name
+                rKey = RegKey(keyName,keyPath)
+                if lpValue == '[NULL]':
+                    keyValue = rKey.getValue()
+                else:
+                    keyValue = rKey.getValue(lpValue)
+        else: # Handle Not Found
+            pass
+
+        if keyValue is not None:
+            # info grab here 
+            # registry_keys.add()
+            # print(keyValue.name)
+            #registry_values.add(())
+            type = keyValue.type
+            try:
+                uc.mem_write(pVals[3],pack('<I',keyValue.type.value))
+                if type == RegValueTypes.REG_BINARY:
+                    uc.mem_write(pVals[4],pack(f'<{len(keyValue.data)}s',keyValue.data))
+                    uc.mem_write(pVals[5],pack('<I',len(keyValue.data)))
+                elif type == RegValueTypes.REG_DWORD:
+                    uc.mem_write(pVals[4],pack(f'<I',keyValue.data))
+                    uc.mem_write(pVals[5],pack('<I',4))
+                elif type == RegValueTypes.REG_DWORD_BIG_ENDIAN:
+                    uc.mem_write(pVals[4],pack(f'>I',keyValue.data))
+                    uc.mem_write(pVals[5],pack('<I',4))
+                elif type == RegValueTypes.REG_QWORD:
+                    uc.mem_write(pVals[4],pack(f'<Q',keyValue.data))
+                    uc.mem_write(pVals[5],pack('<I',8))
+                elif type == RegValueTypes.REG_SZ:
+                    uc.mem_write(pVals[4],pack(f'<{(len(keyValue.dataAsStr)*2)+2}s',keyValue.dataAsStr.encode('utf-16')))
+                    uc.mem_write(pVals[5],pack('<I',(len(keyValue.dataAsStr)*2)+2))
+                elif type == RegValueTypes.REG_EXPAND_SZ:
+                    uc.mem_write(pVals[4],pack(f'<{(len(keyValue.dataAsStr)*2)+2}s',keyValue.dataAsStr.encode('utf-16')))
+                    uc.mem_write(pVals[5],pack('<I',(len(keyValue.dataAsStr)*2)+2))
+                elif type == RegValueTypes.REG_MULTI_SZ:
+                    uc.mem_write(pVals[4],pack(f'<{(len(keyValue.dataAsStr)*2)+2}s',keyValue.dataAsStr.encode('utf-16')))
+                    uc.mem_write(pVals[5],pack('<I',(len(keyValue.dataAsStr)*2)+2))
+                elif type == RegValueTypes.REG_LINK:
+                    uc.mem_write(pVals[4],pack(f'<{(len(keyValue.dataAsStr)*2)+2}s',keyValue.dataAsStr.encode('utf-16')))
+                    uc.mem_write(pVals[5],pack('<I',(len(keyValue.dataAsStr)*2)+2))
+                elif type == RegValueTypes.REG_NONE:
+                    uc.mem_write(pVals[4],pack(f'<{(len(keyValue.dataAsStr)*2)+2}s',keyValue.dataAsStr.encode('utf-16')))
+                    uc.mem_write(pVals[5],pack('<I',(len(keyValue.dataAsStr)*2)+2))         
+            except:
+                pass
+            retVal = 0x0
+            retValStr = 'ERROR_SUCCESS'
+        else:
+            retVal = 0x2 
+            retValStr = 'ERROR_FILE_NOT_FOUND'
+             # Another Possible ErrorCode 161: 'ERROR_BAD_PATHNAME'
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegQueryValueExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def RegSetValueA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 5)
@@ -4310,13 +4646,15 @@ class CustomWinAPIs():
             valName = '(Default)'
         pVals[1] = valName
 
+        keyPath = ''
         if pVals[0] in HandlesDict:
             hKey: Handle = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
                 rKey: RegKey = RegistryKeys[hKey.name]
+                keyPath = rKey.path
                 deletedValue = rKey.deleteValue(valName)
             else: # Key Not Found
-                pass
+                keyPath = hKey.name
         else: # Handle Not Found
             pass
             
@@ -4344,13 +4682,15 @@ class CustomWinAPIs():
             valName = '(Default)'
         pVals[1] = valName
 
+        keyPath = ''
         if pVals[0] in HandlesDict:
             hKey: Handle = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
                 rKey: RegKey = RegistryKeys[hKey.name]
+                keyPath = rKey.path
                 deletedValue = rKey.deleteValue(valName)
             else: # Key Not Found
-                pass
+                keyPath = hKey.name
         else: # Handle Not Found
             pass
             
@@ -4417,7 +4757,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         print(deletedValue)
-        registry_delete_keys.add((keyPath,deltedValue))
+        registry_delete_keys.add((keyPath,deletedValue))
 
         logged_calls = ("RegDeleteKeyValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -4993,6 +5333,65 @@ class CustomWinAPIs():
 
         logged_calls = ("RegConnectRegistryW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegRestoreKeyA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['HKEY', 'LPCSTR', 'DWORD']
+        pNames = ['hKey', 'lpFile', 'dwFlags']
+        dwFlagsReverseLookUp = {0x00000008: 'REG_FORCE_RESTORE', 0x00000001: 'REG_WHOLE_HIVE_VOLATILE'}
+
+        global registry_keys
+        global registry_values
+    
+        if pVals[0] in HandlesDict:
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+            else: # Key Not Found
+                pass
+        else: # Handle Not Found
+            pass
+          
+        pVals[2] = getLookUpVal(pVals[2],dwFlagsReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegRestoreKeyA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegRestoreKeyW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['HKEY', 'LPCWSTR', 'DWORD']
+        pNames = ['hKey', 'lpFile', 'dwFlags']
+        dwFlagsReverseLookUp = {0x00000008: 'REG_FORCE_RESTORE', 0x00000001: 'REG_WHOLE_HIVE_VOLATILE'}
+
+        global registry_keys
+        global registry_values
+    
+        if pVals[0] in HandlesDict:
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+            else: # Key Not Found
+                pass
+        else: # Handle Not Found
+            pass
+          
+        pVals[2] = getLookUpVal(pVals[2],dwFlagsReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegRestoreKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def RegSaveKeyA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 3)
