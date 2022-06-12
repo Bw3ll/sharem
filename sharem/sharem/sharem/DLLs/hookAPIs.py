@@ -3560,7 +3560,7 @@ class CustomWinAPIs():
 
         if keyValue is not None:
             # info grab here 
-            print(keyValue.name)
+            # print(keyValue.name)
             #registry_values.add(())
             type = keyValue.type
             try:
@@ -3607,7 +3607,7 @@ class CustomWinAPIs():
         
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        written_values = registry_key_address.getValue()
+        written_values = registry_key_address.getValue(lpValue)
         registry_edit_keys.add((keyPath,written_values.name, written_values.dataAsStr))
 
         logged_calls = ("RegGetValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
@@ -4213,6 +4213,7 @@ class CustomWinAPIs():
         else: # Handle Not Found
             pass
         
+        # RegKey.printInfoAllKeys()
 
         pVals[3] = RegValueTypes(pVals[3]).name
 
@@ -4222,7 +4223,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        written_values = registry_key_address.getValue()
+        written_values = registry_key_address.getValue(valName)
         registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.data))
 
         logged_calls = ("RegSetValueExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
@@ -8881,6 +8882,25 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
     
         logged_calls= ("CreateFile2", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def lstrcatA(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['LPSTR', 'LPCSTR'] 
+        pNames = ['lpString1', 'lpString2'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        str1 = read_string(uc, pVals[0])
+        str2 = read_string(uc, pVals[1])
+
+        skip = []
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = allocation.address
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("lstrcatA", hex(callAddr), (retValStr), 'LPWSTR', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def lstrcatW(self, uc, eip, esp, export_dict, callAddr, em):
