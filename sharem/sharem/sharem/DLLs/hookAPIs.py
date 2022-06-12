@@ -4222,7 +4222,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        written_values = registry_key_address.getValue()
+        written_values = registry_key_address.getValue(valName)
         registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.data))
 
         logged_calls = ("RegSetValueExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
@@ -4311,7 +4311,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        written_values = registry_key_address.getValue()
+        written_values = registry_key_address.getValue(valName)
         registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.data))
 
         logged_calls = ("RegSetValueExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
@@ -8842,6 +8842,8 @@ class CustomWinAPIs():
 
         skip = [0]
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+        
+        fakeData = 'https:\\sharem.com\login\#'
 
         handle = Handle(HandleType.Clipboard)
 
