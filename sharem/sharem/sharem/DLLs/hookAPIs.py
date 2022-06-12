@@ -90,7 +90,7 @@ class HandleType(Enum):
 
 
 class Handle:
-    nextValue = 0x80800000  # Start of Handle IDs
+    nextValue = 0x88880000  # Start of Handle IDs
 
     def __init__(self, type: HandleType, data=None, name='', handleValue=0):
         if handleValue == 0:
@@ -8844,9 +8844,9 @@ class CustomWinAPIs():
         skip = [0]
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
         
-        fakeData = 'https:\\sharem.com\login\#'
+        fakeData = 'https://sharem.com/login/#'
 
-        handle = Handle(HandleType.Clipboard)
+        handle = Handle(HandleType.ClipBoard,data=fakeData)
 
         cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal =  handle.value 
@@ -8886,7 +8886,7 @@ class CustomWinAPIs():
         logged_calls= ("CreateFile2", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def lstrcatA(self, uc, eip, esp, export_dict, callAddr, em):
+    def lstrcatA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes =['LPSTR', 'LPCSTR'] 
         pNames = ['lpString1', 'lpString2'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -8894,11 +8894,21 @@ class CustomWinAPIs():
         str1 = read_string(uc, pVals[0])
         str2 = read_string(uc, pVals[1])
 
+
+        try:
+            finalStr = str1 + str2
+            uc.mem_write(pVals[0],pack(f'<{len(finalStr)}s', finalStr.encode('ascii')))
+        except:
+            pass
+
         skip = []
+
+        retVal = pVals[0]
+
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
         cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
-        retVal = allocation.address
+        
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -9563,28 +9573,34 @@ class CustomWinAPIs():
         logged_calls = ("GetFileType", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def GlobalLock(self, uc, eip, esp, export_dict, callAddr, em):
+    def GlobalLock(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         # 'FlushFileBuffers': (1, ['HANDLE'], ['hFile'], 'BOOL')
-        pVals = makeArgVals(uc, em, esp, 1)
+        pVals = makeArgVals(uc, em, esp, 1) # Needs Reworked A little
         pTypes = ['HGLOBAL']
         pNames = ['hMem']
         global availMem
 
-        print('test01')
         if (pVals[0] in HandlesDict):
             # return pointer
-            print('test1')
-            retVal = HandlesDict[pVals[0]].data
+            handle = HandlesDict[pVals[0]]
+            # retValStr = hex(retVal)
+            allocMemoryVal = availMem
+            uc.mem_map(availMem, 4096)
+            availMem += 4096
+            # print(handle.data)
+            # retHandle = Handle(HandleType.HGLOBAL, allocMemoryVal, pVals[0])
+            uc.mem_write(allocMemoryVal, pack(f'<{len(handle.data)}s', handle.data.encode('ascii')))
+            retVal = allocMemoryVal
             retValStr = hex(retVal)
-            print('test2')
         else:
             # return pointer
             print('test03')
             allocMemoryVal = availMem
             uc.mem_map(availMem, 4096)
             availMem += 4096
-            retHandle = Handle(HandleType.HGLOBAL, allocMemoryVal, pVals[0])
-            retVal = retHandle.data
+            # retHandle = Handle(HandleType.HGLOBAL, allocMemoryVal, pVals[0])
+            uc.mem_write(allocMemoryVal, pack(f'<{len()}'))
+            retVal = allocMemoryVal
             retValStr = hex(retVal)
 
         # create strings for everything except ones in our skip
