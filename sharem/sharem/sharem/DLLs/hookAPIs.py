@@ -8491,6 +8491,25 @@ class CustomWinAPIs():
         logged_calls = ("CloseHandle", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def GetFileSizeEx(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['HANDLE', 'PLARGE_INTEGER']
+        pNames = ['hFile', 'lpFileSize']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        #handle = Handle(HandleType.HWND, name='ForegroundWindow')
+
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+
+        retVal = 0x1
+        retValStr = "SUCCESS"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("GetFileSizeEx", hex(callAddr), (retValStr), 'HWND', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     ### Has a structure of OSVERSIONINFOA, need help with.
     def GetVersionExA(self, uc, eip, esp, export_dict, callAddr, em):
         # 'GetVersionExA': (1, ['LPOSVERSIONINFOA'], ['lpVersionInformation'], 'BOOL')
@@ -8994,6 +9013,30 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("CopyFileW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def CopyFile2(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['PCWSTR', 'PCWSTR', 'COPYFILE2_EXTENDED_PARAMETERS'] 
+        pNames = ['pwszExistingFileName', 'pwszNewFileName', '*pExtendedParameters'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        CopyFlagsReverseLookUp = {8: 'COPY_FILE_ALLOW_DECRYPTED_DESTINATION', 2048: 'COPY_FILE_COPY_SYMLINK',
+                                     1: 'COPY_FILE_FAIL_IF_EXISTS', 4096: 'COPY_FILE_NO_BUFFERING',
+                                     4: 'COPY_FILE_OPEN_SOURCE_FOR_WRITE', 2: 'COPY_FILE_RESTARTABLE',
+                                     268435456: 'COPY_FILE_REQUEST_COMPRESSED_TRAFFIC'}
+
+        pVals[2] = getLookUpVal(pVals[2], CopyFlagsReverseLookUp)
+
+        # create strings for everything except ones in our skip
+        skip = [2]  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = "SUCCESS"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("CopyFile2", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def DeleteFileW(self, uc, eip, esp, export_dict, callAddr, em):
