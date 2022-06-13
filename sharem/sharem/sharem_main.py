@@ -15174,6 +15174,9 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None)
 
 codeCoverageComplete=False
 def takeBytes(shellBytes,startingAddress, silent=None, decoder=False):
+	# print ("takeBytes")
+	# print ("---------->o", o)
+
 	# bprint ("takeBytes:", hex(startingAddress))
 	# print ("take bytse o", o)
 	global sBy
@@ -15538,11 +15541,10 @@ def addComments():
 					v=parC1+hex(v)
 				except:
 					if type(v)== tuple:
-						print ("tuple")
-						print (v)
+						# print ("tuple")
+						# print (v)
 						v=v[3]
 						v=parC1+v
-						v=parC1+" tuple "
 			if t!=limit:
 					params+=v +parC+ ", "+res2
 			else:
@@ -18799,7 +18801,8 @@ def dprint3(*args):
 		dp2 (args)
 
 def shellDisassemblyInit(shellArg, silent=None):
-	bprint ("shellDisassemblyInit")
+	# print ("o", )
+
 	global filename
 
 	global gDisassemblyText
@@ -20189,6 +20192,7 @@ def emulationSubmenu():
 
 
 def startupPrint():
+	# print ("startupPrint", o)
 	global bAsciiStrings
 	global bWideCharStrings
 	global bPushStackStrings
@@ -20217,7 +20221,7 @@ def startupPrint():
 	l_of_strings = ["Finding Ascii strings..", "Finding unicode strings..", "Finding push stack strings..","Searching for disassembly..", "Searching for Fstenv instructions..", "Searching for push ret instructions..", "Searching for call pop instructions..", "Searching for heaven's gate instructions..", "Searching for syscall instructions..", "Searching for PEB instructions.."]
 	max_len = get_max_length(l_of_strings)
 
-	print ("\n\n Analyzing ", filename)
+	# print ("\n\n Analyzing ", filename)
 	if bPrintEmulation and not mBool[o].bEmulationFound:
 		newTime	= discoverEmulation(max_len)
 		elapsed_time += newTime
@@ -20515,7 +20519,7 @@ def uiBits():	#Change the bit mode
 def discoverEmulation(maxLen=None):
 	global shellBit
 	global emuObj   
-
+	# print ("discoverEmulation, o --->", o)
 	if maxLen==None:
 		maxLen=42
 	
@@ -22771,7 +22775,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 		retType = ret_type[t]
 		paramVal = api_params_values[t]
 		paramVal_tuple = api_params_values[t]
-		print(paramVal)
+		# print(paramVal)
 		for potentialTuple in paramVal:
 			if( type(potentialTuple) == tuple):
 				# print("is a tuple")
@@ -23143,6 +23147,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 
 def printToJson(bpAll, outputData):	#Output data to json
 	#takes outputdata from generateoutputdata
+	# print ("---------->o", o)
 	global bpPushRet
 	global bpFstenv
 	global bpSyscall
