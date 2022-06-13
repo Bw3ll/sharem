@@ -13,7 +13,7 @@ commandLine_arg = set()
 registry_edit_keys = set()
 registry_add_keys = set()
 registry_delete_keys = set()
-registry_strings = set()
+registry_misc = set()
 
 FakeProcess = 0xbadd0000
 ProcessCreationReverseLookUp = {16777216: 'CREATE_BREAKAWAY_FROM_JOB', 67108864: 'CREATE_DEFAULT_ERROR_MODE',
@@ -5034,7 +5034,7 @@ class CustomWinAPIs():
         pNames = ['hKey', 'lpSubKey', 'lpFile']
 
         global registry_add_keys
-        global registry_strings
+        global registry_misc
 
         lpSubKey = read_string(uc, pVals[1])
         if lpSubKey != '[NULL]':
@@ -5077,7 +5077,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         registry_add_keys.add(keyPath)
-        registry_strings.add(pVals[2])
+        registry_misc.add(pVals[2])
 
         logged_calls = ("RegLoadKeyA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -5088,7 +5088,7 @@ class CustomWinAPIs():
         pNames = ['hKey', 'lpSubKey', 'lpFile']
 
         global registry_add_keys
-        global registry_strings
+        global registry_misc
 
         lpSubKey = read_unicode(uc, pVals[1])
         if lpSubKey != '[NULL]':
@@ -5131,7 +5131,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         registry_add_keys.add(keyPath)
-        registry_strings.add(pVals[2])
+        registry_misc.add(pVals[2])
 
         logged_calls = ("RegLoadKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -5142,7 +5142,7 @@ class CustomWinAPIs():
         pNames = ['hKey', 'lpSubKey']
 
         global registry_add_keys
-        global registry_strings
+        global registry_misc
 
         lpSubKey = read_string(uc, pVals[1])
         if lpSubKey != '[NULL]':
@@ -5195,7 +5195,7 @@ class CustomWinAPIs():
         pNames = ['hKey', 'lpSubKey']
 
         global registry_add_keys
-        global registry_strings
+        global registry_misc
 
         lpSubKey = read_unicode(uc, pVals[1])
         if lpSubKey != '[NULL]':
@@ -5463,7 +5463,7 @@ class CustomWinAPIs():
         pNames = ['lpMachineName', 'hKey', 'phkResult']
 
         global registry_add_keys
-        global registry_strings
+        global registry_misc
 
         #build out
         # it seems to return the result of the hKey but on the other computer.
@@ -5502,15 +5502,12 @@ class CustomWinAPIs():
         except:
             pass
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
-
+        #pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
-
         registry_add_keys.add(keyPath)
-        registry_strings.add(pVals[0])
-
+        registry_misc.add(pVals[0])
         logged_calls = ("RegConnectRegistryA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
@@ -5520,7 +5517,7 @@ class CustomWinAPIs():
         pNames = ['lpMachineName', 'hKey', 'phkResult']
 
         global registry_add_keys
-        global registry_strings
+        global registry_misc
 
         #build out
         # it seems to return the result of the hKey but on the other computer.
@@ -5560,9 +5557,9 @@ class CustomWinAPIs():
             pass
 
         registry_add_keys.add(keyPath)
-        registry_strings.add(pVals[0])
+        registry_misc.add(pVals[0])
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
+        #pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
 
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
@@ -5578,7 +5575,7 @@ class CustomWinAPIs():
         dwFlagsReverseLookUp = {0x00000008: 'REG_FORCE_RESTORE', 0x00000001: 'REG_WHOLE_HIVE_VOLATILE'}
 
         global registry_edit_keys
-        global registry_strings
+        global registry_misc
     
         if pVals[0] in HandlesDict:
             hKey: Handle = HandlesDict[pVals[0]]
@@ -5598,7 +5595,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         registry_add_keys.add(hKey.name)
-        registry_strings.add(pVals[1])
+        registry_misc.add(pVals[1])
 
         logged_calls = ("RegRestoreKeyA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -5610,7 +5607,7 @@ class CustomWinAPIs():
         dwFlagsReverseLookUp = {0x00000008: 'REG_FORCE_RESTORE', 0x00000001: 'REG_WHOLE_HIVE_VOLATILE'}
 
         global registry_edit_keys
-        global registry_strings
+        global registry_misc
     
         if pVals[0] in HandlesDict:
             hKey: Handle = HandlesDict[pVals[0]]
@@ -5630,7 +5627,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         registry_add_keys.add(hKey.name)
-        registry_strings.add(pVals[1])
+        registry_misc.add(pVals[1])
 
         logged_calls = ("RegRestoreKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -5642,7 +5639,7 @@ class CustomWinAPIs():
         pNames = ['hKey', 'lpFile', 'lpSecurityAttributes']
 
         global registry_add_keys
-        global registry_strings
+        global registry_misc
     
         if pVals[0] in HandlesDict:
             hKey: Handle = HandlesDict[pVals[0]]
@@ -5655,7 +5652,7 @@ class CustomWinAPIs():
             keyPath = ''
           
         registry_add_keys.add(keyPath)
-        registry_strings.add(pVals[1])
+        registry_misc.add(pVals[1])
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
@@ -5672,7 +5669,7 @@ class CustomWinAPIs():
         pNames = ['hKey', 'lpFile', 'lpSecurityAttributes']
 
         global registry_add_keys
-        global registry_strings
+        global registry_misc
     
         if pVals[0] in HandlesDict:
             hKey: Handle = HandlesDict[pVals[0]]
@@ -5685,7 +5682,7 @@ class CustomWinAPIs():
             keyPath = ''
 
         registry_add_keys.add(keyPath)
-        registry_strings.add(pVals[1])
+        registry_misc.add(pVals[1])
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
@@ -5703,7 +5700,7 @@ class CustomWinAPIs():
         dwFlagsReversLookUp = {1: 'REG_STANDARD_FORMAT', 2: 'REG_LATEST_FORMAT', 4: 'REG_NO_COMPRESSION'}
 
         global registry_add_keys
-        global registry_strings
+        global registry_misc
     
         if pVals[0] in HandlesDict:
             hKey: Handle = HandlesDict[pVals[0]]
@@ -5716,7 +5713,7 @@ class CustomWinAPIs():
             keyPath = ''
           
         registry_add_keys.add(keyPath)
-        registry_strings.add(pVals[1])
+        registry_misc.add(pVals[1])
 
         pVals[3] = getLookUpVal(pVals[3],dwFlagsReversLookUp)
 
@@ -5736,7 +5733,7 @@ class CustomWinAPIs():
         dwFlagsReversLookUp = {1: 'REG_STANDARD_FORMAT', 2: 'REG_LATEST_FORMAT', 4: 'REG_NO_COMPRESSION'}
 
         global registry_add_keys
-        global registry_strings
+        global registry_misc
     
         if pVals[0] in HandlesDict:
             hKey: Handle = HandlesDict[pVals[0]]
@@ -5749,7 +5746,7 @@ class CustomWinAPIs():
             keyPath = ''
           
         registry_add_keys.add(keyPath)
-        registry_strings.add(pVals[1])
+        registry_misc.add(pVals[1])
 
         pVals[3] = getLookUpVal(pVals[3],dwFlagsReversLookUp)
 
@@ -8512,6 +8509,25 @@ class CustomWinAPIs():
         logged_calls = ("CloseHandle", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def GetFileSizeEx(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['HANDLE', 'PLARGE_INTEGER']
+        pNames = ['hFile', 'lpFileSize']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        #handle = Handle(HandleType.HWND, name='ForegroundWindow')
+
+        skip = []  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+
+        retVal = 0x1
+        retValStr = "SUCCESS"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("GetFileSizeEx", hex(callAddr), (retValStr), 'HWND', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     ### Has a structure of OSVERSIONINFOA, need help with.
     def GetVersionExA(self, uc, eip, esp, export_dict, callAddr, em):
         # 'GetVersionExA': (1, ['LPOSVERSIONINFOA'], ['lpVersionInformation'], 'BOOL')
@@ -9020,6 +9036,30 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("CopyFileW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def CopyFile2(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['PCWSTR', 'PCWSTR', 'COPYFILE2_EXTENDED_PARAMETERS'] 
+        pNames = ['pwszExistingFileName', 'pwszNewFileName', '*pExtendedParameters'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        CopyFlagsReverseLookUp = {8: 'COPY_FILE_ALLOW_DECRYPTED_DESTINATION', 2048: 'COPY_FILE_COPY_SYMLINK',
+                                     1: 'COPY_FILE_FAIL_IF_EXISTS', 4096: 'COPY_FILE_NO_BUFFERING',
+                                     4: 'COPY_FILE_OPEN_SOURCE_FOR_WRITE', 2: 'COPY_FILE_RESTARTABLE',
+                                     268435456: 'COPY_FILE_REQUEST_COMPRESSED_TRAFFIC'}
+
+        pVals[2] = getLookUpVal(pVals[2], CopyFlagsReverseLookUp)
+
+        # create strings for everything except ones in our skip
+        skip = [2]  # we need to skip this value (index) later-let's put it in skip
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = "SUCCESS"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("CopyFile2", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def DeleteFileW(self, uc, eip, esp, export_dict, callAddr, em):
