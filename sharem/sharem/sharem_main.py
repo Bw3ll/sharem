@@ -22908,9 +22908,125 @@ def emulation_txt_out(apiList, logged_syscalls):
 	# artifacts = ["c:\\result.txt", "cmd.exe", "google.com", "result.txt", "user32.dll", "www.msn.com", "http://74.32.123.2:8080", "c:\\windows\\system32\\ipconfig.exe"]
 	for each in commandLine_artifacts:
 		commandLine_arg.add(each)
-
+	#put list of regeex registry in set of misc
 	for each in registry_artifacts:
 		registry_misc.add(each)
+	#remove if found.
+	for each in registry_add_keys:
+		try:
+			registry_misc.remove(each)
+		except:
+			pass
+	for each in registry_edit_keys:
+		try:
+			registry_misc.remove(each[0])
+		except:
+			pass
+	for each in registry_add_keys:
+		if (type(each) == tuple):
+			each = each[0]
+		try:
+			registry_misc.remove(each)
+		except:
+			pass
+	#remove if found without hkey
+	for each in registry_add_keys:
+		if("HKEY_CLASSES_ROOT" in each):
+			each = each.split("HKEY_CLASSES_ROOT\\")
+			try:
+				registry_misc.remove(each[1])
+			except:
+				pass
+		if("HKEY_CLASSES_USER" in each):
+			each = each.split("HKEY_CLASSES_USER\\")
+			try:
+				registry_misc.remove(each[1])
+			except:
+				pass
+		if("HKEY_LOCAL_MACHINE" in each):
+			each = each.split("HKEY_LOCAL_MACHINE\\")
+			try:
+				registry_misc.remove(each[1])
+			except:
+				pass
+		if("HKEY_USERS" in each):
+			each = each.split("HKEY_USERS\\")
+			try:
+				registry_misc.remove(each[1])
+			except:
+				pass
+		if("HKEY_CURRENT_CONFIG" in each):
+			each = each.split("HKEY_CURRENT_CONFIG\\")
+			try:
+				registry_misc.remove(each[1])
+			except:
+				pass
+	for each in registry_edit_keys:
+		each = each[0]
+		if("HKEY_CLASSES_ROOT" in each):
+			each = each.split("HKEY_CLASSES_ROOT\\")
+			try:
+				registry_misc.remove(each[1])
+			except:
+				pass
+		if("HKEY_CLASSES_USER" in each):
+			each = each.split("HKEY_CLASSES_USER\\")
+			try:
+				registry_misc.remove(each[1])
+			except:
+				pass
+		if("HKEY_LOCAL_MACHINE" in each):
+			each = each.split("HKEY_LOCAL_MACHINE\\")
+			try:
+				registry_misc.remove(each[1])
+			except:
+				pass
+		if("HKEY_USERS" in each):
+			each = each.split("HKEY_USERS\\")
+			try:
+				registry_misc.remove(each[1])
+			except:
+				pass
+		if("HKEY_CURRENT_CONFIG" in each):
+			each = each.split("HKEY_CURRENT_CONFIG\\")
+			try:
+				registry_misc.remove(each[1])
+			except:
+				pass
+	for each in registry_edit_keys:
+		if (type(each) == tuple):
+			each = each[0]
+		if("HKEY_CLASSES_ROOT" in each):
+			each = each.split("HKEY_CLASSES_ROOT\\")
+			try:
+				registry_misc.remove(each[1])
+			except:
+				pass
+		if("HKEY_CLASSES_USER" in each):
+			each = each.split("HKEY_CLASSES_USER\\")
+			try:
+				registry_misc.remove(each[1])
+			except:
+				pass
+		if("HKEY_LOCAL_MACHINE" in each):
+			each = each.split("HKEY_LOCAL_MACHINE\\")
+			try:
+				registry_misc.remove(each[1])
+			except:
+				pass
+		if("HKEY_USERS" in each):
+			each = each.split("HKEY_USERS\\")
+			try:
+				registry_misc.remove(each[1])
+			except:
+				pass
+		if("HKEY_CURRENT_CONFIG" in each):
+			each = each.split("HKEY_CURRENT_CONFIG\\")
+			try:
+				registry_misc.remove(each[1])
+			except:
+				pass
+			
 
 	# web_artifacts = ["www.msn.com", "http://74.32.123.2:8080", "google.com"]
 	# file_artifacts = ["c:\\result.txt", "cmd.exe", "result.txt"]
@@ -23071,15 +23187,11 @@ def emulation_txt_out(apiList, logged_syscalls):
 	if(len(registry_delete_keys) > 0):
 		for keyPath in registry_delete_keys:
 			if(type(keyPath) == tuple):
-				if("run" in keyPath[0].lower() or "shell folder" in keyPath[0].lower()):
-					reg_peristence_set.add(keyPath[0])
-				if("policy\\secrets" in keyPath[0].lower()):
-					reg_credentials_set.add(keyPath[0])
-			else:
-				if("run" in keyPath.lower() or "shell folder" in keyPath.lower()):
-					reg_peristence_set.add(keyPath)
-				if("policy\\secrets" in keyPath.lower()):
-					reg_credentials_set.add(keyPath)
+				keyPath = keyPath[0]
+			if("run" in keyPath.lower() or "shell folder" in keyPath.lower()):
+				reg_peristence_set.add(keyPath)
+			if("policy\\secrets" in keyPath.lower()):
+				reg_credentials_set.add(keyPath)
 	#heirarchy
 	reg_HKCR = set()
 	reg_HKCU = set()
@@ -23115,27 +23227,17 @@ def emulation_txt_out(apiList, logged_syscalls):
 	if(len(registry_delete_keys) > 0):
 		for keyPath in registry_delete_keys:
 			if(type(keyPath) == tuple):
-				if("hkey_classes_root" in keyPath[0].lower()):
-					reg_HKCR.add(keyPath[0])
-				if("hkey_classes_user" in keyPath[0].lower()):
-					reg_HKCU.add(keyPath[0])
-				if("hkey_local_machine" in keyPath[0].lower()):
-					reg_HKLM.add(keyPath[0])
-				if("hkey_users" in keyPath[0].lower()):
-					reg_HKU.add(keyPath[0])
-				if("hkey_current_config" in keyPath[0].lower()):
-					reg_HKCC.add(keyPath[0])
-			else:
-				if("hkey_classes_root" in keyPath.lower()):
-					reg_HKCR.add(keyPath)
-				if("hkey_classes_user" in keyPath.lower()):
-					reg_HKCU.add(keyPath)
-				if("hkey_local_machine" in keyPath.lower()):
-					reg_HKLM.add(keyPath)
-				if("hkey_users" in keyPath.lower()):
-					reg_HKU.add(keyPath)
-				if("hkey_current_config" in keyPath.lower()):
-					reg_HKCC.add(keyPath)
+				keyPath = keyPath[0]
+			if("hkey_classes_root" in keyPath.lower()):
+				reg_HKCR.add(keyPath)
+			if("hkey_classes_user" in keyPath.lower()):
+				reg_HKCU.add(keyPath)
+			if("hkey_local_machine" in keyPath.lower()):
+				reg_HKLM.add(keyPath)
+			if("hkey_users" in keyPath.lower()):
+				reg_HKU.add(keyPath)
+			if("hkey_current_config" in keyPath.lower()):
+				reg_HKCC.add(keyPath)
 
 	#emu_registry_add_list = ''
 	#emu_registry_edit_list = ''
