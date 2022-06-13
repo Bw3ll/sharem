@@ -5423,7 +5423,7 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
 
-    def RegEnumKeyA(self, uc, eip, esp, export_dict, callAddr, em):
+    def RegEnumKeyA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         #'RegEnumKeyA': (4, ['HKEY', 'DWORD', 'LPSTR', 'DWORD'], ['hKey', 'dwIndex', 'lpName', 'cchName'], 'LSTATUS')
         pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HKEY', 'DWORD', 'LPSTR', 'DWORD']
@@ -5436,13 +5436,26 @@ class CustomWinAPIs():
             print('RegEnumKeys')
             hKey: Handle = HandlesDict[pVals[0]]
             keyPath = hKey.name
-            for key, val in RegistryKeys.items():
-                if keyPath in key:
-                    print(f'KeyPath: {key}')
-                    tempPath = keyPath + '\\' + val.name
-                    print(f'TempPath: {tempPath}')
-                    if tempPath == key:
-                        print(f'Direct Sub Key: {key}')
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+                if pVals[1] < len(rKey.childKeys):
+                    ChildKeysList = list(rKey.childKeys)
+                    childKey = rKey.childKeys[ChildKeysList[pVals[1]]]
+                    try:
+                        print('here')
+                        uc.mem_write(pVals[2],pack(f'<{len(childKey.name)+1}',childKey.name.encode('ascii')))
+                    except:
+                        print('failed')
+                        pass
+                else:
+                    pass
+            # for key, val in RegistryKeys.items():
+            #     if keyPath in key:
+            #         print(f'KeyPath: {key}')
+            #         tempPath = keyPath + '\\' + val.name
+            #         print(f'TempPath: {tempPath}')
+            #         if tempPath == key:
+            #             print(f'Direct Sub Key: {key}')
         else: # Handle Not Found
             pass
 
@@ -10516,7 +10529,7 @@ class RegKey:
         self.name = name
         self.path = path
         self.values: dict[str,KeyValue] = {}
-        self.subKeys: dict[str,RegKey] = {}
+        self.childKeys: dict[str,RegKey] = {}
         if handle == 0:
             if not remote:
                 handle = RegKey.nextHandleValue
@@ -10531,7 +10544,7 @@ class RegKey:
             for key, val in RegistryKeys.items():
                 if key == parentKeyPath:
                     self.parentKey = val.name
-                    val.subKeys.update({self.name: self})            
+                    val.childKeys.update({self.name: self})            
 
     def createPreDefinedKeys():
         # Create Default Keys
@@ -10565,9 +10578,9 @@ class RegKey:
         print(f'Name: {self.name}')
         print(f'Path: {self.path}')
         print(f'Handle: {hex(self.handle.value)}')
-        print(f'SubKeys Count: {len(self.subKeys)}')
-        if len(self.subKeys) > 0:
-            for sKey, sVal in self.subKeys.items():
+        print(f'Child Keys Count: {len(self.childKeys)}')
+        if len(self.childKeys) > 0:
+            for sKey, sVal in self.childKeys.items():
                 print(sKey)
         print(f'Values Count: {len(self.values)}')
         if len(self.values) > 0:
@@ -10581,9 +10594,9 @@ class RegKey:
             print(f'Name: {rval.name}')
             print(f'Path: {rval.path}')
             print(f'Handle: {hex(rval.handle.value)}')
-            print(f'SubKeys Count: {len(rval.subKeys)}')
-            if len(rval.subKeys) > 0:
-                for sKey, sVal in rval.subKeys.items():
+            print(f'Child Keys Count: {len(rval.childKeys)}')
+            if len(rval.childKeys) > 0:
+                for sKey, sVal in rval.childKeys.items():
                     print(sKey)
             print(f'Values Count: {len(rval.values)}')
             if len(rval.values) > 0:
@@ -10596,16 +10609,16 @@ class RegKey:
         print('Registry Tree')
         for key, value in RegKey.PreDefinedKeys.items():
             rKey: RegKey = RegistryKeys[value]
-            rKey.printSubKeys()
+            rKey.printTreeRecursive()
         print('\n')
     
-    def printSubKeys(self, level=0):
+    def printTreeRecursive(self, level=0):
         if level == 0:
             print(self.name)
         else:
             print(('  ' * level) + '└─╴' + self.name)
-        for sKey, sVal in self.subKeys.items():
-            sVal.printSubKeys(level+1)
+        for sKey, sVal in self.childKeys.items():
+            sVal.printTreeRecursive(level+1)
             
 class KeyValue():
     def __init__(self, valueType: RegValueTypes, data, valueName: str):
