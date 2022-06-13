@@ -22734,7 +22734,7 @@ def emulation_json_out(apiList, logged_syscalls):
 	for i in registry_add_keys:
 		if("hkey_classes_root" in i.lower()):
 			reg_HKCR.add(i)
-		if("hkey_classes_user" in i.lower()):
+		if("HKEY_CURRENT_USER" in i.lower()):
 			reg_HKCU.add(i)
 		if("hkey_local_machine" in i.lower()):
 			reg_HKLM.add(i)
@@ -22745,7 +22745,7 @@ def emulation_json_out(apiList, logged_syscalls):
 	for i in registry_edit_keys:
 		if("hkey_classes_root" in i[0].lower()):
 			reg_HKCR.add(i[0])
-		if("hkey_classes_user" in i[0].lower()):
+		if("HKEY_CURRENT_USER" in i[0].lower()):
 			reg_HKCU.add(i[0])
 		if("hkey_local_machine" in i[0].lower()):
 			reg_HKLM.add(i[0])
@@ -22757,7 +22757,7 @@ def emulation_json_out(apiList, logged_syscalls):
 		if (type(i) == tuple):
 			if("hkey_classes_root" in i.lower()):
 				reg_HKCR.add(i)
-			if("hkey_classes_user" in i.lower()):
+			if("HKEY_CURRENT_USER" in i.lower()):
 				reg_HKCU.add(i)
 			if("hkey_local_machine" in i.lower()):
 				reg_HKLM.add(i)
@@ -22768,7 +22768,7 @@ def emulation_json_out(apiList, logged_syscalls):
 		else:
 			if("hkey_classes_root" in i[0].lower()):
 				reg_HKCR.add(i[0])
-			if("hkey_classes_user" in i[0].lower()):
+			if("HKEY_CURRENT_USER" in i[0].lower()):
 				reg_HKCU.add(i[0])
 			if("hkey_local_machine" in i[0].lower()):
 				reg_HKLM.add(i[0])
@@ -22937,8 +22937,8 @@ def emulation_txt_out(apiList, logged_syscalls):
 				registry_misc.remove(each[1])
 			except:
 				pass
-		if("HKEY_CLASSES_USER" in each):
-			each = each.split("HKEY_CLASSES_USER\\")
+		if("HKEY_CURRENT_USER" in each):
+			each = each.split("HKEY_CURRENT_USER\\")
 			try:
 				registry_misc.remove(each[1])
 			except:
@@ -22969,8 +22969,8 @@ def emulation_txt_out(apiList, logged_syscalls):
 				registry_misc.remove(each[1])
 			except:
 				pass
-		if("HKEY_CLASSES_USER" in each):
-			each = each.split("HKEY_CLASSES_USER\\")
+		if("HKEY_CURRENT_USER" in each):
+			each = each.split("HKEY_CURRENT_USER\\")
 			try:
 				registry_misc.remove(each[1])
 			except:
@@ -23002,8 +23002,8 @@ def emulation_txt_out(apiList, logged_syscalls):
 				registry_misc.remove(each[1])
 			except:
 				pass
-		if("HKEY_CLASSES_USER" in each):
-			each = each.split("HKEY_CLASSES_USER\\")
+		if("HKEY_CURRENT_USER" in each):
+			each = each.split("HKEY_CURRENT_USER\\")
 			try:
 				registry_misc.remove(each[1])
 			except:
@@ -23202,8 +23202,8 @@ def emulation_txt_out(apiList, logged_syscalls):
 	if(len(registry_add_keys) > 0):
 		for keyPath in registry_add_keys:
 			if("hkey_classes_root" in keyPath.lower()):
-					reg_HKCR.add(keyPath)
-			if("hkey_classes_user" in keyPath.lower()):
+				reg_HKCR.add(keyPath)
+			if("hkey_current_user" in keyPath.lower()):
 				reg_HKCU.add(keyPath)
 			if("hkey_local_machine" in keyPath.lower()):
 				reg_HKLM.add(keyPath)
@@ -23215,7 +23215,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 		for keyPath in registry_edit_keys:
 			if("hkey_classes_root" in keyPath[0].lower()):
 				reg_HKCR.add(keyPath[0])
-			if("hkey_classes_user" in keyPath[0].lower()):
+			if("hkey_current_user" in keyPath[0].lower()):
 				reg_HKCU.add(keyPath[0])
 			if("hkey_local_machine" in keyPath[0].lower()):
 				reg_HKLM.add(keyPath[0])
@@ -23230,7 +23230,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 				keyPath = keyPath[0]
 			if("hkey_classes_root" in keyPath.lower()):
 				reg_HKCR.add(keyPath)
-			if("hkey_classes_user" in keyPath.lower()):
+			if("hkey_current_user" in keyPath.lower()):
 				reg_HKCU.add(keyPath)
 			if("hkey_local_machine" in keyPath.lower()):
 				reg_HKLM.add(keyPath)
@@ -23422,7 +23422,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 	if(len(reg_HKCR) > 0 ):
 		txt_output += "{}{:<9} {}\n".format(red + "** HKEY_Classes_Root **" + res,"", emu_registry_hkcr_list)
 	if(len(reg_HKCU) > 0 ):
-		txt_output += "{}{:<9} {}\n".format(red + "** HKEY_Current_User **", emu_registry_hkcu_list)
+		txt_output += "{}{:<9} {}\n".format(red + "** HKEY_Current_User **" + res,"", emu_registry_hkcu_list)
 	if(len(reg_HKLM) > 0 ):
 		txt_output += "{}{:<9} {}\n".format(red + "** HKEY_Local_Machine **" + res,"", emu_registry_hklm_list)
 	if(len(reg_HKU) > 0 ):
