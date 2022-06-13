@@ -22540,11 +22540,10 @@ def emulation_json_out(apiList, logged_syscalls):
 					  "commandLine_artifacts":[],
 					  "web_artifacts":[],
 					  "exe_dll_artifacts":[],
-					  "registry_artifacts":[],
 					  "registry_actions":[],
 					  "registry_techniques":[],
 					  "registry_hierarchy":[],
-					  "registry_strings":[]
+					  "registry_miscellaneous":[]
 	}
 
 	for i in apiList:
@@ -22649,13 +22648,15 @@ def emulation_json_out(apiList, logged_syscalls):
 		# print(syscall_name)
 		emulation_dict["syscalls_emulation"].append(syscalls_dict)
 
+	for each in registry_artifacts:
+		registry_misc.add(each)
 	emulation_dict["dlls"].extend(logged_dlls)
 	emulation_dict["path_artifacts"].extend(path_artifacts)
 	emulation_dict["file_artifacts"].extend(file_artifacts)	
 	emulation_dict["commandLine_artifacts"].extend(commandLine_arg)
 	emulation_dict["web_artifacts"].extend(web_artifacts)
 	emulation_dict["exe_dll_artifacts"].extend(exe_dll_artifacts)
-	emulation_dict["registry_artifacts"].extend(registry_artifacts)
+	emulation_dict["registry_miscellaneous"].extend(registry_misc)
 	#registry
 
 	registryActionsDict = {}
@@ -22674,7 +22675,7 @@ def emulation_json_out(apiList, logged_syscalls):
 
 	registryActionsDict["added_keys"] = addedKeysList
 	registryActionsDict["edited_keys"] = editedKeysList
-	registryActionsDict["delted_keys"] = deletedKeysList
+	registryActionsDict["deleted_keys"] = deletedKeysList
 
 	emulation_dict["registry_actions"] = registryActionsDict
 
@@ -22716,11 +22717,11 @@ def emulation_json_out(apiList, logged_syscalls):
 	registryTechniquesDict["credentials"] = credentials_list
 	emulation_dict["registry_techniques"] = registryTechniquesDict
 
-	reg_strings_list = []
-	for i in registry_strings:
-		reg_strings_list.append({"string":i})
-	# reg_strings_dict = reg_strings_list
-	emulation_dict["registry_strings"] = reg_strings_list
+	#reg_strings_list = []
+	#for i in registry_strings:
+	#	reg_strings_list.append({"string":i})
+	## reg_strings_dict = reg_strings_list
+	#emulation_dict["registry_strings"] = reg_strings_list
 	
 	#Hkey hierarchy
 	registryHierarchyDict = {}
@@ -22732,121 +22733,49 @@ def emulation_json_out(apiList, logged_syscalls):
 
 	for i in registry_add_keys:
 		if("hkey_classes_root" in i.lower()):
-			keySubString = i.split("ROOT\\")
-			try:
-				reg_HKCR.add(keySubString[1])
-			except:
-				reg_HKCR.add(i)
+			reg_HKCR.add(i)
 		if("hkey_classes_user" in i.lower()):
-			keySubString = i.split("USER\\")
-			try:
-				reg_HKCU.add(keySubString[1])
-			except:
-				reg_HKCU.add(i)
+			reg_HKCU.add(i)
 		if("hkey_local_machine" in i.lower()):
-			keySubString = i.split("MACHINE\\")
-			try:
-				reg_HKLM.add(keySubString[1])
-			except:
-				reg_HKLM.add(i)
+			reg_HKLM.add(i)
 		if("hkey_users" in i.lower()):
-			keySubString = i.split("USERS\\")
-			try:
-				reg_HKU.add(keySubString[1])
-			except:
-				reg_HKU.add(i)
+			reg_HKU.add(i)
 		if("hkey_current_config" in i.lower()):
-			keySubString = i.split("CONFIG\\")
-			try:
-				reg_HKCC.add(keySubString[1])
-			except:
-				reg_HKCC.add(i)
+			reg_HKCC.add(i)
 	for i in registry_edit_keys:
 		if("hkey_classes_root" in i[0].lower()):
-			keySubString = i[0].split("ROOT\\")
-			try:
-				reg_HKCR.add(keySubString[1])
-			except:
-				reg_HKCR.add(i[0])
+			reg_HKCR.add(i[0])
 		if("hkey_classes_user" in i[0].lower()):
-			try:
-				reg_HKCU.add(keySubString[1])
-			except:
-				reg_HKCU.add(i[0])
+			reg_HKCU.add(i[0])
 		if("hkey_local_machine" in i[0].lower()):
-			try:
-				reg_HKLM.add(keySubString[1])
-			except:
-				reg_HKLM.add(i[0])
+			reg_HKLM.add(i[0])
 		if("hkey_users" in i[0].lower()):
-			try:
-				reg_HKU.add(keySubString[1])
-			except:
-				reg_HKU.add(i[0])
+			reg_HKU.add(i[0])
 		if("hkey_current_config" in i[0].lower()):
-			try:
-				reg_HKCC.add(keySubString[1])
-			except:
-				reg_HKCC.add(i[0])
+			reg_HKCC.add(i[0])
 	for i in registry_delete_keys:
 		if (type(i) == tuple):
 			if("hkey_classes_root" in i.lower()):
-				keySubString = i.split("ROOT\\")
-				try:
-					reg_HKCR.add(keySubString[1])
-				except:
-					reg_HKCR.add(i)
+				reg_HKCR.add(i)
 			if("hkey_classes_user" in i.lower()):
-				keySubString = i.split("USER\\")
-				try:
-					reg_HKCU.add(keySubString[1])
-				except:
-					reg_HKCU.add(i)
+				reg_HKCU.add(i)
 			if("hkey_local_machine" in i.lower()):
-				keySubString = i.split("MACHINE\\")
-				try:
-					reg_HKLM.add(keySubString[1])
-				except:
-					reg_HKLM.add(i)
+				reg_HKLM.add(i)
 			if("hkey_users" in i.lower()):
-				keySubString = i.split("USERS\\")
-				try:
-					reg_HKU.add(keySubString[1])
-				except:
-					reg_HKU.add(i)
+				reg_HKU.add(i)
 			if("hkey_current_config" in i.lower()):
-				keySubString = i.split("CONFIG\\")
-				try:
-					reg_HKCC.add(keySubString[1])
-				except:
-					reg_HKCC.add(i)
+				reg_HKCC.add(i)
 		else:
 			if("hkey_classes_root" in i[0].lower()):
-				keySubString = i[0].split("ROOT\\")
-				try:
-					reg_HKCR.add(keySubString[1])
-				except:
-					reg_HKCR.add(i[0])
+				reg_HKCR.add(i[0])
 			if("hkey_classes_user" in i[0].lower()):
-				try:
-					reg_HKCU.add(keySubString[1])
-				except:
-					reg_HKCU.add(i[0])
+				reg_HKCU.add(i[0])
 			if("hkey_local_machine" in i[0].lower()):
-				try:
-					reg_HKLM.add(keySubString[1])
-				except:
-					reg_HKLM.add(i[0])
+				reg_HKLM.add(i[0])
 			if("hkey_users" in i[0].lower()):
-				try:
-					reg_HKU.add(keySubString[1])
-				except:
-					reg_HKU.add(i[0])
+				reg_HKU.add(i[0])
 			if("hkey_current_config" in i[0].lower()):
-				try:
-					reg_HKCC.add(keySubString[1])
-				except:
-					reg_HKCC.add(i[0])
+				reg_HKCC.add(i[0])
 
 	classes_root_keys = []
 	current_user_keys = []
@@ -22959,7 +22888,8 @@ def build_emu_results(apiList):
 
 def emulation_txt_out(apiList, logged_syscalls):
 	global commandLine_arg
-	
+	global registry_misc
+
 	#test printing the set of commandline values found inthe hook apis
 
 	# for each in apiList:
@@ -22978,6 +22908,9 @@ def emulation_txt_out(apiList, logged_syscalls):
 	# artifacts = ["c:\\result.txt", "cmd.exe", "google.com", "result.txt", "user32.dll", "www.msn.com", "http://74.32.123.2:8080", "c:\\windows\\system32\\ipconfig.exe"]
 	for each in commandLine_artifacts:
 		commandLine_arg.add(each)
+
+	for each in registry_artifacts:
+		registry_misc.add(each)
 
 	# web_artifacts = ["www.msn.com", "http://74.32.123.2:8080", "google.com"]
 	# file_artifacts = ["c:\\result.txt", "cmd.exe", "result.txt"]
@@ -23129,7 +23062,6 @@ def emulation_txt_out(apiList, logged_syscalls):
 			if("policy\\secrets" in keyPath.lower()):
 				reg_credentials_set.add(keyPath)
 			
-
 	if(len(registry_edit_keys) > 0):
 		for keyPath in registry_edit_keys:
 			if("run" in keyPath[0].lower() or "shell folder" in keyPath[0].lower()):
@@ -23158,136 +23090,64 @@ def emulation_txt_out(apiList, logged_syscalls):
 	if(len(registry_add_keys) > 0):
 		for keyPath in registry_add_keys:
 			if("hkey_classes_root" in keyPath.lower()):
-				keySubString = keyPath.split("ROOT\\")
-				try:
-					reg_HKCR.add(keySubString[1])
-				except:
 					reg_HKCR.add(keyPath)
 			if("hkey_classes_user" in keyPath.lower()):
-				keySubString = keyPath.split("USER\\")
-				try:
-					reg_HKCU.add(keySubString[1])
-				except:
-					reg_HKCU.add(keyPath)
+				reg_HKCU.add(keyPath)
 			if("hkey_local_machine" in keyPath.lower()):
-				keySubString = keyPath.split("MACHINE\\")
-				try:
-					reg_HKLM.add(keySubString[1])
-				except:
-					reg_HKLM.add(keyPath)
+				reg_HKLM.add(keyPath)
 			if("hkey_users" in keyPath.lower()):
-				keySubString = keyPath.split("USERS\\")
-				try:
-					reg_HKU.add(keySubString[1])
-				except:
-					reg_HKU.add(keyPath)
+				reg_HKU.add(keyPath)
 			if("hkey_current_config" in keyPath.lower()):
-				keySubString = keyPath.split("CONFIG\\")
-				try:
-					reg_HKCC.add(keySubString[1])
-				except:
-					reg_HKCC.add(keyPath)
+				reg_HKCC.add(keyPath)
 	if(len(registry_edit_keys) > 0):
 		for keyPath in registry_edit_keys:
 			if("hkey_classes_root" in keyPath[0].lower()):
-				keySubString = keyPath[0].split("ROOT\\")
-				try:
-					reg_HKCR.add(keySubString[1])
-				except:
-					reg_HKCR.add(keyPath[0])
+				reg_HKCR.add(keyPath[0])
 			if("hkey_classes_user" in keyPath[0].lower()):
-				try:
-					reg_HKCU.add(keySubString[1])
-				except:
-					reg_HKCU.add(keyPath[0])
+				reg_HKCU.add(keyPath[0])
 			if("hkey_local_machine" in keyPath[0].lower()):
-				try:
-					reg_HKLM.add(keySubString[1])
-				except:
-					reg_HKLM.add(keyPath[0])
+				reg_HKLM.add(keyPath[0])
 			if("hkey_users" in keyPath[0].lower()):
-				try:
-					reg_HKU.add(keySubString[1])
-				except:
-					reg_HKU.add(keyPath[0])
+				reg_HKU.add(keyPath[0])
 			if("hkey_current_config" in keyPath[0].lower()):
-				try:
-					reg_HKCC.add(keySubString[1])
-				except:
-					reg_HKCC.add(keyPath[0])
+				reg_HKCC.add(keyPath[0])
 
 	if(len(registry_delete_keys) > 0):
 		for keyPath in registry_delete_keys:
 			if(type(keyPath) == tuple):
 				if("hkey_classes_root" in keyPath[0].lower()):
-					keySubString = keyPath[0].split("ROOT\\")
-					try:
-						reg_HKCR.add(keySubString[1])
-					except:
-						reg_HKCR.add(keyPath[0])
+					reg_HKCR.add(keyPath[0])
 				if("hkey_classes_user" in keyPath[0].lower()):
-					try:
-						reg_HKCU.add(keySubString[1])
-					except:
-						reg_HKCU.add(keyPath[0])
+					reg_HKCU.add(keyPath[0])
 				if("hkey_local_machine" in keyPath[0].lower()):
-					try:
-						reg_HKLM.add(keySubString[1])
-					except:
-						reg_HKLM.add(keyPath[0])
+					reg_HKLM.add(keyPath[0])
 				if("hkey_users" in keyPath[0].lower()):
-					try:
-						reg_HKU.add(keySubString[1])
-					except:
-						reg_HKU.add(keyPath[0])
+					reg_HKU.add(keyPath[0])
 				if("hkey_current_config" in keyPath[0].lower()):
-					try:
-						reg_HKCC.add(keySubString[1])
-					except:
-						reg_HKCC.add(keyPath[0])
+					reg_HKCC.add(keyPath[0])
 			else:
 				if("hkey_classes_root" in keyPath.lower()):
-					keySubString = keyPath.split("ROOT\\")
-					try:
-						reg_HKCR.add(keySubString[1])
-					except:
-						reg_HKCR.add(keyPath)
+					reg_HKCR.add(keyPath)
 				if("hkey_classes_user" in keyPath.lower()):
-					keySubString = keyPath.split("USER\\")
-					try:
-						reg_HKCU.add(keySubString[1])
-					except:
-						reg_HKCU.add(keyPath)
+					reg_HKCU.add(keyPath)
 				if("hkey_local_machine" in keyPath.lower()):
-					keySubString = keyPath.split("MACHINE\\")
-					try:
-						reg_HKLM.add(keySubString[1])
-					except:
-						reg_HKLM.add(keyPath)
+					reg_HKLM.add(keyPath)
 				if("hkey_users" in keyPath.lower()):
-					keySubString = keyPath.split("USERS\\")
-					try:
-						reg_HKU.add(keySubString[1])
-					except:
-						reg_HKU.add(keyPath)
+					reg_HKU.add(keyPath)
 				if("hkey_current_config" in keyPath.lower()):
-					keySubString = keyPath.split("CONFIG\\")
-					try:
-						reg_HKCC.add(keySubString[1])
-					except:
-						reg_HKCC.add(keyPath)
+					reg_HKCC.add(keyPath)
 
-	emu_registry_add_list = ''
-	emu_registry_edit_list = ''
-	emu_registry_delete_list = ''
-	emu_registry_persistence_list= ''
-	emu_registry_credentials_list = ''
-	emu_registry_strings_list = ''
-	emu_registry_hkcr_list = ''
-	emu_registry_hkcu_list = ''
-	emu_registry_hklm_list = ''
-	emu_registry_hku_list = ''
-	emu_registry_hkcc_list = ''
+	#emu_registry_add_list = ''
+	#emu_registry_edit_list = ''
+	#emu_registry_delete_list = ''
+	#emu_registry_persistence_list= ''
+	#emu_registry_credentials_list = ''
+	#emu_registry_strings_list = ''
+	#emu_registry_hkcr_list = ''
+	#emu_registry_hkcu_list = ''
+	#emu_registry_hklm_list = ''
+	#emu_registry_hku_list = ''
+	#emu_registry_hkcc_list = ''
 
 	if emulation_multiline:
 		if len(logged_dlls) > 0:
@@ -23321,9 +23181,9 @@ def emulation_txt_out(apiList, logged_syscalls):
 			emu_exe_dll_list += "\n".join(exe_dll_artifacts)
 			emu_exe_dll_list += "\n"
 
-		if(len(registry_artifacts) > 0):
+		if(len(registry_misc) > 0):
 			emu_registry_list = "\n"
-			emu_registry_list += "\n".join(registry_artifacts)
+			emu_registry_list += "\n".join(registry_misc)
 			emu_registry_list += "\n"
 
 		if(len(registry_add_keys) > 0):
@@ -23361,10 +23221,10 @@ def emulation_txt_out(apiList, logged_syscalls):
 			emu_registry_credentials_list += "\n".join(reg_credentials_set)
 			emu_registry_credentials_list += "\n"
 
-		if(len(registry_strings) > 0):
-			emu_registry_strings_list = "\n"
-			emu_registry_strings_list += "\n".join(registry_strings)
-			emu_registry_strings_list += "\n"
+		#if(len(registry_strings) > 0):
+		#	emu_registry_strings_list = "\n"
+		#	emu_registry_strings_list += "\n".join(registry_strings)
+		#	emu_registry_strings_list += "\n"
 
 		if(len(reg_HKCR) > 0):
 			emu_registry_hkcr_list = "\n"
@@ -23403,13 +23263,14 @@ def emulation_txt_out(apiList, logged_syscalls):
 		emu_fileArtifacts_list = ", ".join(file_artifacts)
 		emu_commandline_list = ", ".join(commandLine_arg)
 		emu_webArtifacts_list = ', '.join(web_artifacts)
-		emu_registry_list = ", ".join(registry_artifacts)
+		emu_registry_list = ", ".join(registry_misc)
 		emu_exe_dll_list = ", ".join(exe_dll_artifacts)
 		emu_registry_add_list = ', '.join(registry_add_keys)
 		emu_registry_edit_list = ', '.join(registry_edit_keys)
 		emu_registry_delete_list = ', '.join(registry_delete_keys)
 		emu_registry_persistence_list = ', '.join(reg_peristence_set)
-		emu_registry_strings_list = ', '.join(registry_strings)
+		emu_registry_credentials_list = ', '.join(reg_credentials_set)
+		#emu_registry_strings_list = ', '.join(registry_strings)
 		emu_registry_hkcr_list = ', '.join(reg_HKCR)
 		emu_registry_hkcu_list = ', '.join(reg_HKCU)
 		emu_registry_hklm_list = ', '.join(reg_HKLM)
@@ -23438,37 +23299,36 @@ def emulation_txt_out(apiList, logged_syscalls):
 		txt_output += "{}{:<13} {}\n".format(cya + "*** Web ***" + res,"", emu_webArtifacts_list)
 	if len(exe_dll_artifacts) > 0:
 		txt_output += "{}{:<8} {}\n".format(cya + "*** EXE / DLLs ***" + res,"", emu_exe_dll_list)
-	if len(registry_artifacts) > 0:
-		txt_output += "{}{:<9} {}\n".format(cya + "*** Registry ***" + res,"", emu_registry_list)
+	
 	### registry artifacts
-	if (len(emu_registry_add_list) > 0 or len(emu_registry_edit_list) > 0 or len(emu_registry_delete_list) > 0):
-		txt_output += "{}{:<9}\n".format(cya + "** Registry Actions **" + res,"")
-	if len(emu_registry_add_list) > 0:
-		txt_output += "{}{:<9} {}\n".format(blu + "* Add *" + res,"", emu_registry_add_list)
-	if len(emu_registry_edit_list) > 0:
-		txt_output += "{}{:<9} {}\n".format(blu + "* Edit *" + res,"", emu_registry_edit_list)
-	if len(emu_registry_delete_list) > 0:
-		txt_output += "{}{:<9} {}\n".format(blu + "* Delete *" + res,"", emu_registry_delete_list)
-	if (len(emu_registry_persistence_list) > 0 or len(emu_registry_credentials_list) > 0):
-		txt_output += "{}{:<9}\n".format(cya + "** Registry Techniques **" + res,"")
-	if (len(emu_registry_persistence_list) > 0):
-		txt_output += "{}{:<9} {}\n".format(blu + "* Persistence *" + res,"", emu_registry_persistence_list)
-	if (len(emu_registry_credentials_list) > 0):
-		txt_output += "{}{:<9} {}\n".format(blu + "* Credentials *" + res,"", emu_registry_credentials_list)
-	if(len(emu_registry_hkcr_list) > 0 or len(emu_registry_hkcu_list) > 0 or len(emu_registry_hklm_list) > 0 or len(emu_registry_hku_list) > 0 or len(emu_registry_hkcc_list) > 0):
-		txt_output += "{}{:<9}\n".format(cya + "** Registry Hierarchy **" + res,"")
-	if(len(emu_registry_hkcr_list) > 0 ):
-		txt_output += "{}{:<9} {}\n".format(blu + "* HKEY_Classes_Root *" + res,"", emu_registry_hkcr_list)
-	if(len(emu_registry_hkcu_list) > 0 ):
-		txt_output += "{}{:<9} {}\n".format(blu + "* HKEY_Current_User *", emu_registry_hkcu_list)
-	if(len(emu_registry_hklm_list) > 0 ):
-		txt_output += "{}{:<9} {}\n".format(blu + "* HKEY_Local_Machine *" + res,"", emu_registry_hklm_list)
-	if(len(emu_registry_hku_list) > 0 ):
-		txt_output += "{}{:<9} {}\n".format(blu + "* HKEY_Users *" + res,"", emu_registry_hku_list)
-	if(len(emu_registry_hkcc_list) > 0 ):
-		txt_output += "{}{:<9} {}\n".format(blu + "* HKEY_Current_Config *" + res,"", emu_registry_hkcc_list)
-	if (len(emu_registry_strings_list) > 0):
-		txt_output += "{}{:<9} {}\n".format(cya + "** Registry Strings **" + res,"", emu_registry_strings_list)
+	if (len(registry_add_keys) > 0 or len(registry_edit_keys) > 0 or len(registry_delete_keys) > 0):
+		txt_output += "{}{:<9}\n".format(cya + "*** Registry Actions ***" + res,"")
+	if len(registry_add_keys) > 0:
+		txt_output += "{}{:<9} {}\n".format(red + "** Add **" + res,"", emu_registry_add_list)
+	if len(registry_edit_keys) > 0:
+		txt_output += "{}{:<9} {}\n".format(red + "** Edit **" + res,"", emu_registry_edit_list)
+	if len(registry_delete_keys) > 0:
+		txt_output += "{}{:<9} {}\n".format(red + "** Delete **" + res,"", emu_registry_delete_list)
+	if (len(reg_peristence_set) > 0 or len(reg_credentials_set) > 0):
+		txt_output += "{}{:<9}\n".format(cya + "*** Registry Techniques ***" + res,"")
+	if (len(reg_peristence_set) > 0):
+		txt_output += "{}{:<9} {}\n".format(red + "** Persistence **" + res,"", emu_registry_persistence_list)
+	if (len(reg_credentials_set) > 0):
+		txt_output += "{}{:<9} {}\n".format(red + "** Credentials **" + res,"", emu_registry_credentials_list)
+	if(len(reg_HKCR) > 0 or len(reg_HKCU) > 0 or len(reg_HKLM) > 0 or len(reg_HKU) > 0 or len(reg_HKCC) > 0):
+		txt_output += "{}{:<9}\n".format(cya + "*** Registry Hierarchy ***" + res,"")
+	if(len(reg_HKCR) > 0 ):
+		txt_output += "{}{:<9} {}\n".format(red + "** HKEY_Classes_Root **" + res,"", emu_registry_hkcr_list)
+	if(len(reg_HKCU) > 0 ):
+		txt_output += "{}{:<9} {}\n".format(red + "** HKEY_Current_User **", emu_registry_hkcu_list)
+	if(len(reg_HKLM) > 0 ):
+		txt_output += "{}{:<9} {}\n".format(red + "** HKEY_Local_Machine **" + res,"", emu_registry_hklm_list)
+	if(len(reg_HKU) > 0 ):
+		txt_output += "{}{:<9} {}\n".format(red + "** HKEY_Users **" + res,"", emu_registry_hku_list)
+	if(len(reg_HKCC) > 0 ):
+		txt_output += "{}{:<9} {}\n".format(red + "** HKEY_Current_Config **" + res,"", emu_registry_hkcc_list)
+	if len(registry_misc) > 0:
+		txt_output += "{}{:<9} {}\n".format(cya + "*** Registry Miscellaneous ***" + res,"", emu_registry_list)
 	# if len(artifacts) > 0:
 	# 	txt_output += "{}{:<13} {}\n".format(cya + "Artifacts" + res,"", emu_artifacts_list)
 	# if len(net_artifacts) > 0:
