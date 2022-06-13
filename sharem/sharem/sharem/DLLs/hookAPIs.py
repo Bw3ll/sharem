@@ -9056,7 +9056,7 @@ class CustomWinAPIs():
 
         cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
-        retValStr = "SUCCESS"
+        retValStr = "S_OK"
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("CopyFile2", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
