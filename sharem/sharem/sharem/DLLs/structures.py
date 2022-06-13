@@ -435,4 +435,47 @@ class struct_UNICODE_STRING:
 #         self.Attributes
 #         self.SecurityDescriptor
 #         self.SecurityQualityOfService
-        
+
+class struct_VALENTA:
+    types = ['LPSTR', 'DWORD', 'DWORD_PTR', 'DWORD']
+    names = ['ve_valuename', 've_valuele', 've_valueptr', 've_type']
+
+    def __init__(self, nameAddress: int, valueLength: int, valueAddress: int, type: int):
+        self.ve_valuename = nameAddress
+        self.ve_valuelen = valueLength
+        self.ve_valueptr = valueAddress
+        self.ve_type = type
+
+    def writeToMemory(self, uc: Uc, address: int):
+        packedStruct = pack(f'<IIII', self.ve_valuename, self.ve_valuelen, self.ve_valueptr, self.ve_type,)
+        uc.mem_write(address, packedStruct)
+
+    def readFromMemory(self, uc: Uc, address: int):
+        data = uc.mem_read(address, 16)
+        unpackedStruct = unpack('<IIII', data)
+        self.ve_valuename = unpackedStruct[0]
+        self.ve_valuelen = unpackedStruct[1]
+        self.ve_valueptr = unpackedStruct[2]
+        self.ve_type = unpackedStruct[3]
+
+class struct_VALENTW:
+    types = ['LPWSTR', 'DWORD', 'DWORD_PTR', 'DWORD']
+    names = ['ve_valuename', 've_valuele', 've_valueptr', 've_type']
+
+    def __init__(self, nameAddress: int, valueLength: int, valueAddress: int, type: int):
+        self.ve_valuename = nameAddress
+        self.ve_valuelen = valueLength
+        self.ve_valueptr = valueAddress
+        self.ve_type = type
+
+    def writeToMemory(self, uc: Uc, address: int):
+        packedStruct = pack(f'<IIII', self.ve_valuename, self.ve_valuelen, self.ve_valueptr, self.ve_type,)
+        uc.mem_write(address, packedStruct)
+
+    def readFromMemory(self, uc: Uc, address: int):
+        data = uc.mem_read(address, 16)
+        unpackedStruct = unpack('<IIII', data)
+        self.ve_valuename = unpackedStruct[0]
+        self.ve_valuelen = unpackedStruct[1]
+        self.ve_valueptr = unpackedStruct[2]
+        self.ve_type = unpackedStruct[3]
