@@ -23,6 +23,8 @@ import argparse
 from argparse import Namespace
 import hashlib
 import platform
+import textwrap3
+
 platformType = platform.uname()[0]
 
 slash = ""
@@ -12008,7 +12010,11 @@ def createDisassemblyLists(Colors=True, caller=None,decoder=False):
 		if mBool[o].bDoEnableComments:
 			if sBy.comments[cAddress] !="":
 				val_b2=sBy.comments[cAddress]
+	
 				val_comment =('{:<10s} {:<45s} {:<33s}{:<10s}\n'.format(mag+nada, val_b2, nada, nada))
+				# val_comment= mag+val_b2+"\n"
+				# val_comment =('{:<10s}{:<85s} \n'.format(nada,mag+ val_b2))
+
 				out+=val_comment		
 		
 		if showLabels:
@@ -12029,7 +12035,7 @@ def createDisassemblyLists(Colors=True, caller=None,decoder=False):
 			cur=cAddress
 			if (sBy.pushStringEnd[cur]-2) == cur:
 				msg=mag+"; "+sBy.pushStringValue[cur] + " - Stack string"+res2
-				newVal =('{:<12} {:<45s} {:<33}{:<10s}\n'.format("", msg, nada, nada))
+				newVal =('{:<12} {:<45s} {:<33}{:<10s}\n'.format(nada, msg, nada, nada))
 				out= newVal+out
 		except Exception as e:
 			# print ("weird error", e)
@@ -12190,7 +12196,7 @@ def createDisassemblyJson(Colors=True, caller=None,decoder=False):
 				msg="; "+sBy.pushStringValue[cur] + " - Stack string"
 				# disList[4] = cleanColors(disList[4] + "; "+sBy.pushStringValue[cur] + " - Stack string")
 				disDict["comment"] = disDict["comment"] + cleanColors("; "+sBy.pushStringValue[cur] + " - Stack string")
-				newVal =('{:<12} {:<45s} {:<33}{:<10s}\n'.format("", msg, nada, nada))
+				newVal =('{:<12} {:<45s} {:<33}{:<10s}\n'.format(nada, msg, nada, nada))
 				out= newVal+out
 		except Exception as e:
 			# print ("weird error", e)
@@ -14155,7 +14161,7 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 				if (sBy.pushStringEnd[cur]-2) == cur:
 					# dprint2 ("push match", sBy.pushStringValue[cur])
 					msg="; "+sBy.pushStringValue[cur] + " - Stack string"
-					newVal =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format("", msg, nada, nada))
+					newVal =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(nada, msg, nada, nada))
 					val= newVal+val
 					# dprint2 (val)
 			except Exception as e:
@@ -15563,11 +15569,17 @@ def addComments():
 		if commentsGiven:
 			params=""
 		if not commentsGiven:
+			space1="      "
 			try:
 				if sBy.comments[apiAddress] !="":
 					sBy.comments[apiAddress]+=res +"\n      "+params
 				else:
-					sBy.comments[apiAddress]=mag+"; call to " + api +res +"\n      "+params
+					try:
+						params= (textwrap3.fill(params, width=105, initial_indent='', subsequent_indent='       '))
+						pass
+					except:
+						pass
+					sBy.comments[apiAddress]=mag+";call to " + api +res +"\n      "+params
 
 			except:
 				print ("error logging API address to disassembly - ", api)
@@ -23074,6 +23086,10 @@ def emulation_txt_out(apiList, logged_syscalls):
 		for v, typ in zip(pType, pName):
 			TypeBundle.append(v + " " + typ)
 		joinedBund = ', '.join(TypeBundle)
+		try:
+			joinedBund= (textwrap3.fill(joinedBund, width=86))
+		except:
+			pass
 		joinedBundclr = joinedBund.replace(",", cya + "," + res)
 		retBundle = retType + " " + retVal
 
@@ -23115,7 +23131,9 @@ def emulation_txt_out(apiList, logged_syscalls):
 					##normal printing
 					else:
 						# for ptyp, pname, pval in zip(pType, pName, potentialTuple):
-						txt_output += '\t{} {} {}\n'.format(cya + pType[index], pName[index] + ":" + res, paramVal[index])
+						txt_params='\t{} {} {}\n'.format(cya + pType[index], pName[index] + ":" + res, paramVal[index])
+
+						txt_output += txt_params
 					index += 1
 				txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
 			else:
@@ -23457,7 +23475,13 @@ def emulation_txt_out(apiList, logged_syscalls):
 
 	if bPrintEmulation:
 		if len(apiList)>0 or len(logged_syscalls)>0:
-			print(txt_output)
+			try:
+				print(txt_output)
+
+				# new= (textwrap3.fill(txt_output, width=85))
+				# print (new)
+			except:
+				print(txt_output)
 		else:
 			print (gre+"\n\t[*]No APIs discovered through emulation."+res2)
 		

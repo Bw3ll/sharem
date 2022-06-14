@@ -10719,7 +10719,7 @@ def findStringsParms(uc, pTypes, pVals, skip):
                 handleKey = getLookUpVal(pVals[i],HandlesDict)
                 if isinstance(handleKey, Handle):
                     if handleKey.name != '':
-                        pVals[i] = f'{hex(pVals[i])} - {handleKey.name}'
+                        pVals[i] = f'{handleKey.name}'
                     else:
                         pVals[i] = hex(pVals[i])
                 else:
@@ -10729,7 +10729,7 @@ def findStringsParms(uc, pTypes, pVals, skip):
                 handleKey = getLookUpVal(pointerVal,HandlesDict)
                 if isinstance(handleKey, Handle):
                     if handleKey.name != '':
-                        pVals[i] = f'{hex(pVals[i])} -> {hex(pointerVal)} - {handleKey.name}'
+                        pVals[i] = f'{hex(pVals[i])} -> {handleKey.name}'
                     else:
                         pVals[i] = buildPtrString(pVals[i],pointerVal)
                 else:
