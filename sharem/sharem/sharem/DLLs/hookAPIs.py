@@ -6805,7 +6805,7 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def URLOpenBlockingStreamW(self, uc, eip, esp, export_dict, callAddr, em):
-        pTypes = ['LPUNKNOWN', 'LPCSTR', 'LPSTREAM', 'DWORD', 'LPBINDSTATUSCALLBACK']
+        pTypes = ['LPUNKNOWN', 'LPCWSTR', 'LPSTREAM', 'DWORD', 'LPBINDSTATUSCALLBACK']
         pNames = ['pCaller', 'szURL', '*ppStream', 'dwReserved', 'lpfnCB']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
@@ -8537,7 +8537,7 @@ class CustomWinAPIs():
         retValStr = "SUCCESS"
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls = ("GetFileSizeEx", hex(callAddr), (retValStr), 'HWND', pVals, pTypes, pNames, False)
+        logged_calls = ("GetFileSizeEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     ### Has a structure of OSVERSIONINFOA, need help with.
@@ -8673,7 +8673,7 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
-        retVal = 0x1
+        retVal = 0x0
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -8868,7 +8868,9 @@ class CustomWinAPIs():
         skip = [0]
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        handle = Handle(HandleType.Clipboard)
+        fakeData = 'https://sharem.com/login/#'
+
+        handle = Handle(HandleType.Clipboard,data=fakeData)
 
         cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal =  handle.value # if success, return val is handle to data
@@ -8913,7 +8915,8 @@ class CustomWinAPIs():
         dwCreationDistributionReverseLookUp = {2: 'CREATE_ALWAYS', 1: 'CREATE_NEW', 4: 'TRUNCATE_EXISTING', 3: 'OPEN_EXISTING', 5: 'TRUNCATE_EXISTING'}
         dwFlagsAndAttributesReverseLookUp = {32: 'FILE_ATTRIBUTE_ARCHIVE', 16384: 'FILE_ATTRIBUTE_ENCRYPTED', 2: 'FILE_ATTRIBUTE_HIDDEN', 128: 'FILE_ATTRIBUTE_NORMAL', 4096: 'FILE_ATTRIBUTE_OFFLINE', 1: 'FILE_ATTRIBUTE_READONLY', 4: 'FILE_ATTRIBUTE_SYSTEM', 256: 'FILE_ATTRIBUTE_TEMPORARY', 33554432: 'FILE_FLAG_BACKUP_SEMANTICS', 67108864: 'FILE_FLAG_DELETE_ON_CLOSE', 536870912: 'FILE_FLAG_NO_BUFFERING', 1048576: 'FILE_FLAG_OPEN_NO_RECALL', 2097152: 'FILE_FLAG_OPEN_REPARSE_POINT', 1073741824: 'FILE_FLAG_OVERLAPPED', 16777216: 'FILE_FLAG_POSIX_SEMANTICS', 268435456: 'FILE_FLAG_RANDOM_ACCESS', 8388608: 'FILE_FLAG_SESSION_AWARE', 134217728: 'FILE_FLAG_SEQUENTIAL_SCAN', 2147483648: 'FILE_FLAG_WRITE_THROUGH'}
         
-        handle = Handle(HandleType.CreateFile2)
+        fileName = read_unicode(uc, pVals[0])
+        handle = Handle(HandleType.CreateFile2, name=fileName)
 
         pVals[1] = getLookUpVal(pVals[1],dwDesiredAccessReverseLookUp)
         pVals[2] = getLookUpVal(pVals[2],dwShareModeReverseLookUp)
@@ -9031,7 +9034,7 @@ class CustomWinAPIs():
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls= ("lstrcpynW", hex(callAddr), (retValStr), 'LPSTR', pVals, pTypes, pNames, False)
+        logged_calls= ("lstrcpynW", hex(callAddr), (retValStr), 'LPWSTR', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def CopyFileW(self, uc, eip, esp, export_dict, callAddr, em):
@@ -9071,7 +9074,7 @@ class CustomWinAPIs():
         retValStr = "S_OK"
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls= ("CopyFile2", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        logged_calls= ("CopyFile2", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def DeleteFileW(self, uc, eip, esp, export_dict, callAddr, em):
@@ -9155,7 +9158,7 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def MoveFileA(self, uc, eip, esp, export_dict, callAddr, em):
-        pTypes =['LPCSTR', 'LPCSTR'] 
+        pTypes =['LPCTSTR', 'LPCTSTR'] 
         pNames = ['lpExistingFileName', 'lpNewFileName'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
@@ -9168,6 +9171,22 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("MoveFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def MoveFileW(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['LPCWSTR', 'LPCWSTR'] 
+        pNames = ['lpExistingFileName', 'lpNewFileName'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        skip = []
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = "TRUE"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("MoveFileW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def CopyFile(self, uc, eip, esp, export_dict, callAddr, em):
