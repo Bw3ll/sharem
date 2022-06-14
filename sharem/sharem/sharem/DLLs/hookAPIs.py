@@ -9178,7 +9178,7 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def MoveFileA(self, uc, eip, esp, export_dict, callAddr, em):
-        pTypes =['LPCSTR', 'LPCSTR'] 
+        pTypes =['LPCTSTR', 'LPCTSTR'] 
         pNames = ['lpExistingFileName', 'lpNewFileName'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
@@ -9194,7 +9194,7 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def MoveFileW(self, uc, eip, esp, export_dict, callAddr, em):
-        pTypes =['LPCTSTR', 'LPCTSTR'] 
+        pTypes =['LPCWSTR', 'LPCWSTR'] 
         pNames = ['lpExistingFileName', 'lpNewFileName'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
