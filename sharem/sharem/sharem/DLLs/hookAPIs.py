@@ -2464,8 +2464,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -2530,8 +2529,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -2591,8 +2589,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -2648,8 +2645,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -2709,8 +2705,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -2774,8 +2769,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -2841,8 +2835,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -2904,8 +2897,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -2961,8 +2953,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -3018,8 +3009,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -3746,8 +3736,7 @@ class CustomWinAPIs():
                         foundKey: RegKey = RegistryKeys[keyPath]
                         keyValue = foundKey.getValue()
                     else:
-                        keyName = keyPath.split('\\')[-1] # Get Key Name
-                        rKey = RegKey(keyName,keyPath)
+                        rKey = RegKey(keyPath)
                         keyValue = rKey.getValue()
 
         if keyValue is not None:
@@ -3811,8 +3800,7 @@ class CustomWinAPIs():
                         foundKey: RegKey = RegistryKeys[keyPath]
                         keyValue = foundKey.getValue()
                     else:
-                        keyName = keyPath.split('\\')[-1] # Get Key Name
-                        rKey = RegKey(keyName,keyPath)
+                        rKey = RegKey(keyPath)
                         keyValue = rKey.getValue()
 
         if keyValue is not None:
@@ -3863,8 +3851,7 @@ class CustomWinAPIs():
                     keyValue = rKey.getValue(lpValue)
             else: # key Not Found
                 keyPath = hKey.name
-                keyName = keyPath.split('\\')[-1] # Get Key Name
-                rKey = RegKey(keyName,keyPath)
+                rKey = RegKey(keyPath)
                 if lpValue == '[NULL]':
                     keyValue = rKey.getValue()
                 else:
@@ -3945,8 +3932,7 @@ class CustomWinAPIs():
                     keyValue = rKey.getValue(lpValue)
             else: # key Not Found
                 keyPath = hKey.name
-                keyName = keyPath.split('\\')[-1] # Get Key Name
-                rKey = RegKey(keyName,keyPath)
+                rKey = RegKey(keyPath)
                 if lpValue == '[NULL]':
                     keyValue = rKey.getValue()
                 else:
@@ -4052,8 +4038,7 @@ class CustomWinAPIs():
             createKey = False
             
         if createKey: # Create New Key
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             newKey.setValue(RegValueTypes(pVals[2]),lpData)
             registry_key_address = newKey
 
@@ -4118,8 +4103,7 @@ class CustomWinAPIs():
             createKey = False
             
         if createKey: # Create New Key
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             newKey.setValue(RegValueTypes(pVals[2]),lpData)
             registry_key_address = newKey
 
@@ -4402,8 +4386,7 @@ class CustomWinAPIs():
                 if keyPath in RegistryKeys:
                     rKey: RegKey = RegistryKeys[hKey.name] # Key Found
                 else: # Create Key
-                    keyName = keyPath.split('\\')[-1] # Get Key Name
-                    rKey = RegKey(keyName,keyPath)
+                    rKey = RegKey(keyPath)
 
                 if valType == RegValueTypes.REG_BINARY:
                     bin = uc.mem_read(pVals[4],pVals[5])
@@ -4559,8 +4542,7 @@ class CustomWinAPIs():
                 if keyPath in RegistryKeys:
                     rKey: RegKey = RegistryKeys[hKey.name] # Key Found
                 else: # Create Key
-                    keyName = keyPath.split('\\')[-1] # Get Key Name
-                    rKey = RegKey(keyName,keyPath)
+                    rKey = RegKey(keyPath)
 
                 if valType == RegValueTypes.REG_BINARY:
                     bin = uc.mem_read(pVals[4],pVals[5])
@@ -4901,8 +4883,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -4967,8 +4948,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -5440,7 +5420,6 @@ class CustomWinAPIs():
                 else:
                     retVal = 18
                     retValStr = 'ERROR_NO_MORE_FILES'
-                    RegKey.printTree()
         else: # Handle Not Found
             retVal = 18
             retValStr = 'ERROR_NO_MORE_FILES'
@@ -5474,6 +5453,10 @@ class CustomWinAPIs():
                 else:
                     retVal = 18
                     retValStr = 'ERROR_NO_MORE_FILES'
+                    RegKey.printTree()
+                    print(RegistryKeys)
+                    print('\n')
+                    print(HandlesDict)
         else: # Handle Not Found
             retVal = 18
             retValStr = 'ERROR_NO_MORE_FILES'
@@ -5511,7 +5494,7 @@ class CustomWinAPIs():
             pVals[0] = machineName
             preKey = getLookUpVal(pVals[1],RegKey.PreDefinedKeys)
             keyPath = machineName + '\\' + preKey
-            key = RegKey(preKey,keyPath,remote=True)
+            key = RegKey(keyPath,remote=True)
             phk = key.handle.value
         else: # Local Computer Name Used
             pVals[0] = machineName
@@ -5565,7 +5548,7 @@ class CustomWinAPIs():
             pVals[0] = machineName
             preKey = getLookUpVal(pVals[1],RegKey.PreDefinedKeys)
             keyPath = machineName + '\\' + preKey
-            key = RegKey(preKey,keyPath,remote=True)
+            key = RegKey(keyPath,remote=True)
             phk = key.handle.value
         else: # Local Computer Name Used
             pVals[0] = machineName
@@ -10542,7 +10525,7 @@ class RegKey:
     nextRemoteHandleValues = 0x90000010 # Registry Start value for Remote Computer Handles
     securityAccessRights = {983103: 'KEY_ALL_ACCESS', 32: 'KEY_CREATE_LINK', 4: 'KEY_CREATE_SUB_KEY', 8: 'KEY_ENUMERATE_SUB_KEYS', 131097: 'KEY_READ', 16: 'KEY_NOTIFY', 1: 'KEY_QUERY_VALUE', 2: 'KEY_SET_VALUE', 512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY', 131078: 'KEY_WRITE'}
 
-    def __init__(self, name: str, path: str, handle=0, remote: bool = False):
+    def __init__(self, path: str, handle=0, remote: bool = False):
         pathSplit = path.split('\\')
         parentKeyPath = '\\'.join(pathSplit[:-1]) # Get Parent Key Path
         if len(pathSplit) > 2: # Create Parent Keys of Subkey
@@ -10553,7 +10536,7 @@ class RegKey:
                 else:
                     newPath += '\\' + pathSplit[i]
                 if newPath not in RegistryKeys:
-                    RegKey('none',newPath)
+                    RegKey(newPath)
         self.name = pathSplit[-1]
         self.path = path
         self.values: dict[str,KeyValue] = {}
@@ -10577,7 +10560,7 @@ class RegKey:
     def createPreDefinedKeys():
         # Create Default Keys
         for key, val in RegKey.PreDefinedKeys.items():
-            RegKey(name=val, path=val, handle=key)
+            RegKey(path=val, handle=key)
 
     def deleteKey(self):
         if self.handle.value in HandlesDict: # Remove Handle
