@@ -1,6 +1,4 @@
 from enum import Enum, auto
-from msilib.schema import Registry
-from multiprocessing.sharedctypes import Value
 from random import choice, randint
 from unicorn.x86_const import *
 from struct import pack, unpack
@@ -2436,7 +2434,6 @@ class CustomWinAPIs():
         global registry_add_keys
 
         keyPath = ''
-        parentPath = ''
 
         lpSubKey = read_string(uc, pVals[1])
         if lpSubKey != '[NULL]':
@@ -2448,7 +2445,6 @@ class CustomWinAPIs():
                 hKey: Handle = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
                     rKey: RegKey = RegistryKeys[hKey.name]
-                    parentPath = rKey.path
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Return Handle
                         foundKey = RegistryKeys[keyPath]
@@ -2457,7 +2453,6 @@ class CustomWinAPIs():
                     else:
                         createKey = True
                 else:
-                    parentPath = hKey.name
                     createKey = True
                     keyPath = hKey.name + lpSubKey
             else:
@@ -2470,7 +2465,7 @@ class CustomWinAPIs():
             
         if createKey: # Create New
             keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath,parentPath)
+            newKey = RegKey(keyName,keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -5422,7 +5417,6 @@ class CustomWinAPIs():
         logged_calls = ("RegOverridePredefKey", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-
     def RegEnumKeyA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         #'RegEnumKeyA': (4, ['HKEY', 'DWORD', 'LPSTR', 'DWORD'], ['hKey', 'dwIndex', 'lpName', 'cchName'], 'LSTATUS')
         pVals = makeArgVals(uc, em, esp, 4)
@@ -5446,6 +5440,7 @@ class CustomWinAPIs():
                 else:
                     retVal = 18
                     retValStr = 'ERROR_NO_MORE_FILES'
+                    RegKey.printTree()
         else: # Handle Not Found
             retVal = 18
             retValStr = 'ERROR_NO_MORE_FILES'
@@ -10547,8 +10542,19 @@ class RegKey:
     nextRemoteHandleValues = 0x90000010 # Registry Start value for Remote Computer Handles
     securityAccessRights = {983103: 'KEY_ALL_ACCESS', 32: 'KEY_CREATE_LINK', 4: 'KEY_CREATE_SUB_KEY', 8: 'KEY_ENUMERATE_SUB_KEYS', 131097: 'KEY_READ', 16: 'KEY_NOTIFY', 1: 'KEY_QUERY_VALUE', 2: 'KEY_SET_VALUE', 512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY', 131078: 'KEY_WRITE'}
 
-    def __init__(self, name: str, path: str, parentKeyPath='', handle=0, remote: bool = False):
-        self.name = name
+    def __init__(self, name: str, path: str, handle=0, remote: bool = False):
+        pathSplit = path.split('\\')
+        parentKeyPath = '\\'.join(pathSplit[:-1]) # Get Parent Key Path
+        if len(pathSplit) > 2: # Create Parent Keys of Subkey
+            newPath = ''
+            for i in range(len(pathSplit)-1):
+                if i == 0:
+                    newPath += pathSplit[i]
+                else:
+                    newPath += '\\' + pathSplit[i]
+                if newPath not in RegistryKeys:
+                    RegKey('none',newPath)
+        self.name = pathSplit[-1]
         self.path = path
         self.values: dict[str,KeyValue] = {}
         self.childKeys: dict[str,RegKey] = {}
@@ -10571,7 +10577,7 @@ class RegKey:
     def createPreDefinedKeys():
         # Create Default Keys
         for key, val in RegKey.PreDefinedKeys.items():
-            RegKey(val, val, handle=key)
+            RegKey(name=val, path=val, handle=key)
 
     def deleteKey(self):
         if self.handle.value in HandlesDict: # Remove Handle
