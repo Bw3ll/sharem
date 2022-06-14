@@ -8660,6 +8660,22 @@ class CustomWinAPIs():
         logged_calls = ("WaitForSingleObjectEx", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
+    def GetModuleHandleA(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['LPCSTR'] 
+        pNames = ['lpModuleName'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        skip = []
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x00808080
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+       
+        logged_calls= ("GetModuleHandleA", hex(callAddr), (retValStr), 'HMODULE', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
     def GetModuleHandleW(self, uc, eip, esp, export_dict, callAddr, em):
         # GetModuleHandleW': (1, ['LPCWSTR'], ['lpModuleName'], 'HMODULE'),
         pVals = makeArgVals(uc, em, esp, 3)
