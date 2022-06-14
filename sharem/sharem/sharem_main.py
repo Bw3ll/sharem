@@ -23170,28 +23170,51 @@ def emulation_txt_out(apiList, logged_syscalls):
 	# to add to persistence or credentialStealing
 	reg_peristence_set = set()
 	reg_credentials_set = set()
-	
+	reg_discovery_set = set()
+
+	persistenceShorthand = ['run','shell folder', 'userinitmprlogonscript', 'print\\monitors','installed components','currentcontrolset\\services','control panel\desktop','print\\processors\\','\\windows\\load' ]
+	credsShorthand = ['\\sam', 'sam\\', 'policy\\secrets']
+	systemDiscShorthand = ['language']
+
+
 	if(len(registry_add_keys) > 0):
 		for keyPath in registry_add_keys:
-			if("run" in keyPath.lower() or "shell folder" in keyPath.lower()):
-				reg_peristence_set.add(keyPath)
-			if("policy\\secrets" in keyPath.lower()):
-				reg_credentials_set.add(keyPath)
+			for each in persistenceShorthand:
+				if( each in keyPath.lower()):
+					reg_peristence_set.add(keyPath)
+			for each in credsShorthand:
+				if(each in keyPath.lower()):
+					reg_credentials_set.add(keyPath)
+			for each in systemDiscShorthand:
+				if(each in keyPath.lower()):
+					reg_discovery_set.add(keyPath)
+
 			
 	if(len(registry_edit_keys) > 0):
 		for keyPath in registry_edit_keys:
-			if("run" in keyPath[0].lower() or "shell folder" in keyPath[0].lower()):
-				reg_peristence_set.add(keyPath[0])
-			if("policy\\secrets" in keyPath[0].lower()):
-				reg_credentials_set.add(keyPath[0])
+			keyPath = keyPath[0]
+			for each in persistenceShorthand:
+				if( each in keyPath.lower()):
+					reg_peristence_set.add(keyPath)
+			for each in credsShorthand:
+				if(each in keyPath.lower()):
+					reg_credentials_set.add(keyPath)
+			for each in systemDiscShorthand:
+				if(each in keyPath.lower()):
+					reg_discovery_set.add(keyPath)
 	if(len(registry_delete_keys) > 0):
 		for keyPath in registry_delete_keys:
 			if(type(keyPath) == tuple):
 				keyPath = keyPath[0]
-			if("run" in keyPath.lower() or "shell folder" in keyPath.lower()):
-				reg_peristence_set.add(keyPath)
-			if("policy\\secrets" in keyPath.lower()):
-				reg_credentials_set.add(keyPath)
+			for each in persistenceShorthand:
+				if( each in keyPath.lower()):
+					reg_peristence_set.add(keyPath)
+			for each in credsShorthand:
+				if(each in keyPath.lower()):
+					reg_credentials_set.add(keyPath)
+			for each in systemDiscShorthand:
+				if(each in keyPath.lower()):
+					reg_discovery_set.add(keyPath)
 	#heirarchy
 	reg_HKCR = set()
 	reg_HKCU = set()
@@ -23323,6 +23346,10 @@ def emulation_txt_out(apiList, logged_syscalls):
 			emu_registry_credentials_list += "\n".join(reg_credentials_set)
 			emu_registry_credentials_list += "\n"
 
+		if(len(reg_discovery_set) > 0):
+			emu_registry_discovery_list = "\n"
+			emu_registry_discovery_list += "\n".join(reg_discovery_set)
+			emu_registry_discovery_list += "\n"
 		#if(len(registry_strings) > 0):
 		#	emu_registry_strings_list = "\n"
 		#	emu_registry_strings_list += "\n".join(registry_strings)
@@ -23372,6 +23399,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 		emu_registry_delete_list = ', '.join(registry_delete_keys)
 		emu_registry_persistence_list = ', '.join(reg_peristence_set)
 		emu_registry_credentials_list = ', '.join(reg_credentials_set)
+		emu_registry_discovery_list = ', '.join(reg_discovery_set)
 		#emu_registry_strings_list = ', '.join(registry_strings)
 		emu_registry_hkcr_list = ', '.join(reg_HKCR)
 		emu_registry_hkcu_list = ', '.join(reg_HKCU)
@@ -23411,12 +23439,14 @@ def emulation_txt_out(apiList, logged_syscalls):
 		txt_output += "{}{:<9} {}\n".format(red + "** Edit **" + res,"", emu_registry_edit_list)
 	if len(registry_delete_keys) > 0:
 		txt_output += "{}{:<9} {}\n".format(red + "** Delete **" + res,"", emu_registry_delete_list)
-	if (len(reg_peristence_set) > 0 or len(reg_credentials_set) > 0):
+	if (len(reg_peristence_set) > 0 or len(reg_credentials_set) > 0 or len(reg_discovery_set) > 0):
 		txt_output += "{}{:<9}\n".format(cya + "*** Registry Techniques ***" + res,"")
 	if (len(reg_peristence_set) > 0):
 		txt_output += "{}{:<9} {}\n".format(red + "** Persistence **" + res,"", emu_registry_persistence_list)
 	if (len(reg_credentials_set) > 0):
 		txt_output += "{}{:<9} {}\n".format(red + "** Credentials **" + res,"", emu_registry_credentials_list)
+	if (len(reg_discovery_set) > 0):
+		txt_output += "{}{:<9} {}\n".format(red + "** Discovery **" + res,"", emu_registry_discovery_list)
 	if(len(reg_HKCR) > 0 or len(reg_HKCU) > 0 or len(reg_HKLM) > 0 or len(reg_HKU) > 0 or len(reg_HKCC) > 0):
 		txt_output += "{}{:<9}\n".format(cya + "*** Registry Hierarchy ***" + res,"")
 	if(len(reg_HKCR) > 0 ):
