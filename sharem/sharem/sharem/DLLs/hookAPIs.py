@@ -400,6 +400,8 @@ class CustomWinAPIs():
         pTypes = ['UINT']
         pNames = ['uExitCode']
 
+        RegKey.printTree()
+
         # create strings for everything except ones in our skip
         skip = []  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
@@ -3744,7 +3746,7 @@ class CustomWinAPIs():
             # registry_keys.add()
             # print(keyValue.name)
             #registry_values.add(())
-            registry_edit_keys.add(keyPath,keyValue.name,keyValue.data)
+            registry_edit_keys.add((keyPath,keyValue.name,keyValue.dataAsStr))
             try:
                 uc.mem_write(pVals[2],pack(f'<{len(keyValue.data)}s',keyValue.dataAsStr.encode('ascii')))
                 uc.mem_write(pVals[3],pack('<I',len(keyValue.data)))
@@ -3808,7 +3810,7 @@ class CustomWinAPIs():
             # registry_keys.add()
             # print(keyValue.name)
             #registry_values.add(())
-            registry_edit_keys.add(keyPath,keyValue.name,keyValue.data)
+            registry_edit_keys.add((keyPath,keyValue.name,keyValue.dataAsStr))
 
             try:
                 uc.mem_write(pVals[2],pack(f'<{len(keyValue.data)*2}s',keyValue.dataAsStr.encode('utf-16')[2:]))
@@ -3864,7 +3866,7 @@ class CustomWinAPIs():
             # registry_keys.add()
             # print(keyValue.name)
             #registry_values.add(())
-            registry_edit_keys.add(keyPath,keyValue.name,keyValue.data)
+            registry_edit_keys.add((keyPath,keyValue.name,keyValue.dataAsStr))
             type = keyValue.type
             try:
                 uc.mem_write(pVals[3],pack('<I',keyValue.type.value))
@@ -3945,7 +3947,7 @@ class CustomWinAPIs():
             # registry_keys.add()
             # print(keyValue.name)
             #registry_values.add(())
-            registry_edit_keys.add(keyPath,keyValue.name,keyValue.data)
+            registry_edit_keys.add((keyPath,keyValue.name,keyValue.dataAsStr))
             type = keyValue.type
             try:
                 uc.mem_write(pVals[3],pack('<I',keyValue.type.value))
@@ -10637,8 +10639,9 @@ class RegKey:
     def printTree():
         print('Registry Tree')
         for key, value in RegKey.PreDefinedKeys.items():
-            rKey: RegKey = RegistryKeys[value]
-            rKey.printTreeRecursive()
+            if value in RegistryKeys:
+                rKey: RegKey = RegistryKeys[value]
+                rKey.printTreeRecursive()
         print('\n')
     
     def printTreeRecursive(self, level=0):
