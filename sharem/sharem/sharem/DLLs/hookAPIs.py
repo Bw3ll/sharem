@@ -6828,7 +6828,7 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def URLOpenBlockingStreamW(self, uc, eip, esp, export_dict, callAddr, em):
-        pTypes = ['LPUNKNOWN', 'LPCSTR', 'LPSTREAM', 'DWORD', 'LPBINDSTATUSCALLBACK']
+        pTypes = ['LPUNKNOWN', 'LPCWSTR', 'LPSTREAM', 'DWORD', 'LPBINDSTATUSCALLBACK']
         pNames = ['pCaller', 'szURL', '*ppStream', 'dwReserved', 'lpfnCB']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
@@ -8891,7 +8891,9 @@ class CustomWinAPIs():
         skip = [0]
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        handle = Handle(HandleType.Clipboard)
+        fakeData = 'https://sharem.com/login/#'
+
+        handle = Handle(HandleType.Clipboard,data=fakeData)
 
         cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal =  handle.value # if success, return val is handle to data
