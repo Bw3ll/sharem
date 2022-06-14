@@ -23333,7 +23333,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 
 		if(len(registry_delete_keys) > 0):
 			emu_registry_delete_list = "\n"
-			emu_registry_delete_list += "\n".join(registry_delete_keys)
+			# emu_registry_delete_list += "\n".join(registry_delete_keys)
 			emu_registry_delete_list += "\n"
 
 		if(len(reg_peristence_set) > 0):

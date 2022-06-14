@@ -1,6 +1,4 @@
 from enum import Enum, auto
-from msilib.schema import Registry
-from multiprocessing.sharedctypes import Value
 from random import choice, randint
 from unicorn.x86_const import *
 from struct import pack, unpack
@@ -2436,7 +2434,6 @@ class CustomWinAPIs():
         global registry_add_keys
 
         keyPath = ''
-        parentPath = ''
 
         lpSubKey = read_string(uc, pVals[1])
         if lpSubKey != '[NULL]':
@@ -2448,7 +2445,6 @@ class CustomWinAPIs():
                 hKey: Handle = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
                     rKey: RegKey = RegistryKeys[hKey.name]
-                    parentPath = rKey.path
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Return Handle
                         foundKey = RegistryKeys[keyPath]
@@ -2457,7 +2453,6 @@ class CustomWinAPIs():
                     else:
                         createKey = True
                 else:
-                    parentPath = hKey.name
                     createKey = True
                     keyPath = hKey.name + lpSubKey
             else:
@@ -2469,8 +2464,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath,parentPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -2535,8 +2529,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -2596,8 +2589,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -2653,8 +2645,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -2714,8 +2705,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -2779,8 +2769,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -2846,8 +2835,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -2909,8 +2897,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -2966,8 +2953,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -3023,8 +3009,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -3751,8 +3736,7 @@ class CustomWinAPIs():
                         foundKey: RegKey = RegistryKeys[keyPath]
                         keyValue = foundKey.getValue()
                     else:
-                        keyName = keyPath.split('\\')[-1] # Get Key Name
-                        rKey = RegKey(keyName,keyPath)
+                        rKey = RegKey(keyPath)
                         keyValue = rKey.getValue()
 
         if keyValue is not None:
@@ -3816,8 +3800,7 @@ class CustomWinAPIs():
                         foundKey: RegKey = RegistryKeys[keyPath]
                         keyValue = foundKey.getValue()
                     else:
-                        keyName = keyPath.split('\\')[-1] # Get Key Name
-                        rKey = RegKey(keyName,keyPath)
+                        rKey = RegKey(keyPath)
                         keyValue = rKey.getValue()
 
         if keyValue is not None:
@@ -3868,8 +3851,7 @@ class CustomWinAPIs():
                     keyValue = rKey.getValue(lpValue)
             else: # key Not Found
                 keyPath = hKey.name
-                keyName = keyPath.split('\\')[-1] # Get Key Name
-                rKey = RegKey(keyName,keyPath)
+                rKey = RegKey(keyPath)
                 if lpValue == '[NULL]':
                     keyValue = rKey.getValue()
                 else:
@@ -3950,8 +3932,7 @@ class CustomWinAPIs():
                     keyValue = rKey.getValue(lpValue)
             else: # key Not Found
                 keyPath = hKey.name
-                keyName = keyPath.split('\\')[-1] # Get Key Name
-                rKey = RegKey(keyName,keyPath)
+                rKey = RegKey(keyPath)
                 if lpValue == '[NULL]':
                     keyValue = rKey.getValue()
                 else:
@@ -4057,8 +4038,7 @@ class CustomWinAPIs():
             createKey = False
             
         if createKey: # Create New Key
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             newKey.setValue(RegValueTypes(pVals[2]),lpData)
             registry_key_address = newKey
 
@@ -4123,8 +4103,7 @@ class CustomWinAPIs():
             createKey = False
             
         if createKey: # Create New Key
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             newKey.setValue(RegValueTypes(pVals[2]),lpData)
             registry_key_address = newKey
 
@@ -4227,7 +4206,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         written_values = registry_key_address.getValue(valName)
-        registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.data))
+        registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.dataAsStr))
 
         logged_calls = ("RegSetValueExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -4316,7 +4295,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         written_values = registry_key_address.getValue(valName)
-        registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.data))
+        registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.dataAsStr))
 
         logged_calls = ("RegSetValueExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -4407,8 +4386,7 @@ class CustomWinAPIs():
                 if keyPath in RegistryKeys:
                     rKey: RegKey = RegistryKeys[hKey.name] # Key Found
                 else: # Create Key
-                    keyName = keyPath.split('\\')[-1] # Get Key Name
-                    rKey = RegKey(keyName,keyPath)
+                    rKey = RegKey(keyPath)
 
                 if valType == RegValueTypes.REG_BINARY:
                     bin = uc.mem_read(pVals[4],pVals[5])
@@ -4473,7 +4451,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         written_values = registry_key_address.getValue()
-        registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.data))
+        registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.dataAsStr))
 
         logged_calls = ("RegSetKeyValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -4564,8 +4542,7 @@ class CustomWinAPIs():
                 if keyPath in RegistryKeys:
                     rKey: RegKey = RegistryKeys[hKey.name] # Key Found
                 else: # Create Key
-                    keyName = keyPath.split('\\')[-1] # Get Key Name
-                    rKey = RegKey(keyName,keyPath)
+                    rKey = RegKey(keyPath)
 
                 if valType == RegValueTypes.REG_BINARY:
                     bin = uc.mem_read(pVals[4],pVals[5])
@@ -4630,7 +4607,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         written_values = registry_key_address.getValue()
-        registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.data))
+        registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.dataAsStr))
 
         logged_calls = ("RegSetKeyValueW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -4757,7 +4734,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        print(deletedValue)
+        # print(deletedValue)
         registry_delete_keys.add((keyPath,deletedValue))
 
         logged_calls = ("RegDeleteKeyValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
@@ -4816,7 +4793,7 @@ class CustomWinAPIs():
         #print(deletedValue)
         registry_delete_keys.add((keyPath,deletedValue))
 
-        logged_calls = ("RegDeleteKeyValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        logged_calls = ("RegDeleteKeyValueW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
 
@@ -4906,8 +4883,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -4972,8 +4948,7 @@ class CustomWinAPIs():
             hKey = pVals[0]
             
         if createKey: # Create New
-            keyName = keyPath.split('\\')[-1] # Get Key Name
-            newKey = RegKey(keyName,keyPath)
+            newKey = RegKey(keyPath)
             hKey = newKey.handle.value
 
         try:
@@ -5422,39 +5397,77 @@ class CustomWinAPIs():
         logged_calls = ("RegOverridePredefKey", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-
-    def RegEnumKeyA(self, uc, eip, esp, export_dict, callAddr, em):
+    def RegEnumKeyA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         #'RegEnumKeyA': (4, ['HKEY', 'DWORD', 'LPSTR', 'DWORD'], ['hKey', 'dwIndex', 'lpName', 'cchName'], 'LSTATUS')
         pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['HKEY', 'DWORD', 'LPSTR', 'DWORD']
         pNames = ['hKey', 'dwIndex', 'lpName', 'cchName']
 
-        RegKey.printTree()
-
-        #build out
         if pVals[0] in HandlesDict:
-            print('RegEnumKeys')
             hKey: Handle = HandlesDict[pVals[0]]
             keyPath = hKey.name
-            for key, val in RegistryKeys.items():
-                if keyPath in key:
-                    print(f'KeyPath: {key}')
-                    tempPath = keyPath + '\\' + val.name
-                    print(f'TempPath: {tempPath}')
-                    if tempPath == key:
-                        print(f'Direct Sub Key: {key}')
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+                if pVals[1] < len(rKey.childKeys):
+                    ChildKeysList = list(rKey.childKeys)
+                    childKey = rKey.childKeys[ChildKeysList[pVals[1]]]
+                    try:
+                        uc.mem_write(pVals[2],pack(f'<{len(childKey.name)+1}s',childKey.name.encode('ascii')))
+                    except:
+                        pass
+                    retVal = 0x0
+                    retValStr = 'ERROR_SUCCESS'
+                else:
+                    retVal = 18
+                    retValStr = 'ERROR_NO_MORE_FILES'
         else: # Handle Not Found
-            pass
+            retVal = 18
+            retValStr = 'ERROR_NO_MORE_FILES'
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
-
-        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
-        retVal = 0x0
-        retValStr = 'ERROR_SUCCESS'
+    
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("RegEnumKeyA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegEnumKeyW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes = ['HKEY', 'DWORD', 'LPWSTR', 'DWORD']
+        pNames = ['hKey', 'dwIndex', 'lpName', 'cchName']
+
+        if pVals[0] in HandlesDict:
+            hKey: Handle = HandlesDict[pVals[0]]
+            keyPath = hKey.name
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+                if pVals[1] < len(rKey.childKeys):
+                    ChildKeysList = list(rKey.childKeys)
+                    childKey = rKey.childKeys[ChildKeysList[pVals[1]]]
+                    try:
+                        uc.mem_write(pVals[2],pack(f'<{(len(childKey.name)*2)+1}s',childKey.name.encode('utf-16')[2:]))
+                    except:
+                        pass
+                    retVal = 0x0
+                    retValStr = 'ERROR_SUCCESS'
+                else:
+                    retVal = 18
+                    retValStr = 'ERROR_NO_MORE_FILES'
+                    RegKey.printTree()
+                    print(RegistryKeys)
+                    print('\n')
+                    print(HandlesDict)
+        else: # Handle Not Found
+            retVal = 18
+            retValStr = 'ERROR_NO_MORE_FILES'
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegEnumKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def RegConnectRegistryA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         #'RegConnectRegistryA': (3, ['LPCSTR', 'HKEY', 'PHKEY'], ['lpMachineName', 'hKey', 'phkResult'], 'LSTATUS')
@@ -5481,7 +5494,7 @@ class CustomWinAPIs():
             pVals[0] = machineName
             preKey = getLookUpVal(pVals[1],RegKey.PreDefinedKeys)
             keyPath = machineName + '\\' + preKey
-            key = RegKey(preKey,keyPath,remote=True)
+            key = RegKey(keyPath,remote=True)
             phk = key.handle.value
         else: # Local Computer Name Used
             pVals[0] = machineName
@@ -5496,13 +5509,12 @@ class CustomWinAPIs():
 
             #print("figure out what to do in the case of key not in dict")
             # keyPath = 'Error in retreving key - ConnectRegistryA'
-
         try:
             uc.mem_write(pVals[2],pack('<I',phk))
         except:
             pass
 
-        #pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -5535,7 +5547,7 @@ class CustomWinAPIs():
             pVals[0] = machineName
             preKey = getLookUpVal(pVals[1],RegKey.PreDefinedKeys)
             keyPath = machineName + '\\' + preKey
-            key = RegKey(preKey,keyPath,remote=True)
+            key = RegKey(keyPath,remote=True)
             phk = key.handle.value
         else: # Local Computer Name Used
             pVals[0] = machineName
@@ -5559,7 +5571,7 @@ class CustomWinAPIs():
         registry_add_keys.add(keyPath)
         registry_misc.add(pVals[0])
 
-        #pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
 
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
@@ -5651,10 +5663,10 @@ class CustomWinAPIs():
         else: # Handle Not Found
             keyPath = ''
           
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
         registry_add_keys.add(keyPath)
         registry_misc.add(pVals[1])
-
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
@@ -5681,10 +5693,10 @@ class CustomWinAPIs():
         else: # Handle Not Found
             keyPath = ''
 
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
         registry_add_keys.add(keyPath)
         registry_misc.add(pVals[1])
-
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
@@ -5711,13 +5723,13 @@ class CustomWinAPIs():
                 keyPath = hKey.name
         else: # Handle Not Found
             keyPath = ''
-          
-        registry_add_keys.add(keyPath)
-        registry_misc.add(pVals[1])
 
         pVals[3] = getLookUpVal(pVals[3],dwFlagsReversLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
+
+        registry_add_keys.add(keyPath)
+        registry_misc.add(pVals[1])
 
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
@@ -5744,13 +5756,13 @@ class CustomWinAPIs():
                 keyPath = hKey.name
         else: # Handle Not Found
             keyPath = ''
-          
-        registry_add_keys.add(keyPath)
-        registry_misc.add(pVals[1])
 
         pVals[3] = getLookUpVal(pVals[3],dwFlagsReversLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
+
+        registry_add_keys.add(keyPath)
+        registry_misc.add(pVals[1])
 
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
@@ -6793,7 +6805,7 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def URLOpenBlockingStreamW(self, uc, eip, esp, export_dict, callAddr, em):
-        pTypes = ['LPUNKNOWN', 'LPCSTR', 'LPSTREAM', 'DWORD', 'LPBINDSTATUSCALLBACK']
+        pTypes = ['LPUNKNOWN', 'LPCWSTR', 'LPSTREAM', 'DWORD', 'LPBINDSTATUSCALLBACK']
         pNames = ['pCaller', 'szURL', '*ppStream', 'dwReserved', 'lpfnCB']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
@@ -8525,7 +8537,7 @@ class CustomWinAPIs():
         retValStr = "SUCCESS"
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls = ("GetFileSizeEx", hex(callAddr), (retValStr), 'HWND', pVals, pTypes, pNames, False)
+        logged_calls = ("GetFileSizeEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     ### Has a structure of OSVERSIONINFOA, need help with.
@@ -8661,7 +8673,7 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
-        retVal = 0x1
+        retVal = 0x0
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -8856,7 +8868,9 @@ class CustomWinAPIs():
         skip = [0]
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        handle = Handle(HandleType.Clipboard)
+        fakeData = 'https://sharem.com/login/#'
+
+        handle = Handle(HandleType.Clipboard,data=fakeData)
 
         cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal =  handle.value # if success, return val is handle to data
@@ -8901,7 +8915,8 @@ class CustomWinAPIs():
         dwCreationDistributionReverseLookUp = {2: 'CREATE_ALWAYS', 1: 'CREATE_NEW', 4: 'TRUNCATE_EXISTING', 3: 'OPEN_EXISTING', 5: 'TRUNCATE_EXISTING'}
         dwFlagsAndAttributesReverseLookUp = {32: 'FILE_ATTRIBUTE_ARCHIVE', 16384: 'FILE_ATTRIBUTE_ENCRYPTED', 2: 'FILE_ATTRIBUTE_HIDDEN', 128: 'FILE_ATTRIBUTE_NORMAL', 4096: 'FILE_ATTRIBUTE_OFFLINE', 1: 'FILE_ATTRIBUTE_READONLY', 4: 'FILE_ATTRIBUTE_SYSTEM', 256: 'FILE_ATTRIBUTE_TEMPORARY', 33554432: 'FILE_FLAG_BACKUP_SEMANTICS', 67108864: 'FILE_FLAG_DELETE_ON_CLOSE', 536870912: 'FILE_FLAG_NO_BUFFERING', 1048576: 'FILE_FLAG_OPEN_NO_RECALL', 2097152: 'FILE_FLAG_OPEN_REPARSE_POINT', 1073741824: 'FILE_FLAG_OVERLAPPED', 16777216: 'FILE_FLAG_POSIX_SEMANTICS', 268435456: 'FILE_FLAG_RANDOM_ACCESS', 8388608: 'FILE_FLAG_SESSION_AWARE', 134217728: 'FILE_FLAG_SEQUENTIAL_SCAN', 2147483648: 'FILE_FLAG_WRITE_THROUGH'}
         
-        handle = Handle(HandleType.CreateFile2)
+        fileName = read_unicode(uc, pVals[0])
+        handle = Handle(HandleType.CreateFile2, name=fileName)
 
         pVals[1] = getLookUpVal(pVals[1],dwDesiredAccessReverseLookUp)
         pVals[2] = getLookUpVal(pVals[2],dwShareModeReverseLookUp)
@@ -9019,7 +9034,7 @@ class CustomWinAPIs():
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls= ("lstrcpynW", hex(callAddr), (retValStr), 'LPSTR', pVals, pTypes, pNames, False)
+        logged_calls= ("lstrcpynW", hex(callAddr), (retValStr), 'LPWSTR', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def CopyFileW(self, uc, eip, esp, export_dict, callAddr, em):
@@ -9059,7 +9074,7 @@ class CustomWinAPIs():
         retValStr = "S_OK"
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls= ("CopyFile2", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        logged_calls= ("CopyFile2", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def DeleteFileW(self, uc, eip, esp, export_dict, callAddr, em):
@@ -9143,7 +9158,7 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def MoveFileA(self, uc, eip, esp, export_dict, callAddr, em):
-        pTypes =['LPCSTR', 'LPCSTR'] 
+        pTypes =['LPCTSTR', 'LPCTSTR'] 
         pNames = ['lpExistingFileName', 'lpNewFileName'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
@@ -9156,6 +9171,22 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("MoveFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def MoveFileW(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['LPCWSTR', 'LPCWSTR'] 
+        pNames = ['lpExistingFileName', 'lpNewFileName'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        skip = []
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = "TRUE"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("MoveFileW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def CopyFile(self, uc, eip, esp, export_dict, callAddr, em):
@@ -10512,11 +10543,22 @@ class RegKey:
     nextRemoteHandleValues = 0x90000010 # Registry Start value for Remote Computer Handles
     securityAccessRights = {983103: 'KEY_ALL_ACCESS', 32: 'KEY_CREATE_LINK', 4: 'KEY_CREATE_SUB_KEY', 8: 'KEY_ENUMERATE_SUB_KEYS', 131097: 'KEY_READ', 16: 'KEY_NOTIFY', 1: 'KEY_QUERY_VALUE', 2: 'KEY_SET_VALUE', 512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY', 131078: 'KEY_WRITE'}
 
-    def __init__(self, name: str, path: str, parentKeyPath='', handle=0, remote: bool = False):
-        self.name = name
+    def __init__(self, path: str, handle=0, remote: bool = False):
+        pathSplit = path.split('\\')
+        parentKeyPath = '\\'.join(pathSplit[:-1]) # Get Parent Key Path
+        if len(pathSplit) > 2: # Create Parent Keys of Subkey
+            newPath = ''
+            for i in range(len(pathSplit)-1):
+                if i == 0:
+                    newPath += pathSplit[i]
+                else:
+                    newPath += '\\' + pathSplit[i]
+                if newPath not in RegistryKeys:
+                    RegKey(newPath,remote=remote)
+        self.name = pathSplit[-1]
         self.path = path
         self.values: dict[str,KeyValue] = {}
-        self.subKeys: dict[str,RegKey] = {}
+        self.childKeys: dict[str,RegKey] = {}
         if handle == 0:
             if not remote:
                 handle = RegKey.nextHandleValue
@@ -10531,12 +10573,12 @@ class RegKey:
             for key, val in RegistryKeys.items():
                 if key == parentKeyPath:
                     self.parentKey = val.name
-                    val.subKeys.update({self.name: self})            
+                    val.childKeys.update({self.name: self})            
 
     def createPreDefinedKeys():
         # Create Default Keys
         for key, val in RegKey.PreDefinedKeys.items():
-            RegKey(val, val, handle=key)
+            RegKey(path=val, handle=key)
 
     def deleteKey(self):
         if self.handle.value in HandlesDict: # Remove Handle
@@ -10565,10 +10607,10 @@ class RegKey:
         print(f'Name: {self.name}')
         print(f'Path: {self.path}')
         print(f'Handle: {hex(self.handle.value)}')
-        print(f'SubKeys Count: {len(self.subKeys)}')
-        if len(self.subKeys) > 0:
-            for sKey, sVal in self.subKeys.items():
-                print(sKey)
+        print(f'Child Keys Count: {len(self.childKeys)}')
+        if len(self.childKeys) > 0:
+            for sKey, sVal in self.childKeys.items():
+                print(f' >> {sKey}')
         print(f'Values Count: {len(self.values)}')
         if len(self.values) > 0:
             print ("{:<20} {:<20} {:<20}".format('Name','Type','Data'))
@@ -10581,10 +10623,10 @@ class RegKey:
             print(f'Name: {rval.name}')
             print(f'Path: {rval.path}')
             print(f'Handle: {hex(rval.handle.value)}')
-            print(f'SubKeys Count: {len(rval.subKeys)}')
-            if len(rval.subKeys) > 0:
-                for sKey, sVal in rval.subKeys.items():
-                    print(sKey)
+            print(f'Child Keys Count: {len(rval.childKeys)}')
+            if len(rval.childKeys) > 0:
+                for sKey, sVal in rval.childKeys.items():
+                    print(f' >> {sKey}')
             print(f'Values Count: {len(rval.values)}')
             if len(rval.values) > 0:
                 print ("{:<20} {:<20} {:<20}".format('Name','Type','Data'))
@@ -10596,16 +10638,16 @@ class RegKey:
         print('Registry Tree')
         for key, value in RegKey.PreDefinedKeys.items():
             rKey: RegKey = RegistryKeys[value]
-            rKey.printSubKeys()
+            rKey.printTreeRecursive()
         print('\n')
     
-    def printSubKeys(self, level=0):
+    def printTreeRecursive(self, level=0):
         if level == 0:
             print(self.name)
         else:
             print(('  ' * level) + '└─╴' + self.name)
-        for sKey, sVal in self.subKeys.items():
-            sVal.printSubKeys(level+1)
+        for sKey, sVal in self.childKeys.items():
+            sVal.printTreeRecursive(level+1)
             
 class KeyValue():
     def __init__(self, valueType: RegValueTypes, data, valueName: str):
@@ -10684,7 +10726,7 @@ def findStringsParms(uc, pTypes, pVals, skip):
                 handleKey = getLookUpVal(pVals[i],HandlesDict)
                 if isinstance(handleKey, Handle):
                     if handleKey.name != '':
-                        pVals[i] = f'{hex(pVals[i])} - {handleKey.name}'
+                        pVals[i] = f'{handleKey.name}'
                     else:
                         pVals[i] = hex(pVals[i])
                 else:
@@ -10694,7 +10736,7 @@ def findStringsParms(uc, pTypes, pVals, skip):
                 handleKey = getLookUpVal(pointerVal,HandlesDict)
                 if isinstance(handleKey, Handle):
                     if handleKey.name != '':
-                        pVals[i] = f'{hex(pVals[i])} -> {hex(pointerVal)} - {handleKey.name}'
+                        pVals[i] = f'{hex(pVals[i])} -> {handleKey.name}'
                     else:
                         pVals[i] = buildPtrString(pVals[i],pointerVal)
                 else:
