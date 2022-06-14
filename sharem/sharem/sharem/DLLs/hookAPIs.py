@@ -400,11 +400,7 @@ class CustomWinAPIs():
         pTypes = ['UINT']
         pNames = ['uExitCode']
 
-        RegKey.printTree()
-
-        # create strings for everything except ones in our skip
-        skip = []  # we need to skip this value (index) later-let's put it in skip
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
         retVal = 0
         uc.reg_write(UC_X86_REG_EAX, retVal)
