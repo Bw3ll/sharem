@@ -9094,7 +9094,7 @@ class CustomWinAPIs():
         retValStr = "S_OK"
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls= ("CopyFile2", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        logged_calls= ("CopyFile2", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def DeleteFileW(self, uc, eip, esp, export_dict, callAddr, em):
