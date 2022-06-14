@@ -8560,7 +8560,7 @@ class CustomWinAPIs():
         retValStr = "SUCCESS"
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls = ("GetFileSizeEx", hex(callAddr), (retValStr), 'HWND', pVals, pTypes, pNames, False)
+        logged_calls = ("GetFileSizeEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     ### Has a structure of OSVERSIONINFOA, need help with.
@@ -9057,7 +9057,7 @@ class CustomWinAPIs():
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls= ("lstrcpynW", hex(callAddr), (retValStr), 'LPSTR', pVals, pTypes, pNames, False)
+        logged_calls= ("lstrcpynW", hex(callAddr), (retValStr), 'LPWSTR', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def CopyFileW(self, uc, eip, esp, export_dict, callAddr, em):
