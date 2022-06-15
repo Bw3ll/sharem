@@ -5431,14 +5431,14 @@ class CustomWinAPIs():
                         uc.mem_write(pVals[2],pack(f'<{len(childKey.name)+1}s',childKey.name.encode('ascii')))
                     except:
                         pass
-                    retVal = 0x0
+                    retVal = 0
                     retValStr = 'ERROR_SUCCESS'
                 else:
                     retVal = 18
                     retValStr = 'ERROR_NO_MORE_FILES'
         else: # Handle Not Found
-            retVal = 18
-            retValStr = 'ERROR_NO_MORE_FILES'
+            retVal = 2 
+            retValStr = 'ERROR_FILE_NOT_FOUND'
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
     
@@ -5464,14 +5464,14 @@ class CustomWinAPIs():
                         uc.mem_write(pVals[2],pack(f'<{(len(childKey.name)*2)+1}s',childKey.name.encode('utf-16')[2:]))
                     except:
                         pass
-                    retVal = 0x0
+                    retVal = 0
                     retValStr = 'ERROR_SUCCESS'
                 else:
                     retVal = 18
                     retValStr = 'ERROR_NO_MORE_FILES'
         else: # Handle Not Found
-            retVal = 18
-            retValStr = 'ERROR_NO_MORE_FILES'
+            retVal = 2 
+            retValStr = 'ERROR_FILE_NOT_FOUND'
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
@@ -5500,7 +5500,7 @@ class CustomWinAPIs():
                         fileTime.writeToMemory(uc, pVals[7])
                     except:
                         pass
-                    retVal = 0x0
+                    retVal = 0
                     retValStr = 'ERROR_SUCCESS'
                     pVals[7] = makeStructVals(uc, fileTime, pVals[7])
                 else:
@@ -5508,8 +5508,8 @@ class CustomWinAPIs():
                     retValStr = 'ERROR_NO_MORE_FILES'
                     pVals[7] = hex(pVals[7])
         else: # Handle Not Found
-            retVal = 18
-            retValStr = 'ERROR_NO_MORE_FILES'
+            retVal = 2 
+            retValStr = 'ERROR_FILE_NOT_FOUND'
             pVals[7] = hex(pVals[7])
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[7])
@@ -5538,7 +5538,7 @@ class CustomWinAPIs():
                         fileTime.writeToMemory(uc, pVals[7])
                     except:
                         pass
-                    retVal = 0x0
+                    retVal = 0
                     retValStr = 'ERROR_SUCCESS'
                     pVals[7] = makeStructVals(uc, fileTime, pVals[7])
                 else:
@@ -5546,8 +5546,8 @@ class CustomWinAPIs():
                     retValStr = 'ERROR_NO_MORE_FILES'
                     pVals[7] = hex(pVals[7])
         else: # Handle Not Found
-            retVal = 18
-            retValStr = 'ERROR_NO_MORE_FILES'
+            retVal = 2 
+            retValStr = 'ERROR_FILE_NOT_FOUND'
             pVals[7] = hex(pVals[7])
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[7])
@@ -5602,7 +5602,7 @@ class CustomWinAPIs():
                             uc.mem_write(pVals[7],pack('<I',len(keyValue.dataAsStr)+1))         
                     except:
                         pass
-                    retVal = 0x0
+                    retVal = 0
                     retValStr = 'ERROR_SUCCESS'
                     pVals[6] = keyValue.dataAsStr
                     pVals[5] = type.name
@@ -5612,8 +5612,8 @@ class CustomWinAPIs():
                     pVals[6] = hex(pVals[6])
                     pVals[5] = hex(pVals[5])
         else: # Handle Not Found
-            retVal = 18
-            retValStr = 'ERROR_NO_MORE_FILES'
+            retVal = 2 
+            retValStr = 'ERROR_FILE_NOT_FOUND'
             pVals[6] = hex(pVals[6])
             pVals[5] = hex(pVals[5])
 
@@ -5669,7 +5669,7 @@ class CustomWinAPIs():
                             uc.mem_write(pVals[7],pack('<I',(len(keyValue.name)*2)+2))         
                     except:
                         pass
-                    retVal = 0x0
+                    retVal = 0
                     retValStr = 'ERROR_SUCCESS'
                     pVals[6] = keyValue.dataAsStr
                     pVals[5] = type.name
@@ -5679,13 +5679,11 @@ class CustomWinAPIs():
                     pVals[6] = hex(pVals[6])
                     pVals[5] = hex(pVals[5])
         else: # Handle Not Found
-            retVal = 18
-            retValStr = 'ERROR_NO_MORE_FILES'
+            retVal = 2 
+            retValStr = 'ERROR_FILE_NOT_FOUND'
             pVals[6] = hex(pVals[6])
             pVals[5] = hex(pVals[5])
 
-
-        
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[5,6])
     
