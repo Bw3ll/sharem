@@ -10197,7 +10197,7 @@ class CustomWinAPIs():
         logged_calls= ("accept", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-     def GetSystemDirectoryA (self, uc, eip, esp, export_dict, callAddr, em):
+    def GetSystemDirectoryA (self, uc, eip, esp, export_dict, callAddr, em):
         #'GetSystemDirectoryA': (2, ['LPSTR', 'UINT'], ['lpBuffer', 'uSize'], 'UINT')
         pVals = makeArgVals(uc, em, esp, 2)
         pTypes= ['LPSTR', 'UINT']
