@@ -427,6 +427,37 @@ class struct_UNICODE_STRING:
         structString = f'{{USHORT Length: {self.Length}, USHORT MaximumLength: {self.MaximumLength}, PWSTR Buffer: {unicode_string}}}'
         return structString
 
+class struct_TIME_ZONE_INFORMATION:
+    # UNICODE_STRING, *PUNICODE_STRING
+    types = ['LONG', 'WCHAR', 'SYSTEMTIME', 'LONG', 'WCHAR', 'SYSTEMTIME', 'LONG']
+    names = ['Bias', 'StandardName', 'StandardDate', 'StandardBias', 'DaylightName', 'DaylightDate', 'DaylightBias']
+
+    def __init__(self):
+        self.Bias = 0
+        self.StandardName = "UTC"
+        self.StandardDate = 0
+        self.StandardBias = 0
+        self.DaylightName = "UTC"
+        self.DaylightDate = 0
+        self.DaylightBias = 0
+
+    def writeToMemory(self, uc: Uc, address):
+        packedStruct = pack('<l64sIl64sIl', self.Bias, self.StandardName.encode('UTF-16')[2:], self.StandardDate, self.StandardBias, self.DaylightName.encode('UTF-16')[2:], self.DaylightDate, self.DaylightBias)
+        uc.mem_write(address, packedStruct)
+
+    def readFromMemory(self, uc: Uc, address):
+        data = uc.mem_read(address, 8)
+        unpackedStruct = unpack('<l64sIl64sIl', data)
+        self.Bias = unpackedStruct[0]
+        self.StandardName = unpackedStruct[1].decode()
+        self.StandardDate = unpackedStruct[2]
+        self.StandardBias = unpackedStruct[3]
+        self.DaylightName = unpackedStruct[4].decode()
+        self.DaylightDate = unpackedStruct[5]
+        self.DaylightBias = unpackedStruct[6]
+
+   
+
 # class struct_OBJECT_ATTRIBUTES: # To Be Finished Later 
 #     def __init__(self):
 #         self.Length = calcsize('<LIILII')
