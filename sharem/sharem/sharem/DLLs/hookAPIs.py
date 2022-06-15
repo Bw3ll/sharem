@@ -10197,6 +10197,29 @@ class CustomWinAPIs():
         logged_calls= ("accept", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+     def GetSystemDirectoryA (self, uc, eip, esp, export_dict, callAddr, em):
+        #'GetSystemDirectoryA': (2, ['LPSTR', 'UINT'], ['lpBuffer', 'uSize'], 'UINT')
+        pVals = makeArgVals(uc, em, esp, 2)
+        pTypes= ['LPSTR', 'UINT']
+        pNames= ['lpBuffer', 'uSize']
+
+        systemDir = 'C:\Windows\System32'
+
+        
+        #pVals[0] = getLookUpVal(pVals[0], dwDesiredAccess_ReverseLookUp)
+        #create strings for everything except ones in our skip
+        skip=[0]   # we need to skip this value (index) later-let's put it in skip
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes=len(pTypes)*4
+
+        retVal = len(systemDir)
+        retValStr= str(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetSystemDirectoryA ", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
 
 
 
