@@ -23,6 +23,8 @@ import argparse
 from argparse import Namespace
 import hashlib
 import platform
+import textwrap3
+
 platformType = platform.uname()[0]
 
 slash = ""
@@ -12008,7 +12010,11 @@ def createDisassemblyLists(Colors=True, caller=None,decoder=False):
 		if mBool[o].bDoEnableComments:
 			if sBy.comments[cAddress] !="":
 				val_b2=sBy.comments[cAddress]
+	
 				val_comment =('{:<10s} {:<45s} {:<33s}{:<10s}\n'.format(mag+nada, val_b2, nada, nada))
+				# val_comment= mag+val_b2+"\n"
+				# val_comment =('{:<10s}{:<85s} \n'.format(nada,mag+ val_b2))
+
 				out+=val_comment		
 		
 		if showLabels:
@@ -12029,7 +12035,7 @@ def createDisassemblyLists(Colors=True, caller=None,decoder=False):
 			cur=cAddress
 			if (sBy.pushStringEnd[cur]-2) == cur:
 				msg=mag+"; "+sBy.pushStringValue[cur] + " - Stack string"+res2
-				newVal =('{:<12} {:<45s} {:<33}{:<10s}\n'.format("", msg, nada, nada))
+				newVal =('{:<12} {:<45s} {:<33}{:<10s}\n'.format(nada, msg, nada, nada))
 				out= newVal+out
 		except Exception as e:
 			# print ("weird error", e)
@@ -12190,7 +12196,7 @@ def createDisassemblyJson(Colors=True, caller=None,decoder=False):
 				msg="; "+sBy.pushStringValue[cur] + " - Stack string"
 				# disList[4] = cleanColors(disList[4] + "; "+sBy.pushStringValue[cur] + " - Stack string")
 				disDict["comment"] = disDict["comment"] + cleanColors("; "+sBy.pushStringValue[cur] + " - Stack string")
-				newVal =('{:<12} {:<45s} {:<33}{:<10s}\n'.format("", msg, nada, nada))
+				newVal =('{:<12} {:<45s} {:<33}{:<10s}\n'.format(nada, msg, nada, nada))
 				out= newVal+out
 		except Exception as e:
 			# print ("weird error", e)
@@ -14155,7 +14161,7 @@ def disHereShellOLD(data,offset, end, mode, CheckingForDB, bit): #
 				if (sBy.pushStringEnd[cur]-2) == cur:
 					# dprint2 ("push match", sBy.pushStringValue[cur])
 					msg="; "+sBy.pushStringValue[cur] + " - Stack string"
-					newVal =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format("", msg, nada, nada))
+					newVal =('{:<10s} {:<35s} {:<26s}{:<10s}\n'.format(nada, msg, nada, nada))
 					val= newVal+val
 					# dprint2 (val)
 			except Exception as e:
@@ -15174,6 +15180,9 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None)
 
 codeCoverageComplete=False
 def takeBytes(shellBytes,startingAddress, silent=None, decoder=False):
+	# print ("takeBytes")
+	# print ("---------->o", o)
+
 	# bprint ("takeBytes:", hex(startingAddress))
 	# print ("take bytse o", o)
 	global sBy
@@ -15538,11 +15547,10 @@ def addComments():
 					v=parC1+hex(v)
 				except:
 					if type(v)== tuple:
-						print ("tuple")
-						print (v)
+						# print ("tuple")
+						# print (v)
 						v=v[3]
 						v=parC1+v
-						v=parC1+" tuple "
 			if t!=limit:
 					params+=v +parC+ ", "+res2
 			else:
@@ -15561,11 +15569,17 @@ def addComments():
 		if commentsGiven:
 			params=""
 		if not commentsGiven:
+			space1="      "
 			try:
 				if sBy.comments[apiAddress] !="":
 					sBy.comments[apiAddress]+=res +"\n      "+params
 				else:
-					sBy.comments[apiAddress]=mag+"; call to " + api +res +"\n      "+params
+					try:
+						params= (textwrap3.fill(params, width=105, initial_indent='', subsequent_indent='       '))
+						pass
+					except:
+						pass
+					sBy.comments[apiAddress]=mag+";call to " + api +res +"\n      "+params
 
 			except:
 				print ("error logging API address to disassembly - ", api)
@@ -18799,7 +18813,8 @@ def dprint3(*args):
 		dp2 (args)
 
 def shellDisassemblyInit(shellArg, silent=None):
-	bprint ("shellDisassemblyInit")
+	# print ("o", )
+
 	global filename
 
 	global gDisassemblyText
@@ -20189,6 +20204,7 @@ def emulationSubmenu():
 
 
 def startupPrint():
+	# print ("startupPrint", o)
 	global bAsciiStrings
 	global bWideCharStrings
 	global bPushStackStrings
@@ -20217,7 +20233,7 @@ def startupPrint():
 	l_of_strings = ["Finding Ascii strings..", "Finding unicode strings..", "Finding push stack strings..","Searching for disassembly..", "Searching for Fstenv instructions..", "Searching for push ret instructions..", "Searching for call pop instructions..", "Searching for heaven's gate instructions..", "Searching for syscall instructions..", "Searching for PEB instructions.."]
 	max_len = get_max_length(l_of_strings)
 
-	print ("\n\n Analyzing ", filename)
+	# print ("\n\n Analyzing ", filename)
 	if bPrintEmulation and not mBool[o].bEmulationFound:
 		newTime	= discoverEmulation(max_len)
 		elapsed_time += newTime
@@ -20519,7 +20535,7 @@ def uiBits():	#Change the bit mode
 def discoverEmulation(maxLen=None):
 	global shellBit
 	global emuObj   
-
+	# print ("discoverEmulation, o --->", o)
 	if maxLen==None:
 		maxLen=42
 	
@@ -23070,6 +23086,10 @@ def emulation_txt_out(apiList, logged_syscalls):
 		for v, typ in zip(pType, pName):
 			TypeBundle.append(v + " " + typ)
 		joinedBund = ', '.join(TypeBundle)
+		try:
+			joinedBund= (textwrap3.fill(joinedBund, width=86))
+		except:
+			pass
 		joinedBundclr = joinedBund.replace(",", cya + "," + res)
 		retBundle = retType + " " + retVal
 
@@ -23111,7 +23131,9 @@ def emulation_txt_out(apiList, logged_syscalls):
 					##normal printing
 					else:
 						# for ptyp, pname, pval in zip(pType, pName, potentialTuple):
-						txt_output += '\t{} {} {}\n'.format(cya + pType[index], pName[index] + ":" + res, paramVal[index])
+						txt_params='\t{} {} {}\n'.format(cya + pType[index], pName[index] + ":" + res, paramVal[index])
+
+						txt_output += txt_params
 					index += 1
 				txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
 			else:
@@ -23170,28 +23192,51 @@ def emulation_txt_out(apiList, logged_syscalls):
 	# to add to persistence or credentialStealing
 	reg_peristence_set = set()
 	reg_credentials_set = set()
-	
+	reg_discovery_set = set()
+
+	persistenceShorthand = ['run','shell folder', 'userinitmprlogonscript', 'print\\monitors','installed components','currentcontrolset\\services','control panel\desktop','print\\processors\\','\\windows\\load' ]
+	credsShorthand = ['\\sam', 'sam\\', 'policy\\secrets']
+	systemDiscShorthand = ['language']
+
+
 	if(len(registry_add_keys) > 0):
 		for keyPath in registry_add_keys:
-			if("run" in keyPath.lower() or "shell folder" in keyPath.lower()):
-				reg_peristence_set.add(keyPath)
-			if("policy\\secrets" in keyPath.lower()):
-				reg_credentials_set.add(keyPath)
+			for each in persistenceShorthand:
+				if( each in keyPath.lower()):
+					reg_peristence_set.add(keyPath)
+			for each in credsShorthand:
+				if(each in keyPath.lower()):
+					reg_credentials_set.add(keyPath)
+			for each in systemDiscShorthand:
+				if(each in keyPath.lower()):
+					reg_discovery_set.add(keyPath)
+
 			
 	if(len(registry_edit_keys) > 0):
 		for keyPath in registry_edit_keys:
-			if("run" in keyPath[0].lower() or "shell folder" in keyPath[0].lower()):
-				reg_peristence_set.add(keyPath[0])
-			if("policy\\secrets" in keyPath[0].lower()):
-				reg_credentials_set.add(keyPath[0])
+			keyPath = keyPath[0]
+			for each in persistenceShorthand:
+				if( each in keyPath.lower()):
+					reg_peristence_set.add(keyPath)
+			for each in credsShorthand:
+				if(each in keyPath.lower()):
+					reg_credentials_set.add(keyPath)
+			for each in systemDiscShorthand:
+				if(each in keyPath.lower()):
+					reg_discovery_set.add(keyPath)
 	if(len(registry_delete_keys) > 0):
 		for keyPath in registry_delete_keys:
 			if(type(keyPath) == tuple):
 				keyPath = keyPath[0]
-			if("run" in keyPath.lower() or "shell folder" in keyPath.lower()):
-				reg_peristence_set.add(keyPath)
-			if("policy\\secrets" in keyPath.lower()):
-				reg_credentials_set.add(keyPath)
+			for each in persistenceShorthand:
+				if( each in keyPath.lower()):
+					reg_peristence_set.add(keyPath)
+			for each in credsShorthand:
+				if(each in keyPath.lower()):
+					reg_credentials_set.add(keyPath)
+			for each in systemDiscShorthand:
+				if(each in keyPath.lower()):
+					reg_discovery_set.add(keyPath)
 	#heirarchy
 	reg_HKCR = set()
 	reg_HKCU = set()
@@ -23310,7 +23355,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 
 		if(len(registry_delete_keys) > 0):
 			emu_registry_delete_list = "\n"
-			emu_registry_delete_list += "\n".join(registry_delete_keys)
+			# emu_registry_delete_list += "\n".join(registry_delete_keys)
 			emu_registry_delete_list += "\n"
 
 		if(len(reg_peristence_set) > 0):
@@ -23323,6 +23368,10 @@ def emulation_txt_out(apiList, logged_syscalls):
 			emu_registry_credentials_list += "\n".join(reg_credentials_set)
 			emu_registry_credentials_list += "\n"
 
+		if(len(reg_discovery_set) > 0):
+			emu_registry_discovery_list = "\n"
+			emu_registry_discovery_list += "\n".join(reg_discovery_set)
+			emu_registry_discovery_list += "\n"
 		#if(len(registry_strings) > 0):
 		#	emu_registry_strings_list = "\n"
 		#	emu_registry_strings_list += "\n".join(registry_strings)
@@ -23372,6 +23421,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 		emu_registry_delete_list = ', '.join(registry_delete_keys)
 		emu_registry_persistence_list = ', '.join(reg_peristence_set)
 		emu_registry_credentials_list = ', '.join(reg_credentials_set)
+		emu_registry_discovery_list = ', '.join(reg_discovery_set)
 		#emu_registry_strings_list = ', '.join(registry_strings)
 		emu_registry_hkcr_list = ', '.join(reg_HKCR)
 		emu_registry_hkcu_list = ', '.join(reg_HKCU)
@@ -23411,12 +23461,14 @@ def emulation_txt_out(apiList, logged_syscalls):
 		txt_output += "{}{:<9} {}\n".format(red + "** Edit **" + res,"", emu_registry_edit_list)
 	if len(registry_delete_keys) > 0:
 		txt_output += "{}{:<9} {}\n".format(red + "** Delete **" + res,"", emu_registry_delete_list)
-	if (len(reg_peristence_set) > 0 or len(reg_credentials_set) > 0):
+	if (len(reg_peristence_set) > 0 or len(reg_credentials_set) > 0 or len(reg_discovery_set) > 0):
 		txt_output += "{}{:<9}\n".format(cya + "*** Registry Techniques ***" + res,"")
 	if (len(reg_peristence_set) > 0):
 		txt_output += "{}{:<9} {}\n".format(red + "** Persistence **" + res,"", emu_registry_persistence_list)
 	if (len(reg_credentials_set) > 0):
 		txt_output += "{}{:<9} {}\n".format(red + "** Credentials **" + res,"", emu_registry_credentials_list)
+	if (len(reg_discovery_set) > 0):
+		txt_output += "{}{:<9} {}\n".format(red + "** Discovery **" + res,"", emu_registry_discovery_list)
 	if(len(reg_HKCR) > 0 or len(reg_HKCU) > 0 or len(reg_HKLM) > 0 or len(reg_HKU) > 0 or len(reg_HKCC) > 0):
 		txt_output += "{}{:<9}\n".format(cya + "*** Registry Hierarchy ***" + res,"")
 	if(len(reg_HKCR) > 0 ):
@@ -23453,7 +23505,13 @@ def emulation_txt_out(apiList, logged_syscalls):
 
 	if bPrintEmulation:
 		if len(apiList)>0 or len(logged_syscalls)>0:
-			print(txt_output)
+			try:
+				print(txt_output)
+
+				# new= (textwrap3.fill(txt_output, width=85))
+				# print (new)
+			except:
+				print(txt_output)
 		else:
 			print (gre+"\n\t[*]No APIs discovered through emulation."+res2)
 		
@@ -23619,6 +23677,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 
 def printToJson(bpAll, outputData):	#Output data to json
 	#takes outputdata from generateoutputdata
+	# print ("---------->o", o)
 	global bpPushRet
 	global bpFstenv
 	global bpSyscall
