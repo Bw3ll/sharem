@@ -5258,21 +5258,23 @@ class CustomWinAPIs():
         logged_calls = ("RegCloseKey", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
-    def RegRenameKey(self, uc, eip, esp, export_dict, callAddr, em):
+    def RegRenameKey(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['HKEY', 'LPCWSTR', 'LPCWSTR']
         pNames = ['hKey', 'lpSubKeyName', 'lpNewKeyName']
 
         global registry_add_keys
 
-        # RegKey.printInfoAllKeys()
         keysToRename = set()
         keyPath = ''
 
         lpSubKey = read_unicode(uc, pVals[1])
-        newKey = read_unicode(uc, pVals[2])
+        newKeyName = read_unicode(uc, pVals[2])
 
-        if newKey != '[NULL]':
+        if newKeyName != '[NULL]':
+            if '\\' in newKeyName: # Clean new Name
+                newKeyName = newKeyName.replace('\\','')
+
             if lpSubKey != '[NULL]':
                 if lpSubKey[0] != '\\':
                     lpSubKey = '\\' + lpSubKey
@@ -5321,27 +5323,34 @@ class CustomWinAPIs():
                                     keysToRename.add(val)
                 else: # Handle Not Found
                     pass
+        else: # No New Name Given
+            pass
 
         if len(keysToRename) > 0:
+            newKeyPath = '\\'.join(keyPath.split('\\')[:-1]) + '\\' + newKeyName
             for key in keysToRename:
                 if isinstance(key,RegKey):
-                    # print(key.name)
-                    key.name = newKey
-                    registry_add_keys(newKey)
-                    key.path = key.path.replace(oldKeyName,newKey)
-                    key.handle.name = key.path
+                    if key.path == keyPath: # Update Exact Key
+                        key.name = newKeyName
+                        key.path = key.path.replace(keyPath,newKeyPath)
+                        key.handle.name = key.path
+                        if isinstance(key.parentKey,RegKey): # Update Parent Key
+                            if oldKeyName in key.parentKey.childKeys:
+                                key.parentKey.childKeys.pop(oldKeyName)
+                                key.parentKey.childKeys.update({key.name: key})
+                    else: 
+                        key.path = key.path.replace(keyPath,newKeyPath)
+                        key.handle.name = key.path
+        
+        pVals[2] = newKeyName
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2])
 
-
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
-
-        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-
         logged_calls = ("RegRenameKey", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def RegOverridePredefKey(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 2)
@@ -10228,6 +10237,29 @@ class CustomWinAPIs():
         logged_calls= ("accept", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def GetSystemDirectoryA (self, uc, eip, esp, export_dict, callAddr, em):
+        #'GetSystemDirectoryA': (2, ['LPSTR', 'UINT'], ['lpBuffer', 'uSize'], 'UINT')
+        pVals = makeArgVals(uc, em, esp, 2)
+        pTypes= ['LPSTR', 'UINT']
+        pNames= ['lpBuffer', 'uSize']
+
+        systemDir = 'C:\Windows\System32'
+
+        
+        #pVals[0] = getLookUpVal(pVals[0], dwDesiredAccess_ReverseLookUp)
+        #create strings for everything except ones in our skip
+        skip=[0]   # we need to skip this value (index) later-let's put it in skip
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes=len(pTypes)*4
+
+        retVal = len(systemDir)
+        retValStr= str(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetSystemDirectoryA ", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
 
 
 
@@ -10721,11 +10753,11 @@ class RegKey:
                 RegKey.nextRemoteHandleValues += 8
         self.handle = Handle(HandleType.HKEY, handleValue=handle, name=self.path)
         RegistryKeys.update({self.path: self})
-        self.parentKey = ''
+        self.parentKey = None
         if parentKeyPath != '':
             for key, val in RegistryKeys.items():
                 if key == parentKeyPath:
-                    self.parentKey = val.name
+                    self.parentKey = val
                     val.childKeys.update({self.name: self})            
 
     def createPreDefinedKeys():
@@ -10760,6 +10792,11 @@ class RegKey:
         print(f'Name: {self.name}')
         print(f'Path: {self.path}')
         print(f'Handle: {hex(self.handle.value)}')
+        if isinstance(self.parentKey,RegKey):
+            parentName = self.parentKey.name
+        else:
+            parentName = 'No Parent'
+        print(f'Parent Key: {parentName}')
         print(f'Child Keys Count: {len(self.childKeys)}')
         if len(self.childKeys) > 0:
             for sKey, sVal in self.childKeys.items():
@@ -10776,6 +10813,11 @@ class RegKey:
             print(f'Name: {rval.name}')
             print(f'Path: {rval.path}')
             print(f'Handle: {hex(rval.handle.value)}')
+            if isinstance(rval.parentKey,RegKey): 
+                parentName = rval.parentKey.name
+            else: 
+                parentName = 'No Parent'
+            print(f'Parent Key: {parentName}')
             print(f'Child Keys Count: {len(rval.childKeys)}')
             if len(rval.childKeys) > 0:
                 for sKey, sVal in rval.childKeys.items():
