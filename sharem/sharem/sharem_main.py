@@ -23,7 +23,7 @@ import argparse
 from argparse import Namespace
 import hashlib
 import platform
-import textwrap3
+#import textwrap3
 
 platformType = platform.uname()[0]
 
@@ -22922,127 +22922,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 	# 	api_par_bundle.append(v + " " + t)
 
 	# artifacts = ["c:\\result.txt", "cmd.exe", "google.com", "result.txt", "user32.dll", "www.msn.com", "http://74.32.123.2:8080", "c:\\windows\\system32\\ipconfig.exe"]
-	for each in commandLine_artifacts:
-		commandLine_arg.add(each)
-	#put list of regeex registry in set of misc
-	for each in registry_artifacts:
-		registry_misc.add(each)
-	#remove if found.
-	for each in registry_add_keys:
-		try:
-			registry_misc.remove(each)
-		except:
-			pass
-	for each in registry_edit_keys:
-		try:
-			registry_misc.remove(each[0])
-		except:
-			pass
-	for each in registry_add_keys:
-		if (type(each) == tuple):
-			each = each[0]
-		try:
-			registry_misc.remove(each)
-		except:
-			pass
-	#remove if found without hkey
-	for each in registry_add_keys:
-		if("HKEY_CLASSES_ROOT" in each):
-			each = each.split("HKEY_CLASSES_ROOT\\")
-			try:
-				registry_misc.remove(each[1])
-			except:
-				pass
-		if("HKEY_CURRENT_USER" in each):
-			each = each.split("HKEY_CURRENT_USER\\")
-			try:
-				registry_misc.remove(each[1])
-			except:
-				pass
-		if("HKEY_LOCAL_MACHINE" in each):
-			each = each.split("HKEY_LOCAL_MACHINE\\")
-			try:
-				registry_misc.remove(each[1])
-			except:
-				pass
-		if("HKEY_USERS" in each):
-			each = each.split("HKEY_USERS\\")
-			try:
-				registry_misc.remove(each[1])
-			except:
-				pass
-		if("HKEY_CURRENT_CONFIG" in each):
-			each = each.split("HKEY_CURRENT_CONFIG\\")
-			try:
-				registry_misc.remove(each[1])
-			except:
-				pass
-	for each in registry_edit_keys:
-		each = each[0]
-		if("HKEY_CLASSES_ROOT" in each):
-			each = each.split("HKEY_CLASSES_ROOT\\")
-			try:
-				registry_misc.remove(each[1])
-			except:
-				pass
-		if("HKEY_CURRENT_USER" in each):
-			each = each.split("HKEY_CURRENT_USER\\")
-			try:
-				registry_misc.remove(each[1])
-			except:
-				pass
-		if("HKEY_LOCAL_MACHINE" in each):
-			each = each.split("HKEY_LOCAL_MACHINE\\")
-			try:
-				registry_misc.remove(each[1])
-			except:
-				pass
-		if("HKEY_USERS" in each):
-			each = each.split("HKEY_USERS\\")
-			try:
-				registry_misc.remove(each[1])
-			except:
-				pass
-		if("HKEY_CURRENT_CONFIG" in each):
-			each = each.split("HKEY_CURRENT_CONFIG\\")
-			try:
-				registry_misc.remove(each[1])
-			except:
-				pass
-	for each in registry_edit_keys:
-		if (type(each) == tuple):
-			each = each[0]
-		if("HKEY_CLASSES_ROOT" in each):
-			each = each.split("HKEY_CLASSES_ROOT\\")
-			try:
-				registry_misc.remove(each[1])
-			except:
-				pass
-		if("HKEY_CURRENT_USER" in each):
-			each = each.split("HKEY_CURRENT_USER\\")
-			try:
-				registry_misc.remove(each[1])
-			except:
-				pass
-		if("HKEY_LOCAL_MACHINE" in each):
-			each = each.split("HKEY_LOCAL_MACHINE\\")
-			try:
-				registry_misc.remove(each[1])
-			except:
-				pass
-		if("HKEY_USERS" in each):
-			each = each.split("HKEY_USERS\\")
-			try:
-				registry_misc.remove(each[1])
-			except:
-				pass
-		if("HKEY_CURRENT_CONFIG" in each):
-			each = each.split("HKEY_CURRENT_CONFIG\\")
-			try:
-				registry_misc.remove(each[1])
-			except:
-				pass
-			
+		
 
 	# web_artifacts = ["www.msn.com", "http://74.32.123.2:8080", "google.com"]
 	# file_artifacts = ["c:\\result.txt", "cmd.exe", "result.txt"]
@@ -23194,49 +23074,49 @@ def emulation_txt_out(apiList, logged_syscalls):
 	reg_credentials_set = set()
 	reg_discovery_set = set()
 
-	persistenceShorthand = ['run','shell folder', 'userinitmprlogonscript', 'print\\monitors','installed components','currentcontrolset\\services','control panel\desktop','print\\processors\\','\\windows\\load' ]
-	credsShorthand = ['\\sam', 'sam\\', 'policy\\secrets']
-	systemDiscShorthand = ['language']
+	#persistenceShorthand = ['run','shell folder', 'userinitmprlogonscript', 'print\\monitors','installed components','currentcontrolset\\services','control panel\desktop','print\\processors\\','\\windows\\load' ]
+	#credsShorthand = ['\\sam', 'sam\\', 'policy\\secrets']
+	#systemDiscShorthand = ['language']
 
 
-	if(len(registry_add_keys) > 0):
-		for keyPath in registry_add_keys:
-			for each in persistenceShorthand:
-				if( each in keyPath.lower()):
-					reg_peristence_set.add(keyPath)
-			for each in credsShorthand:
-				if(each in keyPath.lower()):
-					reg_credentials_set.add(keyPath)
-			for each in systemDiscShorthand:
-				if(each in keyPath.lower()):
-					reg_discovery_set.add(keyPath)
+	#if(len(registry_add_keys) > 0):
+	#	for keyPath in registry_add_keys:
+	#		for each in persistenceShorthand:
+	#			if( each in keyPath.lower()):
+	#				reg_peristence_set.add(keyPath)
+	#		for each in credsShorthand:
+	#			if(each in keyPath.lower()):
+	#				reg_credentials_set.add(keyPath)
+	#		for each in systemDiscShorthand:
+	#			if(each in keyPath.lower()):
+	#				reg_discovery_set.add(keyPath)
 
 			
-	if(len(registry_edit_keys) > 0):
-		for keyPath in registry_edit_keys:
-			keyPath = keyPath[0]
-			for each in persistenceShorthand:
-				if( each in keyPath.lower()):
-					reg_peristence_set.add(keyPath)
-			for each in credsShorthand:
-				if(each in keyPath.lower()):
-					reg_credentials_set.add(keyPath)
-			for each in systemDiscShorthand:
-				if(each in keyPath.lower()):
-					reg_discovery_set.add(keyPath)
-	if(len(registry_delete_keys) > 0):
-		for keyPath in registry_delete_keys:
-			if(type(keyPath) == tuple):
-				keyPath = keyPath[0]
-			for each in persistenceShorthand:
-				if( each in keyPath.lower()):
-					reg_peristence_set.add(keyPath)
-			for each in credsShorthand:
-				if(each in keyPath.lower()):
-					reg_credentials_set.add(keyPath)
-			for each in systemDiscShorthand:
-				if(each in keyPath.lower()):
-					reg_discovery_set.add(keyPath)
+	#if(len(registry_edit_keys) > 0):
+	#	for keyPath in registry_edit_keys:
+	#		keyPath = keyPath[0]
+	#		for each in persistenceShorthand:
+	#			if( each in keyPath.lower()):
+	#				reg_peristence_set.add(keyPath)
+	#		for each in credsShorthand:
+	#			if(each in keyPath.lower()):
+	#				reg_credentials_set.add(keyPath)
+	#		for each in systemDiscShorthand:
+	#			if(each in keyPath.lower()):
+	#				reg_discovery_set.add(keyPath)
+	#if(len(registry_delete_keys) > 0):
+	#	for keyPath in registry_delete_keys:
+	#		if(type(keyPath) == tuple):
+	#			keyPath = keyPath[0]
+	#		for each in persistenceShorthand:
+	#			if( each in keyPath.lower()):
+	#				reg_peristence_set.add(keyPath)
+	#		for each in credsShorthand:
+	#			if(each in keyPath.lower()):
+	#				reg_credentials_set.add(keyPath)
+	#		for each in systemDiscShorthand:
+	#			if(each in keyPath.lower()):
+	#				reg_discovery_set.add(keyPath)
 	#heirarchy
 	reg_HKCR = set()
 	reg_HKCU = set()
@@ -23244,45 +23124,45 @@ def emulation_txt_out(apiList, logged_syscalls):
 	reg_HKU = set()
 	reg_HKCC = set()
 	
-	if(len(registry_add_keys) > 0):
-		for keyPath in registry_add_keys:
-			if("hkey_classes_root" in keyPath.lower()):
-				reg_HKCR.add(keyPath)
-			if("hkey_current_user" in keyPath.lower()):
-				reg_HKCU.add(keyPath)
-			if("hkey_local_machine" in keyPath.lower()):
-				reg_HKLM.add(keyPath)
-			if("hkey_users" in keyPath.lower()):
-				reg_HKU.add(keyPath)
-			if("hkey_current_config" in keyPath.lower()):
-				reg_HKCC.add(keyPath)
-	if(len(registry_edit_keys) > 0):
-		for keyPath in registry_edit_keys:
-			if("hkey_classes_root" in keyPath[0].lower()):
-				reg_HKCR.add(keyPath[0])
-			if("hkey_current_user" in keyPath[0].lower()):
-				reg_HKCU.add(keyPath[0])
-			if("hkey_local_machine" in keyPath[0].lower()):
-				reg_HKLM.add(keyPath[0])
-			if("hkey_users" in keyPath[0].lower()):
-				reg_HKU.add(keyPath[0])
-			if("hkey_current_config" in keyPath[0].lower()):
-				reg_HKCC.add(keyPath[0])
+	#if(len(registry_add_keys) > 0):
+	#	for keyPath in registry_add_keys:
+	#		if("hkey_classes_root" in keyPath.lower()):
+	#			reg_HKCR.add(keyPath)
+	#		if("hkey_current_user" in keyPath.lower()):
+	#			reg_HKCU.add(keyPath)
+	#		if("hkey_local_machine" in keyPath.lower()):
+	#			reg_HKLM.add(keyPath)
+	#		if("hkey_users" in keyPath.lower()):
+	#			reg_HKU.add(keyPath)
+	#		if("hkey_current_config" in keyPath.lower()):
+	#			reg_HKCC.add(keyPath)
+	#if(len(registry_edit_keys) > 0):
+	#	for keyPath in registry_edit_keys:
+	#		if("hkey_classes_root" in keyPath[0].lower()):
+	#			reg_HKCR.add(keyPath[0])
+	#		if("hkey_current_user" in keyPath[0].lower()):
+	#			reg_HKCU.add(keyPath[0])
+	#		if("hkey_local_machine" in keyPath[0].lower()):
+	#			reg_HKLM.add(keyPath[0])
+	#		if("hkey_users" in keyPath[0].lower()):
+	#			reg_HKU.add(keyPath[0])
+	#		if("hkey_current_config" in keyPath[0].lower()):
+	#			reg_HKCC.add(keyPath[0])
 
-	if(len(registry_delete_keys) > 0):
-		for keyPath in registry_delete_keys:
-			if(type(keyPath) == tuple):
-				keyPath = keyPath[0]
-			if("hkey_classes_root" in keyPath.lower()):
-				reg_HKCR.add(keyPath)
-			if("hkey_current_user" in keyPath.lower()):
-				reg_HKCU.add(keyPath)
-			if("hkey_local_machine" in keyPath.lower()):
-				reg_HKLM.add(keyPath)
-			if("hkey_users" in keyPath.lower()):
-				reg_HKU.add(keyPath)
-			if("hkey_current_config" in keyPath.lower()):
-				reg_HKCC.add(keyPath)
+	#if(len(registry_delete_keys) > 0):
+	#	for keyPath in registry_delete_keys:
+	#		if(type(keyPath) == tuple):
+	#			keyPath = keyPath[0]
+	#		if("hkey_classes_root" in keyPath.lower()):
+	#			reg_HKCR.add(keyPath)
+	#		if("hkey_current_user" in keyPath.lower()):
+	#			reg_HKCU.add(keyPath)
+	#		if("hkey_local_machine" in keyPath.lower()):
+	#			reg_HKLM.add(keyPath)
+	#		if("hkey_users" in keyPath.lower()):
+	#			reg_HKU.add(keyPath)
+	#		if("hkey_current_config" in keyPath.lower()):
+	#			reg_HKCC.add(keyPath)
 
 	#emu_registry_add_list = ''
 	#emu_registry_edit_list = ''
@@ -23303,29 +23183,29 @@ def emulation_txt_out(apiList, logged_syscalls):
 			txt_output += mag + "\n************* DLLs *************\n" + res
 			txt_output += "{}{:<18} {}\n".format(cya + "DLLs" + res, "",emu_dll_list)
 
-		if(len(path_artifacts) > 0):
+		if(len(art.path_artifacts) > 0):
 			emu_path_list = "\n"
-			emu_path_list += "\n".join(path_artifacts)
+			emu_path_list += "\n".join(art.path_artifacts)
 			emu_path_list += "\n"
 		
-		if(len(file_artifacts) > 0):
+		if(len(art.file_artifacts) > 0):
 			emu_fileArtifacts_list = "\n"
-			emu_fileArtifacts_list += "\n".join(file_artifacts)
+			emu_fileArtifacts_list += "\n".join(art.file_artifacts)
 			emu_fileArtifacts_list += "\n"
 
-		if(len(commandLine_arg) > 0):
+		if(len(art.commandLine_artifacts) > 0):
 			emu_commandline_list = "\n"
-			emu_commandline_list += "\n".join(commandLine_arg)
+			emu_commandline_list += "\n".join(art.commandLine_artifacts)
 			emu_commandline_list += "\n"
 
-		if(len(web_artifacts) > 0):
+		if(len(art.web_artifacts) > 0):
 			emu_webArtifacts_list = "\n"
-			emu_webArtifacts_list += "\n".join(web_artifacts)
+			emu_webArtifacts_list += "\n".join(art.web_artifacts)
 			emu_webArtifacts_list += "\n"
 
-		if(len(exe_dll_artifacts) > 0):
+		if(len(art.exe_dll_artifacts) > 0):
 			emu_exe_dll_list = "\n"
-			emu_exe_dll_list += "\n".join(exe_dll_artifacts)
+			emu_exe_dll_list += "\n".join(art.exe_dll_artifacts)
 			emu_exe_dll_list += "\n"
 
 		if(len(registry_misc) > 0):
@@ -23333,13 +23213,13 @@ def emulation_txt_out(apiList, logged_syscalls):
 			emu_registry_list += "\n".join(registry_misc)
 			emu_registry_list += "\n"
 
-		if(len(registry_add_keys) > 0):
+		if(len(art.registry_add_keys) > 0):
 			emu_registry_add_list = "\n"
-			emu_registry_add_list += "\n".join(registry_add_keys)
+			emu_registry_add_list += "\n".join(art.registry_add_keys)
 			emu_registry_add_list += "\n"
 
-		if(len(registry_edit_keys) > 0):
-			for keyTuple in registry_edit_keys:
+		if(len(art.registry_edit_keys) > 0):
+			for keyTuple in art.registry_edit_keys:
 				p = 0
 				for o in keyTuple:
 					# emu_registry_edit_list += "\n"
@@ -23357,20 +23237,20 @@ def emulation_txt_out(apiList, logged_syscalls):
 			emu_registry_delete_list = "\n"
 			# emu_registry_delete_list += "\n".join(registry_delete_keys)
 			emu_registry_delete_list += "\n"
-
-		if(len(reg_peristence_set) > 0):
+		print(art.registry_persistence)
+		if(len(art.registry_persistence) > 0):
 			emu_registry_persistence_list = "\n"
-			emu_registry_persistence_list += "\n".join(reg_peristence_set)
+			emu_registry_persistence_list += "\n".join(art.registry_persistence)
 			emu_registry_persistence_list += "\n"
 
 		if(len(reg_credentials_set) > 0):
 			emu_registry_credentials_list = "\n"
-			emu_registry_credentials_list += "\n".join(reg_credentials_set)
+			emu_registry_credentials_list += "\n".join(art.reg_credentials_set)
 			emu_registry_credentials_list += "\n"
 
 		if(len(reg_discovery_set) > 0):
 			emu_registry_discovery_list = "\n"
-			emu_registry_discovery_list += "\n".join(reg_discovery_set)
+			emu_registry_discovery_list += "\n".join(art.reg_discovery_set)
 			emu_registry_discovery_list += "\n"
 		#if(len(registry_strings) > 0):
 		#	emu_registry_strings_list = "\n"
@@ -23416,10 +23296,10 @@ def emulation_txt_out(apiList, logged_syscalls):
 		emu_webArtifacts_list = ', '.join(web_artifacts)
 		emu_registry_list = ", ".join(registry_misc)
 		emu_exe_dll_list = ", ".join(exe_dll_artifacts)
-		emu_registry_add_list = ', '.join(registry_add_keys)
-		emu_registry_edit_list = ', '.join(registry_edit_keys)
+		emu_registry_add_list = ', '.join(art.registry_add_keys)
+		emu_registry_edit_list = ', '.join(art.registry_edit_keys)
 		emu_registry_delete_list = ', '.join(registry_delete_keys)
-		emu_registry_persistence_list = ', '.join(reg_peristence_set)
+		emu_registry_persistence_list = ', '.join(art.registry_persistence)
 		emu_registry_credentials_list = ', '.join(reg_credentials_set)
 		emu_registry_discovery_list = ', '.join(reg_discovery_set)
 		#emu_registry_strings_list = ', '.join(registry_strings)
@@ -23441,29 +23321,29 @@ def emulation_txt_out(apiList, logged_syscalls):
 	txt_output += mag + "\n************* Artifacts *************\n" 
 	# no_colors_out += "\n************* Artifacts *************\n"
 
-	if len(path_artifacts) > 0:
+	if len(art.path_artifacts) > 0:
 		txt_output += "{}{:<13} {}\n".format(cya + "*** Paths ***" + res,"", emu_path_list)
-	if len(file_artifacts) > 0:
+	if len(art.file_artifacts) > 0:
 		txt_output += "{}{:<9} {}\n".format(cya + "*** Files ***" + res,"", emu_fileArtifacts_list)
-	if len(commandLine_arg) > 0:
+	if len(art.commandLine_artifacts) > 0:
 		txt_output += "{}{:<8} {}\n".format(cya + "*** Command Line ***" + res,"", emu_commandline_list)
-	if len(web_artifacts) > 0:
+	if len(art.web_artifacts) > 0:
 		txt_output += "{}{:<13} {}\n".format(cya + "*** Web ***" + res,"", emu_webArtifacts_list)
-	if len(exe_dll_artifacts) > 0:
+	if len(art.exe_dll_artifacts) > 0:
 		txt_output += "{}{:<8} {}\n".format(cya + "*** EXE / DLLs ***" + res,"", emu_exe_dll_list)
 	
 	### registry artifacts
-	if (len(registry_add_keys) > 0 or len(registry_edit_keys) > 0 or len(registry_delete_keys) > 0):
+	if (len(art.registry_add_keys) > 0 or len(art.registry_edit_keys) > 0 or len(registry_delete_keys) > 0):
 		txt_output += "{}{:<9}\n".format(cya + "*** Registry Actions ***" + res,"")
-	if len(registry_add_keys) > 0:
+	if len(art.registry_add_keys) > 0:
 		txt_output += "{}{:<9} {}\n".format(red + "** Add **" + res,"", emu_registry_add_list)
-	if len(registry_edit_keys) > 0:
+	if len(art.registry_edit_keys) > 0:
 		txt_output += "{}{:<9} {}\n".format(red + "** Edit **" + res,"", emu_registry_edit_list)
 	if len(registry_delete_keys) > 0:
 		txt_output += "{}{:<9} {}\n".format(red + "** Delete **" + res,"", emu_registry_delete_list)
-	if (len(reg_peristence_set) > 0 or len(reg_credentials_set) > 0 or len(reg_discovery_set) > 0):
+	if (len(art.registry_persistence) > 0 or len(reg_credentials_set) > 0 or len(reg_discovery_set) > 0):
 		txt_output += "{}{:<9}\n".format(cya + "*** Registry Techniques ***" + res,"")
-	if (len(reg_peristence_set) > 0):
+	if (len(art.registry_persistence) > 0):
 		txt_output += "{}{:<9} {}\n".format(red + "** Persistence **" + res,"", emu_registry_persistence_list)
 	if (len(reg_credentials_set) > 0):
 		txt_output += "{}{:<9} {}\n".format(red + "** Credentials **" + res,"", emu_registry_credentials_list)

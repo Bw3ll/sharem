@@ -6,12 +6,12 @@ from ..helper.emuHelpers import Uc
 from ..modules import allDllsDict
 from .structures import makeStructVals, struct_FILETIME, struct_PROCESS_INFORMATION, struct_PROCESSENTRY32, struct_MODULEENTRY32, struct_SYSTEMTIME, struct_THREADENTRY32, struct_UNICODE_STRING
 import traceback
+from ..sharem_artifacts import *
 
-commandLine_arg = set()
-registry_edit_keys = set()
-registry_add_keys = set()
+art = Artifacts_emulation()
 registry_delete_keys = set()
 registry_misc = set()
+
 
 FakeProcess = 0xbadd0000
 ProcessCreationReverseLookUp = {16777216: 'CREATE_BREAKAWAY_FROM_JOB', 67108864: 'CREATE_DEFAULT_ERROR_MODE',
@@ -2191,7 +2191,6 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def WinExec(self, uc, eip, esp, export_dict, callAddr, em):
-        global commandLine_arg
         pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['LPCSTR', 'UINT']
         pNames = ['lpCmdLine', 'uCmdShow']
@@ -2208,7 +2207,7 @@ class CustomWinAPIs():
 
         #get the commandline from the arguments
         winexec_args = (pVals[0])
-        commandLine_arg.add(winexec_args)
+        art.commandLine_HookApis.add(winexec_args)
 
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x20
@@ -2267,7 +2266,6 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def system(self, uc, eip, esp, export_dict, callAddr, em):
-        global commandLine_arg
         # int system(const char *command);
         pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['const char']
@@ -2280,7 +2278,7 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
         system_args = (pVals[0])
-        commandLine_arg.add(system_args)
+        commandLine_HookApis.add(system_args)
 
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
@@ -2291,7 +2289,6 @@ class CustomWinAPIs():
         return logged_calls, cleanBytes
 
     def _wsystem(self, uc, eip, esp, export_dict, callAddr, em):
-        global commandLine_arg
         # int _wsystem(const wchar_t *command);
         pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['const wchar_t']
@@ -2304,7 +2301,7 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
         wsystem_args = (pVals[0])
-        commandLine_arg.add(wsystem_args)
+        commandLine_HookApis.add(wsystem_args)
 
         cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x0
@@ -2429,7 +2426,7 @@ class CustomWinAPIs():
                                   1: 'REG_OPTION_VOLATILE'}
         lpdwDispostitionReverseLookUp = {1: 'REG_CREATED_NEW_KEY', 2: 'REG_OPENED_EXISTING_KEY'}
 
-        global registry_add_keys
+        
 
         keyPath = ''
 
@@ -2480,7 +2477,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
 
         logged_calls = ("RegCreateKeyExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -2495,7 +2492,7 @@ class CustomWinAPIs():
                                   1: 'REG_OPTION_VOLATILE'}
         lpdwDispostitionReverseLookUp = {1: 'REG_CREATED_NEW_KEY', 2: 'REG_OPENED_EXISTING_KEY'}
 
-        global registry_add_keys
+        
 
         lpSubKey = read_unicode(uc, pVals[1])
         if lpSubKey != '[NULL]':
@@ -2545,7 +2542,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
 
         logged_calls = ("RegCreateKeyExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -2555,7 +2552,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCSTR', 'PHKEY']
         pNames = ['hkey', 'lpSubKey', 'phkResult']
 
-        global registry_add_keys
+        
 
         lpSubKey = read_string(uc, pVals[1])
         if lpSubKey != '[NULL]':
@@ -2601,7 +2598,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
            
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
 
         logged_calls = ("RegCreateKeyA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -2611,7 +2608,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCWSTR', 'PHKEY']
         pNames = ['hkey', 'lpSubKey', 'phkResult']
 
-        global registry_add_keys
+        
 
         lpSubKey = read_unicode(uc, pVals[1])
         if lpSubKey != '[NULL]':
@@ -2657,7 +2654,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
     
         logged_calls = ("RegCreateKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -2671,7 +2668,7 @@ class CustomWinAPIs():
                                   1: 'REG_OPTION_VOLATILE'}
         lpdwDispostitionReverseLookUp = {1: 'REG_CREATED_NEW_KEY', 2: 'REG_OPENED_EXISTING_KEY'}
 
-        global registry_add_keys
+        
 
         lpSubKey = read_string(uc, pVals[1])
         if lpSubKey != '[NULL]':
@@ -2721,7 +2718,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
 
         logged_calls = ("RegCreateKeyTransactedA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -2785,7 +2782,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
 
         logged_calls = ("RegCreateKeyTransactedW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -2801,7 +2798,7 @@ class CustomWinAPIs():
         pVals[2] = getLookUpVal(pVals[2], ulOptionReverseLookUp)
         pVals[3] = getLookUpVal(pVals[3], samDesiredReverseLookUp)     
 
-        global registry_add_keys
+        
 
         lpSubKey = read_string(uc, pVals[1])
         if lpSubKey != '[NULL]':
@@ -2847,7 +2844,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
 
         logged_calls = ("RegOpenKeyTransactedA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -2863,7 +2860,7 @@ class CustomWinAPIs():
         pVals[2] = getLookUpVal(pVals[2], ulOptionReverseLookUp)
         pVals[3] = getLookUpVal(pVals[3], samDesiredReverseLookUp)     
 
-        global registry_add_keys
+        
 
         lpSubKey = read_unicode(uc, pVals[1])
         if lpSubKey != '[NULL]':
@@ -2909,7 +2906,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
 
         logged_calls = ("RegOpenKeyTransactedW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -2919,7 +2916,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCSTR', 'PHKEY']
         pNames = ['hkey', 'lpSubKey', 'phkResult']
 
-        global registry_add_keys
+        
 
         lpSubKey = read_string(uc, pVals[1])
         if lpSubKey != '[NULL]':
@@ -2965,7 +2962,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
  
         logged_calls = ("RegOpenKeyA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -2975,7 +2972,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCWSTR', 'PHKEY']
         pNames = ['hkey', 'lpSubKey', 'phkResult']
 
-        global registry_add_keys
+        
 
         lpSubKey = read_unicode(uc, pVals[1])
         if lpSubKey != '[NULL]':
@@ -3021,7 +3018,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
         
         logged_calls = ("RegOpenKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -3499,7 +3496,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCSTR', 'LPCSTR', 'DWORD', 'LPDWORD', 'PVOID', 'LPDWORD']
         pNames = ['hKey', 'lpSubKey', 'lpValue', 'dwFlags', 'pdwType', 'pvData', 'pcbData']
 
-        global registry_edit_keys
+        
 
         dwFlagsReverseLookUp = {65535: 'RRF_RT_ANY', 24: 'RRF_RT_DWORD', 72: 'RRF_RT_QWORD', 8: 'RRF_RT_REG_BINARY',
                                 16: 'RRF_RT_REG_DWORD', 4: 'RRF_RT_REG_EXPAND_SZ', 32: 'RRF_RT_REG_MULTI_SZ',
@@ -3593,8 +3590,17 @@ class CustomWinAPIs():
         
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        written_values = registry_key_address.getValue(lpValue)
-        registry_edit_keys.add((keyPath,written_values.name, written_values.dataAsStr))
+        written_values = registry_key_address.getValue(lpSubKey)
+        print(written_values.name,written_values.dataAsStr)
+        print(1)
+        if(lpSubKey == '[NULL]'):
+            print(2)
+            art.registry_edit_keys.add((keyPath,'(Default)', written_values.dataAsStr))
+            print(art.registry_edit_keys)
+        else: 
+            print(3)
+            art.registry_edit_keys.add((keyPath,written_values.name, written_values.dataAsStr))
+        
 
         logged_calls = ("RegGetValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -3604,7 +3610,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCWSTR', 'LPCWSTR', 'DWORD', 'LPDWORD', 'PVOID', 'LPDWORD']
         pNames = ['hKey', 'lpSubKey', 'lpValue', 'dwFlags', 'pdwType', 'pvData', 'pcbData']
 
-        global registry_edit_keys
+        
 
         dwFlagsReverseLookUp = {65535: 'RRF_RT_ANY', 24: 'RRF_RT_DWORD', 72: 'RRF_RT_QWORD', 8: 'RRF_RT_REG_BINARY',16: 'RRF_RT_REG_DWORD', 4: 'RRF_RT_REG_EXPAND_SZ', 32: 'RRF_RT_REG_MULTI_SZ',1: 'RRF_RT_REG_NONE', 64: 'RRF_RT_REG_QWORD', 2: 'RRF_RT_REG_SZ',268435456: 'RRF_NOEXPAND',536870912: 'RRF_ZEROONFAILURE', 65536: 'RRF_SUBKEY_WOW6464KEY',131072: 'RRF_SUBKEY_WOW6432KEY'}
 
@@ -3693,10 +3699,10 @@ class CustomWinAPIs():
         
         uc.reg_write(UC_X86_REG_EAX, retVal)
         
-        written_values = registry_key_address.getValue()
-        registry_edit_keys.add((keyPath,written_values.name, written_values.dataAsStr))
+        written_values = registry_key_address.getValue(lpSubKey)
+        art.registry_edit_keys.add((keyPath,written_values.name, written_values.dataAsStr))
 
-        logged_calls = ("RegGetValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        logged_calls = ("RegGetValueW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
     
     def RegQueryValueA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
@@ -3704,7 +3710,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCSTR', 'LPSTR', 'PLONG']
         pNames = ['hKey', 'lpSubKey', 'lpData', 'lpcbData']
 
-        global registry_edit_keys
+        
 
         lpSubKey = read_string(uc, pVals[1])
         pVals[1] = lpSubKey
@@ -3742,7 +3748,8 @@ class CustomWinAPIs():
             # registry_keys.add()
             # print(keyValue.name)
             #registry_values.add(())
-            registry_edit_keys.add((keyPath,keyValue.name,keyValue.dataAsStr))
+            print(1)
+            art.registry_edit_keys.add((keyPath,keyValue.name,keyValue.dataAsStr))
             try:
                 uc.mem_write(pVals[2],pack(f'<{len(keyValue.data)}s',keyValue.dataAsStr.encode('ascii')))
                 uc.mem_write(pVals[3],pack('<I',len(keyValue.data)))
@@ -3768,7 +3775,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCWSTR', 'LPWSTR', 'PLONG']
         pNames = ['hKey', 'lpSubKey', 'lpData', 'lpcbData']
 
-        global registry_edit_keys
+        
 
         lpSubKey = read_unicode(uc, pVals[1])
         pVals[1] = lpSubKey
@@ -3806,7 +3813,7 @@ class CustomWinAPIs():
             # registry_keys.add()
             # print(keyValue.name)
             #registry_values.add(())
-            registry_edit_keys.add((keyPath,keyValue.name,keyValue.dataAsStr))
+            art.registry_edit_keys.add((keyPath,keyValue.name,keyValue.dataAsStr))
 
             try:
                 uc.mem_write(pVals[2],pack(f'<{len(keyValue.data)*2}s',keyValue.dataAsStr.encode('utf-16')[2:]))
@@ -3833,7 +3840,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCSTR', 'LPDWORD', 'LPDWORD', 'LPBYTE', 'LPDWORD']
         pNames = ['hKey', 'lpValueName', 'lpReserved', 'lpType', 'lpData', 'lpcbData']
 
-        global registry_edit_keys
+        
 
         lpValue = read_string(uc, pVals[1])
 
@@ -3862,7 +3869,7 @@ class CustomWinAPIs():
             # registry_keys.add()
             # print(keyValue.name)
             #registry_values.add(())
-            registry_edit_keys.add((keyPath,keyValue.name,keyValue.dataAsStr))
+            art.registry_edit_keys.add((keyPath,keyValue.name,keyValue.dataAsStr))
             type = keyValue.type
             try:
                 uc.mem_write(pVals[3],pack('<I',keyValue.type.value))
@@ -3914,7 +3921,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCWSTR', 'LPDWORD', 'LPDWORD', 'LPBYTE', 'LPDWORD']
         pNames = ['hKey', 'lpValueName', 'lpReserved', 'lpType', 'lpData', 'lpcbData']
 
-        global registry_edit_keys
+        
 
         lpValue = read_unicode(uc, pVals[1])
 
@@ -3943,7 +3950,7 @@ class CustomWinAPIs():
             # registry_keys.add()
             # print(keyValue.name)
             #registry_values.add(())
-            registry_edit_keys.add((keyPath,keyValue.name,keyValue.dataAsStr))
+            art.registry_edit_keys.add((keyPath,keyValue.name,keyValue.dataAsStr))
             type = keyValue.type
             try:
                 uc.mem_write(pVals[3],pack('<I',keyValue.type.value))
@@ -3994,8 +4001,8 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['HKEY', 'LPCSTR', 'DWORD', 'LPCSTR', 'DWORD']
         pNames = ['hKey', 'lpSubKey', 'dwType', 'lpData', 'cbData']
-
-        global registry_edit_keys
+        
+        
 
         lpSubKey = read_string(uc, pVals[1])
         lpData = read_string(uc, pVals[3])
@@ -4050,7 +4057,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         written_values = registry_key_address.getValue()
-        registry_edit_keys.add((keyPath,written_values.name, written_values.dataAsStr))
+        art.registry_edit_keys.add((keyPath,written_values.name, written_values.dataAsStr))
 
         logged_calls = ("RegSetValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -4060,7 +4067,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCWSTR', 'DWORD', 'LPCWSTR', 'DWORD']
         pNames = ['hKey', 'lpSubKey', 'dwType', 'lpData', 'cbData']
 
-        global registry_edit_keys
+        
 
 
         lpSubKey = read_unicode(uc, pVals[1])
@@ -4116,7 +4123,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         written_values = registry_key_address.getValue()
-        registry_edit_keys.add((keyPath,written_values.name, written_values.dataAsStr))
+        art.registry_edit_keys.add((keyPath,written_values.name, written_values.dataAsStr))
 
         logged_calls = ("RegSetValueW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -4127,7 +4134,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCSTR', 'DWORD', 'DWORD', 'BYTE *', 'DWORD']
         pNames = ['hKey', 'lpValueName', 'Reserved', 'dwType', 'lpData', 'cbData']
 
-        global registry_edit_keys
+        
 
         valType = RegValueTypes(pVals[3])
         valName = read_string(uc,pVals[1])
@@ -4206,7 +4213,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         written_values = registry_key_address.getValue(valName)
-        registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.dataAsStr))
+        art.registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.dataAsStr))
 
         logged_calls = ("RegSetValueExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -4217,7 +4224,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCWSTR', 'DWORD', 'DWORD', 'BYTE *', 'DWORD']
         pNames = ['hKey', 'lpValueName', 'Reserved', 'dwType', 'lpData', 'cbData']
 
-        global registry_edit_keys
+        
 
         valType = RegValueTypes(pVals[3])
         valName = read_unicode(uc,pVals[1])
@@ -4295,7 +4302,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         written_values = registry_key_address.getValue(valName)
-        registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.dataAsStr))
+        art.registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.dataAsStr))
 
         logged_calls = ("RegSetValueExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -4305,7 +4312,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCSTR', 'LPCSTR', 'DWORD', 'LPCVOID', 'DWORD']
         pNames = ['hKey', 'lpSubKey', 'lpValueName', 'dwType', 'lpData', 'cbData']
 
-        global registry_edit_keys
+        
 
         valType = RegValueTypes(pVals[3])
         valName = read_string(uc,pVals[2])
@@ -4455,7 +4462,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         written_values = registry_key_address.getValue()
-        registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.dataAsStr))
+        art.registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.dataAsStr))
 
         logged_calls = ("RegSetKeyValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -4465,7 +4472,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCWSTR', 'LPCWSTR', 'DWORD', 'LPCVOID', 'DWORD']
         pNames = ['hKey', 'lpSubKey', 'lpValueName', 'dwType', 'lpData', 'cbData']
 
-        global registry_edit_keys
+        
 
         valType = RegValueTypes(pVals[3])
         valName = read_unicode(uc,pVals[2])
@@ -4615,7 +4622,7 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         written_values = registry_key_address.getValue()
-        registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.dataAsStr))
+        art.registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.dataAsStr))
 
         logged_calls = ("RegSetKeyValueW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -4800,6 +4807,7 @@ class CustomWinAPIs():
 
         #print(deletedValue)
         registry_delete_keys.add((keyPath,deletedValue))
+        
 
         logged_calls = ("RegDeleteKeyValueW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -4859,7 +4867,7 @@ class CustomWinAPIs():
         pVals[2] = getLookUpVal(pVals[2], ulOptionReverseLookUp)
         pVals[3] = getLookUpVal(pVals[3], samDesiredReverseLookUp)     
 
-        global registry_add_keys
+        
 
         lpSubKey = read_string(uc, pVals[1])
         if lpSubKey != '[NULL]':
@@ -4905,7 +4913,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
         #written_values = registry_key_address.getValue()
         #registry_values.add((written_values.name,written_values.data))
 
@@ -4924,7 +4932,7 @@ class CustomWinAPIs():
         pVals[2] = getLookUpVal(pVals[2], ulOptionReverseLookUp)
         pVals[3] = getLookUpVal(pVals[3], samDesiredReverseLookUp)
 
-        global registry_add_keys
+        
 
         lpSubKey = read_unicode(uc, pVals[1])
         if lpSubKey != '[NULL]':
@@ -4970,7 +4978,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
         #written_values = registry_key_address.getValue()
         #registry_values.add((written_values.name,written_values.data))
 
@@ -4983,7 +4991,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY']
         pNames = ['hKey']
 
-        global registry_add_keys
+        
 
         keyPath =''
         if pVals[0] in HandlesDict:
@@ -5005,7 +5013,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
 
         logged_calls = ("RegFlushKey", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
@@ -5016,7 +5024,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCSTR', 'LPCSTR']
         pNames = ['hKey', 'lpSubKey', 'lpFile']
 
-        global registry_add_keys
+        
         global registry_misc
 
         lpSubKey = read_string(uc, pVals[1])
@@ -5059,7 +5067,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
         registry_misc.add(pVals[2])
 
         logged_calls = ("RegLoadKeyA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
@@ -5070,7 +5078,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCWSTR', 'LPCWSTR']
         pNames = ['hKey', 'lpSubKey', 'lpFile']
 
-        global registry_add_keys
+        
         global registry_misc
 
         lpSubKey = read_unicode(uc, pVals[1])
@@ -5113,7 +5121,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
         registry_misc.add(pVals[2])
 
         logged_calls = ("RegLoadKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
@@ -5124,7 +5132,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCSTR']
         pNames = ['hKey', 'lpSubKey']
 
-        global registry_add_keys
+        
         global registry_misc
 
         lpSubKey = read_string(uc, pVals[1])
@@ -5167,7 +5175,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
 
         logged_calls = ("RegUnLoadKeyA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -5177,7 +5185,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCWSTR']
         pNames = ['hKey', 'lpSubKey']
 
-        global registry_add_keys
+        
         global registry_misc
 
         lpSubKey = read_unicode(uc, pVals[1])
@@ -5220,7 +5228,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
 
         logged_calls = ("RegUnLoadKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -5232,7 +5240,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY']
         pNames = ['hKey']
 
-        global registry_add_keys
+        
 
         keyPath =''
         if pVals[0] in HandlesDict:
@@ -5253,7 +5261,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
 
         logged_calls = ("RegCloseKey", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
@@ -5263,7 +5271,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCWSTR', 'LPCWSTR']
         pNames = ['hKey', 'lpSubKeyName', 'lpNewKeyName']
 
-        global registry_add_keys
+        
 
         # RegKey.printInfoAllKeys()
         keysToRename = set()
@@ -5327,7 +5335,7 @@ class CustomWinAPIs():
                 if isinstance(key,RegKey):
                     # print(key.name)
                     key.name = newKey
-                    registry_add_keys(newKey)
+                    art.registry_add_keys(newKey)
                     key.path = key.path.replace(oldKeyName,newKey)
                     key.handle.name = key.path
 
@@ -5348,7 +5356,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'HKEY']
         pNames = ['hKey', 'hNewHKEY']
 
-        global registry_add_keys
+        
 
         handleKey = getLookUpVal(pVals[0],HandlesDict)
         if isinstance(handleKey, Handle):
@@ -5400,7 +5408,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        registry_add_keys.add(preKeyPath)
+        art.registry_add_keys.add(preKeyPath)
 
 
         logged_calls = ("RegOverridePredefKey", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
@@ -5484,7 +5492,7 @@ class CustomWinAPIs():
         pTypes = ['LPCSTR', 'HKEY', 'PHKEY']
         pNames = ['lpMachineName', 'hKey', 'phkResult']
 
-        global registry_add_keys
+        
         global registry_misc
 
         #build out
@@ -5527,7 +5535,7 @@ class CustomWinAPIs():
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
         registry_misc.add(pVals[0])
         logged_calls = ("RegConnectRegistryA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -5537,7 +5545,7 @@ class CustomWinAPIs():
         pTypes = ['LPCWSTR', 'HKEY', 'PHKEY']
         pNames = ['lpMachineName', 'hKey', 'phkResult']
 
-        global registry_add_keys
+        
         global registry_misc
 
         #build out
@@ -5577,7 +5585,7 @@ class CustomWinAPIs():
         except:
             pass
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
         registry_misc.add(pVals[0])
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
@@ -5595,7 +5603,7 @@ class CustomWinAPIs():
         pNames = ['hKey', 'lpFile', 'dwFlags']
         dwFlagsReverseLookUp = {0x00000008: 'REG_FORCE_RESTORE', 0x00000001: 'REG_WHOLE_HIVE_VOLATILE'}
 
-        global registry_edit_keys
+        
         global registry_misc
     
         if pVals[0] in HandlesDict:
@@ -5615,7 +5623,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        registry_add_keys.add(hKey.name)
+        art.registry_add_keys.add(hKey.name)
         registry_misc.add(pVals[1])
 
         logged_calls = ("RegRestoreKeyA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
@@ -5627,7 +5635,7 @@ class CustomWinAPIs():
         pNames = ['hKey', 'lpFile', 'dwFlags']
         dwFlagsReverseLookUp = {0x00000008: 'REG_FORCE_RESTORE', 0x00000001: 'REG_WHOLE_HIVE_VOLATILE'}
 
-        global registry_edit_keys
+        
         global registry_misc
     
         if pVals[0] in HandlesDict:
@@ -5647,7 +5655,7 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        registry_add_keys.add(hKey.name)
+        art.registry_add_keys.add(hKey.name)
         registry_misc.add(pVals[1])
 
         logged_calls = ("RegRestoreKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
@@ -5659,7 +5667,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCSTR', 'const LPSECURITY_ATTRIBUTES']
         pNames = ['hKey', 'lpFile', 'lpSecurityAttributes']
 
-        global registry_add_keys
+        
         global registry_misc
     
         if pVals[0] in HandlesDict:
@@ -5674,7 +5682,7 @@ class CustomWinAPIs():
           
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
         registry_misc.add(pVals[1])
 
         retVal = 0x0
@@ -5689,7 +5697,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCWSTR', 'const LPSECURITY_ATTRIBUTES']
         pNames = ['hKey', 'lpFile', 'lpSecurityAttributes']
 
-        global registry_add_keys
+        
         global registry_misc
     
         if pVals[0] in HandlesDict:
@@ -5704,7 +5712,7 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
         registry_misc.add(pVals[1])
 
         retVal = 0x0
@@ -5720,7 +5728,7 @@ class CustomWinAPIs():
         pNames = ['hKey', 'lpFile', 'lpSecurityAttributes', 'Flags']
         dwFlagsReversLookUp = {1: 'REG_STANDARD_FORMAT', 2: 'REG_LATEST_FORMAT', 4: 'REG_NO_COMPRESSION'}
 
-        global registry_add_keys
+        
         global registry_misc
     
         if pVals[0] in HandlesDict:
@@ -5737,7 +5745,7 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
         registry_misc.add(pVals[1])
 
         retVal = 0x0
@@ -5753,7 +5761,7 @@ class CustomWinAPIs():
         pNames = ['hKey', 'lpFile', 'lpSecurityAttributes', 'Flags']
         dwFlagsReversLookUp = {1: 'REG_STANDARD_FORMAT', 2: 'REG_LATEST_FORMAT', 4: 'REG_NO_COMPRESSION'}
 
-        global registry_add_keys
+        
         global registry_misc
     
         if pVals[0] in HandlesDict:
@@ -5770,7 +5778,7 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
 
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
         registry_misc.add(pVals[1])
 
         retVal = 0x0
@@ -5785,7 +5793,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCSTR', 'LPCSTR', 'LPCSTR']
         pNames = ['hKey', 'lpSubKey', 'lpNewFile', 'lpOldFile']
 
-        global registry_add_keys
+        
 
         lpSubKey = read_string(uc,pVals[1])
         pVals[1] = lpSubKey
@@ -5807,7 +5815,7 @@ class CustomWinAPIs():
         else: # Handle Not Found
             keyPath = ''
           
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
 
@@ -5823,7 +5831,7 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCWSTR', 'LPCWSTR', 'LPCWSTR']
         pNames = ['hKey', 'lpSubKey', 'lpNewFile', 'lpOldFile']
 
-        global registry_add_keys
+        
 
         lpSubKey = read_unicode(uc,pVals[1])
         pVals[1] = lpSubKey
@@ -5845,7 +5853,7 @@ class CustomWinAPIs():
         else: # Handle Not Found
             keyPath = ''
           
-        registry_add_keys.add(keyPath)
+        art.registry_add_keys.add(keyPath)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
 
@@ -10197,7 +10205,7 @@ class CustomWinAPIs():
         logged_calls= ("accept", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-     def GetSystemDirectoryA (self, uc, eip, esp, export_dict, callAddr, em):
+    def GetSystemDirectoryA (self, uc, eip, esp, export_dict, callAddr, em):
         #'GetSystemDirectoryA': (2, ['LPSTR', 'UINT'], ['lpBuffer', 'uSize'], 'UINT')
         pVals = makeArgVals(uc, em, esp, 2)
         pTypes= ['LPSTR', 'UINT']
