@@ -4,7 +4,7 @@ from unicorn.x86_const import *
 from struct import pack, unpack
 from ..helper.emuHelpers import Uc
 from ..modules import allDllsDict
-from .structures import makeStructVals, struct_FILETIME, struct_PROCESS_INFORMATION, struct_PROCESSENTRY32, struct_MODULEENTRY32, struct_SYSTEMTIME, struct_THREADENTRY32, struct_UNICODE_STRING
+from .structures import makeStructVals, struct_FILETIME, struct_PROCESS_INFORMATION, struct_PROCESSENTRY32, struct_MODULEENTRY32, struct_SYSTEMTIME, struct_THREADENTRY32, struct_UNICODE_STRING, struct_TIME_ZONE_INFORMATION
 import traceback
 
 commandLine_arg = set()
@@ -8740,7 +8740,7 @@ class CustomWinAPIs():
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00808080
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -8972,24 +8972,24 @@ class CustomWinAPIs():
         pNames = ['uFormat', 'hMem'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
         # ClipBoard = auto() handle type at top
+        
         FormatReverseLookUp = {2: 'CF_BITMAP', 8: 'CF_DIB', 17: 'CF_DIBV5', 5: 'CF_DIF', 130: 'CF_DSPBITMAP', 142: 'CF_DSPENHMETAFILE', 131: 'CF_DSPMETAFILEPICT', 129: 'CF_DSPTEXT', 14: 'CF_ENHMETAFILE', 768: 'CF_GDIOBJFIRST', 1023: 'CF_GDIOBJLAST', 15: 'CF_HDROP', 16: 'CF_LOCALE', 3: 'CF_METAFILEPICT', 7: 'CF_OEMTEXT', 128: 'CF_OWNERDISPLAY', 9: 'CF_PALETTE', 10: 'CF_PENDATA', 512: 'CF_PRIVATEFIRST', 767: 'CF_PRIVATELAST', 11: 'CF_RIFF', 4: 'CF_SYLK', 1: 'CF_TEXT', 6: 'CF_TIFF', 13: 'CF_UNICODETEXT', 12: 'CF_WAVE'}
+
 
         pVals[0] = getLookUpVal(pVals[0], FormatReverseLookUp)
 
-        skip = [0]
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip = [0])
 
         fakeData = 'https://sharem.com/login/#'
 
-        handle = Handle(HandleType.Clipboard,data=fakeData)
+        handle = Handle(HandleType.ClipBoard,data=fakeData)
 
-        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal =  handle.value # if success, return val is handle to data
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
     
         logged_calls= ("SetClipboardData", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def GetClipboardData(self, uc, eip, esp, export_dict, callAddr, em):
         pTypes =['UINT'] 
@@ -9007,7 +9007,7 @@ class CustomWinAPIs():
 
         handle = Handle(HandleType.ClipBoard,data=fakeData)
 
-        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal =  handle.value 
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -9038,7 +9038,7 @@ class CustomWinAPIs():
         skip = [1, 2, 3, 4]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal =  handle.value 
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -9115,7 +9115,7 @@ class CustomWinAPIs():
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
 
-        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         #retVal =  # pointer to buffer
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -9140,7 +9140,7 @@ class CustomWinAPIs():
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
 
-        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         #retVal =  # pointer to buffer
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -9156,7 +9156,7 @@ class CustomWinAPIs():
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = "SUCCESS"
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -9180,7 +9180,7 @@ class CustomWinAPIs():
         skip = [2]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = "S_OK"
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -9196,7 +9196,7 @@ class CustomWinAPIs():
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = "SUCCESS"
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -9212,7 +9212,7 @@ class CustomWinAPIs():
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = "SUCCESS"
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -9225,15 +9225,46 @@ class CustomWinAPIs():
         pNames = ['hFile', '*lpCreationTime', '*lpLastAccessTime', '*lpLastWriteTime'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        skip = []
+        creationTime = struct_FILETIME()
+        creationTime.readFromMemory(uc, pVals[1])
+        accessTime = struct_FILETIME()
+        accessTime.readFromMemory(uc, pVals[2])
+        writeTime = struct_FILETIME()
+        writeTime.readFromMemory(uc, pVals[3])
+
+        pVals[1] = makeStructVals(uc, creationTime, pVals[1])
+        pVals[2] = makeStructVals(uc, accessTime, pVals[2])
+        pVals[3] = makeStructVals(uc, writeTime, pVals[3])
+
+        skip = [1,2,3]
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = "SUCCESS"
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("SetFileTime", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, cleanBytes
+
+    def GetTimeZoneInformation(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['LPTIME_ZONE_INFORMATION'] 
+        pNames = ['lpTimeZoneInformation'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        timeZone = struct_TIME_ZONE_INFORMATION()
+        timeZone.writeToMemory(uc, pVals[0])
+        pVals[0] = makeStructVals(uc, timeZone, pVals[0])
+
+        skip = [0]
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        retVal = 0x1
+        retValStr = "TIME_ZONE_ID_STANDARD"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("GetTimeZoneInformation", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
 
     def OpenClipboard(self, uc, eip, esp, export_dict, callAddr, em):
@@ -9244,7 +9275,7 @@ class CustomWinAPIs():
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = "TRUE"
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -9260,7 +9291,7 @@ class CustomWinAPIs():
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = "SUCCESS - New integer identified as timer"
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -9276,7 +9307,7 @@ class CustomWinAPIs():
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = "TRUE"
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -9292,7 +9323,7 @@ class CustomWinAPIs():
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = "TRUE"
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -9308,7 +9339,7 @@ class CustomWinAPIs():
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = "SUCCESSFUL"
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -9324,7 +9355,7 @@ class CustomWinAPIs():
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = "TRUE"
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -9340,7 +9371,7 @@ class CustomWinAPIs():
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        cleanBytes = cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
+        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = "Window Successfully Brought to Foreground"
         uc.reg_write(UC_X86_REG_EAX, retVal)
