@@ -4030,10 +4030,9 @@ class CustomWinAPIs():
                 hKey: Handle = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
                     rKey: RegKey = RegistryKeys[hKey.name]
-                    if rKey.path in RegistryKeys: # If Key Found Set Value
-                        foundKey: RegKey = RegistryKeys[rKey.path]
-                        foundKey.setValue(RegValueTypes(pVals[2]),lpData)
-                        registry_key_address = foundKey
+                    keyPath = rKey.path
+                    rKey.setValue(RegValueTypes(pVals[2]),lpData)
+                    registry_key_address = rKey
             createKey = False
             
         if createKey: # Create New Key
@@ -4096,10 +4095,9 @@ class CustomWinAPIs():
                 hKey: Handle = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
                     rKey: RegKey = RegistryKeys[hKey.name]
-                    if rKey.path in RegistryKeys: # If Key Found Set Value
-                        foundKey: RegKey = RegistryKeys[rKey.path]
-                        foundKey.setValue(RegValueTypes(pVals[2]),lpData)
-                        registry_key_address = foundKey
+                    keyPath = rKey.path
+                    rKey.setValue(RegValueTypes(pVals[2]),lpData)
+                    registry_key_address = rKey
             createKey = False
             
         if createKey: # Create New Key
