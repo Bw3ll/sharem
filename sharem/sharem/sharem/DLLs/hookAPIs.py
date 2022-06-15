@@ -3647,7 +3647,7 @@ class CustomWinAPIs():
 
         if keyValue is not None:
             # info grab here 
-            print(keyValue.name)
+            # print(keyValue.name)
             type = keyValue.type
             try:
                 uc.mem_write(pVals[4],pack('<I',keyValue.type.value))
@@ -5471,10 +5471,6 @@ class CustomWinAPIs():
                 else:
                     retVal = 18
                     retValStr = 'ERROR_NO_MORE_FILES'
-                    RegKey.printTree()
-                    print(RegistryKeys)
-                    print('\n')
-                    print(HandlesDict)
         else: # Handle Not Found
             retVal = 18
             retValStr = 'ERROR_NO_MORE_FILES'
@@ -5561,6 +5557,143 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("RegEnumKeyExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegEnumValueA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['HKEY', 'DWORD', 'LPSTR', 'LPDWORD', 'LPDWORD', 'LPDWORD', 'LPBYTE', 'LPDWORD']
+        pNames = ['hKey', 'dwIndex', 'lpValueName', 'lpcchValueName', 'lpReserved', 'lpType', 'lpData', 'lpcbData']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+    
+        if pVals[0] in HandlesDict:
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+                if pVals[1] < len(rKey.values):
+                    valuesList = list(rKey.values)
+                    keyValue = rKey.values[valuesList[pVals[1]]]
+                    try:
+                        uc.mem_write(pVals[2],pack(f'<{len(keyValue.name)+1}s',keyValue.name.encode('ascii')))
+                        uc.mem_write(pVals[5],pack('<I',keyValue.type.value))
+                        type = keyValue.type
+                        if type == RegValueTypes.REG_BINARY:
+                            uc.mem_write(pVals[6],pack(f'<{len(keyValue.data)}s',keyValue.data))
+                            uc.mem_write(pVals[7],pack('<I',len(keyValue.data)))
+                        elif type == RegValueTypes.REG_DWORD:
+                            uc.mem_write(pVals[6],pack(f'<I',keyValue.data))
+                            uc.mem_write(pVals[7],pack('<I',4))
+                        elif type == RegValueTypes.REG_DWORD_BIG_ENDIAN:
+                            uc.mem_write(pVals[6],pack(f'>I',keyValue.data))
+                            uc.mem_write(pVals[7],pack('<I',4))
+                        elif type == RegValueTypes.REG_QWORD:
+                            uc.mem_write(pVals[6],pack(f'<Q',keyValue.data))
+                            uc.mem_write(pVals[7],pack('<I',8))
+                        elif type == RegValueTypes.REG_SZ:
+                            uc.mem_write(pVals[6],pack(f'<{len(keyValue.dataAsStr)+1}s',keyValue.dataAsStr.encode('ascii')))
+                            uc.mem_write(pVals[7],pack('<I',len(keyValue.dataAsStr)+1))
+                        elif type == RegValueTypes.REG_EXPAND_SZ:
+                            uc.mem_write(pVals[6],pack(f'<{len(keyValue.dataAsStr)+1}s',keyValue.dataAsStr.encode('ascii')))
+                            uc.mem_write(pVals[7],pack('<I',len(keyValue.dataAsStr)+1))
+                        elif type == RegValueTypes.REG_MULTI_SZ:
+                            uc.mem_write(pVals[6],pack(f'<{len(keyValue.dataAsStr)+1}s',keyValue.dataAsStr.encode('ascii')))
+                            uc.mem_write(pVals[7],pack('<I',len(keyValue.dataAsStr)+1))
+                        elif type == RegValueTypes.REG_LINK:
+                            uc.mem_write(pVals[6],pack(f'<{(len(keyValue.dataAsStr)*2)+2}s',keyValue.dataAsStr.encode('utf-16')[2:]))
+                            uc.mem_write(pVals[7],pack('<I',(len(keyValue.dataAsStr)*2)+2))
+                        elif type == RegValueTypes.REG_NONE:
+                            uc.mem_write(pVals[6],pack(f'<{len(keyValue.dataAsStr)+1}s',keyValue.dataAsStr.encode('ascii')))
+                            uc.mem_write(pVals[7],pack('<I',len(keyValue.dataAsStr)+1))         
+                    except:
+                        pass
+                    retVal = 0x0
+                    retValStr = 'ERROR_SUCCESS'
+                    pVals[6] = keyValue.dataAsStr
+                    pVals[5] = type.name
+                else:
+                    retVal = 18
+                    retValStr = 'ERROR_NO_MORE_FILES'
+                    pVals[6] = hex(pVals[6])
+                    pVals[5] = hex(pVals[5])
+        else: # Handle Not Found
+            retVal = 18
+            retValStr = 'ERROR_NO_MORE_FILES'
+            pVals[6] = hex(pVals[6])
+            pVals[5] = hex(pVals[5])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[5,6])
+    
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegEnumValueA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegEnumValueW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['HKEY', 'DWORD', 'LPWSTR', 'LPDWORD', 'LPDWORD', 'LPDWORD', 'LPBYTE', 'LPDWORD']
+        pNames = ['hKey', 'dwIndex', 'lpValueName', 'lpcchValueName', 'lpReserved', 'lpType', 'lpData', 'lpcbData']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+    
+        if pVals[0] in HandlesDict:
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+                if pVals[1] < len(rKey.values):
+                    valuesList = list(rKey.values)
+                    keyValue = rKey.values[valuesList[pVals[1]]]
+                    try:
+                        uc.mem_write(pVals[2],pack(f'<{(len(keyValue.name)*2)+2}s',keyValue.name.encode('utf-16')[2:]))
+                        uc.mem_write(pVals[5],pack('<I',keyValue.type.value))
+                        type = keyValue.type
+                        if type == RegValueTypes.REG_BINARY:
+                            uc.mem_write(pVals[6],pack(f'<{len(keyValue.data)}s',keyValue.data))
+                            uc.mem_write(pVals[7],pack('<I',len(keyValue.data)))
+                        elif type == RegValueTypes.REG_DWORD:
+                            uc.mem_write(pVals[6],pack(f'<I',keyValue.data))
+                            uc.mem_write(pVals[7],pack('<I',4))
+                        elif type == RegValueTypes.REG_DWORD_BIG_ENDIAN:
+                            uc.mem_write(pVals[6],pack(f'>I',keyValue.data))
+                            uc.mem_write(pVals[7],pack('<I',4))
+                        elif type == RegValueTypes.REG_QWORD:
+                            uc.mem_write(pVals[6],pack(f'<Q',keyValue.data))
+                            uc.mem_write(pVals[7],pack('<I',8))
+                        elif type == RegValueTypes.REG_SZ:
+                            uc.mem_write(pVals[6],pack(f'<{(len(keyValue.name)*2)+2}s',keyValue.dataAsStr.encode('utf-16')[2:]))
+                            uc.mem_write(pVals[7],pack('<I',(len(keyValue.name)*2)+2))
+                        elif type == RegValueTypes.REG_EXPAND_SZ:
+                            uc.mem_write(pVals[6],pack(f'<{(len(keyValue.name)*2)+2}s',keyValue.dataAsStr.encode('utf-16')[2:]))
+                            uc.mem_write(pVals[7],pack('<I',(len(keyValue.name)*2)+2))
+                        elif type == RegValueTypes.REG_MULTI_SZ:
+                            uc.mem_write(pVals[6],pack(f'<{(len(keyValue.name)*2)+2}s',keyValue.dataAsStr.encode('utf-16')[2:]))
+                            uc.mem_write(pVals[7],pack('<I',len(keyValue.dataAsStr)+1))
+                        elif type == RegValueTypes.REG_LINK:
+                            uc.mem_write(pVals[6],pack(f'<{(len(keyValue.dataAsStr)*2)+2}s',keyValue.dataAsStr.encode('utf-16')[2:]))
+                            uc.mem_write(pVals[7],pack('<I',(len(keyValue.dataAsStr)*2)+2))
+                        elif type == RegValueTypes.REG_NONE:
+                            uc.mem_write(pVals[6],pack(f'<{(len(keyValue.name)*2)+2}s',keyValue.dataAsStr.encode('utf-16')[2:]))
+                            uc.mem_write(pVals[7],pack('<I',(len(keyValue.name)*2)+2))         
+                    except:
+                        pass
+                    retVal = 0x0
+                    retValStr = 'ERROR_SUCCESS'
+                    pVals[6] = keyValue.dataAsStr
+                    pVals[5] = type.name
+                else:
+                    retVal = 18
+                    retValStr = 'ERROR_NO_MORE_FILES'
+                    pVals[6] = hex(pVals[6])
+                    pVals[5] = hex(pVals[5])
+        else: # Handle Not Found
+            retVal = 18
+            retValStr = 'ERROR_NO_MORE_FILES'
+            pVals[6] = hex(pVals[6])
+            pVals[5] = hex(pVals[5])
+
+
+        
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[5,6])
+    
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegEnumValueW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
 
@@ -8740,13 +8873,12 @@ class CustomWinAPIs():
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x00808080
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
        
         logged_calls= ("GetModuleHandleA", hex(callAddr), (retValStr), 'HMODULE', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def GetModuleHandleW(self, uc, eip, esp, export_dict, callAddr, em):
         # GetModuleHandleW': (1, ['LPCWSTR'], ['lpModuleName'], 'HMODULE'),
@@ -9007,13 +9139,12 @@ class CustomWinAPIs():
 
         handle = Handle(HandleType.ClipBoard,data=fakeData)
 
-        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal =  handle.value 
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
     
         logged_calls= ("GetClipboardData", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def CreateFile2(self, uc, eip, esp, export_dict, callAddr, em):
         pTypes =['LPCWSTR', 'DWORD', 'DWORD', 'DWORD', 'LPSCREATEFILE2_EXTENDED_PARAMETERS'] 
@@ -9038,13 +9169,12 @@ class CustomWinAPIs():
         skip = [1, 2, 3, 4]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal =  handle.value 
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
     
         logged_calls= ("CreateFile2", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def lstrcatA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes =['LPSTR', 'LPCSTR'] 
@@ -9102,7 +9232,6 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         
-
         string2 = read_string(uc, pVals[1])
         try:
             uc.mem_write(pVals[0], pack(f'<{pVals[2]}s', string2.encode("ascii")))
@@ -9115,13 +9244,12 @@ class CustomWinAPIs():
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
 
-        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         #retVal =  # pointer to buffer
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("lstrcpynA", hex(callAddr), (retValStr), 'LPSTR', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def lstrcpynW(self, uc, eip, esp, export_dict, callAddr, em):
         pTypes =['LPWSTR', 'LPCWSTR', 'int'] 
@@ -9139,14 +9267,12 @@ class CustomWinAPIs():
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-
-        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         #retVal =  # pointer to buffer
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("lstrcpynW", hex(callAddr), (retValStr), 'LPWSTR', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def CopyFileW(self, uc, eip, esp, export_dict, callAddr, em):
         pTypes =['LPCWSTR', 'LPCWSTR', 'BOOL'] 
@@ -9156,13 +9282,12 @@ class CustomWinAPIs():
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = "SUCCESS"
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("CopyFileW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def CopyFile2(self, uc, eip, esp, export_dict, callAddr, em):
         pTypes =['PCWSTR', 'PCWSTR', 'COPYFILE2_EXTENDED_PARAMETERS'] 
@@ -9180,13 +9305,12 @@ class CustomWinAPIs():
         skip = [2]  # we need to skip this value (index) later-let's put it in skip
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip)
 
-        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = "S_OK"
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("CopyFile2", hex(callAddr), (retValStr), 'HRESULT', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def DeleteFileW(self, uc, eip, esp, export_dict, callAddr, em):
         pTypes =['LPCWSTR'] 
@@ -9196,13 +9320,12 @@ class CustomWinAPIs():
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = "SUCCESS"
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("DeleteFileW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def DeleteFileA(self, uc, eip, esp, export_dict, callAddr, em):
         pTypes =['LPCSTR'] 
@@ -9212,13 +9335,12 @@ class CustomWinAPIs():
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = "SUCCESS"
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("DeleteFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def SetFileTime(self, uc, eip, esp, export_dict, callAddr, em):
         pTypes =['HANDLE', 'FILETIME', 'FILETIME', 'FILETIME'] 
@@ -9239,13 +9361,12 @@ class CustomWinAPIs():
         skip = [1,2,3]
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        cleanBytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = "SUCCESS"
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("SetFileTime", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def GetTimeZoneInformation(self, uc, eip, esp, export_dict, callAddr, em):
         pTypes =['LPTIME_ZONE_INFORMATION'] 
@@ -9339,13 +9460,12 @@ class CustomWinAPIs():
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = "SUCCESSFUL"
         uc.reg_write(UC_X86_REG_EAX, retVal)
         # "0x15e17a55": ["CopyFile", "kernel32.dll"],
         logged_calls= ("CopyFile", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def ReadFile(self, uc, eip, esp, export_dict, callAddr, em):
         pTypes =['HANDLE', 'LPVOID', 'DWORD', 'LPDWORD', 'LPOVERLAPPED'] 
@@ -9355,13 +9475,12 @@ class CustomWinAPIs():
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = "TRUE"
         uc.reg_write(UC_X86_REG_EAX, retVal)
         
         logged_calls= ("ReadFile", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def SetForegroundWindow(self, uc, eip, esp, export_dict, callAddr, em):
         pTypes =['HWND'] 
@@ -9371,13 +9490,12 @@ class CustomWinAPIs():
         skip = []
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
 
-        cleanbytes = stackCleanup(uc, em, esp, len(pTypes))
         retVal = 0x1
         retValStr = "Window Successfully Brought to Foreground"
         uc.reg_write(UC_X86_REG_EAX, retVal)
        
         logged_calls= ("SetForegroundWindow", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def SetLastError(self, uc, eip, esp, export_dict, callAddr, em):
         # void SetLastError([in] DWORD dwErrCode);
@@ -10789,14 +10907,14 @@ class System_SnapShot:
 class RegValueTypes(Enum):
     REG_BINARY = 3  # Binary data in any form.
     REG_DWORD = 4  # A 32-bit number.
-    # REG_DWORD_LITTLE_ENDIAN	= 4  # A 32-bit number in little-endian format. Windows is designed to run on little-endian computer architectures. Therefore, this value is defined as REG_DWORD in the Windows header files.
+    # REG_DWORD_LITTLE_ENDIAN = 4  # A 32-bit number in little-endian format. Windows is designed to run on little-endian computer architectures. Therefore, this value is defined as REG_DWORD in the Windows header files.
     REG_DWORD_BIG_ENDIAN = 5  # A 32-bit number in big-endian format. Some UNIX systems support big-endian architectures.
     REG_EXPAND_SZ = 2  # A null-terminated string that contains unexpanded references to environment variables (for example, "%PATH%"). It will be a Unicode or ANSI string depending on whether you use the Unicode or ANSI functions. To expand the environment variable references, use the ExpandEnvironmentStrings function.
     REG_LINK = 6  # A null-terminated Unicode string that contains the target path of a symbolic link that was created by calling the RegCreateKeyEx function with REG_OPTION_CREATE_LINK.
     REG_MULTI_SZ = 7  # A sequence of null-terminated strings, terminated by an empty string (\0). The following is an example: String1\0String2\0String3\0LastString\0\0 The first \0 terminates the first string, the second to the last \0 terminates the last string, and the final \0 terminates the sequence. Note that the final terminator must be factored into the length of the string.
     REG_NONE = 0  # No defined value type.
     REG_QWORD = 11	# A 64-bit number.
-    # REG_QWORD_LITTLE_ENDIAN	= 11  # A 64-bit number in little-endian format. Windows is designed to run on little-endian computer architectures. Therefore, this value is defined as REG_QWORD in the Windows header files.
+    # REG_QWORD_LITTLE_ENDIAN = 11  # A 64-bit number in little-endian format. Windows is designed to run on little-endian computer architectures. Therefore, this value is defined as REG_QWORD in the Windows header files.
     REG_SZ = 1  # A null-terminated string. This will be either a Unicode or an ANSI string, depending on whether you use the Unicode or ANSI functions.
 
 class RegKey:
