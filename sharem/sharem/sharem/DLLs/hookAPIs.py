@@ -5486,6 +5486,83 @@ class CustomWinAPIs():
         logged_calls = ("RegEnumKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def RegEnumKeyExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['HKEY', 'DWORD', 'LPSTR', 'LPDWORD', 'LPDWORD', 'LPSTR', 'LPDWORD', 'PFILETIME']
+        pNames = ['hKey', 'dwIndex', 'lpName', 'lpcchName', 'lpReserved', 'lpClass', 'lpcchClass', 'lpftLastWriteTime']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        fileTime = struct_FILETIME()
+
+        if pVals[0] in HandlesDict:
+            hKey: Handle = HandlesDict[pVals[0]]
+            keyPath = hKey.name
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+                if pVals[1] < len(rKey.childKeys):
+                    ChildKeysList = list(rKey.childKeys)
+                    childKey = rKey.childKeys[ChildKeysList[pVals[1]]]
+                    try:
+                        uc.mem_write(pVals[2],pack(f'<{len(childKey.name)+1}s',childKey.name.encode('ascii')))
+                        fileTime.writeToMemory(uc, pVals[7])
+                    except:
+                        pass
+                    retVal = 0x0
+                    retValStr = 'ERROR_SUCCESS'
+                    pVals[7] = makeStructVals(uc, fileTime, pVals[7])
+                else:
+                    retVal = 18
+                    retValStr = 'ERROR_NO_MORE_FILES'
+                    pVals[7] = hex(pVals[7])
+        else: # Handle Not Found
+            retVal = 18
+            retValStr = 'ERROR_NO_MORE_FILES'
+            pVals[7] = hex(pVals[7])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[7])
+    
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegEnumKeyExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegEnumKeyExW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['HKEY', 'DWORD', 'LPWSTR', 'LPDWORD', 'LPDWORD', 'LPWSTR', 'LPDWORD', 'PFILETIME']
+        pNames = ['hKey', 'dwIndex', 'lpName', 'lpcchName', 'lpReserved', 'lpClass', 'lpcchClass', 'lpftLastWriteTime']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        fileTime = struct_FILETIME()
+
+        if pVals[0] in HandlesDict:
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+                if pVals[1] < len(rKey.childKeys):
+                    ChildKeysList = list(rKey.childKeys)
+                    childKey = rKey.childKeys[ChildKeysList[pVals[1]]]
+                    try:
+                        uc.mem_write(pVals[2],pack(f'<{(len(childKey.name)*2)+2}s',childKey.name.encode('utf-16')[2:]))
+                        fileTime.writeToMemory(uc, pVals[7])
+                    except:
+                        pass
+                    retVal = 0x0
+                    retValStr = 'ERROR_SUCCESS'
+                    pVals[7] = makeStructVals(uc, fileTime, pVals[7])
+                else:
+                    retVal = 18
+                    retValStr = 'ERROR_NO_MORE_FILES'
+                    pVals[7] = hex(pVals[7])
+        else: # Handle Not Found
+            retVal = 18
+            retValStr = 'ERROR_NO_MORE_FILES'
+            pVals[7] = hex(pVals[7])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[7])
+    
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegEnumKeyExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def RegConnectRegistryA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         #'RegConnectRegistryA': (3, ['LPCSTR', 'HKEY', 'PHKEY'], ['lpMachineName', 'hKey', 'phkResult'], 'LSTATUS')
