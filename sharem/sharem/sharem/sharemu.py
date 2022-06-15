@@ -215,7 +215,7 @@ def catch_windows_api(uc, addr, ret, size, funcAddress):
     global stopProcess
     global cleanBytes
 
-    bprint("funcName", funcAddress, hex(addr))
+    # print("funcName", funcAddress, hex(addr))
 
     ret += size
     push(uc, em.arch, ret)
@@ -237,8 +237,10 @@ def catch_windows_api(uc, addr, ret, size, funcAddress):
             logged_dlls.append(dll)
         
 
-    except:
+    except Exception as e:
         funcName = "funcname: DID NOT FIND address - " + funcAddress
+        print ("finding funcname")
+        print(traceback.format_exc())
 
     try:
         funcInfo, cleanBytes = getattr(WinAPI, funcName)(uc, eip, esp, export_dict, addr, em)
