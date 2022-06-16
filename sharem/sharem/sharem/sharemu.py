@@ -828,7 +828,9 @@ def findArtifacts():
     #    else:
     #        file_artifacts.append(item)
     art.combineRegexEmuCMDline()
+    art.RegexIntoMisc()
     art.regTechniquesSort()
+    art.hierarchySort()
     art.removeDuplicates()
 
     return list(dict.fromkeys(art.path_artifacts)), list(dict.fromkeys(art.file_artifacts)), list(

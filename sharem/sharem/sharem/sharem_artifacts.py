@@ -35,6 +35,11 @@ class Artifacts_emulation:
 
         self.exe_dll_artifacts = set(self.exe_dll_artifacts)
         self.exe_dll_artifacts = list(self.exe_dll_artifacts)
+
+        self.registry_misc = self.registry_misc - self.registry_add_keys
+        #This will need to be built out better in the future, currently we do not have any functions that edit/delete with special values we want such as desktop being passed into it.
+        #self.registry_misc = self.registry_misc - self.registry_edit_keys
+        #self.registry_misc = self.registry_misc - self.registry_delete_keys
   
 
     def combineRegexEmuCMDline(self):
@@ -58,7 +63,75 @@ class Artifacts_emulation:
                     if(each in keyPath.lower()):
                         self.registry_discovery.add(keyPath)
 
+        if(len(self.registry_edit_keys) > 0):
+            for keyPath in self.registry_edit_keys:
+                keyPath = keyPath[0]
+                for each in persistenceShorthand:
+                    if (each in keyPath.lower()):
+                       self.registry_persistence.add(keyPath)
+                for each in credsShorthand:
+                    if(each in keyPath.lower()):
+                        self.registry_credentials.add(keyPath)
+                for each in systemDiscoverShorthand:
+                    if(each in keyPath.lower()):
+                        self.registry_discovery.add(keyPath)
 
+        if(len(self.registry_delete_keys) > 0):
+           for keyPath in self.registry_delete_keys:
+                if(type(keyPath) == tuple):
+                    keyPath = keyPath[0]
+                for each in persistenceShorthand:
+                    if (each in keyPath.lower()):
+                       self.registry_persistence.add(keyPath)
+                for each in credsShorthand:
+                    if(each in keyPath.lower()):
+                        self.registry_credentials.add(keyPath)
+                for each in systemDiscoverShorthand:
+                    if(each in keyPath.lower()):
+                        self.registry_discovery.add(keyPath)
 
     def hierarchySort(self):
-        print(123)
+        if(len(self.registry_add_keys) > 0):
+            for keyPath in self.registry_add_keys:
+                if("hkey_classes_root" in keyPath.lower()):
+                    self.reg_HKCR.add(keyPath)
+                if("hkey_current_user" in keyPath.lower()):
+                    self.reg_HKCU.add(keyPath)
+                if("hkey_local_machine" in keyPath.lower()):
+                    self.reg_HKLM.add(keyPath)
+                if("hkey_users" in keyPath.lower()):
+                    self.reg_HKU.add(keyPath)
+                if("hkey_current_config" in keyPath.lower()):
+                    self.reg_HKCC.add(keyPath)
+
+        if(len(self.registry_edit_keys) > 0):
+            for keyPath in self.registry_edit_keys:
+                keyPath = keyPath[0]
+                if("hkey_classes_root" in keyPath.lower()):
+                    self.reg_HKCR.add(keyPath)
+                if("hkey_current_user" in keyPath.lower()):
+                    self.reg_HKCU.add(keyPath)
+                if("hkey_local_machine" in keyPath.lower()):
+                    self.reg_HKLM.add(keyPath)
+                if("hkey_users" in keyPath.lower()):
+                    self.reg_HKU.add(keyPath)
+                if("hkey_current_config" in keyPath.lower()):
+                    self.reg_HKCC.add(keyPath)
+
+        if(len(self.registry_delete_keys) > 0):
+            for keyPath in self.registry_delete_keys:
+                if(type(keyPath) == tuple):
+                    keyPath = keyPath[0]
+                if("hkey_classes_root" in keyPath.lower()):
+                    self.reg_HKCR.add(keyPath)
+                if("hkey_current_user" in keyPath.lower()):
+                    self.reg_HKCU.add(keyPath)
+                if("hkey_local_machine" in keyPath.lower()):
+                    self.reg_HKLM.add(keyPath)
+                if("hkey_users" in keyPath.lower()):
+                    self.reg_HKU.add(keyPath)
+                if("hkey_current_config" in keyPath.lower()):
+                    self.reg_HKCC.add(keyPath)
+
+    def RegexIntoMisc(self):
+        self.registry_misc= self.registry_misc|set(self.registry_artifacts)
