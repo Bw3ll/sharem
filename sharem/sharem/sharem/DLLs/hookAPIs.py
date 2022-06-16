@@ -1,3 +1,4 @@
+from copy import deepcopy
 from enum import Enum, auto
 from random import choice, randint
 from unicorn.x86_const import *
@@ -5350,6 +5351,210 @@ class CustomWinAPIs():
         logged_calls = ("RegRenameKey", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def RegCopyTreeA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['HKEY', 'LPCSTR', 'HKEY']
+        pNames = ['hKeySrc', 'lpSubKey', 'hKeyDest']
+
+        keysToCopy = set()
+        keyPath = ''
+
+        lpSubKey = read_string(uc, pVals[1])
+        pVals[1] = lpSubKey
+
+        if pVals[2] in HandlesDict:
+            hKeyDest: Handle = HandlesDict[pVals[2]]
+            if hKeyDest.name in RegistryKeys:
+                rKeyDest: RegKey = RegistryKeys[hKeyDest.name]
+                newKeyPath = rKeyDest.path
+            else:
+                newKeyPath = hKeyDest.name
+
+            if lpSubKey != '[NULL]':
+                if lpSubKey[0] != '\\':
+                    lpSubKey = '\\' + lpSubKey
+                pVals[1] = lpSubKey
+
+                if pVals[0] in HandlesDict:
+                    hKeySrc: Handle = HandlesDict[pVals[0]]
+                    if hKeySrc.name in RegistryKeys:
+                        rKeySrc: RegKey = RegistryKeys[hKeySrc.name]
+                        keyPath = rKeySrc.path + lpSubKey
+                        if keyPath in RegistryKeys:
+                            fKey: RegKey = RegistryKeys[keyPath]
+                            keysToCopy.add(fKey)
+                            for key, val in RegistryKeys.items():
+                                if keyPath in key:
+                                    keysToCopy.add(val)
+                        else:
+                            for key, val in RegistryKeys.items():
+                                if keyPath in key:
+                                    keysToCopy.add(val)
+                    else: # Key Not Found
+                        keyPath = hKeySrc.name + lpSubKey
+                        for key, val in RegistryKeys.items():
+                                if keyPath in key:
+                                    keysToCopy.add(val)
+                else: # Handle Not Found
+                    pass
+            else:
+                pVals[1] = lpSubKey
+                if pVals[0] in HandlesDict:
+                    hKey: Handle = HandlesDict[pVals[0]]
+                    if hKey.name in RegistryKeys:
+                        rKey: RegKey = RegistryKeys[hKey.name]
+                        keyPath = rKey.path
+                        for key, val in RegistryKeys.items():
+                            if keyPath in key:
+                                keysToCopy.add(val)
+                    else: # Key Not Found
+                        keyPath = hKey.name
+                        for key, val in RegistryKeys.items():
+                                if keyPath in key:
+                                    keysToCopy.add(val)
+                else: # Handle Not Found
+                    pass
+        else: # No Dest Handle Given
+            pass
+
+        # Recursive function to update child keys
+        def updateChildKeys(key: RegKey, oldPath: str, newPath: str): 
+            key.path = key.path.replace(oldPath,newPath)
+            key.handle = Handle(HandleType.HKEY,name=key.path, handleValue=RegKey.nextHandleValue)
+            RegKey.nextHandleValue += 8
+            RegistryKeys.update({key.path: key})
+            for val in key.childKeys.values():
+                val.parentKey = key
+                updateChildKeys(val, oldPath, newPath)
+
+        if len(keysToCopy) > 0:
+            oldKeyPath = '\\'.join(keyPath.split('\\')[:-1])
+            for key in keysToCopy:
+                if isinstance(key,RegKey):
+                    if key.path == keyPath: # Update Exact Key
+                        keyCopy = deepcopy(key)
+                        keyCopy.path = keyCopy.path.replace(oldKeyPath,newKeyPath)
+                        keyCopy.handle = Handle(HandleType.HKEY,name=keyCopy.path, handleValue=RegKey.nextHandleValue)
+                        RegKey.nextHandleValue += 8
+                        keyCopy.parentKey = rKeyDest
+                        rKeyDest.childKeys.update({keyCopy.name: keyCopy})
+                        RegistryKeys.update({keyCopy.path: keyCopy})
+                        for cVal in keyCopy.childKeys.values():
+                            cVal.parentKey = keyCopy
+                            updateChildKeys(cVal,oldKeyPath,newKeyPath)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegCopyTreeA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegCopyTreeW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes = ['HKEY', 'LPCWSTR', 'HKEY']
+        pNames = ['hKeySrc', 'lpSubKey', 'hKeyDest']
+
+        keysToCopy = set()
+        keyPath = ''
+
+        lpSubKey = read_unicode(uc, pVals[1])
+        pVals[1] = lpSubKey
+
+        if pVals[2] in HandlesDict:
+            hKeyDest: Handle = HandlesDict[pVals[2]]
+            if hKeyDest.name in RegistryKeys:
+                rKeyDest: RegKey = RegistryKeys[hKeyDest.name]
+                newKeyPath = rKeyDest.path
+            else:
+                newKeyPath = hKeyDest.name
+            
+            if lpSubKey != '[NULL]':
+                if lpSubKey[0] != '\\':
+                    lpSubKey = '\\' + lpSubKey
+                pVals[1] = lpSubKey
+
+                if pVals[0] in HandlesDict:
+                    hKeySrc: Handle = HandlesDict[pVals[0]]
+                    if hKeySrc.name in RegistryKeys:
+                        rKeySrc: RegKey = RegistryKeys[hKeySrc.name]
+                        keyPath = rKeySrc.path + lpSubKey
+                        if keyPath in RegistryKeys:
+                            fKey: RegKey = RegistryKeys[keyPath]
+                            keysToCopy.add(fKey)
+                            for key, val in RegistryKeys.items():
+                                if keyPath in key:
+                                    keysToCopy.add(val)
+                        else:
+                            for key, val in RegistryKeys.items():
+                                if keyPath in key:
+                                    keysToCopy.add(val)
+                    else: # Key Not Found
+                        keyPath = hKeySrc.name + lpSubKey
+                        for key, val in RegistryKeys.items():
+                                if keyPath in key:
+                                    keysToCopy.add(val)
+                else: # Handle Not Found
+                    pass
+            else:
+                pVals[1] = lpSubKey
+                if pVals[0] in HandlesDict:
+                    hKey: Handle = HandlesDict[pVals[0]]
+                    if hKey.name in RegistryKeys:
+                        rKey: RegKey = RegistryKeys[hKey.name]
+                        keyPath = rKey.path
+                        for key, val in RegistryKeys.items():
+                            if keyPath in key:
+                                keysToCopy.add(val)
+                    else: # Key Not Found
+                        keyPath = hKey.name
+                        for key, val in RegistryKeys.items():
+                                if keyPath in key:
+                                    keysToCopy.add(val)
+                else: # Handle Not Found
+                    pass
+        else: # No Dest Handle Given
+            pass
+
+        # Recursive function to update child keys
+        def updateChildKeys(key: RegKey, oldPath: str, newPath: str):
+            key.path = key.path.replace(oldPath,newPath)
+            key.handle = Handle(HandleType.HKEY,name=key.path, handleValue=RegKey.nextHandleValue)
+            RegKey.nextHandleValue += 8
+            RegistryKeys.update({key.path: key})
+            for val in key.childKeys.values():
+                val.parentKey = key
+                updateChildKeys(val, oldPath, newPath)
+
+        if len(keysToCopy) > 0:
+            oldKeyPath = '\\'.join(keyPath.split('\\')[:-1])
+            for key in keysToCopy:
+                if isinstance(key,RegKey):
+                    if key.path == keyPath: # Update Exact Key
+                        keyCopy = deepcopy(key)
+                        keyCopy.path = keyCopy.path.replace(oldKeyPath,newKeyPath)
+                        keyCopy.handle = Handle(HandleType.HKEY,name=keyCopy.path, handleValue=RegKey.nextHandleValue)
+                        RegKey.nextHandleValue += 8
+                        keyCopy.parentKey = rKeyDest
+                        rKeyDest.childKeys.update({keyCopy.name: keyCopy})
+                        RegistryKeys.update({keyCopy.path: keyCopy})
+                        for cVal in keyCopy.childKeys.values():
+                            cVal.parentKey = keyCopy
+                            updateChildKeys(cVal,oldKeyPath,newKeyPath)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegCopyTreeW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+
+
     def RegOverridePredefKey(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['HKEY', 'HKEY']
@@ -6123,8 +6328,6 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[11])
 
-        retVal = 0x0
-        retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("RegQueryInfoKeyA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
@@ -6182,13 +6385,60 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[11])
 
-        retVal = 0x0
-        retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("RegQueryInfoKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def RegSetKeySecurity(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['HKEY', 'SECURITY_INFORMATION', 'PSECURITY_DESCRIPTOR']
+        pNames = ['hKey', 'SecurityInformation', 'pSecurityDescriptor']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        if pVals[0] in HandlesDict:
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+                retVal = 0
+                retValStr = 'ERROR_SUCCESS'
+            else: # Key Not Found
+                retVal = 2
+                retValStr = 'ERROR_FILE_NOT_FOUND'
+        else: # Handle Not Found
+            retVal = 6
+            retValStr = 'ERROR_INVALID_HANDLE'
+        
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegSetKeySecurity", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegGetKeySecurity(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['HKEY', 'SECURITY_INFORMATION', 'PSECURITY_DESCRIPTOR', 'LPDWORD']
+        pNames = ['hKey', 'SecurityInformation', 'pSecurityDescriptor','lpcbSecurityDescriptor']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        if pVals[0] in HandlesDict:
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+                retVal = 0
+                retValStr = 'ERROR_SUCCESS'
+            else: # Key Not Found
+                retVal = 2
+                retValStr = 'ERROR_FILE_NOT_FOUND'
+        else: # Handle Not Found
+            retVal = 6
+            retValStr = 'ERROR_INVALID_HANDLE'
+        
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegGetKeySecurity", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def SetWindowsHookExA(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 4)
@@ -11139,20 +11389,22 @@ class RegKey:
             print('\n')
     
     def printTree():
+        def printTreeRecursive(key: RegKey, level=0):
+            if level == 0:
+                print(key.name)
+            else:
+                print(('  ' * level) + '└─╴' + key.name)
+            for sKey, sVal in key.childKeys.items():
+                printTreeRecursive(sVal, level+1)
+
         print('Registry Tree')
         for key, value in RegKey.PreDefinedKeys.items():
             if value in RegistryKeys:
                 rKey: RegKey = RegistryKeys[value]
-                rKey.printTreeRecursive()
+                printTreeRecursive(rKey)
         print('\n')
     
-    def printTreeRecursive(self, level=0):
-        if level == 0:
-            print(self.name)
-        else:
-            print(('  ' * level) + '└─╴' + self.name)
-        for sKey, sVal in self.childKeys.items():
-            sVal.printTreeRecursive(level+1)
+        
             
 class KeyValue():
     def __init__(self, valueType: RegValueTypes, data, valueName: str):
