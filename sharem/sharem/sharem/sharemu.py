@@ -804,15 +804,7 @@ def findArtifacts():
         # -------------------------------------------
         art.exe_dll_artifacts += re.findall(find_exe_dll, str(p), re.IGNORECASE)
 
-    for item in art.path_artifacts:
-        # print(item)
-        if ("exe" in item or "EXE" in item):
-            art.exe_dll_artifacts.append(item)
-        elif ("dll" in item or "DLL" in item):
-            art.exe_dll_artifacts.append(item)
-        else:
-            pass
-
+    
 
     #for item in file_artifacts1:
     #    # print(item)
@@ -828,14 +820,16 @@ def findArtifacts():
     #    else:
     #        file_artifacts.append(item)
     art.combineRegexEmuCMDline()
-    art.RegexIntoMisc()
-    art.regTechniquesSort()
-    art.hierarchySort()
+    art.exePathToCategory()
+    art.regexIntoMisc()
+    art.regTechniquesFind()
+    art.hierarchyFind()
+
     art.removeDuplicates()
 
-    return list(dict.fromkeys(art.path_artifacts)), list(dict.fromkeys(art.file_artifacts)), list(
-        dict.fromkeys(art.commandLine_artifacts)), list(dict.fromkeys(art.web_artifacts)), list(
-        dict.fromkeys(art.registry_artifacts)), list(dict.fromkeys(art.exe_dll_artifacts))
+    #return list(dict.fromkeys(art.path_artifacts)), list(dict.fromkeys(art.file_artifacts)), list(
+    #    dict.fromkeys(art.commandLine_artifacts)), list(dict.fromkeys(art.web_artifacts)), list(
+    #    dict.fromkeys(art.registry_artifacts)), list(dict.fromkeys(art.exe_dll_artifacts))
 
 
 """
@@ -1005,7 +999,8 @@ def test_i386(mode, code):
 
 
 
-    path_artifacts, file_artifacts, commandLine_artifacts, web_artifacts, registry_artifacts, exe_dll_artifacts = findArtifacts()
+    #path_artifacts, file_artifacts, commandLine_artifacts, web_artifacts, registry_artifacts, exe_dll_artifacts = findArtifacts()
+    findArtifacts()
 
 
 def startEmu(arch, data, vb):

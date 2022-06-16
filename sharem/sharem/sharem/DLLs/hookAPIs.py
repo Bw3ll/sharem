@@ -3742,7 +3742,8 @@ class CustomWinAPIs():
             # print(keyValue.name)
             #registry_values.add(())
             print(1)
-            art.registry_edit_keys.add((keyPath,keyValue.name,keyValue.dataAsStr))
+            art.registry_edit_keys.add((rKey.path,keyValue.name,keyValue.dataAsStr))
+            #art.registry_edit_keys.add((keyPath,keyValue.name,keyValue.dataAsStr))
             try:
                 uc.mem_write(pVals[2],pack(f'<{len(keyValue.data)}s',keyValue.dataAsStr.encode('ascii')))
                 uc.mem_write(pVals[3],pack('<I',len(keyValue.data)))
@@ -3806,7 +3807,8 @@ class CustomWinAPIs():
             # registry_keys.add()
             # print(keyValue.name)
             #registry_values.add(())
-            art.registry_edit_keys.add((keyPath,keyValue.name,keyValue.dataAsStr))
+            art.registry_edit_keys.add((rKey.path,keyValue.name,keyValue.dataAsStr))
+            #art.registry_edit_keys.add((keyPath,keyValue.name,keyValue.dataAsStr))
 
             try:
                 uc.mem_write(pVals[2],pack(f'<{len(keyValue.data)*2}s',keyValue.dataAsStr.encode('utf-16')[2:]))
@@ -3862,7 +3864,7 @@ class CustomWinAPIs():
             # registry_keys.add()
             # print(keyValue.name)
             #registry_values.add(())
-            art.registry_edit_keys.add((keyPath,keyValue.name,keyValue.dataAsStr))
+            art.registry_edit_keys.add((rKey.path,keyValue.name,keyValue.dataAsStr))
             type = keyValue.type
             try:
                 uc.mem_write(pVals[3],pack('<I',keyValue.type.value))
@@ -3941,20 +3943,8 @@ class CustomWinAPIs():
 
         if keyValue is not None:
             # info grab here 
-            # registry_keys.add()
-            # print(keyValue.name)
-            #registry_values.add(())
-            print(11)
-            print(rKey)
-            print(rKey.name)
-            print(keyPath)
-            print(11)
-            if(keyPath == ''):
-                art.registry_edit_keys.add((rKey.name,keyValue.name,keyValue.dataAsStr))
-            else:
-                art.registry_edit_keys.add((keyPath,keyValue.name,keyValue.dataAsStr))
+            art.registry_edit_keys.add((rKey.path,keyValue.name,keyValue.dataAsStr))
 
-            #art.registry_edit_keys.add((keyPath,keyValue.name,keyValue.dataAsStr))
             type = keyValue.type
             try:
                 uc.mem_write(pVals[3],pack('<I',keyValue.type.value))
@@ -4041,6 +4031,7 @@ class CustomWinAPIs():
                 hKey: Handle = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
                     rKey: RegKey = RegistryKeys[hKey.name]
+                    keyPath = rKey.path
                     if rKey.path in RegistryKeys: # If Key Found Set Value
                         foundKey: RegKey = RegistryKeys[rKey.path]
                         foundKey.setValue(RegValueTypes(pVals[2]),lpData)

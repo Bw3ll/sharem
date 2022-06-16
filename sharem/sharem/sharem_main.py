@@ -23,7 +23,7 @@ import argparse
 from argparse import Namespace
 import hashlib
 import platform
-#import textwrap3
+import textwrap3
 
 platformType = platform.uname()[0]
 
@@ -22840,6 +22840,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 
 	# artifacts, net_artifacts, file_artifacts, exec_artifacts = findArtifacts()
 	#path_artifacts, file_artifacts, commandLine_artifacts, web_artifacts, registry_artifacts, exe_dll_artifacts = findArtifacts()
+	findArtifacts()
 	api_names, api_params_values, api_params_types, api_params_names, api_address, ret_values, ret_type, api_bruteforce, syscallID = build_emu_results(apiList)
 
 	api_par_bundle = []
