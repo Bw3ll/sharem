@@ -6071,6 +6071,124 @@ class CustomWinAPIs():
         logged_calls = ("RegReplaceKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def RegQueryInfoKeyA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['HKEY', 'LPSTR', 'LPDWORD','LPDWORD','LPDWORD','LPDWORD','LPDWORD','LPDWORD','LPDWORD','LPDWORD','LPDWORD','PFILETIME']
+        pNames = ['hKey', 'lpClass', 'lpcchClass', 'lpReserved','lpcSubKeys','lpcbMaxSubKeyLen','lpcbMaxClassLen','lpcValues','lpcbMaxValueNameLen','lpcbMaxValueLen','lpcbSecurityDescriptor','lpftLastWriteTime']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        global registry_add_keys
+
+        fileTime = struct_FILETIME()
+        
+        if pVals[0] in HandlesDict:
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+                try:
+                    uc.mem_write(pVals[1],pack('<I',0)) # Class Name Don't Do Reg Classes Currently
+                    uc.mem_write(pVals[2],pack('<I',0)) # Class Length
+                    uc.mem_write(pVals[4],pack('<I',len(rKey.childKeys))) # SubKey Count
+                    maxSubKey = 0
+                    for sKey in rKey.childKeys:
+                        if len(sKey) > maxSubKey: 
+                            maxSubKey = len(sKey)
+                    uc.mem_write(pVals[5],pack('<I',maxSubKey)) # Max SubKey Length
+                    uc.mem_write(pVals[6],pack('<I',0)) # Max Class Length
+                    uc.mem_write(pVals[7],pack('<I',len(rKey.values))) # Value Count
+                    maxValName = 0
+                    for k, value in rKey.values.items():
+                        if len(value.name) > maxValName: 
+                            maxValName = len(value.name)
+                    uc.mem_write(pVals[8],pack('<I',maxValName)) # Max Value Name Length
+                    maxValData = 0
+                    for k, value in rKey.values.items():
+                        if not isinstance(value.data, int): # Can't Get Length of int
+                            if len(value.data) > maxValData:
+                                maxValData = len(value.data)
+                    uc.mem_write(pVals[9],pack('<I',maxValData)) # Max Value Length
+                    uc.mem_write(pVals[10],pack('<I',0)) # Security Descriptor
+                    fileTime.writeToMemory(uc,pVals[11]) # LastWriteTime
+                except:
+                    pass
+                retVal = 0
+                retValStr = 'ERROR_SUCCESS'
+            else: # Key Not Found
+                retVal = 2
+                retValStr = 'ERROR_FILE_NOT_FOUND'
+        else: # Handle Not Found
+            retVal = 6
+            retValStr = 'ERROR_INVALID_HANDLE'
+        
+        pVals[11] = makeStructVals(uc, fileTime, pVals[11])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[11])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegQueryInfoKeyA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegQueryInfoKeyW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['HKEY', 'LPWSTR', 'LPDWORD','LPDWORD','LPDWORD','LPDWORD','LPDWORD','LPDWORD','LPDWORD','LPDWORD','LPDWORD','PFILETIME']
+        pNames = ['hKey', 'lpClass', 'lpcchClass', 'lpReserved','lpcSubKeys','lpcbMaxSubKeyLen','lpcbMaxClassLen','lpcValues','lpcbMaxValueNameLen','lpcbMaxValueLen','lpcbSecurityDescriptor','lpftLastWriteTime']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        global registry_add_keys
+
+        fileTime = struct_FILETIME()
+        
+        if pVals[0] in HandlesDict:
+            hKey: Handle = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey: RegKey = RegistryKeys[hKey.name]
+                try:
+                    uc.mem_write(pVals[1],pack('<I',0)) # Class Name Don't Do Reg Classes Currently
+                    uc.mem_write(pVals[2],pack('<I',0)) # Class Length
+                    uc.mem_write(pVals[4],pack('<I',len(rKey.childKeys))) # SubKey Count
+                    maxSubKey = 0
+                    for sKey in rKey.childKeys:
+                        if len(sKey) > maxSubKey: 
+                            maxSubKey = len(sKey)
+                    uc.mem_write(pVals[5],pack('<I',maxSubKey)) # Max SubKey Length
+                    uc.mem_write(pVals[6],pack('<I',0)) # Max Class Length
+                    uc.mem_write(pVals[7],pack('<I',len(rKey.values))) # Value Count
+                    maxValName = 0
+                    for k, value in rKey.values.items():
+                        if len(value.name) > maxValName: 
+                            maxValName = len(value.name)
+                    uc.mem_write(pVals[8],pack('<I',maxValName)) # Max Value Name Length
+                    maxValData = 0
+                    for k, value in rKey.values.items():
+                        if not isinstance(value.data, int): # Can't Get Length of int
+                            if len(value.data) > maxValData:
+                                maxValData = len(value.data)
+                    uc.mem_write(pVals[9],pack('<I',maxValData)) # Max Value Length
+                    uc.mem_write(pVals[10],pack('<I',0)) # Security Descriptor
+                    fileTime.writeToMemory(uc,pVals[11]) # LastWriteTime
+                except:
+                    pass
+                retVal = 0
+                retValStr = 'ERROR_SUCCESS'
+            else: # Key Not Found
+                retVal = 2
+                retValStr = 'ERROR_FILE_NOT_FOUND'
+        else: # Handle Not Found
+            retVal = 6
+            retValStr = 'ERROR_INVALID_HANDLE'
+        
+        pVals[11] = makeStructVals(uc, fileTime, pVals[11])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[11])
+
+        retVal = 0x0
+        retValStr = 'ERROR_SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("RegQueryInfoKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def SetWindowsHookExA(self, uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 4)
@@ -10758,7 +10876,7 @@ class Heap:
             self.handle = self.baseAddress
         else:
             self.handle = handle
-        self.allocations: HeapAllocation = {}
+        self.allocations: dict[int,HeapAllocation] = {}
         self.usedSize = 0
         HeapsDict.update({self.handle: self})
 
@@ -11129,6 +11247,12 @@ def findStringsParms(uc, pTypes, pVals, skip):
                 else:
                     pVals[i] = buildPtrString(pVals[i],pointerVal)
             elif pTypes[i][0] == 'P': # Pointer Builder
+                try:
+                    pointerVal = getPointerVal(uc,pVals[i])
+                    pVals[i] = buildPtrString(pVals[i], pointerVal)
+                except:
+                    pass
+            elif pTypes[i] == 'LPDWORD': # LPDWORD Builder
                 try:
                     pointerVal = getPointerVal(uc,pVals[i])
                     pVals[i] = buildPtrString(pVals[i], pointerVal)
