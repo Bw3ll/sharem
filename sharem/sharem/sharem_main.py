@@ -19497,7 +19497,8 @@ def modConf():
 	global bPrintEmulation
 	global emulation_verbose
 	global emulation_multiline
-	global emuObj  
+	global emuObj 
+	global emuFakeVals 
 
 	listofStrings = ['pushret', 
 					'callpop', 
@@ -19588,6 +19589,19 @@ def emulationConf(conr):
 	em.breakOutOfLoops = conr.getboolean('SHAREM EMULATION', 'break_infinite_loops')
 	emuObj.verbose = conr.getboolean('SHAREM EMULATION', 'timeless_debugging')
 	em.codeCoverage = conr.getboolean('SHAREM EMULATION',"complete_code_coverage")
+
+def emulationFakeValueConf(conr):
+	global emuFakeVals
+
+	emuFakeVals.user_name = conr['SHAREM EMULATION FAKE VALUES']['user_name']
+	emuFakeVals.computer_name = conr['SHAREM EMULATION FAKE VALUES']['computer_name']
+	emuFakeVals.temp_file_prefix = conr['SHAREM EMULATION FAKE VALUES']['temp_file_prefix']
+	emuFakeVals.default_registry_value = conr['SHAREM EMULATION FAKE VALUES']['default_registry_value']
+	emuFakeVals.computer_ip_address = conr['SHAREM EMULATION FAKE VALUES']['computer_ip_address']
+	emuFakeVals.timezone = conr['SHAREM EMULATION FAKE VALUES']['timezone']
+	emuFakeVals.system_time_since_epoch = int(conr['SHAREM EMULATION FAKE VALUES']['system_time_since_epoch'])
+	emuFakeVals.system_uptime_minutes = int(conr['SHAREM EMULATION FAKE VALUES']['system_uptime_minutes'])
+	emuFakeVals.clipboard_data = conr['SHAREM EMULATION FAKE VALUES']['clipboard_data']
 
 
 def SharemSearchConfig(conr):
@@ -19797,6 +19811,7 @@ def readConf():
 	SharemSearchConfig(conr)
 	disassemblyConf(conr)
 	emulationConf(conr)
+	emulationFakeValueConf(conr)
 	stringsConf(conr)
 	syscallsConf(conr)
 	printStyleConf(conr)

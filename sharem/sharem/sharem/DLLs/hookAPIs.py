@@ -102,6 +102,19 @@ class Handle:
         self.data = data
         HandlesDict.update({self.value: self})
 
+class EmulationFakeValues:
+    def __init__(self):
+        self.user_name = 'administrator'
+        self.computer_name = 'Desktop-SHAREM'
+        self.temp_file_prefix = 'SHAREM'
+        self.default_registry_value = '(SHAREM Default Value)'
+        self.computer_ip_address = '192.168.1.111'
+        self.timezone = 'UTC'
+        self.system_time_since_epoch = 0
+        self.system_uptime_minutes = 60
+        self.clipboard_data = 'https://sharem.com/login/#'
+
+emuFakeVals = EmulationFakeValues()
 
 class CustomWinAPIs():
     def GetProcAddress(self, uc, eip, esp, export_dict, callAddr, em):
@@ -8494,7 +8507,7 @@ class CustomWinAPIs():
         pTypes = ['LPSTR', 'LPDWORD']
         pNames = ['lpBuffer', 'nSize']
 
-        computerName = 'Desktop-SHAREM'.encode('ascii')
+        computerName = emuFakeVals.computer_name.encode('ascii')
         uc.mem_write(pVals[0], pack(f'<{len(computerName) + 2}s', computerName))
         uc.mem_write(pVals[1], pack('<I', len(computerName)))
 
@@ -8516,7 +8529,7 @@ class CustomWinAPIs():
         pTypes = ['LPWSTR', 'LPDWORD']
         pNames = ['lpBuffer', 'nSize']
 
-        computerName = 'Desktop-SHAREM'.encode('utf-16')[2:]
+        computerName = emuFakeVals.computer_name.encode('utf-16')[2:]
         uc.mem_write(pVals[0], pack(f'<{len(computerName) + 2}s', computerName))
         uc.mem_write(pVals[1], pack('<I', len(computerName)))
 
@@ -8544,7 +8557,7 @@ class CustomWinAPIs():
         # Possibly Implement Different Formats
         pVals[0] = getLookUpVal(pVals[0], nameTypeReverseLookup)
 
-        computerName = 'Desktop-SHAREM'.encode('ascii')
+        computerName = emuFakeVals.computer_name.encode('ascii')
         uc.mem_write(pVals[1], pack(f'<{len(computerName) + 2}s', computerName))
         uc.mem_write(pVals[2], pack('<I', len(computerName)))
 
@@ -8572,7 +8585,7 @@ class CustomWinAPIs():
         # Possibly Implement Different Formats
         pVals[0] = getLookUpVal(pVals[0], nameTypeReverseLookup)
 
-        computerName = 'Desktop-SHAREM'.encode('utf-16')[2:]
+        computerName = emuFakeVals.computer_name.encode('utf-16')[2:]
         uc.mem_write(pVals[1], pack(f'<{len(computerName) + 2}s', computerName))
         uc.mem_write(pVals[2], pack('<I', len(computerName)))
 
@@ -8594,7 +8607,7 @@ class CustomWinAPIs():
         pTypes = ['char', 'int']
         pNames = ['*name', 'namelen']
 
-        computerName = 'Desktop-SHAREM'.encode('ascii')
+        computerName = emuFakeVals.computer_name.encode('ascii')
         uc.mem_write(pVals[0], pack(f'<{len(computerName) + 2}s', computerName))
 
         pVals[0] = read_string(uc, pVals[0])
@@ -8752,18 +8765,18 @@ class CustomWinAPIs():
             while len(value) < 4:  # Pad to 4
                 value = str(0) + value
             if preFix != '[NULL]':
-                path = f'{tempPath}SHAREM{preFix[:3]}{value}.TMP'
+                path = f'{tempPath}{emuFakeVals.temp_file_prefix}{preFix[:3]}{value}.TMP'
             else:
-                path = f'{tempPath}SHAREM{value}.TMP'
+                path = f'{tempPath}{emuFakeVals.temp_file_prefix}{value}.TMP'
         else:
             retVal = pVals[2]
             value = hex(retVal)[2:]
             while len(value) < 4:  # Pad to 4
                 value = str(0) + value
             if preFix != '[NULL]':
-                path = f'{tempPath}SHAREM{preFix[:3]}{value}.TMP'
+                path = f'{tempPath}{emuFakeVals.temp_file_prefix}{preFix[:3]}{value}.TMP'
             else:
-                path = f'{tempPath}SHAREM{value}.TMP'
+                path = f'{tempPath}{emuFakeVals.temp_file_prefix}{value}.TMP'
 
         pathEncoded = path.encode('ascii')
         uc.mem_write(pVals[3], pack(f'<{len(pathEncoded)}s', pathEncoded))
@@ -8794,18 +8807,18 @@ class CustomWinAPIs():
             while len(value) < 4:  # Pad to 4
                 value = str(0) + value
             if preFix != '[NULL]':
-                path = f'{tempPath}SHAREM{preFix[:3]}{value}.TMP'
+                path = f'{tempPath}{emuFakeVals.temp_file_prefix}{preFix[:3]}{value}.TMP'
             else:
-                path = f'{tempPath}SHAREM{value}.TMP'
+                path = f'{tempPath}{emuFakeVals.temp_file_prefix}{value}.TMP'
         else:
             retVal = pVals[2]
             value = hex(retVal)[2:]
             while len(value) < 4:  # Pad to 4
                 value = str(0) + value
             if preFix != '[NULL]':
-                path = f'{tempPath}SHAREM{preFix[:3]}{value}.TMP'
+                path = f'{tempPath}{emuFakeVals.temp_file_prefix}{preFix[:3]}{value}.TMP'
             else:
-                path = f'{tempPath}SHAREM{value}.TMP'
+                path = f'{tempPath}{emuFakeVals.temp_file_prefix}{value}.TMP'
 
         pathEncoded = path.encode('utf-16')[2:]
 
@@ -8871,7 +8884,7 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
         
         if pVals[0] != 0x0:
-            timeVal = struct_SYSTEMTIME(True)
+            timeVal = struct_SYSTEMTIME(True, emuFakeVals.system_time_since_epoch)
             timeVal.writeToMemory(uc, pVals[0])
 
         pVals[0] = makeStructVals(uc, timeVal, pVals[0])
@@ -8892,7 +8905,7 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         if pVals[0] != 0x0:
-            timeVal = struct_SYSTEMTIME(False)
+            timeVal = struct_SYSTEMTIME(False, emuFakeVals.system_time_since_epoch)
             timeVal.writeToMemory(uc, pVals[0])
 
         pVals[0] = makeStructVals(uc, timeVal, pVals[0])
@@ -8906,13 +8919,57 @@ class CustomWinAPIs():
         logged_calls = ("GetLocalTime", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def timeGetTime(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = []
+        pNames = []
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        retVal = emuFakeVals.system_uptime_minutes * 60 * 1000
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("timeGetTime", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+    
+    def GetTickCount(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = []
+        pNames = []
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        retVal = emuFakeVals.system_uptime_minutes * 60 * 1000
+        if retVal > int(49.7 * 24 * 60 * 60 * 1000): # Max Value aprox 49.7 days
+            retVal = int(49.7 * 24 * 60 * 60 * 1000)
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("GetTickCount", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetTickCount64(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = []
+        pNames = []
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        retVal = emuFakeVals.system_uptime_minutes * 60 * 1000
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("GetTickCount64", hex(callAddr), (retValStr), 'ULONGLONG', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def GetUserNameA(self, uc, eip, esp, export_dict, callAddr, em):
         # BOOL GetUserNameA([out] LPSTR lpBuffer,[in, out] LPDWORD pcbBuffer);
         pVals = makeArgVals(uc, em, esp, 2)
         pTypes = ['LPSTR', 'LPDWORD']
         pNames = ['lpBuffer', 'pcbBuffer']
 
-        username = 'Administrator'.encode('ascii')
+        username = emuFakeVals.user_name.encode('ascii')
         uc.mem_write(pVals[0], pack(f'<{len(username) + 2}s', username))
         uc.mem_write(pVals[1], pack('<I', len(username)))
 
@@ -8934,7 +8991,7 @@ class CustomWinAPIs():
         pTypes = ['LPWSTR', 'LPDWORD']
         pNames = ['lpBuffer', 'pcbBuffer']
 
-        username = 'Administrator'.encode('utf-16')[2:]
+        username = emuFakeVals.user_name.encode('utf-16')[2:]
         uc.mem_write(pVals[0], pack(f'<{len(username) + 2}s', username))
         uc.mem_write(pVals[1], pack('<I', len(username)))
 
@@ -8961,7 +9018,7 @@ class CustomWinAPIs():
                                    10: 'NameServicePrincipal', 12: 'NameDnsDomain', 13: 'NameGivenName',
                                    14: 'NameSurname'}
         # Possibly Implement Different Formats
-        username = 'Administrator'.encode('ascii')
+        username = emuFakeVals.user_name.encode('ascii')
         uc.mem_write(pVals[1], pack(f'<{len(username) + 2}s', username))
         uc.mem_write(pVals[2], pack('<I', len(username)))
 
@@ -8990,7 +9047,7 @@ class CustomWinAPIs():
                                    10: 'NameServicePrincipal', 12: 'NameDnsDomain', 13: 'NameGivenName',
                                    14: 'NameSurname'}
         # Possibly Implement Different Formats
-        username = 'Administrator'.encode('utf-16')[2:]
+        username = emuFakeVals.user_name.encode('utf-16')[2:]
         uc.mem_write(pVals[1], pack(f'<{len(username) + 2}s', username))
         uc.mem_write(pVals[2], pack('<I', len(username)))
 
@@ -9476,7 +9533,7 @@ class CustomWinAPIs():
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip = [0])
 
-        fakeData = 'https://sharem.com/login/#'
+        fakeData = emuFakeVals.clipboard_data # Might Need Changed
 
         handle = Handle(HandleType.ClipBoard,data=fakeData)
 
@@ -9499,7 +9556,7 @@ class CustomWinAPIs():
         skip = [0]
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
         
-        fakeData = 'https://sharem.com/login/#'
+        fakeData = emuFakeVals.clipboard_data
 
         handle = Handle(HandleType.ClipBoard,data=fakeData)
 
@@ -10379,6 +10436,7 @@ class CustomWinAPIs():
 
         logged_calls = ("GlobalAlloc", hex(callAddr), (retValStr), 'HGLOBAL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
+
     def CreateDirectoryA(self, uc, eip, esp, export_dict, callAddr, em):
         #'CreateDirectoryA': (2, ['LPCSTR', 'LPSECURITY_ATTRIBUTES'], ['lpPathName', 'lpSecurityAttributes'], 'thunk BOOL')
         pVals = makeArgVals(uc, em, esp, 2)
@@ -10436,6 +10494,7 @@ class CustomWinAPIs():
 
         logged_calls= ("RemoveDirectoryW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, cleanBytes
+
     def RemoveDirectoryA(self, uc, eip, esp, export_dict, callAddr, em):
         #RemoveDirectoryA': (1, ['LPCSTR'], ['lpPathName'], 'thunk BOOL')
         pVals = makeArgVals(uc, em, esp, 1)
@@ -10796,7 +10855,7 @@ class CustomWinAPIs():
         logged_calls= ("accept", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def GetSystemDirectoryA (self, uc, eip, esp, export_dict, callAddr, em):
+    def GetSystemDirectoryA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         #'GetSystemDirectoryA': (2, ['LPSTR', 'UINT'], ['lpBuffer', 'uSize'], 'UINT')
         pVals = makeArgVals(uc, em, esp, 2)
         pTypes= ['LPSTR', 'UINT']
@@ -10804,20 +10863,39 @@ class CustomWinAPIs():
 
         systemDir = 'C:\Windows\System32'
 
-        
-        #pVals[0] = getLookUpVal(pVals[0], dwDesiredAccess_ReverseLookUp)
-        #create strings for everything except ones in our skip
-        skip=[0]   # we need to skip this value (index) later-let's put it in skip
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip)
+        path = systemDir.encode('ascii')
+        if (len(path)+2) <= pVals[1]:
+            uc.mem_write(pVals[0], pack(f'<{len(path) + 2}s', path))
 
-        cleanBytes=len(pTypes)*4
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
 
         retVal = len(systemDir)
-        retValStr= str(retVal)
+        retValStr= hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
-        logged_calls= ("GetSystemDirectoryA ", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
-        return logged_calls, cleanBytes
+        logged_calls= ("GetSystemDirectoryA", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetSystemDirectoryW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'GetSystemDirectoryW': (2, ['LPWSTR', 'UINT'], ['lpBuffer', 'uSize'], 'UINT')
+        pVals = makeArgVals(uc, em, esp, 2)
+        pTypes= ['LPWSTR', 'UINT']
+        pNames= ['lpBuffer', 'uSize']
+
+        systemDir = 'C:\Windows\System32'
+
+        path = systemDir.encode('utf-16')[2:]
+        if (len(path)+2) <= pVals[1]:
+            uc.mem_write(pVals[0], pack(f'<{len(path) + 2}s', path))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = len(systemDir)
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetSystemDirectoryW", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
 
 
@@ -11339,7 +11417,7 @@ class RegKey:
         if valueName in self.values:
             return self.values[valueName]
         else: # Return Value Not Set
-            value = KeyValue(RegValueTypes.REG_SZ,data='(SHAREM Default Value)',valueName=valueName)
+            value = KeyValue(RegValueTypes.REG_SZ,emuFakeVals.default_registry_value,valueName)
             return value
 
     def deleteValue(self, valueName: str = '(Default)'):
