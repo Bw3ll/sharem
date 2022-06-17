@@ -207,11 +207,8 @@ class Artifacts_emulation:
 					pass
 			if("HKEY_USERS" in each):
 				each = each.split("HKEY_USERS\\")
-				print(each)
 				try:
-					print(1)
 					self.registry_misc.discard(each[1])
-					print(1)
 				except:
 					pass
 			if("HKEY_CURRENT_CONFIG" in each):

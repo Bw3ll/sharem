@@ -3399,7 +3399,6 @@ class CustomWinAPIs():
 
         
         if len(keysToDelete) > 0:
-            print(keyPath)
             art.registry_delete_keys.add(keyPath)
             for rKey in keysToDelete:
                 rKey.deleteKey()
@@ -3473,7 +3472,6 @@ class CustomWinAPIs():
 
 
         if len(keysToDelete) > 0:
-            print(keyPath)
             art.registry_delete_keys.add(keyPath)
             for rKey in keysToDelete:
                 rKey.deleteKey()
@@ -3741,7 +3739,6 @@ class CustomWinAPIs():
             # registry_keys.add()
             # print(keyValue.name)
             #registry_values.add(())
-            print(1)
             art.registry_edit_keys.add((rKey.path,keyValue.name,keyValue.dataAsStr))
             #art.registry_edit_keys.add((keyPath,keyValue.name,keyValue.dataAsStr))
             try:
