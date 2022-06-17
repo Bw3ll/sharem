@@ -4825,6 +4825,8 @@ class CustomWinAPIs():
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
+        art.registry_add_keys.add('HKEY_CURRENT_USER')
+
         logged_calls = ("RegOpenCurrentUser", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
@@ -4845,6 +4847,9 @@ class CustomWinAPIs():
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        art.registry_add_keys.add('HKEY_CLASSES_ROOT')
+
 
         logged_calls = ("RegOpenUserClassesRoot", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -5437,7 +5442,7 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
     
         uc.reg_write(UC_X86_REG_EAX, retVal)
-
+        art.registry_add_keys.add(keyPath)
         logged_calls = ("RegEnumKeyA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
@@ -5474,6 +5479,7 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
         uc.reg_write(UC_X86_REG_EAX, retVal)
+        art.registry_add_keys.add(keyPath)
 
         logged_calls = ("RegEnumKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -5789,6 +5795,8 @@ class CustomWinAPIs():
         
 
         lpSubKey = read_string(uc,pVals[1])
+        newFile = read_string(uc,pVals[2])
+        oldFile = read_string(uc,pVals[3])
         pVals[1] = lpSubKey
 
         if pVals[0] in HandlesDict:
@@ -5808,7 +5816,10 @@ class CustomWinAPIs():
         else: # Handle Not Found
             keyPath = ''
           
+
         art.registry_add_keys.add(keyPath)
+        art.registry_misc.add(newFile)
+        art.registry_misc.add(oldFile)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
 
@@ -5827,6 +5838,8 @@ class CustomWinAPIs():
         
 
         lpSubKey = read_unicode(uc,pVals[1])
+        newFile = read_string(uc,pVals[2])
+        oldFile = read_string(uc,pVals[3])
         pVals[1] = lpSubKey
         
         if pVals[0] in HandlesDict:
@@ -5847,6 +5860,8 @@ class CustomWinAPIs():
             keyPath = ''
           
         art.registry_add_keys.add(keyPath)
+        art.registry_misc.add(newFile)
+        art.registry_misc.add(oldFile)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
 
