@@ -16,6 +16,7 @@ from .DLLs.syscall_signatures import *
 from .helper.emuHelpers import *
 from .helper.sharemuDeob import *
 from .sharem_debugger import *
+#from .sharem_artifacts import *
 
 import json
 import re
@@ -659,14 +660,7 @@ def logSysCall(syscallName, syscallInfo):
 
 
 def findArtifacts():
-    path_artifacts = []
-    path_artifacts = []
-    file_artifacts1 = []
-    commandLine_artifacts = []
-    web_artifacts = []
-    registry_artifacts = []
-    exe_dll_artifacts = []
-
+    
     ## ============================================================================
     ## PATHs
     ## -----------------------------
@@ -759,83 +753,83 @@ def findArtifacts():
         # -------------------------------------------
         #       Finding Paths
         # -------------------------------------------
-        # path_artifacts += re.findall(find_environment,str(p))
-        # path_artifacts += re.findall(find_letterDrives,str(p))
-        # path_artifacts += re.findall(find_relativePaths,str(p))
-        # path_artifacts += re.findall(find_networkShares,str(p))
+        # art.path_artifacts += re.findall(find_environment,str(p))
+        # art.path_artifacts += re.findall(find_letterDrives,str(p))
+        # art.path_artifacts += re.findall(find_relativePaths,str(p))
+        # art.path_artifacts += re.findall(find_networkShares,str(p))
 
-        path_artifacts += re.findall(total_findPaths,str(p),re.IGNORECASE)
+        art.path_artifacts += re.findall(total_findPaths,str(p),re.IGNORECASE)
 
         # -------------------------------------------
         #       Finding Files
         # -------------------------------------------
-        # file_artifacts += re.findall(find_files,str(p))
-        # file_artifacts += re.findall(find_genericFiles,str(p))
-        # file_artifacts += re.findall(find_zip,str(p))
-        # file_artifacts += re.findall(find_images,str(p))
-        # file_artifacts += re.findall(find_programming,str(p))
-        # file_artifacts += re.findall(find_workRelated,str(p))
-        # file_artifacts += re.findall(find_videoAudio,str(p))
+        # art.file_artifacts += re.findall(find_files,str(p))
+        # art.file_artifacts += re.findall(find_genericFiles,str(p))
+        # art.file_artifacts += re.findall(find_zip,str(p))
+        # art.file_artifacts += re.findall(find_images,str(p))
+        # art.file_artifacts += re.findall(find_programming,str(p))
+        # art.file_artifacts += re.findall(find_workRelated,str(p))
+        # art.file_artifacts += re.findall(find_videoAudio,str(p))
 
-        file_artifacts1 += re.findall(find_totalFiles,str(p))
-        file_artifacts1 += re.findall(find_totalFilesBeginning,str(p),re.IGNORECASE)
+        art.file_artifacts += re.findall(find_totalFiles,str(p))
+        art.file_artifacts += re.findall(find_totalFilesBeginning,str(p),re.IGNORECASE)
         #-------------------------------------------
         #       Finding Command line
         # -------------------------------------------
-        # commandLine_artifacts += re.findall(cmdline_args,str(p))
-        # commandLine_artifacts += re.findall(powershell_args,str(p))
-        # commandLine_artifacts += re.findall(reg_args,str(p))
-        # commandLine_artifacts += re.findall(net_args,str(p))
-        # commandLine_artifacts += re.findall(netsh_args,str(p))
-        # commandLine_artifacts += re.findall(schtask_args,str(p),re.IGNORECASE)
-        # commandLine_artifacts += re.findall(sc_args,str(p))
-        commandLine_artifacts += re.findall(total_commandLineArguments, str(p), re.IGNORECASE)
+        # art.commandLine_artifacts += re.findall(cmdline_args,str(p))
+        # art.commandLine_artifacts += re.findall(powershell_args,str(p))
+        # art.commandLine_artifacts += re.findall(reg_args,str(p))
+        # art.commandLine_artifacts += re.findall(net_args,str(p))
+        # art.commandLine_artifacts += re.findall(netsh_args,str(p))
+        # art.commandLine_artifacts += re.findall(schtask_args,str(p),re.IGNORECASE)
+        # art.commandLine_artifacts += re.findall(sc_args,str(p))
+        art.commandLine_artifacts += re.findall(total_commandLineArguments, str(p), re.IGNORECASE)
         # -------------------------------------------
         #       Finding WEB
         # -------------------------------------------
-        # web_artifacts += re.findall(find_website,str(p))
-        # web_artifacts += re.findall(find_ftp,str(p))
-        web_artifacts += re.findall(total_webTraffic, str(p), re.IGNORECASE)
+        # art.web_artifacts += re.findall(find_website,str(p))
+        # art.web_artifacts += re.findall(find_ftp,str(p))
+        art.web_artifacts += re.findall(total_webTraffic, str(p), re.IGNORECASE)
         # -------------------------------------------
         #       Finding Registry
         # -------------------------------------------
-        # registry_artifacts += re.findall(find_HKEY,str(p))
-        # registry_artifacts += re.findall(find_CurrentUser,str(p))
-        # registry_artifacts += re.findall(find_LocalMachine,str(p))
-        # registry_artifacts += re.findall(find_Users,str(p))
-        # registry_artifacts += re.findall(find_CurrentConfig,str(p))
-        registry_artifacts += re.findall(total_Registry, str(p), re.IGNORECASE)
+        # art.registry_artifacts += re.findall(find_HKEY,str(p))
+        # art.registry_artifacts += re.findall(find_CurrentUser,str(p))
+        # art.registry_artifacts += re.findall(find_LocalMachine,str(p))
+        # art.registry_artifacts += re.findall(find_Users,str(p))
+        # art.registry_artifacts += re.findall(find_CurrentConfig,str(p))
+        art.registry_artifacts += re.findall(total_Registry, str(p), re.IGNORECASE)
         # -------------------------------------------
         #       Finding Exe / DLL
         # -------------------------------------------
+        art.exe_dll_artifacts += re.findall(find_exe_dll, str(p), re.IGNORECASE)
 
-    for item in path_artifacts:
-        # print(item)
-        if ("exe" in item or "EXE" in item):
-            exe_dll_artifacts.append(item)
-        elif ("dll" in item or "DLL" in item):
-            exe_dll_artifacts.append(item)
-        else:
-            pass
+    
 
+    #for item in file_artifacts1:
+    #    # print(item)
+    #    if("exe" in item or "EXE" in item):
+    #        if ('cmd.exe' in item.lower()):
+    #            exe_dll_artifacts.append('cmd.exe')
+    #        elif ("powershell.exe" in item.lower() or 'powershell' in item.lower()):
+    #            exe_dll_artifacts.append('powershell.exe')
+    #        else:
+    #            exe_dll_artifacts.append(item)
+    #    elif("dll" in item or "DLL" in item):
+    #        exe_dll_artifacts.append(item)
+    #    else:
+    #        file_artifacts.append(item)
+    art.combineRegexEmuCMDline()
+    art.exePathToCategory()
+    art.regexIntoMisc()
+    art.regTechniquesFind()
+    art.hierarchyFind()
 
-    for item in file_artifacts1:
-        # print(item)
-        if("exe" in item or "EXE" in item):
-            if ('cmd.exe' in item.lower()):
-                exe_dll_artifacts.append('cmd.exe')
-            elif ("powershell.exe" in item.lower() or 'powershell' in item.lower()):
-                exe_dll_artifacts.append('powershell.exe')
-            else:
-                exe_dll_artifacts.append(item)
-        elif("dll" in item or "DLL" in item):
-            exe_dll_artifacts.append(item)
-        else:
-            file_artifacts.append(item)
-     
-    return list(dict.fromkeys(path_artifacts)), list(dict.fromkeys(file_artifacts)), list(
-        dict.fromkeys(commandLine_artifacts)), list(dict.fromkeys(web_artifacts)), list(
-        dict.fromkeys(registry_artifacts)), list(dict.fromkeys(exe_dll_artifacts))
+    art.removeDuplicates()
+
+    #return list(dict.fromkeys(art.path_artifacts)), list(dict.fromkeys(art.file_artifacts)), list(
+    #    dict.fromkeys(art.commandLine_artifacts)), list(dict.fromkeys(art.web_artifacts)), list(
+    #    dict.fromkeys(art.registry_artifacts)), list(dict.fromkeys(art.exe_dll_artifacts))
 
 
 """
@@ -1005,7 +999,8 @@ def test_i386(mode, code):
 
 
 
-    path_artifacts, file_artifacts, commandLine_artifacts, web_artifacts, registry_artifacts, exe_dll_artifacts = findArtifacts()
+    #path_artifacts, file_artifacts, commandLine_artifacts, web_artifacts, registry_artifacts, exe_dll_artifacts = findArtifacts()
+    findArtifacts()
 
 
 def startEmu(arch, data, vb):
