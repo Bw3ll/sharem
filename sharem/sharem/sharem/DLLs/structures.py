@@ -462,7 +462,7 @@ class struct_STARTUPINFOA:
     names = ['cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError']
 
     def __init__(self):
-        self.cb = 
+        self.cb = 0
         self.lpReserved = 0
         self.lpDesktop = "DESKTOP-NAME"
         self.lpTitle = 0
@@ -473,7 +473,7 @@ class struct_STARTUPINFOA:
         self.dwXCountChars = 0
         self.dwYCountChars = 0
         self.dwFillAttribute = 0
-        self.dwFlags = 
+        self.dwFlags = 0
         self.wShowWindow = 0
         self.cbReserved2 = 0
         self.lpReserved2 = 0
