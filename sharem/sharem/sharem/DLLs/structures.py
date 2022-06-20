@@ -456,6 +456,58 @@ class struct_TIME_ZONE_INFORMATION:
         self.DaylightDate = unpackedStruct[5]
         self.DaylightBias = unpackedStruct[6]
 
+class struct_STARTUPINFOA:
+    # UNICODE_STRING, *PUNICODE_STRING
+    types = ['DWORD', 'LPSTR', 'LPSTR', 'LPSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WORD', 'WORD', 'LPBYTE', 'HANDLE', 'HANDLE', 'HANDLE']
+    names = ['cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError']
+
+    def __init__(self):
+        self.cb = 
+        self.lpReserved = 0
+        self.lpDesktop = "DESKTOP-NAME"
+        self.lpTitle = 0
+        self.dwX = 0
+        self.dwY = 0
+        self.dwXSize = 0
+        self.dwYSize = 0
+        self.dwXCountChars = 0
+        self.dwYCountChars = 0
+        self.dwFillAttribute = 0
+        self.dwFlags = 
+        self.wShowWindow = 0
+        self.cbReserved2 = 0
+        self.lpReserved2 = 0
+        self.hStdInput = 0
+        self.hStdOutput = 0
+        self.hStdError = 0
+
+    def writeToMemory(self, uc: Uc, address):
+        packedStruct = pack('<l64sIl64sIl', self.cb, self.lpReserved, self.lpDesktop, self.lpTitle, self.dwX, self.dwY, self.dwXSize, self.dwYSize, self.dwXCountChars, self.dwYCountChars, self.dwFillAttribute, self.dwFlags, self.wShowWindow, self.cbReserved2, self.lpReserved2, self.hStdInput, self.hStdOutput, self.hStdError)
+        uc.mem_write(address, packedStruct)
+
+    def readFromMemory(self, uc: Uc, address):
+        data = uc.mem_read(address, 19)
+        unpackedStruct = unpack('<l64sIl64sIl', data)
+
+        self.cb = unpackedStruct[0]
+        self.lpReserved = unpackedStruct[1]
+        self.lpDesktop = unpackedStruct[2]
+        self.lpTitle = unpackedStruct[3]
+        self.dwX = unpackedStruct[4]
+        self.dwY = unpackedStruct[5]
+        self.dwXSize = unpackedStruct[6]
+        self.dwYSize = unpackedStruct[7]
+        self.dwXCountChars = unpackedStruct[8]
+        self.dwYCountChars = unpackedStruct[9]
+        self.dwFillAttribute = unpackedStruct[10]
+        self.dwFlags = unpackedStruct[11]
+        self.wShowWindow = unpackedStruct[12]
+        self.cbReserved2 = unpackedStruct[13]
+        self.lpReserved2 = unpackedStruct[14]
+        self.hStdInput = unpackedStruct[15]
+        self.hStdOutput = unpackedStruct[16]
+        self.hStdError = unpackedStruct[17]
+
    
 
 # class struct_OBJECT_ATTRIBUTES: # To Be Finished Later 
