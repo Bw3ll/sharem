@@ -6,7 +6,7 @@ from unicorn.x86_const import *
 from struct import pack, unpack
 from ..helper.emuHelpers import Uc
 from ..modules import allDllsDict
-from .structures import makeStructVals, struct_FILETIME, struct_PROCESS_INFORMATION, struct_PROCESSENTRY32, struct_MODULEENTRY32, struct_SYSTEMTIME, struct_THREADENTRY32, struct_UNICODE_STRING, struct_TIME_ZONE_INFORMATION
+from .structures import makeStructVals, struct_FILETIME, struct_PROCESS_INFORMATION, struct_PROCESSENTRY32, struct_MODULEENTRY32, struct_SYSTEMTIME, struct_THREADENTRY32, struct_UNICODE_STRING, struct_TIME_ZONE_INFORMATION, struct_STARTUPINFOA
 import traceback
 from ..sharem_artifacts import *
 
@@ -9038,6 +9038,41 @@ class CustomWinAPIs():
         logged_calls= ("GetTimeZoneInformation", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def GetStartupInfoW(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['LPSTARTUPINFOW'] 
+        pNames = ['lpStartupInfo'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        startupinfo = struct_STARTUPINFOA()
+        startupinfo.writeToMemory(uc, pVals[0])
+        pVals[0] = makeStructVals(uc, startupinfo, pVals[0])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+        
+        retVal = 0x1
+        retValStr = "STARTUPINFO"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("GetStartupInfoW", hex(callAddr), (retValStr), 'VOID', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegisterHotKey(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['HWND', 'int', 'UINT', 'UINT'] 
+        pNames = ['hWnd', 'id', 'fsModifiers', 'vk'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        fsModifiers_ReverseLookUp = {1: 'MOD_ALT', 2: 'MOD_CONTROL', 16384: 'MOD_NOREPEAT', 4: 'MOD_SHIFT', 8: 'MOD_WIN'}
+
+        pVals[2] = getLookUpVal(pVals[2], fsModifiers_ReverseLookUp)
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[2])
+        
+        retVal = 0x1
+        retValStr = "TRUE"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("RegisterHotKey", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def OpenClipboard(self, uc, eip, esp, export_dict, callAddr, em):
         pTypes =['HWND'] 
         pNames = ['hWndNewOwner'] 
@@ -9050,6 +9085,20 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("OpenClipboard", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def SendMessageA(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['HWND', 'UINT', 'WPARAM', 'LPARAM'] 
+        pNames = ['hWnd', 'Msg', 'wParam', 'lParam'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        
+        retVal = 0x1
+        retValStr = "SUCCESS"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("SendMessageA", hex(callAddr), (retValStr), 'LRESULT', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def SetTimer(self, uc, eip, esp, export_dict, callAddr, em):
