@@ -47,6 +47,7 @@ class HandleType(Enum):
     CreateFileMappingW = auto()
     CreateFileMappingNumaA = auto()
     CreateFileMappingNumaW = auto()
+    SendMessageA = auto()
     # Mutex
     Mutex = auto()
     # Service Handles
@@ -9095,10 +9096,32 @@ class CustomWinAPIs():
         logged_calls= ("OpenClipboard", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def SendMessageA(self, uc, eip, esp, export_dict, callAddr, em):
+    def SendMessage(self, uc, eip, esp, export_dict, callAddr, em):
         pTypes =['HWND', 'UINT', 'WPARAM', 'LPARAM'] 
         pNames = ['hWnd', 'Msg', 'wParam', 'lParam'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        handle = Handle(HandleType.SendMessageA)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        
+        retVal = handle.value
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("SendMessage", hex(callAddr), (retValStr), 'LRESULT', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def SendMessageCallbackA(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['HWND', 'UINT', 'WPARAM', 'LPARAM', 'SENDASYNCPROC', 'ULONG_PTR'] 
+        pNames = ['hWnd', 'Msg', 'wParam', 'lParam', 'lpResultCallBack', 'dwData'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        handle = Handle(HandleType.SendMessageA)
+        try:
+            uc.mem_write(pVals[0], pack('<I',handle.value))
+        except:
+            pass
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         
@@ -9106,7 +9129,7 @@ class CustomWinAPIs():
         retValStr = "SUCCESS"
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls= ("SendMessageA", hex(callAddr), (retValStr), 'LRESULT', pVals, pTypes, pNames, False)
+        logged_calls= ("SendMessageCallbackA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def SetTimer(self, uc, eip, esp, export_dict, callAddr, em):
