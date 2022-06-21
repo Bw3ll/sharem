@@ -47,6 +47,7 @@ class HandleType(Enum):
     CreateFileMappingW = auto()
     CreateFileMappingNumaA = auto()
     CreateFileMappingNumaW = auto()
+    SendMessageA = auto()
     # Mutex
     Mutex = auto()
     # Service Handles
@@ -9092,10 +9093,12 @@ class CustomWinAPIs():
         pNames = ['hWnd', 'Msg', 'wParam', 'lParam'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
+        handle = Handle(HandleType.SendMessageA)
+
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         
-        retVal = 0x1
-        retValStr = "SUCCESS"
+        retVal = handle.value
+        retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("SendMessageA", hex(callAddr), (retValStr), 'LRESULT', pVals, pTypes, pNames, False)
