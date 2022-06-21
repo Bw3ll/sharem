@@ -84,7 +84,7 @@ class Handle:
         self.data = data
         HandlesDict.update({self.value: self})
 
-class EmulationFakeValues:
+class EmulationSimulationValues:
     def __init__(self):
         self.user_name = 'administrator'
         self.computer_name = 'Desktop-SHAREM'
@@ -96,7 +96,7 @@ class EmulationFakeValues:
         self.system_uptime_minutes = 60
         self.clipboard_data = 'https://sharem.com/login/#'
 
-emuFakeVals = EmulationFakeValues()
+emuSimVals = EmulationSimulationValues()
 
 class CustomWinAPIs():
     def GetProcAddress(self, uc, eip, esp, export_dict, callAddr, em):
@@ -312,7 +312,7 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['LPVOID', 'SIZE_T', 'DWORD', 'DWORD']
         pNames = ['lpAddress', 'dwSize', 'flAllocationType', 'flProtect']
-        flProtectReverseLookUp = {16: 'PAGE_EXECUTE', 32: 'PAGE_EXECUTE_READ', 64: 'PAGE_EXECUTE_READWRITE', 128: 'PAGE_EXECUTE_WRITECOPY', 1: 'PAGE_NOACCESS', 2: 'PAGE_READONLY', 4: 'PAGE_READWRITE', 8: 'PAGE_WRITECOPY', 1073741824: 'PAGE_TARGETS_NO_UPDATE', 256: 'PAGE_GUARD', 512: 'PAGE_NOCACHE', 1024: 'PAGE_WRITECOMBINE'}
+
         global availMem
 
         # Round up to next page (4096)
@@ -332,7 +332,7 @@ class CustomWinAPIs():
                 pass
 
         pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Memmory)
-        pVals[3] = getLookUpVal(pVals[3], flProtectReverseLookUp)
+        pVals[3] = getLookUpVal(pVals[3], ReverseLookUps.flProtect)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,3])
 
@@ -346,7 +346,6 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['HANDLE', 'LPVOID', 'SIZE_T', 'DWORD', 'DWORD']
         pNames = ['hProcess', 'lpAddress', 'dwSize', 'flAllocationType', 'flProtect']
-        flProtectReverseLookUp = {16: 'PAGE_EXECUTE', 32: 'PAGE_EXECUTE_READ', 64: 'PAGE_EXECUTE_READWRITE', 128: 'PAGE_EXECUTE_WRITECOPY', 1: 'PAGE_NOACCESS', 2: 'PAGE_READONLY', 4: 'PAGE_READWRITE', 8: 'PAGE_WRITECOPY', 1073741824: 'PAGE_TARGETS_NO_UPDATE', 256: 'PAGE_GUARD', 512: 'PAGE_NOCACHE', 1024: 'PAGE_WRITECOMBINE'}
         global availMem
 
         # Round up to next page (4096)
@@ -366,7 +365,7 @@ class CustomWinAPIs():
                 retVal = 0xbaddd000
 
         pVals[3] = getLookUpVal(pVals[3], ReverseLookUps.Memmory)
-        pVals[4] = getLookUpVal(pVals[4], flProtectReverseLookUp)
+        pVals[4] = getLookUpVal(pVals[4], ReverseLookUps.flProtect)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3,4])
 
@@ -7611,20 +7610,12 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['LPSECURITY_ATTRIBUTES', 'LPCSTR', 'DWORD', 'DWORD']
         pNames = ['lpMutexAttributes', 'lpName', 'dwFlags', 'dwDesiredAccess']
-        dwFlagsReverseLookUp = {0x00000001: 'CREATE_MUTEX_INITIAL_OWNER'}
-        dwDesiredAccessReverseLookUp = {0xf01ff: 'SERVICE_ALL_ACCESS', 0x0002: 'SERVICE_CHANGE_CONFIG',
-                                        0x0008: 'SERVICE_ENUMERATE_DEPENDENTS', 0x0080: 'SERVICE_INTERROGATE',
-                                        0x0040: 'SERVICE_PAUSE_COUNTINUE', 0x0001: 'SERVICE_QUERY_CONFIG',
-                                        0x0004: 'SERVICE_QUERY_STATUS', 0X0010: 'SERVICE_START', 0x0020: 'SERVICE_STOP',
-                                        0x0100: 'SERVICE_USER_DEFINED_CONTROL', 0x10000: 'DELETE',
-                                        0x20000: 'READ_CONTROL',
-                                        0x40000: 'WRITE_DAC', 0x80000: 'WRITE_OWNER'}
 
         name = read_string(uc, pVals[1])
         handle = Handle(HandleType.Mutex, name = name)
 
-        pVals[2] = getLookUpVal(pVals[2], dwFlagsReverseLookUp)
-        pVals[3] = getLookUpVal(pVals[3], dwDesiredAccessReverseLookUp)
+        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Mutex.dwFlags)
+        pVals[3] = getLookUpVal(pVals[3], ReverseLookUps.Mutex.dwDesiredAccess)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,3])
         
@@ -7640,20 +7631,13 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, 4)
         pTypes = ['LPSECURITY_ATTRIBUTES', 'LPCWSTR', 'DWORD', 'DWORD']
         pNames = ['lpMutexAttributes', 'lpName', 'dwFlags', 'dwDesiredAccess']
-        dwFlagsReverseLookUp = {0x00000001: 'CREATE_MUTEX_INITIAL_OWNER'}
-        dwDesiredAccessReverseLookUp = {0xf01ff: 'SERVICE_ALL_ACCESS', 0x0002: 'SERVICE_CHANGE_CONFIG',
-                                        0x0008: 'SERVICE_ENUMERATE_DEPENDENTS', 0x0080: 'SERVICE_INTERROGATE',
-                                        0x0040: 'SERVICE_PAUSE_COUNTINUE', 0x0001: 'SERVICE_QUERY_CONFIG',
-                                        0x0004: 'SERVICE_QUERY_STATUS', 0X0010: 'SERVICE_START', 0x0020: 'SERVICE_STOP',
-                                        0x0100: 'SERVICE_USER_DEFINED_CONTROL', 0x10000: 'DELETE',
-                                        0x20000: 'READ_CONTROL',
-                                        0x40000: 'WRITE_DAC', 0x80000: 'WRITE_OWNER'}
+        
         
         name = read_unicode(uc, pVals[1])
         handle = Handle(HandleType.Mutex, name = name)
 
-        pVals[2] = getLookUpVal(pVals[2], dwFlagsReverseLookUp)
-        pVals[3] = getLookUpVal(pVals[3], dwDesiredAccessReverseLookUp)
+        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Mutex.dwFlags)
+        pVals[3] = getLookUpVal(pVals[3], ReverseLookUps.Mutex.dwDesiredAccess)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,3])
         
@@ -7668,14 +7652,7 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['DWORD', 'BOOL', 'LPCSTR']
         pNames = ['dwDesiredAccess', 'bInheritHandle', 'lpName']
-        dwDesiredAccessReverseLookUp = {0xf01ff: 'SERVICE_ALL_ACCESS', 0x0002: 'SERVICE_CHANGE_CONFIG',
-                                        0x0008: 'SERVICE_ENUMERATE_DEPENDENTS', 0x0080: 'SERVICE_INTERROGATE',
-                                        0x0040: 'SERVICE_PAUSE_COUNTINUE', 0x0001: 'SERVICE_QUERY_CONFIG',
-                                        0x0004: 'SERVICE_QUERY_STATUS', 0X0010: 'SERVICE_START', 0x0020: 'SERVICE_STOP',
-                                        0x0100: 'SERVICE_USER_DEFINED_CONTROL', 0x10000: 'DELETE',
-                                        0x20000: 'READ_CONTROL',
-                                        0x40000: 'WRITE_DAC', 0x80000: 'WRITE_OWNER'}
-        
+                
         name = read_string(uc, pVals[2])
 
         handle = None
@@ -7688,7 +7665,7 @@ class CustomWinAPIs():
         if handle is None: # Create New Mutex if Not Found
             handle = Handle(HandleType.Mutex, name = name)
 
-        pVals[0] = getLookUpVal(pVals[0], dwDesiredAccessReverseLookUp)
+        pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.Mutex.dwDesiredAccess)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
         
@@ -7703,13 +7680,6 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, 3)
         pTypes = ['DWORD', 'BOOL', 'LPCWSTR']
         pNames = ['dwDesiredAccess', 'bInheritHandle', 'lpName']
-        dwDesiredAccessReverseLookUp = {0xf01ff: 'SERVICE_ALL_ACCESS', 0x0002: 'SERVICE_CHANGE_CONFIG',
-                                        0x0008: 'SERVICE_ENUMERATE_DEPENDENTS', 0x0080: 'SERVICE_INTERROGATE',
-                                        0x0040: 'SERVICE_PAUSE_COUNTINUE', 0x0001: 'SERVICE_QUERY_CONFIG',
-                                        0x0004: 'SERVICE_QUERY_STATUS', 0X0010: 'SERVICE_START', 0x0020: 'SERVICE_STOP',
-                                        0x0100: 'SERVICE_USER_DEFINED_CONTROL', 0x10000: 'DELETE',
-                                        0x20000: 'READ_CONTROL',
-                                        0x40000: 'WRITE_DAC', 0x80000: 'WRITE_OWNER'}
 
         name = read_unicode(uc, pVals[2])
 
@@ -7723,7 +7693,7 @@ class CustomWinAPIs():
         if handle is None: # Create New Mutex if Not Found
             handle = Handle(HandleType.Mutex,data=name)
 
-        pVals[0] = getLookUpVal(pVals[0], dwDesiredAccessReverseLookUp)
+        pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.Mutex.dwDesiredAccess)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
         
@@ -7739,13 +7709,17 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, 1)
         pTypes = ['HANDLE']
         pNames = ['hMutex']
-
-        # Remove Handle from HandlesDict
-        if pVals[0] in HandlesDict:
-            if HandlesDict[pVals[0]].type == HandleType.Mutex:
-                HandlesDict.pop(pVals[0])
+ 
+        hMutex = pVals[0]
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        
+        # Remove Handle from HandlesDict
+        if hMutex in HandlesDict:
+            if HandlesDict[hMutex].type == HandleType.Mutex:
+                HandlesDict.pop(hMutex)
+
+       
         
         retVal = 0x1
         retValStr = 'TRUE'
@@ -7784,105 +7758,6 @@ class CustomWinAPIs():
         pTypes = ['LPCSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPSECURITY_ATTRIBUTES']
         pNames = ['lpName', 'dwOpenMode', 'dwPipeMode', 'nMaxInstances', 'nOutBufferSize', 'nInBufferSize',
                   'nDefaultTimeOut', 'lpSecurityAttributes']
-        dwOpenModeReverseLookUp = {0x00000003: 'PIPE_ACCESS_DUPLEX', 0x00000001: 'PIPE_ACCESS_INBOUND',
-                                   0x00000002: 'PIPE_ACCESS_OUTBOUND', 0x00040003: 'PIPE_ACCESS_DUPLEX | WRITE_DAC',
-                                   0x00040001: 'PIPE_ACCESS_INBOUND | WRITE_DAC',
-                                   0x00040002: 'PIPE_ACCESS_OUTBOUND | WRITE_DAC',
-                                   0x01000003: 'PIPE_ACCESS_DUPLEX | ACCESS_SYSTEM_SECURITY',
-                                   0x01000001: 'PIPE_ACCESS_INBOUND | ACCESS_SYSTEM_SECURITY',
-                                   0x01000002: 'PIPE_ACCESS_OUTBOUND | ACCESS_SYSTEM_SECURITY',
-                                   0x00080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE',
-                                   0x00080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE',
-                                   0x00080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE',
-                                   0x000C0003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_DAC',
-                                   0x000C0001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_DAC',
-                                   0x000C0002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_DAC',
-                                   0x00080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_OWNER',
-                                   0x00080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_OWNER',
-                                   0x00080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_OWNER',
-                                   0x01080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | ACCESS_SYSTEM_SECURITY',
-                                   0x01080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | ACCESS_SYSTEM_SECURITY',
-                                   0x01080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | ACCESS_SYSTEM_SECURITY',
-                                   0x80000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH',
-                                   0x80000001: 'PIPE_ACCESS_INBOUND| FILE_FLAG_WRITE_THROUGH',
-                                   0x80000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH',
-                                   0x80040003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH | WRITE_DAC',
-                                   0x80040001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_WRITE_THROUGH | WRITE_DAC',
-                                   0x80040002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH | WRITE_DAC',
-                                   0x81000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY',
-                                   0x81000001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY',
-                                   0x81000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY',
-                                   0x40000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED',
-                                   0x40000001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED',
-                                   0x40000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_OVERLAPPED',
-                                   0x40040003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0x40040001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0x40040002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0x41000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0x41000001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0x41000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0x80080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH',
-                                   0x80080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH',
-                                   0x80080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH',
-                                   0x800C0003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_DAC',
-                                   0x800C0001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_DAC',
-                                   0x800C0002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_DAC',
-                                   0x80080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_OWNER',
-                                   0x80080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_OWNER',
-                                   0x80080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_OWNER',
-                                   0x81080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY',
-                                   0x81080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY',
-                                   0x81080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY',
-                                   0x40080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED',
-                                   0x40080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED',
-                                   0x40080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED',
-                                   0x400C0003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0x400C0001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0x400C0002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0x40080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_OWNER',
-                                   0x40080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_OWNER',
-                                   0x40080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_OWNER',
-                                   0x41080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0x41080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0x41080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0xC0000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED',
-                                   0xC0000001: 'PIPE_ACCESS_INBOUND| FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED',
-                                   0xC0000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED',
-                                   0xC0040003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0xC0040001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0xC0040002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0xC1000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0xC1000001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0xC1000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0xC0080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED',
-                                   0xC0080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED',
-                                   0xC0080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED',
-                                   0xC00C0003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0xC00C0001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0xC00C0002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0xC0080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_OWNER',
-                                   0xC0080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_OWNER',
-                                   0xC0080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_OWNER',
-                                   0xC1080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0xC1080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0xC1080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY'}
-        dwPipeModeReverseLookUp = {
-            0x00000000: 'PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT | PIPE_ACCEPT_REMOTE_CLIENTS',
-            0x00000001: 'PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_NOWAIT | PIPE_ACCEPT_REMOTE_CLIENTS',
-            0x00000002: 'PIPE_TYPE_BYTE | PIPE_READMODE_MESSAGE | PIPE_WAIT | PIPE_ACCEPT_REMOTE_CLIENTS',
-            0x00000003: 'PIPE_TYPE_BYTE | PIPE_READMODE_MESSAGE | PIPE_NOWAIT | PIPE_ACCEPT_REMOTE_CLIENTS',
-            0x00000004: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_BYTE | PIPE_WAIT | PIPE_ACCEPT_REMOTE_CLIENTS',
-            0x00000005: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_BYTE | PIPE_NOWAIT | PIPE_ACCEPT_REMOTE_CLIENTS',
-            0x00000006: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT | PIPE_ACCEPT_REMOTE_CLIENTS',
-            0x00000007: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_NOWAIT | PIPE_ACCEPT_REMOTE_CLIENTS',
-            0x00000008: 'PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS',
-            0x00000009: 'PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_NOWAIT | PIPE_REJECT_REMOTE_CLIENTS',
-            0x0000000A: 'PIPE_TYPE_BYTE | PIPE_READMODE_MESSAGE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS',
-            0x0000000C: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_BYTE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS',
-            0x0000000D: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_BYTE | PIPE_NOWAIT | PIPE_REJECT_REMOTE_CLIENTS',
-            0x0000000E: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS',
-            0x0000000F: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_NOWAIT | PIPE_REJECT_REMOTE_CLIENTS'}
-        nMaxInstancesReverseLookUp = {255: 'PIPE_UNLIMITED_INSTANCES'}
 
         name = read_string(uc, pVals[0])
 
@@ -7893,9 +7768,9 @@ class CustomWinAPIs():
         else:
             pipeHandle = Handle(HandleType.ReadWritePipe, data=name)
 
-        pVals[1] = getLookUpVal(pVals[1], dwOpenModeReverseLookUp)
-        pVals[2] = getLookUpVal(pVals[2], dwPipeModeReverseLookUp)
-        pVals[3] = getLookUpVal(pVals[3], nMaxInstancesReverseLookUp)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.Pipe.dwOpenMode)
+        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Pipe.dwPipeMode)
+        pVals[3] = getLookUpVal(pVals[3], ReverseLookUps.Pipe.nMaxInstances)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2,3])
         
@@ -7911,107 +7786,8 @@ class CustomWinAPIs():
         pTypes = ['LPCWSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPSECURITY_ATTRIBUTES']
         pNames = ['lpName', 'dwOpenMode', 'dwPipeMode', 'nMaxInstances', 'nOutBufferSize', 'nInBufferSize',
                   'nDefaultTimeOut', 'lpSecurityAttributes']
-        dwOpenModeReverseLookUp = {0x00000003: 'PIPE_ACCESS_DUPLEX', 0x00000001: 'PIPE_ACCESS_INBOUND',
-                                   0x00000002: 'PIPE_ACCESS_OUTBOUND', 0x00040003: 'PIPE_ACCESS_DUPLEX | WRITE_DAC',
-                                   0x00040001: 'PIPE_ACCESS_INBOUND | WRITE_DAC',
-                                   0x00040002: 'PIPE_ACCESS_OUTBOUND | WRITE_DAC',
-                                   0x01000003: 'PIPE_ACCESS_DUPLEX | ACCESS_SYSTEM_SECURITY',
-                                   0x01000001: 'PIPE_ACCESS_INBOUND | ACCESS_SYSTEM_SECURITY',
-                                   0x01000002: 'PIPE_ACCESS_OUTBOUND | ACCESS_SYSTEM_SECURITY',
-                                   0x00080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE',
-                                   0x00080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE',
-                                   0x00080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE',
-                                   0x000C0003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_DAC',
-                                   0x000C0001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_DAC',
-                                   0x000C0002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_DAC',
-                                   0x00080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_OWNER',
-                                   0x00080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_OWNER',
-                                   0x00080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | WRITE_OWNER',
-                                   0x01080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | ACCESS_SYSTEM_SECURITY',
-                                   0x01080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | ACCESS_SYSTEM_SECURITY',
-                                   0x01080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | ACCESS_SYSTEM_SECURITY',
-                                   0x80000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH',
-                                   0x80000001: 'PIPE_ACCESS_INBOUND| FILE_FLAG_WRITE_THROUGH',
-                                   0x80000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH',
-                                   0x80040003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH | WRITE_DAC',
-                                   0x80040001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_WRITE_THROUGH | WRITE_DAC',
-                                   0x80040002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH | WRITE_DAC',
-                                   0x81000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY',
-                                   0x81000001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY',
-                                   0x81000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY',
-                                   0x40000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED',
-                                   0x40000001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED',
-                                   0x40000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_OVERLAPPED',
-                                   0x40040003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0x40040001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0x40040002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0x41000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0x41000001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0x41000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0x80080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH',
-                                   0x80080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH',
-                                   0x80080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH',
-                                   0x800C0003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_DAC',
-                                   0x800C0001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_DAC',
-                                   0x800C0002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_DAC',
-                                   0x80080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_OWNER',
-                                   0x80080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_OWNER',
-                                   0x80080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | WRITE_OWNER',
-                                   0x81080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY',
-                                   0x81080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY',
-                                   0x81080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | ACCESS_SYSTEM_SECURITY',
-                                   0x40080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED',
-                                   0x40080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED',
-                                   0x40080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED',
-                                   0x400C0003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0x400C0001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0x400C0002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0x40080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_OWNER',
-                                   0x40080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_OWNER',
-                                   0x40080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | WRITE_OWNER',
-                                   0x41080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0x41080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0x41080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0xC0000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED',
-                                   0xC0000001: 'PIPE_ACCESS_INBOUND| FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED',
-                                   0xC0000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED',
-                                   0xC0040003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0xC0040001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0xC0040002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0xC1000003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0xC1000001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0xC1000002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0xC0080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED',
-                                   0xC0080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED',
-                                   0xC0080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED',
-                                   0xC00C0003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0xC00C0001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0xC00C0002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_DAC',
-                                   0xC0080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_OWNER',
-                                   0xC0080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_OWNER',
-                                   0xC0080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | WRITE_OWNER',
-                                   0xC1080003: 'PIPE_ACCESS_DUPLEX | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0xC1080001: 'PIPE_ACCESS_INBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY',
-                                   0xC1080002: 'PIPE_ACCESS_OUTBOUND | FILE_FLAG_FIRST_PIPE_INSTANCE | FILE_FLAG_WRITE_THROUGH | FILE_FLAG_OVERLAPPED | ACCESS_SYSTEM_SECURITY'}
-        dwPipeModeReverseLookUp = {
-            0x00000000: 'PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT | PIPE_ACCEPT_REMOTE_CLIENTS',
-            0x00000001: 'PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_NOWAIT | PIPE_ACCEPT_REMOTE_CLIENTS',
-            0x00000002: 'PIPE_TYPE_BYTE | PIPE_READMODE_MESSAGE | PIPE_WAIT | PIPE_ACCEPT_REMOTE_CLIENTS',
-            0x00000003: 'PIPE_TYPE_BYTE | PIPE_READMODE_MESSAGE | PIPE_NOWAIT | PIPE_ACCEPT_REMOTE_CLIENTS',
-            0x00000004: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_BYTE | PIPE_WAIT | PIPE_ACCEPT_REMOTE_CLIENTS',
-            0x00000005: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_BYTE | PIPE_NOWAIT | PIPE_ACCEPT_REMOTE_CLIENTS',
-            0x00000006: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT | PIPE_ACCEPT_REMOTE_CLIENTS',
-            0x00000007: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_NOWAIT | PIPE_ACCEPT_REMOTE_CLIENTS',
-            0x00000008: 'PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS',
-            0x00000009: 'PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_NOWAIT | PIPE_REJECT_REMOTE_CLIENTS',
-            0x0000000A: 'PIPE_TYPE_BYTE | PIPE_READMODE_MESSAGE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS',
-            0x0000000C: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_BYTE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS',
-            0x0000000D: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_BYTE | PIPE_NOWAIT | PIPE_REJECT_REMOTE_CLIENTS',
-            0x0000000E: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS',
-            0x0000000F: 'PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_NOWAIT | PIPE_REJECT_REMOTE_CLIENTS'}
-        nMaxInstancesReverseLookUp = {255: 'PIPE_UNLIMITED_INSTANCES'}
 
-        name = read_string(uc, pVals[0])
+        name = read_unicode(uc, pVals[0])
 
         if pVals[1] == 1:
             pipeHandle = Handle(HandleType.ReadPipe, data=name)
@@ -8020,9 +7796,9 @@ class CustomWinAPIs():
         else:
             pipeHandle = Handle(HandleType.ReadWritePipe, data=name)
 
-        pVals[1] = getLookUpVal(pVals[1], dwOpenModeReverseLookUp)
-        pVals[2] = getLookUpVal(pVals[2], dwPipeModeReverseLookUp)
-        pVals[3] = getLookUpVal(pVals[3], nMaxInstancesReverseLookUp)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.Pipe.dwOpenMode)
+        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Pipe.dwPipeMode)
+        pVals[3] = getLookUpVal(pVals[3], ReverseLookUps.Pipe.nMaxInstances)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2,3])
         
@@ -8089,7 +7865,7 @@ class CustomWinAPIs():
         pTypes = ['LPSTR', 'LPDWORD']
         pNames = ['lpBuffer', 'nSize']
 
-        computerName = emuFakeVals.computer_name.encode('ascii')
+        computerName = emuSimVals.computer_name.encode('ascii')
         uc.mem_write(pVals[0], pack(f'<{len(computerName) + 2}s', computerName))
         uc.mem_write(pVals[1], pack('<I', len(computerName)))
 
@@ -8108,7 +7884,7 @@ class CustomWinAPIs():
         pTypes = ['LPWSTR', 'LPDWORD']
         pNames = ['lpBuffer', 'nSize']
 
-        computerName = emuFakeVals.computer_name.encode('utf-16')[2:]
+        computerName = emuSimVals.computer_name.encode('utf-16')[2:]
         uc.mem_write(pVals[0], pack(f'<{len(computerName) + 2}s', computerName))
         uc.mem_write(pVals[1], pack('<I', len(computerName)))
 
@@ -8133,7 +7909,7 @@ class CustomWinAPIs():
         # Possibly Implement Different Formats
         pVals[0] = getLookUpVal(pVals[0], nameTypeReverseLookup)
 
-        computerName = emuFakeVals.computer_name.encode('ascii')
+        computerName = emuSimVals.computer_name.encode('ascii')
         uc.mem_write(pVals[1], pack(f'<{len(computerName) + 2}s', computerName))
         uc.mem_write(pVals[2], pack('<I', len(computerName)))
 
@@ -8158,7 +7934,7 @@ class CustomWinAPIs():
         # Possibly Implement Different Formats
         pVals[0] = getLookUpVal(pVals[0], nameTypeReverseLookup)
 
-        computerName = emuFakeVals.computer_name.encode('utf-16')[2:]
+        computerName = emuSimVals.computer_name.encode('utf-16')[2:]
         uc.mem_write(pVals[1], pack(f'<{len(computerName) + 2}s', computerName))
         uc.mem_write(pVals[2], pack('<I', len(computerName)))
 
@@ -8177,7 +7953,7 @@ class CustomWinAPIs():
         pTypes = ['char', 'int']
         pNames = ['*name', 'namelen']
 
-        computerName = emuFakeVals.computer_name.encode('ascii')
+        computerName = emuSimVals.computer_name.encode('ascii')
         uc.mem_write(pVals[0], pack(f'<{len(computerName) + 2}s', computerName))
 
         pVals[0] = read_string(uc, pVals[0])
@@ -8314,18 +8090,18 @@ class CustomWinAPIs():
             while len(value) < 4:  # Pad to 4
                 value = str(0) + value
             if preFix != '[NULL]':
-                path = f'{tempPath}{emuFakeVals.temp_file_prefix}{preFix[:3]}{value}.TMP'
+                path = f'{tempPath}{emuSimVals.temp_file_prefix}{preFix[:3]}{value}.TMP'
             else:
-                path = f'{tempPath}{emuFakeVals.temp_file_prefix}{value}.TMP'
+                path = f'{tempPath}{emuSimVals.temp_file_prefix}{value}.TMP'
         else:
             retVal = pVals[2]
             value = hex(retVal)[2:]
             while len(value) < 4:  # Pad to 4
                 value = str(0) + value
             if preFix != '[NULL]':
-                path = f'{tempPath}{emuFakeVals.temp_file_prefix}{preFix[:3]}{value}.TMP'
+                path = f'{tempPath}{emuSimVals.temp_file_prefix}{preFix[:3]}{value}.TMP'
             else:
-                path = f'{tempPath}{emuFakeVals.temp_file_prefix}{value}.TMP'
+                path = f'{tempPath}{emuSimVals.temp_file_prefix}{value}.TMP'
 
         pathEncoded = path.encode('ascii')
         uc.mem_write(pVals[3], pack(f'<{len(pathEncoded)}s', pathEncoded))
@@ -8353,18 +8129,18 @@ class CustomWinAPIs():
             while len(value) < 4:  # Pad to 4
                 value = str(0) + value
             if preFix != '[NULL]':
-                path = f'{tempPath}{emuFakeVals.temp_file_prefix}{preFix[:3]}{value}.TMP'
+                path = f'{tempPath}{emuSimVals.temp_file_prefix}{preFix[:3]}{value}.TMP'
             else:
-                path = f'{tempPath}{emuFakeVals.temp_file_prefix}{value}.TMP'
+                path = f'{tempPath}{emuSimVals.temp_file_prefix}{value}.TMP'
         else:
             retVal = pVals[2]
             value = hex(retVal)[2:]
             while len(value) < 4:  # Pad to 4
                 value = str(0) + value
             if preFix != '[NULL]':
-                path = f'{tempPath}{emuFakeVals.temp_file_prefix}{preFix[:3]}{value}.TMP'
+                path = f'{tempPath}{emuSimVals.temp_file_prefix}{preFix[:3]}{value}.TMP'
             else:
-                path = f'{tempPath}{emuFakeVals.temp_file_prefix}{value}.TMP'
+                path = f'{tempPath}{emuSimVals.temp_file_prefix}{value}.TMP'
 
         pathEncoded = path.encode('utf-16')[2:]
 
@@ -8421,7 +8197,7 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
         
         if pVals[0] != 0x0:
-            timeVal = struct_SYSTEMTIME(True, emuFakeVals.system_time_since_epoch)
+            timeVal = struct_SYSTEMTIME(True, emuSimVals.system_time_since_epoch)
             timeVal.writeToMemory(uc, pVals[0])
 
         pVals[0] = makeStructVals(uc, timeVal, pVals[0])
@@ -8442,7 +8218,7 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         if pVals[0] != 0x0:
-            timeVal = struct_SYSTEMTIME(False, emuFakeVals.system_time_since_epoch)
+            timeVal = struct_SYSTEMTIME(False, emuSimVals.system_time_since_epoch)
             timeVal.writeToMemory(uc, pVals[0])
 
         pVals[0] = makeStructVals(uc, timeVal, pVals[0])
@@ -8463,7 +8239,7 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
-        retVal = emuFakeVals.system_uptime_minutes * 60 * 1000
+        retVal = emuSimVals.system_uptime_minutes * 60 * 1000
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -8477,7 +8253,7 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
-        retVal = emuFakeVals.system_uptime_minutes * 60 * 1000
+        retVal = emuSimVals.system_uptime_minutes * 60 * 1000
         if retVal > int(49.7 * 24 * 60 * 60 * 1000): # Max Value aprox 49.7 days
             retVal = int(49.7 * 24 * 60 * 60 * 1000)
         retValStr = hex(retVal)
@@ -8493,7 +8269,7 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
-        retVal = emuFakeVals.system_uptime_minutes * 60 * 1000
+        retVal = emuSimVals.system_uptime_minutes * 60 * 1000
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -8506,7 +8282,7 @@ class CustomWinAPIs():
         pTypes = ['LPSTR', 'LPDWORD']
         pNames = ['lpBuffer', 'pcbBuffer']
 
-        username = emuFakeVals.user_name.encode('ascii')
+        username = emuSimVals.user_name.encode('ascii')
         uc.mem_write(pVals[0], pack(f'<{len(username) + 2}s', username))
         uc.mem_write(pVals[1], pack('<I', len(username)))
 
@@ -8525,7 +8301,7 @@ class CustomWinAPIs():
         pTypes = ['LPWSTR', 'LPDWORD']
         pNames = ['lpBuffer', 'pcbBuffer']
 
-        username = emuFakeVals.user_name.encode('utf-16')[2:]
+        username = emuSimVals.user_name.encode('utf-16')[2:]
         uc.mem_write(pVals[0], pack(f'<{len(username) + 2}s', username))
         uc.mem_write(pVals[1], pack('<I', len(username)))
 
@@ -8549,7 +8325,7 @@ class CustomWinAPIs():
                                    10: 'NameServicePrincipal', 12: 'NameDnsDomain', 13: 'NameGivenName',
                                    14: 'NameSurname'}
         # Possibly Implement Different Formats
-        username = emuFakeVals.user_name.encode('ascii')
+        username = emuSimVals.user_name.encode('ascii')
         uc.mem_write(pVals[1], pack(f'<{len(username) + 2}s', username))
         uc.mem_write(pVals[2], pack('<I', len(username)))
 
@@ -8575,7 +8351,7 @@ class CustomWinAPIs():
                                    10: 'NameServicePrincipal', 12: 'NameDnsDomain', 13: 'NameGivenName',
                                    14: 'NameSurname'}
         # Possibly Implement Different Formats
-        username = emuFakeVals.user_name.encode('utf-16')[2:]
+        username = emuSimVals.user_name.encode('utf-16')[2:]
         uc.mem_write(pVals[1], pack(f'<{len(username) + 2}s', username))
         uc.mem_write(pVals[2], pack('<I', len(username)))
 
@@ -9002,7 +8778,7 @@ class CustomWinAPIs():
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip = [0])
 
-        fakeData = emuFakeVals.clipboard_data # Might Need Changed
+        fakeData = emuSimVals.clipboard_data # Might Need Changed
 
         handle = Handle(HandleType.ClipBoard,data=fakeData)
 
@@ -9024,7 +8800,7 @@ class CustomWinAPIs():
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
         
-        fakeData = emuFakeVals.clipboard_data
+        fakeData = emuSimVals.clipboard_data
 
         handle = Handle(HandleType.ClipBoard,data=fakeData)
 
@@ -9413,7 +9189,7 @@ class CustomWinAPIs():
         retValStr = getLookUpVal(retVal, ReverseLookUps.ErrorCodes)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls = ("GetlastError", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        logged_calls = ("GetLastError", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def GetFileType(self, uc, eip, esp, export_dict, callAddr, em):
@@ -10009,7 +9785,7 @@ class CustomWinSysCalls():
         pVals = self.makeArgVals(uc, em, esp, 6) 
         pTypes = ['HANDLE', 'PVOID', 'ULONG_PTR', 'PSIZE_T', 'ULONG', 'ULONG']
         pNames = ['ProcessHandle', '*BaseAddress', 'ZeroBits', 'RegionSize', 'AllocationType', 'Protect']
-        flProtectReverseLookUp = {16: 'PAGE_EXECUTE', 32: 'PAGE_EXECUTE_READ', 64: 'PAGE_EXECUTE_READWRITE', 128: 'PAGE_EXECUTE_WRITECOPY', 1: 'PAGE_NOACCESS', 2: 'PAGE_READONLY', 4: 'PAGE_READWRITE', 8: 'PAGE_WRITECOPY', 1073741824: 'PAGE_TARGETS_NO_UPDATE', 256: 'PAGE_GUARD', 512: 'PAGE_NOCACHE', 1024: 'PAGE_WRITECOMBINE'}
+        
         global availMem
 
         # Get pointer values
@@ -10042,7 +9818,7 @@ class CustomWinSysCalls():
                 uc.reg_write(UC_X86_REG_EAX, retVal)
 
         pVals[4] = getLookUpVal(pVals[4], ReverseLookUps.Memmory)
-        pVals[5] = getLookUpVal(pVals[5], flProtectReverseLookUp)
+        pVals[5] = getLookUpVal(pVals[5], ReverseLookUps.flProtect)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4,5])
 
@@ -10454,7 +10230,7 @@ class RegKey:
         if valueName in self.values:
             return self.values[valueName]
         else: # Return Value Not Set
-            value = KeyValue(RegValueTypes.REG_SZ,emuFakeVals.default_registry_value,valueName)
+            value = KeyValue(RegValueTypes.REG_SZ,emuSimVals.default_registry_value,valueName)
             return value
 
     def deleteValue(self, valueName: str = '(Default)'):

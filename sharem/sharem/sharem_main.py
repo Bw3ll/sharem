@@ -19498,7 +19498,7 @@ def modConf():
 	global emulation_verbose
 	global emulation_multiline
 	global emuObj 
-	global emuFakeVals 
+	global emuSimVals 
 
 	listofStrings = ['pushret', 
 					'callpop', 
@@ -19590,18 +19590,18 @@ def emulationConf(conr):
 	emuObj.verbose = conr.getboolean('SHAREM EMULATION', 'timeless_debugging')
 	em.codeCoverage = conr.getboolean('SHAREM EMULATION',"complete_code_coverage")
 
-def emulationFakeValueConf(conr):
-	global emuFakeVals
+def emulationSimValueConf(conr):
+	global emuSimVals
 
-	emuFakeVals.user_name = conr['SHAREM EMULATION FAKE VALUES']['user_name']
-	emuFakeVals.computer_name = conr['SHAREM EMULATION FAKE VALUES']['computer_name']
-	emuFakeVals.temp_file_prefix = conr['SHAREM EMULATION FAKE VALUES']['temp_file_prefix']
-	emuFakeVals.default_registry_value = conr['SHAREM EMULATION FAKE VALUES']['default_registry_value']
-	emuFakeVals.computer_ip_address = conr['SHAREM EMULATION FAKE VALUES']['computer_ip_address']
-	emuFakeVals.timezone = conr['SHAREM EMULATION FAKE VALUES']['timezone']
-	emuFakeVals.system_time_since_epoch = int(conr['SHAREM EMULATION FAKE VALUES']['system_time_since_epoch'])
-	emuFakeVals.system_uptime_minutes = int(conr['SHAREM EMULATION FAKE VALUES']['system_uptime_minutes'])
-	emuFakeVals.clipboard_data = conr['SHAREM EMULATION FAKE VALUES']['clipboard_data']
+	emuSimVals.user_name = conr['SHAREM EMULATION SIMULATED VALUES']['user_name']
+	emuSimVals.computer_name = conr['SHAREM EMULATION SIMULATED VALUES']['computer_name']
+	emuSimVals.temp_file_prefix = conr['SHAREM EMULATION SIMULATED VALUES']['temp_file_prefix']
+	emuSimVals.default_registry_value = conr['SHAREM EMULATION SIMULATED VALUES']['default_registry_value']
+	emuSimVals.computer_ip_address = conr['SHAREM EMULATION SIMULATED VALUES']['computer_ip_address']
+	emuSimVals.timezone = conr['SHAREM EMULATION SIMULATED VALUES']['timezone']
+	emuSimVals.system_time_since_epoch = int(conr['SHAREM EMULATION SIMULATED VALUES']['system_time_since_epoch'])
+	emuSimVals.system_uptime_minutes = int(conr['SHAREM EMULATION SIMULATED VALUES']['system_uptime_minutes'])
+	emuSimVals.clipboard_data = conr['SHAREM EMULATION SIMULATED VALUES']['clipboard_data']
 
 
 def SharemSearchConfig(conr):
@@ -19811,7 +19811,7 @@ def readConf():
 	SharemSearchConfig(conr)
 	disassemblyConf(conr)
 	emulationConf(conr)
-	emulationFakeValueConf(conr)
+	emulationSimValueConf(conr)
 	stringsConf(conr)
 	syscallsConf(conr)
 	printStyleConf(conr)
