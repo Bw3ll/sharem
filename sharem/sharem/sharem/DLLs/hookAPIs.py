@@ -9311,6 +9311,20 @@ class CustomWinAPIs():
         logged_calls= ("OpenClipboard", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def SendMessageA(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['HWND', 'UINT', 'WPARAM', 'LPARAM'] 
+        pNames = ['hWnd', 'Msg', 'wParam', 'lParam'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        
+        retVal = 0x1
+        retValStr = "SUCCESS"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("SendMessageA", hex(callAddr), (retValStr), 'LRESULT', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def SetTimer(self, uc, eip, esp, export_dict, callAddr, em):
         pTypes =['HWND', 'UINT_PTR', 'UINT', 'TIMERPROC'] 
         pNames = ['hWnd', 'nIDEvent', 'uElapse', 'lpTimerFunc'] 
