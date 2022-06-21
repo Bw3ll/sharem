@@ -45,6 +45,7 @@ class HandleType(Enum):
     SetWindowsHookExW = auto()
     CreateToolhelp32Snapshot = auto()
     # Internet Handles
+    HINTERNET = auto()
     InternetOpenA = auto()
     InternetOpenW = auto()
     InternetConnectA = auto()
@@ -2184,13 +2185,15 @@ class CustomWinAPIs():
         pVals[1] = getLookUpVal(pVals[1], dwAccessTypeReverseLookUp)
         pVals[4] = getLookUpVal(pVals[4], dwFlagsReverseLookUp)
 
+        handle = Handle(HandleType.HINTERNET)
+
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,4])
 
-        retVal = 0x00626262
+        retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls = ("InternetOpenA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        logged_calls = ("InternetOpenA", hex(callAddr), (retValStr), 'HINTERNET', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def InternetOpenW(self, uc, eip, esp, export_dict, callAddr, em):
@@ -2205,13 +2208,15 @@ class CustomWinAPIs():
         pVals[1] = getLookUpVal(pVals[1], dwAccessTypeReverseLookUp)
         pVals[4] = getLookUpVal(pVals[4], dwFlagsReverseLookUp)
 
+        handle = Handle(HandleType.HINTERNET)
+
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,4])
         
-        retVal = 0x00737373
+        retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls = ("InternetOpenW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        logged_calls = ("InternetOpenW", hex(callAddr), (retValStr), 'HINTERNET', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def InternetConnectA(self, uc, eip, esp, export_dict, callAddr, em):
@@ -2233,12 +2238,13 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [2, 5, 6])
 
+        handle = Handle(HandleType.HINTERNET,name=pVals[1])
         
-        retVal = 0x00636363
+        retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls = ("InternetConnectA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        logged_calls = ("InternetConnectA", hex(callAddr), (retValStr), 'HINTERNET', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def InternetConnectW(self, uc, eip, esp, export_dict, callAddr, em):
@@ -2260,11 +2266,13 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [2, 5, 6])
         
-        retVal = 0x00727272
+        handle = Handle(HandleType.HINTERNET,name=pVals[1])
+
+        retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls = ("InternetConnectW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        logged_calls = ("InternetConnectW", hex(callAddr), (retValStr), 'HINTERNET', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def RegCreateKeyExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
@@ -6317,7 +6325,7 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
         
-        retVal = 0x00656565
+        retVal = 0x00656565  # Needs Changed
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -6340,7 +6348,7 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
         
-        retVal = 0x00717171
+        retVal = 0x00717171  # Needs Changed
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -6437,6 +6445,8 @@ class CustomWinAPIs():
                                 67108864: 'ICU_ENCODE_SPACES_ONLY', 33554432: 'ICU_BROWSER_MODE',
                                 4096: 'ICU_ENCODE_PERCENT'}
 
+        # Expand Check Docs
+
         pVals[4] = getLookUpVal(pVals[4], dwFlagsReverseLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4])
@@ -6456,6 +6466,8 @@ class CustomWinAPIs():
         dwFlagsReverseLookUp = {536870912: 'ICU_NO_ENCODE', 268435456: 'ICU_DECODE', 134217728: 'ICU_NO_META',
                                 67108864: 'ICU_ENCODE_SPACES_ONLY', 33554432: 'ICU_BROWSER_MODE',
                                 4096: 'ICU_ENCODE_PERCENT'}
+
+        # Expand Check Docs
 
         pVals[4] = getLookUpVal(pVals[4], dwFlagsReverseLookUp)
 
@@ -6563,7 +6575,7 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
         
-        retVal = 0x00676767
+        retVal = 0x00676767 # Needs Changed
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -6585,7 +6597,7 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
         
-        retVal = 0x00707070
+        retVal = 0x00707070  # Needs Changed
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -6979,7 +6991,7 @@ class CustomWinAPIs():
             pVals[3] = 'HTTP/1.1'
 
         
-        retVal = 0x00747474
+        retVal = 0x00747474  # Needs Changed
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -7013,7 +7025,7 @@ class CustomWinAPIs():
             pVals[3] = 'HTTP/1.1'
 
         
-        retVal = 0x00757575
+        retVal = 0x00757575  # Needs Changed
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -7402,7 +7414,9 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,3])
         
-        retVal = 0x00767676
+        handle = Handle(HandleType.HINTERNET, name=pVals[1])
+
+        retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -7425,7 +7439,9 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,3])
         
-        retVal = 0x00777777
+        handle = Handle(HandleType.HINTERNET, name=pVals[1])
+
+        retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -7454,7 +7470,9 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4])
         
-        retVal = 0x00787878
+        handle = Handle(HandleType.HINTERNET, name=pVals[1])
+
+        retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -7482,8 +7500,10 @@ class CustomWinAPIs():
         pVals[4] = getLookUpVal(pVals[4], dwFlagsReverseLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4])
+
+        handle = Handle(HandleType.HINTERNET, name=pVals[1])
         
-        retVal = 0x00797979
+        retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -7614,7 +7634,7 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,6])
         
-        retVal = 0x00808080
+        retVal = 0x00808080  # Needs Changed
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -7639,7 +7659,7 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,6])
         
-        retVal = 0x00818181
+        retVal = 0x00818181  # Needs Changed
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -8866,7 +8886,7 @@ class CustomWinAPIs():
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
 
-        retVal = 0x00808080
+        retVal = 0x00808080  # Needs Changed
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
        
@@ -8883,7 +8903,7 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
-        retVal = 0x00808080
+        retVal = 0x00808080  # Needs Changed
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
