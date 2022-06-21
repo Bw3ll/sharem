@@ -9109,7 +9109,11 @@ class CustomWinAPIs():
         pNames = ['hWnd', 'Msg', 'wParam', 'lParam', 'lpResultCallBack', 'dwData'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        #handle = Handle(HandleType.SendMessageA)
+        handle = Handle(HandleType.SendMessageA)
+        try:
+            uc.mem_write(pVals[0], pack('<I',handle.value))
+        except:
+            pass
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         
