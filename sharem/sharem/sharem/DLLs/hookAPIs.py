@@ -6557,7 +6557,9 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
         
-        retVal = 0x00676767 # Needs Changed
+        handle = Handle(HandleType.CreateFileMappingA) # Might Add Name
+
+        retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -6579,7 +6581,9 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
         
-        retVal = 0x00707070  # Needs Changed
+        handle = Handle(HandleType.CreateFileMappingW) # Might Add Name
+
+        retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -7536,8 +7540,10 @@ class CustomWinAPIs():
         pVals[6] = getLookUpVal(pVals[6], nndPreferredReverseLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,6])
+
+        handle = Handle(HandleType.CreateFileMappingNumaW) # Might Add Name
         
-        retVal = 0x00808080  # Needs Changed
+        retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -7562,7 +7568,9 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,6])
         
-        retVal = 0x00818181  # Needs Changed
+        handle = Handle(HandleType.CreateFileMappingNumaW) # Might Add Name
+
+        retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
