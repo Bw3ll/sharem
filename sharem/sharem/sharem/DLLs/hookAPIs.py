@@ -9132,6 +9132,26 @@ class CustomWinAPIs():
         logged_calls= ("SendMessageCallbackA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def SendMessageTimeoutA(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['HWND', 'UINT', 'WPARAM', 'LPARAM', 'SENDASYNCPROC', 'ULONG_PTR'] 
+        pNames = ['hWnd', 'Msg', 'wParam', 'lParam', 'lpResultCallBack', 'dwData'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        handle = Handle(HandleType.SendMessageA)
+        try:
+            uc.mem_write(pVals[0], pack('<I',handle.value))
+        except:
+            pass
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        
+        retVal = 0x1
+        retValStr = "SUCCESS"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("SendMessageTimeoutA", hex(callAddr), (retValStr), 'LRESULT', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def EnumDeviceDrivers(self, uc, eip, esp, export_dict, callAddr, em):
         pTypes =['LPVOID', 'DWORD', 'LPDWORD'] 
         pNames = ['*lpImageBase', 'cb', 'lpcbNeeded'] 
