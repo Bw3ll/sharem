@@ -9174,6 +9174,23 @@ class CustomWinAPIs():
         logged_calls= ("EnumProcessModules", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def EnumProcessModulesEx(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['HANDLE', 'HMODULE', 'DWORD', 'LPDWORD', 'DWORD'] 
+        pNames = ['hProcess', '*lphModule', 'cb', 'lpcbNeeded', 'dwFilterFlag'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        dwFilterFlag_ReverseLookUp = {1: 'LIST_MODULES_32BIT', 2: 'LIST_MODULES_64BIT', 3: 'LIST_MODULES_ALL', 0: 'LIST_MODULES_DEFAULT'}
+
+        pVals[4] = getLookUpVal(pVals[4], dwFilterFlag_ReverseLookUp)
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[4])
+        
+        retVal = 0x1
+        retValStr = "TRUE"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("EnumProcessModulesEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def SetTimer(self, uc, eip, esp, export_dict, callAddr, em):
         pTypes =['HWND', 'UINT_PTR', 'UINT', 'TIMERPROC'] 
