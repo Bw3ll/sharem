@@ -9146,6 +9146,21 @@ class CustomWinAPIs():
         logged_calls= ("EnumDeviceDrivers", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def EnumProcesses(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['DWORD', 'DWORD', 'LPDWORD'] 
+        pNames = ['*lpidProcess', 'cb', 'lpcbNeeded'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        
+        retVal = 0x1
+        retValStr = "SUCCESS"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("EnumProcesses", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+
     def SetTimer(self, uc, eip, esp, export_dict, callAddr, em):
         pTypes =['HWND', 'UINT_PTR', 'UINT', 'TIMERPROC'] 
         pNames = ['hWnd', 'nIDEvent', 'uElapse', 'lpTimerFunc'] 
