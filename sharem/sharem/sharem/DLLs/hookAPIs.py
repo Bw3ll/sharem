@@ -6,7 +6,7 @@ from unicorn.x86_const import *
 from struct import pack, unpack
 from ..helper.emuHelpers import Uc
 from ..modules import allDllsDict
-from .structures import makeStructVals, struct_FILETIME, struct_PROCESS_INFORMATION, struct_PROCESSENTRY32, struct_MODULEENTRY32, struct_SYSTEMTIME, struct_THREADENTRY32, struct_UNICODE_STRING, struct_TIME_ZONE_INFORMATION, struct_STARTUPINFOA
+from .structures import makeStructVals, Structure
 import traceback
 from ..sharem_artifacts import *
 
@@ -277,7 +277,7 @@ class CustomWinAPIs():
 
         flagsReverseLookUp = {1: 'DONT_RESOLVE_DLL_REFERENCES', 16: 'LOAD_IGNORE_CODE_AUTHZ_LEVEL', 2: 'LOAD_LIBRARY_AS_DATAFILE', 64: 'LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE', 32: 'LOAD_LIBRARY_AS_IMAGE_RESOURCE', 512: 'LOAD_LIBRARY_SEARCH_APPLICATION_DIR', 4096: 'LOAD_LIBRARY_SEARCH_DEFAULT_DIRS', 256: 'LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR', 2048: 'LOAD_LIBRARY_SEARCH_SYSTEM32', 1024: 'LOAD_LIBRARY_SEARCH_USER_DIRS', 8: 'LOAD_WITH_ALTERED_SEARCH_PATH', 128: 'LOAD_LIBRARY_REQUIRE_SIGNED_TARGET', 8192: 'LOAD_LIBRARY_SAFE_CURRENT_DIRS'}
 
-        unicode_string = struct_UNICODE_STRING(0, 0)
+        unicode_string = Structure.UNICODE_STRING(0, 0)
         unicode_string.readFromMemory(uc, pVals[2])
         name = read_unicode(uc, unicode_string.Buffer)
 
@@ -1843,7 +1843,7 @@ class CustomWinAPIs():
 
         hProcess = Handle(HandleType.Process)
         hThread = Handle(HandleType.Thread)
-        processInfo = struct_PROCESS_INFORMATION(hProcess.value, hThread.value)
+        processInfo = Structure.PROCESS_INFORMATION(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[9])
 
         pVals[9] = makeStructVals(uc, processInfo, pVals[9])
@@ -1868,7 +1868,7 @@ class CustomWinAPIs():
 
         hProcess = Handle(HandleType.Process)
         hThread = Handle(HandleType.Thread)
-        processInfo = struct_PROCESS_INFORMATION(hProcess.value, hThread.value)
+        processInfo = Structure.PROCESS_INFORMATION(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[9])
 
         pVals[9] = makeStructVals(uc, processInfo, pVals[9])
@@ -1895,7 +1895,7 @@ class CustomWinAPIs():
 
         hProcess = Handle(HandleType.Process)
         hThread = Handle(HandleType.Thread)
-        processInfo = struct_PROCESS_INFORMATION(hProcess.value, hThread.value)
+        processInfo = Structure.PROCESS_INFORMATION(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[10])
 
         pVals[10] = makeStructVals(uc, processInfo, pVals[10])
@@ -1921,7 +1921,7 @@ class CustomWinAPIs():
 
         hProcess = Handle(HandleType.Process)
         hThread = Handle(HandleType.Thread)
-        processInfo = struct_PROCESS_INFORMATION(hProcess.value, hThread.value)
+        processInfo = Structure.PROCESS_INFORMATION(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[10])
 
         pVals[10] = makeStructVals(uc, processInfo, pVals[10])
@@ -1948,7 +1948,7 @@ class CustomWinAPIs():
 
         hProcess = Handle(HandleType.Process)
         hThread = Handle(HandleType.Thread)
-        processInfo = struct_PROCESS_INFORMATION(hProcess.value, hThread.value)
+        processInfo = Structure.PROCESS_INFORMATION(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[10])
 
         pVals[10] = makeStructVals(uc, processInfo, pVals[10])
@@ -1975,7 +1975,7 @@ class CustomWinAPIs():
 
         hProcess = Handle(HandleType.Process)
         hThread = Handle(HandleType.Thread)
-        processInfo = struct_PROCESS_INFORMATION(hProcess.value, hThread.value)
+        processInfo = Structure.PROCESS_INFORMATION(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[10])
 
         pVals[10] = makeStructVals(uc, processInfo, pVals[10])
@@ -5533,7 +5533,7 @@ class CustomWinAPIs():
         pNames = ['hKey', 'dwIndex', 'lpName', 'lpcchName', 'lpReserved', 'lpClass', 'lpcchClass', 'lpftLastWriteTime']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        fileTime = struct_FILETIME()
+        fileTime = Structure.FILETIME()
 
         if pVals[0] in HandlesDict:
             hKey = HandlesDict[pVals[0]]
@@ -5572,7 +5572,7 @@ class CustomWinAPIs():
         pNames = ['hKey', 'dwIndex', 'lpName', 'lpcchName', 'lpReserved', 'lpClass', 'lpcchClass', 'lpftLastWriteTime']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        fileTime = struct_FILETIME()
+        fileTime = Structure.FILETIME()
 
         if pVals[0] in HandlesDict:
             hKey = HandlesDict[pVals[0]]
@@ -6135,7 +6135,7 @@ class CustomWinAPIs():
 
         global registry_add_keys
 
-        fileTime = struct_FILETIME()
+        fileTime = Structure.FILETIME()
         
         if pVals[0] in HandlesDict:
             hKey = HandlesDict[pVals[0]]
@@ -6192,7 +6192,7 @@ class CustomWinAPIs():
 
         global registry_add_keys
 
-        fileTime = struct_FILETIME()
+        fileTime = Structure.FILETIME()
         
         if pVals[0] in HandlesDict:
             hKey = HandlesDict[pVals[0]]
@@ -8212,7 +8212,7 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
         
         if pVals[0] != 0x0:
-            timeVal = struct_SYSTEMTIME(True, emuSimVals.system_time_since_epoch)
+            timeVal = Structure.SYSTEMTIME(True, emuSimVals.system_time_since_epoch)
             timeVal.writeToMemory(uc, pVals[0])
 
         pVals[0] = makeStructVals(uc, timeVal, pVals[0])
@@ -8233,7 +8233,7 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         if pVals[0] != 0x0:
-            timeVal = struct_SYSTEMTIME(False, emuSimVals.system_time_since_epoch)
+            timeVal = Structure.SYSTEMTIME(False, emuSimVals.system_time_since_epoch)
             timeVal.writeToMemory(uc, pVals[0])
 
         pVals[0] = makeStructVals(uc, timeVal, pVals[0])
@@ -9015,11 +9015,11 @@ class CustomWinAPIs():
         pNames = ['hFile', '*lpCreationTime', '*lpLastAccessTime', '*lpLastWriteTime'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        creationTime = struct_FILETIME()
+        creationTime = Structure.FILETIME()
         creationTime.readFromMemory(uc, pVals[1])
-        accessTime = struct_FILETIME()
+        accessTime = Structure.FILETIME()
         accessTime.readFromMemory(uc, pVals[2])
-        writeTime = struct_FILETIME()
+        writeTime = Structure.FILETIME()
         writeTime.readFromMemory(uc, pVals[3])
 
         pVals[1] = makeStructVals(uc, creationTime, pVals[1])
@@ -9040,7 +9040,7 @@ class CustomWinAPIs():
         pNames = ['lpTimeZoneInformation'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        timeZone = struct_TIME_ZONE_INFORMATION()
+        timeZone = Structure.TIME_ZONE_INFORMATION()
         timeZone.writeToMemory(uc, pVals[0])
         pVals[0] = makeStructVals(uc, timeZone, pVals[0])
 
@@ -9058,7 +9058,7 @@ class CustomWinAPIs():
         pNames = ['lpStartupInfo'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        startupinfo = struct_STARTUPINFOA()
+        startupinfo = Structure.STARTUPINFOA()
         startupinfo.writeToMemory(uc, pVals[0])
         pVals[0] = makeStructVals(uc, startupinfo, pVals[0])
 
@@ -9670,7 +9670,7 @@ class CustomWinAPIs():
         pTypes= ['LPFILETIME']
         pNames= ['lpSystemTimeAsFileTime']
 
-        fileTime = struct_FILETIME()
+        fileTime = Structure.FILETIME()
         fileTime.writeToMemory(uc, pVals[0])
 
         pVals[0] = makeStructVals(uc, fileTime, pVals[0])
@@ -9691,21 +9691,21 @@ class CustomWinAPIs():
         pNames= ['hFile', 'lpCreationTime', 'lpLastAccessTime', 'lpLastWriteTime']
 
         if pVals[1] != 0x0:
-            fileTime = struct_FILETIME()
+            fileTime = Structure.FILETIME()
             fileTime.writeToMemory(uc, pVals[1])
             pVals[1] = makeStructVals(uc, fileTime, pVals[1])
         else:
             pVals[3] = hex(pVals[3])
 
         if pVals[2] != 0x0:
-            fileTime = struct_FILETIME()
+            fileTime = Structure.FILETIME()
             fileTime.writeToMemory(uc, pVals[2])
             pVals[2] = makeStructVals(uc, fileTime, pVals[2])
         else:
             pVals[3] = hex(pVals[3])
 
         if pVals[3] != 0x0:
-            fileTime = struct_FILETIME()
+            fileTime = Structure.FILETIME()
             fileTime.writeToMemory(uc, pVals[3])
             pVals[3] = makeStructVals(uc, fileTime, pVals[3])
         else:
@@ -10279,14 +10279,14 @@ class System_SnapShot:
         self.threadOffset = 0
         self.moduleOffset = 0
         self.baseThreadID = 1000
-        self.processDict = {4: struct_PROCESSENTRY32(0, 10, 0, 0, 'System'),
-                            2688: struct_PROCESSENTRY32(2688, 16, 0, 4, 'explorer.exe'),
-                            9172: struct_PROCESSENTRY32(9172, 10, 2688, 10, 'calc.exe'),
-                            8280: struct_PROCESSENTRY32(8280, 50, 2688, 16, 'chrome.exe'),
-                            11676: struct_PROCESSENTRY32(11676, 78, 2688, 15, 'notepad.exe'),
-                            8768: struct_PROCESSENTRY32(8768, 20, 2688, 4, 'firefox.exe')}
-        self.threadDict: dict[int, struct_THREADENTRY32] = {}
-        self.moduleList: list[struct_MODULEENTRY32] = []
+        self.processDict = {4: Structure.PROCESSENTRY32(0, 10, 0, 0, 'System'),
+                            2688: Structure.PROCESSENTRY32(2688, 16, 0, 4, 'explorer.exe'),
+                            9172: Structure.PROCESSENTRY32(9172, 10, 2688, 10, 'calc.exe'),
+                            8280: Structure.PROCESSENTRY32(8280, 50, 2688, 16, 'chrome.exe'),
+                            11676: Structure.PROCESSENTRY32(11676, 78, 2688, 15, 'notepad.exe'),
+                            8768: Structure.PROCESSENTRY32(8768, 20, 2688, 4, 'firefox.exe')}
+        self.threadDict: dict[int, Structure.THREADENTRY32] = {}
+        self.moduleList: list[Structure.MODULEENTRY32] = []
         if fakeThreads:
             self.fakeThreads()
         # if fakeModules: # Need To Fix Modules Thing
@@ -10297,7 +10297,7 @@ class System_SnapShot:
         for k, v in self.processDict.items():  # Create Fake Threads
             for i in range(v.cntThreads):
                 self.threadDict.update(
-                    {self.baseThreadID: struct_THREADENTRY32(self.baseThreadID, v.th32ProcessID, v.pcPriClassBase)})
+                    {self.baseThreadID: Structure.THREADENTRY32(self.baseThreadID, v.th32ProcessID, v.pcPriClassBase)})
                 self.baseThreadID += 1
 
     # def fakeModules(self):
@@ -10327,7 +10327,7 @@ class System_SnapShot:
     #                 modules.add(selectedDLL)
     #                 path = "C:\Windows\SysWOW64\\" + selectedDLL
     #                 self.moduleList.append(
-    #                     struct_MODULEENTRY32(v.th32ProcessID, allDllsDict[selectedDLL], allDllsSizeDict[selectedDLL],
+    #                     Structure.MODULEENTRY32(v.th32ProcessID, allDllsDict[selectedDLL], allDllsSizeDict[selectedDLL],
     #                                          allDllsDict[selectedDLL], selectedDLL, path))
 
     def resetOffsets(self):
