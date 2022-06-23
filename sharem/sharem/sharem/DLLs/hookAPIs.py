@@ -1,6 +1,7 @@
 from copy import deepcopy
 from enum import Enum, auto
 from random import choice, randint
+from urllib.parse import quote, unquote
 from sharem.sharem.DLLs.reverseLookUps import ReverseLookUps
 from unicorn.x86_const import *
 from struct import pack, unpack
@@ -6423,18 +6424,53 @@ class CustomWinAPIs():
         logged_calls = ("ReadDirectoryChangesW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def InternetCombineUrlA(self, uc, eip, esp, export_dict, callAddr, em):
+    def InternetCombineUrlA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['LPCSTR', 'LPCSTR', 'LPSTR', 'LPDWORD', 'DWORD']
         pNames = ['lpszBaseUrl', 'lpszRelativeUrl', 'lpszBuffer', 'lpdwBufferLength', 'dwFlags']
 
-        dwFlagsReverseLookUp = {536870912: 'ICU_NO_ENCODE', 268435456: 'ICU_DECODE', 134217728: 'ICU_NO_META',
-                                67108864: 'ICU_ENCODE_SPACES_ONLY', 33554432: 'ICU_BROWSER_MODE',
-                                4096: 'ICU_ENCODE_PERCENT'}
+        dwFlagsReverseLookUp = {536870912: 'ICU_NO_ENCODE', 268435456: 'ICU_DECODE', 134217728: 'ICU_NO_META', 67108864: 'ICU_ENCODE_SPACES_ONLY', 33554432: 'ICU_BROWSER_MODE', 4096: 'ICU_ENCODE_PERCENT'}
 
-        # Expand Check Docs
-
+        baseUrl = read_string(uc, pVals[0])
+        relativeUrl = read_string(uc, pVals[1])
         pVals[4] = getLookUpVal(pVals[4], dwFlagsReverseLookUp)
+
+        if pVals[4] == 'ICU_NO_ENCODE':
+            relativeUrl = relativeUrl
+        elif pVals[4] == 'ICU_DECODE':
+            relativeUrl = unquote(relativeUrl)
+        elif pVals[4] == 'ICU_NO_META':
+            relativeUrl = quote(relativeUrl, safe='.')
+            relativeUrl = relativeUrl.replace('%2F','/') # Put / Back
+        elif pVals[4] == 'ICU_ENCODE_SPACES_ONLY':
+            relativeUrl = relativeUrl.replace(' ', '%20')
+        elif pVals[4] == 'ICU_BROWSER_MODE':
+            encodedVal = ''
+            found = False
+            for char in relativeUrl:
+                if not found:
+                    if char == '?' or char == '#':
+                        found = True
+                        encodedVal += char
+                    else:
+                        encodedVal += quote(char)
+                else:
+                    if char == ' ':
+                        encodedVal += quote(char)
+                    else:
+                        encodedVal += char
+            relativeUrl = encodedVal
+        elif pVals[4] == 'ICU_ENCODE_PERCENT':
+            relativeUrl = quote(relativeUrl)
+        else:
+            relativeUrl = quote(relativeUrl)
+
+        combinedUrl =  baseUrl + relativeUrl
+
+        try:
+            uc.mem_write(pVals[2], pack(f'<{len(combinedUrl)+1}s', combinedUrl.encode('ascii')))
+        except:
+            pass
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4])
         
@@ -6445,18 +6481,53 @@ class CustomWinAPIs():
         logged_calls = ("InternetCombineUrlA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def InternetCombineUrlW(self, uc, eip, esp, export_dict, callAddr, em):
+    def InternetCombineUrlW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['LPCWSTR', 'LPCWSTR', 'LPWSTR', 'LPDWORD', 'DWORD']
         pNames = ['lpszBaseUrl', 'lpszRelativeUrl', 'lpszBuffer', 'lpdwBufferLength', 'dwFlags']
 
-        dwFlagsReverseLookUp = {536870912: 'ICU_NO_ENCODE', 268435456: 'ICU_DECODE', 134217728: 'ICU_NO_META',
-                                67108864: 'ICU_ENCODE_SPACES_ONLY', 33554432: 'ICU_BROWSER_MODE',
-                                4096: 'ICU_ENCODE_PERCENT'}
+        dwFlagsReverseLookUp = {536870912: 'ICU_NO_ENCODE', 268435456: 'ICU_DECODE', 134217728: 'ICU_NO_META', 67108864: 'ICU_ENCODE_SPACES_ONLY', 33554432: 'ICU_BROWSER_MODE', 4096: 'ICU_ENCODE_PERCENT'}
 
-        # Expand Check Docs
-
+        baseUrl = read_unicode(uc, pVals[0])
+        relativeUrl = read_unicode(uc, pVals[1])
         pVals[4] = getLookUpVal(pVals[4], dwFlagsReverseLookUp)
+
+        if pVals[4] == 'ICU_NO_ENCODE':
+            relativeUrl = relativeUrl
+        elif pVals[4] == 'ICU_DECODE':
+            relativeUrl = unquote(relativeUrl)
+        elif pVals[4] == 'ICU_NO_META':
+            relativeUrl = quote(relativeUrl, safe='.')
+            relativeUrl = relativeUrl.replace('%2F','/') # Put / Back
+        elif pVals[4] == 'ICU_ENCODE_SPACES_ONLY':
+            relativeUrl = relativeUrl.replace(' ', '%20')
+        elif pVals[4] == 'ICU_BROWSER_MODE':
+            encodedVal = ''
+            found = False
+            for char in relativeUrl:
+                if not found:
+                    if char == '?' or char == '#':
+                        found = True
+                        encodedVal += char
+                    else:
+                        encodedVal += quote(char)
+                else:
+                    if char == ' ':
+                        encodedVal += quote(char)
+                    else:
+                        encodedVal += char
+            relativeUrl = encodedVal
+        elif pVals[4] == 'ICU_ENCODE_PERCENT':
+            relativeUrl = quote(relativeUrl)
+        else:
+            relativeUrl = quote(relativeUrl)
+
+        combinedUrl =  baseUrl + relativeUrl
+
+        try:
+            uc.mem_write(pVals[2], pack(f'<{(len(combinedUrl)*2) + 2}s', combinedUrl.encode('utf-16')[2:]))
+        except:
+            pass
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4])
         
