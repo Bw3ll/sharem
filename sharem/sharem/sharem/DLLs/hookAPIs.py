@@ -1,12 +1,13 @@
 from copy import deepcopy
 from enum import Enum, auto
 from random import choice, randint
+from urllib.parse import quote, unquote
 from sharem.sharem.DLLs.reverseLookUps import ReverseLookUps
 from unicorn.x86_const import *
 from struct import pack, unpack
 from ..helper.emuHelpers import Uc
 from ..modules import allDllsDict
-from .structures import makeStructVals, struct_FILETIME, struct_PROCESS_INFORMATION, struct_PROCESSENTRY32, struct_MODULEENTRY32, struct_SYSTEMTIME, struct_THREADENTRY32, struct_UNICODE_STRING, struct_TIME_ZONE_INFORMATION, struct_STARTUPINFOA
+from .structures import makeStructVals, Structure
 import traceback
 from ..sharem_artifacts import *
 
@@ -16,8 +17,8 @@ FakeProcess = 0xbadd0000
 availMem = 0x25000000
 lastErrorCode = 0x0
 HeapsDict = {}  # Dictionary of All Heaps
-HandlesDict = {}  # Dictionary of All Handles
-RegistryKeys = {} # Dictionary of All Reg Keys
+HandlesDict: 'dict[int,Handle]' = {}  # Dictionary of All Handles
+RegistryKeys: 'dict[str,RegKey]' = {} # Dictionary of All Reg Keys
 
 class HandleType(Enum):
     # Threads
@@ -277,7 +278,7 @@ class CustomWinAPIs():
 
         flagsReverseLookUp = {1: 'DONT_RESOLVE_DLL_REFERENCES', 16: 'LOAD_IGNORE_CODE_AUTHZ_LEVEL', 2: 'LOAD_LIBRARY_AS_DATAFILE', 64: 'LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE', 32: 'LOAD_LIBRARY_AS_IMAGE_RESOURCE', 512: 'LOAD_LIBRARY_SEARCH_APPLICATION_DIR', 4096: 'LOAD_LIBRARY_SEARCH_DEFAULT_DIRS', 256: 'LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR', 2048: 'LOAD_LIBRARY_SEARCH_SYSTEM32', 1024: 'LOAD_LIBRARY_SEARCH_USER_DIRS', 8: 'LOAD_WITH_ALTERED_SEARCH_PATH', 128: 'LOAD_LIBRARY_REQUIRE_SIGNED_TARGET', 8192: 'LOAD_LIBRARY_SAFE_CURRENT_DIRS'}
 
-        unicode_string = struct_UNICODE_STRING(0, 0)
+        unicode_string = Structure.UNICODE_STRING(0, 0)
         unicode_string.readFromMemory(uc, pVals[2])
         name = read_unicode(uc, unicode_string.Buffer)
 
@@ -1843,7 +1844,7 @@ class CustomWinAPIs():
 
         hProcess = Handle(HandleType.Process)
         hThread = Handle(HandleType.Thread)
-        processInfo = struct_PROCESS_INFORMATION(hProcess.value, hThread.value)
+        processInfo = Structure.PROCESS_INFORMATION(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[9])
 
         pVals[9] = makeStructVals(uc, processInfo, pVals[9])
@@ -1868,7 +1869,7 @@ class CustomWinAPIs():
 
         hProcess = Handle(HandleType.Process)
         hThread = Handle(HandleType.Thread)
-        processInfo = struct_PROCESS_INFORMATION(hProcess.value, hThread.value)
+        processInfo = Structure.PROCESS_INFORMATION(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[9])
 
         pVals[9] = makeStructVals(uc, processInfo, pVals[9])
@@ -1895,7 +1896,7 @@ class CustomWinAPIs():
 
         hProcess = Handle(HandleType.Process)
         hThread = Handle(HandleType.Thread)
-        processInfo = struct_PROCESS_INFORMATION(hProcess.value, hThread.value)
+        processInfo = Structure.PROCESS_INFORMATION(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[10])
 
         pVals[10] = makeStructVals(uc, processInfo, pVals[10])
@@ -1921,7 +1922,7 @@ class CustomWinAPIs():
 
         hProcess = Handle(HandleType.Process)
         hThread = Handle(HandleType.Thread)
-        processInfo = struct_PROCESS_INFORMATION(hProcess.value, hThread.value)
+        processInfo = Structure.PROCESS_INFORMATION(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[10])
 
         pVals[10] = makeStructVals(uc, processInfo, pVals[10])
@@ -1948,7 +1949,7 @@ class CustomWinAPIs():
 
         hProcess = Handle(HandleType.Process)
         hThread = Handle(HandleType.Thread)
-        processInfo = struct_PROCESS_INFORMATION(hProcess.value, hThread.value)
+        processInfo = Structure.PROCESS_INFORMATION(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[10])
 
         pVals[10] = makeStructVals(uc, processInfo, pVals[10])
@@ -1975,7 +1976,7 @@ class CustomWinAPIs():
 
         hProcess = Handle(HandleType.Process)
         hThread = Handle(HandleType.Thread)
-        processInfo = struct_PROCESS_INFORMATION(hProcess.value, hThread.value)
+        processInfo = Structure.PROCESS_INFORMATION(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[10])
 
         pVals[10] = makeStructVals(uc, processInfo, pVals[10])
@@ -2278,9 +2279,9 @@ class CustomWinAPIs():
             pVals[1] = lpSubKey
 
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Return Handle
                         foundKey = RegistryKeys[keyPath]
@@ -2649,12 +2650,12 @@ class CustomWinAPIs():
 
             keyPath = ''
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Return Handle
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         hKey = foundKey.handle.value
                         createKey = False
                     else:
@@ -2711,12 +2712,12 @@ class CustomWinAPIs():
 
             keyPath = ''
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Return Handle
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         hKey = foundKey.handle.value
                         createKey = False
                     else:
@@ -2880,12 +2881,12 @@ class CustomWinAPIs():
             pVals[1] = lpSubKey
 
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Return Handle
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         foundKey.deleteKey()
                     else: # KeyPath Not Found
                         pass
@@ -2896,9 +2897,9 @@ class CustomWinAPIs():
         else: # [NULL] lpSubKey Return hKey
             pVals[1] = lpSubKey
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path
                     rKey.deleteKey()
                 else:
@@ -2930,12 +2931,12 @@ class CustomWinAPIs():
             pVals[1] = lpSubKey
 
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Return Handle
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         foundKey.deleteKey()
                     else: # KeyPath Not Found
                         pass
@@ -2946,9 +2947,9 @@ class CustomWinAPIs():
         else: # [NULL] lpSubKey Return hKey
             pVals[1] = lpSubKey
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path
                     rKey.deleteKey()
                 else:
@@ -2984,12 +2985,12 @@ class CustomWinAPIs():
             pVals[1] = lpSubKey
 
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Return Handle
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         foundKey.deleteKey()
                     else: # KeyPath Not Found
                         pass
@@ -3000,9 +3001,9 @@ class CustomWinAPIs():
         else: # [NULL] lpSubKey Return hKey
             pVals[1] = lpSubKey
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path
                     rKey.deleteKey()
                 else:
@@ -3040,12 +3041,12 @@ class CustomWinAPIs():
             pVals[1] = lpSubKey
 
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Return Handle
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         foundKey.deleteKey()
                     else: # KeyPath Not Found
                         pass
@@ -3056,9 +3057,9 @@ class CustomWinAPIs():
         else: # [NULL] lpSubKey Return hKey
             pVals[1] = lpSubKey
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path
                     rKey.deleteKey()
                 else:
@@ -3094,12 +3095,12 @@ class CustomWinAPIs():
             pVals[1] = lpSubKey
 
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Return Handle
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         foundKey.deleteKey()
                     else: # KeyPath Not Found
                         pass
@@ -3110,9 +3111,9 @@ class CustomWinAPIs():
         else: # [NULL] lpSubKey Return hKey
             pVals[1] = lpSubKey
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path
                     rKey.deleteKey()
                 else:
@@ -3148,12 +3149,12 @@ class CustomWinAPIs():
             pVals[1] = lpSubKey
 
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Return Handle
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         foundKey.deleteKey()
                     else: # KeyPath Not Found
                         pass
@@ -3164,9 +3165,9 @@ class CustomWinAPIs():
         else: # [NULL] lpSubKey Return hKey
             pVals[1] = lpSubKey
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path
                     rKey.deleteKey()
                 else:
@@ -3200,12 +3201,12 @@ class CustomWinAPIs():
             pVals[1] = lpSubKey
 
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys:
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         keysToDelete.add(foundKey)
                         for key, val in RegistryKeys.items():
                             if keyPath in key:
@@ -3227,9 +3228,9 @@ class CustomWinAPIs():
         else: # [NULL] lpSubKey
             pVals[1] = lpSubKey
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path
                     for key, val in RegistryKeys.items():
                         if keyPath in key:
@@ -3273,12 +3274,12 @@ class CustomWinAPIs():
             pVals[1] = lpSubKey
 
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys:
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         keysToDelete.add(foundKey)
                         for key, val in RegistryKeys.items():
                             if keyPath in key:
@@ -3300,9 +3301,9 @@ class CustomWinAPIs():
         else: # [NULL] lpSubKey
             pVals[1] = lpSubKey
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path
                     for key, val in RegistryKeys.items():
                         if keyPath in key:
@@ -3352,12 +3353,12 @@ class CustomWinAPIs():
 
         if lpSubKey == '[NULL]':
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path
                     if keyPath in RegistryKeys: # If Key Found Get Value
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         registry_key_address = foundKey
                         if lpValue == '[NULL]':
                             keyValue = foundKey.getValue()
@@ -3368,12 +3369,12 @@ class CustomWinAPIs():
                 lpSubKey = '\\' + lpSubKey
                 pVals[1] = lpSubKey
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Get Value
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         registry_key_address = foundKey
                         if lpValue == '[NULL]':
                             keyValue = foundKey.getValue()
@@ -3456,12 +3457,12 @@ class CustomWinAPIs():
 
         if lpSubKey == '[NULL]':
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path
                     if keyPath in RegistryKeys: # If Key Found Get Value
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         registry_key_address = foundKey
                         if lpValue == '[NULL]':
                             keyValue = foundKey.getValue()
@@ -3472,12 +3473,12 @@ class CustomWinAPIs():
                 lpSubKey = '\\' + lpSubKey
                 pVals[1] = lpSubKey
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Get Value
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         registry_key_address = foundKey
                         if lpValue == '[NULL]':
 
@@ -3554,24 +3555,24 @@ class CustomWinAPIs():
 
         if lpSubKey == '[NULL]':
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path
                     if keyPath in RegistryKeys: # If Key Found Get Value
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         keyValue = foundKey.getValue()
         else:
             if lpSubKey[0] != '\\':
                 lpSubKey = '\\' + lpSubKey
             pVals[1] = lpSubKey
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Get Value
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         keyValue = foundKey.getValue()
                     else:
                         rKey = RegKey(keyPath)
@@ -3619,24 +3620,24 @@ class CustomWinAPIs():
 
         if lpSubKey == '[NULL]':
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path
                     if keyPath in RegistryKeys: # If Key Found Get Value
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         keyValue = foundKey.getValue()
         else:
             if lpSubKey[0] != '\\':
                 lpSubKey = '\\' + lpSubKey
             pVals[1] = lpSubKey
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Get Value
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         keyValue = foundKey.getValue()
                     else:
                         rKey = RegKey(keyPath)
@@ -3682,9 +3683,9 @@ class CustomWinAPIs():
         keyPath = ''
         keyValue = None
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 if lpValue == '[NULL]':
                     keyValue = rKey.getValue()
                 else:
@@ -3763,9 +3764,9 @@ class CustomWinAPIs():
         keyPath = ''
         keyValue = None
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 if lpValue == '[NULL]':
                     keyValue = rKey.getValue()
                 else:
@@ -3848,12 +3849,12 @@ class CustomWinAPIs():
 
             keyPath = ''
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Set Value
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         foundKey.setValue(RegValueTypes(pVals[2]),lpData)
                         createKey = False
                         registry_key_address = foundKey
@@ -3868,9 +3869,9 @@ class CustomWinAPIs():
         else: # [NULL] lpSubKey
             keyPath = ''
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path
                     rKey.setValue(RegValueTypes(pVals[2]),lpData)
                     registry_key_address = rKey
@@ -3913,12 +3914,12 @@ class CustomWinAPIs():
 
             keyPath = ''
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Set Value
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         foundKey.setValue(RegValueTypes(pVals[2]),lpData)
                         createKey = False
                         registry_key_address = foundKey
@@ -3933,9 +3934,9 @@ class CustomWinAPIs():
         else: # [NULL] lpSubKey 
             keyPath = ''
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path
                     rKey.setValue(RegValueTypes(pVals[2]),lpData)
                     registry_key_address = rKey
@@ -3975,9 +3976,9 @@ class CustomWinAPIs():
         pVals[1] = valName
 
         if pVals[0] in HandlesDict: # Handle Not Found
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name] # Key Found
+                rKey = RegistryKeys[hKey.name] # Key Found
                 if valType == RegValueTypes.REG_BINARY:
                     bin = uc.mem_read(pVals[4],pVals[5])
                     rKey.setValue(valType,bin,valName)
@@ -4065,9 +4066,9 @@ class CustomWinAPIs():
         pVals[1] = valName
 
         if pVals[0] in HandlesDict: # Handle Not Found
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name] # Key Found
+                rKey = RegistryKeys[hKey.name] # Key Found
                 if valType == RegValueTypes.REG_BINARY:
                     bin = uc.mem_read(pVals[4],pVals[5])
                     rKey.setValue(valType,bin,valName)
@@ -4156,9 +4157,9 @@ class CustomWinAPIs():
         if lpSubKey == '[NULL]':
             pVals[1] = lpSubKey
             if pVals[0] in HandlesDict: # Handle Not Found
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys: # Key Found
-                    rKey: RegKey = RegistryKeys[hKey.name] 
+                    rKey = RegistryKeys[hKey.name] 
                 else: # Key Not Found Create It
                     rKey = RegKey(hKey.name,hKey.value)
                     
@@ -4224,10 +4225,10 @@ class CustomWinAPIs():
             pVals[1] = lpSubKey
 
             if pVals[0] in HandlesDict: # Handle Not Found
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 keyPath = hKey.name + lpSubKey
                 if keyPath in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name] # Key Found
+                    rKey = RegistryKeys[hKey.name] # Key Found
                 else: # Create Key
                     rKey = RegKey(keyPath)
 
@@ -4316,9 +4317,9 @@ class CustomWinAPIs():
         if lpSubKey == '[NULL]':
             pVals[1] = lpSubKey
             if pVals[0] in HandlesDict: # Handle Not Found
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys: # Key Found
-                    rKey: RegKey = RegistryKeys[hKey.name] 
+                    rKey = RegistryKeys[hKey.name] 
                 else: # Key Not Found Create It
                     rKey = RegKey(hKey.name,hKey.value)
 
@@ -4384,10 +4385,10 @@ class CustomWinAPIs():
             pVals[1] = lpSubKey
 
             if pVals[0] in HandlesDict: # Handle Not Found
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 keyPath = hKey.name + lpSubKey
                 if keyPath in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name] # Key Found
+                    rKey = RegistryKeys[hKey.name] # Key Found
                 else: # Create Key
                     rKey = RegKey(keyPath)
 
@@ -4473,9 +4474,9 @@ class CustomWinAPIs():
 
         keyPath = ''
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 keyPath = rKey.path
                 deletedValue = rKey.deleteValue(valName)
             else: # Key Not Found
@@ -4509,9 +4510,9 @@ class CustomWinAPIs():
 
         keyPath = ''
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 keyPath = rKey.path
                 deletedValue = rKey.deleteValue(valName)
             else: # Key Not Found
@@ -4551,12 +4552,12 @@ class CustomWinAPIs():
             pVals[1] = lpSubKey
 
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Return Handle
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         deletedValue = foundKey.deleteValue(valName)
                     else: # KeyPath Not Found
                         pass
@@ -4567,9 +4568,9 @@ class CustomWinAPIs():
         else: # [NULL] lpSubKey Return hKey
             pVals[1] = lpSubKey
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path
                     deletedValue = rKey.deleteValue(valName)
                 else:
@@ -4606,12 +4607,12 @@ class CustomWinAPIs():
             pVals[1] = lpSubKey
 
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Return Handle
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         deletedValue = foundKey.deleteValue(valName)
                     else: # KeyPath Not Found
                         pass
@@ -4622,9 +4623,9 @@ class CustomWinAPIs():
         else: # [NULL] lpSubKey Return hKey
             pVals[1] = lpSubKey
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path
                     deletedValue = rKey.deleteValue(valName)
                 else:
@@ -4713,12 +4714,12 @@ class CustomWinAPIs():
 
             keyPath = ''
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Return Handle
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         hKey = foundKey.handle.value
                         createKey = False
                     else:
@@ -4778,12 +4779,12 @@ class CustomWinAPIs():
 
             keyPath = ''
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Return Handle
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         hKey = foundKey.handle.value
                         createKey = False
                     else:
@@ -4831,9 +4832,9 @@ class CustomWinAPIs():
 
         keyPath =''
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 keyPath = rKey.path
             else: # RegKey Not Found Use handle Name Instead Might Not Be KeyPath
               keyPath = hKey.name 
@@ -4871,12 +4872,12 @@ class CustomWinAPIs():
 
             keyPath = ''
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Return Handle
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         hKey = foundKey.handle.value
                     else:
                         pass
@@ -4887,9 +4888,9 @@ class CustomWinAPIs():
         else: # [NULL] lpSubKey
             pVals[1] = lpSubKey
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path
                 else:
                     keyPath = hKey.name
@@ -4925,12 +4926,12 @@ class CustomWinAPIs():
 
             keyPath = ''
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Return Handle
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         hKey = foundKey.handle.value
                     else:
                         pass
@@ -4941,9 +4942,9 @@ class CustomWinAPIs():
         else: # [NULL] lpSubKey
             pVals[1] = lpSubKey
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path
                 else:
                     keyPath = hKey.name
@@ -4979,12 +4980,12 @@ class CustomWinAPIs():
 
             keyPath = ''
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Return Handle
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         hKey = foundKey.handle.value
                     else:
                         pass
@@ -4995,9 +4996,9 @@ class CustomWinAPIs():
         else: # [NULL] lpSubKey 
             pVals[1] = lpSubKey
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path
                 else:
                     keyPath = hKey.name
@@ -5031,12 +5032,12 @@ class CustomWinAPIs():
 
             keyPath = ''
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path + lpSubKey
                     if keyPath in RegistryKeys: # If Key Found Return Handle
-                        foundKey: RegKey = RegistryKeys[keyPath]
+                        foundKey = RegistryKeys[keyPath]
                         hKey = foundKey.handle.value
                     else:
                         pass
@@ -5047,9 +5048,9 @@ class CustomWinAPIs():
         else: # [NULL] lpSubKey
             pVals[1] = lpSubKey
             if pVals[0] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[0]]
+                hKey = HandlesDict[pVals[0]]
                 if hKey.name in RegistryKeys:
-                    rKey: RegKey = RegistryKeys[hKey.name]
+                    rKey = RegistryKeys[hKey.name]
                     keyPath = rKey.path
                 else:
                     keyPath = hKey.name
@@ -5079,9 +5080,9 @@ class CustomWinAPIs():
 
         keyPath =''
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 keyPath = rKey.path
             else:
                 keyPath = hKey.name
@@ -5124,12 +5125,12 @@ class CustomWinAPIs():
                 oldKeyName = lpSubKey.split('\\')[-1] # Get Key Name
 
                 if pVals[0] in HandlesDict:
-                    hKey: Handle = HandlesDict[pVals[0]]
+                    hKey = HandlesDict[pVals[0]]
                     if hKey.name in RegistryKeys:
-                        rKey: RegKey = RegistryKeys[hKey.name]
+                        rKey = RegistryKeys[hKey.name]
                         keyPath = rKey.path + lpSubKey
                         if keyPath in RegistryKeys:
-                            fKey: RegKey = RegistryKeys[keyPath]
+                            fKey = RegistryKeys[keyPath]
                             keysToRename.add(fKey)
                             for key, val in RegistryKeys.items():
                                 if keyPath in key:
@@ -5148,9 +5149,9 @@ class CustomWinAPIs():
             else:
                 pVals[1] = lpSubKey
                 if pVals[0] in HandlesDict:
-                    hKey: Handle = HandlesDict[pVals[0]]
+                    hKey = HandlesDict[pVals[0]]
                     if hKey.name in RegistryKeys:
-                        rKey: RegKey = RegistryKeys[hKey.name]
+                        rKey = RegistryKeys[hKey.name]
                         keyPath = rKey.path
                         oldKeyName = rKey.name
                         for key, val in RegistryKeys.items():
@@ -5205,9 +5206,9 @@ class CustomWinAPIs():
         pVals[1] = lpSubKey
 
         if pVals[2] in HandlesDict:
-            hKeyDest: Handle = HandlesDict[pVals[2]]
+            hKeyDest = HandlesDict[pVals[2]]
             if hKeyDest.name in RegistryKeys:
-                rKeyDest: RegKey = RegistryKeys[hKeyDest.name]
+                rKeyDest = RegistryKeys[hKeyDest.name]
                 newKeyPath = rKeyDest.path
             else:
                 newKeyPath = hKeyDest.name
@@ -5218,12 +5219,12 @@ class CustomWinAPIs():
                 pVals[1] = lpSubKey
 
                 if pVals[0] in HandlesDict:
-                    hKeySrc: Handle = HandlesDict[pVals[0]]
+                    hKeySrc = HandlesDict[pVals[0]]
                     if hKeySrc.name in RegistryKeys:
-                        rKeySrc: RegKey = RegistryKeys[hKeySrc.name]
+                        rKeySrc = RegistryKeys[hKeySrc.name]
                         keyPath = rKeySrc.path + lpSubKey
                         if keyPath in RegistryKeys:
-                            fKey: RegKey = RegistryKeys[keyPath]
+                            fKey = RegistryKeys[keyPath]
                             keysToCopy.add(fKey)
                             for key, val in RegistryKeys.items():
                                 if keyPath in key:
@@ -5242,9 +5243,9 @@ class CustomWinAPIs():
             else:
                 pVals[1] = lpSubKey
                 if pVals[0] in HandlesDict:
-                    hKey: Handle = HandlesDict[pVals[0]]
+                    hKey = HandlesDict[pVals[0]]
                     if hKey.name in RegistryKeys:
-                        rKey: RegKey = RegistryKeys[hKey.name]
+                        rKey = RegistryKeys[hKey.name]
                         keyPath = rKey.path
                         for key, val in RegistryKeys.items():
                             if keyPath in key:
@@ -5306,9 +5307,9 @@ class CustomWinAPIs():
         pVals[1] = lpSubKey
 
         if pVals[2] in HandlesDict:
-            hKeyDest: Handle = HandlesDict[pVals[2]]
+            hKeyDest = HandlesDict[pVals[2]]
             if hKeyDest.name in RegistryKeys:
-                rKeyDest: RegKey = RegistryKeys[hKeyDest.name]
+                rKeyDest = RegistryKeys[hKeyDest.name]
                 newKeyPath = rKeyDest.path
             else:
                 newKeyPath = hKeyDest.name
@@ -5319,12 +5320,12 @@ class CustomWinAPIs():
                 pVals[1] = lpSubKey
 
                 if pVals[0] in HandlesDict:
-                    hKeySrc: Handle = HandlesDict[pVals[0]]
+                    hKeySrc = HandlesDict[pVals[0]]
                     if hKeySrc.name in RegistryKeys:
-                        rKeySrc: RegKey = RegistryKeys[hKeySrc.name]
+                        rKeySrc = RegistryKeys[hKeySrc.name]
                         keyPath = rKeySrc.path + lpSubKey
                         if keyPath in RegistryKeys:
-                            fKey: RegKey = RegistryKeys[keyPath]
+                            fKey = RegistryKeys[keyPath]
                             keysToCopy.add(fKey)
                             for key, val in RegistryKeys.items():
                                 if keyPath in key:
@@ -5343,9 +5344,9 @@ class CustomWinAPIs():
             else:
                 pVals[1] = lpSubKey
                 if pVals[0] in HandlesDict:
-                    hKey: Handle = HandlesDict[pVals[0]]
+                    hKey = HandlesDict[pVals[0]]
                     if hKey.name in RegistryKeys:
-                        rKey: RegKey = RegistryKeys[hKey.name]
+                        rKey = RegistryKeys[hKey.name]
                         keyPath = rKey.path
                         for key, val in RegistryKeys.items():
                             if keyPath in key:
@@ -5421,9 +5422,9 @@ class CustomWinAPIs():
             preKeyPath = RegKey.PreDefinedKeys[pVals[0]]
             if pVals[1] != 0x0:
                 if pVals[1] in HandlesDict:
-                    hKey: Handle = HandlesDict[pVals[1]]
+                    hKey = HandlesDict[pVals[1]]
                     if hKey.name in RegistryKeys:
-                        rKey: RegKey = RegistryKeys[hKey.name]
+                        rKey = RegistryKeys[hKey.name]
                         newKeyPath = rKey.path
                         if pVals[0] in HandlesDict:
                             hKey = HandlesDict[pVals[0]]
@@ -5467,10 +5468,10 @@ class CustomWinAPIs():
         pNames = ['hKey', 'dwIndex', 'lpName', 'cchName']
 
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             keyPath = hKey.name
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 if pVals[1] < len(rKey.childKeys):
                     ChildKeysList = list(rKey.childKeys)
                     childKey = rKey.childKeys[ChildKeysList[pVals[1]]]
@@ -5500,10 +5501,10 @@ class CustomWinAPIs():
         pNames = ['hKey', 'dwIndex', 'lpName', 'cchName']
 
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             keyPath = hKey.name
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 if pVals[1] < len(rKey.childKeys):
                     ChildKeysList = list(rKey.childKeys)
                     childKey = rKey.childKeys[ChildKeysList[pVals[1]]]
@@ -5533,13 +5534,13 @@ class CustomWinAPIs():
         pNames = ['hKey', 'dwIndex', 'lpName', 'lpcchName', 'lpReserved', 'lpClass', 'lpcchClass', 'lpftLastWriteTime']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        fileTime = struct_FILETIME()
+        fileTime = Structure.FILETIME()
 
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             keyPath = hKey.name
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 if pVals[1] < len(rKey.childKeys):
                     ChildKeysList = list(rKey.childKeys)
                     childKey = rKey.childKeys[ChildKeysList[pVals[1]]]
@@ -5572,12 +5573,12 @@ class CustomWinAPIs():
         pNames = ['hKey', 'dwIndex', 'lpName', 'lpcchName', 'lpReserved', 'lpClass', 'lpcchClass', 'lpftLastWriteTime']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        fileTime = struct_FILETIME()
+        fileTime = Structure.FILETIME()
 
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 if pVals[1] < len(rKey.childKeys):
                     ChildKeysList = list(rKey.childKeys)
                     childKey = rKey.childKeys[ChildKeysList[pVals[1]]]
@@ -5611,9 +5612,9 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
     
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 if pVals[1] < len(rKey.values):
                     valuesList = list(rKey.values)
                     keyValue = rKey.values[valuesList[pVals[1]]]
@@ -5678,9 +5679,9 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
     
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 if pVals[1] < len(rKey.values):
                     valuesList = list(rKey.values)
                     keyValue = rKey.values[valuesList[pVals[1]]]
@@ -5771,10 +5772,10 @@ class CustomWinAPIs():
         else: # Local Computer Name Used
             pVals[0] = machineName
             if pVals[1] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[1]]
+                hKey = HandlesDict[pVals[1]]
                 keyPath = hKey.name
                 if hKey.name in RegistryKeys:
-                    key: RegKey = RegistryKeys[hKey.name]
+                    key = RegistryKeys[hKey.name]
                     phk = key.handle.value
                 else:
                     phk = hKey.value
@@ -5824,10 +5825,10 @@ class CustomWinAPIs():
         else: # Local Computer Name Used
             pVals[0] = machineName
             if pVals[1] in HandlesDict:
-                hKey: Handle = HandlesDict[pVals[1]]
+                hKey = HandlesDict[pVals[1]]
                 keyPath = hKey.name
                 if hKey.name in RegistryKeys:
-                    key: RegKey = RegistryKeys[hKey.name]
+                    key = RegistryKeys[hKey.name]
                     phk = key.handle.value
                 else:
                     phk = hKey.value
@@ -5862,9 +5863,9 @@ class CustomWinAPIs():
         
     
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
             else: # Key Not Found
                 pass
         else: # Handle Not Found
@@ -5894,9 +5895,9 @@ class CustomWinAPIs():
         
     
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
             else: # Key Not Found
                 pass
         else: # Handle Not Found
@@ -5926,9 +5927,9 @@ class CustomWinAPIs():
         
     
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 keyPath = rKey.path
             else: # Key Not Found
                 keyPath = hKey.name
@@ -5956,9 +5957,9 @@ class CustomWinAPIs():
         
     
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 keyPath = rKey.path
             else: # Key Not Found
                 keyPath = hKey.name
@@ -5987,9 +5988,9 @@ class CustomWinAPIs():
         
     
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 keyPath = rKey.path
             else: # Key Not Found
                 keyPath = hKey.name
@@ -6020,9 +6021,9 @@ class CustomWinAPIs():
         
     
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 keyPath = rKey.path
             else: # Key Not Found
                 keyPath = hKey.name
@@ -6056,9 +6057,9 @@ class CustomWinAPIs():
         pVals[1] = lpSubKey
 
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 if lpSubKey != '[NULL]':
                     if lpSubKey[0] != '\\':
                         lpSubKey = '\\' + lpSubKey
@@ -6099,9 +6100,9 @@ class CustomWinAPIs():
         pVals[1] = lpSubKey
         
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 if lpSubKey != '[NULL]':
                     if lpSubKey[0] != '\\':
                         lpSubKey = '\\' + lpSubKey
@@ -6135,12 +6136,12 @@ class CustomWinAPIs():
 
         global registry_add_keys
 
-        fileTime = struct_FILETIME()
+        fileTime = Structure.FILETIME()
         
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 try:
                     uc.mem_write(pVals[1],pack('<I',0)) # Class Name Don't Do Reg Classes Currently
                     uc.mem_write(pVals[2],pack('<I',0)) # Class Length
@@ -6192,12 +6193,12 @@ class CustomWinAPIs():
 
         global registry_add_keys
 
-        fileTime = struct_FILETIME()
+        fileTime = Structure.FILETIME()
         
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 try:
                     uc.mem_write(pVals[1],pack('<I',0)) # Class Name Don't Do Reg Classes Currently
                     uc.mem_write(pVals[2],pack('<I',0)) # Class Length
@@ -6248,9 +6249,9 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
         
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 retVal = 0
                 retValStr = 'ERROR_SUCCESS'
             else: # Key Not Found
@@ -6273,9 +6274,9 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
         
         if pVals[0] in HandlesDict:
-            hKey: Handle = HandlesDict[pVals[0]]
+            hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
-                rKey: RegKey = RegistryKeys[hKey.name]
+                rKey = RegistryKeys[hKey.name]
                 retVal = 0
                 retValStr = 'ERROR_SUCCESS'
             else: # Key Not Found
@@ -6308,7 +6309,9 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
         
-        retVal = 0x00656565  # Needs Changed
+        handle = Handle(HandleType.SetWindowsHookExA)
+
+        retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -6331,7 +6334,9 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
         
-        retVal = 0x00717171  # Needs Changed
+        handle = Handle(HandleType.SetWindowsHookExW)
+
+        retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -6419,18 +6424,53 @@ class CustomWinAPIs():
         logged_calls = ("ReadDirectoryChangesW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def InternetCombineUrlA(self, uc, eip, esp, export_dict, callAddr, em):
+    def InternetCombineUrlA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['LPCSTR', 'LPCSTR', 'LPSTR', 'LPDWORD', 'DWORD']
         pNames = ['lpszBaseUrl', 'lpszRelativeUrl', 'lpszBuffer', 'lpdwBufferLength', 'dwFlags']
 
-        dwFlagsReverseLookUp = {536870912: 'ICU_NO_ENCODE', 268435456: 'ICU_DECODE', 134217728: 'ICU_NO_META',
-                                67108864: 'ICU_ENCODE_SPACES_ONLY', 33554432: 'ICU_BROWSER_MODE',
-                                4096: 'ICU_ENCODE_PERCENT'}
+        dwFlagsReverseLookUp = {536870912: 'ICU_NO_ENCODE', 268435456: 'ICU_DECODE', 134217728: 'ICU_NO_META', 67108864: 'ICU_ENCODE_SPACES_ONLY', 33554432: 'ICU_BROWSER_MODE', 4096: 'ICU_ENCODE_PERCENT'}
 
-        # Expand Check Docs
-
+        baseUrl = read_string(uc, pVals[0])
+        relativeUrl = read_string(uc, pVals[1])
         pVals[4] = getLookUpVal(pVals[4], dwFlagsReverseLookUp)
+
+        if pVals[4] == 'ICU_NO_ENCODE':
+            relativeUrl = relativeUrl
+        elif pVals[4] == 'ICU_DECODE':
+            relativeUrl = unquote(relativeUrl)
+        elif pVals[4] == 'ICU_NO_META':
+            relativeUrl = quote(relativeUrl, safe='.')
+            relativeUrl = relativeUrl.replace('%2F','/') # Put / Back
+        elif pVals[4] == 'ICU_ENCODE_SPACES_ONLY':
+            relativeUrl = relativeUrl.replace(' ', '%20')
+        elif pVals[4] == 'ICU_BROWSER_MODE':
+            encodedVal = ''
+            found = False
+            for char in relativeUrl:
+                if not found:
+                    if char == '?' or char == '#':
+                        found = True
+                        encodedVal += char
+                    else:
+                        encodedVal += quote(char)
+                else:
+                    if char == ' ':
+                        encodedVal += quote(char)
+                    else:
+                        encodedVal += char
+            relativeUrl = encodedVal
+        elif pVals[4] == 'ICU_ENCODE_PERCENT':
+            relativeUrl = quote(relativeUrl)
+        else:
+            relativeUrl = quote(relativeUrl)
+
+        combinedUrl =  baseUrl + relativeUrl
+
+        try:
+            uc.mem_write(pVals[2], pack(f'<{len(combinedUrl)+1}s', combinedUrl.encode('ascii')))
+        except:
+            pass
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4])
         
@@ -6441,18 +6481,53 @@ class CustomWinAPIs():
         logged_calls = ("InternetCombineUrlA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def InternetCombineUrlW(self, uc, eip, esp, export_dict, callAddr, em):
+    def InternetCombineUrlW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 5)
         pTypes = ['LPCWSTR', 'LPCWSTR', 'LPWSTR', 'LPDWORD', 'DWORD']
         pNames = ['lpszBaseUrl', 'lpszRelativeUrl', 'lpszBuffer', 'lpdwBufferLength', 'dwFlags']
 
-        dwFlagsReverseLookUp = {536870912: 'ICU_NO_ENCODE', 268435456: 'ICU_DECODE', 134217728: 'ICU_NO_META',
-                                67108864: 'ICU_ENCODE_SPACES_ONLY', 33554432: 'ICU_BROWSER_MODE',
-                                4096: 'ICU_ENCODE_PERCENT'}
+        dwFlagsReverseLookUp = {536870912: 'ICU_NO_ENCODE', 268435456: 'ICU_DECODE', 134217728: 'ICU_NO_META', 67108864: 'ICU_ENCODE_SPACES_ONLY', 33554432: 'ICU_BROWSER_MODE', 4096: 'ICU_ENCODE_PERCENT'}
 
-        # Expand Check Docs
-
+        baseUrl = read_unicode(uc, pVals[0])
+        relativeUrl = read_unicode(uc, pVals[1])
         pVals[4] = getLookUpVal(pVals[4], dwFlagsReverseLookUp)
+
+        if pVals[4] == 'ICU_NO_ENCODE':
+            relativeUrl = relativeUrl
+        elif pVals[4] == 'ICU_DECODE':
+            relativeUrl = unquote(relativeUrl)
+        elif pVals[4] == 'ICU_NO_META':
+            relativeUrl = quote(relativeUrl, safe='.')
+            relativeUrl = relativeUrl.replace('%2F','/') # Put / Back
+        elif pVals[4] == 'ICU_ENCODE_SPACES_ONLY':
+            relativeUrl = relativeUrl.replace(' ', '%20')
+        elif pVals[4] == 'ICU_BROWSER_MODE':
+            encodedVal = ''
+            found = False
+            for char in relativeUrl:
+                if not found:
+                    if char == '?' or char == '#':
+                        found = True
+                        encodedVal += char
+                    else:
+                        encodedVal += quote(char)
+                else:
+                    if char == ' ':
+                        encodedVal += quote(char)
+                    else:
+                        encodedVal += char
+            relativeUrl = encodedVal
+        elif pVals[4] == 'ICU_ENCODE_PERCENT':
+            relativeUrl = quote(relativeUrl)
+        else:
+            relativeUrl = quote(relativeUrl)
+
+        combinedUrl =  baseUrl + relativeUrl
+
+        try:
+            uc.mem_write(pVals[2], pack(f'<{(len(combinedUrl)*2) + 2}s', combinedUrl.encode('utf-16')[2:]))
+        except:
+            pass
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4])
         
@@ -6898,8 +6973,9 @@ class CustomWinAPIs():
         if pVals[3] == '[NULL]':
             pVals[3] = 'HTTP/1.1'
 
-        
-        retVal = 0x00747474  # Needs Changed
+        handle = Handle(HandleType.HINTERNET)
+
+        retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -6931,9 +7007,10 @@ class CustomWinAPIs():
 
         if pVals[3] == '[NULL]':
             pVals[3] = 'HTTP/1.1'
+  
+        handle = Handle(HandleType.HINTERNET)
 
-        
-        retVal = 0x00757575  # Needs Changed
+        retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -8206,7 +8283,7 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
         
         if pVals[0] != 0x0:
-            timeVal = struct_SYSTEMTIME(True, emuSimVals.system_time_since_epoch)
+            timeVal = Structure.SYSTEMTIME(True, emuSimVals.system_time_since_epoch)
             timeVal.writeToMemory(uc, pVals[0])
 
         pVals[0] = makeStructVals(uc, timeVal, pVals[0])
@@ -8227,7 +8304,7 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         if pVals[0] != 0x0:
-            timeVal = struct_SYSTEMTIME(False, emuSimVals.system_time_since_epoch)
+            timeVal = Structure.SYSTEMTIME(False, emuSimVals.system_time_since_epoch)
             timeVal.writeToMemory(uc, pVals[0])
 
         pVals[0] = makeStructVals(uc, timeVal, pVals[0])
@@ -9009,11 +9086,11 @@ class CustomWinAPIs():
         pNames = ['hFile', '*lpCreationTime', '*lpLastAccessTime', '*lpLastWriteTime'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        creationTime = struct_FILETIME()
+        creationTime = Structure.FILETIME()
         creationTime.readFromMemory(uc, pVals[1])
-        accessTime = struct_FILETIME()
+        accessTime = Structure.FILETIME()
         accessTime.readFromMemory(uc, pVals[2])
-        writeTime = struct_FILETIME()
+        writeTime = Structure.FILETIME()
         writeTime.readFromMemory(uc, pVals[3])
 
         pVals[1] = makeStructVals(uc, creationTime, pVals[1])
@@ -9034,7 +9111,7 @@ class CustomWinAPIs():
         pNames = ['lpTimeZoneInformation'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        timeZone = struct_TIME_ZONE_INFORMATION()
+        timeZone = Structure.TIME_ZONE_INFORMATION()
         timeZone.writeToMemory(uc, pVals[0])
         pVals[0] = makeStructVals(uc, timeZone, pVals[0])
 
@@ -9052,7 +9129,7 @@ class CustomWinAPIs():
         pNames = ['lpStartupInfo'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        startupinfo = struct_STARTUPINFOA()
+        startupinfo = Structure.STARTUPINFOA()
         startupinfo.writeToMemory(uc, pVals[0])
         pVals[0] = makeStructVals(uc, startupinfo, pVals[0])
 
@@ -9687,7 +9764,7 @@ class CustomWinAPIs():
         pTypes= ['LPFILETIME']
         pNames= ['lpSystemTimeAsFileTime']
 
-        fileTime = struct_FILETIME()
+        fileTime = Structure.FILETIME()
         fileTime.writeToMemory(uc, pVals[0])
 
         pVals[0] = makeStructVals(uc, fileTime, pVals[0])
@@ -9708,21 +9785,21 @@ class CustomWinAPIs():
         pNames= ['hFile', 'lpCreationTime', 'lpLastAccessTime', 'lpLastWriteTime']
 
         if pVals[1] != 0x0:
-            fileTime = struct_FILETIME()
+            fileTime = Structure.FILETIME()
             fileTime.writeToMemory(uc, pVals[1])
             pVals[1] = makeStructVals(uc, fileTime, pVals[1])
         else:
             pVals[3] = hex(pVals[3])
 
         if pVals[2] != 0x0:
-            fileTime = struct_FILETIME()
+            fileTime = Structure.FILETIME()
             fileTime.writeToMemory(uc, pVals[2])
             pVals[2] = makeStructVals(uc, fileTime, pVals[2])
         else:
             pVals[3] = hex(pVals[3])
 
         if pVals[3] != 0x0:
-            fileTime = struct_FILETIME()
+            fileTime = Structure.FILETIME()
             fileTime.writeToMemory(uc, pVals[3])
             pVals[3] = makeStructVals(uc, fileTime, pVals[3])
         else:
@@ -10296,14 +10373,14 @@ class System_SnapShot:
         self.threadOffset = 0
         self.moduleOffset = 0
         self.baseThreadID = 1000
-        self.processDict = {4: struct_PROCESSENTRY32(0, 10, 0, 0, 'System'),
-                            2688: struct_PROCESSENTRY32(2688, 16, 0, 4, 'explorer.exe'),
-                            9172: struct_PROCESSENTRY32(9172, 10, 2688, 10, 'calc.exe'),
-                            8280: struct_PROCESSENTRY32(8280, 50, 2688, 16, 'chrome.exe'),
-                            11676: struct_PROCESSENTRY32(11676, 78, 2688, 15, 'notepad.exe'),
-                            8768: struct_PROCESSENTRY32(8768, 20, 2688, 4, 'firefox.exe')}
-        self.threadDict: dict[int, struct_THREADENTRY32] = {}
-        self.moduleList: list[struct_MODULEENTRY32] = []
+        self.processDict = {4: Structure.PROCESSENTRY32(0, 10, 0, 0, 'System'),
+                            2688: Structure.PROCESSENTRY32(2688, 16, 0, 4, 'explorer.exe'),
+                            9172: Structure.PROCESSENTRY32(9172, 10, 2688, 10, 'calc.exe'),
+                            8280: Structure.PROCESSENTRY32(8280, 50, 2688, 16, 'chrome.exe'),
+                            11676: Structure.PROCESSENTRY32(11676, 78, 2688, 15, 'notepad.exe'),
+                            8768: Structure.PROCESSENTRY32(8768, 20, 2688, 4, 'firefox.exe')}
+        self.threadDict: dict[int, Structure.THREADENTRY32] = {}
+        self.moduleList: list[Structure.MODULEENTRY32] = []
         if fakeThreads:
             self.fakeThreads()
         # if fakeModules: # Need To Fix Modules Thing
@@ -10314,7 +10391,7 @@ class System_SnapShot:
         for k, v in self.processDict.items():  # Create Fake Threads
             for i in range(v.cntThreads):
                 self.threadDict.update(
-                    {self.baseThreadID: struct_THREADENTRY32(self.baseThreadID, v.th32ProcessID, v.pcPriClassBase)})
+                    {self.baseThreadID: Structure.THREADENTRY32(self.baseThreadID, v.th32ProcessID, v.pcPriClassBase)})
                 self.baseThreadID += 1
 
     # def fakeModules(self):
@@ -10344,7 +10421,7 @@ class System_SnapShot:
     #                 modules.add(selectedDLL)
     #                 path = "C:\Windows\SysWOW64\\" + selectedDLL
     #                 self.moduleList.append(
-    #                     struct_MODULEENTRY32(v.th32ProcessID, allDllsDict[selectedDLL], allDllsSizeDict[selectedDLL],
+    #                     Structure.MODULEENTRY32(v.th32ProcessID, allDllsDict[selectedDLL], allDllsSizeDict[selectedDLL],
     #                                          allDllsDict[selectedDLL], selectedDLL, path))
 
     def resetOffsets(self):
@@ -10488,7 +10565,7 @@ class RegKey:
         print('Registry Tree')
         for key, value in RegKey.PreDefinedKeys.items():
             if value in RegistryKeys:
-                rKey: RegKey = RegistryKeys[value]
+                rKey = RegistryKeys[value]
                 printTreeRecursive(rKey)
         print('\n')
     
