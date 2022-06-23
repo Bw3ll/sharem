@@ -9133,8 +9133,31 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def SendMessageTimeoutA(self, uc, eip, esp, export_dict, callAddr, em):
-        pTypes =['HWND', 'UINT', 'WPARAM', 'LPARAM', 'SENDASYNCPROC', 'ULONG_PTR'] 
-        pNames = ['hWnd', 'Msg', 'wParam', 'lParam', 'lpResultCallBack', 'dwData'] 
+        pTypes =['HWND', 'UINT', 'WPARAM', 'LPARAM', 'UINT', 'UINT', 'PDWORD_PTR'] 
+        pNames = ['hWnd', 'Msg', 'wParam', 'lParam', 'fuFlags', 'uTimeout', 'lpdwResult'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        fuFlags_ReverseLookUp = {2: 'SMTO_ABORTIFHUNG', 1: 'SMTO_BLOCK', 0: 'SMTO_NORMAL', 8: 'SMTO_NOTIMEOUTIFNOTHUNG', 32: 'SMTO_ERRORONEXIT'}
+
+        handle = Handle(HandleType.SendMessageA)
+        try:
+            uc.mem_write(pVals[0], pack('<I',handle.value))
+        except:
+            pass
+
+        pVals[4] = getLookUpVal(pVals[4], fuFlags_ReverseLookUp)
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[4])
+        
+        retVal = 0x1
+        retValStr = "SUCCESS"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("SendMessageTimeoutA", hex(callAddr), (retValStr), 'LRESULT', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def SendNotifyMessageA(self, uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['HWND', 'UINT', 'WPARAM', 'LPARAM'] 
+        pNames = ['hWnd', 'Msg', 'wParam', 'lParam'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         handle = Handle(HandleType.SendMessageA)
@@ -9149,7 +9172,7 @@ class CustomWinAPIs():
         retValStr = "SUCCESS"
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls= ("SendMessageTimeoutA", hex(callAddr), (retValStr), 'LRESULT', pVals, pTypes, pNames, False)
+        logged_calls= ("SendNotifyMessageA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def EnumDeviceDrivers(self, uc, eip, esp, export_dict, callAddr, em):
