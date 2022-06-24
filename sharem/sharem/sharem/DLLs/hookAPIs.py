@@ -9347,7 +9347,7 @@ class CustomWinAPIs():
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         
         retVal = 2000
-        retValStr = hex(retval)
+        retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("GetCurrentThreadID", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
@@ -9755,8 +9755,6 @@ class CustomWinAPIs():
         pTypes= ['LPCSTR', 'LPCSTR']
         pNames= ['lpName', 'lpValue']
 
-        #create strings for everything except ones in our skip
-        skip=[]   # we need to skip this value (index) later-let's put it in skip
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
 
         retVal = 0x1
@@ -9765,6 +9763,43 @@ class CustomWinAPIs():
 
         logged_calls= ("SetEnvironmentVariableA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def SystemParametersInfoA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['UNINT', 'UNINT', 'PVOID', 'UINT']
+        pNames= ['uiAction', 'uiParam', 'pvParam', 'fWinIni']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+
+        pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.SystemParametersInfo.Action)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+
+        retVal = 0x1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("SystemParametersInfoA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def SystemParametersInfoW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['UNINT', 'UNINT', 'PVOID', 'UINT']
+        pNames= ['uiAction', 'uiParam', 'pvParam', 'fWinIni']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+
+        pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.SystemParametersInfo.Action)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+
+        retVal = 0x1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("SystemParametersInfoW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     
     def OpenProcess(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         #'OpenProcess': (3, ['DWORD', 'BOOL', 'DWORD'], ['dwDesiredAccess', 'bInheritHandle', 'dwProcessId'], 'HANDLE')
@@ -9777,7 +9812,7 @@ class CustomWinAPIs():
         pVals[0] = getLookUpVal(pVals[0], dwDesiredAccess_ReverseLookUp)
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
 
-        retVal = FakeProcess
+        retVal = FakeProcess # Needs Changes
         retValStr=hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
