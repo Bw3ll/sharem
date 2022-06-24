@@ -70,6 +70,8 @@ class HandleType(Enum):
     # Registry
     HKEY = auto()
     Transaction = auto()
+    # Sockets
+    Socket = auto()
 
 
 class Handle:
@@ -159,13 +161,19 @@ class CustomWinAPIs():
             retVal = handle.value
         except:
             try:
-                nameL = name.lower() + '.dll'
+                nameL = name.lower()
                 foundVal = allDllsDict[nameL]
                 handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
                 retVal = handle.value
             except:
-                print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
-                retVal = 0
+                try:
+                    nameLdll = nameL + '.dll'
+                    foundVal = allDllsDict[nameLdll]
+                    handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
+                    retVal = handle.value
+                except:
+                    print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
+                    retVal = 0
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
         
@@ -193,9 +201,14 @@ class CustomWinAPIs():
                 handle = Handle(HandleType.HMODULE,name=name,handleValue=foundVal)
                 retVal = handle.value
             except:
-                print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
-                print(hex(eip), (len(name)))
-                retVal = 0
+                try:
+                    nameLdll = nameL + '.dll'
+                    foundVal = allDllsDict[nameLdll]
+                    handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
+                    retVal = handle.value
+                except:
+                    print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
+                    retVal = 0
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
         
@@ -223,9 +236,14 @@ class CustomWinAPIs():
                 handle = Handle(HandleType.HMODULE,name=name,handleValue=foundVal)
                 retVal = handle.value
             except:
-                print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
-                print(hex(eip), (len(name)))
-                retVal = 0
+                try:
+                    nameLdll = nameL + '.dll'
+                    foundVal = allDllsDict[nameLdll]
+                    handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
+                    retVal = handle.value
+                except:
+                    print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
+                    retVal = 0
 
         pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.LoadLibrary.Flags)
 
@@ -255,9 +273,14 @@ class CustomWinAPIs():
                 handle = Handle(HandleType.HMODULE,name=name,handleValue=foundVal)
                 retVal = handle.value
             except:
-                print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
-                print(hex(eip), (len(name)))
-                retVal = 0
+                try:
+                    nameLdll = nameL + '.dll'
+                    foundVal = allDllsDict[nameLdll]
+                    handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
+                    retVal = handle.value
+                except:
+                    print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
+                    retVal = 0
 
         pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.LoadLibrary.Flags)
 
@@ -285,8 +308,12 @@ class CustomWinAPIs():
                 nameL = name.lower()
                 moduleLoc = allDllsDict[nameL]
             except:
-                print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
-                moduleLoc = 0
+                try:
+                    nameLdll = nameL + '.dll'
+                    moduleLoc = allDllsDict[nameLdll]
+                except:
+                    print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
+                    moduleLoc = 0
 
         # uc.reg_write(UC_X86_REG_EAX, retVal)
         if moduleLoc != 0:
@@ -483,11 +510,11 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
 
         
-        retVal = 0x20
-        retValStr = hex(retVal)
+        retVal = 0x1
+        retValStr = 'FALSE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls = ("VirtualFree", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+        logged_calls = ("VirtualFree", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def WSASocketA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
@@ -514,8 +541,9 @@ class CustomWinAPIs():
         
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip= [0, 1, 2, 4, 5])
 
+        socket = Handle(HandleType.Socket)
         
-        retVal = 0x20
+        retVal = socket.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -546,7 +574,9 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [0, 1, 2, 4, 5])
         
-        retVal = 0x20
+        socket = Handle(HandleType.Socket)
+
+        retVal = socket.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -570,8 +600,9 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [0, 1, 2])
 
+        socket = Handle(HandleType.Socket)
         
-        retVal = 0x20
+        retVal = socket.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
