@@ -408,7 +408,7 @@ class Structure:
         types = ['USHORT', 'USHORT', 'PWSTR',]
         names = ['Length', 'MaximumLength', 'Buffer']
 
-        def __init__(self, length: int, PWSTR: int):
+        def __init__(self, length: int = 0, PWSTR: int = 0):
             self.Length = length
             self.MaximumLength = length
             self.Buffer = PWSTR

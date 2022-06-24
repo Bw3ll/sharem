@@ -4610,6 +4610,68 @@ class ReverseLookUps:
         1024: "PAGE_WRITECOMBINE",
     }
 
+    class LoadLibrary:
+        Flags = {
+            1: "DONT_RESOLVE_DLL_REFERENCES",
+            16: "LOAD_IGNORE_CODE_AUTHZ_LEVEL",
+            2: "LOAD_LIBRARY_AS_DATAFILE",
+            64: "LOAD_LIBRARY_AS_DATAFILE_EXCLUSIVE",
+            32: "LOAD_LIBRARY_AS_IMAGE_RESOURCE",
+            512: "LOAD_LIBRARY_SEARCH_APPLICATION_DIR",
+            4096: "LOAD_LIBRARY_SEARCH_DEFAULT_DIRS",
+            256: "LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR",
+            2048: "LOAD_LIBRARY_SEARCH_SYSTEM32",
+            1024: "LOAD_LIBRARY_SEARCH_USER_DIRS",
+            8: "LOAD_WITH_ALTERED_SEARCH_PATH",
+            128: "LOAD_LIBRARY_REQUIRE_SIGNED_TARGET",
+            8192: "LOAD_LIBRARY_SAFE_CURRENT_DIRS",
+        }
+
+    class File:
+        DesiredAccess = {
+            2147483648: "GENERIC_READ",
+            1073741824: "GENERIC_WRITE",
+            536870912: "GENERIC_EXECUTE",
+            268435456: "GENERIC_ALL",
+            0xC0000000: "GENERIC_READ | GENERIC_WRITE",
+        }
+        ShareMode = {
+            0: "FILE_NO_OPEN",
+            1: "FILE_SHARE_READ",
+            2: "FILE_SHARE_WRITE",
+            4: "FILE_SHARE_DELETE",
+        }
+        CreationDistribution = {
+            2: "CREATE_ALWAYS",
+            1: "CREATE_NEW",
+            4: "TRUNCATE_EXISTING",
+            3: "OPEN_EXISTING",
+            5: "TRUNCATE_EXISTING",
+        }
+        FlagsAndAttribute = {  # OR able Might Need TO Fix
+            32: "FILE_ATTRIBUTE_ARCHIVE",
+            2048: "FILE_ATTRIBUTE_COMPRESSED",
+            64: "FILE_ATTRIBUTE_DEVICE",
+            16: "FILE_ATTRIBUTE_DIRECTORY",
+            16384: "FILE_ATTRIBUTE_ENCRYPTED",
+            2: "FILE_ATTRIBUTE_HIDDEN",
+            32768: "FILE_ATTRIBUTE_INTEGRITY_STREAM",
+            128: "FILE_ATTRIBUTE_NORMAL",
+            8192: "FILE_ATTRIBUTE_NOT_CONTENT_INDEXED",
+            131072: "FILE_ATTRIBUTE_NO_SCRUB_DATA",
+            4096: "FILE_ATTRIBUTE_OFFLINE",
+            1: "FILE_ATTRIBUTE_READONLY",
+            4194304: "FILE_ATTRIBUTE_RECALL_ON_DATA_ACCESS",
+            262144: "FILE_ATTRIBUTE_RECALL_ON_OPEN",
+            1024: "FILE_ATTRIBUTE_REPARSE_POINT",
+            512: "FILE_ATTRIBUTE_SPARSE_FILE",
+            4: "FILE_ATTRIBUTE_SYSTEM",
+            256: "FILE_ATTRIBUTE_TEMPORARY",
+            65536: "FILE_ATTRIBUTE_VIRTUAL",
+            524288: "FILE_ATTRIBUTE_PINNED",
+            1048576: "FILE_ATTRIBUTE_UNPINNED",
+        }
+
     class Internet:
         SetOption_dwOption = {
             128: "INTERNET_OPTION_ALTER_IDENTITY",
