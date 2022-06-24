@@ -8622,9 +8622,25 @@ class CustomWinAPIs():
 
         # Expand Possibly Make Function Similary to Load Library Research First
 
+        name = read_string(uc, pVals[0])
+
+        try:
+            foundVal = allDllsDict[name]
+            handle = Handle(HandleType.HMODULE,name=name,handleValue=foundVal)
+            retVal = handle.value
+        except:
+            try:
+                nameL = name.lower() + '.dll'
+                foundVal = allDllsDict[nameL]
+                handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
+                retVal = handle.value
+            except:
+                print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
+                retVal = 0
+
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
 
-        retVal = 0x00808080  # Needs Changed
+        #retVal = 0x00808080  # Needs Changed
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
        
@@ -8638,10 +8654,25 @@ class CustomWinAPIs():
         pNames = ['lpModuleName']
 
         # Expand Possibly Make Function Similary to Load Library Research First
+        name = read_string(uc, pVals[0])
+
+        try:
+            foundVal = allDllsDict[name]
+            handle = Handle(HandleType.HMODULE,name=name,handleValue=foundVal)
+            retVal = handle.value
+        except:
+            try:
+                nameL = name.lower() + '.dll'
+                foundVal = allDllsDict[nameL]
+                handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
+                retVal = handle.value
+            except:
+                print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
+                retVal = 0
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
-        retVal = 0x00808080  # Needs Changed
+        #retVal = 0x00808080  # Needs Changed
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
