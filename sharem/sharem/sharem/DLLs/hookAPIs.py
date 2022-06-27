@@ -8562,6 +8562,22 @@ class CustomWinAPIs():
         logged_calls = ("GetFileSizeEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def GetFileSize(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['HANDLE', 'LPDWORD']
+        pNames = ['hFile', 'lpFileSizeHigh']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+
+        # expand write file size to pVals[1]
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        
+        retVal = 0x1
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("GetFileSize", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     ### Has a structure of OSVERSIONINFOA, need help with.
     def GetVersionExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         # 'GetVersionExA': (1, ['LPOSVERSIONINFOA'], ['lpVersionInformation'], 'BOOL')
