@@ -5315,3 +5315,15 @@ class ReverseLookUps:
             143: "SPI_SETSNAPSIZING",
             131: "SPI_SETWINARRANGING",
         }
+
+    class Event:
+        Flags = {2: "CREATE_EVENT_INITIAL_SET", 1: "CREATE_EVENT_MANUAL_RESET"}
+        DesiredAccess = {
+            65536: "DELETE",
+            131072: "READ_CONTROL",
+            1048576: "SYNCHRONIZE",
+            262144: "WRITE_DAC",
+            524288: "WRITE_OWNER",
+            2031619: "EVENT_ALL_ACCESS",
+            2: "EVENT_MODIFY_STATE",
+        }

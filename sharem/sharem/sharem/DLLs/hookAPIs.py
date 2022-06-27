@@ -72,6 +72,8 @@ class HandleType(Enum):
     Transaction = auto()
     # Sockets
     Socket = auto()
+    # Events
+    Event = auto()
 
 
 class Handle:
@@ -9820,19 +9822,136 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
     
     def CreateEventA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        #'CreateEvent': (4, ['LPSECURITY_ATTRIBUTES', 'BOOL', 'BOOL', 'LPCTSTR'], ['lpEventAttributes', 'bManualReset', 'bInitialState', 'lpName'], 'HANDLE')
         pVals = makeArgVals(uc, em, esp, 4)
-        pTypes= ['LPSECURITY_ATTRIBUTES', 'BOOL', 'BOOL', 'LPCTSTR']
+        pTypes= ['LPSECURITY_ATTRIBUTES', 'BOOL', 'BOOL', 'LPCSTR']
         pNames= ['lpEventAttributes', 'bManualReset', 'bInitialState', 'lpName']
 
-        
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
 
-        retVal = 0x9090909
+        if pVals[3] != '[NULL]':
+            handle = Handle(HandleType.Event,name=pVals[3])
+        else:
+            handle = Handle(HandleType.Event)
+
+        retVal = handle.value
         retValStr=hex(retVal)
-        uc.reg_write(UC_X86_REG_EAX, retVal)     
+        uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("CreateEventA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CreateEventW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes= ['LPSECURITY_ATTRIBUTES', 'BOOL', 'BOOL', 'LPCWSTR']
+        pNames= ['lpEventAttributes', 'bManualReset', 'bInitialState', 'lpName']
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        if pVals[3] != '[NULL]':
+            handle = Handle(HandleType.Event,name=pVals[3])
+        else:
+            handle = Handle(HandleType.Event)
+
+        retVal = handle.value
+        retValStr=hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("CreateEventW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+
+    def CreateEventExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes= ['LPSECURITY_ATTRIBUTES', 'LPCSTR', 'DWORD', 'DWORD']
+        pNames= ['lpEventAttributes', 'lpName', 'dwFlags', 'dwDesiredAccess']
+
+        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Event.Flags)
+        pVals[3] = getLookUpVal(pVals[3], ReverseLookUps.Event.DesiredAccess)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[2,3])
+
+        if pVals[1] != '[NULL]':
+            handle = Handle(HandleType.Event,name=pVals[1])
+        else:
+            handle = Handle(HandleType.Event)
+
+        retVal = handle.value
+        retValStr=hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("CreateEventExA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CreateEventExW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 4)
+        pTypes= ['LPSECURITY_ATTRIBUTES', 'LPCWSTR', 'DWORD', 'DWORD']
+        pNames= ['lpEventAttributes', 'lpName', 'dwFlags', 'dwDesiredAccess']
+
+        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Event.Flags)
+        pVals[3] = getLookUpVal(pVals[3], ReverseLookUps.Event.DesiredAccess)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[2,3])
+
+        if pVals[1] != '[NULL]':
+            handle = Handle(HandleType.Event,name=pVals[1])
+        else:
+            handle = Handle(HandleType.Event)
+
+        retVal = handle.value
+        retValStr=hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("CreateEventExW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def OpenEventA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes= ['DWORD', 'BOOL', 'LPCSTR']
+        pNames= ['dwDesiredAccess', 'bInheritHandle', 'lpName']
+        
+        pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.Event.DesiredAccess)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+
+        retHandle = None
+        for handle in HandlesDict.values():
+            if handle.name == pVals[2]:
+                retHandle = handle
+                break
+
+        if retHandle is None:
+            retHandle = Handle(HandleType.Event,name=pVals[2])
+
+        retVal = retHandle.value
+        retValStr=hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("OpenEventA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def OpenEventW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes= ['DWORD', 'BOOL', 'LPCWSTR']
+        pNames= ['dwDesiredAccess', 'bInheritHandle', 'lpName']
+        
+        pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.Event.DesiredAccess)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+
+        retHandle = None
+        for handle in HandlesDict.values():
+            if handle.name == pVals[2]:
+                retHandle = handle
+                break
+
+        if retHandle is None:
+            retHandle = Handle(HandleType.Event,name=pVals[2])
+
+        retVal = retHandle.value
+        retValStr=hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("OpenEventW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def GetSystemTimeAsFileTime(self, uc: Uc, eip, esp, export_dict, callAddr, em):
