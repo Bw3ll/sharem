@@ -2597,8 +2597,6 @@ class CustomWinAPIs():
                                   1: 'REG_OPTION_VOLATILE'}
         lpdwDispostitionReverseLookUp = {1: 'REG_CREATED_NEW_KEY', 2: 'REG_OPENED_EXISTING_KEY'}
 
-        global registry_add_values
-
         lpSubKey = read_unicode(uc, pVals[1])
         if lpSubKey != '[NULL]':
             if lpSubKey[0] != '\\':
@@ -5286,12 +5284,14 @@ class CustomWinAPIs():
         # Recursive function to update child keys
         def updateChildKeys(key: RegKey, oldPath: str, newPath: str): 
             key.path = key.path.replace(oldPath,newPath)
-            #print(333)
             #print(key.path)
-            #art.registry_add_keys.add(key.path)
+            if(oldPath != ''):
+                ##need to fix for NULL lpsctr as this prints out weirdly.
+                art.registry_add_keys.add(key.path)
             key.handle = Handle(HandleType.HKEY,name=key.path, handleValue=RegKey.nextHandleValue)
             RegKey.nextHandleValue += 8
             RegistryKeys.update({key.path: key})
+            
             for val in key.childKeys.values():
                 val.parentKey = key
                 updateChildKeys(val, oldPath, newPath)
@@ -5299,8 +5299,6 @@ class CustomWinAPIs():
         if len(keysToCopy) > 0:
             oldKeyPath = '\\'.join(keyPath.split('\\')[:-1])
             for key in keysToCopy:
-                #print('old')
-                #print(key.path)
                 if isinstance(key,RegKey):
                     if key.path == keyPath: # Update Exact Key
                         keyCopy = deepcopy(key)
@@ -5396,6 +5394,9 @@ class CustomWinAPIs():
         # Recursive function to update child keys
         def updateChildKeys(key: RegKey, oldPath: str, newPath: str):
             key.path = key.path.replace(oldPath,newPath)
+            if(oldPath != ''):
+                ##need to fix thes null, as it is printing out weirdly
+                art.registry_add_keys.add(key.path)
             key.handle = Handle(HandleType.HKEY,name=key.path, handleValue=RegKey.nextHandleValue)
             RegKey.nextHandleValue += 8
             RegistryKeys.update({key.path: key})
@@ -5597,6 +5598,8 @@ class CustomWinAPIs():
     
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
+        art.registry_add_keys.add(childKey.path)
+
         logged_calls = ("RegEnumKeyExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
@@ -5635,6 +5638,8 @@ class CustomWinAPIs():
     
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
+        art.registry_add_keys.add(childKey.path)
+        
         logged_calls = ("RegEnumKeyExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
@@ -6166,8 +6171,6 @@ class CustomWinAPIs():
         pNames = ['hKey', 'lpClass', 'lpcchClass', 'lpReserved','lpcSubKeys','lpcbMaxSubKeyLen','lpcbMaxClassLen','lpcValues','lpcbMaxValueNameLen','lpcbMaxValueLen','lpcbSecurityDescriptor','lpftLastWriteTime']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        global registry_add_keys
-
         fileTime = Structure.FILETIME()
         
         if pVals[0] in HandlesDict:
@@ -6214,6 +6217,8 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[11])
 
         uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        art.registry_add_keys.add(hKey.path)
 
         logged_calls = ("RegQueryInfoKeyA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -6223,8 +6228,6 @@ class CustomWinAPIs():
         pNames = ['hKey', 'lpClass', 'lpcchClass', 'lpReserved','lpcSubKeys','lpcbMaxSubKeyLen','lpcbMaxClassLen','lpcValues','lpcbMaxValueNameLen','lpcbMaxValueLen','lpcbSecurityDescriptor','lpftLastWriteTime']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        global registry_add_keys
-
         fileTime = Structure.FILETIME()
         
         if pVals[0] in HandlesDict:
@@ -6271,6 +6274,8 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[11])
 
         uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        art.registry_add_keys.add(hKey.path)
 
         logged_calls = ("RegQueryInfoKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
