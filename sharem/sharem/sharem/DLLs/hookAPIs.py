@@ -5286,7 +5286,10 @@ class CustomWinAPIs():
 
         # Recursive function to update child keys
         def updateChildKeys(key: RegKey, oldPath: str, newPath: str): 
-            key.path = key.path.replace(oldPath,newPath)
+            if len(oldPath) != 0:
+                key.path = key.path.replace(oldPath,newPath)
+            else:
+                key.path = newPath + '\\' + key.path
             key.handle = Handle(HandleType.HKEY,name=key.path, handleValue=RegKey.nextHandleValue)
             RegKey.nextHandleValue += 8
             RegistryKeys.update({key.path: key})
@@ -5300,7 +5303,10 @@ class CustomWinAPIs():
                 if isinstance(key,RegKey):
                     if key.path == keyPath: # Update Exact Key
                         keyCopy = deepcopy(key)
-                        keyCopy.path = keyCopy.path.replace(oldKeyPath,newKeyPath)
+                        if len(oldKeyPath) != 0:
+                            keyCopy.path = keyCopy.path.replace(oldKeyPath,newKeyPath)
+                        else:
+                            keyCopy.path = newKeyPath + '\\' + keyCopy.path
                         keyCopy.handle = Handle(HandleType.HKEY,name=keyCopy.path, handleValue=RegKey.nextHandleValue)
                         RegKey.nextHandleValue += 8
                         keyCopy.parentKey = rKeyDest
@@ -5387,7 +5393,10 @@ class CustomWinAPIs():
 
         # Recursive function to update child keys
         def updateChildKeys(key: RegKey, oldPath: str, newPath: str):
-            key.path = key.path.replace(oldPath,newPath)
+            if len(oldPath) != 0:
+                key.path = key.path.replace(oldPath,newPath)
+            else:
+                key.path = newPath + '\\' + key.path
             key.handle = Handle(HandleType.HKEY,name=key.path, handleValue=RegKey.nextHandleValue)
             RegKey.nextHandleValue += 8
             RegistryKeys.update({key.path: key})
@@ -5401,7 +5410,10 @@ class CustomWinAPIs():
                 if isinstance(key,RegKey):
                     if key.path == keyPath: # Update Exact Key
                         keyCopy = deepcopy(key)
-                        keyCopy.path = keyCopy.path.replace(oldKeyPath,newKeyPath)
+                        if len(oldKeyPath) != 0:
+                            keyCopy.path = keyCopy.path.replace(oldKeyPath,newKeyPath)
+                        else:
+                            keyCopy.path = newKeyPath + '\\' + keyCopy.path
                         keyCopy.handle = Handle(HandleType.HKEY,name=keyCopy.path, handleValue=RegKey.nextHandleValue)
                         RegKey.nextHandleValue += 8
                         keyCopy.parentKey = rKeyDest
@@ -9617,7 +9629,7 @@ class CustomWinAPIs():
 
         if pVals[0] in HandlesDict:
             handle = HandlesDict[pVals[0]]
-            if handle.type == HandleTypes.HMODULE:
+            if handle.type == HandleType.HMODULE:
                 if handle.name != '':
                     uc.mem_write(pVals[0], pack(f'<{len(handle.name) + 1}s', handle.name.encode('ascii')))
 
