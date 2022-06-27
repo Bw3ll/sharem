@@ -8510,22 +8510,6 @@ class CustomWinAPIs():
         logged_calls = ("Sleep", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def GetDesktopWindow(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pTypes = []
-        pNames = []
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
-
-        handle = Handle(HandleType.HWND, name='DesktopWindow')
-
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
-
-        retVal = handle.value
-        retValStr = hex(retVal)
-        uc.reg_write(UC_X86_REG_EAX, retVal)
-
-        logged_calls = ("GetDesktopWindow", hex(callAddr), (retValStr), 'HWND', pVals, pTypes, pNames, False)
-        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
-
     def GetForegroundWindow(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes = []
         pNames = []
@@ -8584,6 +8568,14 @@ class CustomWinAPIs():
         pNames = ['hFile', 'lpFileSize']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
+        randomPacking = 0xffffffff # For the try/pass uc.mem_write, uses a random value
+
+        try:
+            # uc.mem_write(pVals[1], pack(f'<{len(memory)}s', memory))
+            uc.mem_write(pVals[1], pack('<Q', randomPacking))
+        except:
+            pass
+
         # expand write file size to pVals[1]
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
         
@@ -8592,6 +8584,22 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("GetFileSizeEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetFileSize(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['HANDLE', 'LPDWORD']
+        pNames = ['hFile', 'lpFileSizeHigh']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+
+        # expand write file size to pVals[1]
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        
+        retVal = 0x1
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("GetFileSize", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     ### Has a structure of OSVERSIONINFOA, need help with.
@@ -9490,7 +9498,8 @@ class CustomWinAPIs():
 
         fuFlags_ReverseLookUp = {2: 'SMTO_ABORTIFHUNG', 1: 'SMTO_BLOCK', 0: 'SMTO_NORMAL', 8: 'SMTO_NOTIMEOUTIFNOTHUNG', 32: 'SMTO_ERRORONEXIT'}
 
-        handle = Handle(HandleType.SendMessageA)
+        #handle = Handle(HandleType.SendMessageA)
+        handle = Handle(HandleType.HWND, name='DesktopWindow')
         try:
             uc.mem_write(pVals[0], pack('<I',handle.value))
         except:
@@ -9603,6 +9612,14 @@ class CustomWinAPIs():
         pTypes =['HANDLE', 'HMODULE', 'LPSTR', 'DWORD'] 
         pNames = ['hProcess', 'hModule', 'lpBaseName', 'nSize'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        #handle = Handle(HandleType.GetModuleBaseNameA)
+
+        if pVals[0] in HandlesDict:
+            handle = HandlesDict[pVals[0]]
+            if handle.type == HandleTypes.HMODULE:
+                if handle.name != '':
+                    uc.mem_write(pVals[0], pack(f'<{len(handle.name) + 1}s', handle.name.encode('ascii')))
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         
