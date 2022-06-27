@@ -9588,6 +9588,14 @@ class CustomWinAPIs():
         pNames = ['hProcess', 'hModule', 'lpBaseName', 'nSize'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
+        #handle = Handle(HandleType.GetModuleBaseNameA)
+
+        if pVals[0] in HandlesDict:
+            handle = HandlesDict[pVals[0]]
+            if handle.type == HandleTypes.HMODULE:
+                if handle.name != '':
+                    uc.mem_write(pVals[0], pack(f'<{len(handle.name) + 1}s', handle.name.encode('ascii')))
+
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         
         retVal = 0x1
