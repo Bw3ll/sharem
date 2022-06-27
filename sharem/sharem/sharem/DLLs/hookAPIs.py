@@ -5286,6 +5286,9 @@ class CustomWinAPIs():
         # Recursive function to update child keys
         def updateChildKeys(key: RegKey, oldPath: str, newPath: str): 
             key.path = key.path.replace(oldPath,newPath)
+            #print(333)
+            #print(key.path)
+            #art.registry_add_keys.add(key.path)
             key.handle = Handle(HandleType.HKEY,name=key.path, handleValue=RegKey.nextHandleValue)
             RegKey.nextHandleValue += 8
             RegistryKeys.update({key.path: key})
@@ -5296,6 +5299,8 @@ class CustomWinAPIs():
         if len(keysToCopy) > 0:
             oldKeyPath = '\\'.join(keyPath.split('\\')[:-1])
             for key in keysToCopy:
+                #print('old')
+                #print(key.path)
                 if isinstance(key,RegKey):
                     if key.path == keyPath: # Update Exact Key
                         keyCopy = deepcopy(key)
@@ -5305,9 +5310,13 @@ class CustomWinAPIs():
                         keyCopy.parentKey = rKeyDest
                         rKeyDest.childKeys.update({keyCopy.name: keyCopy})
                         RegistryKeys.update({keyCopy.path: keyCopy})
+                        #print(2)
+                        #print(keyCopy.path)
+                        #print(newKeyPath)
                         for cVal in keyCopy.childKeys.values():
                             cVal.parentKey = keyCopy
                             updateChildKeys(cVal,oldKeyPath,newKeyPath)
+
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
 
@@ -6288,6 +6297,8 @@ class CustomWinAPIs():
 
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
+        art.registry_add_keys.add(hKey.name)
+
         logged_calls = ("RegSetKeySecurity", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
@@ -6312,6 +6323,8 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
         uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        art.registry_add_keys.add(hKey.name)
 
         logged_calls = ("RegGetKeySecurity", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -10177,6 +10190,24 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
         logged_calls= ("GetSystemDirectoryW", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def SetFocus(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'SetFocus': (1, ['HWND'], ['hWnd'], 'HWND')
+        pVals = makeArgVals(uc, em, esp, 1)
+        pTypes= ['HWND']
+        pNames= ['hWnd']
+
+        #this should be updated to include the previous process.
+        PreviousHandle = FakeProcess
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = PreviousHandle
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("SetFocus", hex(callAddr), (retValStr), 'HWND', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
 
