@@ -8560,6 +8560,14 @@ class CustomWinAPIs():
         pNames = ['hFile', 'lpFileSize']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
+        randomPacking = 0xffffffff # For the try/pass uc.mem_write, uses a random value
+
+        try:
+            # uc.mem_write(pVals[1], pack(f'<{len(memory)}s', memory))
+            uc.mem_write(pVals[1], pack('<Q', randomPacking))
+        except:
+            pass
+
         # expand write file size to pVals[1]
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
         
