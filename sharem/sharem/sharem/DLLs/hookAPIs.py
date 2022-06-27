@@ -2114,7 +2114,7 @@ class CustomWinAPIs():
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls = ("ShellExecuteA", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+        logged_calls = ("ShellExecuteA", hex(callAddr), (retValStr), 'HINSTANCE', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def ShellExecuteW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
@@ -2135,7 +2135,7 @@ class CustomWinAPIs():
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls = ("ShellExecuteW", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+        logged_calls = ("ShellExecuteW", hex(callAddr), (retValStr), 'HINSTANCE', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def system(self, uc: Uc, eip, esp, export_dict, callAddr, em):
@@ -8673,7 +8673,6 @@ class CustomWinAPIs():
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
 
-        #retVal = 0x00808080  # Needs Changed
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
        
@@ -8705,7 +8704,6 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
-        #retVal = 0x00808080  # Needs Changed
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -9814,7 +9812,7 @@ class CustomWinAPIs():
         pVals[0] = getLookUpVal(pVals[0], dwDesiredAccess_ReverseLookUp)
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
 
-        retVal = FakeProcess # Needs Changes
+        retVal = FakeProcess # Might Need Changed
         retValStr=hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
