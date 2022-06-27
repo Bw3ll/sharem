@@ -1,6 +1,7 @@
 from copy import deepcopy
 from enum import Enum, auto
 from random import choice, randint
+from time import perf_counter_ns
 from urllib.parse import quote, unquote
 from sharem.sharem.DLLs.reverseLookUps import ReverseLookUps
 from unicorn.x86_const import *
@@ -8365,6 +8366,29 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("GetTickCount64", hex(callAddr), (retValStr), 'ULONGLONG', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def QueryPerformanceCounter(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['LARGE_INTEGER *']
+        pNames = ['lpPerformanceCount']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        try:
+            pc = perf_counter_ns()
+            li = Structure.LARGE_INTEGER(pc)
+            li.writeToMemory(uc,pVals[0])
+        except:
+            pass
+
+        pVals[0] = makeStructVals(uc,li,pVals[0])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
+
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("QueryPerformanceCounter", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def GetUserNameA(self, uc: Uc, eip, esp, export_dict, callAddr, em):

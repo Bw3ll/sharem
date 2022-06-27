@@ -559,3 +559,18 @@ class Structure:
             self.ve_valuelen = unpackedStruct[1]
             self.ve_valueptr = unpackedStruct[2]
             self.ve_type = unpackedStruct[3]
+
+    class LARGE_INTEGER:
+        types = ['LONGLONG']
+        names = ['QuadPart']
+
+        def __init__(self, largeInt: int):
+            self.QuadPart = largeInt
+
+        def writeToMemory(self, uc: Uc, address: int):
+            packedStruct = pack(f'<q', self.QuadPart)
+            uc.mem_write(address, packedStruct)
+
+        def readFromMemory(self, uc: Uc, address: int):
+            data = uc.mem_read(address, 8)
+            self.QuadPart = unpack('<q', data)[0]
