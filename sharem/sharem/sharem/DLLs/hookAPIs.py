@@ -9054,6 +9054,228 @@ class CustomWinAPIs():
         logged_calls= ("lstrcpynW", hex(callAddr), (retValStr), 'LPWSTR', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def lstrcpyA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['LPSTR', 'LPCSTR'] 
+        pNames = ['lpString1', 'lpString2'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        
+        string2 = read_string(uc, pVals[1])
+        try:
+            uc.mem_write(pVals[0], pack(f'<{len(string2)+1}s', string2.encode("ascii")))
+        except:
+            pass
+
+        retVal = pVals[0]
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("lstrcpyA", hex(callAddr), (retValStr), 'LPSTR', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def lstrcpyW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['LPWSTR', 'LPCWSTR'] 
+        pNames = ['lpString1', 'lpString2'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        string2 = read_unicode(uc, pVals[1])
+        try:
+            uc.mem_write(pVals[0], pack(f'<{len(string2)*2+2}s', string2.encode("utf-16")[2:]))
+        except:
+            pass
+
+        retVal = pVals[0]
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("lstrcpyW", hex(callAddr), (retValStr), 'LPWSTR', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def lstrlenA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['LPCSTR'] 
+        pNames = ['lpString'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        if pVals[0] != '[NULL]':
+            retVal = len(pVals[0])
+        else:
+            retVal = 0
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("lstrlenA", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def lstrlenW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['LPCWSTR'] 
+        pNames = ['lpString'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        if pVals[0] != '[NULL]':
+            retVal = len(pVals[0])
+        else:
+            retVal = 0
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("lstrlenW", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def lstrcmpA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['LPCSTR', 'LPCSTR']
+        pNames = ['lpString1', 'lpString2']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        string1 = read_string(uc, pVals[0])
+        string2 = read_string(uc, pVals[1])
+        if string1 == string2:  # Check if Same
+            retVal = 0
+        elif len(string1) <= len(string2):
+            for i in range(len(string1)):  # Check Char by Char
+                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                if ord(string1[i]) < ord(string2[i]):
+                    retVal = -1
+                    break
+                elif ord(string1[i]) > ord(string2[i]):
+                    retVal = 1
+                    break
+        else:
+            for i in range(len(string2)):  # Check Char by Char
+                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                if ord(string1[i]) < ord(string2[i]):
+                    retVal = -1
+                    break
+                elif ord(string1[i]) > ord(string2[i]):
+                    retVal = 1
+                    break
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("lstrcmpA", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def lstrcmpW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['LPCWSTR', 'LPCWSTR']
+        pNames = ['lpString1', 'lpString2']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        string1 = read_unicode(uc, pVals[0])
+        string2 = read_unicode(uc, pVals[1])
+        if string1 == string2:  # Check if Same
+            retVal = 0
+        elif len(string1) <= len(string2):
+            for i in range(len(string1)):  # Check Char by Char
+                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                if ord(string1[i]) < ord(string2[i]):
+                    retVal = -1
+                    break
+                elif ord(string1[i]) > ord(string2[i]):
+                    retVal = 1
+                    break
+        else:
+            for i in range(len(string2)):  # Check Char by Char
+                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                if ord(string1[i]) < ord(string2[i]):
+                    retVal = -1
+                    break
+                elif ord(string1[i]) > ord(string2[i]):
+                    retVal = 1
+                    break
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("lstrcmpW", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def lstrcmpiA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['LPCSTR', 'LPCSTR']
+        pNames = ['lpString1', 'lpString2']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        string1 = read_string(uc, pVals[0]).lower()
+        string2 = read_string(uc, pVals[1]).lower()
+        if string1 == string2:  # Check if Same
+            retVal = 0
+        elif len(string1) <= len(string2):
+            for i in range(len(string1)):  # Check Char by Char
+                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                if ord(string1[i]) < ord(string2[i]):
+                    retVal = -1
+                    break
+                elif ord(string1[i]) > ord(string2[i]):
+                    retVal = 1
+                    break
+        else:
+            for i in range(len(string2)):  # Check Char by Char
+                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                if ord(string1[i]) < ord(string2[i]):
+                    retVal = -1
+                    break
+                elif ord(string1[i]) > ord(string2[i]):
+                    retVal = 1
+                    break
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("lstrcmpiA", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def lstrcmpiW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['LPCWSTR', 'LPCWSTR']
+        pNames = ['lpString1', 'lpString2']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        string1 = read_unicode(uc, pVals[0]).lower()
+        string2 = read_unicode(uc, pVals[1]).lower()
+        if string1 == string2:  # Check if Same
+            retVal = 0
+        elif len(string1) <= len(string2):
+            for i in range(len(string1)):  # Check Char by Char
+                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                if ord(string1[i]) < ord(string2[i]):
+                    retVal = -1
+                    break
+                elif ord(string1[i]) > ord(string2[i]):
+                    retVal = 1
+                    break
+        else:
+            for i in range(len(string2)):  # Check Char by Char
+                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                if ord(string1[i]) < ord(string2[i]):
+                    retVal = -1
+                    break
+                elif ord(string1[i]) > ord(string2[i]):
+                    retVal = 1
+                    break
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("lstrcmpiW", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+
     def CopyFileW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes =['LPCWSTR', 'LPCWSTR', 'BOOL'] 
         pNames = ['lpExistingFileName', 'lpNewFileName', 'bFailIfExists'] 
