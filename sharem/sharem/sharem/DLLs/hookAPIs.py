@@ -5288,6 +5288,7 @@ class CustomWinAPIs():
                 key.path = key.path.replace(oldPath,newPath)
             else:
                 key.path = newPath + '\\' + key.path
+            art.registry_add_keys.add(key.path)
             key.handle = Handle(HandleType.HKEY,name=key.path, handleValue=RegKey.nextHandleValue)
             RegKey.nextHandleValue += 8
             RegistryKeys.update({key.path: key})
@@ -5400,6 +5401,7 @@ class CustomWinAPIs():
                 key.path = key.path.replace(oldPath,newPath)
             else:
                 key.path = newPath + '\\' + key.path
+            art.registry_add_keys.add(key.path)
             key.handle = Handle(HandleType.HKEY,name=key.path, handleValue=RegKey.nextHandleValue)
             RegKey.nextHandleValue += 8
             RegistryKeys.update({key.path: key})
