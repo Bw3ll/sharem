@@ -2613,8 +2613,6 @@ class CustomWinAPIs():
                                   1: 'REG_OPTION_VOLATILE'}
         lpdwDispostitionReverseLookUp = {1: 'REG_CREATED_NEW_KEY', 2: 'REG_OPENED_EXISTING_KEY'}
 
-        global registry_add_values
-
         lpSubKey = read_unicode(uc, pVals[1])
         if lpSubKey != '[NULL]':
             if lpSubKey[0] != '\\':
@@ -5305,9 +5303,11 @@ class CustomWinAPIs():
                 key.path = key.path.replace(oldPath,newPath)
             else:
                 key.path = newPath + '\\' + key.path
+            art.registry_add_keys.add(key.path)
             key.handle = Handle(HandleType.HKEY,name=key.path, handleValue=RegKey.nextHandleValue)
             RegKey.nextHandleValue += 8
             RegistryKeys.update({key.path: key})
+            
             for val in key.childKeys.values():
                 val.parentKey = key
                 updateChildKeys(val, oldPath, newPath)
@@ -5327,9 +5327,13 @@ class CustomWinAPIs():
                         keyCopy.parentKey = rKeyDest
                         rKeyDest.childKeys.update({keyCopy.name: keyCopy})
                         RegistryKeys.update({keyCopy.path: keyCopy})
+                        #print(2)
+                        #print(keyCopy.path)
+                        #print(newKeyPath)
                         for cVal in keyCopy.childKeys.values():
                             cVal.parentKey = keyCopy
                             updateChildKeys(cVal,oldKeyPath,newKeyPath)
+
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
 
@@ -5412,6 +5416,7 @@ class CustomWinAPIs():
                 key.path = key.path.replace(oldPath,newPath)
             else:
                 key.path = newPath + '\\' + key.path
+            art.registry_add_keys.add(key.path)
             key.handle = Handle(HandleType.HKEY,name=key.path, handleValue=RegKey.nextHandleValue)
             RegKey.nextHandleValue += 8
             RegistryKeys.update({key.path: key})
@@ -5616,6 +5621,8 @@ class CustomWinAPIs():
     
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
+        art.registry_add_keys.add(childKey.path)
+
         logged_calls = ("RegEnumKeyExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
@@ -5654,6 +5661,8 @@ class CustomWinAPIs():
     
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
+        art.registry_add_keys.add(childKey.path)
+        
         logged_calls = ("RegEnumKeyExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
@@ -6185,8 +6194,6 @@ class CustomWinAPIs():
         pNames = ['hKey', 'lpClass', 'lpcchClass', 'lpReserved','lpcSubKeys','lpcbMaxSubKeyLen','lpcbMaxClassLen','lpcValues','lpcbMaxValueNameLen','lpcbMaxValueLen','lpcbSecurityDescriptor','lpftLastWriteTime']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        global registry_add_keys
-
         fileTime = Structure.FILETIME()
         
         if pVals[0] in HandlesDict:
@@ -6233,6 +6240,8 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[11])
 
         uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        art.registry_add_keys.add(hKey.path)
 
         logged_calls = ("RegQueryInfoKeyA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -6242,8 +6251,6 @@ class CustomWinAPIs():
         pNames = ['hKey', 'lpClass', 'lpcchClass', 'lpReserved','lpcSubKeys','lpcbMaxSubKeyLen','lpcbMaxClassLen','lpcValues','lpcbMaxValueNameLen','lpcbMaxValueLen','lpcbSecurityDescriptor','lpftLastWriteTime']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        global registry_add_keys
-
         fileTime = Structure.FILETIME()
         
         if pVals[0] in HandlesDict:
@@ -6290,6 +6297,8 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[11])
 
         uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        art.registry_add_keys.add(hKey.path)
 
         logged_calls = ("RegQueryInfoKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -6316,6 +6325,8 @@ class CustomWinAPIs():
 
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
+        art.registry_add_keys.add(hKey.name)
+
         logged_calls = ("RegSetKeySecurity", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
@@ -6340,6 +6351,8 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
         uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        art.registry_add_keys.add(hKey.name)
 
         logged_calls = ("RegGetKeySecurity", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -9643,6 +9656,24 @@ class CustomWinAPIs():
         logged_calls= ("EnumProcessModulesEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def IsProcessorFeaturePresent(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['DWORD'] 
+        pNames = ['ProcessorFeature'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        ProcessorFeature_ReverseLookUp = {25: 'PF_ARM_64BIT_LOADSTORE_ATOMIC', 24: 'PF_ARM_DIVIDE_INSTRUCTION_AVAILABLE', 26: 'PF_ARM_EXTERNAL_CACHE_AVAILABLE', 27: 'PF_ARM_FMAC_INSTRUCTIONS_AVAILABLE', 18: 'PF_ARM_VFP_32_REGISTERS_AVAILABLE', 7: 'PF_3DNOW_INSTRUCTIONS_AVAILABLE', 16: 'PF_CHANNELS_ENABLED', 2:
+ 'PF_COMPARE_EXCHANGE_DOUBLE', 14: 'PF_COMPARE_EXCHANGE128', 15: 'PF_COMPARE64_EXCHANGE128', 23: 'PF_FASTFAIL_AVAILABLE', 1: 'PF_FLOATING_POINT_EMULATED', 0: 'PF_FLOATING_POINT_PRECISION_ERRATA', 3: 'PF_MMX_INSTRUCTIONS_AVAILABLE', 12: 'PF_NX_ENABLED', 9: 'PF_PAE_ENABLED', 8: 'PF_RDTSC_INSTRUCTION_AVAILABLE', 22: 'PF_RDWRFSGSBASE_AVAILABLE', 20: 'PF_SECOND_LEVEL_ADDRESS_TRANSLATION', 13: 'PF_SSE3_INSTRUCTIONS_AVAILABLE', 21: 'PF_VIRT_FIRMWARE_ENABLED', 6: 'PF_XMMI_INSTRUCTIONS_AVAILABLE', 10: 'PF_XMMI64_INSTRUCTIONS_AVAILABLE', 17: 'PF_XSAVE_ENABLED', 29: 'PF_ARM_V8_INSTRUCTIONS_AVAILABLE', 30: 'PF_ARM_V8_CRYPTO_INSTRUCTIONS_AVAILABLE', 31: 'PF_ARM_V8_CRC32_INSTRUCTIONS_AVAILABLE', 34: 'PF_ARM_V81_ATOMIC_INSTRUCTIONS_AVAILABLE'}
+
+        pVals[0] = getLookUpVal(pVals[0], ProcessorFeature_ReverseLookUp)
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+        
+        retVal = 0x1
+        retValStr = "SUPPORTED"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("IsProcessorFeaturePresent", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def GetCurrentThreadId(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes =[] 
         pNames = [] 
@@ -10489,6 +10520,24 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
         logged_calls= ("GetSystemDirectoryW", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def SetFocus(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'SetFocus': (1, ['HWND'], ['hWnd'], 'HWND')
+        pVals = makeArgVals(uc, em, esp, 1)
+        pTypes= ['HWND']
+        pNames= ['hWnd']
+
+        #this should be updated to include the previous process.
+        PreviousHandle = FakeProcess
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = PreviousHandle
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("SetFocus", hex(callAddr), (retValStr), 'HWND', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
 
