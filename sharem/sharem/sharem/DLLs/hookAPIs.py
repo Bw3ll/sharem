@@ -1,6 +1,7 @@
 from copy import deepcopy
 from enum import Enum, auto
 from random import choice, randint
+from time import perf_counter_ns
 from urllib.parse import quote, unquote
 from sharem.sharem.DLLs.reverseLookUps import ReverseLookUps
 from unicorn.x86_const import *
@@ -5283,11 +5284,10 @@ class CustomWinAPIs():
 
         # Recursive function to update child keys
         def updateChildKeys(key: RegKey, oldPath: str, newPath: str): 
-            key.path = key.path.replace(oldPath,newPath)
-            #print(key.path)
-            if(oldPath != ''):
-                ##need to fix for NULL lpsctr as this prints out weirdly.
-                art.registry_add_keys.add(key.path)
+            if len(oldPath) != 0:
+                key.path = key.path.replace(oldPath,newPath)
+            else:
+                key.path = newPath + '\\' + key.path
             key.handle = Handle(HandleType.HKEY,name=key.path, handleValue=RegKey.nextHandleValue)
             RegKey.nextHandleValue += 8
             RegistryKeys.update({key.path: key})
@@ -5302,7 +5302,10 @@ class CustomWinAPIs():
                 if isinstance(key,RegKey):
                     if key.path == keyPath: # Update Exact Key
                         keyCopy = deepcopy(key)
-                        keyCopy.path = keyCopy.path.replace(oldKeyPath,newKeyPath)
+                        if len(oldKeyPath) != 0:
+                            keyCopy.path = keyCopy.path.replace(oldKeyPath,newKeyPath)
+                        else:
+                            keyCopy.path = newKeyPath + '\\' + keyCopy.path
                         keyCopy.handle = Handle(HandleType.HKEY,name=keyCopy.path, handleValue=RegKey.nextHandleValue)
                         RegKey.nextHandleValue += 8
                         keyCopy.parentKey = rKeyDest
@@ -5393,10 +5396,10 @@ class CustomWinAPIs():
 
         # Recursive function to update child keys
         def updateChildKeys(key: RegKey, oldPath: str, newPath: str):
-            key.path = key.path.replace(oldPath,newPath)
-            if(oldPath != ''):
-                ##need to fix thes null, as it is printing out weirdly
-                art.registry_add_keys.add(key.path)
+            if len(oldPath) != 0:
+                key.path = key.path.replace(oldPath,newPath)
+            else:
+                key.path = newPath + '\\' + key.path
             key.handle = Handle(HandleType.HKEY,name=key.path, handleValue=RegKey.nextHandleValue)
             RegKey.nextHandleValue += 8
             RegistryKeys.update({key.path: key})
@@ -5410,7 +5413,10 @@ class CustomWinAPIs():
                 if isinstance(key,RegKey):
                     if key.path == keyPath: # Update Exact Key
                         keyCopy = deepcopy(key)
-                        keyCopy.path = keyCopy.path.replace(oldKeyPath,newKeyPath)
+                        if len(oldKeyPath) != 0:
+                            keyCopy.path = keyCopy.path.replace(oldKeyPath,newKeyPath)
+                        else:
+                            keyCopy.path = newKeyPath + '\\' + keyCopy.path
                         keyCopy.handle = Handle(HandleType.HKEY,name=keyCopy.path, handleValue=RegKey.nextHandleValue)
                         RegKey.nextHandleValue += 8
                         keyCopy.parentKey = rKeyDest
@@ -8385,6 +8391,29 @@ class CustomWinAPIs():
         logged_calls = ("GetTickCount64", hex(callAddr), (retValStr), 'ULONGLONG', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def QueryPerformanceCounter(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['LARGE_INTEGER *']
+        pNames = ['lpPerformanceCount']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        try:
+            pc = perf_counter_ns()
+            li = Structure.LARGE_INTEGER(pc)
+            li.writeToMemory(uc,pVals[0])
+        except:
+            pass
+
+        pVals[0] = makeStructVals(uc,li,pVals[0])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
+
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("QueryPerformanceCounter", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def GetUserNameA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         # BOOL GetUserNameA([out] LPSTR lpBuffer,[in, out] LPDWORD pcbBuffer);
         pVals = makeArgVals(uc, em, esp, 2)
@@ -8481,7 +8510,9 @@ class CustomWinAPIs():
         pTypes = ['HANDLE', 'UINT']
         pNames = ['hProcess', 'uExitCode']
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.ErrorCodes)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
         
         retVal = 0x1
         retValStr = 'TRUE'
@@ -8578,6 +8609,22 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("GetFileSizeEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetFileSize(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['HANDLE', 'LPDWORD']
+        pNames = ['hFile', 'lpFileSizeHigh']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+
+        # expand write file size to pVals[1]
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        
+        retVal = 0x1
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("GetFileSize", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     ### Has a structure of OSVERSIONINFOA, need help with.
@@ -9595,7 +9642,7 @@ class CustomWinAPIs():
 
         if pVals[0] in HandlesDict:
             handle = HandlesDict[pVals[0]]
-            if handle.type == HandleTypes.HMODULE:
+            if handle.type == HandleType.HMODULE:
                 if handle.name != '':
                     uc.mem_write(pVals[0], pack(f'<{len(handle.name) + 1}s', handle.name.encode('ascii')))
 
@@ -11043,7 +11090,7 @@ class KeyValue():
 # Create Default Registry Keys
 RegKey.createPreDefinedKeys()
 
-def getStackVal(uc, em, esp, loc):
+def getStackVal(uc: Uc, em, esp, loc):
     # x64 Windows parameter order: rcx, rdx, r8, r9, stack
     if loc == 1 and em.arch == 64:
         arg = uc.reg_read(UC_X86_REG_RCX)
@@ -11064,7 +11111,7 @@ def getStackVal(uc, em, esp, loc):
     return arg
 
 
-def makeArgVals(uc, em, esp, numParams):
+def makeArgVals(uc: Uc, em, esp, numParams):
     # print ("numParams", numParams)
     args = [0] * numParams
     for i in range(len(args)):
@@ -11082,7 +11129,7 @@ def stackCleanup(uc, em, esp, numParams):
     return bytes
     # uc.reg_write(UC_X86_REG_ESP, esp + bytes)
 
-def findStringsParms(uc, pTypes, pVals, skip):
+def findStringsParms(uc: Uc, pTypes, pVals, skip):
     i = 0
     for each in pTypes:
         if i not in skip:
@@ -11141,7 +11188,7 @@ def findStringsParms(uc, pTypes, pVals, skip):
         i += 1
     return pTypes, pVals
 
-def read_string(uc, address):
+def read_string(uc: Uc, address: int):
     ret = ""
     c = uc.mem_read(address, 1)[0]
     read_bytes = 1
@@ -11154,7 +11201,7 @@ def read_string(uc, address):
         read_bytes += 1
     return ret
 
-def read_unicode(uc, address):
+def read_unicode(uc: Uc, address: int):
     ret = ""
     c = uc.mem_read(address, 1)[0]
     read_bytes = 0
@@ -11169,7 +11216,7 @@ def read_unicode(uc, address):
     ret = ret.rstrip('\x00')
     return ret
 
-def read_unicode_extended(uc, address): # Able to read more utf-16 chars
+def read_unicode_extended(uc: Uc, address: int): # Able to read more utf-16 chars
     ret = ""
     mem = uc.mem_read(address, 2)[::-1]
     read_bytes = 2
@@ -11177,7 +11224,7 @@ def read_unicode_extended(uc, address): # Able to read more utf-16 chars
     unicodeString = str(hex(mem[0])) + str(hex(mem[1])[2::])
     unicodeInt = int(unicodeString, 0)
 
-    if unicodeInt == 0x0000: ret="NULL" # Option for NULL String
+    if unicodeInt == 0x0000: ret="[NULL]" # Option for NULL String
 
     while unicodeInt != 0x0000:
         ret += chr(unicodeInt)
@@ -11188,14 +11235,14 @@ def read_unicode_extended(uc, address): # Able to read more utf-16 chars
 
     return ret
 
-def buildPtrString(pointer, val):
+def buildPtrString(pointer: int, val: int):
     return hex(pointer) + " -> " + hex(val)
 
-def getPointerVal(uc, pointer):
+def getPointerVal(uc: Uc, pointer):
     val = uc.mem_read(pointer, 4)
     return unpack('<I', val)[0]
 
-def getLookUpVal(search, dictionary: 'dict[int,str]'):
+def getLookUpVal(search: int, dictionary: 'dict[int,str]'):
     if search in dictionary:
         return dictionary[search]
     else:
