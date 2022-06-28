@@ -9208,7 +9208,7 @@ class CustomWinAPIs():
             retVal = 0
         elif len(string1) <= len(string2):
             for i in range(len(string1)):  # Check Char by Char
-                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                # print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
                 if ord(string1[i]) < ord(string2[i]):
                     retVal = -1
                     break
@@ -9217,7 +9217,7 @@ class CustomWinAPIs():
                     break
         else:
             for i in range(len(string2)):  # Check Char by Char
-                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                # print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
                 if ord(string1[i]) < ord(string2[i]):
                     retVal = -1
                     break
@@ -9244,7 +9244,7 @@ class CustomWinAPIs():
             retVal = 0
         elif len(string1) <= len(string2):
             for i in range(len(string1)):  # Check Char by Char
-                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                # print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
                 if ord(string1[i]) < ord(string2[i]):
                     retVal = -1
                     break
@@ -9253,7 +9253,7 @@ class CustomWinAPIs():
                     break
         else:
             for i in range(len(string2)):  # Check Char by Char
-                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                # print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
                 if ord(string1[i]) < ord(string2[i]):
                     retVal = -1
                     break
@@ -9280,7 +9280,7 @@ class CustomWinAPIs():
             retVal = 0
         elif len(string1) <= len(string2):
             for i in range(len(string1)):  # Check Char by Char
-                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                # print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
                 if ord(string1[i]) < ord(string2[i]):
                     retVal = -1
                     break
@@ -9289,7 +9289,7 @@ class CustomWinAPIs():
                     break
         else:
             for i in range(len(string2)):  # Check Char by Char
-                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                # print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
                 if ord(string1[i]) < ord(string2[i]):
                     retVal = -1
                     break
@@ -9316,7 +9316,7 @@ class CustomWinAPIs():
             retVal = 0
         elif len(string1) <= len(string2):
             for i in range(len(string1)):  # Check Char by Char
-                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                # print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
                 if ord(string1[i]) < ord(string2[i]):
                     retVal = -1
                     break
@@ -9325,7 +9325,7 @@ class CustomWinAPIs():
                     break
         else:
             for i in range(len(string2)):  # Check Char by Char
-                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                # print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
                 if ord(string1[i]) < ord(string2[i]):
                     retVal = -1
                     break
