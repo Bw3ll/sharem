@@ -417,6 +417,21 @@ class CustomWinAPIs():
         logged_calls = ("ExitProcess", hex(callAddr), 'None', 'void', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def ExitThread(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 1)
+        pTypes = ['DWORD']
+        pNames = ['uExitCode']
+
+        pVals[0] = getLookUpVal(pVals[0],ReverseLookUps.ErrorCodes)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
+
+        retVal = 0
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        
+        logged_calls = ("ExitThread", hex(callAddr), 'None', 'void', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def CreateFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pVals = makeArgVals(uc, em, esp, 7)
         pTypes = ["LPCSTR", "DWORD", "DWORD", "LPSECURITY_ATTRIBUTES", "DWORD", "DWORD", "HANDLE"]
@@ -9313,6 +9328,26 @@ class CustomWinAPIs():
         logged_calls = ("lstrcmpiW", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def MulDiv(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['int', 'int', 'int'] 
+        pNames = ['nNumber', 'nNumerator', 'nDenominator'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        try:
+            retVal = (pVals[0] * pVals[1]) // pVals[2]
+            if retVal > 2147483647 or retVal < -2147483647: 
+                # Max/Min Int Overflow
+                retVal = -1
+        except:
+            retVal = -1
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("MulDiv", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def CopyFileW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes =['LPCWSTR', 'LPCWSTR', 'BOOL'] 
