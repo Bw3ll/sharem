@@ -8499,7 +8499,9 @@ class CustomWinAPIs():
         pTypes = ['HANDLE', 'UINT']
         pNames = ['hProcess', 'uExitCode']
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.ErrorCodes)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
         
         retVal = 0x1
         retValStr = 'TRUE'
@@ -11059,7 +11061,7 @@ class KeyValue():
 # Create Default Registry Keys
 RegKey.createPreDefinedKeys()
 
-def getStackVal(uc, em, esp, loc):
+def getStackVal(uc: Uc, em, esp, loc):
     # x64 Windows parameter order: rcx, rdx, r8, r9, stack
     if loc == 1 and em.arch == 64:
         arg = uc.reg_read(UC_X86_REG_RCX)
@@ -11080,7 +11082,7 @@ def getStackVal(uc, em, esp, loc):
     return arg
 
 
-def makeArgVals(uc, em, esp, numParams):
+def makeArgVals(uc: Uc, em, esp, numParams):
     # print ("numParams", numParams)
     args = [0] * numParams
     for i in range(len(args)):
@@ -11098,7 +11100,7 @@ def stackCleanup(uc, em, esp, numParams):
     return bytes
     # uc.reg_write(UC_X86_REG_ESP, esp + bytes)
 
-def findStringsParms(uc, pTypes, pVals, skip):
+def findStringsParms(uc: Uc, pTypes, pVals, skip):
     i = 0
     for each in pTypes:
         if i not in skip:
@@ -11157,7 +11159,7 @@ def findStringsParms(uc, pTypes, pVals, skip):
         i += 1
     return pTypes, pVals
 
-def read_string(uc, address):
+def read_string(uc: Uc, address: int):
     ret = ""
     c = uc.mem_read(address, 1)[0]
     read_bytes = 1
@@ -11170,7 +11172,7 @@ def read_string(uc, address):
         read_bytes += 1
     return ret
 
-def read_unicode(uc, address):
+def read_unicode(uc: Uc, address: int):
     ret = ""
     c = uc.mem_read(address, 1)[0]
     read_bytes = 0
@@ -11185,7 +11187,7 @@ def read_unicode(uc, address):
     ret = ret.rstrip('\x00')
     return ret
 
-def read_unicode_extended(uc, address): # Able to read more utf-16 chars
+def read_unicode_extended(uc: Uc, address: int): # Able to read more utf-16 chars
     ret = ""
     mem = uc.mem_read(address, 2)[::-1]
     read_bytes = 2
@@ -11193,7 +11195,7 @@ def read_unicode_extended(uc, address): # Able to read more utf-16 chars
     unicodeString = str(hex(mem[0])) + str(hex(mem[1])[2::])
     unicodeInt = int(unicodeString, 0)
 
-    if unicodeInt == 0x0000: ret="NULL" # Option for NULL String
+    if unicodeInt == 0x0000: ret="[NULL]" # Option for NULL String
 
     while unicodeInt != 0x0000:
         ret += chr(unicodeInt)
@@ -11204,14 +11206,14 @@ def read_unicode_extended(uc, address): # Able to read more utf-16 chars
 
     return ret
 
-def buildPtrString(pointer, val):
+def buildPtrString(pointer: int, val: int):
     return hex(pointer) + " -> " + hex(val)
 
-def getPointerVal(uc, pointer):
+def getPointerVal(uc: Uc, pointer):
     val = uc.mem_read(pointer, 4)
     return unpack('<I', val)[0]
 
-def getLookUpVal(search, dictionary: 'dict[int,str]'):
+def getLookUpVal(search: int, dictionary: 'dict[int,str]'):
     if search in dictionary:
         return dictionary[search]
     else:
