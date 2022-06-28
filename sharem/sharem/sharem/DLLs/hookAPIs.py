@@ -9621,6 +9621,24 @@ class CustomWinAPIs():
         logged_calls= ("EnumProcessModulesEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def IsProcessorFeaturePresent(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['DWORD'] 
+        pNames = ['ProcessorFeature'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        ProcessorFeature_ReverseLookUp = {25: 'PF_ARM_64BIT_LOADSTORE_ATOMIC', 24: 'PF_ARM_DIVIDE_INSTRUCTION_AVAILABLE', 26: 'PF_ARM_EXTERNAL_CACHE_AVAILABLE', 27: 'PF_ARM_FMAC_INSTRUCTIONS_AVAILABLE', 18: 'PF_ARM_VFP_32_REGISTERS_AVAILABLE', 7: 'PF_3DNOW_INSTRUCTIONS_AVAILABLE', 16: 'PF_CHANNELS_ENABLED', 2:
+ 'PF_COMPARE_EXCHANGE_DOUBLE', 14: 'PF_COMPARE_EXCHANGE128', 15: 'PF_COMPARE64_EXCHANGE128', 23: 'PF_FASTFAIL_AVAILABLE', 1: 'PF_FLOATING_POINT_EMULATED', 0: 'PF_FLOATING_POINT_PRECISION_ERRATA', 3: 'PF_MMX_INSTRUCTIONS_AVAILABLE', 12: 'PF_NX_ENABLED', 9: 'PF_PAE_ENABLED', 8: 'PF_RDTSC_INSTRUCTION_AVAILABLE', 22: 'PF_RDWRFSGSBASE_AVAILABLE', 20: 'PF_SECOND_LEVEL_ADDRESS_TRANSLATION', 13: 'PF_SSE3_INSTRUCTIONS_AVAILABLE', 21: 'PF_VIRT_FIRMWARE_ENABLED', 6: 'PF_XMMI_INSTRUCTIONS_AVAILABLE', 10: 'PF_XMMI64_INSTRUCTIONS_AVAILABLE', 17: 'PF_XSAVE_ENABLED', 29: 'PF_ARM_V8_INSTRUCTIONS_AVAILABLE', 30: 'PF_ARM_V8_CRYPTO_INSTRUCTIONS_AVAILABLE', 31: 'PF_ARM_V8_CRC32_INSTRUCTIONS_AVAILABLE', 34: 'PF_ARM_V81_ATOMIC_INSTRUCTIONS_AVAILABLE'}
+
+        pVals[0] = getLookUpVal(pVals[0], ProcessorFeature_ReverseLookUp)
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+        
+        retVal = 0x1
+        retValStr = "SUPPORTED"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("IsProcessorFeaturePresent", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def GetCurrentThreadId(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes =[] 
         pNames = [] 
