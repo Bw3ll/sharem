@@ -300,8 +300,7 @@ class CustomWinAPIs():
         pNames = ['PathToFile', 'Flags', 'ModuleFileName', 'ModuleHandle']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        unicode_string = Structure.UNICODE_STRING()
-        unicode_string.readFromMemory(uc, pVals[2])
+        unicode_string = Structure.get_UNICODE_STRING(uc, pVals[2], em)
         name = read_unicode(uc, unicode_string.Buffer)
 
         try:
@@ -8415,7 +8414,7 @@ class CustomWinAPIs():
 
         try:
             pc = perf_counter_ns()
-            li = Structure.LARGE_INTEGER(pc)
+            li = Structure.LARGE_INTEGER(QuadPart=pc)
             li.writeToMemory(uc,pVals[0])
         except:
             pass

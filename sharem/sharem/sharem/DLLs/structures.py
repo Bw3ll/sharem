@@ -1,3 +1,4 @@
+from ctypes import LittleEndianStructure, c_longlong, c_uint, c_ulonglong, c_ushort, sizeof
 from enum import Enum
 from struct import pack, unpack
 from time import gmtime, localtime,time_ns, localtime
@@ -403,26 +404,31 @@ class Structure:
             self.dwLowDateTime = unPacked[0]         
             self.dwHighDateTime = unPacked[1]
 
+    def get_UNICODE_STRING(uc: Uc, address: int, em):
+        if em.arch == 32:
+            return Structure.UNICODE_STRING.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(Structure.UNICODE_STRING.ARCH32)))
+        else:
+            return Structure.UNICODE_STRING.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(Structure.UNICODE_STRING.ARCH64)))
+
     class UNICODE_STRING:
-        # UNICODE_STRING, *PUNICODE_STRING
-        types = ['USHORT', 'USHORT', 'PWSTR',]
-        names = ['Length', 'MaximumLength', 'Buffer']
 
-        def __init__(self, length: int = 0, PWSTR: int = 0):
-            self.Length = length
-            self.MaximumLength = length
-            self.Buffer = PWSTR
+        class ARCH32(LittleEndianStructure):
+            types = ['USHORT', 'USHORT', 'PWSTR']
+            names = ['Length', 'MaximumLength', 'Buffer']
+            _fields_ = [("Length", c_ushort), ("MaximumLength", c_ushort), ("Buffer", c_uint)]
 
-        def writeToMemory(self, uc: Uc, address):
-            packedStruct = pack(f'<HHI', self.Length, self.MaximumLength, self.Buffer)
-            uc.mem_write(address, packedStruct)
+            def writeToMemory(self, uc: Uc, address: int):
+                print(sizeof(Structure.UNICODE_STRING.ARCH32))
+                uc.mem_write(address, bytes(self))
 
-        def readFromMemory(self, uc: Uc, address):
-            data = uc.mem_read(address, 8)
-            unpackedStruct = unpack('<HHI', data)
-            self.Length = unpackedStruct[0]
-            self.MaximumLength = unpackedStruct[1]
-            self.Buffer = unpackedStruct[2]
+        class ARCH64(LittleEndianStructure):
+            types = ['USHORT', 'USHORT', 'PWSTR']
+            names = ['Length', 'MaximumLength', 'Buffer']
+            _fields_ = [("Length", c_ushort), ("MaximumLength", c_ushort), ("Buffer", c_ulonglong)]
+
+            def writeToMemory(self, uc: Uc, address: int):
+                print(sizeof(Structure.UNICODE_STRING.ARCH64))
+                uc.mem_write(address, bytes(self))
 
     class TIME_ZONE_INFORMATION:
         # UNICODE_STRING, *PUNICODE_STRING
@@ -560,17 +566,43 @@ class Structure:
             self.ve_valueptr = unpackedStruct[2]
             self.ve_type = unpackedStruct[3]
 
-    class LARGE_INTEGER:
-        types = ['LONGLONG']
-        names = ['QuadPart']
+    # class LARGE_INTEGER:
+    #     types = ['LONGLONG']
+    #     names = ['QuadPart']
 
-        def __init__(self, largeInt: int):
-            self.QuadPart = largeInt
+    #     def __init__(self, largeInt: int):
+    #         self.QuadPart = largeInt
+
+    #     def writeToMemory(self, uc: Uc, address: int):
+    #         packedStruct = pack(f'<q', self.QuadPart)
+    #         uc.mem_write(address, packedStruct)
+
+    #     def readFromMemory(self, uc: Uc, address: int):
+    #         data = uc.mem_read(address, 8)
+    #         self.QuadPart = unpack('<q', data)[0]
+
+    # @dataclass
+    # class LARGE_INTEGER:
+    # types = ['LONGLONG']
+    # names = ['QuadPart']
+    #     QuadPart: int
+
+    #     def writeToMemory(self, uc: Uc, address: int):
+    #         packedStruct = pack(f'<q', self.QuadPart)
+    #         uc.mem_write(address, packedStruct)
+
+    #     def readFromMemory(self, uc: Uc, address: int):
+    #         data = uc.mem_read(address, 8)
+    #         self.QuadPart = unpack('<q', data)[0]
+
+    def get_LARGE_INTEGER(uc: Uc, address: int, em):
+        return Structure.LARGE_INTEGER()
+
+    class LARGE_INTEGER(LittleEndianStructure):
+        types = ["LONGLONG"]
+        names = ["QuadPart"]
+        _fields_ = [("QuadPart", c_longlong)]
 
         def writeToMemory(self, uc: Uc, address: int):
-            packedStruct = pack(f'<q', self.QuadPart)
-            uc.mem_write(address, packedStruct)
+            uc.mem_write(address, bytes(self))
 
-        def readFromMemory(self, uc: Uc, address: int):
-            data = uc.mem_read(address, 8)
-            self.QuadPart = unpack('<q', data)[0]
