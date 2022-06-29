@@ -10569,7 +10569,155 @@ class CustomWinAPIs():
         logged_calls= ("SetFocus", hex(callAddr), (retValStr), 'HWND', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def SetWindowLongPtrA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'SetWindowLongPtrA': (3, ['HWND', 'INT', 'LONG_PTR'], ['hwnd', 'offset', 'newval'], 'LONG_PTR')
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes= ['HWND', 'INT', 'LONG_PTR']
+        pNames= ['hwnd', 'offset', 'newval']
 
+        setWindowLongPtrA_ReverseLookUp = {-32: 'GWL_EXSTYLE', -6: 'GWLP_HINSTANCE', -18: 'GWLP_ID', -22: 'GWL_STYLE', -33: 'GWLP_USERDATA', -4: 'GWLP_WNDPROC'}
+        pVals[1] = getLookUpVal(pVals[1], setWindowLongPtrA_ReverseLookUp)
+        #this should be updated to include the previous value.
+        previousValue = 123
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[1])
+
+        retVal = previousValue
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("SetWindowLongPtrA", hex(callAddr), (retValStr), 'LONG_PTR', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def SetWindowLongA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'SetWindowLongA': (3, ['HWND', 'int', 'LONG'], ['hWnd', 'nIndex', 'dwNewLong'], 'LONG')
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes= ['HWND', 'int', 'LONG']
+        pNames= ['hWnd', 'nIndex', 'dwNewLong']
+
+        setWindowLongPtrA_ReverseLookUp = {-32: 'GWL_EXSTYLE', -6: 'GWLP_HINSTANCE', -18: 'GWLP_ID', -22: 'GWL_STYLE', -33: 'GWLP_USERDATA', -4: 'GWLP_WNDPROC'}
+        pVals[1] = getLookUpVal(pVals[1], setWindowLongPtrA_ReverseLookUp)
+        #this should be updated to include the previous value.
+        previousValue = 0x00004000
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[1])
+
+        retVal = previousValue
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("SetWindowLongA", hex(callAddr), (retValStr), 'LONG', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def SetWindowLongW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'SetWindowLongW': (3, ['HWND', 'int', 'LONG'], ['hWnd', 'nIndex', 'dwNewLong'], 'LONG')
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes= ['HWND', 'int', 'LONG']
+        pNames= ['hWnd', 'nIndex', 'dwNewLong']
+
+        setWindowLongPtrA_ReverseLookUp = {-32: 'GWL_EXSTYLE', -6: 'GWLP_HINSTANCE', -18: 'GWLP_ID', -22: 'GWL_STYLE', -33: 'GWLP_USERDATA', -4: 'GWLP_WNDPROC'}
+        pVals[1] = getLookUpVal(pVals[1], setWindowLongPtrA_ReverseLookUp)
+        #this should be updated to include the previous value.
+        previousValue = 0x00004000
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[1])
+
+        retVal = previousValue
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("SetWindowLongA", hex(callAddr), (retValStr), 'LONG', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def SetCurrentDirectoryA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'SetCurrentDirectoryA': (1, ['LPCSTR'], ['lpPathName'], 'BOOL')
+        pVals = makeArgVals(uc, em, esp, 1)
+        pTypes= ['LPCTSTR']
+        pNames= ['lpPathName']
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        #changes relative paths into absolute paths
+        if(".." in pVals[0]):
+            print('this is a relative path')
+            #need to build this out to convert to an absolute path
+        else:
+            currentDirectory = pVals[0]
+
+        retVal = 0x1
+        retValStr= 'True'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("SetCurrentDirectoryA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CountClipboardFormats(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'CountClipboardFormats': (0, [], [], 'INT')
+        pVals = makeArgVals(uc, em, esp, 0)
+        pTypes= []
+        pNames= []
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        #need to somehow identify the different data formats in the clipboard
+        #for now just is returning a non zero number to indicate success
+        numberOfDatatypes = 1
+        
+
+        retVal = numberOfDatatypes
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CountClipboardFormats", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetKeyNameTextA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'GetKeyNameTextA': (3, ['LONG', 'LPSTR', 'INT'], ['lParam', 'lpBuffer', 'nSize'], 'INT')
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes= ['LONG', 'LPSTR', 'INT']
+        pNames= ['lParam', 'lpBuffer', 'nSize']
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        #Currently returns a static key name for any key code passed in.
+        keyboardKey = 'A'
+        #write to the lpBuffer
+
+        retVal = len(keyboardKey)
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetKeyNameTextA", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetKeyState(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'GetKeyState': (1, ['int'], ['nVirtKey'], 'SHORT')
+        pVals = makeArgVals(uc, em, esp, 1)
+        pTypes= ['int']
+        pNames= ['nVirtKey']
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        keysVirtVal = pVals[0]
+        #string1 = read_string(uc, pVals[0]).lower()
+        #toggle Keys
+        if(keysVirtVal == '0x14'):
+            #capsLock
+            retVal = 0x0001
+        elif(keysVirtVal == '0x90'):
+            #numLock
+            retVal = 0x0001
+        elif(keysVirtVal == '0x91'):
+            #scrollLock
+            retVal = 0x0001
+        else:
+            retVal = 0x1000
+
+        #retVal = 
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetKeyState", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
 
 
