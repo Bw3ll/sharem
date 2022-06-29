@@ -9692,9 +9692,11 @@ class CustomWinAPIs():
         pNames = [] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
+        handle = Handle(HandleType.Thread,data=)
+
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         
-        retVal = 2000
+        retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
