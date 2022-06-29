@@ -9701,6 +9701,34 @@ class CustomWinAPIs():
         logged_calls= ("GetThreadID", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def GetProcessIdOfThread(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['HANDLE'] 
+        pNames = ['Thread'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        
+        retVal = 0x1
+        retValStr = 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("GetProcessIdOfThread", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetThreadInformation(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['HANDLE', 'THREAD_INFORMATION_CLASS', 'LPVOID', 'DWORD'] 
+        pNames = ['hThread', 'ThreadInformationClass', 'ThreadInformation', 'ThreadInformationSize'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        
+        retVal = 0x1
+        retValStr = 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("GetThreadInformation", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def GetCurrentThread(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes =[] 
         pNames = [] 
