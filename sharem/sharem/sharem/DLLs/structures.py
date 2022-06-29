@@ -479,12 +479,12 @@ class Structure:
             self.hStdError = 0
 
         def writeToMemory(self, uc: Uc, address):
-            packedStruct = pack('<l64sIl64sIl', self.cb, self.lpReserved, self.lpDesktop, self.lpTitle, self.dwX, self.dwY, self.dwXSize, self.dwYSize, self.dwXCountChars, self.dwYCountChars, self.dwFillAttribute, self.dwFlags, self.wShowWindow, self.cbReserved2, self.lpReserved2, self.hStdInput, self.hStdOutput, self.hStdError)
+            packedStruct = pack('<II64sIIIIIIIIIIIIIII', self.cb, self.lpReserved, self.lpDesktop, self.lpTitle, self.dwX, self.dwY, self.dwXSize, self.dwYSize, self.dwXCountChars, self.dwYCountChars, self.dwFillAttribute, self.dwFlags, self.wShowWindow, self.cbReserved2, self.lpReserved2, self.hStdInput, self.hStdOutput, self.hStdError)
             uc.mem_write(address, packedStruct)
 
         def readFromMemory(self, uc: Uc, address):
             data = uc.mem_read(address, 19)
-            unpackedStruct = unpack('<l64sIl64sIl', data)
+            unpackedStruct = unpack('<II64sIIIIIIIIIIIIIII', data)
 
             self.cb = unpackedStruct[0]
             self.lpReserved = unpackedStruct[1]
