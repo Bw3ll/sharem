@@ -1,4 +1,4 @@
-from ctypes import LittleEndianStructure, c_longlong, c_uint, c_ulonglong, c_ushort, sizeof
+from ctypes import *
 from enum import Enum
 from struct import pack, unpack
 from time import gmtime, localtime,time_ns, localtime
@@ -566,37 +566,8 @@ class Structure:
             self.ve_valueptr = unpackedStruct[2]
             self.ve_type = unpackedStruct[3]
 
-    # class LARGE_INTEGER:
-    #     types = ['LONGLONG']
-    #     names = ['QuadPart']
-
-    #     def __init__(self, largeInt: int):
-    #         self.QuadPart = largeInt
-
-    #     def writeToMemory(self, uc: Uc, address: int):
-    #         packedStruct = pack(f'<q', self.QuadPart)
-    #         uc.mem_write(address, packedStruct)
-
-    #     def readFromMemory(self, uc: Uc, address: int):
-    #         data = uc.mem_read(address, 8)
-    #         self.QuadPart = unpack('<q', data)[0]
-
-    # @dataclass
-    # class LARGE_INTEGER:
-    # types = ['LONGLONG']
-    # names = ['QuadPart']
-    #     QuadPart: int
-
-    #     def writeToMemory(self, uc: Uc, address: int):
-    #         packedStruct = pack(f'<q', self.QuadPart)
-    #         uc.mem_write(address, packedStruct)
-
-    #     def readFromMemory(self, uc: Uc, address: int):
-    #         data = uc.mem_read(address, 8)
-    #         self.QuadPart = unpack('<q', data)[0]
-
     def get_LARGE_INTEGER(uc: Uc, address: int, em):
-        return Structure.LARGE_INTEGER()
+        return Structure.LARGE_INTEGER.from_buffer_copy(uc.mem_read(address, sizeof(Structure.LARGE_INTEGER)))
 
     class LARGE_INTEGER(LittleEndianStructure):
         types = ["LONGLONG"]
