@@ -9687,12 +9687,28 @@ class CustomWinAPIs():
         logged_calls= ("GetCurrentThreadID", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def GetThreadId(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['HANDLE'] 
+        pNames = ['Thread'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        handle = Handle(HandleType.Thread,data=[])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        
+        retVal = handle.value
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("GetThreadID", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def GetCurrentThread(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes =[] 
         pNames = [] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        handle = Handle(HandleType.Thread,data=)
+        handle = Handle(HandleType.Thread,data=[])
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         
