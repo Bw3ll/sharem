@@ -300,8 +300,7 @@ class CustomWinAPIs():
         pNames = ['PathToFile', 'Flags', 'ModuleFileName', 'ModuleHandle']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        unicode_string = Structure.UNICODE_STRING()
-        unicode_string.readFromMemory(uc, pVals[2])
+        unicode_string = Structure.get_UNICODE_STRING(uc, pVals[2], em)
         name = read_unicode(uc, unicode_string.Buffer)
 
         try:
@@ -415,6 +414,21 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
         
         logged_calls = ("ExitProcess", hex(callAddr), 'None', 'void', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def ExitThread(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pVals = makeArgVals(uc, em, esp, 1)
+        pTypes = ['DWORD']
+        pNames = ['uExitCode']
+
+        pVals[0] = getLookUpVal(pVals[0],ReverseLookUps.ErrorCodes)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
+
+        retVal = 0
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        
+        logged_calls = ("ExitThread", hex(callAddr), 'None', 'void', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def CreateFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
@@ -8400,7 +8414,7 @@ class CustomWinAPIs():
 
         try:
             pc = perf_counter_ns()
-            li = Structure.LARGE_INTEGER(pc)
+            li = Structure.LARGE_INTEGER(QuadPart=pc)
             li.writeToMemory(uc,pVals[0])
         except:
             pass
@@ -9193,7 +9207,7 @@ class CustomWinAPIs():
             retVal = 0
         elif len(string1) <= len(string2):
             for i in range(len(string1)):  # Check Char by Char
-                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                # print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
                 if ord(string1[i]) < ord(string2[i]):
                     retVal = -1
                     break
@@ -9202,7 +9216,7 @@ class CustomWinAPIs():
                     break
         else:
             for i in range(len(string2)):  # Check Char by Char
-                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                # print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
                 if ord(string1[i]) < ord(string2[i]):
                     retVal = -1
                     break
@@ -9229,7 +9243,7 @@ class CustomWinAPIs():
             retVal = 0
         elif len(string1) <= len(string2):
             for i in range(len(string1)):  # Check Char by Char
-                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                # print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
                 if ord(string1[i]) < ord(string2[i]):
                     retVal = -1
                     break
@@ -9238,7 +9252,7 @@ class CustomWinAPIs():
                     break
         else:
             for i in range(len(string2)):  # Check Char by Char
-                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                # print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
                 if ord(string1[i]) < ord(string2[i]):
                     retVal = -1
                     break
@@ -9265,7 +9279,7 @@ class CustomWinAPIs():
             retVal = 0
         elif len(string1) <= len(string2):
             for i in range(len(string1)):  # Check Char by Char
-                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                # print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
                 if ord(string1[i]) < ord(string2[i]):
                     retVal = -1
                     break
@@ -9274,7 +9288,7 @@ class CustomWinAPIs():
                     break
         else:
             for i in range(len(string2)):  # Check Char by Char
-                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                # print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
                 if ord(string1[i]) < ord(string2[i]):
                     retVal = -1
                     break
@@ -9301,7 +9315,7 @@ class CustomWinAPIs():
             retVal = 0
         elif len(string1) <= len(string2):
             for i in range(len(string1)):  # Check Char by Char
-                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                # print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
                 if ord(string1[i]) < ord(string2[i]):
                     retVal = -1
                     break
@@ -9310,7 +9324,7 @@ class CustomWinAPIs():
                     break
         else:
             for i in range(len(string2)):  # Check Char by Char
-                print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
+                # print('Index:', i, 'S1:', string1[i], 'S2:', string2[i])
                 if ord(string1[i]) < ord(string2[i]):
                     retVal = -1
                     break
@@ -9326,6 +9340,26 @@ class CustomWinAPIs():
         logged_calls = ("lstrcmpiW", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def MulDiv(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['int', 'int', 'int'] 
+        pNames = ['nNumber', 'nNumerator', 'nDenominator'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        try:
+            retVal = (pVals[0] * pVals[1]) // pVals[2]
+            if retVal > 2147483647 or retVal < -2147483647: 
+                # Max/Min Int Overflow
+                retVal = -1
+        except:
+            retVal = -1
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("MulDiv", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def CopyFileW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes =['LPCWSTR', 'LPCWSTR', 'BOOL'] 
@@ -11288,3 +11322,39 @@ def bin_to_ipv4(ip):
         (ip & 0xff0000) >> 16,
         (ip & 0xff00) >> 8,
         (ip & 0xff))
+
+def SystemParametersInfoA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['UNINT', 'UNINT', 'PVOID', 'UINT']
+        pNames= ['uiAction', 'uiParam', 'pvParam', 'fWinIni']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+
+        pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.SystemParametersInfo.Action)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+
+        retVal = 0x1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("SystemParametersInfoA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+def CopyFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LCPSTR', 'LCPSTR', 'BOOL']
+        pNames= ['lpExistingFileName', 'lpNewFileName', 'bFailIfExists']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CopyFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
