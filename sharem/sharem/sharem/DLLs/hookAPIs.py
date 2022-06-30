@@ -9673,6 +9673,20 @@ class CustomWinAPIs():
         logged_calls= ("IsProcessorFeaturePresent", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def GetFileAttributesW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LPCWSTR']
+        pNames= ['lpFileName']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetFileAttributesW", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def GetCurrentThreadId(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes =[] 
         pNames = [] 
@@ -11564,16 +11578,3 @@ def CopyFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         logged_calls= ("CopyFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-def GetFileAttributesW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pTypes= ['LPCWSTR']
-        pNames= ['lpFileName']
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
-
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
-
-        retVal = 0x88888888
-        retValStr= hex(retVal)
-        uc.reg_write(UC_X86_REG_EAX, retVal)     
-
-        logged_calls= ("GetFileAttributesW", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
-        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
