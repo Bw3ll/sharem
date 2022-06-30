@@ -11551,12 +11551,9 @@ def CopyFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
 def GetFileAttributesW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pTypes= ['LCPWSTR']
+        pTypes= ['LPCWSTR']
         pNames= ['lpFileName']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-
-        # Might Need to Expand
-
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
 
