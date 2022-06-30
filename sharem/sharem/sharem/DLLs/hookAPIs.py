@@ -9715,6 +9715,20 @@ class CustomWinAPIs():
         logged_calls= ("EnumWindows", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def SetPropA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HWND', 'LPCSTR', 'HANDLE']
+        pNames= ['hWnd', 'lpString', 'hData']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("SetPropA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def GetCurrentThreadId(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes =[] 
         pNames = [] 
