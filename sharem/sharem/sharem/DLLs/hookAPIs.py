@@ -9701,6 +9701,20 @@ class CustomWinAPIs():
         logged_calls= ("GetThreadID", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def GetProcessId(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['HANDLE'] 
+        pNames = ['Process'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        
+        retVal = 0x55555555
+        retValStr = 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("GetProcessID", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def GetProcessIdOfThread(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes =['HANDLE'] 
         pNames = ['Thread'] 
