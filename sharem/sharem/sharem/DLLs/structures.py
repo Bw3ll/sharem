@@ -487,8 +487,6 @@ class Structure:
             self.dwHighDateTime = unPacked[1]
 
     def get_UNICODE_STRING(uc: Uc, address: int, em):
-        print('32 Size: ', sizeof(Structure.UNICODE_STRING.ARCH32))
-        print('64 Size: ', sizeof(Structure.UNICODE_STRING.ARCH64))
         if em.arch == 32:
             return Structure.UNICODE_STRING.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(Structure.UNICODE_STRING.ARCH32)))
         else:
@@ -511,7 +509,6 @@ class Structure:
             _fields_ = [("Length", USHORT), ("MaximumLength", USHORT), ("Buffer", PWSTR_64BIT)]
 
             def writeToMemory(self, uc: Uc, address: int):
-                print(sizeof(Structure.UNICODE_STRING.ARCH64))
                 uc.mem_write(address, bytes(self))
 
     class TIME_ZONE_INFORMATION:
