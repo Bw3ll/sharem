@@ -3,7 +3,7 @@ import sys
 
 # Backport of LittleEndianUnion and BigEndianUnion Functions
 # Documented Functions that were not implemented until March 29, 2022
-# Used in for Emulated Structures in structures.py
+# Used for Emulation Structures in structures.py
 # Will be included in python 3.11
 # https://github.com/python/cpython/blob/be80db14c432c621e44920f8fd95a3f3191aca9b/Lib/ctypes/_endian.py
 

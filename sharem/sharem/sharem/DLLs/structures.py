@@ -2,6 +2,8 @@ from ctypes import LittleEndianStructure, c_byte, c_char, c_double, c_float, c_i
 from enum import Enum
 from struct import pack, unpack
 from time import gmtime, localtime,time_ns, localtime
+
+from sharem.sharem.helper.ctypesUnion import LittleEndianUnion
 from ..helper.emuHelpers import Uc
 
 # Window C Type Mappings
@@ -81,10 +83,10 @@ LPBOOL_32BIT = PBOOL_32BIT = PBOOLEAN_32BIT = LPBYTE_32BIT = PBYTE_32BIT = PCHAR
 LPBOOL_64BIT = PBOOL_64BIT = PBOOLEAN_64BIT = LPBYTE_64BIT = PBYTE_64BIT = PCHAR_64BIT = LPCOLORREF_64BIT = LPDWORD_64BIT = PDWORD_64BIT = LPFILETIME_64BIT = PFILETIME_64BIT = PFLOAT_64BIT = LPHANDLE_64BIT = PHANDLE_64BIT = PHKEY_64BIT = LPHKL_64BIT = LPINT_64BIT = PINT_64BIT = PLCID_64BIT = LPLONG_64BIT = PLONG_64BIT = LPSC_HANDLE_64BIT = PSHORT_64BIT = LPUINT_64BIT = PUINT_64BIT = PULONG_64BIT = PUSHORT_64BIT = PWCHAR_64BIT = LPWORD_64BIT = PWORD_64BIT = c_uint64
 
 # Pointers to Structures 32 Bit
-PUNICODE_STRING_32BIT = c_uint32
+LPSTARTUPINFOA_32BIT = PUNICODE_STRING_32BIT = c_uint32
 
 # Pointers to Structures 64 Bit
-PUNICODE_STRING_64BIT = c_uint64
+LPSTARTUPINFOA_64BIT = PUNICODE_STRING_64BIT = c_uint64
 
 # Helpers
 def read_string(uc: Uc, address: int):
@@ -177,7 +179,7 @@ class Structure:
     types: 'list[str]' = []
     names: 'list[str]' = []
 
-    class PROCESS_INFORMATION:
+    class PROCESS_INFORMATION: # Needs Redone
         # Backs PROCESS_INFORMATION, *PPROCESS_INFORMATION, *LPPROCESS_INFORMATION
         types = ['HANDLE','HANDLE','DWORD','DWORD']
         names = ['hProcess','hThread','dwProcessId','dwThreadId']
@@ -212,7 +214,7 @@ class Structure:
             self.dwThreadId = unpackedStruct[3]
 
 
-    class PROCESSENTRY32:
+    class PROCESSENTRY32: # Needs Redone
         # Backs both PROCESSENTRY32 and PROCESSENTRY32W
         types = ['DWORD','DWORD','DWORD','ULONG_PTR','DWORD','DWORD','DWORD','LONG','DWORD','CHAR'] 
         names = ['dwSize','cntUsage','th32ProcessID','th32DefaultHeapID','th32ModuleID','cntThreads','th32ParentProcessID','pcPriClassBase','dwFlags','szExeFile']
@@ -266,7 +268,7 @@ class Structure:
             self.dwFlags = unpackedStruct[8]
             self.szExeFile = unpackedStruct[9].decode()
 
-    class THREADENTRY32:
+    class THREADENTRY32: # Needs Redone
         types = ['DWORD','DWORD','DWORD','DWORD','DWORD','DWORD','LONG','LONG','DWORD']
         names = ['dwSize','cntUsage','th32ThreadID','th32OwnerProcessID','tpBasePri','tpDeltaPri','dwFlags']
         
@@ -296,7 +298,7 @@ class Structure:
             self.tpDeltaPri = unpackedStruct[5]
             self.dwFlags = unpackedStruct[6]
 
-    class MODULEENTRY32:
+    class MODULEENTRY32: # Needs Redone
         # Backs both MODULEENTRY32 and MODULEENTRY32W
         types = ['DWORD','DWORD','DWORD','DWORD','DWORD','BYTE','DWORD','HMODULE','char','char']
         names = ['dwSize','th32ModuleID','th32ProcessID','GlblcntUsage','ProccntUsage','*modBaseAddr','modBaseSize','hModule','szModule','szExePath']
@@ -394,7 +396,7 @@ class Structure:
             self.wSecond = unpackedStruct[6]
             self.wMilliseconds = unpackedStruct[7]
 
-    class SYSTEM_INFO:
+    class SYSTEM_INFO: # Needs Redone
         # Backs SYSTEM_INFO, *LPSYSTEM_INFO
         def __init__(self, PA: 'Structure.SYSTEM_INFO.Processor', numProcessors: int):
             self.wProcessorArchitecture = PA
@@ -433,7 +435,7 @@ class Structure:
             PROCESSOR_ARCHITECTURE_INTEL = 0 # x86
             PROCESSOR_ARCHITECTURE_UNKNOWN = 0xffff
 
-    class FILETIME:
+    class FILETIME: # Needs Redone
         types = ['DWORD','DWORD']
         names = ['dwLowDateTime','dwHighDateTime']
 
@@ -511,7 +513,7 @@ class Structure:
             def writeToMemory(self, uc: Uc, address: int):
                 uc.mem_write(address, bytes(self))
 
-    class TIME_ZONE_INFORMATION:
+    class TIME_ZONE_INFORMATION: # Needs Redone
         # UNICODE_STRING, *PUNICODE_STRING
         types = ['LONG', 'WCHAR', 'SYSTEMTIME', 'LONG', 'WCHAR', 'SYSTEMTIME', 'LONG']
         names = ['Bias', 'StandardName', 'StandardDate', 'StandardBias', 'DaylightName', 'DaylightDate', 'DaylightBias']
@@ -540,57 +542,35 @@ class Structure:
             self.DaylightDate = unpackedStruct[5]
             self.DaylightBias = unpackedStruct[6]
 
+    # Struct STARTUPINFOA
+    # Alias Names:
+    # Alias Pointer Names: *LPSTARTUPINFOA
+
+    def get_STARTUPINFOA(uc: Uc, address: int, em):
+            if em.arch == 32:
+                return Structure.STARTUPINFOA.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(Structure.STARTUPINFOA.ARCH32)))
+            else:
+                return Structure.STARTUPINFOA.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(Structure.STARTUPINFOA.ARCH64)))
+
     class STARTUPINFOA:
-        # UNICODE_STRING, *PUNICODE_STRING
-        types = ['DWORD', 'LPSTR', 'LPSTR', 'LPSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WORD', 'WORD', 'LPBYTE', 'HANDLE', 'HANDLE', 'HANDLE']
-        names = ['cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError']
 
-        def __init__(self):
-            self.cb = 0
-            self.lpReserved = 0
-            self.lpDesktop = "DESKTOP-NAME"
-            self.lpTitle = 0
-            self.dwX = 0
-            self.dwY = 0
-            self.dwXSize = 0
-            self.dwYSize = 0
-            self.dwXCountChars = 0
-            self.dwYCountChars = 0
-            self.dwFillAttribute = 0
-            self.dwFlags = 0
-            self.wShowWindow = 0
-            self.cbReserved2 = 0
-            self.lpReserved2 = 0
-            self.hStdInput = 0
-            self.hStdOutput = 0
-            self.hStdError = 0
+        class ARCH32(LittleEndianStructure):
+            types = ['DWORD', 'LPSTR', 'LPSTR', 'LPSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WORD', 'WORD', 'LPBYTE', 'HANDLE', 'HANDLE', 'HANDLE']
+            names = ['cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError']
 
-        def writeToMemory(self, uc: Uc, address):
-            packedStruct = pack('<II64sIIIIIIIIIIIIIII', self.cb, self.lpReserved, self.lpDesktop, self.lpTitle, self.dwX, self.dwY, self.dwXSize, self.dwYSize, self.dwXCountChars, self.dwYCountChars, self.dwFillAttribute, self.dwFlags, self.wShowWindow, self.cbReserved2, self.lpReserved2, self.hStdInput, self.hStdOutput, self.hStdError)
-            uc.mem_write(address, packedStruct)
+            _fields_ = [("cb",DWORD),("lpReserved",LPSTR_32BIT),("lpDesktop",LPSTR_32BIT),("lpTitle",LPSTR_32BIT),("dwX",DWORD),("dwY",DWORD),("dwXSize",DWORD),("dwYSize",DWORD),("dwXCountChars",DWORD),("dwYCountChars",DWORD),("dwFillAttribute",DWORD),("dwFlags",DWORD),("wShowWindow",WORD),("cbReserved2",WORD),("lpReserved2",LPBYTE_32BIT),("hStdInput",HANDLE_32BIT),("hStdOutput",HANDLE_32BIT),("hStdError",HANDLE_32BIT)]
 
-        def readFromMemory(self, uc: Uc, address):
-            data = uc.mem_read(address, 19)
-            unpackedStruct = unpack('<II64sIIIIIIIIIIIIIII', data)
+            def writeToMemory(self, uc: Uc, address: int):
+                uc.mem_write(address, bytes(self))
 
-            self.cb = unpackedStruct[0]
-            self.lpReserved = unpackedStruct[1]
-            self.lpDesktop = unpackedStruct[2]
-            self.lpTitle = unpackedStruct[3]
-            self.dwX = unpackedStruct[4]
-            self.dwY = unpackedStruct[5]
-            self.dwXSize = unpackedStruct[6]
-            self.dwYSize = unpackedStruct[7]
-            self.dwXCountChars = unpackedStruct[8]
-            self.dwYCountChars = unpackedStruct[9]
-            self.dwFillAttribute = unpackedStruct[10]
-            self.dwFlags = unpackedStruct[11]
-            self.wShowWindow = unpackedStruct[12]
-            self.cbReserved2 = unpackedStruct[13]
-            self.lpReserved2 = unpackedStruct[14]
-            self.hStdInput = unpackedStruct[15]
-            self.hStdOutput = unpackedStruct[16]
-            self.hStdError = unpackedStruct[17]
+        class ARCH64(LittleEndianStructure):
+            types = ['DWORD', 'LPSTR', 'LPSTR', 'LPSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WORD', 'WORD', 'LPBYTE', 'HANDLE', 'HANDLE', 'HANDLE']
+            names = ['cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError']
+
+            _fields_ = [("cb",DWORD),("lpReserved",LPSTR_64BIT),("lpDesktop",LPSTR_64BIT),("lpTitle",LPSTR_64BIT),("dwX",DWORD),("dwY",DWORD),("dwXSize",DWORD),("dwYSize",DWORD),("dwXCountChars",DWORD),("dwYCountChars",DWORD),("dwFillAttribute",DWORD),("dwFlags",DWORD),("wShowWindow",WORD),("cbReserved2",WORD),("lpReserved2",LPBYTE_64BIT),("hStdInput",HANDLE_64BIT),("hStdOutput",HANDLE_64BIT),("hStdError",HANDLE_64BIT)]
+
+            def writeToMemory(self, uc: Uc, address: int):
+                uc.mem_write(address, bytes(self))
 
     
 
@@ -663,11 +643,18 @@ class Structure:
     # Alias Names:
     # Alias Pointer Names: *PSECURITY_ATTRIBUTES, *LPSECURITY_ATTRIBUTES
 
+        # Struct SECURITY_ATTRIBUTES
+    # Alias Names: _SECURITY_ATTRIBUTES
+    # Alias Pointer Names: *PSECURITY_ATTRIBUTES, *LPSECURITY_ATTRIBUTES
+
     def get_SECURITY_ATTRIBUTES(uc: Uc, address: int, em):
             if em.arch == 32:
                 return Structure.SECURITY_ATTRIBUTES.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(Structure.SECURITY_ATTRIBUTES.ARCH32)))
             else:
                 return Structure.SECURITY_ATTRIBUTES.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(Structure.SECURITY_ATTRIBUTES.ARCH64)))
+
+    # Struct Aliases:
+    get__SECURITY_ATTRIBUTES = get_SECURITY_ATTRIBUTES
 
     class SECURITY_ATTRIBUTES:
 
