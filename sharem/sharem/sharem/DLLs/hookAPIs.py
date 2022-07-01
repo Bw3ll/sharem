@@ -9673,6 +9673,62 @@ class CustomWinAPIs():
         logged_calls= ("IsProcessorFeaturePresent", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def GetFileAttributesW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LPCWSTR']
+        pNames= ['lpFileName']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetFileAttributesW", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def EnumDesktopWindows(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HDESK', 'WNDENUMPROC', 'LPARAM']
+        pNames= ['hDesktop', 'lpfn', 'lParam']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("EnumDesktopWindows", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def EnumWindows(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['WNDENUMPROC', 'LPARAM']
+        pNames= ['lpEnumFunc', 'lParam']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("EnumWindows", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def SetPropA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HWND', 'LPCSTR', 'HANDLE']
+        pNames= ['hWnd', 'lpString', 'hData']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("SetPropA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def GetCurrentThreadId(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes =[] 
         pNames = [] 
@@ -9692,15 +9748,55 @@ class CustomWinAPIs():
         pNames = ['Thread'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        handle = Handle(HandleType.Thread,data=[])
-
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         
-        retVal = handle.value
-        retValStr = hex(retVal)
+        retVal = 0x1
+        retValStr = 'SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("GetThreadID", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetProcessId(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['HANDLE'] 
+        pNames = ['Process'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        
+        retVal = 0x55555555
+        retValStr = 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("GetProcessID", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetProcessIdOfThread(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['HANDLE'] 
+        pNames = ['Thread'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        
+        retVal = 0x1
+        retValStr = 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("GetProcessIdOfThread", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetThreadInformation(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['HANDLE', 'THREAD_INFORMATION_CLASS', 'LPVOID', 'DWORD'] 
+        pNames = ['hThread', 'ThreadInformationClass', 'ThreadInformation', 'ThreadInformationSize'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        
+        retVal = 0x1
+        retValStr = 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("GetThreadInformation", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def GetCurrentThread(self, uc: Uc, eip, esp, export_dict, callAddr, em):
