@@ -1,46 +1,82 @@
 from ctypes import LittleEndianStructure, sizeof
 from enum import Enum
 from struct import pack, unpack
-from time import time_ns
+from time import gmtime, localtime, time_ns
 
 from sharem.sharem.helper.ctypesUnion import LittleEndianUnion
 from sharem.sharem.helper.structHelpers import BOOL, DWORD, DWORD_PTR, HANDLE_32BIT, HANDLE_64BIT, LONG, LONGLONG, LPBYTE_32BIT, LPBYTE_64BIT, LPSTR_32BIT, LPSTR_64BIT, LPVOID_32BIT, LPVOID_64BIT, LPWSTR_32BIT, LPWSTR_64BIT, POINTER_32BIT, POINTER_64BIT, PWSTR_32BIT, PWSTR_64BIT, ULONGLONG, USHORT, WCHAR, WORD
 
 from ..helper.emuHelpers import Uc
 
-class PROCESS_INFORMATION: # Needs Redone
-    # Backs PROCESS_INFORMATION, *PPROCESS_INFORMATION, *LPPROCESS_INFORMATION
-    types = ['HANDLE','HANDLE','DWORD','DWORD']
-    names = ['hProcess','hThread','dwProcessId','dwThreadId']
 
+# Struct PROCESS_INFORMATION
+# Alias Names: _PROCESS_INFORMATION
+# Alias Pointer Names: *PPROCESS_INFORMATION, *LPPROCESS_INFORMATION
+
+def get_PROCESS_INFORMATION(uc: Uc, address: int, em):
+    if em.arch == 32:
+        return PROCESS_INFORMATION.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(PROCESS_INFORMATION.ARCH32)))
+    else:
+        return PROCESS_INFORMATION.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(PROCESS_INFORMATION.ARCH64)))
+
+# Struct Aliases:
+get__PROCESS_INFORMATION = get_PROCESS_INFORMATION
+
+# Struct Pointers:
+PPROCESS_INFORMATION_32BIT = POINTER_32BIT
+PPROCESS_INFORMATION_64BIT = POINTER_64BIT
+LPPROCESS_INFORMATION_32BIT = POINTER_32BIT
+LPPROCESS_INFORMATION_64BIT = POINTER_64BIT
+
+class PROCESS_INFORMATION:
     nextProcessID = 10000
     nextThreadID = 20000
 
-    def __init__(self, hProcess: int, hThread: int, pID: int = 0, tID: int = 0):
-        self.hProcess = hProcess
-        self.hThread = hThread
-        if pID != 0:
-            self.dwProcessId = pID
-        else:
-            self.dwProcessId = PROCESS_INFORMATION.nextProcessID
-            PROCESS_INFORMATION.nextProcessID += 1
-        if tID != 0:
-            self.dwThreadId = tID
-        else:
-            self.dwThreadId = PROCESS_INFORMATION.nextThreadID
-            PROCESS_INFORMATION.nextThreadID += 1
+    class ARCH32(LittleEndianStructure):
+        types = ['HANDLE', 'HANDLE', 'DWORD', 'DWORD']
+        names = ['hProcess', 'hThread', 'dwProcessId', 'dwThreadId']
+        __slots__ = ('hProcess', 'hThread', 'dwProcessId', 'dwThreadId')
+        _fields_ = [("hProcess",HANDLE_32BIT),("hThread",HANDLE_32BIT),("dwProcessId",DWORD),("dwThreadId",DWORD)]
 
-    def writeToMemory(self, uc: Uc, address: int):
-        packedStruct = pack('<IIII', self.hProcess, self.hThread, self.dwProcessId, self.dwThreadId)
-        uc.mem_write(address, packedStruct)
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
 
-    def readFromMemory(self, uc: Uc, address: int):
-        data = uc.mem_read(address, 16)
-        unpackedStruct = unpack('<IIII', data)
-        self.hProcess = unpackedStruct[0]
-        self.hThread = unpackedStruct[1]
-        self.dwProcessId = unpackedStruct[2]
-        self.dwThreadId = unpackedStruct[3]
+        def setValues(self, hProcess: int, hThread: int, pID: int = 0, tID: int = 0):
+            self.hProcess = hProcess
+            self.hThread = hThread
+            if pID != 0:
+                self.dwProcessId = pID
+            else:
+                self.dwProcessId = PROCESS_INFORMATION.nextProcessID
+                PROCESS_INFORMATION.nextProcessID += 1
+            if tID != 0:
+                self.dwThreadId = tID
+            else:
+                self.dwThreadId = PROCESS_INFORMATION.nextThreadID
+                PROCESS_INFORMATION.nextThreadID += 1
+
+    class ARCH64(LittleEndianStructure):
+        types = ['HANDLE', 'HANDLE', 'DWORD', 'DWORD']
+        names = ['hProcess', 'hThread', 'dwProcessId', 'dwThreadId']
+        __slots__ = ('hProcess', 'hThread', 'dwProcessId', 'dwThreadId')
+        _fields_ = [("hProcess",HANDLE_64BIT),("hThread",HANDLE_64BIT),("dwProcessId",DWORD),("dwThreadId",DWORD)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+        def setValues(self, hProcess: int, hThread: int, pID: int = 0, tID: int = 0):
+            self.hProcess = hProcess
+            self.hThread = hThread
+            if pID != 0:
+                self.dwProcessId = pID
+            else:
+                self.dwProcessId = PROCESS_INFORMATION.nextProcessID
+                PROCESS_INFORMATION.nextProcessID += 1
+            if tID != 0:
+                self.dwThreadId = tID
+            else:
+                self.dwThreadId = PROCESS_INFORMATION.nextThreadID
+                PROCESS_INFORMATION.nextThreadID += 1
 
 
 class PROCESSENTRY32: # Needs Redone
@@ -243,6 +279,30 @@ class SYSTEMTIME(LittleEndianStructure):
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
+
+    def set_time(self, utc: bool, customTime= 0):
+        if utc:
+            if customTime == 0:
+                timeVal = gmtime()
+            else:
+                timeVal = gmtime(customTime)
+        else:
+            if customTime == 0:
+                timeVal = localtime()
+            else:
+                timeVal = localtime(customTime)
+
+        self.wYear = timeVal.tm_year
+        self.wMonth = timeVal.tm_mon
+        dayOfWeek = timeVal.tm_wday + 1 # Convert Monday 0 to Sunday 0
+        if dayOfWeek == 7: dayOfWeek = 0
+        self.wDayOfWeek = dayOfWeek
+        self.wDay = timeVal.tm_mday
+        self.wHour = timeVal.tm_hour
+        self.wMinute = timeVal.tm_min
+        self.wSecond = timeVal.tm_sec
+        self.wMilliseconds = 0
+    
 
 class SYSTEM_INFO: # Needs Redone
     # Backs SYSTEM_INFO, *LPSYSTEM_INFO

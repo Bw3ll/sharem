@@ -1884,7 +1884,8 @@ class CustomWinAPIs():
 
         hProcess = Handle(HandleType.Process)
         hThread = Handle(HandleType.Thread)
-        processInfo = PROCESS_INFORMATION(hProcess.value, hThread.value)
+        processInfo = get_PROCESS_INFORMATION(uc, pVals[9], em)
+        processInfo.setValues(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[9])
 
         pVals[9] = makeStructVals(uc, processInfo, pVals[9])
@@ -1909,7 +1910,8 @@ class CustomWinAPIs():
 
         hProcess = Handle(HandleType.Process)
         hThread = Handle(HandleType.Thread)
-        processInfo = PROCESS_INFORMATION(hProcess.value, hThread.value)
+        processInfo = get_PROCESS_INFORMATION(uc, pVals[9], em)
+        processInfo.setValues(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[9])
 
         pVals[9] = makeStructVals(uc, processInfo, pVals[9])
@@ -1936,7 +1938,8 @@ class CustomWinAPIs():
 
         hProcess = Handle(HandleType.Process)
         hThread = Handle(HandleType.Thread)
-        processInfo = PROCESS_INFORMATION(hProcess.value, hThread.value)
+        processInfo = get_PROCESS_INFORMATION(uc, pVals[10], em)
+        processInfo.setValues(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[10])
 
         pVals[10] = makeStructVals(uc, processInfo, pVals[10])
@@ -1962,7 +1965,8 @@ class CustomWinAPIs():
 
         hProcess = Handle(HandleType.Process)
         hThread = Handle(HandleType.Thread)
-        processInfo = PROCESS_INFORMATION(hProcess.value, hThread.value)
+        processInfo = get_PROCESS_INFORMATION(uc, pVals[10], em)
+        processInfo.setValues(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[10])
 
         pVals[10] = makeStructVals(uc, processInfo, pVals[10])
@@ -1989,7 +1993,8 @@ class CustomWinAPIs():
 
         hProcess = Handle(HandleType.Process)
         hThread = Handle(HandleType.Thread)
-        processInfo = PROCESS_INFORMATION(hProcess.value, hThread.value)
+        processInfo = get_PROCESS_INFORMATION(uc, pVals[10], em)
+        processInfo.setValues(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[10])
 
         pVals[10] = makeStructVals(uc, processInfo, pVals[10])
@@ -2016,7 +2021,8 @@ class CustomWinAPIs():
 
         hProcess = Handle(HandleType.Process)
         hThread = Handle(HandleType.Thread)
-        processInfo = PROCESS_INFORMATION(hProcess.value, hThread.value)
+        processInfo = get_PROCESS_INFORMATION(uc, pVals[10], em)
+        processInfo.setValues(hProcess.value, hThread.value)
         processInfo.writeToMemory(uc, pVals[10])
 
         pVals[10] = makeStructVals(uc, processInfo, pVals[10])
@@ -9456,7 +9462,11 @@ class CustomWinAPIs():
         pNames = ['lpTimeZoneInformation'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        timeZone = TIME_ZONE_INFORMATION()
+        timeZone = get_TIME_ZONE_INFORMATION(uc, pVals[0], em)
+        timeZone.DaylightName = 'ABCDEFGHIJKLMNOQRSTUVWXYZ01234'
+        timeZone.StandardName = 'TestStandard'
+        timeZone.DaylightDate.set_time(False, emuSimVals.system_time_since_epoch)
+        timeZone.StandardDate.set_time(False, emuSimVals.system_time_since_epoch)
         timeZone.writeToMemory(uc, pVals[0])
         pVals[0] = makeStructVals(uc, timeZone, pVals[0])
 
@@ -9474,7 +9484,8 @@ class CustomWinAPIs():
         pNames = ['lpStartupInfo'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        startupinfo = STARTUPINFOA()
+        startupinfo = get_STARTUPINFOW(uc, pVals[0], em)
+        uc.mem_write(startupinfo.lpDesktop, pack(f'<{len(emuSimVals.computer_name)*2+2}s',emuSimVals.computer_name.encode('utf-16')[2:]))
         startupinfo.writeToMemory(uc, pVals[0])
         pVals[0] = makeStructVals(uc, startupinfo, pVals[0])
 

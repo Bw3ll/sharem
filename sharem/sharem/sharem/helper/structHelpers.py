@@ -136,6 +136,16 @@ def makeStructVals(uc: Uc, struct, address: int,unicode: bool = False):
             else:
                 name = name + 'W'
                 value = getattr(struct, name)
+        if "<sharem." in str(value): 
+            # Need to Figure out what to Do for Nested Structures 
+            # that are not pointers. Temp Solution
+            tempTypes, tempNames, tempVals = makeSubStructVals(uc,value)
+            value = '{'
+            for t, n, v in zip(tempTypes, tempNames, tempVals):
+                value += f'{t} {n}: {v}, '
+            if value[-2:] == ', ':
+                value = value[:-2]
+            value += '}'
         pVals.append(value)
 
     for i in range(len(pTypes)):
@@ -170,3 +180,49 @@ def makeStructVals(uc: Uc, struct, address: int,unicode: bool = False):
     # zipped = tuple(zip(pTypes, pNames, pVals))
     
     return (pTypes, pNames, pVals, hex(address))
+
+def makeSubStructVals(uc: Uc, struct):
+    pTypes = struct.types
+    pNames = struct.names
+    pVals = []
+    for name in pNames:
+        try:
+            value = getattr(struct, name)
+        except:
+            # Some Struct Implementations are both Unicode and Ascii 
+            # So some attributes have A or W Suffix.
+            pass
+        pVals.append(value)
+
+    for i in range(len(pTypes)):
+        if "STR" in pTypes[i]:  # finding ones with string
+            try:
+                if "WSTR" in pTypes[i]:
+                    pVals[i] = read_unicode(uc, pVals[i])
+                else:
+                    pVals[i] = read_string(uc, pVals[i])
+            except:
+                pass
+        elif pTypes[i][0] == 'P': # Pointer Builder
+            try:
+                pointerVal = getPointerVal(uc, pVals[i])
+                pVals[i] = buildPtrString(pVals[i], pointerVal)
+            except:
+                pass
+        elif pTypes[i] == 'BOOLEAN' or pTypes[i] == 'BOOL':
+            if pVals[i] == 0x1:
+                pVals[i] = 'TRUE'
+            elif pVals[i] == 0x0:
+                pVals[i] = 'FALSE'
+            else:
+                pVals[i] = hex(pVals[i])
+        else:
+            try:
+                pVals[i] = hex(pVals[i])
+            except:
+                pVals[i] = str(pVals[i])
+                # If fail then Param is Probably String and Just Display value
+
+    # zipped = tuple(zip(pTypes, pNames, pVals))
+    
+    return (pTypes, pNames, pVals)
