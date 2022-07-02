@@ -5597,7 +5597,8 @@ class CustomWinAPIs():
         pNames = ['hKey', 'dwIndex', 'lpName', 'lpcchName', 'lpReserved', 'lpClass', 'lpcchClass', 'lpftLastWriteTime']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        fileTime = FILETIME()
+        fileTime = get_FILETIME(uc, pVals[7], em)
+        fileTime.genTime()
 
         if pVals[0] in HandlesDict:
             hKey = HandlesDict[pVals[0]]
@@ -5607,6 +5608,7 @@ class CustomWinAPIs():
                 if pVals[1] < len(rKey.childKeys):
                     ChildKeysList = list(rKey.childKeys)
                     childKey = rKey.childKeys[ChildKeysList[pVals[1]]]
+                    art.registry_add_keys.add(childKey.path)
                     try:
                         uc.mem_write(pVals[2],pack(f'<{len(childKey.name)+1}s',childKey.name.encode('ascii')))
                         fileTime.writeToMemory(uc, pVals[7])
@@ -5628,8 +5630,6 @@ class CustomWinAPIs():
     
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        art.registry_add_keys.add(childKey.path)
-
         logged_calls = ("RegEnumKeyExA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
@@ -5638,7 +5638,8 @@ class CustomWinAPIs():
         pNames = ['hKey', 'dwIndex', 'lpName', 'lpcchName', 'lpReserved', 'lpClass', 'lpcchClass', 'lpftLastWriteTime']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        fileTime = FILETIME()
+        fileTime = get_FILETIME(uc, pVals[7], em)
+        fileTime.genTime()
 
         if pVals[0] in HandlesDict:
             hKey = HandlesDict[pVals[0]]
@@ -5647,6 +5648,7 @@ class CustomWinAPIs():
                 if pVals[1] < len(rKey.childKeys):
                     ChildKeysList = list(rKey.childKeys)
                     childKey = rKey.childKeys[ChildKeysList[pVals[1]]]
+                    art.registry_add_keys.add(childKey.path)
                     try:
                         uc.mem_write(pVals[2],pack(f'<{(len(childKey.name)*2)+2}s',childKey.name.encode('utf-16')[2:]))
                         fileTime.writeToMemory(uc, pVals[7])
@@ -5667,8 +5669,6 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[7])
     
         uc.reg_write(UC_X86_REG_EAX, retVal)
-
-        art.registry_add_keys.add(childKey.path)
         
         logged_calls = ("RegEnumKeyExW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -6201,12 +6201,14 @@ class CustomWinAPIs():
         pNames = ['hKey', 'lpClass', 'lpcchClass', 'lpReserved','lpcSubKeys','lpcbMaxSubKeyLen','lpcbMaxClassLen','lpcValues','lpcbMaxValueNameLen','lpcbMaxValueLen','lpcbSecurityDescriptor','lpftLastWriteTime']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        fileTime = FILETIME()
+        fileTime = get_FILETIME(uc, pVals[11], em)
+        fileTime.genTime()
         
         if pVals[0] in HandlesDict:
             hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
                 rKey = RegistryKeys[hKey.name]
+                art.registry_add_keys.add(rKey.path)
                 try:
                     uc.mem_write(pVals[1],pack('<I',0)) # Class Name Don't Do Reg Classes Currently
                     uc.mem_write(pVals[2],pack('<I',0)) # Class Length
@@ -6247,8 +6249,6 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[11])
 
         uc.reg_write(UC_X86_REG_EAX, retVal)
-
-        art.registry_add_keys.add(hKey.path)
 
         logged_calls = ("RegQueryInfoKeyA", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -6258,12 +6258,14 @@ class CustomWinAPIs():
         pNames = ['hKey', 'lpClass', 'lpcchClass', 'lpReserved','lpcSubKeys','lpcbMaxSubKeyLen','lpcbMaxClassLen','lpcValues','lpcbMaxValueNameLen','lpcbMaxValueLen','lpcbSecurityDescriptor','lpftLastWriteTime']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        fileTime = FILETIME()
+        fileTime = get_FILETIME(uc, pVals[11], em)
+        fileTime.genTime()
         
         if pVals[0] in HandlesDict:
             hKey = HandlesDict[pVals[0]]
             if hKey.name in RegistryKeys:
                 rKey = RegistryKeys[hKey.name]
+                art.registry_add_keys.add(rKey.path)
                 try:
                     uc.mem_write(pVals[1],pack('<I',0)) # Class Name Don't Do Reg Classes Currently
                     uc.mem_write(pVals[2],pack('<I',0)) # Class Length
@@ -6304,8 +6306,6 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[11])
 
         uc.reg_write(UC_X86_REG_EAX, retVal)
-
-        art.registry_add_keys.add(hKey.path)
 
         logged_calls = ("RegQueryInfoKeyW", hex(callAddr), (retValStr), 'LSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
@@ -8336,7 +8336,8 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
         
         if pVals[0] != 0x0:
-            timeVal = SYSTEMTIME(True, emuSimVals.system_time_since_epoch)
+            timeVal = get_SYSTEMTIME(uc, pVals[0], em)
+            timeVal.setTime(True,emuSimVals.system_time_since_epoch)
             timeVal.writeToMemory(uc, pVals[0])
 
         pVals[0] = makeStructVals(uc, timeVal, pVals[0])
@@ -8357,7 +8358,8 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         if pVals[0] != 0x0:
-            timeVal = SYSTEMTIME(False, emuSimVals.system_time_since_epoch)
+            timeVal = get_SYSTEMTIME(uc, pVals[0], em)
+            timeVal.setTime(False, emuSimVals.system_time_since_epoch)
             timeVal.writeToMemory(uc, pVals[0])
 
         pVals[0] = makeStructVals(uc, timeVal, pVals[0])
@@ -9437,12 +9439,9 @@ class CustomWinAPIs():
         pNames = ['hFile', '*lpCreationTime', '*lpLastAccessTime', '*lpLastWriteTime'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        creationTime = FILETIME()
-        creationTime.readFromMemory(uc, pVals[1])
-        accessTime = FILETIME()
-        accessTime.readFromMemory(uc, pVals[2])
-        writeTime = FILETIME()
-        writeTime.readFromMemory(uc, pVals[3])
+        creationTime = get_FILETIME(uc, pVals[1], em)
+        accessTime = get_FILETIME(uc, pVals[2], em)
+        writeTime = get_FILETIME(uc, pVals[3], em)
 
         pVals[1] = makeStructVals(uc, creationTime, pVals[1])
         pVals[2] = makeStructVals(uc, accessTime, pVals[2])
@@ -9465,8 +9464,8 @@ class CustomWinAPIs():
         timeZone = get_TIME_ZONE_INFORMATION(uc, pVals[0], em)
         timeZone.DaylightName = 'ABCDEFGHIJKLMNOQRSTUVWXYZ01234'
         timeZone.StandardName = 'TestStandard'
-        timeZone.DaylightDate.set_time(False, emuSimVals.system_time_since_epoch)
-        timeZone.StandardDate.set_time(False, emuSimVals.system_time_since_epoch)
+        timeZone.DaylightDate.setTime(False, emuSimVals.system_time_since_epoch)
+        timeZone.StandardDate.setTime(False, emuSimVals.system_time_since_epoch)
         timeZone.writeToMemory(uc, pVals[0])
         pVals[0] = makeStructVals(uc, timeZone, pVals[0])
 
@@ -10469,7 +10468,8 @@ class CustomWinAPIs():
         pTypes= ['LPFILETIME']
         pNames= ['lpSystemTimeAsFileTime']
 
-        fileTime = FILETIME()
+        fileTime = get_FILETIME(uc, pVals[0], em)
+        fileTime.genTime()
         fileTime.writeToMemory(uc, pVals[0])
 
         pVals[0] = makeStructVals(uc, fileTime, pVals[0])
@@ -10490,22 +10490,24 @@ class CustomWinAPIs():
         pNames= ['hFile', 'lpCreationTime', 'lpLastAccessTime', 'lpLastWriteTime']
 
         if pVals[1] != 0x0:
-            fileTime = FILETIME()
+            fileTime = get_FILETIME(uc, pVals[1], em)
+            fileTime.genTime()
             fileTime.writeToMemory(uc, pVals[1])
             pVals[1] = makeStructVals(uc, fileTime, pVals[1])
         else:
             pVals[3] = hex(pVals[3])
 
         if pVals[2] != 0x0:
-            fileTime = FILETIME()
+            fileTime = get_FILETIME(uc, pVals[2], em)
+            fileTime.genTime()
             fileTime.writeToMemory(uc, pVals[2])
             pVals[2] = makeStructVals(uc, fileTime, pVals[2])
         else:
             pVals[3] = hex(pVals[3])
 
         if pVals[3] != 0x0:
-            fileTime = FILETIME()
-            fileTime.writeToMemory(uc, pVals[3])
+            fileTime = get_FILETIME(uc, pVals[3], em)
+            fileTime.genTime()
             pVals[3] = makeStructVals(uc, fileTime, pVals[3])
         else:
             pVals[3] = hex(pVals[3])

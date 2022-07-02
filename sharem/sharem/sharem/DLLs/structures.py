@@ -280,7 +280,7 @@ class SYSTEMTIME(LittleEndianStructure):
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
 
-    def set_time(self, utc: bool, customTime= 0):
+    def setTime(self, utc: bool, customTime= 0):
         if utc:
             if customTime == 0:
                 timeVal = gmtime()
@@ -343,58 +343,44 @@ class SYSTEM_INFO: # Needs Redone
         PROCESSOR_ARCHITECTURE_INTEL = 0 # x86
         PROCESSOR_ARCHITECTURE_UNKNOWN = 0xffff
 
-class FILETIME: # Needs Redone
-    types = ['DWORD','DWORD']
-    names = ['dwLowDateTime','dwHighDateTime']
 
-    def __init__(self):
+# Struct FILETIME
+# Alias Names: _FILETIME
+# Alias Pointer Names: PFILETIME, LPFILETIME
+
+def get_FILETIME(uc: Uc, address: int, em):
+    return FILETIME.from_buffer_copy(uc.mem_read(address, sizeof(FILETIME)))
+
+# Struct Aliases:
+get__FILETIME = get_FILETIME
+
+# Struct Pointers:
+PFILETIME_32BIT = POINTER_32BIT
+PFILETIME_64BIT = POINTER_64BIT
+LPFILETIME_32BIT = POINTER_32BIT
+LPFILETIME_64BIT = POINTER_64BIT
+
+class FILETIME(LittleEndianStructure):
+    types = ['DWORD', 'DWORD']
+    names = ['dwLowDateTime', 'dwHighDateTime']
+    __slots__ = ('dwLowDateTime', 'dwHighDateTime')
+
+    _fields_ = [("dwLowDateTime",DWORD),("dwHighDateTime",DWORD)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+    def genTime(self):
         # time is in epoch 100 nanoseconds split into low and high
-            timeEpoch = time_ns()
-            #print("a0")
-            ##timeEpoch = hex(timeEpoch)
-            #print(timeEpoch)
-            #print(hex(timeEpoch))
-            #print("a1")
-            #split into low and high end
-            #test64Bit = 0xbbbbccccddddffff
-            #print(hex(test64Bit))
-            #testUpper = test64Bit >> 32
-            #testLower = test64Bit & 0xffffffff
-            #print(testUpper)
-            #print(hex(testUpper))
-            #print(testLower)
-            #print(hex(testLower))
+        timeEpoch = time_ns()
+        highEndData = timeEpoch >> 32
+        lowEndData = timeEpoch & 0xffffffff
+        self.dwLowDateTime = lowEndData
+        self.dwHighDateTime = highEndData
 
-            highEndData = timeEpoch >> 32
-            lowEndData = timeEpoch & 0xffffffff
-
-            #print("high create")
-            #print(highEndData)
-            #print(hex(highEndData))
-            #print("low create")
-            #print(lowEndData)
-            #print(hex(lowEndData))
-            self.dwLowDateTime = lowEndData
-            self.dwHighDateTime = highEndData
-
-    def writeToMemory(self, uc: Uc, address):
-        #print("memWrite entry filetime")
-        ##print(address)
-        #print("low")
-        #print(self.dwLowDateTime)
-        #print("high")
-        #print(self.dwHighDateTime)
-        packedStruct = pack('<II', self.dwLowDateTime, self.dwHighDateTime)
-        #print("a1")
-        uc.mem_write(address, packedStruct)
-        #print("end memwrite")
-
-    def readFromMemory(self, uc: Uc, address):
-        #print("read from Filetime")
-        data = uc.mem_read(address, 8) # Size of two dwords
-        unPacked = unpack('<II', data)
-        self.dwLowDateTime = unPacked[0]         
-        self.dwHighDateTime = unPacked[1]
+# Struct UNICODE_STRING
+# Alias Names: _UNICODE_STRING
+# Alias Pointer Names: PUNICODE_STRING
 
 def get_UNICODE_STRING(uc: Uc, address: int, em):
     if em.arch == 32:
@@ -402,26 +388,33 @@ def get_UNICODE_STRING(uc: Uc, address: int, em):
     else:
         return UNICODE_STRING.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(UNICODE_STRING.ARCH64)))
 
+# Struct Aliases:
+get__UNICODE_STRING = get_UNICODE_STRING
+
+# Struct Pointers:
+PUNICODE_STRING_32BIT = POINTER_32BIT
+PUNICODE_STRING_64BIT = POINTER_64BIT
+
 class UNICODE_STRING:
 
     class ARCH32(LittleEndianStructure):
         types = ['USHORT', 'USHORT', 'PWSTR']
         names = ['Length', 'MaximumLength', 'Buffer']
         __slots__ = ('Length', 'MaximumLength', 'Buffer')
-        _fields_ = [("Length", USHORT), ("MaximumLength", USHORT), ("Buffer", PWSTR_32BIT)]
+        _fields_ = [("Length",USHORT),("MaximumLength",USHORT),("Buffer",PWSTR_32BIT)]
 
         def writeToMemory(self, uc: Uc, address: int):
-            print(sizeof(UNICODE_STRING.ARCH32))
             uc.mem_write(address, bytes(self))
 
     class ARCH64(LittleEndianStructure):
         types = ['USHORT', 'USHORT', 'PWSTR']
         names = ['Length', 'MaximumLength', 'Buffer']
         __slots__ = ('Length', 'MaximumLength', 'Buffer')
-        _fields_ = [("Length", USHORT), ("MaximumLength", USHORT), ("Buffer", PWSTR_64BIT)]
+        _fields_ = [("Length",USHORT),("MaximumLength",USHORT),("Buffer",PWSTR_64BIT)]
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
+
 
 # Struct TIME_ZONE_INFORMATION
 # Alias Names: _TIME_ZONE_INFORMATION
