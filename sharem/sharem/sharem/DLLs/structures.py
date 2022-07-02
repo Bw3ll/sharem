@@ -238,7 +238,7 @@ get__SYSTEMTIME = get_SYSTEMTIME
 class SYSTEMTIME(LittleEndianStructure):
     types = ['WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD']
     names = ['wYear', 'wMonth', 'wDayOfWeek', 'wDay', 'wHour', 'wMinute', 'wSecond', 'wMilliseconds']
-
+    __slots__ = ('types', 'names', 'wYear', 'wMonth', 'wDayOfWeek', 'wDay', 'wHour', 'wMinute', 'wSecond', 'wMilliseconds')
     _fields_ = [("wYear",WORD),("wMonth",WORD),("wDayOfWeek",WORD),("wDay",WORD),("wHour",WORD),("wMinute",WORD),("wSecond",WORD),("wMilliseconds",WORD)]
 
     def writeToMemory(self, uc: Uc, address: int):
@@ -347,6 +347,7 @@ class UNICODE_STRING:
     class ARCH32(LittleEndianStructure):
         types = ['USHORT', 'USHORT', 'PWSTR']
         names = ['Length', 'MaximumLength', 'Buffer']
+        __slots__ = ('types', 'names', 'Length', 'MaximumLength', 'Buffer')
         _fields_ = [("Length", USHORT), ("MaximumLength", USHORT), ("Buffer", PWSTR_32BIT)]
 
         def writeToMemory(self, uc: Uc, address: int):
@@ -356,6 +357,7 @@ class UNICODE_STRING:
     class ARCH64(LittleEndianStructure):
         types = ['USHORT', 'USHORT', 'PWSTR']
         names = ['Length', 'MaximumLength', 'Buffer']
+        __slots__ = ('types', 'names', 'Length', 'MaximumLength', 'Buffer')
         _fields_ = [("Length", USHORT), ("MaximumLength", USHORT), ("Buffer", PWSTR_64BIT)]
 
         def writeToMemory(self, uc: Uc, address: int):
@@ -374,7 +376,7 @@ get__TIME_ZONE_INFORMATION = get_TIME_ZONE_INFORMATION
 class TIME_ZONE_INFORMATION(LittleEndianStructure):
     types = ['LONG', 'WCHAR', 'SYSTEMTIME', 'LONG', 'WCHAR', 'SYSTEMTIME', 'LONG']
     names = ['Bias', 'StandardName', 'StandardDate', 'StandardBias', 'DaylightName', 'DaylightDate', 'DaylightBias']
-
+    __slots__ = ('types', 'names', 'Bias', 'StandardName', 'StandardDate', 'StandardBias', 'DaylightName', 'DaylightDate', 'DaylightBias')
     _fields_ = [("Bias",LONG),("StandardName",WCHAR * 32),("StandardDate",SYSTEMTIME),("StandardBias",LONG),("DaylightName",WCHAR * 32),("DaylightDate",SYSTEMTIME),("DaylightBias",LONG)]
 
     def writeToMemory(self, uc: Uc, address: int):
@@ -394,7 +396,7 @@ get__REG_TZI_FORMAT = get_REG_TZI_FORMAT
 class REG_TZI_FORMAT(LittleEndianStructure):
     types = ['LONG', 'LONG', 'LONG', 'SYSTEMTIME', 'SYSTEMTIME']
     names = ['Bias', 'StandardBias', 'DaylightBias', 'StandardDate', 'DaylightDate']
-
+    __slots__ = ('types', 'names', 'Bias', 'StandardBias', 'DaylightBias', 'StandardDate', 'DaylightDate')
     _fields_ = [("Bias",LONG),("StandardBias",LONG),("DaylightBias",LONG),("StandardDate",SYSTEMTIME),("DaylightDate",SYSTEMTIME)]
 
     def writeToMemory(self, uc: Uc, address: int):
@@ -415,7 +417,7 @@ class STARTUPINFOA:
     class ARCH32(LittleEndianStructure):
         types = ['DWORD', 'LPSTR', 'LPSTR', 'LPSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WORD', 'WORD', 'LPBYTE', 'HANDLE', 'HANDLE', 'HANDLE']
         names = ['cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError']
-
+        __slots__ = ('types', 'names', 'cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError')
         _fields_ = [("cb",DWORD),("lpReserved",LPSTR_32BIT),("lpDesktop",LPSTR_32BIT),("lpTitle",LPSTR_32BIT),("dwX",DWORD),("dwY",DWORD),("dwXSize",DWORD),("dwYSize",DWORD),("dwXCountChars",DWORD),("dwYCountChars",DWORD),("dwFillAttribute",DWORD),("dwFlags",DWORD),("wShowWindow",WORD),("cbReserved2",WORD),("lpReserved2",LPBYTE_32BIT),("hStdInput",HANDLE_32BIT),("hStdOutput",HANDLE_32BIT),("hStdError",HANDLE_32BIT)]
 
         def writeToMemory(self, uc: Uc, address: int):
@@ -424,7 +426,7 @@ class STARTUPINFOA:
     class ARCH64(LittleEndianStructure):
         types = ['DWORD', 'LPSTR', 'LPSTR', 'LPSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WORD', 'WORD', 'LPBYTE', 'HANDLE', 'HANDLE', 'HANDLE']
         names = ['cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError']
-
+        __slots__ = ('types', 'names', 'cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError')
         _fields_ = [("cb",DWORD),("lpReserved",LPSTR_64BIT),("lpDesktop",LPSTR_64BIT),("lpTitle",LPSTR_64BIT),("dwX",DWORD),("dwY",DWORD),("dwXSize",DWORD),("dwYSize",DWORD),("dwXCountChars",DWORD),("dwYCountChars",DWORD),("dwFillAttribute",DWORD),("dwFlags",DWORD),("wShowWindow",WORD),("cbReserved2",WORD),("lpReserved2",LPBYTE_64BIT),("hStdInput",HANDLE_64BIT),("hStdOutput",HANDLE_64BIT),("hStdError",HANDLE_64BIT)]
 
         def writeToMemory(self, uc: Uc, address: int):
@@ -448,7 +450,7 @@ class STARTUPINFOW:
     class ARCH32(LittleEndianStructure):
         types = ['DWORD', 'LPWSTR', 'LPWSTR', 'LPWSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WORD', 'WORD', 'LPBYTE', 'HANDLE', 'HANDLE', 'HANDLE']
         names = ['cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError']
-
+        __slots__ = ('types', 'names', 'cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError')
         _fields_ = [("cb",DWORD),("lpReserved",LPWSTR_32BIT),("lpDesktop",LPWSTR_32BIT),("lpTitle",LPWSTR_32BIT),("dwX",DWORD),("dwY",DWORD),("dwXSize",DWORD),("dwYSize",DWORD),("dwXCountChars",DWORD),("dwYCountChars",DWORD),("dwFillAttribute",DWORD),("dwFlags",DWORD),("wShowWindow",WORD),("cbReserved2",WORD),("lpReserved2",LPBYTE_32BIT),("hStdInput",HANDLE_32BIT),("hStdOutput",HANDLE_32BIT),("hStdError",HANDLE_32BIT)]
 
         def writeToMemory(self, uc: Uc, address: int):
@@ -457,7 +459,7 @@ class STARTUPINFOW:
     class ARCH64(LittleEndianStructure):
         types = ['DWORD', 'LPWSTR', 'LPWSTR', 'LPWSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WORD', 'WORD', 'LPBYTE', 'HANDLE', 'HANDLE', 'HANDLE']
         names = ['cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError']
-
+        __slots__ = ('types', 'names', 'cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError')
         _fields_ = [("cb",DWORD),("lpReserved",LPWSTR_64BIT),("lpDesktop",LPWSTR_64BIT),("lpTitle",LPWSTR_64BIT),("dwX",DWORD),("dwY",DWORD),("dwXSize",DWORD),("dwYSize",DWORD),("dwXCountChars",DWORD),("dwYCountChars",DWORD),("dwFillAttribute",DWORD),("dwFlags",DWORD),("wShowWindow",WORD),("cbReserved2",WORD),("lpReserved2",LPBYTE_64BIT),("hStdInput",HANDLE_64BIT),("hStdOutput",HANDLE_64BIT),("hStdError",HANDLE_64BIT)]
 
         def writeToMemory(self, uc: Uc, address: int):
@@ -481,6 +483,7 @@ def get_LARGE_INTEGER(uc: Uc, address: int, em):
 class LARGE_INTEGER(LittleEndianStructure):
     types = ["LONGLONG"]
     names = ["QuadPart"]
+    __slots__ = ("types", "names", "QuadPart")
     _fields_ = [("QuadPart", LONGLONG)]
 
     def writeToMemory(self, uc: Uc, address: int):
@@ -492,6 +495,7 @@ def get_ULARGE_INTEGER(uc: Uc, address: int, em):
 class ULARGE_INTEGER(LittleEndianStructure):
     types = ["LONGLONG"]
     names = ["QuadPart"]
+    __slots__ = ("types", "names", "QuadPart")
     _fields_ = [("QuadPart", ULONGLONG)]
 
     def writeToMemory(self, uc: Uc, address: int):
@@ -516,7 +520,7 @@ class SECURITY_ATTRIBUTES:
     class ARCH32(LittleEndianStructure):
         types = ['DWORD', 'LPVOID', 'BOOL']
         names = ['nLength', 'lpSecurityDescriptor', 'bInheritHandle']
-
+        __slots__ = ("types", "names", 'nLength', 'lpSecurityDescriptor', 'bInheritHandle')
         _fields_ = [("nLength",DWORD),("lpSecurityDescriptor",LPVOID_32BIT),("bInheritHandle",BOOL)]
 
         def writeToMemory(self, uc: Uc, address: int):
@@ -525,7 +529,7 @@ class SECURITY_ATTRIBUTES:
     class ARCH64(LittleEndianStructure):
         types = ['DWORD', 'LPVOID', 'BOOL']
         names = ['nLength', 'lpSecurityDescriptor', 'bInheritHandle']
-
+        __slots__ = ("types", "names", 'nLength', 'lpSecurityDescriptor', 'bInheritHandle')
         _fields_ = [("nLength",DWORD),("lpSecurityDescriptor",LPVOID_64BIT),("bInheritHandle",BOOL)]
 
         def writeToMemory(self, uc: Uc, address: int):
@@ -549,7 +553,7 @@ class value_entA:
     class ARCH32(LittleEndianStructure):
         types = ['LPSTR', 'DWORD', 'DWORD_PTR', 'DWORD']
         names = ['ve_valuename', 've_valuelen', 've_valueptr', 've_type']
-
+        __slots__ = ('types', 'names', 've_valuename', 've_valuelen', 've_valueptr', 've_type')
         _fields_ = [("ve_valuename",LPSTR_32BIT),("ve_valuelen",DWORD),("ve_valueptr",DWORD_PTR),("ve_type",DWORD)]
 
         def writeToMemory(self, uc: Uc, address: int):
@@ -558,7 +562,7 @@ class value_entA:
     class ARCH64(LittleEndianStructure):
         types = ['LPSTR', 'DWORD', 'DWORD_PTR', 'DWORD']
         names = ['ve_valuename', 've_valuelen', 've_valueptr', 've_type']
-
+        __slots__ = ('types', 'names', 've_valuename', 've_valuelen', 've_valueptr', 've_type')
         _fields_ = [("ve_valuename",LPSTR_64BIT),("ve_valuelen",DWORD),("ve_valueptr",DWORD_PTR),("ve_type",DWORD)]
 
         def writeToMemory(self, uc: Uc, address: int):
@@ -582,7 +586,7 @@ class value_entW:
     class ARCH32(LittleEndianStructure):
         types = ['LPWSTR', 'DWORD', 'DWORD_PTR', 'DWORD']
         names = ['ve_valuename', 've_valuelen', 've_valueptr', 've_type']
-
+        __slots__ = ('types', 'names', 've_valuename', 've_valuelen', 've_valueptr', 've_type')
         _fields_ = [("ve_valuename",LPWSTR_32BIT),("ve_valuelen",DWORD),("ve_valueptr",DWORD_PTR),("ve_type",DWORD)]
 
         def writeToMemory(self, uc: Uc, address: int):
@@ -591,7 +595,7 @@ class value_entW:
     class ARCH64(LittleEndianStructure):
         types = ['LPWSTR', 'DWORD', 'DWORD_PTR', 'DWORD']
         names = ['ve_valuename', 've_valuelen', 've_valueptr', 've_type']
-
+        __slots__ = ('types', 'names', 've_valuename', 've_valuelen', 've_valueptr', 've_type')
         _fields_ = [("ve_valuename",LPWSTR_64BIT),("ve_valuelen",DWORD),("ve_valueptr",DWORD_PTR),("ve_type",DWORD)]
 
         def writeToMemory(self, uc: Uc, address: int):
