@@ -4,7 +4,7 @@ from struct import pack, unpack
 from time import time_ns
 
 from sharem.sharem.helper.ctypesUnion import LittleEndianUnion
-from sharem.sharem.helper.structHelpers import BOOL, DWORD, DWORD_PTR, HANDLE_32BIT, HANDLE_64BIT, LONG, LONGLONG, LPBYTE_32BIT, LPBYTE_64BIT, LPSTR_32BIT, LPSTR_64BIT, LPVOID_32BIT, LPVOID_64BIT, LPWSTR_32BIT, LPWSTR_64BIT, PWSTR_32BIT, PWSTR_64BIT, ULONGLONG, USHORT, WCHAR, WORD
+from sharem.sharem.helper.structHelpers import BOOL, DWORD, DWORD_PTR, HANDLE_32BIT, HANDLE_64BIT, LONG, LONGLONG, LPBYTE_32BIT, LPBYTE_64BIT, LPSTR_32BIT, LPSTR_64BIT, LPVOID_32BIT, LPVOID_64BIT, LPWSTR_32BIT, LPWSTR_64BIT, POINTER_32BIT, POINTER_64BIT, PWSTR_32BIT, PWSTR_64BIT, ULONGLONG, USHORT, WCHAR, WORD
 
 from ..helper.emuHelpers import Uc
 
@@ -373,6 +373,12 @@ def get_TIME_ZONE_INFORMATION(uc: Uc, address: int, em):
 # Struct Aliases:
 get__TIME_ZONE_INFORMATION = get_TIME_ZONE_INFORMATION
 
+# Struct Pointers:
+PTIME_ZONE_INFORMATION_32BIT = POINTER_32BIT
+PTIME_ZONE_INFORMATION_64BIT = POINTER_64BIT
+LPTIME_ZONE_INFORMATION_32BIT = POINTER_32BIT
+LPTIME_ZONE_INFORMATION_64BIT = POINTER_64BIT
+
 class TIME_ZONE_INFORMATION(LittleEndianStructure):
     types = ['LONG', 'WCHAR', 'SYSTEMTIME', 'LONG', 'WCHAR', 'SYSTEMTIME', 'LONG']
     names = ['Bias', 'StandardName', 'StandardDate', 'StandardBias', 'DaylightName', 'DaylightDate', 'DaylightBias']
@@ -445,6 +451,10 @@ def get_STARTUPINFOW(uc: Uc, address: int, em):
 # Struct Aliases:
 get__STARTUPINFOW = get_STARTUPINFOW
 
+# Struct Pointers:
+LPSTARTUPINFOW_32BIT = POINTER_32BIT
+LPSTARTUPINFOW_64BIT = POINTER_64BIT
+
 class STARTUPINFOW:
 
     class ARCH32(LittleEndianStructure):
@@ -515,6 +525,12 @@ def get_SECURITY_ATTRIBUTES(uc: Uc, address: int, em):
 # Struct Aliases:
 get__SECURITY_ATTRIBUTES = get_SECURITY_ATTRIBUTES
 
+# Struct Pointers:
+PSECURITY_ATTRIBUTES_32BIT = POINTER_32BIT
+PSECURITY_ATTRIBUTES_64BIT = POINTER_64BIT
+LPSECURITY_ATTRIBUTES_32BIT = POINTER_32BIT
+LPSECURITY_ATTRIBUTES_64BIT = POINTER_64BIT
+
 class SECURITY_ATTRIBUTES:
 
     class ARCH32(LittleEndianStructure):
@@ -548,6 +564,10 @@ def get_value_entA(uc: Uc, address: int, em):
 # Struct Aliases:
 get_VALENTA = get_value_entA
 
+# Struct Pointers:
+PVALENTA_32BIT = POINTER_32BIT
+PVALENTA_64BIT = POINTER_64BIT
+
 class value_entA:
 
     class ARCH32(LittleEndianStructure):
@@ -580,6 +600,10 @@ def get_value_entW(uc: Uc, address: int, em):
 
 # Struct Aliases:
 get_VALENTW = get_value_entW
+
+# Struct Pointers:
+PVALENTW_32BIT = POINTER_32BIT
+PVALENTW_64BIT = POINTER_64BIT
 
 class value_entW:
 
