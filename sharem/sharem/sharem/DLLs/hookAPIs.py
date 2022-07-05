@@ -9742,6 +9742,20 @@ class CustomWinAPIs():
         logged_calls= ("SetPropA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def CryptCreateHash(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HCRYPTPROV', 'ALG_ID', 'HCRYPTKEY', 'DWORD', 'HCRYPTHASH']
+        pNames= ['hProv', 'Algid', 'hKey', 'dwFlags', '*phHash']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CryptCreateHash", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def DuplicateToken(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['HANDLE', 'SECURITY_IMPERSONATION_LEVEL', 'PHANDLE']
         pNames= ['ExistingTokenHandle', 'ImpersonationLevel', 'DuplicateTokenHandle']
