@@ -65,6 +65,7 @@ class HandleType(Enum):
     charName = auto()
     # Other
     HGLOBAL = auto()
+    DuplicateToken = auto()
     # Module
     HMODULE = auto()
     # Desktop/Window
@@ -9739,6 +9740,27 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
         logged_calls= ("SetPropA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def DuplicateToken(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HANDLE', 'SECURITY_IMPERSONATION_LEVEL', 'PHANDLE']
+        pNames= ['ExistingTokenHandle', 'ImpersonationLevel', 'DuplicateTokenHandle']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        handle = Handle(HandleType.DuplicateToken)
+
+        try:
+            uc.mem_write(pVals[2], pack('<I',handle.value))
+        except:
+            pass
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("DuplicateToken", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def WaitForMultipleObjects(self, uc: Uc, eip, esp, export_dict, callAddr, em):
