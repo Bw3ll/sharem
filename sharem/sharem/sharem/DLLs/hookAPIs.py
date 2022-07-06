@@ -10799,14 +10799,12 @@ class CustomWinAPIs():
         pNames= ['lpPathName']
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
-
+        currentDirectory = pVals[0]
         #changes relative paths into absolute paths
         if(".." in pVals[0]):
-            print('this is a relative path')
+            currentDirectory = "C:\\"+ currentDirectory.replace('..','SHAREM_PATH')
             #need to build this out to convert to an absolute path
-        else:
-            currentDirectory = pVals[0]
-
+        print(currentDirectory)
         retVal = 0x1
         retValStr= 'True'
         uc.reg_write(UC_X86_REG_EAX, retVal)     
@@ -10840,17 +10838,48 @@ class CustomWinAPIs():
         pTypes= ['LONG', 'LPSTR', 'INT']
         pNames= ['lParam', 'lpBuffer', 'nSize']
 
+        writeAddress = pVals[1]
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
-
+        scanCode = pVals[0]
+        keyboardCode = ReverseLookUps.SCtoVK.get(int(scanCode,16),'0')
+        keyName = ReverseLookUps.VirtualKey.get(keyboardCode,'0')
         #Currently returns a static key name for any key code passed in.
-        keyboardKey = 'A'
+        
         #write to the lpBuffer
+        keyName_bytes = bytes(keyName, 'utf-8')
+        uc.mem_write(writeAddress, keyName_bytes)
 
-        retVal = len(keyboardKey)
+        #show what was written to buffer
+        #pVals[1] += " -> " + keyName
+
+        retVal = len(keyName)
         retValStr= hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
         logged_calls= ("GetKeyNameTextA", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetKeyNameTextW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'GetKeyNameTextW': (3, ['LONG', 'LPWSTR', 'INT'], ['lParam', 'lpBuffer', 'nSize'], 'INT')
+        pVals = makeArgVals(uc, em, esp, 3)
+        pTypes= ['LONG', 'LPWSTR', 'INT']
+        pNames= ['lParam', 'lpBuffer', 'nSize']
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        scanCode = pVals[0]
+        keyboardCode = ReverseLookUps.SCtoVK.get(int(scanCode,16),'0')
+        keyName = ReverseLookUps.VirtualKey.get(keyboardCode,'0')
+        #Currently returns a static key name for any key code passed in.
+        
+        #write to the lpBuffer
+        keyName_bytes = bytes(keyName, 'utf-8')
+        uc.mem_write(writeAddress, keyName_bytes)
+
+        retVal = len(keyName)
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetKeyNameTextW", hex(callAddr), (retValStr), 'INT', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def GetKeyState(self, uc: Uc, eip, esp, export_dict, callAddr, em):
@@ -11257,6 +11286,8 @@ class CustomWinAPIs():
         logged_calls= ("LoadKeyboardLayoutA", hex(callAddr), (retValStr), 'HKL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    
+
     def LoadKeyboardLayoutW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         #'LoadKeyboardLayoutW': (2, ['LPCWSTR', 'UINT'], ['pwszKLID', 'Flags'], 'HKL')
         pVals = makeArgVals(uc, em, esp, 2)
@@ -11274,6 +11305,34 @@ class CustomWinAPIs():
 
         logged_calls= ("LoadKeyboardLayoutW", hex(callAddr), (retValStr), 'HKL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetKeyboardState(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'GetKeyboardState': (1, ['PBYTE'], ['lpKeyState'], 'BOOL')
+        pVals = makeArgVals(uc, em, esp, 1)
+        pTypes= ['PBYTE']
+        pNames= ['lpKeyState']
+        print(1)
+        keysStatus = []
+        for i in range(256):
+            keysStatus.append(0)
+
+        keysStatus = bytearray(keysStatus)
+        #this shows that a key is pressed.
+        keysStatus[65] = 0x80
+        keysStatus = bytes(keysStatus)
+        print(keysStatus)
+        uc.mem_write(pVals[0], keysStatus)
+
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        retVal = 1
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetKeyboardState", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+
 class CustomWinSysCalls():
 
     def makeArgVals(self, uc: Uc, em, esp, numParams):
