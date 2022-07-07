@@ -1,10 +1,10 @@
-from ctypes import LittleEndianStructure, sizeof
+from ctypes import POINTER, LittleEndianStructure, sizeof
 from enum import Enum
 from struct import pack, unpack
 from time import gmtime, localtime, time_ns
 
 from sharem.sharem.helper.ctypesUnion import LittleEndianUnion
-from sharem.sharem.helper.structHelpers import BOOL, DWORD, DWORD_PTR, HANDLE_32BIT, HANDLE_64BIT, LONG, LONGLONG, LPBYTE_32BIT, LPBYTE_64BIT, LPSTR_32BIT, LPSTR_64BIT, LPVOID_32BIT, LPVOID_64BIT, LPWSTR_32BIT, LPWSTR_64BIT, POINTER_32BIT, POINTER_64BIT, PWSTR_32BIT, PWSTR_64BIT, ULONGLONG, USHORT, WCHAR, WORD
+from sharem.sharem.helper.structHelpers import BOOL, DWORD, DWORD_PTR, HANDLE_32BIT, HANDLE_64BIT, LONG, LONGLONG, LPBYTE_32BIT, LPBYTE_64BIT, LPSTR_32BIT, LPSTR_64BIT, LPVOID_32BIT, LPVOID_64BIT, LPWSTR_32BIT, LPWSTR_64BIT, POINTER_32BIT, POINTER_64BIT, PWSTR_32BIT, PWSTR_64BIT, ULONGLONG, USHORT, WCHAR, WORD, CHAR
 
 from ..helper.emuHelpers import Uc
 
@@ -677,3 +677,59 @@ class value_entW:
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
+
+# Struct DISPLAY_DEVICEA
+# Alias Names: _DISPLAY_DEVICEA
+# Alias Pointer Names:  *PDISPLAY_DEVICEA, *LPDISPLAY_DEVICEA;
+
+def get_DISPLAY_DEVICEA(uc: Uc, address: int, em):
+    return DISPLAY_DEVICEA.from_buffer_copy(uc.mem_read(address, sizeof(DISPLAY_DEVICEA)))
+
+# Struct Aliases:
+get__DISPLAY_DEVICEA = get_DISPLAY_DEVICEA
+
+# Struct Pointers:
+PDISPLAY_32BIT = POINTER_32BIT
+PDISPLAY_64BIT = POINTER_64BIT
+LPDISPLAY_32BIT = POINTER_32BIT
+LPDISPLAY_64BIT = POINTER_64BIT
+
+class DISPLAY_DEVICEA (LittleEndianStructure):
+    types = ['DWORD','CHAR','CHAR','DWORD','CHAR','CHAR']
+    names = ['cb','DeviceName','DeviceString','StateFlags','DeviceID','DeviceKey']
+    __slots__ = ('cb','DeviceName','DeviceString','StateFlags','DeviceID','DeviceKey')
+    _fields_ = [('cb', DWORD ),('DeviceName', CHAR * 32 ),('DeviceString', CHAR * 128 ),('StateFlags', DWORD ),('DeviceID', CHAR * 128 ),('DeviceKey', CHAR * 128 )]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+    def screenDC(self):
+        self.cb = sizeof(DISPLAY_DEVICEA)
+        self.DeviceName = ['\\', '\\', '.', '\\', 'D', 'I', 'S', 'P', 'L', 'A', 'Y', '1', '\\', 'M', 'o','n', 'i', 't', 'o', 'r', '0']
+        self.DeviceString = ['G', 'E', 'N', 'E', 'R', 'E', 'I', 'C', ' ', 'P', 'N', 'P', ' ', 'M', 'O', 'N', 'I', 'T', 'O', 'R']
+        self.StateFlags = 'ACTIVE'
+        self.DeviceID = 0
+        self.DeviceKey = 0
+
+
+## Struct VIDEOPARAMETERS 
+## Alias Names: _VIDEOPARAMETERS
+## Alias Pointer Names: *PVIDEOPARAMETERS
+
+#def get_VIDEOPARAMETERS(uc: Uc, address: int, em):
+#    return VIDEOPARAMETERS.from_buffer_copy(uc.mem_read(address, sizeof(VIDEOPARAMETERS)))
+
+## Struct Aliases:
+#get__VIDEOPARAMETERS = get_VIDEOPARAMETERS
+
+## Struct Pointers:
+#PVIDEOPARAMETERS_32BIT = POINTER_32BIT
+#PVIDEOPARAMETERS_64BIT = POINTER_64BIT
+
+#class VIDEOPARAMETERS (LittleEndianStructure):
+#    types = ['GUID','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','UCHAR']
+#    names = ['guid','dwOffset','dwCommand','dwFlags','dwMode','dwTVStandard','dwAvailableModes','dwAvailableTVStandard','dwFlickerFilter','dwOverScanX','dwOverScanY','dwMaxUnscaledX','dwMaxUnscaledY','dwPositionX','dwPositionY','dwBrightness','dwContrast','dwCPType','dwCPCommand','dwCPStandard','dwCPKey','bCP_APSTriggerBits','bOEMCopyProtection']
+#    __slots__ = ('guid','dwOffset','dwCommand','dwFlags','dwMode','dwTVStandard','dwAvailableModes','dwAvailableTVStandard','dwFlickerFilter','dwOverScanX','dwOverScanY','dwMaxUnscaledX','dwMaxUnscaledY','dwPositionX','dwPositionY','dwBrightness','dwContrast','dwCPType','dwCPCommand','dwCPStandard','dwCPKey','bCP_APSTriggerBits','bOEMCopyProtection')
+#    _fields_ = [('guid', GUID ),('dwOffset', ULONG),('dwCommand', ULONG),('dwFlags', ULONG),('dwMode', ULONG),('dwTVStandard', ULONG),('dwAvailableModes', ULONG),('dwAvailableTVStandard', ULONG),('dwFlickerFilter', ULONG),('dwOverScanX', ULONG),('dwOverScanY', ULONG),('dwMaxUnscaledX', ULONG),('dwMaxUnscaledY', ULONG),('dwPositionX', ULONG),('dwPositionY', ULONG),('dwBrightness', ULONG),('dwContrast', ULONG),('dwCPType', ULONG),('dwCPCommand', ULONG),('dwCPStandard', ULONG),('dwCPKey', ULONG),('bCP_APSTriggerBits', ULONG),('bOEMCopyProtection', UCHAR*256)]
+
+#    def writeToMemory(self, uc: Uc, address: int):
+#        uc.mem_write(address, bytes(self))
