@@ -9927,6 +9927,20 @@ class CustomWinAPIs():
         logged_calls= ("SuspendThread", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def AttachThreadInput(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['DWORD', 'DWORD', 'DWORD']
+        pNames= ['idAttach', 'idAttachTo', 'fAttach']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("AttachThreadInput", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def QueueUserAPC(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['PAPCFUNC', 'HANLDE', 'ULONG_PTR']
         pNames= ['pfnAPC', 'hThread', 'dwData']
