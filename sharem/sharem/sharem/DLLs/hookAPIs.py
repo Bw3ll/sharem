@@ -9805,6 +9805,76 @@ class CustomWinAPIs():
         logged_calls= ("CryptDeriveKey", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def CryptGetHashParam(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HCRYPTHASH', 'DWORD', 'BYTE', 'DWORD', 'DWORD']
+        pNames= ['hHash', 'dwParam', '*pbData', '*pdwDataLen', 'dwFlags']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CryptGetHashParam", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CryptSetKeyParam(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HCRYPTKEY', 'DWORD', 'BYTE', 'DWORD']
+        pNames= ['hKey', 'dwParam', '*pbData', 'dwFlags']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CryptSetKeyParam", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CryptDestroyKey(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HCRYPTKEY']
+        pNames= ['hKey']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CryptDestroyKey", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def FindFirstUrlCacheEntryA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LPCSTR', 'LPINTERNET_CACHE_ENTRY_INFOA', 'LPDWORD']
+        pNames= ['lpszUrlSearchPattern', 'lpFirstCacheEntryInfo', 'lpcbCacheEntryInfo']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("FindFirstUrlCacheEntryA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def FindNextUrlCacheEntryA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HANDLE', 'LPINTERNET_CACHE_ENTRY_INFOA', 'LPDWORD']
+        pNames= ['hEnumHandle', 'lpNextCacheEntryInfo', 'lpcbCacheEntryInfo']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("FindNextUrlCacheEntryA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def DuplicateToken(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['HANDLE', 'SECURITY_IMPERSONATION_LEVEL', 'PHANDLE']
         pNames= ['ExistingTokenHandle', 'ImpersonationLevel', 'DuplicateTokenHandle']
