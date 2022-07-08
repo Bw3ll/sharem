@@ -1006,6 +1006,73 @@ class CustomWinAPIs():
         logged_calls = ("CryptDecrypt", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def CopyFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LCPSTR', 'LCPSTR', 'BOOL']
+        pNames= ['lpExistingFileName', 'lpNewFileName', 'bFailIfExists']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CopyFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def ShellExecuteExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['SHELLEXECUTEINFOA']
+        pNames= ['pExecInfo']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+
+        retVal = 0x1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("ShellExecuteExA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def LoadResource(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HMODULE', 'HRSRC']
+        pNames= ['hModule', 'hResInfo']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr=hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("LoadResource", hex(callAddr), (retValStr), 'HGLOBAL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def SetProcessDEPPolicy(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['DWORD']
+        pNames= ['dwFlags']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+        pVals[0] = getLookUpVal(pVals[0], SetProcessDEPPolicy.SystemParametersInfo.Action)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+        retVal = 0x1
+
+        retValStr='True'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("SetProcessDEPPolicy", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+
     def HeapCreate(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         # HANDLE HeapCreate([in] DWORD  flOptions,[in] SIZE_T dwInitialSize,[in] SIZE_T dwMaximumSize);
         pTypes = ['DWORD', 'SIZE_T', 'SIZE_T']
@@ -9847,6 +9914,20 @@ class CustomWinAPIs():
         logged_calls= ("CryptDestroyKey", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def SuspendThread(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HANDLE']
+        pNames= ['hThread']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("SuspendThread", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def FindFirstUrlCacheEntryA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['LPCSTR', 'LPINTERNET_CACHE_ENTRY_INFOA', 'LPDWORD']
         pNames= ['lpszUrlSearchPattern', 'lpFirstCacheEntryInfo', 'lpcbCacheEntryInfo']
@@ -12354,68 +12435,3 @@ def SystemParametersInfoA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         logged_calls= ("SystemParametersInfoA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-def CopyFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pTypes= ['LCPSTR', 'LCPSTR', 'BOOL']
-        pNames= ['lpExistingFileName', 'lpNewFileName', 'bFailIfExists']
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
-
-        # Might Need to Expand
-
-
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
-
-        retVal = 0x1
-        retValStr='TRUE'
-        uc.reg_write(UC_X86_REG_EAX, retVal)     
-
-        logged_calls= ("CopyFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
-        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
-
-def ShellExecuteExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pTypes= ['SHELLEXECUTEINFOA']
-        pNames= ['pExecInfo']
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
-
-        # Might Need to Expand
-
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
-
-        retVal = 0x1
-        retValStr='TRUE'
-        uc.reg_write(UC_X86_REG_EAX, retVal)     
-
-        logged_calls= ("ShellExecuteExA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
-        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
-
-def LoadResource(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pTypes= ['HMODULE', 'HRSRC']
-        pNames= ['hModule', 'hResInfo']
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
-
-        # Might Need to Expand
-
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
-
-        retVal = 0x88888888
-        retValStr=hex(retVal)
-        uc.reg_write(UC_X86_REG_EAX, retVal)     
-
-        logged_calls= ("LoadResource", hex(callAddr), (retValStr), 'HGLOBAL', pVals, pTypes, pNames, False)
-        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
-
-def SetProcessDEPPolicy(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pTypes= ['DWORD']
-        pNames= ['dwFlags']
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
-
-        # Might Need to Expand
-        pVals[0] = getLookUpVal(pVals[0], SetProcessDEPPolicy.SystemParametersInfo.Action)
-
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
-        retVal = 0x1
-
-        retValStr='True'
-        uc.reg_write(UC_X86_REG_EAX, retVal)     
-
-        logged_calls= ("SetProcessDEPPolicy", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
-        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
