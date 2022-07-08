@@ -9906,7 +9906,7 @@ class CustomWinAPIs():
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
 
-        retVal = 0x1
+        retVal = 0x88888888
         retValStr= 'SUCCESS'
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
@@ -12419,7 +12419,7 @@ def SystemParametersInfoA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
 
         logged_calls= ("SystemParametersInfoA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
-        
+
 def CopyFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['LCPSTR', 'LCPSTR', 'BOOL']
         pNames= ['lpExistingFileName', 'lpNewFileName', 'bFailIfExists']
