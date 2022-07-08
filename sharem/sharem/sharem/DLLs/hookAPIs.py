@@ -12190,3 +12190,34 @@ def CopyFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         logged_calls= ("CopyFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+def ShellExecuteExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['SHELLEXECUTEINFOA']
+        pNames= ['pExecInfo']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+
+        retVal = 0x1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("ShellExecuteExA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+def LoadResource(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HMODULE', 'HRSRC']
+        pNames= ['hModule', 'hResInfo']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr=hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("LoadResource", hex(callAddr), (retValStr), 'HGLOBAL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
