@@ -12402,3 +12402,20 @@ def LoadResource(self, uc: Uc, eip, esp, export_dict, callAddr, em):
 
         logged_calls= ("LoadResource", hex(callAddr), (retValStr), 'HGLOBAL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+def SetProcessDEPPolicy(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['DWORD']
+        pNames= ['dwFlags']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+        pVals[0] = getLookUpVal(pVals[0], SetProcessDEPPolicy.SystemParametersInfo.Action)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+        retVal = 0x1
+
+        retValStr='True'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("SetProcessDEPPolicy", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
