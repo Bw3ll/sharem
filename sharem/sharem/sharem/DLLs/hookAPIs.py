@@ -10930,6 +10930,7 @@ class CustomWinAPIs():
         pNames= ['lParam', 'lpBuffer', 'nSize']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
+        writeAddress = pVals[1]
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         scanCode = pVals[0]
         keyboardCode = ReverseLookUps.SCtoVK.get(int(scanCode,16),'0')
@@ -11419,28 +11420,78 @@ class CustomWinAPIs():
         pNames= ['hWnd']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        print(1)
         #get the strucutre of the device, for now just creates a new one
         if pVals[0] != 0x0:
-            disPlayVal = get_DISPLAY_DEVICE(uc, pVals[0], em)
+            disPlayVal = get_DISPLAY_DEVICEA(uc, pVals[0], em)
             disPlayVal.writeToMemory(uc, pVals[0])
         else:
             #null grabs the entire screen's DC
             #creates a new handle for the address to write to, and will return that handle
-            print(1.1)
-            handle = Handle(HandleType.Process, name='screenDCHandle')
-            print(1.2)
             #pVals[0] = handle
-            print(1.3)
-            disPlayVal = get_DISPLAY_DEVICE(uc, pVals[0], em)
-            print(1.4)
-            disPlayVal.writeToMemory(uc, pVals[0])
-            print(1.5)
-        print(2)
-        pVals[0] = makeStructVals(uc, disPlayVal, pVals[0])
-        print(3)
+            displayVal = get_DISPLAY_DEVICEA(uc, pVals[0], em)
+            displayVal.screenDC()
+            displayVal.writeToMemory(uc, pVals[0])
+        pVals[0] = makeStructVals(uc, displayVal, pVals[0])
         
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+        #return handle to the DC
+        retVal = 1
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetDC", hex(callAddr), (retValStr), 'HDC', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetDCEx(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'GetDCEx': (3, ['HWND', 'HRGN', 'DWORD'], ['hWnd', 'hrgnClip', 'flags'], 'HDC')
+        pTypes= ['HWND', 'HRGN', 'DWORD']
+        pNames= ['hWnd', 'hrgnClip', 'flags']
+        getDCEx_flags_ReverseLookUp = {1: 'DCX_WINDOW', 2: 'DCX_CACHE', 32: 'DCX_PARENTCLIP', 16: 'DCX_CLIPSIBLINGS', 8: 'DCX_CLIPCHILDREN', 64: 'DCX_EXCLUDERGN', 128: 'DCX_INTERSECTRGN', 512: 'DCX_INTERSECTUPDATE', 2097152: 'DCX_VALIDATE'}
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        #get the strucutre of the device, for now just creates a new one
+        if pVals[0] != 0x0:
+            disPlayVal = get_DISPLAY_DEVICEA(uc, pVals[0], em)
+            disPlayVal.writeToMemory(uc, pVals[0])
+        else:
+            #null grabs the entire screen's DC
+            #creates a new handle for the address to write to, and will return that handle
+            #pVals[0] = handle
+            displayVal = get_DISPLAY_DEVICEA(uc, pVals[0], em)
+            displayVal.screenDC()
+            displayVal.writeToMemory(uc, pVals[0])
+        pVals[0] = makeStructVals(uc, displayVal, pVals[0])
+        
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+        #return handle to the DC
+        retVal = 1
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetDC", hex(callAddr), (retValStr), 'HDC', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetWindowDC(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'GetWindowDC': (1, ['HWND'], ['hWnd'], 'HDC')
+        pTypes= ['HWND']
+        pNames= ['hWnd']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        #get the strucutre of the device, for now just creates a new one
+        if pVals[0] != 0x0:
+            disPlayVal = get_DISPLAY_DEVICEA(uc, pVals[0], em)
+            disPlayVal.writeToMemory(uc, pVals[0])
+        else:
+            #null grabs the entire screen's DC
+            #creates a new handle for the address to write to, and will return that handle
+            #pVals[0] = handle
+            displayVal = get_DISPLAY_DEVICEA(uc, pVals[0], em)
+            displayVal.screenDC()
+            displayVal.writeToMemory(uc, pVals[0])
+        pVals[0] = makeStructVals(uc, displayVal, pVals[0])
+        
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+        #return handle to the DC
         retVal = 1
         retValStr= hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)     

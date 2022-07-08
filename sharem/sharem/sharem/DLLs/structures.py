@@ -698,17 +698,17 @@ class DISPLAY_DEVICEA (LittleEndianStructure):
     types = ['DWORD','CHAR','CHAR','DWORD','CHAR','CHAR']
     names = ['cb','DeviceName','DeviceString','StateFlags','DeviceID','DeviceKey']
     __slots__ = ('cb','DeviceName','DeviceString','StateFlags','DeviceID','DeviceKey')
-    _fields_ = [('cb', DWORD ),('DeviceName', CHAR * 32 ),('DeviceString', CHAR * 128 ),('StateFlags', DWORD ),('DeviceID', CHAR * 128 ),('DeviceKey', CHAR * 128 )]
+    _fields_ = [('cb', DWORD ),('DeviceName', WCHAR * 32 ),('DeviceString', WCHAR * 128 ),('StateFlags', DWORD ),('DeviceID', CHAR * 128 ),('DeviceKey', CHAR * 128 )]
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
     def screenDC(self):
-        self.cb = sizeof(DISPLAY_DEVICEA)
-        self.DeviceName = ['\\', '\\', '.', '\\', 'D', 'I', 'S', 'P', 'L', 'A', 'Y', '1', '\\', 'M', 'o','n', 'i', 't', 'o', 'r', '0']
-        self.DeviceString = ['G', 'E', 'N', 'E', 'R', 'E', 'I', 'C', ' ', 'P', 'N', 'P', ' ', 'M', 'O', 'N', 'I', 'T', 'O', 'R']
-        self.StateFlags = 'ACTIVE'
-        self.DeviceID = 0
-        self.DeviceKey = 0
+        self.cb = sizeof(self)
+        self.DeviceName = '\\\\.\\DISPLAY1\\Monitor0'
+        self.DeviceString = 'GENEREIC PNP MONITOR'
+        self.StateFlags = 0x1
+        #self.DeviceID = not used
+        #self.DeviceKey = reserved
 
 
 ## Struct VIDEOPARAMETERS 
