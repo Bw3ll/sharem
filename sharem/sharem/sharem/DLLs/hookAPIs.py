@@ -110,9 +110,9 @@ emuSimVals = EmulationSimulationValues()
 
 class CustomWinAPIs():
     def GetProcAddress(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes = ['HMODULE', 'LPCSTR']
         pNames = ['hModule', 'lpProcName']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
         
         name = read_string(uc, pVals[1])
 
@@ -130,9 +130,9 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def LdrGetProcedureAddress(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes = ['HMODULE', 'const ANSI_STRING *', 'ULONG', 'PVOID *']
         pNames = ['hModule', 'name', 'ord', 'address']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         pVals[1] = read_string(uc, pVals[1])
                 
@@ -155,9 +155,9 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def LoadLibraryA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes = ['LPCTSTR']
         pNames = ['lpLibFileName']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         name = read_string(uc, pVals[0])
 
@@ -190,9 +190,9 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def LoadLibraryW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes = ['LPCWSTR']
         pNames = ['lpLibFileName']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         name = read_unicode(uc, pVals[0])
 
@@ -225,9 +225,10 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def LoadLibraryExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes = ['LPCSTR', 'HANDLE', 'DWORD']
         pNames = ['lpLibFileName', 'hFile', 'dwFlags']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
         
         name = read_string(uc, pVals[0])
 
@@ -262,9 +263,10 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def LoadLibraryExW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes = ['LPCWSTR', 'HANDLE', 'DWORD']
         pNames = ['lpLibFileName', 'hFile', 'dwFlags']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
 
         name = read_unicode(uc, pVals[0])
 
@@ -1046,7 +1048,7 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         # Might Need to Expand
-        pVals[0] = getLookUpVal(pVals[0], SetProcessDEPPolicy.SystemParametersInfo.Action)
+        pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.SystemParametersInfo.Action)
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
         retVal = 0x1
@@ -2893,10 +2895,9 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def RegOpenKeyA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes = ['HKEY', 'LPCSTR', 'PHKEY']
         pNames = ['hkey', 'lpSubKey', 'phkResult']
-
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
         
 
         lpSubKey = read_string(uc, pVals[1])
@@ -6460,9 +6461,9 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def SetWindowsHookExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes = ['int', 'HOOKPROC', 'HINSTANCE', 'DWORD']
         pNames = ['idHook', 'lpfn', 'hmod', 'dwThreadId']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         idHookReverseLookUp = {4: 'WH_CALLWNDPROC', 18: 'WH_CALLWNDPROCRET', 5: 'WH_CBT', 9: 'WH_DEBUG',
                                17: 'WH_FOREGROUNDIDLE', 3: 'WH_GETMESSAGE', 1: 'WH_JOURNALPLAYBACK',
@@ -10463,9 +10464,9 @@ class CustomWinAPIs():
 
     def CreateDirectoryW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         #'CreateDirectoryA': (2, ['LPCSTR', 'LPSECURITY_ATTRIBUTES'], ['lpPathName', 'lpSecurityAttributes'], 'thunk BOOL')
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes= ['LPCWSTR', 'LPSECURITY_ATTRIBUTES']
         pNames= ['lpPathName', 'lpSecurityAttributes']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
 
@@ -10478,7 +10479,6 @@ class CustomWinAPIs():
 
     def RemoveDirectoryW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
          #'RemoveDirectoryW': (1, ['LPCWSTR'], ['lpPathName'], 'thunk BOOL')
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
         pTypes= ['LPCWSTR']
         pNames= ['lpPathName']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
