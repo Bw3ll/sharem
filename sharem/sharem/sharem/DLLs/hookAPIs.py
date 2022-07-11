@@ -1058,23 +1058,6 @@ class CustomWinAPIs():
         logged_calls= ("OpenProcessToken", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def ShellExecuteExW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pTypes= ['SHELLEXECUTEINFOW']
-        pNames= ['pExecInfo']
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
-
-        # Might Need to Expand
-
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
-
-        retVal = 0x1
-        retValStr='TRUE'
-        uc.reg_write(UC_X86_REG_EAX, retVal)     
-
-        logged_calls= ("ShellExecuteExW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
-        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
-
-
     def HeapCreate(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         # HANDLE HeapCreate([in] DWORD  flOptions,[in] SIZE_T dwInitialSize,[in] SIZE_T dwMaximumSize);
         pTypes = ['DWORD', 'SIZE_T', 'SIZE_T']
@@ -2205,11 +2188,8 @@ class CustomWinAPIs():
         pTypes = ['HWND', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'INT']
         pNames = ['hwnd', 'lpOperation', 'lpFile', 'lpParameters', 'lpDirectory', 'nShowCmd']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-        cmdShowReverseLookUp = {0: 'SW_HIDE', 1: 'SW_NORMAL', 2: 'SW_SHOWMINIMIZED', 3: 'SW_MAXIMIZE',
-                                4: 'SW_SHOWNOACTIVATE', 5: 'SW_SHOW', 6: 'SW_MINIMIZE', 7: 'SW_SHOWMINNOACTIVE',
-                                8: 'SW_SHOWNA', 9: 'SW_RESTORE', 16: 'SW_SHOWDEFAULT', 17: 'SW_FORCEMINIMIZE'}
 
-        pVals[5] = getLookUpVal(pVals[5], cmdShowReverseLookUp)
+        pVals[5] = getLookUpVal(pVals[5], ReverseLookUps.ShellExecute.cmdShow)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[5])
         
@@ -2226,11 +2206,8 @@ class CustomWinAPIs():
         pTypes = ['HWND', 'LPCWSTR', 'LPCWSTR', 'LPCWSTR', 'LPCWSTR', 'INT']
         pNames = ['hwnd', 'lpOperation', 'lpFile', 'lpParameters', 'lpDirectory', 'nShowCmd']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-        cmdShowReverseLookUp = {0: 'SW_HIDE', 1: 'SW_NORMAL', 2: 'SW_SHOWMINIMIZED', 3: 'SW_MAXIMIZE',
-                                4: 'SW_SHOWNOACTIVATE', 5: 'SW_SHOW', 6: 'SW_MINIMIZE', 7: 'SW_SHOWMINNOACTIVE',
-                                8: 'SW_SHOWNA', 9: 'SW_RESTORE', 16: 'SW_SHOWDEFAULT', 17: 'SW_FORCEMINIMIZE'}
-
-        pVals[5] = getLookUpVal(pVals[5], cmdShowReverseLookUp)
+        
+        pVals[5] = getLookUpVal(pVals[5], ReverseLookUps.ShellExecute.cmdShow)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[5])
         
@@ -2248,7 +2225,7 @@ class CustomWinAPIs():
 
         info = get_SHELLEXECUTEINFOA(uc, pVals[0], em)
 
-        pVals[0] = makeStructVals(uc, info, pVals[0])
+        pVals[0] = makeStructVals(uc, info, pVals[0], lookUps={1: ReverseLookUps.ShellExecute.Mask, 7: ReverseLookUps.ShellExecute.cmdShow})
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
 
@@ -2266,7 +2243,7 @@ class CustomWinAPIs():
 
         info = get_SHELLEXECUTEINFOW(uc, pVals[0], em)
 
-        pVals[0] = makeStructVals(uc, info, pVals[0])
+        pVals[0] = makeStructVals(uc, info, pVals[0], lookUps={1: ReverseLookUps.ShellExecute.Mask, 7: ReverseLookUps.ShellExecute.cmdShow})
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
 
@@ -11149,8 +11126,8 @@ class CustomWinAPIs():
         writeAddress = pVals[1]
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         scanCode = pVals[0]
-        keyboardCode = ReverseLookUps.SCtoVK.get(int(scanCode,16),'0')
-        keyName = ReverseLookUps.VirtualKey.get(keyboardCode,'0')
+        keyboardCode = ReverseLookUps.KeyBoard.SCtoVK.get(int(scanCode,16),'0')
+        keyName = ReverseLookUps.KeyBoard.VirtualKey.get(keyboardCode,'0')
         #Currently returns a static key name for any key code passed in.
         
         #write to the lpBuffer
@@ -11176,8 +11153,8 @@ class CustomWinAPIs():
         writeAddress = pVals[1]
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         scanCode = pVals[0]
-        keyboardCode = ReverseLookUps.SCtoVK.get(int(scanCode,16),'0')
-        keyName = ReverseLookUps.VirtualKey.get(keyboardCode,'0')
+        keyboardCode = ReverseLookUps.KeyBoard.SCtoVK.get(int(scanCode,16),'0')
+        keyName = ReverseLookUps.KeyBoard.VirtualKey.get(keyboardCode,'0')
         #Currently returns a static key name for any key code passed in.
         
         #write to the lpBuffer
@@ -11227,14 +11204,14 @@ class CustomWinAPIs():
         
         #get key from GeeksForGeeks, https://www.geeksforgeeks.org/python-get-key-from-value-in-dictionary/
         def get_key(val):
-            for key, value in ReverseLookUps.VirtualKey.items():
+            for key, value in ReverseLookUps.KeyBoard.VirtualKey.items():
                  if val == value:
                      return key
  
             return 0x999
 
         def checkRightCodeVK(keysVal):
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             if re.search('VK_R.+',charMapping):
                 charMapping = list(charMapping)
                 charMapping[3] = 'L'
@@ -11242,13 +11219,13 @@ class CustomWinAPIs():
                 return get_key(charMapping)
 
         def checkRightCodeSC(keysVal):
-            result = ReverseLookUps.SCtoVK.get(keysVal,0)
+            result = ReverseLookUps.KeyBoard.SCtoVK.get(keysVal,0)
             leftVK = checkRightCodeVK(result)
-            return ReverseLookUps.VKtoSC.get(leftVK)
+            return ReverseLookUps.KeyBoard.VKtoSC.get(leftVK)
 
         def VKtoSCretVal(keysVal):
-            result = ReverseLookUps.VKtoSC.get(keysVal,0)
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            result = ReverseLookUps.KeyBoard.VKtoSC.get(keysVal,0)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             keysVal = hex(keysVal)+" ("+charMapping+")"
             if(result == 0):
                 retVal = 0x90
@@ -11260,8 +11237,8 @@ class CustomWinAPIs():
                 return retVal, retValStr, keysVal
 
         def SCtoVKretVal(keysVal):
-            result = ReverseLookUps.SCtoVK.get(keysVal,0)
-            charMapping = getLookUpVal(result,ReverseLookUps.VirtualKey)
+            result = ReverseLookUps.KeyBoard.SCtoVK.get(keysVal,0)
+            charMapping = getLookUpVal(result,ReverseLookUps.KeyBoard.VirtualKey)
             resultStr = hex(result)+" ("+charMapping+")"
             if(result == 0):
                 retVal = 0x90
@@ -11288,7 +11265,7 @@ class CustomWinAPIs():
             retVal,retValStr = SCtoVKretVal(keysVal)
         elif(mapType == 2):
             #print('virtual -> unshifted char val in lowest order word')
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             retVal = keysVal
             retValStr = charMapping
         elif(mapType == 3):
@@ -11302,7 +11279,7 @@ class CustomWinAPIs():
             retValStr= hex(retVal)
 
         #pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[1])
-        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.MapKey_MapType_ReverseLookUp)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.KeyBoard.MapKey_MapType_ReverseLookUp)
         uc.reg_write(UC_X86_REG_EAX, retVal)    
 
         logged_calls= ("MapVirtualKeyA", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
@@ -11316,14 +11293,14 @@ class CustomWinAPIs():
         
         #get key from GeeksForGeeks, https://www.geeksforgeeks.org/python-get-key-from-value-in-dictionary/
         def get_key(val):
-            for key, value in ReverseLookUps.VirtualKey.items():
+            for key, value in ReverseLookUps.KeyBoard.VirtualKey.items():
                  if val == value:
                      return key
  
             return 0x999
 
         def checkRightCodeVK(keysVal):
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             if re.search('VK_R.+',charMapping):
                 charMapping = list(charMapping)
                 charMapping[3] = 'L'
@@ -11331,13 +11308,13 @@ class CustomWinAPIs():
                 return get_key(charMapping)
 
         def checkRightCodeSC(keysVal):
-            result = ReverseLookUps.SCtoVK.get(keysVal,0)
+            result = ReverseLookUps.KeyBoard.SCtoVK.get(keysVal,0)
             leftVK = checkRightCodeVK(result)
-            return ReverseLookUps.VKtoSC.get(leftVK)
+            return ReverseLookUps.KeyBoard.VKtoSC.get(leftVK)
 
         def VKtoSCretVal(keysVal):
-            result = ReverseLookUps.VKtoSC.get(keysVal,0)
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            result = ReverseLookUps.KeyBoard.VKtoSC.get(keysVal,0)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             keysVal = hex(keysVal)+" ("+charMapping+")"
             if(result == 0):
                 retVal = 0x90
@@ -11349,8 +11326,8 @@ class CustomWinAPIs():
                 return retVal, retValStr, keysVal
 
         def SCtoVKretVal(keysVal):
-            result = ReverseLookUps.SCtoVK.get(keysVal,0)
-            charMapping = getLookUpVal(result,ReverseLookUps.VirtualKey)
+            result = ReverseLookUps.KeyBoard.SCtoVK.get(keysVal,0)
+            charMapping = getLookUpVal(result,ReverseLookUps.KeyBoard.VirtualKey)
             resultStr = hex(result)+" ("+charMapping+")"
             if(result == 0):
                 retVal = 0x90
@@ -11377,7 +11354,7 @@ class CustomWinAPIs():
             retVal,retValStr = SCtoVKretVal(keysVal)
         elif(mapType == 2):
             #print('virtual -> unshifted char val in lowest order word')
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             retVal = keysVal
             retValStr = charMapping
         elif(mapType == 3):
@@ -11391,7 +11368,7 @@ class CustomWinAPIs():
             retValStr= hex(retVal)
 
         #pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[1])
-        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.MapKey_MapType_ReverseLookUp)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.KeyBoard.MapKey_MapType_ReverseLookUp)
         uc.reg_write(UC_X86_REG_EAX, retVal)    
 
         logged_calls= ("MapVirtualKeyW", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
@@ -11405,14 +11382,14 @@ class CustomWinAPIs():
         
         #get key from GeeksForGeeks, https://www.geeksforgeeks.org/python-get-key-from-value-in-dictionary/
         def get_key(val):
-            for key, value in ReverseLookUps.VirtualKey.items():
+            for key, value in ReverseLookUps.KeyBoard.VirtualKey.items():
                  if val == value:
                      return key
  
             return 0x999
 
         def checkRightCodeVK(keysVal):
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             if re.search('VK_R.+',charMapping):
                 charMapping = list(charMapping)
                 charMapping[3] = 'L'
@@ -11420,13 +11397,13 @@ class CustomWinAPIs():
                 return get_key(charMapping)
 
         def checkRightCodeSC(keysVal):
-            result = ReverseLookUps.SCtoVK.get(keysVal,0)
+            result = ReverseLookUps.KeyBoard.SCtoVK.get(keysVal,0)
             leftVK = checkRightCodeVK(result)
-            return ReverseLookUps.VKtoSC.get(leftVK)
+            return ReverseLookUps.KeyBoard.VKtoSC.get(leftVK)
 
         def VKtoSCretVal(keysVal):
-            result = ReverseLookUps.VKtoSC.get(keysVal,0)
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            result = ReverseLookUps.KeyBoard.VKtoSC.get(keysVal,0)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             keysVal = hex(keysVal)+" ("+charMapping+")"
             if(result == 0):
                 retVal = 0x90
@@ -11438,8 +11415,8 @@ class CustomWinAPIs():
                 return retVal, retValStr, keysVal
 
         def SCtoVKretVal(keysVal):
-            result = ReverseLookUps.SCtoVK.get(keysVal,0)
-            charMapping = getLookUpVal(result,ReverseLookUps.VirtualKey)
+            result = ReverseLookUps.KeyBoard.SCtoVK.get(keysVal,0)
+            charMapping = getLookUpVal(result,ReverseLookUps.KeyBoard.VirtualKey)
             resultStr = hex(result)+" ("+charMapping+")"
             if(result == 0):
                 retVal = 0x90
@@ -11466,7 +11443,7 @@ class CustomWinAPIs():
             retVal,retValStr = SCtoVKretVal(keysVal)
         elif(mapType == 2):
             #print('virtual -> unshifted char val in lowest order word')
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             retVal = keysVal
             retValStr = charMapping
         elif(mapType == 3):
@@ -11480,8 +11457,8 @@ class CustomWinAPIs():
             retValStr= hex(retVal)
 
         #pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[1])
-        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.MapKey_MapType_ReverseLookUp)
-        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.keyboardLanguages)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.KeyBoard.MapKey_MapType_ReverseLookUp)
+        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.KeyBoard.keyboardLanguages)
         uc.reg_write(UC_X86_REG_EAX, retVal)    
 
         logged_calls= ("MapVirtualKeyExA", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
@@ -11495,14 +11472,14 @@ class CustomWinAPIs():
         
         #get key from GeeksForGeeks, https://www.geeksforgeeks.org/python-get-key-from-value-in-dictionary/
         def get_key(val):
-            for key, value in ReverseLookUps.VirtualKey.items():
+            for key, value in ReverseLookUps.KeyBoard.VirtualKey.items():
                  if val == value:
                      return key
  
             return 0x999
 
         def checkRightCodeVK(keysVal):
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             if re.search('VK_R.+',charMapping):
                 charMapping = list(charMapping)
                 charMapping[3] = 'L'
@@ -11510,13 +11487,13 @@ class CustomWinAPIs():
                 return get_key(charMapping)
 
         def checkRightCodeSC(keysVal):
-            result = ReverseLookUps.SCtoVK.get(keysVal,0)
+            result = ReverseLookUps.KeyBoard.SCtoVK.get(keysVal,0)
             leftVK = checkRightCodeVK(result)
-            return ReverseLookUps.VKtoSC.get(leftVK)
+            return ReverseLookUps.KeyBoard.VKtoSC.get(leftVK)
 
         def VKtoSCretVal(keysVal):
-            result = ReverseLookUps.VKtoSC.get(keysVal,0)
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            result = ReverseLookUps.KeyBoard.VKtoSC.get(keysVal,0)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             keysVal = hex(keysVal)+" ("+charMapping+")"
             if(result == 0):
                 retVal = 0x90
@@ -11528,8 +11505,8 @@ class CustomWinAPIs():
                 return retVal, retValStr, keysVal
 
         def SCtoVKretVal(keysVal):
-            result = ReverseLookUps.SCtoVK.get(keysVal,0)
-            charMapping = getLookUpVal(result,ReverseLookUps.VirtualKey)
+            result = ReverseLookUps.KeyBoard.SCtoVK.get(keysVal,0)
+            charMapping = getLookUpVal(result,ReverseLookUps.KeyBoard.VirtualKey)
             resultStr = hex(result)+" ("+charMapping+")"
             if(result == 0):
                 retVal = 0x90
@@ -11556,7 +11533,7 @@ class CustomWinAPIs():
             retVal,retValStr = SCtoVKretVal(keysVal)
         elif(mapType == 2):
             #print('virtual -> unshifted char val in lowest order word')
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             retVal = keysVal
             retValStr = charMapping
         elif(mapType == 3):
@@ -11570,8 +11547,8 @@ class CustomWinAPIs():
             retValStr= hex(retVal)
 
         #pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[1])
-        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.MapKey_MapType_ReverseLookUp)
-        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.keyboardLanguages)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.KeyBoard.MapKey_MapType_ReverseLookUp)
+        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.KeyBoard.keyboardLanguages)
         uc.reg_write(UC_X86_REG_EAX, retVal)    
 
         logged_calls= ("MapVirtualKeyExW", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
@@ -11586,8 +11563,8 @@ class CustomWinAPIs():
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[1])
         
         keyboardIdentifier = int(pVals[0],16)
-        keyboardIdentifierStr = getLookUpVal(keyboardIdentifier, ReverseLookUps.keyboardLanguages)
-        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.loadKeyboard_uFlags_ReverseLookUp)
+        keyboardIdentifierStr = getLookUpVal(keyboardIdentifier, ReverseLookUps.KeyBoard.keyboardLanguages)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.KeyBoard.loadKeyboard_uFlags_ReverseLookUp)
         retVal = keyboardIdentifier
         retValStr= hex(keyboardIdentifier) + " (" +keyboardIdentifierStr + ")"
         uc.reg_write(UC_X86_REG_EAX, retVal)     
@@ -11605,7 +11582,7 @@ class CustomWinAPIs():
         
         keyboardIdentifier = int(pVals[0],16)
         keyboardIdentifierStr = getLookUpVal(keyboardIdentifier, ReverseLookUps.keyboardLanguages)
-        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.loadKeyboard_uFlags_ReverseLookUp)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.KeyBoard.loadKeyboard_uFlags_ReverseLookUp)
         retVal = keyboardIdentifier
         retValStr= hex(keyboardIdentifier) + " (" +keyboardIdentifierStr + ")"
         uc.reg_write(UC_X86_REG_EAX, retVal)     
@@ -11647,7 +11624,7 @@ class CustomWinAPIs():
 
         virtualKey = pVals[0]
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
-        virtualKey = getLookUpVal(virtualKey, ReverseLookUps.VirtualKey)
+        virtualKey = getLookUpVal(virtualKey, ReverseLookUps.KeyBoard.VirtualKey)
         pVals[0] += " ("+ virtualKey + ")"
 
         retVal = 128

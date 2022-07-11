@@ -120,7 +120,13 @@ def getPointerVal(uc: Uc, pointer: int):
     val = uc.mem_read(pointer, 4)
     return unpack('<I', val)[0]
 
-def makeStructVals(uc: Uc, struct, address: int,unicode: bool = False):
+def getLookUpVal(search: int, dictionary: 'dict[int,str]'):
+    if search in dictionary:
+        return dictionary[search]
+    else:
+        return hex(search)
+
+def makeStructVals(uc: Uc, struct, address: int, lookUps: 'dict[int,dict[int,str]]' = {}):
     pTypes = struct.types
     pNames = struct.names
     pVals = []
@@ -128,15 +134,7 @@ def makeStructVals(uc: Uc, struct, address: int,unicode: bool = False):
         try:
             value = getattr(struct, name)
         except:
-            # Will Remove Soon
-            # Some Struct Implementations are both Unicode and Ascii 
-            # So some attributes have A or W Suffix.
-            if not unicode: 
-                name = name + 'A'
-                value = getattr(struct, name) 
-            else:
-                name = name + 'W'
-                value = getattr(struct, name)
+            value = '' # Empty String if Value Not Found
         if "<sharem." in str(value): 
             # Need to Figure out what to Do for Nested Structures/Unions
             # that are not pointers. Temp Solution
@@ -150,7 +148,9 @@ def makeStructVals(uc: Uc, struct, address: int,unicode: bool = False):
         pVals.append(value)
 
     for i in range(len(pTypes)):
-        if "STR" in pTypes[i]:  # finding ones with string
+        if i in lookUps:
+            pVals[i] = getLookUpVal(pVals[i],lookUps[i])
+        elif "STR" in pTypes[i]:  # finding ones with string
             try:
                 if "WSTR" in pTypes[i]:
                     pVals[i] = read_unicode(uc, pVals[i])
