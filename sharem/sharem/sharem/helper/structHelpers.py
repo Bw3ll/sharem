@@ -128,6 +128,7 @@ def makeStructVals(uc: Uc, struct, address: int,unicode: bool = False):
         try:
             value = getattr(struct, name)
         except:
+            # Will Remove Soon
             # Some Struct Implementations are both Unicode and Ascii 
             # So some attributes have A or W Suffix.
             if not unicode: 
@@ -137,7 +138,7 @@ def makeStructVals(uc: Uc, struct, address: int,unicode: bool = False):
                 name = name + 'W'
                 value = getattr(struct, name)
         if "<sharem." in str(value): 
-            # Need to Figure out what to Do for Nested Structures 
+            # Need to Figure out what to Do for Nested Structures/Unions
             # that are not pointers. Temp Solution
             tempTypes, tempNames, tempVals = makeSubStructVals(uc,value)
             value = '{'

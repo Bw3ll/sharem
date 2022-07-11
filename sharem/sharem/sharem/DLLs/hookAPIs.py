@@ -1008,24 +1008,6 @@ class CustomWinAPIs():
         logged_calls = ("CryptDecrypt", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    
-
-    def ShellExecuteExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pTypes= ['SHELLEXECUTEINFOA']
-        pNames= ['pExecInfo']
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
-
-        # Might Need to Expand
-
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
-
-        retVal = 0x1
-        retValStr='TRUE'
-        uc.reg_write(UC_X86_REG_EAX, retVal)     
-
-        logged_calls= ("ShellExecuteExA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
-        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
-
     def LoadResource(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['HMODULE', 'HRSRC']
         pNames= ['hModule', 'hResInfo']
@@ -2224,6 +2206,42 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("ShellExecuteW", hex(callAddr), (retValStr), 'HINSTANCE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def ShellExecuteExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['SHELLEXECUTEINFOA']
+        pNames= ['pExecInfo']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        info = get_SHELLEXECUTEINFOA(uc, pVals[0], em)
+
+        pVals[0] = makeStructVals(uc, info, pVals[0])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+
+        retVal = 0x1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("ShellExecuteExA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def ShellExecuteExW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['SHELLEXECUTEINFOW']
+        pNames= ['pExecInfo']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        info = get_SHELLEXECUTEINFOW(uc, pVals[0], em)
+
+        pVals[0] = makeStructVals(uc, info, pVals[0])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+
+        retVal = 0x1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("ShellExecuteExW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def system(self, uc: Uc, eip, esp, export_dict, callAddr, em):
