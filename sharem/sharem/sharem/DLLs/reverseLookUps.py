@@ -4610,6 +4610,15 @@ class ReverseLookUps:
         1024: "PAGE_WRITECOMBINE",
     }
 
+    Processor = {
+        9: "PROCESSOR_ARCHITECTURE_AMD64",
+        5: "PROCESSOR_ARCHITECTURE_ARM",
+        12: "PROCESSOR_ARCHITECTURE_ARM64",
+        6: "PROCESSOR_ARCHITECTURE_IA64",
+        0: "PROCESSOR_ARCHITECTURE_INTEL",
+        0xFFFF: "PROCESSOR_ARCHITECTURE_UNKNOWN",
+    }
+
     class KeyBoard:
         HotKeys = {
             0x04: "HOTKEYF_ALT",

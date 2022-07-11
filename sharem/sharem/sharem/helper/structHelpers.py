@@ -60,7 +60,11 @@ LGRPID = DWORD
 LCTYPE = DWORD
 LCID = DWORD
 
-DWORD_PTR = c_uint32
+DWORD_PTR_32BIT = c_uint32
+DWORD_PTR_64BIT = c_uint64
+ULONG_PTR_32BIT = c_uint32
+ULONG_PTR_64BIT = c_uint64
+
 
 # Handles 32 Bit
 HANDLE_32BIT = c_uint32 # Base Handle

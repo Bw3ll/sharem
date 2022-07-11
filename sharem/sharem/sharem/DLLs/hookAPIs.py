@@ -12098,7 +12098,7 @@ class HeapAllocation:
             print('Heap Allocation Failed')
             pass
 
-class System_SnapShot:
+class System_SnapShot: # Needs Reworked For new Struct System
     def __init__(self, fakeThreads: bool, fakeModules: bool):
         self.processOffset = 0
         self.threadOffset = 0
