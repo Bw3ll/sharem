@@ -1057,6 +1057,39 @@ class CustomWinAPIs():
         logged_calls= ("SetProcessDEPPolicy", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def OpenProcessToken(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HANDLE', 'DWORD', 'PHANDLE']
+        pNames= ['ProcessHandle', 'DesiredAccess', 'TokenHandle']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+        pVals[0] = getLookUpVal(pVals[0], OpenProcessToken.SystemParametersInfo.Action)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        retVal = 0x1
+
+        retValStr='True'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("OpenProcessToken", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def ShellExecuteExW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['SHELLEXECUTEINFOW']
+        pNames= ['pExecInfo']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+
+        retVal = 0x1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("ShellExecuteExW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def HeapCreate(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         # HANDLE HeapCreate([in] DWORD  flOptions,[in] SIZE_T dwInitialSize,[in] SIZE_T dwMaximumSize);
