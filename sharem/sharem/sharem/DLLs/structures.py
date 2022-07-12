@@ -294,6 +294,12 @@ def get_SYSTEMTIME(uc: Uc, address: int, em):
 # Struct Aliases:
 get__SYSTEMTIME = get_SYSTEMTIME
 
+# Struct Pointers:
+PSYSTEMTIME_32BIT = POINTER_32BIT
+PSYSTEMTIME_64BIT = POINTER_64BIT
+LPSYSTEMTIME_32BIT = POINTER_32BIT
+LPSYSTEMTIME_64BIT = POINTER_64BIT
+
 class SYSTEMTIME(LittleEndianStructure):
     types = ['WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD']
     names = ['wYear', 'wMonth', 'wDayOfWeek', 'wDay', 'wHour', 'wMinute', 'wSecond', 'wMilliseconds']
@@ -393,6 +399,43 @@ class LIST_ENTRY:
         names = ['Flink', 'Blink']
         __slots__ = ('Flink', 'Blink')
         _fields_ = [('Flink',PLIST_ENTRY_64BIT),('Blink',PLIST_ENTRY_64BIT)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+# Struct SINGLE_LIST_ENTRY
+# Alias Names: _SINGLE_LIST_ENTRY
+# Alias Pointer Names: *PSINGLE_LIST_ENTRY
+
+def get_SINGLE_LIST_ENTRY(uc: Uc, address: int, em):
+    if em.arch == 32:
+        return SINGLE_LIST_ENTRY.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(SINGLE_LIST_ENTRY.ARCH32)))
+    else:
+        return SINGLE_LIST_ENTRY.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(SINGLE_LIST_ENTRY.ARCH64)))
+
+# Struct Aliases:
+get__SINGLE_LIST_ENTRY = get_SINGLE_LIST_ENTRY
+
+# Struct Pointers:
+PSINGLE_LIST_ENTRY_32BIT = POINTER_32BIT
+PSINGLE_LIST_ENTRY_64BIT = POINTER_64BIT
+
+class SINGLE_LIST_ENTRY:
+
+    class ARCH32(LittleEndianStructure):
+        types = ['PSINGLE_LIST_ENTRY']
+        names = ['Next']
+        __slots__ = ('Next')
+        _fields_ = [('Next',PSINGLE_LIST_ENTRY_32BIT)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure):
+        types = ['PSINGLE_LIST_ENTRY']
+        names = ['Next']
+        __slots__ = ('Next')
+        _fields_ = [('Next',PSINGLE_LIST_ENTRY_64BIT)]
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -554,6 +597,10 @@ def get_STARTUPINFOA(uc: Uc, address: int, em):
             return STARTUPINFOA.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(STARTUPINFOA.ARCH32)))
         else:
             return STARTUPINFOA.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(STARTUPINFOA.ARCH64)))
+
+# Struct Pointers:
+LPSTARTUPINFOA_32BIT = POINTER_32BIT
+LPSTARTUPINFOA_64BIT = POINTER_64BIT
 
 class STARTUPINFOA:
 
