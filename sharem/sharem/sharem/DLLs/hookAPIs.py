@@ -10110,6 +10110,25 @@ class CustomWinAPIs():
         logged_calls= ("FindNextUrlCacheEntryA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def WNetAddConnection2A(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LPNETRESOURCEA', 'LPCSTR', 'LPCSTR', 'DWORD']
+        pNames= ['lpNetResource', 'lpPassword', 'lpUserName', 'dwFlags']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        dwFlagsReverseLookUp = {1: 'CONNECT_UPDATE_PROFILE', 2: 'CONNECT_UPDATE_RECENT', 4: 'CONNECT_TEMPORARY', 8: 'CONNECT_INTERACTIVE', 16: 'CONNECT_PROMPT', 128: 'CONNECT_REDIRECT', 512: 'CONNECT_CURRENT_MEDIA', 2048: 'CONNECT_COMMANDLINE', 4096: 'CONNECT_CMD_SAVECRED', 8192: 'CONNECT_CRED_RESET'}
+
+        pVals[3] = getLookUpVal(pVals[3],dwFlagsReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
+
+        retVal = 0x55555555
+        retValStr= 'NO_ERROR'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("WNetAddConnection2A", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+
     def DuplicateToken(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['HANDLE', 'SECURITY_IMPERSONATION_LEVEL', 'PHANDLE']
         pNames= ['ExistingTokenHandle', 'ImpersonationLevel', 'DuplicateTokenHandle']
