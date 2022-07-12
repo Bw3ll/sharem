@@ -21,7 +21,7 @@ def get_PROCESS_INFORMATION(uc: Uc, address: int, em):
         return PROCESS_INFORMATION.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(PROCESS_INFORMATION.ARCH64)))
 
 # Struct Aliases:
-get__PROCESS_INFORMATION = get_PROCESS_INFORMATION
+# get__PROCESS_INFORMATION = get_PROCESS_INFORMATION
 
 # Struct Pointers:
 PPROCESS_INFORMATION_32BIT = POINTER_32BIT
@@ -298,7 +298,7 @@ def get_SYSTEMTIME(uc: Uc, address: int, em):
     return SYSTEMTIME.from_buffer_copy(uc.mem_read(address, sizeof(SYSTEMTIME)))
 
 # Struct Aliases:
-get__SYSTEMTIME = get_SYSTEMTIME
+# get__SYSTEMTIME = get_SYSTEMTIME
 
 # Struct Pointers:
 PSYSTEMTIME_32BIT = POINTER_32BIT
@@ -351,7 +351,7 @@ def get_SYSTEM_INFO(uc: Uc, address: int, em):
         return SYSTEM_INFO.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(SYSTEM_INFO.ARCH64)))
 
 # Struct Aliases:
-get__SYSTEM_INFO = get_SYSTEM_INFO
+# get__SYSTEM_INFO = get_SYSTEM_INFO
 
 # Struct Pointers:
 LPSYSTEM_INFO_32BIT = POINTER_32BIT
@@ -398,7 +398,7 @@ def get_LIST_ENTRY(uc: Uc, address: int, em):
         return LIST_ENTRY.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(LIST_ENTRY.ARCH64)))
 
 # Struct Aliases:
-get__LIST_ENTRY = get_LIST_ENTRY
+# get__LIST_ENTRY = get_LIST_ENTRY
 
 # Struct Pointers:
 PLIST_ENTRY_32BIT = POINTER_32BIT
@@ -435,7 +435,7 @@ def get_SINGLE_LIST_ENTRY(uc: Uc, address: int, em):
         return SINGLE_LIST_ENTRY.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(SINGLE_LIST_ENTRY.ARCH64)))
 
 # Struct Aliases:
-get__SINGLE_LIST_ENTRY = get_SINGLE_LIST_ENTRY
+# get__SINGLE_LIST_ENTRY = get_SINGLE_LIST_ENTRY
 
 # Struct Pointers:
 PSINGLE_LIST_ENTRY_32BIT = POINTER_32BIT
@@ -471,7 +471,7 @@ def get_FILETIME(uc: Uc, address: int, em):
     return FILETIME.from_buffer_copy(uc.mem_read(address, sizeof(FILETIME)))
 
 # Struct Aliases:
-get__FILETIME = get_FILETIME
+# get__FILETIME = get_FILETIME
 
 # Struct Pointers:
 PFILETIME_32BIT = POINTER_32BIT
@@ -508,7 +508,7 @@ def get_UNICODE_STRING(uc: Uc, address: int, em):
         return UNICODE_STRING.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(UNICODE_STRING.ARCH64)))
 
 # Struct Aliases:
-get__UNICODE_STRING = get_UNICODE_STRING
+# get__UNICODE_STRING = get_UNICODE_STRING
 
 # Struct Pointers:
 PUNICODE_STRING_32BIT = POINTER_32BIT
@@ -547,7 +547,7 @@ def get_STRING(uc: Uc, address: int, em):
         return STRING.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(STRING.ARCH64)))
 
 # Struct Aliases:
-get__STRING = get_STRING
+# get__STRING = get_STRING
 
 class STRING:
 
@@ -579,7 +579,7 @@ def get_TIME_ZONE_INFORMATION(uc: Uc, address: int, em):
     return TIME_ZONE_INFORMATION.from_buffer_copy(uc.mem_read(address, sizeof(TIME_ZONE_INFORMATION)))
 
 # Struct Aliases:
-get__TIME_ZONE_INFORMATION = get_TIME_ZONE_INFORMATION
+# get__TIME_ZONE_INFORMATION = get_TIME_ZONE_INFORMATION
 
 # Struct Pointers:
 PTIME_ZONE_INFORMATION_32BIT = POINTER_32BIT
@@ -606,7 +606,7 @@ def get_REG_TZI_FORMAT(uc: Uc, address: int, em):
     return REG_TZI_FORMAT.from_buffer_copy(uc.mem_read(address, sizeof(REG_TZI_FORMAT)))
 
 # Struct Aliases:
-get__REG_TZI_FORMAT = get_REG_TZI_FORMAT
+# get__REG_TZI_FORMAT = get_REG_TZI_FORMAT
 
 class REG_TZI_FORMAT(LittleEndianStructure):
     types = ['LONG', 'LONG', 'LONG', 'SYSTEMTIME', 'SYSTEMTIME']
@@ -665,7 +665,7 @@ def get_STARTUPINFOW(uc: Uc, address: int, em):
         return STARTUPINFOW.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(STARTUPINFOW.ARCH64)))
 
 # Struct Aliases:
-get__STARTUPINFOW = get_STARTUPINFOW
+# get__STARTUPINFOW = get_STARTUPINFOW
 
 # Struct Pointers:
 LPSTARTUPINFOW_32BIT = POINTER_32BIT
@@ -705,7 +705,7 @@ def get_OBJECT_ATTRIBUTES(uc: Uc, address: int, em):
         return OBJECT_ATTRIBUTES.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(OBJECT_ATTRIBUTES.ARCH64)))
 
 # Struct Aliases:
-get__OBJECT_ATTRIBUTES = get_OBJECT_ATTRIBUTES
+# get__OBJECT_ATTRIBUTES = get_OBJECT_ATTRIBUTES
 
 # Struct Pointers:
 POBJECT_ATTRIBUTES_32BIT = POINTER_32BIT
@@ -738,7 +738,7 @@ def get_LARGE_INTEGER(uc: Uc, address: int, em):
     return LARGE_INTEGER.from_buffer_copy(uc.mem_read(address, sizeof(LARGE_INTEGER)))
 
 # Struct Aliases:
-get__LARGE_INTEGER = get_LARGE_INTEGER
+# get__LARGE_INTEGER = get_LARGE_INTEGER
 
 # Struct Pointers:
 PLARGE_INTEGER_32BIT = POINTER_32BIT
@@ -766,7 +766,7 @@ def get_ULARGE_INTEGER(uc: Uc, address: int, em):
     return LARGE_INTEGER.from_buffer_copy(uc.mem_read(address, sizeof(ULARGE_INTEGER)))
 
 # Struct Aliases:
-get__ULARGE_INTEGER = get_ULARGE_INTEGER
+# get__ULARGE_INTEGER = get_ULARGE_INTEGER
 
 # Struct Pointers:
 PULARGE_INTEGER_32BIT = POINTER_32BIT
@@ -802,7 +802,7 @@ def get_SECURITY_ATTRIBUTES(uc: Uc, address: int, em):
             return SECURITY_ATTRIBUTES.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(SECURITY_ATTRIBUTES.ARCH64)))
 
 # Struct Aliases:
-get__SECURITY_ATTRIBUTES = get_SECURITY_ATTRIBUTES
+# get__SECURITY_ATTRIBUTES = get_SECURITY_ATTRIBUTES
 
 # Struct Pointers:
 PSECURITY_ATTRIBUTES_32BIT = POINTER_32BIT
@@ -918,7 +918,7 @@ def get_DISPLAY_DEVICEA(uc: Uc, address: int, em):
     return DISPLAY_DEVICEA.from_buffer_copy(uc.mem_read(address, sizeof(DISPLAY_DEVICEA)))
 
 # Struct Aliases:
-get__DISPLAY_DEVICEA = get_DISPLAY_DEVICEA
+# get__DISPLAY_DEVICEA = get_DISPLAY_DEVICEA
 
 # Struct Pointers:
 PDISPLAY_32BIT = POINTER_32BIT
@@ -952,7 +952,7 @@ class DISPLAY_DEVICEA (LittleEndianStructure):
 #    return VIDEOPARAMETERS.from_buffer_copy(uc.mem_read(address, sizeof(VIDEOPARAMETERS)))
 
 ## Struct Aliases:
-#get__VIDEOPARAMETERS = get_VIDEOPARAMETERS
+## get__VIDEOPARAMETERS = get_VIDEOPARAMETERS
 
 ## Struct Pointers:
 #PVIDEOPARAMETERS_32BIT = POINTER_32BIT
@@ -979,7 +979,7 @@ def get_SHELLEXECUTEINFOA(uc: Uc, address: int, em):
         return SHELLEXECUTEINFOA.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(SHELLEXECUTEINFOA.ARCH64)))
 
 # Struct Aliases:
-get__SHELLEXECUTEINFOA = get_SHELLEXECUTEINFOA
+# get__SHELLEXECUTEINFOA = get_SHELLEXECUTEINFOA
 
 # Struct Pointers:
 LPSHELLEXECUTEINFOA_32BIT = POINTER_32BIT
@@ -1034,7 +1034,7 @@ def get_SHELLEXECUTEINFOW(uc: Uc, address: int, em):
         return SHELLEXECUTEINFOW.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(SHELLEXECUTEINFOW.ARCH64)))
 
 # Struct Aliases:
-get__SHELLEXECUTEINFOW = get_SHELLEXECUTEINFOW
+# get__SHELLEXECUTEINFOW = get_SHELLEXECUTEINFOW
 
 # Struct Pointers:
 LPSHELLEXECUTEINFOW_32BIT = POINTER_32BIT
