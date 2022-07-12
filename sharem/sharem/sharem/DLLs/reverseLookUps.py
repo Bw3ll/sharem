@@ -4619,6 +4619,15 @@ class ReverseLookUps:
         0xFFFF: "PROCESSOR_ARCHITECTURE_UNKNOWN",
     }
 
+    ProcessorType = {
+        386: "PROCESSOR_INTEL_386",
+        486: "PROCESSOR_INTEL_486",
+        586: "PROCESSOR_INTEL_PENTIUM",
+        2200: "PROCESSOR_INTEL_IA64",
+        8664: "PROCESSOR_AMD_X8664",
+        0: "PROCESSOR_ARM",
+    }
+
     class KeyBoard:
         HotKeys = {
             0x04: "HOTKEYF_ALT",

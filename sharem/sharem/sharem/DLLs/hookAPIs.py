@@ -2225,7 +2225,7 @@ class CustomWinAPIs():
 
         info = get_SHELLEXECUTEINFOA(uc, pVals[0], em)
 
-        pVals[0] = makeStructVals(uc, info, pVals[0], lookUps={1: ReverseLookUps.ShellExecute.Mask, 7: ReverseLookUps.ShellExecute.cmdShow})
+        pVals[0] = makeStructVals(uc, info, pVals[0])
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
 
@@ -2243,7 +2243,7 @@ class CustomWinAPIs():
 
         info = get_SHELLEXECUTEINFOW(uc, pVals[0], em)
 
-        pVals[0] = makeStructVals(uc, info, pVals[0], lookUps={1: ReverseLookUps.ShellExecute.Mask, 7: ReverseLookUps.ShellExecute.cmdShow})
+        pVals[0] = makeStructVals(uc, info, pVals[0])
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
 
@@ -8512,8 +8512,9 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         try:
+            li = get_LARGE_INTEGER(uc, pVals[0], em)
             pc = perf_counter_ns()
-            li = LARGE_INTEGER(QuadPart=pc)
+            li.QuadPart = pc
             li.writeToMemory(uc,pVals[0])
         except:
             pass
@@ -9551,7 +9552,7 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         timeZone = get_TIME_ZONE_INFORMATION(uc, pVals[0], em)
-        timeZone.DaylightName = 'ABCDEFGHIJKLMNOQRSTUVWXYZ01234'
+        timeZone.DaylightName = 'ABCDEFGHIJKLMNOQRSTUVWXYZ01234' # Needs Work
         timeZone.StandardName = 'TestStandard'
         timeZone.DaylightDate.setTime(False, emuSimVals.system_time_since_epoch)
         timeZone.StandardDate.setTime(False, emuSimVals.system_time_since_epoch)
@@ -9585,6 +9586,61 @@ class CustomWinAPIs():
 
         logged_calls= ("GetStartupInfoW", hex(callAddr), (retValStr), 'VOID', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetSystemInfo(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['LPSYSTEM_INFO'] 
+        pNames = ['lpSystemInfo'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # might expand with config
+
+        sysinfo = get_SYSTEM_INFO(uc, pVals[0], em)
+
+        sysinfo.DUMMYSTRUCTNAME.wProcessorArchitecture = 9
+        sysinfo.dwPageSize = 4096
+        sysinfo.dwNumberOfProcessors = 4
+        sysinfo.dwProcessorType = 8664
+
+        sysinfo.writeToMemory(uc, pVals[0])
+
+        pVals[0] = makeStructVals(uc, sysinfo, pVals[0])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+        
+        retVal = 0x0
+        retValStr = "None"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("GetSystemInfo", hex(callAddr), (retValStr), 'VOID', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetNativeSystemInfo(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['LPSYSTEM_INFO'] 
+        pNames = ['lpSystemInfo'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # might expand with config
+
+        sysinfo = get_SYSTEM_INFO(uc, pVals[0], em)
+
+        sysinfo.DUMMYSTRUCTNAME.wProcessorArchitecture = 9
+        sysinfo.dwPageSize = 4096
+        sysinfo.dwNumberOfProcessors = 4
+        sysinfo.dwProcessorType = 8664
+
+        sysinfo.writeToMemory(uc, pVals[0])
+
+        pVals[0] = makeStructVals(uc, sysinfo, pVals[0])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+        
+        retVal = 0x0
+        retValStr = "None"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("GetNativeSystemInfo", hex(callAddr), (retValStr), 'VOID', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def RegisterHotKey(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes =['HWND', 'int', 'UINT', 'UINT'] 
