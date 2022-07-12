@@ -9984,6 +9984,20 @@ class CustomWinAPIs():
         logged_calls= ("CryptDestroyKey", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def GetIpNetTable(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['PMIB_IPNETTABLE', 'PULONG', 'BOOL']
+        pNames= ['IpNetTable', 'SizePointer', 'Order']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr= 'NO_ERROR'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetIpNetTable", hex(callAddr), (retValStr), 'ULONG', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def OpenThread(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['DWORD', 'BOOL', 'DWORD']
         pNames= ['dwDesiredAccess', 'bInheritHandle', 'dwThreadId']
