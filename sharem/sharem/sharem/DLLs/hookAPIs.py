@@ -10034,7 +10034,7 @@ class CustomWinAPIs():
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
 
         retVal = 0x88888888
-        retValStr= 'SUCCESS'
+        retValStr= hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
         logged_calls= ("SuspendThread", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
