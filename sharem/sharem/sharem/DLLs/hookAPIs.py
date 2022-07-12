@@ -9998,6 +9998,20 @@ class CustomWinAPIs():
         logged_calls= ("GetIpNetTable", hex(callAddr), (retValStr), 'ULONG', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def GetLogicalDrives(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= []
+        pNames= []
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetLogicalDrives", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def OpenThread(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['DWORD', 'BOOL', 'DWORD']
         pNames= ['dwDesiredAccess', 'bInheritHandle', 'dwThreadId']
