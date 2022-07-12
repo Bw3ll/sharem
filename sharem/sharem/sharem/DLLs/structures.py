@@ -1078,3 +1078,77 @@ class SHELLEXECUTEINFOW:
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
+# Struct WSAPROTOCOLCHAIN
+# Alias Names: _WSAPROTOCOLCHAIN
+# Alias Pointer Names: LPWSAPROTOCOLCHAIN
+
+def get_WSAPROTOCOLCHAIN(uc: Uc, address: int, em):
+    return WSAPROTOCOLCHAIN.from_buffer_copy(uc.mem_read(address, sizeof(WSAPROTOCOLCHAIN)))
+
+# Struct Aliases:
+# get__WSAPROTOCOLCHAIN = get_WSAPROTOCOLCHAIN
+
+# Struct Pointers:
+LPWSAPROTOCOLCHAIN_32BIT = POINTER_32BIT
+LPWSAPROTOCOLCHAIN_64BIT = POINTER_64BIT
+
+class WSAPROTOCOLCHAIN(LittleEndianStructure):
+    types = ['int', 'DWORD']
+    __slots__ = ('ChainLen', 'ChainEntries')
+    lookUps = {}
+
+    _fields_ = [('ChainLen',INT),('ChainEntries',DWORD * 7)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+
+# Struct WSAPROTOCOL_INFOA
+# Alias Names: _WSAPROTOCOL_INFOA
+# Alias Pointer Names: LPWSAPROTOCOL_INFOA
+
+def get_WSAPROTOCOL_INFOA(uc: Uc, address: int, em):
+    return WSAPROTOCOL_INFOA.from_buffer_copy(uc.mem_read(address, sizeof(WSAPROTOCOL_INFOA)))
+
+# Struct Aliases:
+# get__WSAPROTOCOL_INFOA = get_WSAPROTOCOL_INFOA
+
+# Struct Pointers:
+LPWSAPROTOCOL_INFOA_32BIT = POINTER_32BIT
+LPWSAPROTOCOL_INFOA_64BIT = POINTER_64BIT
+
+class WSAPROTOCOL_INFOA(LittleEndianStructure):
+    types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'GUID', 'DWORD', 'WSAPROTOCOLCHAIN', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'DWORD', 'DWORD', 'CHAR']
+    __slots__ = ('dwServiceFlags1', 'dwServiceFlags2', 'dwServiceFlags3', 'dwServiceFlags4', 'dwProviderFlags', 'ProviderId', 'dwCatalogEntryId', 'ProtocolChain', 'iVersion', 'iAddressFamily', 'iMaxSockAddr', 'iMinSockAddr', 'iSocketType', 'iProtocol', 'iProtocolMaxOffset', 'iNetworkByteOrder', 'iSecurityScheme', 'dwMessageSize', 'dwProviderReserved', 'szProtocol')
+    lookUps = {}
+
+    # Provider ID needs Fixed
+    _fields_ = [('dwServiceFlags1',DWORD),('dwServiceFlags2',DWORD),('dwServiceFlags3',DWORD),('dwServiceFlags4',DWORD),('dwProviderFlags',DWORD),('ProviderId',DWORD*4),('dwCatalogEntryId',DWORD),('ProtocolChain',WSAPROTOCOLCHAIN),('iVersion',INT),('iAddressFamily',INT),('iMaxSockAddr',INT),('iMinSockAddr',INT),('iSocketType',INT),('iProtocol',INT),('iProtocolMaxOffset',INT),('iNetworkByteOrder',INT),('iSecurityScheme',INT),('dwMessageSize',DWORD),('dwProviderReserved',DWORD),('szProtocol',CHAR*256)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+# Struct WSAPROTOCOL_INFOW
+# Alias Names: _WSAPROTOCOL_INFOW
+# Alias Pointer Names: LPWSAPROTOCOL_INFOW
+
+def get_WSAPROTOCOL_INFOW(uc: Uc, address: int, em):
+    return WSAPROTOCOL_INFOW.from_buffer_copy(uc.mem_read(address, sizeof(WSAPROTOCOL_INFOW)))
+
+# Struct Aliases:
+# get__WSAPROTOCOL_INFOW = get_WSAPROTOCOL_INFOW
+
+# Struct Pointers:
+LPWSAPROTOCOL_INFOW_32BIT = POINTER_32BIT
+LPWSAPROTOCOL_INFOW_64BIT = POINTER_64BIT
+
+class WSAPROTOCOL_INFOW(LittleEndianStructure):
+    types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'GUID', 'DWORD', 'WSAPROTOCOLCHAIN', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'DWORD', 'DWORD', 'WCHAR']
+    __slots__ = ('dwServiceFlags1', 'dwServiceFlags2', 'dwServiceFlags3', 'dwServiceFlags4', 'dwProviderFlags', 'ProviderId', 'dwCatalogEntryId', 'ProtocolChain', 'iVersion', 'iAddressFamily', 'iMaxSockAddr', 'iMinSockAddr', 'iSocketType', 'iProtocol', 'iProtocolMaxOffset', 'iNetworkByteOrder', 'iSecurityScheme', 'dwMessageSize', 'dwProviderReserved', 'szProtocol')
+    lookUps = {}
+
+    # Provider ID Needs Fixed when guid added
+    _fields_ = [('dwServiceFlags1',DWORD),('dwServiceFlags2',DWORD),('dwServiceFlags3',DWORD),('dwServiceFlags4',DWORD),('dwProviderFlags',DWORD),('ProviderId',DWORD*4),('dwCatalogEntryId',DWORD),('ProtocolChain',WSAPROTOCOLCHAIN),('iVersion',INT),('iAddressFamily',INT),('iMaxSockAddr',INT),('iMinSockAddr',INT),('iSocketType',INT),('iProtocol',INT),('iProtocolMaxOffset',INT),('iNetworkByteOrder',INT),('iSecurityScheme',INT),('dwMessageSize',DWORD),('dwProviderReserved',DWORD),('szProtocol',WCHAR*256)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
