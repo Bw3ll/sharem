@@ -548,22 +548,12 @@ class CustomWinAPIs():
         pTypes = ['int', 'int', 'int', 'LPWSAPROTOCOL_INFOA', 'GROUP', 'DWORD']
         pNames = ['af', 'type', 'protocol', 'lpProtocolInfo', 'g', 'dwFlags']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-        aFReverseLookUp = {0: 'AF_UNSPEC', 2: 'AF_INET', 6: 'AF_IPX', 22: 'AF_APPLETALK', 23: 'AF_NETBIOS',
-                           35: 'AF_INET6', 38: 'AF_IRDA', 50: 'AF_BTH'}
-        sockTypeReverseLookUp = {1: 'SOCK_STREAM', 2: 'SOCK_DGRAM', 3: 'SOCK_RAW', 4: 'SOCK_RDM', 5: 'SOCK_SEQPACKET'}
-        sockProtocolReverseLookUp = {1: 'IPPROTO_ICMP', 2: 'IPPROTO_IGMP', 3: 'BTHPROTO_RFCOMM', 6: 'IPPROTO_TCP',
-                                     23: 'IPPROTO_UDP', 88: 'IPPROTO_ICMPV6', 275: 'IPPROTO_RM'}
-        dwFlagsReverseLookUp = {1: 'WSA_FLAG_OVERLAPPED', 2: 'WSA_FLAG_MULTIPOINT_C_ROOT',
-                                4: 'WSA_FLAG_MULTIPOINT_C_LEAF', 8: 'WSA_FLAG_MULTIPOINT_D_ROOT',
-                                16: 'WSA_FLAG_MULTIPOINT_D_LEAF', 64: 'WSA_FLAG_ACCESS_SYSTEM_SECURITY',
-                                128: 'WSA_FLAG_NO_HANDLE_INHERIT'}
-        groupReverseLookUp = {1: 'SG_UNCONSTRAINED_GROUP', 2: 'SG_CONSTRAINED_GROUP'}
-
-        pVals[0] = getLookUpVal(pVals[0],aFReverseLookUp)
-        pVals[1] = getLookUpVal(pVals[1],sockTypeReverseLookUp)
-        pVals[2] = getLookUpVal(pVals[2],sockProtocolReverseLookUp)
-        pVals[4] = getLookUpVal(pVals[4],groupReverseLookUp)
-        pVals[5] = getLookUpVal(pVals[5],dwFlagsReverseLookUp)
+        
+        pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.Socket.Af)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.Socket.Type)
+        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Socket.Protocol)
+        pVals[4] = getLookUpVal(pVals[4], ReverseLookUps.Socket.Group)
+        pVals[5] = getLookUpVal(pVals[5], ReverseLookUps.Socket.Flags)
         
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip= [0, 1, 2, 4, 5])
 
@@ -581,22 +571,12 @@ class CustomWinAPIs():
         pTypes = ['int', 'int', 'int', 'LPWSAPROTOCOL_INFOW', 'GROUP', 'DWORD']
         pNames = ['af', 'type', 'protocol', 'lpProtocolInfo', 'g', 'dwFlags']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-        aFReverseLookUp = {0: 'AF_UNSPEC', 2: 'AF_INET', 6: 'AF_IPX', 16: 'AF_APPLETALK', 17: 'AF_NETBIOS',
-                           23: 'AF_INET6', 26: 'AF_IRDA', 32: 'AF_BTH'}
-        sockTypeReverseLookUp = {1: 'SOCK_STREAM', 2: 'SOCK_DGRAM', 3: 'SOCK_RAW', 4: 'SOCK_RDM', 5: 'SOCK_SEQPACKET'}
-        sockProtocolReverseLookUp = {1: 'IPPROTO_ICMP', 2: 'IPPROTO_IGMP', 3: 'BTHPROTO_RFCOMM', 6: 'IPPROTO_TCP',
-                                     17: 'IPPROTO_UDP', 58: 'IPPROTO_ICMPV6', 113: 'IPPROTO_RM'}
-        groupReverseLookUp = {1: 'SG_UNCONSTRAINED_GROUP', 2: 'SG_CONSTRAINED_GROUP'}
-        dwFlagsReverseLookUp = {1: 'WSA_FLAG_OVERLAPPED', 2: 'WSA_FLAG_MULTIPOINT_C_ROOT',
-                                4: 'WSA_FLAG_MULTIPOINT_C_LEAF', 8: 'WSA_FLAG_MULTIPOINT_D_ROOT',
-                                16: 'WSA_FLAG_MULTIPOINT_D_LEAF', 64: 'WSA_FLAG_ACCESS_SYSTEM_SECURITY',
-                                128: 'WSA_FLAG_NO_HANDLE_INHERIT'}
-
-        pVals[0] = getLookUpVal(pVals[0],aFReverseLookUp)
-        pVals[1] = getLookUpVal(pVals[1],sockTypeReverseLookUp)
-        pVals[2] = getLookUpVal(pVals[2],sockProtocolReverseLookUp)
-        pVals[4] = getLookUpVal(pVals[4],groupReverseLookUp)
-        pVals[5] = getLookUpVal(pVals[5],dwFlagsReverseLookUp)
+        
+        pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.Socket.Af)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.Socket.Type)
+        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Socket.Protocol)
+        pVals[4] = getLookUpVal(pVals[4], ReverseLookUps.Socket.Group)
+        pVals[5] = getLookUpVal(pVals[5], ReverseLookUps.Socket.Flags)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [0, 1, 2, 4, 5])
         
@@ -614,15 +594,10 @@ class CustomWinAPIs():
         pTypes = ['int', 'int', 'int']
         pNames = ['af', 'type', 'protocol']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-        aFReverseLookUp = {0: 'AF_UNSPEC', 2: 'AF_INET', 6: 'AF_IPX', 16: 'AF_APPLETALK', 17: 'AF_NETBIOS',
-                           23: 'AF_INET6', 26: 'AF_IRDA', 32: 'AF_BTH'}
-        sockTypeReverseLookUp = {1: 'SOCK_STREAM', 2: 'SOCK_DGRAM', 3: 'SOCK_RAW', 4: 'SOCK_RDM', 5: 'SOCK_SEQPACKET'}
-        sockProtocolReverseLookUp = {1: 'IPPROTO_ICMP', 2: 'IPPROTO_IGMP', 3: 'BTHPROTO_RFCOMM', 6: 'IPPROTO_TCP',
-                                     17: 'IPPROTO_UDP', 58: 'IPPROTO_ICMPV6', 113: 'IPPROTO_RM'}
 
-        pVals[0] = getLookUpVal(pVals[0],aFReverseLookUp)
-        pVals[1] = getLookUpVal(pVals[1],sockTypeReverseLookUp)
-        pVals[2] = getLookUpVal(pVals[2],sockProtocolReverseLookUp)
+        pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.Socket.Af)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.Socket.Type)
+        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Socket.Protocol)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [0, 1, 2])
 
