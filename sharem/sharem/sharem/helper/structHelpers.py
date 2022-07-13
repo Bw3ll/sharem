@@ -60,7 +60,11 @@ LGRPID = DWORD
 LCTYPE = DWORD
 LCID = DWORD
 
-DWORD_PTR = c_uint32
+DWORD_PTR_32BIT = c_uint32
+DWORD_PTR_64BIT = c_uint64
+ULONG_PTR_32BIT = c_uint32
+ULONG_PTR_64BIT = c_uint64
+
 
 # Handles 32 Bit
 HANDLE_32BIT = c_uint32 # Base Handle
@@ -120,24 +124,27 @@ def getPointerVal(uc: Uc, pointer: int):
     val = uc.mem_read(pointer, 4)
     return unpack('<I', val)[0]
 
-def makeStructVals(uc: Uc, struct, address: int,unicode: bool = False):
+def getLookUpVal(search: int, dictionary: 'dict[int,str]'):
+    if search in dictionary:
+        return dictionary[search]
+    else:
+        return hex(search)
+
+def makeStructVals(uc: Uc, struct, address: int):
     pTypes = struct.types
-    pNames = struct.names
+    try: # Until Names Param is removed
+        pNames = struct.names
+    except:
+        pNames = list(struct.__slots__)
+    lookUps = struct.lookUps
     pVals = []
     for name in pNames:
         try:
             value = getattr(struct, name)
         except:
-            # Some Struct Implementations are both Unicode and Ascii 
-            # So some attributes have A or W Suffix.
-            if not unicode: 
-                name = name + 'A'
-                value = getattr(struct, name) 
-            else:
-                name = name + 'W'
-                value = getattr(struct, name)
+            value = '' # Empty String if Value Not Found
         if "<sharem." in str(value): 
-            # Need to Figure out what to Do for Nested Structures 
+            # Need to Figure out what to Do for Nested Structures/Unions
             # that are not pointers. Temp Solution
             tempTypes, tempNames, tempVals = makeSubStructVals(uc,value)
             value = '{'
@@ -149,7 +156,9 @@ def makeStructVals(uc: Uc, struct, address: int,unicode: bool = False):
         pVals.append(value)
 
     for i in range(len(pTypes)):
-        if "STR" in pTypes[i]:  # finding ones with string
+        if i in lookUps:
+            pVals[i] = getLookUpVal(pVals[i],lookUps[i])
+        elif "STR" in pTypes[i]:  # finding ones with string
             try:
                 if "WSTR" in pTypes[i]:
                     pVals[i] = read_unicode(uc, pVals[i])
@@ -183,19 +192,23 @@ def makeStructVals(uc: Uc, struct, address: int,unicode: bool = False):
 
 def makeSubStructVals(uc: Uc, struct):
     pTypes = struct.types
-    pNames = struct.names
+    try: # Until Names Param is removed
+        pNames = struct.names
+    except:
+        pNames = list(struct.__slots__)
+    lookUps = struct.lookUps
     pVals = []
     for name in pNames:
         try:
             value = getattr(struct, name)
         except:
-            # Some Struct Implementations are both Unicode and Ascii 
-            # So some attributes have A or W Suffix.
             pass
         pVals.append(value)
 
     for i in range(len(pTypes)):
-        if "STR" in pTypes[i]:  # finding ones with string
+        if i in lookUps:
+            pVals[i] = getLookUpVal(pVals[i],lookUps[i])
+        elif "STR" in pTypes[i]:  # finding ones with string
             try:
                 if "WSTR" in pTypes[i]:
                     pVals[i] = read_unicode(uc, pVals[i])

@@ -112,9 +112,9 @@ emuSimVals = EmulationSimulationValues()
 
 class CustomWinAPIs():
     def GetProcAddress(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes = ['HMODULE', 'LPCSTR']
         pNames = ['hModule', 'lpProcName']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
         
         name = read_string(uc, pVals[1])
 
@@ -132,9 +132,9 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def LdrGetProcedureAddress(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes = ['HMODULE', 'const ANSI_STRING *', 'ULONG', 'PVOID *']
         pNames = ['hModule', 'name', 'ord', 'address']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         pVals[1] = read_string(uc, pVals[1])
                 
@@ -157,9 +157,9 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def LoadLibraryA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes = ['LPCTSTR']
         pNames = ['lpLibFileName']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         name = read_string(uc, pVals[0])
 
@@ -192,9 +192,9 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def LoadLibraryW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes = ['LPCWSTR']
         pNames = ['lpLibFileName']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         name = read_unicode(uc, pVals[0])
 
@@ -227,9 +227,10 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def LoadLibraryExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes = ['LPCSTR', 'HANDLE', 'DWORD']
         pNames = ['lpLibFileName', 'hFile', 'dwFlags']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
         
         name = read_string(uc, pVals[0])
 
@@ -264,9 +265,10 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def LoadLibraryExW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes = ['LPCWSTR', 'HANDLE', 'DWORD']
         pNames = ['lpLibFileName', 'hFile', 'dwFlags']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
 
         name = read_unicode(uc, pVals[0])
 
@@ -548,22 +550,12 @@ class CustomWinAPIs():
         pTypes = ['int', 'int', 'int', 'LPWSAPROTOCOL_INFOA', 'GROUP', 'DWORD']
         pNames = ['af', 'type', 'protocol', 'lpProtocolInfo', 'g', 'dwFlags']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-        aFReverseLookUp = {0: 'AF_UNSPEC', 2: 'AF_INET', 6: 'AF_IPX', 22: 'AF_APPLETALK', 23: 'AF_NETBIOS',
-                           35: 'AF_INET6', 38: 'AF_IRDA', 50: 'AF_BTH'}
-        sockTypeReverseLookUp = {1: 'SOCK_STREAM', 2: 'SOCK_DGRAM', 3: 'SOCK_RAW', 4: 'SOCK_RDM', 5: 'SOCK_SEQPACKET'}
-        sockProtocolReverseLookUp = {1: 'IPPROTO_ICMP', 2: 'IPPROTO_IGMP', 3: 'BTHPROTO_RFCOMM', 6: 'IPPROTO_TCP',
-                                     23: 'IPPROTO_UDP', 88: 'IPPROTO_ICMPV6', 275: 'IPPROTO_RM'}
-        dwFlagsReverseLookUp = {1: 'WSA_FLAG_OVERLAPPED', 2: 'WSA_FLAG_MULTIPOINT_C_ROOT',
-                                4: 'WSA_FLAG_MULTIPOINT_C_LEAF', 8: 'WSA_FLAG_MULTIPOINT_D_ROOT',
-                                16: 'WSA_FLAG_MULTIPOINT_D_LEAF', 64: 'WSA_FLAG_ACCESS_SYSTEM_SECURITY',
-                                128: 'WSA_FLAG_NO_HANDLE_INHERIT'}
-        groupReverseLookUp = {1: 'SG_UNCONSTRAINED_GROUP', 2: 'SG_CONSTRAINED_GROUP'}
-
-        pVals[0] = getLookUpVal(pVals[0],aFReverseLookUp)
-        pVals[1] = getLookUpVal(pVals[1],sockTypeReverseLookUp)
-        pVals[2] = getLookUpVal(pVals[2],sockProtocolReverseLookUp)
-        pVals[4] = getLookUpVal(pVals[4],groupReverseLookUp)
-        pVals[5] = getLookUpVal(pVals[5],dwFlagsReverseLookUp)
+        
+        pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.Socket.Af)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.Socket.Type)
+        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Socket.Protocol)
+        pVals[4] = getLookUpVal(pVals[4], ReverseLookUps.Socket.Group)
+        pVals[5] = getLookUpVal(pVals[5], ReverseLookUps.Socket.Flags)
         
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip= [0, 1, 2, 4, 5])
 
@@ -581,22 +573,12 @@ class CustomWinAPIs():
         pTypes = ['int', 'int', 'int', 'LPWSAPROTOCOL_INFOW', 'GROUP', 'DWORD']
         pNames = ['af', 'type', 'protocol', 'lpProtocolInfo', 'g', 'dwFlags']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-        aFReverseLookUp = {0: 'AF_UNSPEC', 2: 'AF_INET', 6: 'AF_IPX', 16: 'AF_APPLETALK', 17: 'AF_NETBIOS',
-                           23: 'AF_INET6', 26: 'AF_IRDA', 32: 'AF_BTH'}
-        sockTypeReverseLookUp = {1: 'SOCK_STREAM', 2: 'SOCK_DGRAM', 3: 'SOCK_RAW', 4: 'SOCK_RDM', 5: 'SOCK_SEQPACKET'}
-        sockProtocolReverseLookUp = {1: 'IPPROTO_ICMP', 2: 'IPPROTO_IGMP', 3: 'BTHPROTO_RFCOMM', 6: 'IPPROTO_TCP',
-                                     17: 'IPPROTO_UDP', 58: 'IPPROTO_ICMPV6', 113: 'IPPROTO_RM'}
-        groupReverseLookUp = {1: 'SG_UNCONSTRAINED_GROUP', 2: 'SG_CONSTRAINED_GROUP'}
-        dwFlagsReverseLookUp = {1: 'WSA_FLAG_OVERLAPPED', 2: 'WSA_FLAG_MULTIPOINT_C_ROOT',
-                                4: 'WSA_FLAG_MULTIPOINT_C_LEAF', 8: 'WSA_FLAG_MULTIPOINT_D_ROOT',
-                                16: 'WSA_FLAG_MULTIPOINT_D_LEAF', 64: 'WSA_FLAG_ACCESS_SYSTEM_SECURITY',
-                                128: 'WSA_FLAG_NO_HANDLE_INHERIT'}
-
-        pVals[0] = getLookUpVal(pVals[0],aFReverseLookUp)
-        pVals[1] = getLookUpVal(pVals[1],sockTypeReverseLookUp)
-        pVals[2] = getLookUpVal(pVals[2],sockProtocolReverseLookUp)
-        pVals[4] = getLookUpVal(pVals[4],groupReverseLookUp)
-        pVals[5] = getLookUpVal(pVals[5],dwFlagsReverseLookUp)
+        
+        pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.Socket.Af)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.Socket.Type)
+        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Socket.Protocol)
+        pVals[4] = getLookUpVal(pVals[4], ReverseLookUps.Socket.Group)
+        pVals[5] = getLookUpVal(pVals[5], ReverseLookUps.Socket.Flags)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [0, 1, 2, 4, 5])
         
@@ -614,15 +596,10 @@ class CustomWinAPIs():
         pTypes = ['int', 'int', 'int']
         pNames = ['af', 'type', 'protocol']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-        aFReverseLookUp = {0: 'AF_UNSPEC', 2: 'AF_INET', 6: 'AF_IPX', 16: 'AF_APPLETALK', 17: 'AF_NETBIOS',
-                           23: 'AF_INET6', 26: 'AF_IRDA', 32: 'AF_BTH'}
-        sockTypeReverseLookUp = {1: 'SOCK_STREAM', 2: 'SOCK_DGRAM', 3: 'SOCK_RAW', 4: 'SOCK_RDM', 5: 'SOCK_SEQPACKET'}
-        sockProtocolReverseLookUp = {1: 'IPPROTO_ICMP', 2: 'IPPROTO_IGMP', 3: 'BTHPROTO_RFCOMM', 6: 'IPPROTO_TCP',
-                                     17: 'IPPROTO_UDP', 58: 'IPPROTO_ICMPV6', 113: 'IPPROTO_RM'}
 
-        pVals[0] = getLookUpVal(pVals[0],aFReverseLookUp)
-        pVals[1] = getLookUpVal(pVals[1],sockTypeReverseLookUp)
-        pVals[2] = getLookUpVal(pVals[2],sockProtocolReverseLookUp)
+        pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.Socket.Af)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.Socket.Type)
+        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Socket.Protocol)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [0, 1, 2])
 
@@ -1006,6 +983,56 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("CryptDecrypt", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def LoadResource(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HMODULE', 'HRSRC']
+        pNames= ['hModule', 'hResInfo']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr=hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("LoadResource", hex(callAddr), (retValStr), 'HGLOBAL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def SetProcessDEPPolicy(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['DWORD']
+        pNames= ['dwFlags']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+        pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.SystemParametersInfo.Action)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+        retVal = 0x1
+
+        retValStr='True'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("SetProcessDEPPolicy", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def OpenProcessToken(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HANDLE', 'DWORD', 'PHANDLE']
+        pNames= ['ProcessHandle', 'DesiredAccess', 'TokenHandle']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+        pVals[0] = getLookUpVal(pVals[0], OpenProcessToken.SystemParametersInfo.Action)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        retVal = 0x1
+
+        retValStr='True'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("OpenProcessToken", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def HeapCreate(self, uc: Uc, eip, esp, export_dict, callAddr, em):
@@ -2138,11 +2165,8 @@ class CustomWinAPIs():
         pTypes = ['HWND', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'INT']
         pNames = ['hwnd', 'lpOperation', 'lpFile', 'lpParameters', 'lpDirectory', 'nShowCmd']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-        cmdShowReverseLookUp = {0: 'SW_HIDE', 1: 'SW_NORMAL', 2: 'SW_SHOWMINIMIZED', 3: 'SW_MAXIMIZE',
-                                4: 'SW_SHOWNOACTIVATE', 5: 'SW_SHOW', 6: 'SW_MINIMIZE', 7: 'SW_SHOWMINNOACTIVE',
-                                8: 'SW_SHOWNA', 9: 'SW_RESTORE', 16: 'SW_SHOWDEFAULT', 17: 'SW_FORCEMINIMIZE'}
 
-        pVals[5] = getLookUpVal(pVals[5], cmdShowReverseLookUp)
+        pVals[5] = getLookUpVal(pVals[5], ReverseLookUps.ShellExecute.cmdShow)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[5])
         
@@ -2159,11 +2183,8 @@ class CustomWinAPIs():
         pTypes = ['HWND', 'LPCWSTR', 'LPCWSTR', 'LPCWSTR', 'LPCWSTR', 'INT']
         pNames = ['hwnd', 'lpOperation', 'lpFile', 'lpParameters', 'lpDirectory', 'nShowCmd']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-        cmdShowReverseLookUp = {0: 'SW_HIDE', 1: 'SW_NORMAL', 2: 'SW_SHOWMINIMIZED', 3: 'SW_MAXIMIZE',
-                                4: 'SW_SHOWNOACTIVATE', 5: 'SW_SHOW', 6: 'SW_MINIMIZE', 7: 'SW_SHOWMINNOACTIVE',
-                                8: 'SW_SHOWNA', 9: 'SW_RESTORE', 16: 'SW_SHOWDEFAULT', 17: 'SW_FORCEMINIMIZE'}
-
-        pVals[5] = getLookUpVal(pVals[5], cmdShowReverseLookUp)
+        
+        pVals[5] = getLookUpVal(pVals[5], ReverseLookUps.ShellExecute.cmdShow)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[5])
         
@@ -2172,6 +2193,42 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("ShellExecuteW", hex(callAddr), (retValStr), 'HINSTANCE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def ShellExecuteExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['SHELLEXECUTEINFOA']
+        pNames= ['pExecInfo']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        info = get_SHELLEXECUTEINFOA(uc, pVals[0], em)
+
+        pVals[0] = makeStructVals(uc, info, pVals[0])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+
+        retVal = 0x1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("ShellExecuteExA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def ShellExecuteExW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['SHELLEXECUTEINFOW']
+        pNames= ['pExecInfo']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        info = get_SHELLEXECUTEINFOW(uc, pVals[0], em)
+
+        pVals[0] = makeStructVals(uc, info, pVals[0])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+
+        retVal = 0x1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("ShellExecuteExW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def system(self, uc: Uc, eip, esp, export_dict, callAddr, em):
@@ -2810,10 +2867,9 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def RegOpenKeyA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes = ['HKEY', 'LPCSTR', 'PHKEY']
         pNames = ['hkey', 'lpSubKey', 'phkResult']
-
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
         
 
         lpSubKey = read_string(uc, pVals[1])
@@ -6377,9 +6433,9 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def SetWindowsHookExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes = ['int', 'HOOKPROC', 'HINSTANCE', 'DWORD']
         pNames = ['idHook', 'lpfn', 'hmod', 'dwThreadId']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         idHookReverseLookUp = {4: 'WH_CALLWNDPROC', 18: 'WH_CALLWNDPROCRET', 5: 'WH_CBT', 9: 'WH_DEBUG',
                                17: 'WH_FOREGROUNDIDLE', 3: 'WH_GETMESSAGE', 1: 'WH_JOURNALPLAYBACK',
@@ -8433,8 +8489,9 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         try:
+            li = get_LARGE_INTEGER(uc, pVals[0], em)
             pc = perf_counter_ns()
-            li = LARGE_INTEGER(QuadPart=pc)
+            li.QuadPart = pc
             li.writeToMemory(uc,pVals[0])
         except:
             pass
@@ -9472,7 +9529,7 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         timeZone = get_TIME_ZONE_INFORMATION(uc, pVals[0], em)
-        timeZone.DaylightName = 'ABCDEFGHIJKLMNOQRSTUVWXYZ01234'
+        timeZone.DaylightName = 'ABCDEFGHIJKLMNOQRSTUVWXYZ01234' # Needs Work
         timeZone.StandardName = 'TestStandard'
         timeZone.DaylightDate.setTime(False, emuSimVals.system_time_since_epoch)
         timeZone.StandardDate.setTime(False, emuSimVals.system_time_since_epoch)
@@ -9506,6 +9563,61 @@ class CustomWinAPIs():
 
         logged_calls= ("GetStartupInfoW", hex(callAddr), (retValStr), 'VOID', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetSystemInfo(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['LPSYSTEM_INFO'] 
+        pNames = ['lpSystemInfo'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # might expand with config
+
+        sysinfo = get_SYSTEM_INFO(uc, pVals[0], em)
+
+        sysinfo.DUMMYSTRUCTNAME.wProcessorArchitecture = 9
+        sysinfo.dwPageSize = 4096
+        sysinfo.dwNumberOfProcessors = 4
+        sysinfo.dwProcessorType = 8664
+
+        sysinfo.writeToMemory(uc, pVals[0])
+
+        pVals[0] = makeStructVals(uc, sysinfo, pVals[0])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+        
+        retVal = 0x0
+        retValStr = "None"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("GetSystemInfo", hex(callAddr), (retValStr), 'VOID', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetNativeSystemInfo(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['LPSYSTEM_INFO'] 
+        pNames = ['lpSystemInfo'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # might expand with config
+
+        sysinfo = get_SYSTEM_INFO(uc, pVals[0], em)
+
+        sysinfo.DUMMYSTRUCTNAME.wProcessorArchitecture = 9
+        sysinfo.dwPageSize = 4096
+        sysinfo.dwNumberOfProcessors = 4
+        sysinfo.dwProcessorType = 8664
+
+        sysinfo.writeToMemory(uc, pVals[0])
+
+        pVals[0] = makeStructVals(uc, sysinfo, pVals[0])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+        
+        retVal = 0x0
+        retValStr = "None"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("GetNativeSystemInfo", hex(callAddr), (retValStr), 'VOID', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def RegisterHotKey(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes =['HWND', 'int', 'UINT', 'UINT'] 
@@ -9849,6 +9961,104 @@ class CustomWinAPIs():
         logged_calls= ("CryptDestroyKey", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def GetIpNetTable(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['PMIB_IPNETTABLE', 'PULONG', 'BOOL']
+        pNames= ['IpNetTable', 'SizePointer', 'Order']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr= 'NO_ERROR'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetIpNetTable", hex(callAddr), (retValStr), 'ULONG', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetLogicalDrives(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= []
+        pNames= []
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetLogicalDrives", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def OpenThread(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['DWORD', 'BOOL', 'DWORD']
+        pNames= ['dwDesiredAccess', 'bInheritHandle', 'dwThreadId']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("OpenThread", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def SuspendThread(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HANDLE']
+        pNames= ['hThread']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("SuspendThread", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def AttachThreadInput(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['DWORD', 'DWORD', 'DWORD']
+        pNames= ['idAttach', 'idAttachTo', 'fAttach']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("AttachThreadInput", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def QueueUserAPC(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['PAPCFUNC', 'HANLDE', 'ULONG_PTR']
+        pNames= ['pfnAPC', 'hThread', 'dwData']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("QueueUserAPC", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CallNextHookEx(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['PAPCFUNC', 'HANLDE', 'ULONG_PTR']
+        pNames= ['pfnAPC', 'hThread', 'dwData']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CallNextHookEx", hex(callAddr), (retValStr), 'LRESULT', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def FindFirstUrlCacheEntryA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['LPCSTR', 'LPINTERNET_CACHE_ENTRY_INFOA', 'LPDWORD']
         pNames= ['lpszUrlSearchPattern', 'lpFirstCacheEntryInfo', 'lpcbCacheEntryInfo']
@@ -9876,6 +10086,39 @@ class CustomWinAPIs():
 
         logged_calls= ("FindNextUrlCacheEntryA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def WNetAddConnection2A(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LPNETRESOURCEA', 'LPCSTR', 'LPCSTR', 'DWORD']
+        pNames= ['lpNetResource', 'lpPassword', 'lpUserName', 'dwFlags']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        dwFlagsReverseLookUp = {1: 'CONNECT_UPDATE_PROFILE', 2: 'CONNECT_UPDATE_RECENT', 4: 'CONNECT_TEMPORARY', 8: 'CONNECT_INTERACTIVE', 16: 'CONNECT_PROMPT', 128: 'CONNECT_REDIRECT', 512: 'CONNECT_CURRENT_MEDIA', 2048: 'CONNECT_COMMANDLINE', 4096: 'CONNECT_CMD_SAVECRED', 8192: 'CONNECT_CRED_RESET'}
+
+        pVals[3] = getLookUpVal(pVals[3],dwFlagsReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
+
+        retVal = 0x55555555
+        retValStr= 'NO_ERROR'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("WNetAddConnection2A", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def WNetAddConnectionA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LPCSTR', 'LPCSTR', 'LPCSTR']
+        pNames= ['lpRemoteName', 'lpPassword', 'lpLocalName']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x55555555
+        retValStr= 'NO_ERROR'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("WNetAddConnectionA", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def DuplicateToken(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['HANDLE', 'SECURITY_IMPERSONATION_LEVEL', 'PHANDLE']
@@ -10310,9 +10553,9 @@ class CustomWinAPIs():
 
     def CreateDirectoryW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         #'CreateDirectoryA': (2, ['LPCSTR', 'LPSECURITY_ATTRIBUTES'], ['lpPathName', 'lpSecurityAttributes'], 'thunk BOOL')
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes= ['LPCWSTR', 'LPSECURITY_ATTRIBUTES']
         pNames= ['lpPathName', 'lpSecurityAttributes']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
 
@@ -10325,7 +10568,6 @@ class CustomWinAPIs():
 
     def RemoveDirectoryW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
          #'RemoveDirectoryW': (1, ['LPCWSTR'], ['lpPathName'], 'thunk BOOL')
-        pVals = makeArgVals(uc, eip, esp, export_dict, callAddr, 1)
         pTypes= ['LPCWSTR']
         pNames= ['lpPathName']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -10981,8 +11223,8 @@ class CustomWinAPIs():
         writeAddress = pVals[1]
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         scanCode = pVals[0]
-        keyboardCode = ReverseLookUps.SCtoVK.get(int(scanCode,16),'0')
-        keyName = ReverseLookUps.VirtualKey.get(keyboardCode,'0')
+        keyboardCode = ReverseLookUps.KeyBoard.SCtoVK.get(int(scanCode,16),'0')
+        keyName = ReverseLookUps.KeyBoard.VirtualKey.get(keyboardCode,'0')
         #Currently returns a static key name for any key code passed in.
         
         #write to the lpBuffer
@@ -11008,8 +11250,8 @@ class CustomWinAPIs():
         writeAddress = pVals[1]
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         scanCode = pVals[0]
-        keyboardCode = ReverseLookUps.SCtoVK.get(int(scanCode,16),'0')
-        keyName = ReverseLookUps.VirtualKey.get(keyboardCode,'0')
+        keyboardCode = ReverseLookUps.KeyBoard.SCtoVK.get(int(scanCode,16),'0')
+        keyName = ReverseLookUps.KeyBoard.VirtualKey.get(keyboardCode,'0')
         #Currently returns a static key name for any key code passed in.
         
         #write to the lpBuffer
@@ -11059,14 +11301,14 @@ class CustomWinAPIs():
         
         #get key from GeeksForGeeks, https://www.geeksforgeeks.org/python-get-key-from-value-in-dictionary/
         def get_key(val):
-            for key, value in ReverseLookUps.VirtualKey.items():
+            for key, value in ReverseLookUps.KeyBoard.VirtualKey.items():
                  if val == value:
                      return key
  
             return 0x999
 
         def checkRightCodeVK(keysVal):
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             if re.search('VK_R.+',charMapping):
                 charMapping = list(charMapping)
                 charMapping[3] = 'L'
@@ -11074,13 +11316,13 @@ class CustomWinAPIs():
                 return get_key(charMapping)
 
         def checkRightCodeSC(keysVal):
-            result = ReverseLookUps.SCtoVK.get(keysVal,0)
+            result = ReverseLookUps.KeyBoard.SCtoVK.get(keysVal,0)
             leftVK = checkRightCodeVK(result)
-            return ReverseLookUps.VKtoSC.get(leftVK)
+            return ReverseLookUps.KeyBoard.VKtoSC.get(leftVK)
 
         def VKtoSCretVal(keysVal):
-            result = ReverseLookUps.VKtoSC.get(keysVal,0)
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            result = ReverseLookUps.KeyBoard.VKtoSC.get(keysVal,0)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             keysVal = hex(keysVal)+" ("+charMapping+")"
             if(result == 0):
                 retVal = 0x90
@@ -11092,8 +11334,8 @@ class CustomWinAPIs():
                 return retVal, retValStr, keysVal
 
         def SCtoVKretVal(keysVal):
-            result = ReverseLookUps.SCtoVK.get(keysVal,0)
-            charMapping = getLookUpVal(result,ReverseLookUps.VirtualKey)
+            result = ReverseLookUps.KeyBoard.SCtoVK.get(keysVal,0)
+            charMapping = getLookUpVal(result,ReverseLookUps.KeyBoard.VirtualKey)
             resultStr = hex(result)+" ("+charMapping+")"
             if(result == 0):
                 retVal = 0x90
@@ -11120,7 +11362,7 @@ class CustomWinAPIs():
             retVal,retValStr = SCtoVKretVal(keysVal)
         elif(mapType == 2):
             #print('virtual -> unshifted char val in lowest order word')
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             retVal = keysVal
             retValStr = charMapping
         elif(mapType == 3):
@@ -11134,7 +11376,7 @@ class CustomWinAPIs():
             retValStr= hex(retVal)
 
         #pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[1])
-        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.MapKey_MapType_ReverseLookUp)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.KeyBoard.MapKey_MapType_ReverseLookUp)
         uc.reg_write(UC_X86_REG_EAX, retVal)    
 
         logged_calls= ("MapVirtualKeyA", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
@@ -11148,14 +11390,14 @@ class CustomWinAPIs():
         
         #get key from GeeksForGeeks, https://www.geeksforgeeks.org/python-get-key-from-value-in-dictionary/
         def get_key(val):
-            for key, value in ReverseLookUps.VirtualKey.items():
+            for key, value in ReverseLookUps.KeyBoard.VirtualKey.items():
                  if val == value:
                      return key
  
             return 0x999
 
         def checkRightCodeVK(keysVal):
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             if re.search('VK_R.+',charMapping):
                 charMapping = list(charMapping)
                 charMapping[3] = 'L'
@@ -11163,13 +11405,13 @@ class CustomWinAPIs():
                 return get_key(charMapping)
 
         def checkRightCodeSC(keysVal):
-            result = ReverseLookUps.SCtoVK.get(keysVal,0)
+            result = ReverseLookUps.KeyBoard.SCtoVK.get(keysVal,0)
             leftVK = checkRightCodeVK(result)
-            return ReverseLookUps.VKtoSC.get(leftVK)
+            return ReverseLookUps.KeyBoard.VKtoSC.get(leftVK)
 
         def VKtoSCretVal(keysVal):
-            result = ReverseLookUps.VKtoSC.get(keysVal,0)
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            result = ReverseLookUps.KeyBoard.VKtoSC.get(keysVal,0)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             keysVal = hex(keysVal)+" ("+charMapping+")"
             if(result == 0):
                 retVal = 0x90
@@ -11181,8 +11423,8 @@ class CustomWinAPIs():
                 return retVal, retValStr, keysVal
 
         def SCtoVKretVal(keysVal):
-            result = ReverseLookUps.SCtoVK.get(keysVal,0)
-            charMapping = getLookUpVal(result,ReverseLookUps.VirtualKey)
+            result = ReverseLookUps.KeyBoard.SCtoVK.get(keysVal,0)
+            charMapping = getLookUpVal(result,ReverseLookUps.KeyBoard.VirtualKey)
             resultStr = hex(result)+" ("+charMapping+")"
             if(result == 0):
                 retVal = 0x90
@@ -11209,7 +11451,7 @@ class CustomWinAPIs():
             retVal,retValStr = SCtoVKretVal(keysVal)
         elif(mapType == 2):
             #print('virtual -> unshifted char val in lowest order word')
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             retVal = keysVal
             retValStr = charMapping
         elif(mapType == 3):
@@ -11223,7 +11465,7 @@ class CustomWinAPIs():
             retValStr= hex(retVal)
 
         #pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[1])
-        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.MapKey_MapType_ReverseLookUp)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.KeyBoard.MapKey_MapType_ReverseLookUp)
         uc.reg_write(UC_X86_REG_EAX, retVal)    
 
         logged_calls= ("MapVirtualKeyW", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
@@ -11237,14 +11479,14 @@ class CustomWinAPIs():
         
         #get key from GeeksForGeeks, https://www.geeksforgeeks.org/python-get-key-from-value-in-dictionary/
         def get_key(val):
-            for key, value in ReverseLookUps.VirtualKey.items():
+            for key, value in ReverseLookUps.KeyBoard.VirtualKey.items():
                  if val == value:
                      return key
  
             return 0x999
 
         def checkRightCodeVK(keysVal):
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             if re.search('VK_R.+',charMapping):
                 charMapping = list(charMapping)
                 charMapping[3] = 'L'
@@ -11252,13 +11494,13 @@ class CustomWinAPIs():
                 return get_key(charMapping)
 
         def checkRightCodeSC(keysVal):
-            result = ReverseLookUps.SCtoVK.get(keysVal,0)
+            result = ReverseLookUps.KeyBoard.SCtoVK.get(keysVal,0)
             leftVK = checkRightCodeVK(result)
-            return ReverseLookUps.VKtoSC.get(leftVK)
+            return ReverseLookUps.KeyBoard.VKtoSC.get(leftVK)
 
         def VKtoSCretVal(keysVal):
-            result = ReverseLookUps.VKtoSC.get(keysVal,0)
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            result = ReverseLookUps.KeyBoard.VKtoSC.get(keysVal,0)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             keysVal = hex(keysVal)+" ("+charMapping+")"
             if(result == 0):
                 retVal = 0x90
@@ -11270,8 +11512,8 @@ class CustomWinAPIs():
                 return retVal, retValStr, keysVal
 
         def SCtoVKretVal(keysVal):
-            result = ReverseLookUps.SCtoVK.get(keysVal,0)
-            charMapping = getLookUpVal(result,ReverseLookUps.VirtualKey)
+            result = ReverseLookUps.KeyBoard.SCtoVK.get(keysVal,0)
+            charMapping = getLookUpVal(result,ReverseLookUps.KeyBoard.VirtualKey)
             resultStr = hex(result)+" ("+charMapping+")"
             if(result == 0):
                 retVal = 0x90
@@ -11298,7 +11540,7 @@ class CustomWinAPIs():
             retVal,retValStr = SCtoVKretVal(keysVal)
         elif(mapType == 2):
             #print('virtual -> unshifted char val in lowest order word')
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             retVal = keysVal
             retValStr = charMapping
         elif(mapType == 3):
@@ -11312,8 +11554,8 @@ class CustomWinAPIs():
             retValStr= hex(retVal)
 
         #pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[1])
-        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.MapKey_MapType_ReverseLookUp)
-        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.keyboardLanguages)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.KeyBoard.MapKey_MapType_ReverseLookUp)
+        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.KeyBoard.keyboardLanguages)
         uc.reg_write(UC_X86_REG_EAX, retVal)    
 
         logged_calls= ("MapVirtualKeyExA", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
@@ -11327,14 +11569,14 @@ class CustomWinAPIs():
         
         #get key from GeeksForGeeks, https://www.geeksforgeeks.org/python-get-key-from-value-in-dictionary/
         def get_key(val):
-            for key, value in ReverseLookUps.VirtualKey.items():
+            for key, value in ReverseLookUps.KeyBoard.VirtualKey.items():
                  if val == value:
                      return key
  
             return 0x999
 
         def checkRightCodeVK(keysVal):
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             if re.search('VK_R.+',charMapping):
                 charMapping = list(charMapping)
                 charMapping[3] = 'L'
@@ -11342,13 +11584,13 @@ class CustomWinAPIs():
                 return get_key(charMapping)
 
         def checkRightCodeSC(keysVal):
-            result = ReverseLookUps.SCtoVK.get(keysVal,0)
+            result = ReverseLookUps.KeyBoard.SCtoVK.get(keysVal,0)
             leftVK = checkRightCodeVK(result)
-            return ReverseLookUps.VKtoSC.get(leftVK)
+            return ReverseLookUps.KeyBoard.VKtoSC.get(leftVK)
 
         def VKtoSCretVal(keysVal):
-            result = ReverseLookUps.VKtoSC.get(keysVal,0)
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            result = ReverseLookUps.KeyBoard.VKtoSC.get(keysVal,0)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             keysVal = hex(keysVal)+" ("+charMapping+")"
             if(result == 0):
                 retVal = 0x90
@@ -11360,8 +11602,8 @@ class CustomWinAPIs():
                 return retVal, retValStr, keysVal
 
         def SCtoVKretVal(keysVal):
-            result = ReverseLookUps.SCtoVK.get(keysVal,0)
-            charMapping = getLookUpVal(result,ReverseLookUps.VirtualKey)
+            result = ReverseLookUps.KeyBoard.SCtoVK.get(keysVal,0)
+            charMapping = getLookUpVal(result,ReverseLookUps.KeyBoard.VirtualKey)
             resultStr = hex(result)+" ("+charMapping+")"
             if(result == 0):
                 retVal = 0x90
@@ -11388,7 +11630,7 @@ class CustomWinAPIs():
             retVal,retValStr = SCtoVKretVal(keysVal)
         elif(mapType == 2):
             #print('virtual -> unshifted char val in lowest order word')
-            charMapping = getLookUpVal(keysVal,ReverseLookUps.VirtualKey)
+            charMapping = getLookUpVal(keysVal,ReverseLookUps.KeyBoard.VirtualKey)
             retVal = keysVal
             retValStr = charMapping
         elif(mapType == 3):
@@ -11402,8 +11644,8 @@ class CustomWinAPIs():
             retValStr= hex(retVal)
 
         #pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[1])
-        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.MapKey_MapType_ReverseLookUp)
-        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.keyboardLanguages)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.KeyBoard.MapKey_MapType_ReverseLookUp)
+        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.KeyBoard.keyboardLanguages)
         uc.reg_write(UC_X86_REG_EAX, retVal)    
 
         logged_calls= ("MapVirtualKeyExW", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
@@ -11418,8 +11660,8 @@ class CustomWinAPIs():
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[1])
         
         keyboardIdentifier = int(pVals[0],16)
-        keyboardIdentifierStr = getLookUpVal(keyboardIdentifier, ReverseLookUps.keyboardLanguages)
-        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.loadKeyboard_uFlags_ReverseLookUp)
+        keyboardIdentifierStr = getLookUpVal(keyboardIdentifier, ReverseLookUps.KeyBoard.keyboardLanguages)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.KeyBoard.loadKeyboard_uFlags_ReverseLookUp)
         retVal = keyboardIdentifier
         retValStr= hex(keyboardIdentifier) + " (" +keyboardIdentifierStr + ")"
         uc.reg_write(UC_X86_REG_EAX, retVal)     
@@ -11437,7 +11679,7 @@ class CustomWinAPIs():
         
         keyboardIdentifier = int(pVals[0],16)
         keyboardIdentifierStr = getLookUpVal(keyboardIdentifier, ReverseLookUps.keyboardLanguages)
-        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.loadKeyboard_uFlags_ReverseLookUp)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.KeyBoard.loadKeyboard_uFlags_ReverseLookUp)
         retVal = keyboardIdentifier
         retValStr= hex(keyboardIdentifier) + " (" +keyboardIdentifierStr + ")"
         uc.reg_write(UC_X86_REG_EAX, retVal)     
@@ -11479,7 +11721,7 @@ class CustomWinAPIs():
 
         virtualKey = pVals[0]
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
-        virtualKey = getLookUpVal(virtualKey, ReverseLookUps.VirtualKey)
+        virtualKey = getLookUpVal(virtualKey, ReverseLookUps.KeyBoard.VirtualKey)
         pVals[0] += " ("+ virtualKey + ")"
 
         retVal = 128
@@ -11970,7 +12212,7 @@ class HeapAllocation:
             print('Heap Allocation Failed')
             pass
 
-class System_SnapShot:
+class System_SnapShot: # Needs Reworked For new Struct System
     def __init__(self, fakeThreads: bool, fakeModules: bool):
         self.processOffset = 0
         self.threadOffset = 0
