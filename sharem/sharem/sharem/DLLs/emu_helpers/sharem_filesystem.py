@@ -12,7 +12,8 @@ class Directory_system:
         self.rootDir = None
         self.usersDir = None
         self.windowsDir = None
-        self.currentDIR = None
+        self.currentDIR = None  #set this to be something from the config file
+       
     def CreateNewFolder(self,folderName,ParentFolder):
         return {folderName:Dir_nodes(folderName,ParentFolder)}
     def InitializeFileSystem(self):

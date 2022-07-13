@@ -11,12 +11,12 @@ from struct import pack, unpack
 from ..helper.emuHelpers import Uc
 from ..modules import allDllsDict
 import traceback
-from ..sharem_artifacts import *
-from ..sharem_filesystem import *
+from sharem.sharem.DLLs.emu_helpers.sharem_artifacts import *
+from sharem.sharem.DLLs.emu_helpers.sharem_filesystem import *
 import re
 
 art = Artifacts_emulation()
-global currentDirectory
+#global currentDirectory
 
 FakeProcess = 0xbadd0000
 availMem = 0x25000000
@@ -108,6 +108,7 @@ class EmulationSimulationValues:
         self.system_time_since_epoch = 0
         self.system_uptime_minutes = 60
         self.clipboard_data = 'https://sharem.com/login/#'
+        self.users = ['administrator']
 
 emuSimVals = EmulationSimulationValues()
 
@@ -11923,7 +11924,7 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
-
+        ##after the function ends it calls into another place in memory, is there a way to emulate this?
 
         retVal = 16
         retValStr= hex(retVal)
