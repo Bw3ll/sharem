@@ -2,7 +2,13 @@ import os
 import configparser
 
 from .singleton import Singleton
+'''
+1. add a commented template file
+2. the template can be restored if the user wants it
+    any comments will be delted when we write to the file.
 
+
+'''
 
 class Configuration(metaclass=Singleton):
 

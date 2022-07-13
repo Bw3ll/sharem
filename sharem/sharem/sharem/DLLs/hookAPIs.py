@@ -11,10 +11,12 @@ from struct import pack, unpack
 from ..helper.emuHelpers import Uc
 from ..modules import allDllsDict
 import traceback
-from ..sharem_artifacts import *
+from sharem.sharem.DLLs.emu_helpers.sharem_artifacts import *
+from sharem.sharem.DLLs.emu_helpers.sharem_filesystem import *
 import re
 
 art = Artifacts_emulation()
+#global currentDirectory
 
 FakeProcess = 0xbadd0000
 availMem = 0x25000000
@@ -65,6 +67,7 @@ class HandleType(Enum):
     charName = auto()
     # Other
     HGLOBAL = auto()
+    Timer = auto()
     DuplicateToken = auto()
     # Module
     HMODULE = auto()
@@ -105,6 +108,7 @@ class EmulationSimulationValues:
         self.system_time_since_epoch = 0
         self.system_uptime_minutes = 60
         self.clipboard_data = 'https://sharem.com/login/#'
+        self.users = ['administrator']
 
 emuSimVals = EmulationSimulationValues()
 
@@ -11184,16 +11188,19 @@ class CustomWinAPIs():
         pTypes= ['LPCTSTR']
         pNames= ['lpPathName']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-
+        #global currentDirectory
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
-        currentDirectory = pVals[0]
-        #changes relative paths into absolute paths
-        if(".." in pVals[0]):
+        changeDir = pVals[0]
+        #checks the path type
+        if(".." in changeDir):
             #have a workaround for now to convert to an absolute path
-            currentDirectory = "C:\\"+ currentDirectory.replace('..','SHAREM_PATH')
-        #print(currentDirectory)
-        art.path_artifacts.append(currentDirectory)
+            changeDir = directory.setCurrentDir(changeDir,0)
+        else:
+            #is absolute path
+            changeDir = directory.setCurrentDir(changeDir,1)
+        
+        art.path_artifacts.append(changeDir)          
         retVal = 0x1
         retValStr= 'True'
         uc.reg_write(UC_X86_REG_EAX, retVal)     
@@ -11822,6 +11829,123 @@ class CustomWinAPIs():
 
         logged_calls= ("GetDC", hex(callAddr), (retValStr), 'HDC', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CreateWaitableTimerW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'CreateWaitableTimerW': (3, ['LPSECURITY_ATTRIBUTES', 'BOOL', 'LPCWSTR'], ['lpTimerAttributes', 'bManualReset', 'lpTimerName'], 'HANDLE')
+        pTypes= ['LPSECURITY_ATTRIBUTES', 'BOOL', 'LPCWSTR']
+        pNames= ['lpTimerAttributes', 'bManualReset', 'lpTimerName']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        handle = Handle(HandleType.Timer,name=pVals[2])
+        retVal = handle.value
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CreateWaitableTimerW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CreateWaitableTimerExW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'CreateWaitableTimerExW': (4, ['LPSECURITY_ATTRIBUTES', 'LPWSTR', 'DWORD', 'DWORD'], ['lpTimerAttributes', 'lpTimerName', 'dwFlags', 'dwDesiredAccess'], 'HANDLE')
+        pTypes= ['LPSECURITY_ATTRIBUTES', 'LPWSTR', 'DWORD', 'DWORD']
+        pNames= ['lpTimerAttributes', 'lpTimerName', 'dwFlags', 'dwDesiredAccess']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        dwFlags_ReverseLookUp = {1: 'CREATE_WAITABLE_TIMER_MANUAL_RESET', 2: 'CREATE_WAITABLE_TIMER_HIGH_RESOLUTION'}
+        timerAccessRights_ReverseLookUp = {2031619: 'TIMER_ALL_ACCESS', 2: 'TIMER_MODIFY_STATE', 1: 'TIMER_QUERY_STATE'}
+
+        pVals[2] = getLookUpVal(pVals[2],dwFlags_ReverseLookUp)
+        pVals[3] = getLookUpVal(pVals[3], timerAccessRights_ReverseLookUp)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[2,3])
+        
+        handle = Handle(HandleType.Timer,name=pVals[1])
+
+        retVal = handle.value
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CreateWaitableTimerExW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CreateWaitableTimerA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #CreateWaitableTimerA': (3, ['LPSECURITY_ATTRIBUTES', 'BOOL', 'LPCSTR'], ['lpTimerAttributes', 'bManualReset', 'lpTimerName'], 'HANDLE')
+        pTypes= ['LPSECURITY_ATTRIBUTES', 'BOOL', 'LPCSTR']
+        pNames= ['lpTimerAttributes', 'bManualReset', 'lpTimerName']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        handle = Handle(HandleType.Timer,name=pVals[2])
+        retVal = handle.value
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CreateWaitableTimerA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CreateWaitableTimerExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'CreateWaitableTimerExA': (4, ['LPSECURITY_ATTRIBUTES', 'LPCSTR', 'DWORD', 'DWORD'], ['lpTimerAttributes', 'lpTimerName', 'dwFlags', 'dwDesiredAccess'], 'HANDLE')
+        pTypes= ['LPSECURITY_ATTRIBUTES', 'LPCSTR', 'DWORD', 'DWORD']
+        pNames= ['lpTimerAttributes', 'lpTimerName', 'dwFlags', 'dwDesiredAccess']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        dwFlags_ReverseLookUp = {1: 'CREATE_WAITABLE_TIMER_MANUAL_RESET', 2: 'CREATE_WAITABLE_TIMER_HIGH_RESOLUTION'}
+        timerAccessRights_ReverseLookUp = {2031619: 'TIMER_ALL_ACCESS', 2: 'TIMER_MODIFY_STATE', 1: 'TIMER_QUERY_STATE'}
+
+        pVals[2] = getLookUpVal(pVals[2],dwFlags_ReverseLookUp)
+        pVals[3] = getLookUpVal(pVals[3], timerAccessRights_ReverseLookUp)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[2,3])
+        
+        handle = Handle(HandleType.Timer,name=pVals[1])
+
+        retVal = handle.value
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CreateWaitableTimerExA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CreateTimerQueueTimer(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'CreateTimerQueueTimer': (7, ['PHANDLE', 'HANDLE', 'WAITORTIMERCALLBACK', 'PVOID', 'DWORD', 'DWORD', 'ULONG'], ['phNewTimer', 'TimerQueue', 'Callback', 'Parameter', 'DueTime', 'Period', 'Flags'], 'BOOL')
+        pTypes= ['PHANDLE', 'HANDLE', 'WAITORTIMERCALLBACK', 'PVOID', 'DWORD', 'DWORD', 'ULONG']
+        pNames= ['phNewTimer', 'TimerQueue', 'Callback', 'Parameter', 'DueTime', 'Period', 'Flags']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        Flags_ReverseLookUp = {0: 'WT_EXECUTEDEFAULT', 32: 'WT_EXECUTEINTIMERTHREAD', 1: 'WT_EXECUTEINIOTHREAD', 128: 'WT_EXECUTEINPERSISTENTTHREAD', 16: 'WT_EXECUTELONGFUNCTION', 8: 'WT_EXECUTEONLYONCE', 256: 'WT_TRANSFER_IMPERSONATION'}
+        pVals[6] = getLookUpVal(pVals[6], Flags_ReverseLookUp)
+
+        #handle is to be written to pVal[0]
+        handle = Handle(HandleType.Timer,name='QueueTimer')
+        writeAddress = pVals[0]
+        handle_bytes = hex(handle.value)
+        handle_bytes = bytes(handle_bytes,'utf-8')
+
+        uc.mem_write(writeAddress, handle_bytes)
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[6])
+
+
+        retVal = 1
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CreateTimerQueueTimer", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def timeSetEvent(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #timeSetEvent': (5, ['UINT', 'UINT', 'LPTIMECALLBACK', 'DWORD_PTR', 'UINT'], ['uDelay', 'uResolution', 'fptc', 'dwUser', 'fuEvent'], 'MMRESULT')
+        pTypes= ['UINT', 'UINT', 'LPTIMECALLBACK', 'DWORD_PTR', 'UINT']
+        pNames= ['uDelay', 'uResolution', 'fptc', 'dwUser', 'fuEvent']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        ##after the function ends it calls into another place in memory, is there a way to emulate this?
+
+        retVal = 16
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("timeSetEvent", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+
 
 
 class CustomWinSysCalls():

@@ -19602,6 +19602,7 @@ def emulationSimValueConf(conr):
 	emuSimVals.system_time_since_epoch = int(conr['SHAREM EMULATION SIMULATED VALUES']['system_time_since_epoch'])
 	emuSimVals.system_uptime_minutes = int(conr['SHAREM EMULATION SIMULATED VALUES']['system_uptime_minutes'])
 	emuSimVals.clipboard_data = conr['SHAREM EMULATION SIMULATED VALUES']['clipboard_data']
+	emuSimVals.users = conr['SHAREM EMULATION SIMULATED VALUES']['users']
 
 
 def SharemSearchConfig(conr):
