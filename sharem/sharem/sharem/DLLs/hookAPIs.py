@@ -12,9 +12,11 @@ from ..helper.emuHelpers import Uc
 from ..modules import allDllsDict
 import traceback
 from ..sharem_artifacts import *
+from ..sharem_filesystem import *
 import re
 
 art = Artifacts_emulation()
+global currentDirectory
 
 FakeProcess = 0xbadd0000
 availMem = 0x25000000
@@ -10930,16 +10932,19 @@ class CustomWinAPIs():
         pTypes= ['LPCTSTR']
         pNames= ['lpPathName']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-
+        #global currentDirectory
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
-        currentDirectory = pVals[0]
-        #changes relative paths into absolute paths
-        if(".." in pVals[0]):
+        changeDir = pVals[0]
+        #checks the path type
+        if(".." in changeDir):
             #have a workaround for now to convert to an absolute path
-            currentDirectory = "C:\\"+ currentDirectory.replace('..','SHAREM_PATH')
-        #print(currentDirectory)
-        art.path_artifacts.append(currentDirectory)
+            changeDir = directory.setCurrentDir(changeDir,0)
+        else:
+            #is absolute path
+            changeDir = directory.setCurrentDir(changeDir,1)
+        
+        art.path_artifacts.append(changeDir)          
         retVal = 0x1
         retValStr= 'True'
         uc.reg_write(UC_X86_REG_EAX, retVal)     
@@ -11567,6 +11572,23 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
         logged_calls= ("GetDC", hex(callAddr), (retValStr), 'HDC', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CreateWaitableTimerW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'CreateWaitableTimerW': (3, ['LPSECURITY_ATTRIBUTES', 'BOOL', 'LPCWSTR'], ['lpTimerAttributes', 'bManualReset', 'lpTimerName'], 'HANDLE')
+        pTypes= ['LPSECURITY_ATTRIBUTES', 'BOOL', 'LPCWSTR']
+        pNames= ['lpTimerAttributes', 'bManualReset', 'lpTimerName']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        
+        
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 1
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CreateWaitableTimerW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
 
