@@ -185,6 +185,12 @@ def makeStructVals(uc: Uc, struct, address: int):
                 pVals[i] = hex(pVals[i])
             except:
                 pVals[i] = str(pVals[i])
+                if pVals[i][0:2] == "b'": # Clean Up CHAR Strings
+                    pVals[i] = pVals[i][2:]
+                    if pVals[i][-1] == "'":
+                        pVals[i] = pVals[i][:-1]
+                if len(pVals[i]) == 0:
+                    pVals[i] = "[NULL]"
                 # If fail then Param is Probably String and Just Display value
 
     # zipped = tuple(zip(pTypes, pNames, pVals))

@@ -147,7 +147,7 @@ def get_PROCESSENTRY32(uc: Uc, address: int, em):
         return PROCESSENTRY32.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(PROCESSENTRY32.ARCH64)))
 
 # Struct Aliases:
-get_tagPROCESSENTRY32 = get_PROCESSENTRY32
+# get_tagPROCESSENTRY32 = get_PROCESSENTRY32
 
 class PROCESSENTRY32:
 
@@ -182,7 +182,7 @@ def get_PROCESSENTRY32W(uc: Uc, address: int, em):
         return PROCESSENTRY32W.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(PROCESSENTRY32W.ARCH64)))
 
 # Struct Aliases:
-get_tagPROCESSENTRY32W = get_PROCESSENTRY32W
+# get_tagPROCESSENTRY32W = get_PROCESSENTRY32W
 
 class PROCESSENTRY32W:
 

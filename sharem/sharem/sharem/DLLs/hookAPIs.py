@@ -555,7 +555,13 @@ class CustomWinAPIs():
         pVals[4] = getLookUpVal(pVals[4], ReverseLookUps.Socket.Group)
         pVals[5] = getLookUpVal(pVals[5], ReverseLookUps.Socket.Flags)
         
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip= [0, 1, 2, 4, 5])
+        if pVals[3] != 0:
+            info = get_WSAPROTOCOL_INFOA(uc, pVals[3], em)
+            pVals[3] = makeStructVals(uc, info, pVals[3])
+        else:
+            pVals[3] = hex(pVals[3])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip= [0, 1, 2, 3, 4, 5])
 
         socket = Handle(HandleType.Socket)
         
@@ -578,7 +584,13 @@ class CustomWinAPIs():
         pVals[4] = getLookUpVal(pVals[4], ReverseLookUps.Socket.Group)
         pVals[5] = getLookUpVal(pVals[5], ReverseLookUps.Socket.Flags)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [0, 1, 2, 4, 5])
+        if pVals[3] != 0:
+            info = get_WSAPROTOCOL_INFOW(uc, pVals[3], em)
+            pVals[3] = makeStructVals(uc, info, pVals[3])
+        else:
+            pVals[3] = hex(pVals[3])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [0, 1, 2, 3, 4, 5])
         
         socket = Handle(HandleType.Socket)
 
