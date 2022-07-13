@@ -10009,7 +10009,7 @@ class CustomWinAPIs():
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
 
         retVal = 0x88888888
-        retValStr= 'SUCCESS'
+        retValStr= hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
         logged_calls= ("SuspendThread", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
@@ -10101,6 +10101,20 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
         logged_calls= ("WNetAddConnection2A", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def WNetAddConnectionA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LPCSTR', 'LPCSTR', 'LPCSTR']
+        pNames= ['lpRemoteName', 'lpPassword', 'lpLocalName']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x55555555
+        retValStr= 'NO_ERROR'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("WNetAddConnectionA", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
 
