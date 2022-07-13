@@ -1,4 +1,4 @@
-from ctypes import c_byte, c_char, c_double, c_float, c_int, c_int32, c_int64, c_longlong, c_short, c_uint, c_uint32, c_uint64, c_ulonglong, c_ushort, c_wchar
+from ctypes import c_byte, c_char, c_double, c_float, c_int, c_int32, c_int64, c_longlong, c_short, c_ubyte, c_uint, c_uint32, c_uint64, c_ulonglong, c_ushort, c_wchar
 from struct import unpack
 from ..helper.emuHelpers import Uc
 
@@ -15,6 +15,7 @@ DWORD = c_uint32
 
 CHAR = c_char
 WCHAR = c_wchar
+UCHAR = c_ubyte
 
 BOOLEAN = BYTE
 BOOL = c_uint32
