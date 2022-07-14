@@ -801,7 +801,7 @@ def get_GUID(uc: Uc, address: int, em):
 # get__GUID = get_GUID
 
 class GUID(LittleEndianStructure):
-    types = ['unsigned long', 'unsigned short', 'unsigned short', 'unsigned char']
+    types = ['ULONG', 'USHORT', 'USHORT', 'UCHAR']
     __slots__ = ('Data1', 'Data2', 'Data3', 'Data4')
     lookUps = {}
 
