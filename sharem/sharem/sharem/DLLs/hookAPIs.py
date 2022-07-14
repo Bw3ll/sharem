@@ -3,6 +3,8 @@ from enum import Enum, auto
 from random import choice, randint
 from time import perf_counter_ns
 from urllib.parse import quote, unquote
+from sharem.sharem.DLLs.emu_helpers.sharem_artifacts import Artifacts_emulation
+from sharem.sharem.DLLs.emu_helpers.sharem_filesystem import Directory_system
 from sharem.sharem.DLLs.reverseLookUps import ReverseLookUps
 from sharem.sharem.DLLs.structures import *
 from sharem.sharem.helper.structHelpers import makeStructVals
@@ -11,12 +13,13 @@ from struct import pack, unpack
 from ..helper.emuHelpers import Uc
 from ..modules import allDllsDict
 import traceback
-from sharem.sharem.DLLs.emu_helpers.sharem_artifacts import *
-from sharem.sharem.DLLs.emu_helpers.sharem_filesystem import *
 import re
 
 art = Artifacts_emulation()
 #global currentDirectory
+
+# Instance of File System
+SimFileSystem = Directory_system()
 
 FakeProcess = 0xbadd0000
 availMem = 0x25000000
@@ -109,6 +112,8 @@ class EmulationSimulationValues:
         self.system_uptime_minutes = 60
         self.clipboard_data = 'https://sharem.com/login/#'
         self.users = ['administrator']
+        self.drive_letter = 'C:'
+        self.start_directory = 'C:\\users\\adminitsrator\\desktop'
 
 emuSimVals = EmulationSimulationValues()
 
@@ -11195,10 +11200,10 @@ class CustomWinAPIs():
         #checks the path type
         if(".." in changeDir):
             #have a workaround for now to convert to an absolute path
-            changeDir = directory.setCurrentDir(changeDir,0)
+            changeDir = SimFileSystem.setCurrentDir(changeDir,0)
         else:
             #is absolute path
-            changeDir = directory.setCurrentDir(changeDir,1)
+            changeDir = SimFileSystem.setCurrentDir(changeDir,1)
         
         art.path_artifacts.append(changeDir)          
         retVal = 0x1

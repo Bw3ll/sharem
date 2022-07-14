@@ -12,15 +12,18 @@ class Directory_system:
         self.rootDir = None
         self.usersDir = None
         self.windowsDir = None
-        self.currentDIR = None  #set this to be something from the config file
+        self.currentDir = None  #set this to be something from the config file
+        self.users = ['Administrator']
        
     def CreateNewFolder(self,folderName,ParentFolder):
         return {folderName:Dir_nodes(folderName,ParentFolder)}
-    def InitializeFileSystem(self):
+    
+    def InitializeFileSystem(self, config):
         #Allow drive letter change from the config
-        driveLetter = 'C:'
+        driveLetter = config.drive_letter
+        self.currentDir = config.start_directory
         self.rootDir = Dir_nodes(driveLetter)
-        self.currentDIR = self.rootDir
+        # self.currentDir = self.rootDir
         self.rootDir.childrenDir.update(self.CreateNewFolder('Microsoft',self.rootDir))
         self.rootDir.childrenDir.update(self.CreateNewFolder('Program Files',self.rootDir))
         self.rootDir.childrenDir.update(self.CreateNewFolder('Program Files(x86)',self.rootDir))
@@ -29,23 +32,24 @@ class Directory_system:
         self.rootDir.childrenDir.update(self.CreateNewFolder('Windows',self.rootDir))
         
         ##can have the possiblilty of multiple users
+        self.users = config.users # Get List of Users To Create
         self.usersDir = self.rootDir.childrenDir.get('Users')
         self.usersDir.childrenDir.update(self.CreateUsers(self.usersDir))
 
         #create the default windows folder
         self.windowsDir = self.rootDir.childrenDir.get('Windows')
         self.windowsDir.childrenDir.update(self.CreateWindowsFolder(self.windowsDir))
-
+        
     def CreateUsers(self,usersDir):
         usersFolder = {}
         usersFolder.update(self.CreateNewFolder('Default',usersDir))
         usersFolder.update(self.CreateNewFolder('Public',usersDir))
         #userName derived from config
         usersFolder.update(self.CreateNewFolder('Administrator',usersDir))
-        #for each in details_dict:
+        for username in self.users:
         #    username =details_dict.get(each)
         #    username = str(username)
-        #    usersFolder.update(self.CreateNewFolder(username,usersDir))
+           usersFolder.update(self.CreateNewFolder(username,usersDir))
         for each in usersFolder:
             uFolder = usersFolder.get(each)
             self.CreateUsersCommonFolders(uFolder)
@@ -95,14 +99,14 @@ class Directory_system:
             else:
                 dirSTR = dirSTR.split('\\')
         if (typePath != 0):
-            self.currentDIR = (self.getNodeAbsoulte(self.rootDir,dirSTR,1))
+            self.currentDir = (self.getNodeAbsoulte(self.rootDir,dirSTR,1))
             #create folder(s) and set the current directory
-            if(self.currentDIR == None):
+            if(self.currentDir == None):
                 self.recurseCreateFolder(self.rootDir,dirSTR)
-                self.currentDIR = (self.getNodeAbsoulte(self.rootDir,dirSTR,1))
+                self.currentDir = (self.getNodeAbsoulte(self.rootDir,dirSTR,1))
             #return the absolute path
             path_list = []
-            path_list = self.getPath(self.currentDIR,path_list)
+            path_list = self.getPath(self.currentDir,path_list)
             path_list = "\\".join(path_list)
             return path_list
         # Relative Path
@@ -111,11 +115,12 @@ class Directory_system:
             for each in dirSTR:
                if(each == '..'):
                     t+=1
-            self.currentDIR = (self.getNodeRelative(self.currentDIR,dirSTR))
+            self.currentDir = (self.getNodeRelative(self.currentDir,dirSTR))
             path_list = []
-            path_list = self.getPath(self.currentDIR,path_list)
+            path_list = self.getPath(self.currentDir,path_list)
             path_list = "\\".join(path_list)
             return path_list
+
     def getNodeAbsoulte(self,dirNode,dirName,t):
         #find the nth element of the path
         for eachChild in dirNode.childrenDir:
@@ -127,7 +132,7 @@ class Directory_system:
                 return child
 
     def getNodeRelative(self,dirNode,dirName):
-        #assuming that the CurrentDir has been set, as a node
+        #assuming that the currentDir has been set, as a node
         if ('..' in dirName):
             parent = dirNode.parentDir
             dirName.remove('..')
@@ -158,6 +163,3 @@ class Directory_system:
             self.printALL(child,indent+1)
 
 
-##create the class to use
-directory = Directory_system()
-directory.InitializeFileSystem()
