@@ -10064,7 +10064,7 @@ class CustomWinAPIs():
         logged_calls= ("QueueUserAPC", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-     def LookupPrivilegeValueA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+    def LookupPrivilegeValueA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['LPCSTR', 'LPCSTR', 'PLUID']
         pNames= ['lpSystemName', 'lpName', 'lpLuid']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
