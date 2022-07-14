@@ -9927,7 +9927,14 @@ class CustomWinAPIs():
         pNames= ['hHash', '*pbData', 'dwDataLen', 'dwFlags']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        
+
+        dwFlagsReverseLookUp = {1: 'CRYPT_OWF_REPL_LM_HASH', 2: 'CRYPT_USERDATA'}
+
+        pVals[3] = getLookUpVal(pVals[3],dwFlagsReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
+
 
         retVal = 0x1
         retValStr= 'SUCCESS'
