@@ -3,6 +3,8 @@ from enum import Enum, auto
 from random import choice, randint
 from time import perf_counter_ns
 from urllib.parse import quote, unquote
+from sharem.sharem.DLLs.emu_helpers.sharem_artifacts import Artifacts_emulation
+from sharem.sharem.DLLs.emu_helpers.sharem_filesystem import Directory_system
 from sharem.sharem.DLLs.reverseLookUps import ReverseLookUps
 from sharem.sharem.DLLs.structures import *
 from sharem.sharem.helper.structHelpers import makeStructVals
@@ -11,10 +13,13 @@ from struct import pack, unpack
 from ..helper.emuHelpers import Uc
 from ..modules import allDllsDict
 import traceback
-from ..sharem_artifacts import *
 import re
 
 art = Artifacts_emulation()
+#global currentDirectory
+
+# Instance of File System
+SimFileSystem = Directory_system()
 
 FakeProcess = 0xbadd0000
 availMem = 0x25000000
@@ -65,6 +70,7 @@ class HandleType(Enum):
     charName = auto()
     # Other
     HGLOBAL = auto()
+    Timer = auto()
     DuplicateToken = auto()
     # Module
     HMODULE = auto()
@@ -105,6 +111,9 @@ class EmulationSimulationValues:
         self.system_time_since_epoch = 0
         self.system_uptime_minutes = 60
         self.clipboard_data = 'https://sharem.com/login/#'
+        self.users = ['administrator']
+        self.drive_letter = 'C:'
+        self.start_directory = 'C:\\users\\adminitsrator\\desktop'
 
 emuSimVals = EmulationSimulationValues()
 
@@ -548,24 +557,20 @@ class CustomWinAPIs():
         pTypes = ['int', 'int', 'int', 'LPWSAPROTOCOL_INFOA', 'GROUP', 'DWORD']
         pNames = ['af', 'type', 'protocol', 'lpProtocolInfo', 'g', 'dwFlags']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-        aFReverseLookUp = {0: 'AF_UNSPEC', 2: 'AF_INET', 6: 'AF_IPX', 22: 'AF_APPLETALK', 23: 'AF_NETBIOS',
-                           35: 'AF_INET6', 38: 'AF_IRDA', 50: 'AF_BTH'}
-        sockTypeReverseLookUp = {1: 'SOCK_STREAM', 2: 'SOCK_DGRAM', 3: 'SOCK_RAW', 4: 'SOCK_RDM', 5: 'SOCK_SEQPACKET'}
-        sockProtocolReverseLookUp = {1: 'IPPROTO_ICMP', 2: 'IPPROTO_IGMP', 3: 'BTHPROTO_RFCOMM', 6: 'IPPROTO_TCP',
-                                     23: 'IPPROTO_UDP', 88: 'IPPROTO_ICMPV6', 275: 'IPPROTO_RM'}
-        dwFlagsReverseLookUp = {1: 'WSA_FLAG_OVERLAPPED', 2: 'WSA_FLAG_MULTIPOINT_C_ROOT',
-                                4: 'WSA_FLAG_MULTIPOINT_C_LEAF', 8: 'WSA_FLAG_MULTIPOINT_D_ROOT',
-                                16: 'WSA_FLAG_MULTIPOINT_D_LEAF', 64: 'WSA_FLAG_ACCESS_SYSTEM_SECURITY',
-                                128: 'WSA_FLAG_NO_HANDLE_INHERIT'}
-        groupReverseLookUp = {1: 'SG_UNCONSTRAINED_GROUP', 2: 'SG_CONSTRAINED_GROUP'}
-
-        pVals[0] = getLookUpVal(pVals[0],aFReverseLookUp)
-        pVals[1] = getLookUpVal(pVals[1],sockTypeReverseLookUp)
-        pVals[2] = getLookUpVal(pVals[2],sockProtocolReverseLookUp)
-        pVals[4] = getLookUpVal(pVals[4],groupReverseLookUp)
-        pVals[5] = getLookUpVal(pVals[5],dwFlagsReverseLookUp)
         
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip= [0, 1, 2, 4, 5])
+        pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.Socket.Af)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.Socket.Type)
+        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Socket.Protocol)
+        pVals[4] = getLookUpVal(pVals[4], ReverseLookUps.Socket.Group)
+        pVals[5] = getLookUpVal(pVals[5], ReverseLookUps.Socket.Flags)
+        
+        if pVals[3] != 0:
+            info = get_WSAPROTOCOL_INFOA(uc, pVals[3], em)
+            pVals[3] = makeStructVals(uc, info, pVals[3])
+        else:
+            pVals[3] = hex(pVals[3])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip= [0, 1, 2, 3, 4, 5])
 
         socket = Handle(HandleType.Socket)
         
@@ -581,24 +586,20 @@ class CustomWinAPIs():
         pTypes = ['int', 'int', 'int', 'LPWSAPROTOCOL_INFOW', 'GROUP', 'DWORD']
         pNames = ['af', 'type', 'protocol', 'lpProtocolInfo', 'g', 'dwFlags']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-        aFReverseLookUp = {0: 'AF_UNSPEC', 2: 'AF_INET', 6: 'AF_IPX', 16: 'AF_APPLETALK', 17: 'AF_NETBIOS',
-                           23: 'AF_INET6', 26: 'AF_IRDA', 32: 'AF_BTH'}
-        sockTypeReverseLookUp = {1: 'SOCK_STREAM', 2: 'SOCK_DGRAM', 3: 'SOCK_RAW', 4: 'SOCK_RDM', 5: 'SOCK_SEQPACKET'}
-        sockProtocolReverseLookUp = {1: 'IPPROTO_ICMP', 2: 'IPPROTO_IGMP', 3: 'BTHPROTO_RFCOMM', 6: 'IPPROTO_TCP',
-                                     17: 'IPPROTO_UDP', 58: 'IPPROTO_ICMPV6', 113: 'IPPROTO_RM'}
-        groupReverseLookUp = {1: 'SG_UNCONSTRAINED_GROUP', 2: 'SG_CONSTRAINED_GROUP'}
-        dwFlagsReverseLookUp = {1: 'WSA_FLAG_OVERLAPPED', 2: 'WSA_FLAG_MULTIPOINT_C_ROOT',
-                                4: 'WSA_FLAG_MULTIPOINT_C_LEAF', 8: 'WSA_FLAG_MULTIPOINT_D_ROOT',
-                                16: 'WSA_FLAG_MULTIPOINT_D_LEAF', 64: 'WSA_FLAG_ACCESS_SYSTEM_SECURITY',
-                                128: 'WSA_FLAG_NO_HANDLE_INHERIT'}
+        
+        pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.Socket.Af)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.Socket.Type)
+        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Socket.Protocol)
+        pVals[4] = getLookUpVal(pVals[4], ReverseLookUps.Socket.Group)
+        pVals[5] = getLookUpVal(pVals[5], ReverseLookUps.Socket.Flags)
 
-        pVals[0] = getLookUpVal(pVals[0],aFReverseLookUp)
-        pVals[1] = getLookUpVal(pVals[1],sockTypeReverseLookUp)
-        pVals[2] = getLookUpVal(pVals[2],sockProtocolReverseLookUp)
-        pVals[4] = getLookUpVal(pVals[4],groupReverseLookUp)
-        pVals[5] = getLookUpVal(pVals[5],dwFlagsReverseLookUp)
+        if pVals[3] != 0:
+            info = get_WSAPROTOCOL_INFOW(uc, pVals[3], em)
+            pVals[3] = makeStructVals(uc, info, pVals[3])
+        else:
+            pVals[3] = hex(pVals[3])
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [0, 1, 2, 4, 5])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [0, 1, 2, 3, 4, 5])
         
         socket = Handle(HandleType.Socket)
 
@@ -614,15 +615,10 @@ class CustomWinAPIs():
         pTypes = ['int', 'int', 'int']
         pNames = ['af', 'type', 'protocol']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-        aFReverseLookUp = {0: 'AF_UNSPEC', 2: 'AF_INET', 6: 'AF_IPX', 16: 'AF_APPLETALK', 17: 'AF_NETBIOS',
-                           23: 'AF_INET6', 26: 'AF_IRDA', 32: 'AF_BTH'}
-        sockTypeReverseLookUp = {1: 'SOCK_STREAM', 2: 'SOCK_DGRAM', 3: 'SOCK_RAW', 4: 'SOCK_RDM', 5: 'SOCK_SEQPACKET'}
-        sockProtocolReverseLookUp = {1: 'IPPROTO_ICMP', 2: 'IPPROTO_IGMP', 3: 'BTHPROTO_RFCOMM', 6: 'IPPROTO_TCP',
-                                     17: 'IPPROTO_UDP', 58: 'IPPROTO_ICMPV6', 113: 'IPPROTO_RM'}
 
-        pVals[0] = getLookUpVal(pVals[0],aFReverseLookUp)
-        pVals[1] = getLookUpVal(pVals[1],sockTypeReverseLookUp)
-        pVals[2] = getLookUpVal(pVals[2],sockProtocolReverseLookUp)
+        pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.Socket.Af)
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.Socket.Type)
+        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Socket.Protocol)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [0, 1, 2])
 
@@ -2242,7 +2238,7 @@ class CustomWinAPIs():
 
         info = get_SHELLEXECUTEINFOA(uc, pVals[0], em)
 
-        pVals[0] = makeStructVals(uc, info, pVals[0], lookUps={1: ReverseLookUps.ShellExecute.Mask, 7: ReverseLookUps.ShellExecute.cmdShow})
+        pVals[0] = makeStructVals(uc, info, pVals[0])
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
 
@@ -2260,7 +2256,7 @@ class CustomWinAPIs():
 
         info = get_SHELLEXECUTEINFOW(uc, pVals[0], em)
 
-        pVals[0] = makeStructVals(uc, info, pVals[0], lookUps={1: ReverseLookUps.ShellExecute.Mask, 7: ReverseLookUps.ShellExecute.cmdShow})
+        pVals[0] = makeStructVals(uc, info, pVals[0])
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
 
@@ -8529,8 +8525,9 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         try:
+            li = get_LARGE_INTEGER(uc, pVals[0], em)
             pc = perf_counter_ns()
-            li = LARGE_INTEGER(QuadPart=pc)
+            li.QuadPart = pc
             li.writeToMemory(uc,pVals[0])
         except:
             pass
@@ -9568,7 +9565,7 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         timeZone = get_TIME_ZONE_INFORMATION(uc, pVals[0], em)
-        timeZone.DaylightName = 'ABCDEFGHIJKLMNOQRSTUVWXYZ01234'
+        timeZone.DaylightName = 'ABCDEFGHIJKLMNOQRSTUVWXYZ01234' # Needs Work
         timeZone.StandardName = 'TestStandard'
         timeZone.DaylightDate.setTime(False, emuSimVals.system_time_since_epoch)
         timeZone.StandardDate.setTime(False, emuSimVals.system_time_since_epoch)
@@ -9602,6 +9599,61 @@ class CustomWinAPIs():
 
         logged_calls= ("GetStartupInfoW", hex(callAddr), (retValStr), 'VOID', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetSystemInfo(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['LPSYSTEM_INFO'] 
+        pNames = ['lpSystemInfo'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # might expand with config
+
+        sysinfo = get_SYSTEM_INFO(uc, pVals[0], em)
+
+        sysinfo.DUMMYSTRUCTNAME.wProcessorArchitecture = 9
+        sysinfo.dwPageSize = 4096
+        sysinfo.dwNumberOfProcessors = 4
+        sysinfo.dwProcessorType = 8664
+
+        sysinfo.writeToMemory(uc, pVals[0])
+
+        pVals[0] = makeStructVals(uc, sysinfo, pVals[0])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+        
+        retVal = 0x0
+        retValStr = "None"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("GetSystemInfo", hex(callAddr), (retValStr), 'VOID', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetNativeSystemInfo(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['LPSYSTEM_INFO'] 
+        pNames = ['lpSystemInfo'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # might expand with config
+
+        sysinfo = get_SYSTEM_INFO(uc, pVals[0], em)
+
+        sysinfo.DUMMYSTRUCTNAME.wProcessorArchitecture = 9
+        sysinfo.dwPageSize = 4096
+        sysinfo.dwNumberOfProcessors = 4
+        sysinfo.dwProcessorType = 8664
+
+        sysinfo.writeToMemory(uc, pVals[0])
+
+        pVals[0] = makeStructVals(uc, sysinfo, pVals[0])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+        
+        retVal = 0x0
+        retValStr = "None"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("GetNativeSystemInfo", hex(callAddr), (retValStr), 'VOID', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def RegisterHotKey(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes =['HWND', 'int', 'UINT', 'UINT'] 
@@ -9945,6 +9997,34 @@ class CustomWinAPIs():
         logged_calls= ("CryptDestroyKey", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def GetIpNetTable(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['PMIB_IPNETTABLE', 'PULONG', 'BOOL']
+        pNames= ['IpNetTable', 'SizePointer', 'Order']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr= 'NO_ERROR'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetIpNetTable", hex(callAddr), (retValStr), 'ULONG', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetLogicalDrives(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= []
+        pNames= []
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetLogicalDrives", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def OpenThread(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['DWORD', 'BOOL', 'DWORD']
         pNames= ['dwDesiredAccess', 'bInheritHandle', 'dwThreadId']
@@ -9967,7 +10047,7 @@ class CustomWinAPIs():
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
 
         retVal = 0x88888888
-        retValStr= 'SUCCESS'
+        retValStr= hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
         logged_calls= ("SuspendThread", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
@@ -10042,6 +10122,39 @@ class CustomWinAPIs():
 
         logged_calls= ("FindNextUrlCacheEntryA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def WNetAddConnection2A(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LPNETRESOURCEA', 'LPCSTR', 'LPCSTR', 'DWORD']
+        pNames= ['lpNetResource', 'lpPassword', 'lpUserName', 'dwFlags']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        dwFlagsReverseLookUp = {1: 'CONNECT_UPDATE_PROFILE', 2: 'CONNECT_UPDATE_RECENT', 4: 'CONNECT_TEMPORARY', 8: 'CONNECT_INTERACTIVE', 16: 'CONNECT_PROMPT', 128: 'CONNECT_REDIRECT', 512: 'CONNECT_CURRENT_MEDIA', 2048: 'CONNECT_COMMANDLINE', 4096: 'CONNECT_CMD_SAVECRED', 8192: 'CONNECT_CRED_RESET'}
+
+        pVals[3] = getLookUpVal(pVals[3],dwFlagsReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
+
+        retVal = 0x55555555
+        retValStr= 'NO_ERROR'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("WNetAddConnection2A", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def WNetAddConnectionA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LPCSTR', 'LPCSTR', 'LPCSTR']
+        pNames= ['lpRemoteName', 'lpPassword', 'lpLocalName']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x55555555
+        retValStr= 'NO_ERROR'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("WNetAddConnectionA", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def DuplicateToken(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['HANDLE', 'SECURITY_IMPERSONATION_LEVEL', 'PHANDLE']
@@ -11097,16 +11210,19 @@ class CustomWinAPIs():
         pTypes= ['LPCTSTR']
         pNames= ['lpPathName']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-
+        #global currentDirectory
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
-        currentDirectory = pVals[0]
-        #changes relative paths into absolute paths
-        if(".." in pVals[0]):
+        changeDir = pVals[0]
+        #checks the path type
+        if(".." in changeDir):
             #have a workaround for now to convert to an absolute path
-            currentDirectory = "C:\\"+ currentDirectory.replace('..','SHAREM_PATH')
-        #print(currentDirectory)
-        art.path_artifacts.append(currentDirectory)
+            changeDir = SimFileSystem.setCurrentDir(changeDir,0)
+        else:
+            #is absolute path
+            changeDir = SimFileSystem.setCurrentDir(changeDir,1)
+        
+        art.path_artifacts.append(changeDir)          
         retVal = 0x1
         retValStr= 'True'
         uc.reg_write(UC_X86_REG_EAX, retVal)     
@@ -11735,6 +11851,123 @@ class CustomWinAPIs():
 
         logged_calls= ("GetDC", hex(callAddr), (retValStr), 'HDC', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CreateWaitableTimerW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'CreateWaitableTimerW': (3, ['LPSECURITY_ATTRIBUTES', 'BOOL', 'LPCWSTR'], ['lpTimerAttributes', 'bManualReset', 'lpTimerName'], 'HANDLE')
+        pTypes= ['LPSECURITY_ATTRIBUTES', 'BOOL', 'LPCWSTR']
+        pNames= ['lpTimerAttributes', 'bManualReset', 'lpTimerName']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        handle = Handle(HandleType.Timer,name=pVals[2])
+        retVal = handle.value
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CreateWaitableTimerW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CreateWaitableTimerExW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'CreateWaitableTimerExW': (4, ['LPSECURITY_ATTRIBUTES', 'LPWSTR', 'DWORD', 'DWORD'], ['lpTimerAttributes', 'lpTimerName', 'dwFlags', 'dwDesiredAccess'], 'HANDLE')
+        pTypes= ['LPSECURITY_ATTRIBUTES', 'LPWSTR', 'DWORD', 'DWORD']
+        pNames= ['lpTimerAttributes', 'lpTimerName', 'dwFlags', 'dwDesiredAccess']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        dwFlags_ReverseLookUp = {1: 'CREATE_WAITABLE_TIMER_MANUAL_RESET', 2: 'CREATE_WAITABLE_TIMER_HIGH_RESOLUTION'}
+        timerAccessRights_ReverseLookUp = {2031619: 'TIMER_ALL_ACCESS', 2: 'TIMER_MODIFY_STATE', 1: 'TIMER_QUERY_STATE'}
+
+        pVals[2] = getLookUpVal(pVals[2],dwFlags_ReverseLookUp)
+        pVals[3] = getLookUpVal(pVals[3], timerAccessRights_ReverseLookUp)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[2,3])
+        
+        handle = Handle(HandleType.Timer,name=pVals[1])
+
+        retVal = handle.value
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CreateWaitableTimerExW", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CreateWaitableTimerA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #CreateWaitableTimerA': (3, ['LPSECURITY_ATTRIBUTES', 'BOOL', 'LPCSTR'], ['lpTimerAttributes', 'bManualReset', 'lpTimerName'], 'HANDLE')
+        pTypes= ['LPSECURITY_ATTRIBUTES', 'BOOL', 'LPCSTR']
+        pNames= ['lpTimerAttributes', 'bManualReset', 'lpTimerName']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        handle = Handle(HandleType.Timer,name=pVals[2])
+        retVal = handle.value
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CreateWaitableTimerA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CreateWaitableTimerExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'CreateWaitableTimerExA': (4, ['LPSECURITY_ATTRIBUTES', 'LPCSTR', 'DWORD', 'DWORD'], ['lpTimerAttributes', 'lpTimerName', 'dwFlags', 'dwDesiredAccess'], 'HANDLE')
+        pTypes= ['LPSECURITY_ATTRIBUTES', 'LPCSTR', 'DWORD', 'DWORD']
+        pNames= ['lpTimerAttributes', 'lpTimerName', 'dwFlags', 'dwDesiredAccess']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        dwFlags_ReverseLookUp = {1: 'CREATE_WAITABLE_TIMER_MANUAL_RESET', 2: 'CREATE_WAITABLE_TIMER_HIGH_RESOLUTION'}
+        timerAccessRights_ReverseLookUp = {2031619: 'TIMER_ALL_ACCESS', 2: 'TIMER_MODIFY_STATE', 1: 'TIMER_QUERY_STATE'}
+
+        pVals[2] = getLookUpVal(pVals[2],dwFlags_ReverseLookUp)
+        pVals[3] = getLookUpVal(pVals[3], timerAccessRights_ReverseLookUp)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[2,3])
+        
+        handle = Handle(HandleType.Timer,name=pVals[1])
+
+        retVal = handle.value
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CreateWaitableTimerExA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CreateTimerQueueTimer(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'CreateTimerQueueTimer': (7, ['PHANDLE', 'HANDLE', 'WAITORTIMERCALLBACK', 'PVOID', 'DWORD', 'DWORD', 'ULONG'], ['phNewTimer', 'TimerQueue', 'Callback', 'Parameter', 'DueTime', 'Period', 'Flags'], 'BOOL')
+        pTypes= ['PHANDLE', 'HANDLE', 'WAITORTIMERCALLBACK', 'PVOID', 'DWORD', 'DWORD', 'ULONG']
+        pNames= ['phNewTimer', 'TimerQueue', 'Callback', 'Parameter', 'DueTime', 'Period', 'Flags']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        Flags_ReverseLookUp = {0: 'WT_EXECUTEDEFAULT', 32: 'WT_EXECUTEINTIMERTHREAD', 1: 'WT_EXECUTEINIOTHREAD', 128: 'WT_EXECUTEINPERSISTENTTHREAD', 16: 'WT_EXECUTELONGFUNCTION', 8: 'WT_EXECUTEONLYONCE', 256: 'WT_TRANSFER_IMPERSONATION'}
+        pVals[6] = getLookUpVal(pVals[6], Flags_ReverseLookUp)
+
+        #handle is to be written to pVal[0]
+        handle = Handle(HandleType.Timer,name='QueueTimer')
+        writeAddress = pVals[0]
+        handle_bytes = hex(handle.value)
+        handle_bytes = bytes(handle_bytes,'utf-8')
+
+        uc.mem_write(writeAddress, handle_bytes)
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[6])
+
+
+        retVal = 1
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CreateTimerQueueTimer", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def timeSetEvent(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #timeSetEvent': (5, ['UINT', 'UINT', 'LPTIMECALLBACK', 'DWORD_PTR', 'UINT'], ['uDelay', 'uResolution', 'fptc', 'dwUser', 'fuEvent'], 'MMRESULT')
+        pTypes= ['UINT', 'UINT', 'LPTIMECALLBACK', 'DWORD_PTR', 'UINT']
+        pNames= ['uDelay', 'uResolution', 'fptc', 'dwUser', 'fuEvent']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        ##after the function ends it calls into another place in memory, is there a way to emulate this?
+
+        retVal = 16
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("timeSetEvent", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+
 
 
 class CustomWinSysCalls():

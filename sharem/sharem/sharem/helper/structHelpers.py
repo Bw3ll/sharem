@@ -1,4 +1,4 @@
-from ctypes import c_byte, c_char, c_double, c_float, c_int, c_int32, c_int64, c_longlong, c_short, c_uint, c_uint32, c_uint64, c_ulonglong, c_ushort, c_wchar
+from ctypes import c_byte, c_char, c_double, c_float, c_int, c_int32, c_int64, c_longlong, c_short, c_ubyte, c_uint, c_uint32, c_uint64, c_ulonglong, c_ushort, c_wchar
 from struct import unpack
 from ..helper.emuHelpers import Uc
 
@@ -15,6 +15,7 @@ DWORD = c_uint32
 
 CHAR = c_char
 WCHAR = c_wchar
+UCHAR = c_ubyte
 
 BOOLEAN = BYTE
 BOOL = c_uint32
@@ -130,16 +131,22 @@ def getLookUpVal(search: int, dictionary: 'dict[int,str]'):
     else:
         return hex(search)
 
-def makeStructVals(uc: Uc, struct, address: int, lookUps: 'dict[int,dict[int,str]]' = {}):
+def makeStructVals(uc: Uc, struct, address: int):
     pTypes = struct.types
-    pNames = struct.names
+    try: # Until Names Param is removed
+        pNames = struct.names
+    except:
+        pNames = list(struct.__slots__)
+    lookUps = struct.lookUps
     pVals = []
     for name in pNames:
         try:
             value = getattr(struct, name)
         except:
             value = '' # Empty String if Value Not Found
-        if "<sharem." in str(value): 
+        if "_Array_" in str(value):
+            value = value[:]
+        elif "<sharem." in str(value): 
             # Need to Figure out what to Do for Nested Structures/Unions
             # that are not pointers. Temp Solution
             tempTypes, tempNames, tempVals = makeSubStructVals(uc,value)
@@ -180,6 +187,12 @@ def makeStructVals(uc: Uc, struct, address: int, lookUps: 'dict[int,dict[int,str
                 pVals[i] = hex(pVals[i])
             except:
                 pVals[i] = str(pVals[i])
+                if pVals[i][0:2] == "b'": # Clean Up CHAR Strings
+                    pVals[i] = pVals[i][2:]
+                    if pVals[i][-1] == "'":
+                        pVals[i] = pVals[i][:-1]
+                if len(pVals[i]) == 0:
+                    pVals[i] = "[NULL]"
                 # If fail then Param is Probably String and Just Display value
 
     # zipped = tuple(zip(pTypes, pNames, pVals))
@@ -188,19 +201,25 @@ def makeStructVals(uc: Uc, struct, address: int, lookUps: 'dict[int,dict[int,str
 
 def makeSubStructVals(uc: Uc, struct):
     pTypes = struct.types
-    pNames = struct.names
+    try: # Until Names Param is removed
+        pNames = struct.names
+    except:
+        pNames = list(struct.__slots__)
+    lookUps = struct.lookUps
     pVals = []
     for name in pNames:
         try:
             value = getattr(struct, name)
         except:
-            # Some Struct Implementations are both Unicode and Ascii 
-            # So some attributes have A or W Suffix.
             pass
+        if "_Array_" in str(value):
+            value = value[:]
         pVals.append(value)
 
     for i in range(len(pTypes)):
-        if "STR" in pTypes[i]:  # finding ones with string
+        if i in lookUps:
+            pVals[i] = getLookUpVal(pVals[i],lookUps[i])
+        elif "STR" in pTypes[i]:  # finding ones with string
             try:
                 if "WSTR" in pTypes[i]:
                     pVals[i] = read_unicode(uc, pVals[i])

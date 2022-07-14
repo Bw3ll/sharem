@@ -19592,8 +19592,9 @@ def emulationConf(conr):
 
 def emulationSimValueConf(conr):
 	global emuSimVals
+	global SimFileSystem
 
-	emuSimVals.user_name = conr['SHAREM EMULATION SIMULATED VALUES']['user_name']
+	emuSimVals.user_name = conr['SHAREM EMULATION SIMULATED VALUES']['current_user']
 	emuSimVals.computer_name = conr['SHAREM EMULATION SIMULATED VALUES']['computer_name']
 	emuSimVals.temp_file_prefix = conr['SHAREM EMULATION SIMULATED VALUES']['temp_file_prefix']
 	emuSimVals.default_registry_value = conr['SHAREM EMULATION SIMULATED VALUES']['default_registry_value']
@@ -19602,6 +19603,13 @@ def emulationSimValueConf(conr):
 	emuSimVals.system_time_since_epoch = int(conr['SHAREM EMULATION SIMULATED VALUES']['system_time_since_epoch'])
 	emuSimVals.system_uptime_minutes = int(conr['SHAREM EMULATION SIMULATED VALUES']['system_uptime_minutes'])
 	emuSimVals.clipboard_data = conr['SHAREM EMULATION SIMULATED VALUES']['clipboard_data']
+	emuSimVals.users = ast.literal_eval(conr['SHAREM EMULATION SIMULATED VALUES']['users'])
+	emuSimVals.drive_letter = conr['SHAREM EMULATION SIMULATED VALUES']['drive_letter']
+	emuSimVals.start_directory = conr['SHAREM EMULATION SIMULATED VALUES']['start_directory']
+	
+	# Create Simulated File System
+	SimFileSystem.InitializeFileSystem(emuSimVals)
+
 
 
 def SharemSearchConfig(conr):
