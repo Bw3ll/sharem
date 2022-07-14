@@ -144,7 +144,9 @@ def makeStructVals(uc: Uc, struct, address: int):
             value = getattr(struct, name)
         except:
             value = '' # Empty String if Value Not Found
-        if "<sharem." in str(value): 
+        if "_Array_" in str(value):
+            value = value[:]
+        elif "<sharem." in str(value): 
             # Need to Figure out what to Do for Nested Structures/Unions
             # that are not pointers. Temp Solution
             tempTypes, tempNames, tempVals = makeSubStructVals(uc,value)
@@ -210,6 +212,8 @@ def makeSubStructVals(uc: Uc, struct):
             value = getattr(struct, name)
         except:
             pass
+        if "_Array_" in str(value):
+            value = value[:]
         pVals.append(value)
 
     for i in range(len(pTypes)):
