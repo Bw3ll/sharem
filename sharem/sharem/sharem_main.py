@@ -19594,7 +19594,7 @@ def emulationSimValueConf(conr):
 	global emuSimVals
 	global SimFileSystem
 
-	emuSimVals.user_name = conr['SHAREM EMULATION SIMULATED VALUES']['user_name']
+	emuSimVals.user_name = conr['SHAREM EMULATION SIMULATED VALUES']['current_user']
 	emuSimVals.computer_name = conr['SHAREM EMULATION SIMULATED VALUES']['computer_name']
 	emuSimVals.temp_file_prefix = conr['SHAREM EMULATION SIMULATED VALUES']['temp_file_prefix']
 	emuSimVals.default_registry_value = conr['SHAREM EMULATION SIMULATED VALUES']['default_registry_value']

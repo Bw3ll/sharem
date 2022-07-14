@@ -218,6 +218,7 @@ class Directory_system:
         #check if output is enabled or not.
         print(1)
 
+
 ###NOTES####
 # files {output.txt: data from the file,}
 # filesReadFrom = [pathToFile.txt]

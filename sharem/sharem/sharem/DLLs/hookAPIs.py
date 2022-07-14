@@ -5,6 +5,7 @@ from time import perf_counter_ns
 from urllib.parse import quote, unquote
 from .emu_helpers.sharem_artifacts import Artifacts_emulation
 from .emu_helpers.sharem_filesystem import Directory_system
+from sharem.sharem.DLLs.emu_helpers.handles import Handle, HandleType, HandlesDict
 from sharem.sharem.DLLs.reverseLookUps import ReverseLookUps
 from sharem.sharem.DLLs.structures import *
 from sharem.sharem.helper.structHelpers import makeStructVals
@@ -26,80 +27,8 @@ FakeProcess = 0xbadd0000
 availMem = 0x25000000
 lastErrorCode = 0x0
 HeapsDict = {}  # Dictionary of All Heaps
-HandlesDict: 'dict[int,Handle]' = {}  # Dictionary of All Handles
 RegistryKeys: 'dict[str,RegKey]' = {} # Dictionary of All Reg Keys
 
-class HandleType(Enum):
-    # Threads
-    Thread = auto()
-    # Process
-    Process = auto()
-    SetWindowsHookExA = auto()
-    SetWindowsHookExW = auto()
-    CreateToolhelp32Snapshot = auto()
-    # Internet Handles
-    HINTERNET = auto()
-    InternetOpenA = auto()
-    InternetOpenW = auto()
-    InternetConnectA = auto()
-    InternetConnectW = auto()
-    InternetOpenUrlA = auto()
-    InternetOpenUrlW = auto()
-    HttpOpenRequestA = auto()
-    HttpOpenRequestW = auto()
-    FtpOpenFileA = auto()
-    FtpOpenFileW = auto()
-    # File Handles
-    CreateFileA = auto()
-    CreateFileW = auto()
-    CreateFile2 = auto()
-    CreateFileMappingA = auto()
-    CreateFileMappingW = auto()
-    CreateFileMappingNumaA = auto()
-    CreateFileMappingNumaW = auto()
-    SendMessageA = auto()
-    # Mutex
-    Mutex = auto()
-    # Service Handles
-    SC_HANDLE = auto()
-    # PIPE
-    pipeName = auto()
-    ReadPipe = auto()
-    WritePipe = auto()
-    ReadWritePipe = auto()
-    # CHAR
-    charName = auto()
-    # Other
-    HGLOBAL = auto()
-    Timer = auto()
-    DuplicateToken = auto()
-    # Module
-    HMODULE = auto()
-    # Desktop/Window
-    HWND = auto()
-    ClipBoard = auto()
-    # Registry
-    HKEY = auto()
-    Transaction = auto()
-    # Sockets
-    Socket = auto()
-    # Events
-    Event = auto()
-
-
-class Handle:
-    nextValue = 0x88880000  # Start of Handle IDs
-
-    def __init__(self, type: HandleType, data=None, name='', handleValue=0):
-        if handleValue == 0:
-            # Generate Handle Value
-            handleValue = Handle.nextValue
-            Handle.nextValue += 8
-        self.value = handleValue
-        self.type = type
-        self.name = name
-        self.data = data
-        HandlesDict.update({self.value: self})
 
 class EmulationSimulationValues:
     def __init__(self):
@@ -492,6 +421,12 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [1, 2, 4, 5])
         SimFileSystem.createFile(SimFileSystem.currentDirPath,pVals[0])
+        if pVals[3] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[3], em)
+            pVals[3] = makeStructVals(uc, sa, pVals[3])
+        else:
+            hex(pVals[3])
+
 
         retVal = handle.value
         retValStr = hex(retVal)
@@ -502,7 +437,7 @@ class CustomWinAPIs():
 
     def CreateFileW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         # HANDLE CreateFileW([in] LPCWSTR lpFileName,[in] DWORD dwDesiredAccess,[in] DWORD dwShareMode,[in, optional] LPSECURITY_ATTRIBUTES lpSecurityAttributes,[in] DWORD dwCreationDisposition,[in] DWORD dwFlagsAndAttributes,[in, optional] HANDLE hTemplateFile);
-        pTypes=['LPCWSTR', 'DWORD', 'DWORD', 'DWORD', 'LPSECURITY_ATTRIBUTES', 'DWORD', 'DWORD', 'HANDLE']
+        pTypes=['LPCWSTR', 'DWORD', 'DWORD', 'LPSECURITY_ATTRIBUTES', 'DWORD', 'DWORD', 'HANDLE']
         pNames= ["lpFileName", "dwDesiredAccess", "dwShareMode","lpSecurityAttributes", "dwCreationDistribution","dwFlagsAndAttributes", "hTemplateFile"]
         pVals = makeArgVals(uc, em, esp, len(pTypes))
         
@@ -516,6 +451,12 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip= [1, 2, 4, 5])
         SimFileSystem.createFile(SimFileSystem.currentDirPath,pVals[0])
         handle.name = pVals[0]
+        if pVals[3] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[3], em)
+            pVals[3] = makeStructVals(uc, sa, pVals[3])
+        else:
+            hex(pVals[3])
+
 
         retVal = handle.value
         retValStr = hex(retVal)
@@ -726,7 +667,13 @@ class CustomWinAPIs():
 
         pVals[4] = getLookUpVal(pVals[4],dwCreateFlagsReverseLookUp)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4])
+        if pVals[0] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[0], em)
+            pVals[0] = makeStructVals(uc, sa, pVals[0])
+        else:
+            hex(pVals[0])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0,4])
 
         
         retVal = handle.value
@@ -750,7 +697,13 @@ class CustomWinAPIs():
 
         pVals[5] = getLookUpVal(pVals[5],dwCreationFlagsReverseLookUp)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[5])
+        if pVals[1] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[1], em)
+            pVals[1] = makeStructVals(uc, sa, pVals[1])
+        else:
+            hex(pVals[1])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,5])
         
         retVal = handle.value
         retValStr = hex(retVal)
@@ -773,7 +726,13 @@ class CustomWinAPIs():
 
         pVals[5] = getLookUpVal(pVals[5],dwCreationFlagsReverseLookUp)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[5])
+        if pVals[1] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[1], em)
+            pVals[1] = makeStructVals(uc, sa, pVals[1])
+        else:
+            hex(pVals[1])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,5])
         
         retVal = handle.value
         retValStr = hex(retVal)
@@ -1083,6 +1042,23 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
         logged_calls= ("OpenProcessToken", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetLogicalProcessorInformation(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['P_SYSTEM_LOGICAL_PROCESSOR_INFORMATION', 'Buffer']
+        pNames= ['PDWORD', 'ReturnedLength']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+        pVals[0] = getLookUpVal(pVals[0], GetLogicalProcessorInformation.SystemParametersInfo.Action)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        retVal = 0x1
+
+        retValStr='True'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetLogicalProcessorInformation", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def HeapCreate(self, uc: Uc, eip, esp, export_dict, callAddr, em):
@@ -1976,7 +1952,19 @@ class CustomWinAPIs():
 
         pVals[9] = makeStructVals(uc, processInfo, pVals[9])
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[5,9])
+        if pVals[2] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[2], em)
+            pVals[2] = makeStructVals(uc, sa, pVals[2])
+        else:
+            hex(pVals[2])
+
+        if pVals[3] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[3], em)
+            pVals[3] = makeStructVals(uc, sa, pVals[3])
+        else:
+            hex(pVals[3])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,3,5,9])
 
         retVal = 0x1
         retValStr = 'TRUE'
@@ -2002,7 +1990,19 @@ class CustomWinAPIs():
 
         pVals[9] = makeStructVals(uc, processInfo, pVals[9])
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[5,9])
+        if pVals[2] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[2], em)
+            pVals[2] = makeStructVals(uc, sa, pVals[2])
+        else:
+            hex(pVals[2])
+
+        if pVals[3] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[3], em)
+            pVals[3] = makeStructVals(uc, sa, pVals[3])
+        else:
+            hex(pVals[3])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,3,5,9])
 
         retVal = 0x1
         retValStr = 'TRUE'
@@ -2031,7 +2031,19 @@ class CustomWinAPIs():
 
         pVals[10] = makeStructVals(uc, processInfo, pVals[10])
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[6,10])
+        if pVals[3] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[3], em)
+            pVals[3] = makeStructVals(uc, sa, pVals[3])
+        else:
+            hex(pVals[3])
+
+        if pVals[4] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[4], em)
+            pVals[4] = makeStructVals(uc, sa, pVals[4])
+        else:
+            hex(pVals[4])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3,4,6,10])
 
         retVal = 0x1
         retValStr = hex(retVal)
@@ -2059,7 +2071,19 @@ class CustomWinAPIs():
 
         pVals[10] = makeStructVals(uc, processInfo, pVals[10])
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[6,10])
+        if pVals[3] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[3], em)
+            pVals[3] = makeStructVals(uc, sa, pVals[3])
+        else:
+            hex(pVals[3])
+
+        if pVals[4] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[4], em)
+            pVals[4] = makeStructVals(uc, sa, pVals[4])
+        else:
+            hex(pVals[4])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3,4,6,10])
 
         retVal = 0x1
         retValStr = hex(retVal)
@@ -2088,7 +2112,19 @@ class CustomWinAPIs():
 
         pVals[10] = makeStructVals(uc, processInfo, pVals[10])
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[6,10])
+        if pVals[3] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[3], em)
+            pVals[3] = makeStructVals(uc, sa, pVals[3])
+        else:
+            hex(pVals[3])
+
+        if pVals[4] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[4], em)
+            pVals[4] = makeStructVals(uc, sa, pVals[4])
+        else:
+            hex(pVals[4])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3,4,6,10])
 
         
         retVal = 1
@@ -2117,7 +2153,19 @@ class CustomWinAPIs():
 
         pVals[10] = makeStructVals(uc, processInfo, pVals[10])
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[6,10])
+        if pVals[3] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[3], em)
+            pVals[3] = makeStructVals(uc, sa, pVals[3])
+        else:
+            hex(pVals[3])
+
+        if pVals[4] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[4], em)
+            pVals[4] = makeStructVals(uc, sa, pVals[4])
+        else:
+            hex(pVals[4])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3,4,6,10])
 
         
         retVal = 1
@@ -2477,7 +2525,13 @@ class CustomWinAPIs():
         pVals[5] = getLookUpVal(pVals[5], RegKey.securityAccessRights)
         pVals[8] = getLookUpVal(pVals[8], lpdwDispostitionReverseLookUp)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1, 4, 5, 8])
+        if pVals[6] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[6], em)
+            pVals[6] = makeStructVals(uc, sa, pVals[6])
+        else:
+            hex(pVals[6])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1, 4, 5, 6, 8])
 
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
@@ -2542,7 +2596,13 @@ class CustomWinAPIs():
         pVals[5] = getLookUpVal(pVals[5], RegKey.securityAccessRights)
         pVals[8] = getLookUpVal(pVals[8], lpdwDispostitionReverseLookUp)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1, 4, 5, 8] )
+        if pVals[6] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[6], em)
+            pVals[6] = makeStructVals(uc, sa, pVals[6])
+        else:
+            hex(pVals[6])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1, 4, 5, 6, 8])
 
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
@@ -2719,7 +2779,13 @@ class CustomWinAPIs():
         pVals[5] = getLookUpVal(pVals[5], RegKey.securityAccessRights)
         pVals[8] = getLookUpVal(pVals[8], lpdwDispostitionReverseLookUp)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1, 4, 5, 8])
+        if pVals[6] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[6], em)
+            pVals[6] = makeStructVals(uc, sa, pVals[6])
+        else:
+            hex(pVals[6])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1, 4, 5, 6, 8])
 
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
@@ -2781,7 +2847,13 @@ class CustomWinAPIs():
         pVals[5] = getLookUpVal(pVals[5], RegKey.securityAccessRights)
         pVals[8] = getLookUpVal(pVals[8], lpdwDispostitionReverseLookUp)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1, 4, 5, 8])
+        if pVals[6] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[6], em)
+            pVals[6] = makeStructVals(uc, sa, pVals[6])
+        else:
+            hex(pVals[6])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1, 4, 5, 6, 8])
 
         retVal = 0x0
         retValStr = 'ERROR_SUCCESS'
@@ -6107,9 +6179,6 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCSTR', 'const LPSECURITY_ATTRIBUTES']
         pNames = ['hKey', 'lpFile', 'lpSecurityAttributes']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-
-        
-        
     
         if pVals[0] in HandlesDict:
             hKey = HandlesDict[pVals[0]]
@@ -6121,7 +6190,13 @@ class CustomWinAPIs():
         else: # Handle Not Found
             keyPath = ''
           
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        if pVals[2] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[2], em)
+            pVals[2] = makeStructVals(uc, sa, pVals[2])
+        else:
+            hex(pVals[2])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
 
         art.registry_add_keys.add(keyPath)
         art.registry_misc.add(pVals[1])
@@ -6137,9 +6212,6 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCWSTR', 'const LPSECURITY_ATTRIBUTES']
         pNames = ['hKey', 'lpFile', 'lpSecurityAttributes']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-
-        
-        
     
         if pVals[0] in HandlesDict:
             hKey = HandlesDict[pVals[0]]
@@ -6151,7 +6223,13 @@ class CustomWinAPIs():
         else: # Handle Not Found
             keyPath = ''
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        if pVals[2] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[2], em)
+            pVals[2] = makeStructVals(uc, sa, pVals[2])
+        else:
+            hex(pVals[2])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
 
         art.registry_add_keys.add(keyPath)
         art.registry_misc.add(pVals[1])
@@ -6168,9 +6246,6 @@ class CustomWinAPIs():
         pNames = ['hKey', 'lpFile', 'lpSecurityAttributes', 'Flags']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
         dwFlagsReversLookUp = {1: 'REG_STANDARD_FORMAT', 2: 'REG_LATEST_FORMAT', 4: 'REG_NO_COMPRESSION'}
-
-        
-        
     
         if pVals[0] in HandlesDict:
             hKey = HandlesDict[pVals[0]]
@@ -6184,7 +6259,13 @@ class CustomWinAPIs():
 
         pVals[3] = getLookUpVal(pVals[3],dwFlagsReversLookUp)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
+        if pVals[2] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[2], em)
+            pVals[2] = makeStructVals(uc, sa, pVals[2])
+        else:
+            hex(pVals[2])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,3])
 
         art.registry_add_keys.add(keyPath)
         art.registry_misc.add(pVals[1])
@@ -6201,9 +6282,6 @@ class CustomWinAPIs():
         pNames = ['hKey', 'lpFile', 'lpSecurityAttributes', 'Flags']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
         dwFlagsReversLookUp = {1: 'REG_STANDARD_FORMAT', 2: 'REG_LATEST_FORMAT', 4: 'REG_NO_COMPRESSION'}
-
-        
-        
     
         if pVals[0] in HandlesDict:
             hKey = HandlesDict[pVals[0]]
@@ -6217,7 +6295,13 @@ class CustomWinAPIs():
 
         pVals[3] = getLookUpVal(pVals[3],dwFlagsReversLookUp)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
+        if pVals[2] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[2], em)
+            pVals[2] = makeStructVals(uc, sa, pVals[2])
+        else:
+            hex(pVals[2])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,3])
 
         art.registry_add_keys.add(keyPath)
         art.registry_misc.add(pVals[1])
@@ -6808,7 +6892,13 @@ class CustomWinAPIs():
 
         pVals[2] = getLookUpVal(pVals[2], flProtectReverseLookUp)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+        if pVals[1] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[1], em)
+            pVals[1] = makeStructVals(uc, sa, pVals[1])
+        else:
+            hex(pVals[1])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2])
         
         handle = Handle(HandleType.CreateFileMappingA) # Might Add Name
 
@@ -6832,7 +6922,13 @@ class CustomWinAPIs():
 
         pVals[2] = getLookUpVal(pVals[2], flProtectReverseLookUp)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+        if pVals[1] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[1], em)
+            pVals[1] = makeStructVals(uc, sa, pVals[1])
+        else:
+            hex(pVals[1])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2])
         
         handle = Handle(HandleType.CreateFileMappingW) # Might Add Name
 
@@ -7786,7 +7882,13 @@ class CustomWinAPIs():
         pVals[2] = getLookUpVal(pVals[2], flProtectReverseLookUp)
         pVals[6] = getLookUpVal(pVals[6], nndPreferredReverseLookUp)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,6])
+        if pVals[1] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[1], em)
+            pVals[1] = makeStructVals(uc, sa, pVals[1])
+        else:
+            hex(pVals[1])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2,6])
 
         handle = Handle(HandleType.CreateFileMappingNumaW) # Might Add Name
         
@@ -7813,7 +7915,13 @@ class CustomWinAPIs():
         pVals[2] = getLookUpVal(pVals[2], flProtectReverseLookUp)
         pVals[6] = getLookUpVal(pVals[6], nndPreferredReverseLookUp)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,6])
+        if pVals[1] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[1], em)
+            pVals[1] = makeStructVals(uc, sa, pVals[1])
+        else:
+            hex(pVals[1])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2,6])
         
         handle = Handle(HandleType.CreateFileMappingNumaW) # Might Add Name
 
@@ -7833,7 +7941,13 @@ class CustomWinAPIs():
         name = read_string(uc, pVals[2])
         handle = Handle(HandleType.Mutex, name = name)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        if pVals[0] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[0], em)
+            pVals[0] = makeStructVals(uc, sa, pVals[0])
+        else:
+            hex(pVals[0])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
         
         retVal = handle.value
         retValStr = hex(retVal)
@@ -7851,7 +7965,13 @@ class CustomWinAPIs():
         name = read_unicode(uc, pVals[2])
         handle = Handle(HandleType.Mutex, name = name)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        if pVals[0] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[0], em)
+            pVals[0] = makeStructVals(uc, sa, pVals[0])
+        else:
+            hex(pVals[0])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
         
         retVal = handle.value
         retValStr = hex(retVal)
@@ -7872,7 +7992,13 @@ class CustomWinAPIs():
         pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Mutex.dwFlags)
         pVals[3] = getLookUpVal(pVals[3], ReverseLookUps.Mutex.dwDesiredAccess)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,3])
+        if pVals[0] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[0], em)
+            pVals[0] = makeStructVals(uc, sa, pVals[0])
+        else:
+            hex(pVals[0])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0,2,3])
         
         retVal = handle.value
         retValStr = hex(retVal)
@@ -7894,7 +8020,13 @@ class CustomWinAPIs():
         pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Mutex.dwFlags)
         pVals[3] = getLookUpVal(pVals[3], ReverseLookUps.Mutex.dwDesiredAccess)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,3])
+        if pVals[0] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[0], em)
+            pVals[0] = makeStructVals(uc, sa, pVals[0])
+        else:
+            hex(pVals[0])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0,2,3])
         
         retVal = handle.value
         retValStr = hex(retVal)
@@ -7999,7 +8131,13 @@ class CustomWinAPIs():
         except:
             pass
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        if pVals[2] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[2], em)
+            pVals[2] = makeStructVals(uc, sa, pVals[2])
+        else:
+            hex(pVals[2])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
         
         retVal = 0x1
         retValStr = 'TRUE'
@@ -8027,7 +8165,13 @@ class CustomWinAPIs():
         pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Pipe.dwPipeMode)
         pVals[3] = getLookUpVal(pVals[3], ReverseLookUps.Pipe.nMaxInstances)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2,3])
+        if pVals[7] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[1], em)
+            pVals[7] = makeStructVals(uc, sa, pVals[1])
+        else:
+            hex(pVals[7])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2,3,7])
         
         retVal = pipeHandle.value
         retValStr = hex(retVal)
@@ -8055,7 +8199,13 @@ class CustomWinAPIs():
         pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Pipe.dwPipeMode)
         pVals[3] = getLookUpVal(pVals[3], ReverseLookUps.Pipe.nMaxInstances)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2,3])
+        if pVals[7] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[7], em)
+            pVals[7] = makeStructVals(uc, sa, pVals[7])
+        else:
+            hex(pVals[7])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2,3,7])
         
         retVal = pipeHandle.value
         retValStr = hex(retVal)
@@ -9946,7 +10096,14 @@ class CustomWinAPIs():
         pNames= ['hHash', '*pbData', 'dwDataLen', 'dwFlags']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        
+
+        dwFlagsReverseLookUp = {1: 'CRYPT_OWF_REPL_LM_HASH', 2: 'CRYPT_USERDATA'}
+
+        pVals[3] = getLookUpVal(pVals[3],dwFlagsReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
+
 
         retVal = 0x1
         retValStr= 'SUCCESS'
@@ -10093,6 +10250,20 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
         logged_calls= ("QueueUserAPC", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def LookupPrivilegeValueA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LPCSTR', 'LPCSTR', 'PLUID']
+        pNames= ['lpSystemName', 'lpName', 'lpLuid']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("LookupPrivilegeValueA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def CallNextHookEx(self, uc: Uc, eip, esp, export_dict, callAddr, em):
@@ -10592,7 +10763,13 @@ class CustomWinAPIs():
         pNames= ['lpPathName', 'lpSecurityAttributes']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        if pVals[1] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[1], em)
+            pVals[1] = makeStructVals(uc, sa, pVals[1])
+        else:
+            hex(pVals[1])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[1])
 
         retVal = 0x1
         retValStr='TRUE'
@@ -10607,7 +10784,13 @@ class CustomWinAPIs():
         pNames= ['lpPathName', 'lpSecurityAttributes']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        if pVals[1] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[1], em)
+            pVals[1] = makeStructVals(uc, sa, pVals[1])
+        else:
+            hex(pVals[1])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[1])
 
         retVal = 0x1
         retValStr='TRUE'
@@ -10783,7 +10966,13 @@ class CustomWinAPIs():
         pNames= ['lpEventAttributes', 'bManualReset', 'bInitialState', 'lpName']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        if pVals[0] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[0], em)
+            pVals[0] = makeStructVals(uc, sa, pVals[0])
+        else:
+            hex(pVals[0])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
 
         if pVals[3] != '[NULL]':
             handle = Handle(HandleType.Event,name=pVals[3])
@@ -10802,7 +10991,13 @@ class CustomWinAPIs():
         pNames= ['lpEventAttributes', 'bManualReset', 'bInitialState', 'lpName']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        if pVals[0] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[0], em)
+            pVals[0] = makeStructVals(uc, sa, pVals[0])
+        else:
+            hex(pVals[0])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
 
         if pVals[3] != '[NULL]':
             handle = Handle(HandleType.Event,name=pVals[3])
@@ -10825,7 +11020,13 @@ class CustomWinAPIs():
         pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Event.Flags)
         pVals[3] = getLookUpVal(pVals[3], ReverseLookUps.Event.DesiredAccess)
 
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[2,3])
+        if pVals[0] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[0], em)
+            pVals[0] = makeStructVals(uc, sa, pVals[0])
+        else:
+            hex(pVals[0])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0,2,3])
 
         if pVals[1] != '[NULL]':
             handle = Handle(HandleType.Event,name=pVals[1])
@@ -10847,7 +11048,13 @@ class CustomWinAPIs():
         pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.Event.Flags)
         pVals[3] = getLookUpVal(pVals[3], ReverseLookUps.Event.DesiredAccess)
 
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[2,3])
+        if pVals[0] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[0], em)
+            pVals[0] = makeStructVals(uc, sa, pVals[0])
+        else:
+            hex(pVals[0])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0,2,3])
 
         if pVals[1] != '[NULL]':
             handle = Handle(HandleType.Event,name=pVals[1])
@@ -11871,7 +12078,13 @@ class CustomWinAPIs():
         pNames= ['lpTimerAttributes', 'bManualReset', 'lpTimerName']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
         
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        if pVals[0] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[0], em)
+            pVals[0] = makeStructVals(uc, sa, pVals[0])
+        else:
+            hex(pVals[0])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
         handle = Handle(HandleType.Timer,name=pVals[2])
         retVal = handle.value
         retValStr= hex(retVal)
@@ -11891,7 +12104,13 @@ class CustomWinAPIs():
         pVals[2] = getLookUpVal(pVals[2],dwFlags_ReverseLookUp)
         pVals[3] = getLookUpVal(pVals[3], timerAccessRights_ReverseLookUp)
 
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[2,3])
+        if pVals[0] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[0], em)
+            pVals[0] = makeStructVals(uc, sa, pVals[0])
+        else:
+            hex(pVals[0])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0,2,3])
         
         handle = Handle(HandleType.Timer,name=pVals[1])
 
@@ -11908,7 +12127,13 @@ class CustomWinAPIs():
         pNames= ['lpTimerAttributes', 'bManualReset', 'lpTimerName']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
         
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        if pVals[0] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[0], em)
+            pVals[0] = makeStructVals(uc, sa, pVals[0])
+        else:
+            hex(pVals[0])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
         handle = Handle(HandleType.Timer,name=pVals[2])
         retVal = handle.value
         retValStr= hex(retVal)
@@ -11928,7 +12153,14 @@ class CustomWinAPIs():
         pVals[2] = getLookUpVal(pVals[2],dwFlags_ReverseLookUp)
         pVals[3] = getLookUpVal(pVals[3], timerAccessRights_ReverseLookUp)
 
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[2,3])
+
+        if pVals[0] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[0], em)
+            pVals[0] = makeStructVals(uc, sa, pVals[0])
+        else:
+            hex(pVals[0])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0,2,3])
         
         handle = Handle(HandleType.Timer,name=pVals[1])
 
