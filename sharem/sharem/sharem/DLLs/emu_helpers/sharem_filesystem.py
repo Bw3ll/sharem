@@ -161,3 +161,10 @@ class Directory_system:
 ##create the class to use
 directory = Directory_system()
 directory.InitializeFileSystem()
+
+###NOTES####
+# files {output.txt: data from the file,}
+# filesReadFrom = [pathToFile.txt]
+# # ^ exists on the emulted filesystem
+# # readFromFile(filePath){returns the data from the file found at the path}
+# # default file name/data in the file for when the path is wrong.
