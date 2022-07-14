@@ -1,23 +1,24 @@
+# from ..hookAPIs import Handle,HandleType
 class Dir_nodes:
     def __init__(self, nameString,parent = None):
         self.name = nameString
         self.parentDir = parent
         self.childrenDir = {}
-        #self.files = []
-        # ^ list of files that could be used in the future if we need that.
-
+        self.files = {}
+        # ^ lists of files, it is sorted by {name of the file: and data, if there is no data defualts to EMPTY}
 class Directory_system:
     def __init__(self):
         #drive letter is grabbed from the config
         self.rootDir = None
         self.usersDir = None
         self.windowsDir = None
-        self.currentDir = None  #set this to be something from the config file
+        self.currentDir = None 
+        self.currentDirPath = None
         self.users = ['Administrator']
-       
-    def CreateNewFolder(self,folderName,ParentFolder):
-        return {folderName:Dir_nodes(folderName,ParentFolder)}
     
+    ################################
+    ## Initize the file system
+    ################################
     def InitializeFileSystem(self, config):
         #Allow drive letter change from the config
         driveLetter = config.drive_letter
@@ -39,6 +40,8 @@ class Directory_system:
         #create the default windows folder
         self.windowsDir = self.rootDir.childrenDir.get('Windows')
         self.windowsDir.childrenDir.update(self.CreateWindowsFolder(self.windowsDir))
+
+        self.currentDirPath = self.setCurrentDir(config.start_directory,1)
         
     def CreateUsers(self,usersDir):
         usersFolder = {}
@@ -74,30 +77,15 @@ class Directory_system:
         user.childrenDir.update(self.CreateNewFolder('Saved Games',user))
         user.childrenDir.update(self.CreateNewFolder('Videos',user))
     
-    def recurseCreateFolder(self,dirNode,path,i = 1):
-        if(type(path) == str):
-            path = path.split('\\')
-        #make sure we are not going over the path
-        if(i >= len(path)):
-            return dirNode
-        else:
-        #check if the child exists and if not create it.
-            if(path[i] not in dirNode.childrenDir):
-                dirNode.childrenDir.update(self.CreateNewFolder(path[i],dirNode))
-                return self.recurseCreateFolder(dirNode.childrenDir.get(path[i]),path,i+1)
-            else:
-                return self.recurseCreateFolder(dirNode.childrenDir.get(path[i]),path,i+1)
-
+    def getFileDependencies(self,config):
+        print(1)
+    ################################
+    ## Api Functions
+    ################################
     def setCurrentDir(self,dirSTR,typePath):
+        dirSTR = self.convertPath(dirSTR)
+
         #Absolute Path
-        if (type(dirSTR) == str):
-            #normalize a path to oly be a single \,( \\ -> \, / -> \ )
-            if('/' in dirSTR):
-                dirSTR = dirSTR.split('/')
-            elif('\\\\' in dirSTR):
-                dirSTR = dirSTR.split('\\\\')
-            else:
-                dirSTR = dirSTR.split('\\')
         if (typePath != 0):
             self.currentDir = (self.getNodeAbsoulte(self.rootDir,dirSTR,1))
             #create folder(s) and set the current directory
@@ -121,6 +109,40 @@ class Directory_system:
             path_list = "\\".join(path_list)
             return path_list
 
+    def createFile(self,path,fileName,fileData = 'EMPTY'):
+        path = self.convertPath(path)
+        folderNode = self.findFolder(path)
+        folderNode.files.update({fileName:fileData})
+
+    def writeFile(self,path,fileName,fileData = 'EMPTY'):
+        path = self.convertPath(path)
+        folderNode = self.findFolder(path)
+        folderNode.files.update({fileName:fileData})
+
+    def moveFile(self,origin,destination,fileName):
+        print(1)
+    def copyFile(self,origin,destination,fileName):
+        print(1)
+
+    ################################
+    ## Helper Functions
+    ################################
+    def CreateNewFolder(self,folderName,ParentFolder):
+        return {folderName:Dir_nodes(folderName,ParentFolder)}
+        
+    def recurseCreateFolder(self,dirNode,path,i = 1):
+        path = self.convertPath(path)
+        #make sure we are not going over the path
+        if(i >= len(path)):
+            return dirNode
+        else:
+        #check if the child exists and if not create it.
+            if(path[i] not in dirNode.childrenDir):
+                dirNode.childrenDir.update(self.CreateNewFolder(path[i],dirNode))
+                return self.recurseCreateFolder(dirNode.childrenDir.get(path[i]),path,i+1)
+            else:
+                return self.recurseCreateFolder(dirNode.childrenDir.get(path[i]),path,i+1)
+   
     def getNodeAbsoulte(self,dirNode,dirName,t):
         #find the nth element of the path
         for eachChild in dirNode.childrenDir:
@@ -140,7 +162,6 @@ class Directory_system:
         #assume dir does not exist
         else:
             return self.recurseCreateFolder(dirNode,dirName,0)
-
     
     def getPath(self,dirNode,returnList):
         if(dirNode.parentDir == None):
@@ -153,19 +174,49 @@ class Directory_system:
             returnList.insert(0,dirNode.name)
             return self.getPath(dirNode.parentDir,returnList)
     
+    def findFile(self,filename):
+        print(1)
+    
+    def detectDuplicateFile(self,node,handle):
+        print(1)
+
+    def findFolder(self,path):
+        path = self.convertPath(path)
+        if('..' in path):
+            return self.getNodeRelative(self.currentDir,path)
+        else:
+            return self.getNodeAbsoulte(self.rootDir,path,1)
+        
+    def convertPath(self,path):
+        if (type(path) == str):
+            #normalize a path to oly be a single \,( \\ -> \, / -> \ )
+            if('/' in path):
+                path = path.split('/')
+            elif('\\\\' in path):
+                path = path.split('\\\\')
+            else:
+                path = path.split('\\')
+        return path
+
+    ################################
+    ## Output Functions
+    ################################
     def printALL(self,dirNode,indent = 0):
         if(indent == 0):
             print(self.rootDir.name)
+            if(len(self.rootDir.files) != 0):
+                print("*F*"+str(self.rootDir.files))
             indent+=1
         for each in dirNode.childrenDir:
             print(('  ')*indent+each)
             child = dirNode.childrenDir.get(each)
+            if(len(child.files) != 0):
+                print((' '*indent+"*F*"+str(child.files)))
             self.printALL(child,indent+1)
 
-
-##create the class to use
-directory = Directory_system()
-directory.InitializeFileSystem()
+    def outputFilesCreated(self,config):
+        #check if output is enabled or not.
+        print(1)
 
 ###NOTES####
 # files {output.txt: data from the file,}

@@ -3,8 +3,8 @@ from enum import Enum, auto
 from random import choice, randint
 from time import perf_counter_ns
 from urllib.parse import quote, unquote
-from sharem.sharem.DLLs.emu_helpers.sharem_artifacts import Artifacts_emulation
-from sharem.sharem.DLLs.emu_helpers.sharem_filesystem import Directory_system
+from .emu_helpers.sharem_artifacts import Artifacts_emulation
+from .emu_helpers.sharem_filesystem import Directory_system
 from sharem.sharem.DLLs.reverseLookUps import ReverseLookUps
 from sharem.sharem.DLLs.structures import *
 from sharem.sharem.helper.structHelpers import makeStructVals
@@ -15,11 +15,12 @@ from ..modules import allDllsDict
 import traceback
 import re
 
+#Artifacts class initialization
 art = Artifacts_emulation()
-#global currentDirectory
-
 # Instance of File System
 SimFileSystem = Directory_system()
+
+
 
 FakeProcess = 0xbadd0000
 availMem = 0x25000000
@@ -447,6 +448,34 @@ class CustomWinAPIs():
         
         logged_calls = ("ExitThread", hex(callAddr), 'None', 'void', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+   
+    def WriteFile(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'WriteFile': (5, ['HANDLE', 'LPCVOID', 'DWORD', 'LPDWORD', 'LPOVERLAPPED'], ['hFile', 'lpBuffer', 'nNumberOfBytesToWrite', 'lpNumberOfBytesWritten', 'lpOverlapped'], 'thunk BOOL'), 
+        pTypes = ['HANDLE', 'LPCVOID', 'DWORD', 'LPDWORD', 'LPOVERLAPPED']
+        pNames = ['hFile', 'lpBuffer', 'nNumberOfBytesToWrite', 'lpNumberOfBytesWritten', 'lpOverlapped']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        handle = pVals[0]
+        if(handle not in HandlesDict):
+            handle = Handle(HandleType.CreateFileA)
+            ##get the config to name this
+            handle.name = "New File.txt"
+            handleNode = handle
+        else:
+            handleNode = HandlesDict.get(handle)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [])
+        
+        SimFileSystem.writeFile(SimFileSystem.currentDirPath,handleNode.name,pVals[1])
+        
+        SimFileSystem.printALL(SimFileSystem.rootDir)
+
+        retVal = 1
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("CreateFileA", hex(callAddr), retValStr, 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def CreateFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes = ["LPCSTR", "DWORD", "DWORD", "LPSECURITY_ATTRIBUTES", "DWORD", "DWORD", "HANDLE"]
@@ -462,6 +491,7 @@ class CustomWinAPIs():
         pVals[5] = getLookUpVal(pVals[5], ReverseLookUps.File.FlagsAndAttribute)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [1, 2, 4, 5])
+        SimFileSystem.createFile(SimFileSystem.currentDirPath,pVals[0])
 
         retVal = handle.value
         retValStr = hex(retVal)
@@ -484,8 +514,9 @@ class CustomWinAPIs():
         pVals[5] = getLookUpVal(pVals[5], ReverseLookUps.File.FlagsAndAttribute)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip= [1, 2, 4, 5])
+        SimFileSystem.createFile(SimFileSystem.currentDirPath,pVals[0])
+        handle.name = pVals[0]
 
-        
         retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -11193,19 +11224,18 @@ class CustomWinAPIs():
         pTypes= ['LPCTSTR']
         pNames= ['lpPathName']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-        #global currentDirectory
-
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         changeDir = pVals[0]
+
         #checks the path type
         if(".." in changeDir):
             #have a workaround for now to convert to an absolute path
-            changeDir = SimFileSystem.setCurrentDir(changeDir,0)
+            SimFileSystem.currentDirPath = SimFileSystem.setCurrentDir(changeDir,0)
         else:
             #is absolute path
-            changeDir = SimFileSystem.setCurrentDir(changeDir,1)
+            SimFileSystem.currentDirPath = SimFileSystem.setCurrentDir(changeDir,1)
         
-        art.path_artifacts.append(changeDir)          
+        art.path_artifacts.append(SimFileSystem.currentDirPath)          
         retVal = 0x1
         retValStr= 'True'
         uc.reg_write(UC_X86_REG_EAX, retVal)     
