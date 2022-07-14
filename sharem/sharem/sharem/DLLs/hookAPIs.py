@@ -983,6 +983,23 @@ class CustomWinAPIs():
         logged_calls= ("OpenProcessToken", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def GetLogicalProcessorInformation(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['P_SYSTEM_LOGICAL_PROCESSOR_INFORMATION', 'Buffer']
+        pNames= ['PDWORD', 'ReturnedLength']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+        pVals[0] = getLookUpVal(pVals[0], GetLogicalProcessorInformation.SystemParametersInfo.Action)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        retVal = 0x1
+
+        retValStr='True'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetLogicalProcessorInformation", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def HeapCreate(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         # HANDLE HeapCreate([in] DWORD  flOptions,[in] SIZE_T dwInitialSize,[in] SIZE_T dwMaximumSize);
         pTypes = ['DWORD', 'SIZE_T', 'SIZE_T']
