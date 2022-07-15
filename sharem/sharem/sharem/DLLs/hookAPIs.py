@@ -10333,7 +10333,25 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4])
 
         retVal = 0x1
-        retValStr= 'MESSAGE AVAILABLE'
+        retValStr= 'MESSAGE_AVAILABLE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("PeekMessageA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def PostMessageA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HWND', 'UINT', 'WPARAM', 'LPARAM']
+        pNames= ['hWnd', 'Msg', 'wParam', 'lParam']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        dwFlagsReverseLookUp = {0: 'PM_NOREMOVE', 1: 'PM_REMOVE', 2: 'PM_NOYIELD'}
+
+        pVals[4] = getLookUpVal(pVals[4],dwFlagsReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4])
+
+        retVal = 0x1
+        retValStr= 'MESSAGE_AVAILABLE'
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
         logged_calls= ("PeekMessageA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
