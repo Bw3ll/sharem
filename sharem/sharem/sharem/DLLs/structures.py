@@ -1170,3 +1170,82 @@ class WSAPROTOCOL_INFOW(LittleEndianStructure):
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
+
+
+# Struct NETRESOURCEA
+# Alias Names: _NETRESOURCEA
+# Alias Pointer Names: LPNETRESOURCEA
+
+def get_NETRESOURCEA(uc: Uc, address: int, em):
+    if em.arch == 32:
+        return NETRESOURCEA.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(NETRESOURCEA.ARCH32)))
+    else:
+        return NETRESOURCEA.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(NETRESOURCEA.ARCH64)))
+
+# Struct Aliases:
+# get__NETRESOURCEA = get_NETRESOURCEA
+
+# Struct Pointers:
+LPNETRESOURCEA_32BIT = POINTER_32BIT
+LPNETRESOURCEA_64BIT = POINTER_64BIT
+
+class NETRESOURCEA:
+
+    class ARCH32(LittleEndianStructure):
+        types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPSTR', 'LPSTR', 'LPSTR', 'LPSTR']
+        __slots__ = ('dwScope', 'dwType', 'dwDisplayType', 'dwUsage', 'lpLocalName', 'lpRemoteName', 'lpComment', 'lpProvider')
+        lookUps = {0: ReverseLookUps.Net.Scope, 1: ReverseLookUps.Net.Type, 2: ReverseLookUps.Net.Display, 3: ReverseLookUps.Net.Usage}
+
+        _fields_ = [('dwScope',DWORD),('dwType',DWORD),('dwDisplayType',DWORD),('dwUsage',DWORD),('lpLocalName',LPSTR_32BIT),('lpRemoteName',LPSTR_32BIT),('lpComment',LPSTR_32BIT),('lpProvider',LPSTR_32BIT)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure):
+        types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPSTR', 'LPSTR', 'LPSTR', 'LPSTR']
+        __slots__ = ('dwScope', 'dwType', 'dwDisplayType', 'dwUsage', 'lpLocalName', 'lpRemoteName', 'lpComment', 'lpProvider')
+        lookUps = {0: ReverseLookUps.Net.Scope, 1: ReverseLookUps.Net.Type, 2: ReverseLookUps.Net.Display, 3: ReverseLookUps.Net.Usage}
+
+        _fields_ = [('dwScope',DWORD),('dwType',DWORD),('dwDisplayType',DWORD),('dwUsage',DWORD),('lpLocalName',LPSTR_64BIT),('lpRemoteName',LPSTR_64BIT),('lpComment',LPSTR_64BIT),('lpProvider',LPSTR_64BIT)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+# Struct NETRESOURCEW
+# Alias Names: _NETRESOURCEW
+# Alias Pointer Names: LPNETRESOURCEW
+
+def get_NETRESOURCEW(uc: Uc, address: int, em):
+    if em.arch == 32:
+        return NETRESOURCEW.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(NETRESOURCEW.ARCH32)))
+    else:
+        return NETRESOURCEW.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(NETRESOURCEW.ARCH64)))
+
+# Struct Aliases:
+# get__NETRESOURCEW = get_NETRESOURCEW
+
+# Struct Pointers:
+LPNETRESOURCEW_32BIT = POINTER_32BIT
+LPNETRESOURCEW_64BIT = POINTER_64BIT
+
+class NETRESOURCEW:
+
+    class ARCH32(LittleEndianStructure):
+        types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPWSTR', 'LPWSTR', 'LPWSTR', 'LPWSTR']
+        __slots__ = ('dwScope', 'dwType', 'dwDisplayType', 'dwUsage', 'lpLocalName', 'lpRemoteName', 'lpComment', 'lpProvider')
+        lookUps = {0: ReverseLookUps.Net.Scope, 1: ReverseLookUps.Net.Type, 2: ReverseLookUps.Net.Display, 3: ReverseLookUps.Net.Usage}
+
+        _fields_ = [('dwScope',DWORD),('dwType',DWORD),('dwDisplayType',DWORD),('dwUsage',DWORD),('lpLocalName',LPWSTR_32BIT),('lpRemoteName',LPWSTR_32BIT),('lpComment',LPWSTR_32BIT),('lpProvider',LPWSTR_32BIT)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure):
+        types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPWSTR', 'LPWSTR', 'LPWSTR', 'LPWSTR']
+        __slots__ = ('dwScope', 'dwType', 'dwDisplayType', 'dwUsage', 'lpLocalName', 'lpRemoteName', 'lpComment', 'lpProvider')
+        lookUps = {0: ReverseLookUps.Net.Scope, 1: ReverseLookUps.Net.Type, 2: ReverseLookUps.Net.Display, 3: ReverseLookUps.Net.Usage}
+
+        _fields_ = [('dwScope',DWORD),('dwType',DWORD),('dwDisplayType',DWORD),('dwUsage',DWORD),('lpLocalName',LPWSTR_64BIT),('lpRemoteName',LPWSTR_64BIT),('lpComment',LPWSTR_64BIT),('lpProvider',LPWSTR_64BIT)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))

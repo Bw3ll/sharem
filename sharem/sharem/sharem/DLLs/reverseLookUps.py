@@ -6543,3 +6543,30 @@ class ReverseLookUps:
             262144: "XP1_PARTIAL_MESSAGE",
             524288: "XP1_SAN_SUPPORT_SDP",
         }
+
+    class Net:
+        Scope = {
+            0x00000001: "RESOURCE_CONNECTED",
+            0x00000002: "RESOURCE_GLOBALNET",
+            0x00000005: "RESOURCE_CONTEXT",
+        }
+
+        Type = {
+            0x00000000: "RESOURCETYPE_ANY",
+            0x00000001: "RESOURCETYPE_DISK",
+            0x00000002: "RESOURCETYPE_PRINT",
+        }
+
+        Display = {
+            0x00000000: "RESOURCEDISPLAYTYPE_GENERIC",
+            0x00000001: "RESOURCEDISPLAYTYPE_DOMAIN",
+            0x00000002: "RESOURCEDISPLAYTYPE_SERVER",
+            0x00000003: "RESOURCEDISPLAYTYPE_SHARE",
+            0x00000006: "RESOURCEDISPLAYTYPE_NETWORK",
+            0x00000009: "RESOURCEDISPLAYTYPE_DIRECTORY",
+        }
+
+        Usage = {
+            0x00000001: "RESOURCEUSAGE_CONNECTABLE",
+            0x00000002: "RESOURCEUSAGE_CONTAINER",
+        }
