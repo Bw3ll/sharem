@@ -10444,6 +10444,20 @@ class CustomWinAPIs():
         logged_calls= ("WaitForMultipleObjectsEx", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def SetThreadToken(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['PHANDLE', 'HANDLE'] 
+        pNames = ['Thread', 'Token'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        
+        retVal = 0x1
+        retValStr = 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("SetThreadToken", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def GetCurrentThreadId(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes =[] 
         pNames = [] 
