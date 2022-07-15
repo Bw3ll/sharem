@@ -10326,7 +10326,11 @@ class CustomWinAPIs():
         pNames= ['lpMsg', 'hWnd', 'wMsgFilterMin', 'wMsgFilterMax', 'wRemoveMsg']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        dwFlagsReverseLookUp = {0: 'PM_NOREMOVE', 1: 'PM_REMOVE', 2: 'PM_NOYIELD'}
+
+        pVals[4] = getLookUpVal(pVals[4],dwFlagsReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4])
 
         retVal = 0x1
         retValStr= 'MESSAGE AVAILABLE'
