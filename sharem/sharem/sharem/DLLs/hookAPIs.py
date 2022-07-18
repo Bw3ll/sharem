@@ -10193,6 +10193,20 @@ class CustomWinAPIs():
         logged_calls= ("SetPropA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def TlsSetValue(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['DWORD', 'LPVOID']
+        pNames= ['dwTlsIndex', 'lpTlsValue']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("TlsSetValue", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def CryptEncrypt(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['HCRYPTKEY', 'HCRYPTHASH', 'BOOL', 'DWORD', 'BYTE', 'DWORD', 'DWORD']
         pNames= ['hKey', 'hHash', 'Final', 'dwFlags', '*pbData', '*pdwDataLen', 'dwBufLen']
@@ -10225,8 +10239,6 @@ class CustomWinAPIs():
         pTypes= ['HCRYPTPROV', 'BYTE', 'DWORD', 'DWORD']
         pNames= ['hHash', '*pbData', 'dwDataLen', 'dwFlags']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-
-        
 
         dwFlagsReverseLookUp = {1: 'CRYPT_OWF_REPL_LM_HASH', 2: 'CRYPT_USERDATA'}
 
@@ -10470,6 +10482,79 @@ class CustomWinAPIs():
         logged_calls= ("WNetAddConnectionA", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def PeekMessageA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LPMSG', 'HWND', 'UINT', 'UINT', 'UINT']
+        pNames= ['lpMsg', 'hWnd', 'wMsgFilterMin', 'wMsgFilterMax', 'wRemoveMsg']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        dwFlagsReverseLookUp = {0: 'PM_NOREMOVE', 1: 'PM_REMOVE', 2: 'PM_NOYIELD'}
+
+        pVals[4] = getLookUpVal(pVals[4],dwFlagsReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4])
+
+        retVal = 0x1
+        retValStr= 'MESSAGE_AVAILABLE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("PeekMessageA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def PostMessageA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HWND', 'UINT', 'WPARAM', 'LPARAM']
+        pNames= ['hWnd', 'Msg', 'wParam', 'lParam']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("PeekMessageA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def PostThreadMessageA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['DWORD', 'UINT', 'WPARAM', 'LPARAM']
+        pNames= ['idThread', 'Msg', 'wParam', 'lParam']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("PostThreadMessageA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def AttachThreadInput(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['DWORD', 'DWORD', 'BOOL']
+        pNames= ['idAttach', 'idAttachTo', 'fAttach']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("AttachThreadInput", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CallNextHookEx(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HHOOK', 'int', 'WPARAM', 'LPARAM']
+        pNames= ['hhk', 'nCode', 'wParam', 'lParam']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CallNextHookEx", hex(callAddr), (retValStr), 'LRESULT', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def DuplicateToken(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['HANDLE', 'SECURITY_IMPERSONATION_LEVEL', 'PHANDLE']
@@ -10518,6 +10603,20 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
         logged_calls= ("WaitForMultipleObjectsEx", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def SetThreadToken(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['PHANDLE', 'HANDLE'] 
+        pNames = ['Thread', 'Token'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        
+        retVal = 0x1
+        retValStr = 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("SetThreadToken", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def GetCurrentThreadId(self, uc: Uc, eip, esp, export_dict, callAddr, em):
