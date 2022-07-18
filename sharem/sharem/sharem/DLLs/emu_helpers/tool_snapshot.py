@@ -1,5 +1,5 @@
 
-from sharem.sharem.DLLs.structures import MODULEENTRY32, PROCESSENTRY32, THREADENTRY32
+from sharem.sharem.DLLs.emu_helpers.structures import MODULEENTRY32, PROCESSENTRY32, THREADENTRY32
 
 
 class System_SnapShot: # Needs Reworked For new Struct System

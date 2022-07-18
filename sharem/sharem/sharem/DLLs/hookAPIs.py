@@ -12,8 +12,8 @@ from sharem.sharem.DLLs.emu_helpers.sim_values import emuSimVals
 from sharem.sharem.DLLs.emu_helpers.sharem_artifacts import Artifacts_emulation
 from sharem.sharem.DLLs.emu_helpers.sharem_filesystem import Directory_system
 from sharem.sharem.DLLs.emu_helpers.tool_snapshot import System_SnapShot
-from sharem.sharem.DLLs.reverseLookUps import ReverseLookUps
-from sharem.sharem.DLLs.structures import *
+from sharem.sharem.DLLs.emu_helpers.reverseLookUps import ReverseLookUps
+from sharem.sharem.DLLs.emu_helpers.structures import *
 from sharem.sharem.helper.structHelpers import makeStructVals
 from unicorn.x86_const import *
 from struct import pack, unpack
