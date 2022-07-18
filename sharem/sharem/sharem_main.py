@@ -25442,8 +25442,6 @@ def SharemMainResetGlobals():
 	global HandlesDict
 	global HeapsDict
 	global RegistryKeys
-	global availMem
-	global lastErrorCode
 	global commandLine_arg
 	global registry_values
 	global registry_keys
@@ -25679,8 +25677,6 @@ def SharemMainResetGlobals():
 	HandlesDict = {}
 	HeapsDict = {}
 	RegistryKeys = {}
-	availMem = 0x25000000
-	lastErrorCode = 0x0
 	commandLine_arg = set()
 	registry_values = set()
 	registry_keys = set()
