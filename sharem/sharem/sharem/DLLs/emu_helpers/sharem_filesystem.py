@@ -1,4 +1,7 @@
-# from ..hookAPIs import Handle,HandleType
+from .handles import Handle,HandleType,HandlesDict
+from .sharem_artifacts import Artifacts_regex
+import re
+
 class Dir_nodes:
     def __init__(self, nameString,parent = None):
         self.name = nameString
@@ -78,6 +81,8 @@ class Directory_system:
         user.childrenDir.update(self.CreateNewFolder('Videos',user))
     
     def getFileDependencies(self,config):
+        #get the inputted files from the user that the shellcode depends on
+        #!!DOES NOT WORK CURRENTLY!!
         print(1)
     ################################
     ## Api Functions
@@ -111,22 +116,105 @@ class Directory_system:
 
     def createFile(self,path,fileName,fileData = 'EMPTY'):
         path = self.convertPath(path)
-        folderNode = self.findFolder(path)
+        folderNode = self.findAndCreateFolder(path)
         folderNode.files.update({fileName:fileData})
 
     def writeFile(self,path,fileName,fileData = 'EMPTY'):
         path = self.convertPath(path)
-        folderNode = self.findFolder(path)
+        folderNode = self.findAndCreateFolder(path)
         folderNode.files.update({fileName:fileData})
 
-    def moveFile(self,origin,destination,fileName):
-        print(1)
-    def copyFile(self,origin,destination,fileName):
-        print(1)
+    def moveFile(self,origin,destination,replace):
+        #overwrite the file in the destination folder.
+        if(replace == 0x1):
+            origin = self.convertPath(origin)
+            destination = self.convertPath(destination)
+            fileName = origin[-1]
+            destFileName = destination[-1]
+            folderOrigin = self.findAndCreateFolder(origin[:-1])
+            folderDest = self.findAndCreateFolder(destination[:-1])
+
+            #get file data if it exists, otherwise create the file and put our sample data within it.
+            fileData = folderOrigin.files.get(fileName)
+            if(fileData == None):
+                self.createFile(origin[:-1],fileName)
+                fileData = folderOrigin.files.get(fileName)
+
+            #if the file exists, and option 0x1 is turned on
+            
+            folderDest.files.update({destFileName:fileData})
+            del folderOrigin.files[fileName]
+
+        #rename the file if there is a duplicate in the dest folder
+        else:
+            origin = self.convertPath(origin)
+            destination = self.convertPath(destination)
+            fileName = origin[-1]
+            destFileName = destination[-1]
+            folderOrigin = self.findAndCreateFolder(origin[:-1])
+            folderDest = self.findAndCreateFolder(destination[:-1])
+
+            #check if the file exists and rename the destinationFile
+            destFileName = self.checkFileDuplicate(folderDest,destFileName)
+
+
+            #get file data if it exists, otherwise create the file and put our sample data within it.
+            fileData = folderOrigin.files.get(fileName)
+            if(fileData == None):
+                self.createFile(origin[:-1],fileName)
+                fileData = folderOrigin.files.get(fileName)
+
+            folderDest.files.update({destFileName:fileData})
+            del folderOrigin.files[fileName]
+        
+        return '\\'.join(destination), '\\'.join(origin),fileName,destFileName
+
+    def copyFile(self,origin,destination):
+        origin = self.convertPath(origin)
+        destination = self.convertPath(destination)
+        fileName = origin[-1]
+        destFileName = destination[-1]
+        folderOrigin = self.findAndCreateFolder(origin[:-1])
+        folderDest = self.findAndCreateFolder(destination[:-1])
+        destFileName = self.checkFileDuplicate(folderDest,destFileName)
+
+        #get file data if it exists, otherwise create the file and put our sample data within it.
+        fileData = folderOrigin.files.get(fileName)
+        if(fileData == None):
+            self.createFile(origin[:-1],fileName)
+            fileData = folderOrigin.files.get(fileName)
+
+        
+        folderDest.files.update({destFileName:fileData})
+
+        return destFileName, fileName, '\\'.join(destination), '\\'.join(origin)
+
+    def moveFolder(self,origin,destination,replace):
+        origin = self.convertPath(origin)
+        destination = self.convertPath(destination)
+        folderOrigin = self.findAndCreateFolder(origin)
+        folderDest = self.findAndCreateFolder(destination)
+        folderOrigin.parentDir = folderDest
+        return '\\'.join(destination), '\\'.join(origin)
+
+    def internetDownload(self,destination):
+        destination = self.convertPath(destination)
+        fileName = destination[-1]
+        self.createFile(destination[:-1],fileName)
+        
+
+
 
     ################################
     ## Helper Functions
     ################################
+    def findAndCreateFolder(self,path):
+        path = self.convertPath(path)
+        folder = self.findFolder(path)
+        if(folder == None):
+            folder = self.recurseCreateFolder(self.rootDir,path)
+        return folder
+
     def CreateNewFolder(self,folderName,ParentFolder):
         return {folderName:Dir_nodes(folderName,ParentFolder)}
         
@@ -174,11 +262,45 @@ class Directory_system:
             returnList.insert(0,dirNode.name)
             return self.getPath(dirNode.parentDir,returnList)
     
+    #might not need this, holding this function here for now.
     def findFile(self,filename):
         print(1)
-    
-    def detectDuplicateFile(self,node,handle):
-        print(1)
+        
+    def detectDuplicateFileHandles(self,node,handle):
+        #on creation detect if there is a duplicate file name and then rename it accordingly append '(N)' where n is the number of times it is duplicated starting at 1
+        count = 0
+
+        for eachFile in node.files:
+            if(eachFile == handle.name):
+                count = count + 1
+        if(count > 0):
+            try:
+                splitName = handle.name.split(".")
+                newFileName =  splitName[0] +"("+str(count)+")."+ splitName[1]
+            except:
+                newFileName =  handle.name +"("+str(count)+")"
+                
+            return newFileName
+        else:
+            return handle.name
+
+    def checkFileDuplicate(self,node,fileName):
+        #on creation detect if there is a duplicate file name and then rename it accordingly append '(N)' where n is the number of times it is duplicated starting at 1
+        count = 0
+
+        for eachFile in node.files:
+            if(eachFile == fileName):
+                count = count + 1
+        if(count > 0):
+            try:
+                splitName = fileName.split(".")
+                newFileName =  splitName[0] +"("+str(count)+")."+ splitName[1]
+            except:
+                newFileName =  fileName +"("+str(count)+")"
+                
+            return newFileName
+        else:
+            return fileName
 
     def findFolder(self,path):
         path = self.convertPath(path)
@@ -196,8 +318,18 @@ class Directory_system:
                 path = path.split('\\\\')
             else:
                 path = path.split('\\')
+        for each in path:
+            if (each == ''):
+                path.remove(each)
         return path
 
+    def fileOrFolder(self,path):
+        REGEX = Artifacts_regex()
+        REGEX.initializeRegex()
+        if re.search(REGEX.find_totalFiles,path):
+            return 1
+        else:
+            return 0
     ################################
     ## Output Functions
     ################################
@@ -217,11 +349,6 @@ class Directory_system:
     def outputFilesCreated(self,config):
         #check if output is enabled or not.
         print(1)
+        #output the files to the output directory given in the config
+        #!!DOES NOT WORK CURRENTLY!!
 
-
-###NOTES####
-# files {output.txt: data from the file,}
-# filesReadFrom = [pathToFile.txt]
-# # ^ exists on the emulted filesystem
-# # readFromFile(filePath){returns the data from the file found at the path}
-# # default file name/data in the file for when the path is wrong.

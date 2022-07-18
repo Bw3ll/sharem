@@ -16,6 +16,7 @@ from .DLLs.syscall_signatures import *
 from .helper.emuHelpers import *
 from .helper.sharemuDeob import *
 from .sharem_debugger import *
+from .DLLs.emu_helpers.sharem_artifacts import Artifacts_regex
 #from .sharem_artifacts import *
 
 import json
@@ -660,95 +661,9 @@ def logSysCall(syscallName, syscallInfo):
 
 
 def findArtifacts():
-    
-    ## ============================================================================
-    ## PATHs
-    ## -----------------------------
-    find_environment = r"(?:(?:\%[A-Za-z86]+\%)(?:(?:\\|\\\\)(?:[^<>\"\*\/\\\|\?\n])+)+)"
-    find_environment_2 = r"(?:(?:\%[A-Za-z86]+\%)(?:(?:\/)(?:[^<>\"\*\/\\\|\?\n])+)+)"
-    find_letterDrives = r"(?:(?:[A-za-z]:)(?:(?:\\|\\\\)(?:[^<>\"\*\/\\\|\?\n])+)+)"
-    find_letterDrives_2 = r"(?:(?:[A-za-z]:)(?:(?:\/)(?:[^<>\"\*\/\\\|\?\n])+)+)"
-    find_letterDrives2 = r"(?:(?:[A-za-z]:)(?:(?:\\|\\\\)(?:[^<>\"\*\/\\\|\?\n])+)+(?:\.[^<>\"\*\/\\\|\?\n]{2,4}))"
-    find_letterDrives2_2 = r"(?:(?:[A-za-z]:)(?:(?:\/)(?:[^<>\"\*\/\\\|\?\n])+)+(?:\.[^<>\"\*\/\\\|\?\n]{2,4}))"
-    find_relativePaths = r"(?:(?:\.\.)(?:(?:\\|\\\\)(?:[^<>\"\*\/\\\|\?\n]+))+)"
-    find_relativePaths_2 = r"(?:(?:\.\.)(?:(?:\/)(?:[^<>\"\*\/\\\|\?\n]+))+)"
-    find_networkShares = r"(?:(?:\\\\)(?:[^<>\"\*\/\\\|\?\n]+)(?:(?:\\|\\\\)(?:[^<>\"\*\/\\\|\?\n]+(?:\$|\:)?))+)"
-    find_networkShares_2 = r"(?:(?:\\\\)(?:[^<>\"\*\/\\\|\?\n]+)(?:(?:\/)(?:[^<>\"\*\/\\\|\?\n]+(?:\$|\:)?))+)"
-    total_findPaths = find_letterDrives2 +"|"+find_letterDrives2_2+"|"+find_letterDrives+"|"+find_letterDrives_2+"|"+find_relativePaths+"|"+find_relativePaths_2+"|"+find_networkShares+"|"+find_networkShares_2+"|"+find_environment+"|"+find_environment_2
-    ##*****************************************************************************
-    ## FILES
-    ## -----------------------------
-    find_files = r"(?:[^<>:\"\*\/\\\|\?\n]+)(?:\.[A-Za-z1743]{2,5})"
-    # gives a couple false positives, but this can be improved upon slowly
-    ## works best when paired with other regex.
-    find_zip = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:7z|zip|rar|tar|tar\.gz|gzip|bzip2|wim|xz)(?:\b)"
-    find_genericFiles = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:bin|log|exe|dll|txt|ini|ico|lnk|tmp|bak|cfg|config|msi|dat|rtf|cer|sys|cab|iso|db|asp|aspx|html|htm|rdp|temp)(?:\b)"
-    find_images = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:jpg|gid|gmp|jpeg|png|tif|gif|bmp|tiff|svg)(?:\b)"
-    find_programming = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:cpp|java|js|php|py|bat|c|pyc|py3|pyw|jar|eps|vbs|scr|cs|ps1|ps1xml|ps2|ps2xml|psc1|psc2|r|rb|php3|vbx)(?:\b)"
-    find_workRelated = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:xls|xlsm|xlsx|ppt|pptx|doc|docx|pdf|wpd|odt|dodp|pps|key|diff|docm|eml|email|msg|pst|pub|sldm|sldx|wbk|xll|xla|xps|dbf|accdb|accde|accdr|accdt|sql|sqlite|mdb)(?:\b)"
-    find_videoAudio = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:mp4|mpg|mpeg|avi|mp3|wav|aac|adt|adts|aif|aifc|aiff|cda|flv|m4a)(?:\b)"
-    
-    find_misc1 = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:reg|inf|application|gadget|msp|hta|cpl|msc|vb|vbe|jse|ws|wsf|wsc|wsh|scf|sh|csv|vmdk|cmx|vdi|yaml|raw|msh|msh1|msh1xml|msh2|msh2xml|mshxml|mst|ops|osd|pcd|pl|plg|prf|prg|printerexport|psd1|psdm1|pssc|pyo)(?:\b)"
-    find_misc2 = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:swf|aru|shs|pgm|pif|vba|hlp|apk|dotm|xltm|xlam|pptm|potm|ppam|ppsm|css|chm|drv|vxd|isp|its|jnlp|ksh|mad|maf|mag|mam|maq|mar|mas|mat|mau|mav|maw|mcf|mda|mde|mdt|mdw|mdz|msu)(?:\b)"
-    find_misc3 = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:md|info|epub|tga|url|sym|a\.out|btm|lua|ade|adp|app|appcontent-ms|appref-ms|bas|cdxml|cmd|cnt|crt|csh|der|diagcab|fxp|grp|hpj|ins|settingcontent-ms|shb|theme|udl|vbp|vsmacros|vsw|webpnp|website|wsb|xbap|xnk|pyz|sct|pyzw)(?:\b)"
-    find_totalFiles = find_genericFiles+"|"+find_images+"|"+find_programming+"|"+find_workRelated+"|"+find_videoAudio+"|"+find_misc1+"|"+find_misc2+"|"+find_misc3
-    find_totalFilesBeginning = "^"+find_genericFiles+"|^"+find_images+"|^"+find_programming+"|^"+find_workRelated+"|^"+find_videoAudio+"|^"+find_misc1+"|^"+find_misc2+"|^"+find_misc3
-
-    ##*****************************************************************************
-    ## COMMAND LINE ARGUMENTS
-    ## -----------------------------
-    valid_cmd_characters = r"(?:[A-Za-z0-9 \/\\=\-_:!@#\$%\^&\*\(\)><\.\"'`\{\};\[\]\+,\|]+)"
-    find_cmdLine = r"(?:(?:cmd(?:\.exe)?)(?:\s+(?:\/[cCkKaAuUdDxXqQ]|\/[eEfFvV]:..|\/[tT]:[0-9a-fA-F])+)+)"
-    find_powershell = r"(?:powershell(?:\.exe)?)"
-    find_regCMD = r"(?:reg(?:\.exe)?(?:\s+(?:add|compare|copy|delete|export|import|load|query|restore|save|unload))+)"
-    find_netCMD = r"(?:net(?:\.exe)?(?:\s+(?:accounts|computer|config|continue|file|group|help|helpmsg|localgroup|name|pause|print|send|session|share|start|statistics|stop|time|use|user|view))+)"
-    find_schtasksCMD = r"(?:schtasks(?:\.exe)?\s+)(?:\/(?:change|create|delete|end|query|run))"
-    find_netsh = r"(?:netsh(?:\.exe)?\s+(?:abort|add|advfirewall|alias|branchcache|bridge|bye|commit|delete|dhcpclient|dnsclient|dump|exec|exit|firewall|help|http|interface|ipsec|ipsecdosprotection|lan|namespace|netio|offline|online|popd|pushd|quit|ras|rpc|set|show|trace|unalias|    wfp|winhttp|winsock))"
-    cmdline_args = find_cmdLine+valid_cmd_characters
-    powershell_args= find_powershell+valid_cmd_characters
-    reg_args = find_regCMD+valid_cmd_characters
-    net_args = find_netCMD+valid_cmd_characters
-    netsh_args = find_netsh+valid_cmd_characters
-    schtask_args = find_schtasksCMD+valid_cmd_characters
-    total_commandLineArguments = cmdline_args+"|"+powershell_args+ "|"+reg_args+"|"+net_args+"|"+netsh_args+"|"+schtask_args
-
-    ##*****************************************************************************
-    ## WEB
-    ## -----------------------------
-    valid_web_ending1 = r"(?:\\|\/|\\\\|:)(?:[^\s\'\",]+)"
-    valid_web_ending2 = r"(?:\b)"
-    find_website = r"(?:(?:(?:http|https):\/\/|www)(?:[^\s\'\",]+))"
-    find_doubleLetterDomains = r"(?:www)?(?:[^\\\s\'\",])+\.(?:cn|bd|it|ul|cd|ch|br|ml|ga|us|pw|eu|cf|uk|ws|zw|ke|am|vn|tk|gq|pl|ca|pe|su|de|me|au|fr|be|pk|th|it|nid|tw|cc|ng|tz|lk|sa|ru)"
-    find_tripleLetterDomains = r"(?:www)?(?:[^\\\s\'\",])+\.(?:xyz|top|bar|cam|sbs|org|win|arn|moe|fun|uno|mail|stream|club|vip|ren|kim|mom|pro|gdn|biz|ooo|xin|cfd|men|com|net|edu|gov|mil|org|int)"
-    find_4LettersDomains = r"(?:www)?(?:[^\\\s\'\",])+\.(?:host|rest|shot|buss|cyou|surf|info|help|life|best|live|archi|acam|load|part|mobi|loan|asia|jetzt|email|space|site|date|want|casa|link|bond|store|click|work|mail)"
-    find_5MoreDomains = r"(?:www)?(?:[^\\\s\'\",])+\.(?:monster|name|reset|quest|finance|cloud|kenya|accountants|support|solar|online|yokohama|ryukyu|country|download|website|racing|digital|tokyo|world)"
-    find_2_valid1 = find_doubleLetterDomains + valid_web_ending1
-    find_2_valid2 = find_doubleLetterDomains + valid_web_ending2
-    find_3_valid1 = find_tripleLetterDomains + valid_web_ending1
-    find_3_valid2 = find_tripleLetterDomains + valid_web_ending2
-    find_4_valid1 = find_4LettersDomains + valid_web_ending1
-    find_4_valid2 = find_4LettersDomains + valid_web_ending2
-    find_5_valid1 = find_5MoreDomains + valid_web_ending1
-    find_5_valid2 = find_5MoreDomains + valid_web_ending2
-    find_genericTLD = r"(?:(?:[A-Za-z\.])+\.(?:[A-Za-z0-9]{2,63}))"
-    find_ftp = r"(?:(?:ftp):\/\/(?:[\S]+))"
-    find_ipAddress = r"(?:(?:[0-9]{,3}\.[0-9]{,3}\.[0-9]{,3}\.[0-9]{,3})(?:[^\s\'\",]+))"
-    total_webTraffic = find_website+"|"+find_ftp+"|"+find_ipAddress+"|"+find_2_valid1+"|"+find_2_valid2+"|"+find_3_valid1+"|"+find_3_valid2+"|"+    find_4_valid1+"|"+find_4_valid2+"|"+find_5_valid1+"|"+find_5_valid2
-    ##*****************************************************************************
-    ## REGISTRY
-    ## -----------------------------
-    find_HKEY = r"(?:(?:HKEY|HKLM|HKCU|HKCC|HKCR|HKU)(?:\:)?(?:[_A-z0-9])+(?:\\[^\\\n]+)+)"
-    find_CurrentUser = r"(?:(?:AppEvents|Console|Control Panel|Environment|EUDC|Identities|Keyboard Layout|Network|Printers|Remote|Software|System|Uninstall|Volatile Environment)(?:\\[^\n]+)+)"
-    find_LocalMachine = r"(?:(?:SOFTWARE|SYSTEM|HARDWARE|SAM|BCD00000000)(?:\\[^\n]+){+)"
-    find_Users = r"(?:(?:\.DEFAULT|S[\-0-9]+(?:_Classes)?)(?:\\[^\n]+)+)"
-    find_CurrentConfig = r"(?:(?:SOFTWARE|SYSTEM)(?:\\[^\n]+)+)"
-    total_Registry = find_HKEY + "|" + find_CurrentUser + "|" + find_LocalMachine + "|" + find_Users + "|" + find_CurrentConfig
-
-    ##*****************************************************************************
-    ## EXE OR DLL
-    ## -----------------------------
-    find_exe_dll = r"(?:.*)(?:\.exe|\.dll)"
-
+    Regex = Artifacts_regex()
+    Regex.initializeRegex()
+   
     for p in paramValues:
         # -------------------------------------------
         #       Finding Paths
@@ -758,7 +673,7 @@ def findArtifacts():
         # art.path_artifacts += re.findall(find_relativePaths,str(p))
         # art.path_artifacts += re.findall(find_networkShares,str(p))
 
-        art.path_artifacts += re.findall(total_findPaths,str(p),re.IGNORECASE)
+        art.path_artifacts += re.findall(Regex.total_findPaths,str(p),re.IGNORECASE)
 
         # -------------------------------------------
         #       Finding Files
@@ -771,8 +686,8 @@ def findArtifacts():
         # art.file_artifacts += re.findall(find_workRelated,str(p))
         # art.file_artifacts += re.findall(find_videoAudio,str(p))
 
-        art.file_artifacts += re.findall(find_totalFiles,str(p))
-        art.file_artifacts += re.findall(find_totalFilesBeginning,str(p),re.IGNORECASE)
+        art.file_artifacts += re.findall(Regex.find_totalFiles,str(p))
+        art.file_artifacts += re.findall(Regex.find_totalFilesBeginning,str(p),re.IGNORECASE)
         #-------------------------------------------
         #       Finding Command line
         # -------------------------------------------
@@ -783,13 +698,13 @@ def findArtifacts():
         # art.commandLine_artifacts += re.findall(netsh_args,str(p))
         # art.commandLine_artifacts += re.findall(schtask_args,str(p),re.IGNORECASE)
         # art.commandLine_artifacts += re.findall(sc_args,str(p))
-        art.commandLine_artifacts += re.findall(total_commandLineArguments, str(p), re.IGNORECASE)
+        art.commandLine_artifacts += re.findall(Regex.total_commandLineArguments, str(p), re.IGNORECASE)
         # -------------------------------------------
         #       Finding WEB
         # -------------------------------------------
         # art.web_artifacts += re.findall(find_website,str(p))
         # art.web_artifacts += re.findall(find_ftp,str(p))
-        art.web_artifacts += re.findall(total_webTraffic, str(p), re.IGNORECASE)
+        art.web_artifacts += re.findall(Regex.total_webTraffic, str(p), re.IGNORECASE)
         # -------------------------------------------
         #       Finding Registry
         # -------------------------------------------
@@ -798,27 +713,15 @@ def findArtifacts():
         # art.registry_artifacts += re.findall(find_LocalMachine,str(p))
         # art.registry_artifacts += re.findall(find_Users,str(p))
         # art.registry_artifacts += re.findall(find_CurrentConfig,str(p))
-        art.registry_artifacts += re.findall(total_Registry, str(p), re.IGNORECASE)
+        art.registry_artifacts += re.findall(Regex.total_Registry, str(p), re.IGNORECASE)
         # -------------------------------------------
         #       Finding Exe / DLL
         # -------------------------------------------
-        art.exe_dll_artifacts += re.findall(find_exe_dll, str(p), re.IGNORECASE)
+        art.exe_dll_artifacts += re.findall(Regex.find_exe_dll, str(p), re.IGNORECASE)
 
     
 
-    #for item in file_artifacts1:
-    #    # print(item)
-    #    if("exe" in item or "EXE" in item):
-    #        if ('cmd.exe' in item.lower()):
-    #            exe_dll_artifacts.append('cmd.exe')
-    #        elif ("powershell.exe" in item.lower() or 'powershell' in item.lower()):
-    #            exe_dll_artifacts.append('powershell.exe')
-    #        else:
-    #            exe_dll_artifacts.append(item)
-    #    elif("dll" in item or "DLL" in item):
-    #        exe_dll_artifacts.append(item)
-    #    else:
-    #        file_artifacts.append(item)
+
     art.combineRegexEmuCMDline()
     art.exePathToCategory()
     art.regexIntoMisc()
@@ -827,9 +730,7 @@ def findArtifacts():
 
     art.removeDuplicates()
 
-    #return list(dict.fromkeys(art.path_artifacts)), list(dict.fromkeys(art.file_artifacts)), list(
-    #    dict.fromkeys(art.commandLine_artifacts)), list(dict.fromkeys(art.web_artifacts)), list(
-    #    dict.fromkeys(art.registry_artifacts)), list(dict.fromkeys(art.exe_dll_artifacts))
+    
 
 
 """
