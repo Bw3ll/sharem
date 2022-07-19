@@ -10307,6 +10307,25 @@ class CustomWinAPIs():
         logged_calls= ("DecryptFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def CryptStringToBrinaryA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LPCSTR', 'DWORD', 'DWORD', 'BYTE', 'DWORD', 'DWORD', 'DWORD']
+        pNames= ['pszString', 'cchString', 'dwFlags', '*pbBinary', '*pcbBinary', '*pdwSkip', '*pdwFlags']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        {0: 'CRYPT_STRING_BASE64HEADER', 1: 'CRYPT_STRING_BASE64', 2: 'CRYPT_STRING_BINARY', 3: 'CRYPT_STRING_BASE64REQUESTHEADER', 4: 'CRYPT_STRING_HEX'
+        , 5: 'CRYPT_STRING_HEXASCII', 6: 'CRYPT_STRING_BASE64_ANY', 7: 'CRYPT_STRING_ANY', 8: 'CRYPT_STRING_HEX_ANY', 9: 'CRYPT_STRING_BASE64X509CRLHEADER', 10: 'CRYPT_STRING_HEXADDR', 11: 'CRYPT_STRING_HEXASCIIADDR', 12: 'CRYPT_STRING_HEXRAW', 536870912: 'CRYPT_STRING_STRICT'}
+
+        pVals[3] = getLookUpVal(pVals[2],dwFlagsReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CryptStringToBinaryA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def GetIpNetTable(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['PMIB_IPNETTABLE', 'PULONG', 'BOOL']
         pNames= ['IpNetTable', 'SizePointer', 'Order']
