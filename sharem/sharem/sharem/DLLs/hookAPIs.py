@@ -10560,6 +10560,27 @@ class CustomWinAPIs():
         logged_calls= ("DuplicateToken", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def DuplicateTokenEx(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HANDLE', 'DWORD', 'LPSECURITY_ATTRIBUTES', 'SECURITY_IMPERSONATION_LEVEL', 'TOKEN_TYPE', 'PHANDLE']
+        pNames= ['hExistingToken', 'dwDesiredAccess', 'lpTokenAttributes', 'ImpersonationLevel', 'TokenType', 'phNewToken']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        handle = Handle(HandleType.DuplicateToken)
+
+        try:
+            uc.mem_write(pVals[2], pack('<I',handle.value))
+        except:
+            pass
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("DuplicateTokenEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def WaitForMultipleObjects(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['DWORD', 'HANDLE', 'BOOL', 'DWORD']
         pNames= ['nCount', '*lpHandles', 'bWaitAll', 'dwMilliseconds']
