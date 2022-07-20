@@ -10441,6 +10441,20 @@ class CustomWinAPIs():
         logged_calls= ("CreateWindowExA", hex(callAddr), (retValStr), 'HWND', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def GetDateFormatA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LCID', 'DWORD', 'SYSTEMTIME', 'LPCSTR', 'LPSTR', 'int']
+        pNames= ['Locale', 'dwFlags', '*lpDate', 'lpFormat', 'lpDateStr', 'cchDate']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetDateFormatA", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def GetIpNetTable(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['PMIB_IPNETTABLE', 'PULONG', 'BOOL']
