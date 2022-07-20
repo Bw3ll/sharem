@@ -10399,6 +10399,20 @@ class CustomWinAPIs():
         logged_calls= ("UnhookWindowsHookEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def BitBlt(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HDC', 'int', 'int', 'int', 'int', 'HDC', 'int', 'int', 'DWORD']
+        pNames= ['hdc', 'x', 'y', 'cx', 'cy', 'hdcSrc', 'x1', 'y1', 'rop']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("BitBlt", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def GetIpNetTable(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['PMIB_IPNETTABLE', 'PULONG', 'BOOL']
