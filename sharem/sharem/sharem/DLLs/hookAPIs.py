@@ -10455,6 +10455,20 @@ class CustomWinAPIs():
         logged_calls= ("GetDateFormatA", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def GetTimeFormatW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LCID', 'DWORD', 'SYSTEMTIME', 'LPCWSTR', 'LPWSTR', 'int']
+        pNames= ['Locale', 'dwFlags', '*lpTime', 'lpFormat', 'lpTimeStr', 'cchTime']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetTimeFormatW", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def GetIpNetTable(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['PMIB_IPNETTABLE', 'PULONG', 'BOOL']
