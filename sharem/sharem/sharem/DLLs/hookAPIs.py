@@ -3,11 +3,17 @@ from enum import Enum, auto
 from random import choice, randint
 from time import perf_counter_ns
 from urllib.parse import quote, unquote
+from .emu_helpers.sharem_artifacts import Artifacts_emulation
+from .emu_helpers.sharem_filesystem import Directory_system
 from sharem.sharem.DLLs.emu_helpers.handles import Handle, HandleType, HandlesDict
+from sharem.sharem.DLLs.emu_helpers.heap import Heap, HeapsDict
+from sharem.sharem.DLLs.emu_helpers.registry import RegKey, RegValueTypes, RegistryKeys
+from sharem.sharem.DLLs.emu_helpers.sim_values import emuSimVals
 from sharem.sharem.DLLs.emu_helpers.sharem_artifacts import Artifacts_emulation
 from sharem.sharem.DLLs.emu_helpers.sharem_filesystem import Directory_system
-from sharem.sharem.DLLs.reverseLookUps import ReverseLookUps
-from sharem.sharem.DLLs.structures import *
+from sharem.sharem.DLLs.emu_helpers.tool_snapshot import System_SnapShot
+from sharem.sharem.DLLs.emu_helpers.reverseLookUps import ReverseLookUps
+from sharem.sharem.DLLs.emu_helpers.structures import *
 from sharem.sharem.helper.structHelpers import makeStructVals
 from unicorn.x86_const import *
 from struct import pack, unpack
@@ -16,35 +22,15 @@ from ..modules import allDllsDict
 import traceback
 import re
 
+#Artifacts class initialization
 art = Artifacts_emulation()
-#global currentDirectory
-
 # Instance of File System
 SimFileSystem = Directory_system()
 
+
+
 FakeProcess = 0xbadd0000
-availMem = 0x25000000
-lastErrorCode = 0x0
-HeapsDict = {}  # Dictionary of All Heaps
-RegistryKeys: 'dict[str,RegKey]' = {} # Dictionary of All Reg Keys
 
-
-class EmulationSimulationValues:
-    def __init__(self):
-        self.user_name = 'administrator'
-        self.computer_name = 'Desktop-SHAREM'
-        self.temp_file_prefix = 'SHAREM'
-        self.default_registry_value = '(SHAREM Default Value)'
-        self.computer_ip_address = '192.168.1.111'
-        self.timezone = 'UTC'
-        self.system_time_since_epoch = 0
-        self.system_uptime_minutes = 60
-        self.clipboard_data = 'https://sharem.com/login/#'
-        self.users = ['administrator']
-        self.drive_letter = 'C:'
-        self.start_directory = 'C:\\users\\adminitsrator\\desktop'
-
-emuSimVals = EmulationSimulationValues()
 
 class CustomWinAPIs():
     def GetProcAddress(self, uc: Uc, eip, esp, export_dict, callAddr, em):
@@ -283,7 +269,6 @@ class CustomWinAPIs():
         pNames = ['lpAddress', 'dwSize', 'flAllocationType', 'flProtect']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        global availMem
 
         # Round up to next page (4096)
         pVals[1] = ((pVals[1] // 4096) + 1) * 4096
@@ -293,9 +278,9 @@ class CustomWinAPIs():
             retVal = pVals[0]
         except:
             try:
-                allocLoc = availMem
+                allocLoc = emuSimVals.availMem
                 uc.mem_map(allocLoc, pVals[1])
-                availMem += pVals[1]
+                emuSimVals.availMem += pVals[1]
                 retVal = allocLoc
             except:
                 retVal = 0xbadd0000
@@ -317,7 +302,6 @@ class CustomWinAPIs():
         pNames = ['hProcess', 'lpAddress', 'dwSize', 'flAllocationType', 'flProtect']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        global availMem
 
         # Round up to next page (4096)
         pVals[2] = ((pVals[2] // 4096) + 1) * 4096
@@ -328,9 +312,9 @@ class CustomWinAPIs():
             retVal = pVals[1]
         except:
             try:
-                allocLoc = availMem
+                allocLoc = emuSimVals.availMem
                 uc.mem_map(allocLoc, pVals[2])
-                availMem += pVals[2]
+                emuSimVals.availMem += pVals[2]
                 retVal = allocLoc
             except:
                 retVal = 0xbaddd000
@@ -376,6 +360,96 @@ class CustomWinAPIs():
         
         logged_calls = ("ExitThread", hex(callAddr), 'None', 'void', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+   
+    def WriteFile(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'WriteFile': (5, ['HANDLE', 'LPCVOID', 'DWORD', 'LPDWORD', 'LPOVERLAPPED'], ['hFile', 'lpBuffer', 'nNumberOfBytesToWrite', 'lpNumberOfBytesWritten', 'lpOverlapped'], 'thunk BOOL'), 
+        pTypes = ['HANDLE', 'LPCVOID', 'DWORD', 'LPDWORD', 'LPOVERLAPPED']
+        pNames = ['hFile', 'lpBuffer', 'nNumberOfBytesToWrite', 'lpNumberOfBytesWritten', 'lpOverlapped']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        writeAddress = pVals[3]
+        bytesToWrite = pVals[2]
+
+        handle = pVals[0]
+        if(handle not in HandlesDict):
+            handle = Handle(HandleType.CreateFileA)
+            handle.name = "New File.txt"
+            #check for duplicate files within the folder
+            handle.name = SimFileSystem.detectDuplicateFileHandles(SimFileSystem.currentDir,handle)
+            #write to the artifacts the path of the file along with the file itself.
+            
+        else:
+            handle = HandlesDict.get(handle)
+
+        data = uc.mem_read(pVals[1], pVals[2])
+        data = data.decode()
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [])
+        
+        SimFileSystem.writeFile(SimFileSystem.currentDirPath,handle.name,data)
+        
+        path_list = []
+        path_list = SimFileSystem.getPath(SimFileSystem.currentDir,path_list)
+        path_list.append(handle.name)
+        art.path_artifacts.append('\\'.join(path_list))
+        art.file_artifacts.append(handle.name)
+
+
+        ##write the output of bytes written
+        bytes_written = bytes(bytesToWrite)
+        uc.mem_write(writeAddress, bytes_written)
+        
+
+        retVal = 1
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("WriteFile", hex(callAddr), retValStr, 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def WriteFileEx(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'WriteFileEx': (5, ['HANDLE', 'LPCVOID', 'DWORD', 'LPOVERLAPPED', 'LPOVERLAPPED_COMPLETION_ROUTINE'], ['hFile', 'lpBuffer', 'nNumberOfBytesToWrite', 'lpOverlapped', 'lpCompletionRoutine'], 'thunk BOOL')
+        pTypes = ['HANDLE', 'LPCVOID', 'DWORD', 'LPOVERLAPPED', 'LPOVERLAPPED_COMPLETION_ROUTINE']
+        pNames =  ['hFile', 'lpBuffer', 'nNumberOfBytesToWrite', 'lpOverlapped', 'lpCompletionRoutine']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        writeAddress = pVals[3]
+        bytesToWrite = pVals[2]
+
+        handle = pVals[0]
+        if(handle not in HandlesDict):
+            handle = Handle(HandleType.CreateFileA)
+            handle.name = "New File.txt"
+            #check for duplicate files within the folder
+            handle.name = SimFileSystem.detectDuplicateFileHandles(SimFileSystem.currentDir,handle)
+            #write to the artifacts the path of the file along with the file itself.
+            
+        else:
+            handle = HandlesDict.get(handle)
+
+        data = uc.mem_read(pVals[1], pVals[2])
+        data = data.decode()
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [])
+        
+        SimFileSystem.writeFile(SimFileSystem.currentDirPath,handle.name,data)
+        
+        path_list = []
+        path_list = SimFileSystem.getPath(SimFileSystem.currentDir,path_list)
+        path_list.append(handle.name)
+        art.path_artifacts.append('\\'.join(path_list))
+        art.file_artifacts.append(handle.name)
+
+
+        ##write the output of bytes written
+        bytes_written = bytes(bytesToWrite)
+        uc.mem_write(writeAddress, bytes_written)
+        
+
+        retVal = 1
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("WriteFileEx", hex(callAddr), retValStr, 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def CreateFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes = ["LPCSTR", "DWORD", "DWORD", "LPSECURITY_ATTRIBUTES", "DWORD", "DWORD", "HANDLE"]
@@ -395,8 +469,16 @@ class CustomWinAPIs():
             pVals[3] = makeStructVals(uc, sa, pVals[3])
         else:
             hex(pVals[3])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [1, 2, 4, 5])
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [1, 2, 3, 4, 5])
+        handle.name = pVals[0]
+        handle.name = SimFileSystem.detectDuplicateFileHandles(SimFileSystem.currentDir,handle)
+        SimFileSystem.createFile(SimFileSystem.currentDirPath, handle.name)
+        path_list = []
+        path_list = SimFileSystem.getPath(SimFileSystem.currentDir,path_list)
+        path_list.append(handle.name)
+        art.path_artifacts.append('\\'.join(path_list))
+        art.file_artifacts.append(handle.name)
 
         retVal = handle.value
         retValStr = hex(retVal)
@@ -418,15 +500,19 @@ class CustomWinAPIs():
         pVals[4] = getLookUpVal(pVals[4], ReverseLookUps.File.CreationDistribution)
         pVals[5] = getLookUpVal(pVals[5], ReverseLookUps.File.FlagsAndAttribute)
 
+        handle.name = pVals[0]
         if pVals[3] != 0x0:
             sa = get_SECURITY_ATTRIBUTES(uc, pVals[3], em)
             pVals[3] = makeStructVals(uc, sa, pVals[3])
         else:
             hex(pVals[3])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip= [1, 2, 4, 5])
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip= [1, 2, 3, 4, 5])
+        handle.name = pVals[0]
+        SimFileSystem.createFile(SimFileSystem.currentDirPath, handle.name)
 
-        
+
+
         retVal = handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -1647,7 +1733,7 @@ class CustomWinAPIs():
         cbRead = unpack('<I', cbRead)[0]
         lpNumberOfBytesRead = uc.mem_read(uc.reg_read(UC_X86_REG_ESP) + 20, 4)
         lpNumberOfBytesRead = unpack('<I', lpNumberOfBytesRead)[0]
-        global availMem
+
         # Round up to next page (4096)
         cbRead = ((cbRead // 4096) + 1) * 4096
         retAddr = 0
@@ -1656,9 +1742,9 @@ class CustomWinAPIs():
             retAddr = lpBuffer
         except:
             try:
-                allocLoc = availMem
+                allocLoc = emuSimVals.availMem
                 uc.mem_map(allocLoc, cbRead)
-                availMem += cbRead
+                emuSimVals.availMem += cbRead
                 lpBuffer = allocLoc
             except:
                 success = False
@@ -2168,6 +2254,11 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        origin = pVals[1]
+        destination = pVals[2]
+        SimFileSystem.internetDownload(destination)
+
+
         
         retVal = 0x0
         retValStr = 'S_OK'
@@ -2182,6 +2273,9 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        origin = pVals[1]
+        destination = pVals[2]
+        SimFileSystem.internetDownload(destination)
         
         retVal = 0x0
         retValStr = 'S_OK'
@@ -2210,6 +2304,9 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        origin = pVals[1]
+        destination = pVals[2]
+        SimFileSystem.internetDownload(destination)
         
         retVal = 0x0
         retValStr = 'S_OK'
@@ -7754,11 +7851,26 @@ class CustomWinAPIs():
         dwFlagsReverseLookUp = {2: 'MOVEFILE_COPY_ALLOWED', 16: 'MOVEFILE_CREATE_HARDLINK',
                                 4: 'MOVEFILE_DELAY_UNTIL_REBOOT', 32: 'MOVEFILE_FAIL_IF_NOT_TRACKABLE',
                                 1: 'MOVEFILE_REPLACE_EXISTING', 8: 'MOVEFILE_WRITE_THROUGH'}
-
+        replace = pVals[2]
         pVals[2] = getLookUpVal(pVals[2], dwFlagsReverseLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
-        
+        origin = pVals[0]
+        destination = pVals[1]
+        #determine if the origin/dest is a folder or not
+        folder = SimFileSystem.fileOrFolder(origin)
+        if(folder):
+            originPath,destinationPath,originFileName,destinationFileName = SimFileSystem.moveFile(origin,destination,replace)
+            art.path_artifacts.append(originPath)
+            art.path_artifacts.append(destinationPath)
+            art.file_artifacts.append(originFileName)
+            art.file_artifacts.append(destinationFileName)
+        else:
+            originPath, destinationPath = SimFileSystem.moveFolder(origin,destination,replace)
+            art.path_artifacts.append(originPath)
+            art.path_artifacts.append(destinationPath)
+
+
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -7775,9 +7887,25 @@ class CustomWinAPIs():
                                 4: 'MOVEFILE_DELAY_UNTIL_REBOOT', 32: 'MOVEFILE_FAIL_IF_NOT_TRACKABLE',
                                 1: 'MOVEFILE_REPLACE_EXISTING', 8: 'MOVEFILE_WRITE_THROUGH'}
 
+        replace = pVals[2]
         pVals[2] = getLookUpVal(pVals[2], dwFlagsReverseLookUp)
-
+        origin = pVals[0]
+        destination = pVals[1]
+        folder = SimFileSystem.fileOrFolder(origin)
+        if(folder):
+            originPath,destinationPath,originFileName,destinationFileName = SimFileSystem.moveFile(origin,destination,replace)
+            art.path_artifacts.append(originPath)
+            art.path_artifacts.append(destinationPath)
+            art.file_artifacts.append(originFileName)
+            art.file_artifacts.append(destinationFileName)
+        else:
+            originPath, destinationPath = SimFileSystem.moveFolder(origin,destination,replace)
+            art.path_artifacts.append(originPath)
+            art.path_artifacts.append(destinationPath)
+            
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+
+        
         
         retVal = 0x1
         retValStr = 'TRUE'
@@ -7799,7 +7927,14 @@ class CustomWinAPIs():
         pVals[5] = getLookUpVal(pVals[5], mdwCopyFlagsReverseLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[5])
-        
+        origin = pVals[0]
+        destination = pVals[1]
+        originFileName,destinationFileName,originPath,destinationPath = SimFileSystem.copyFile(origin,destination)
+        art.path_artifacts.append(originPath)
+        art.path_artifacts.append(destinationPath)
+        art.file_artifacts.append(originFileName)
+        art.file_artifacts.append(destinationFileName)
+
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -7820,7 +7955,14 @@ class CustomWinAPIs():
         pVals[5] = getLookUpVal(pVals[5], mdwCopyFlagsReverseLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[5])
-        
+        origin = pVals[0]
+        destination = pVals[1]
+        originFileName,destinationFileName,originPath,destinationPath = SimFileSystem.copyFile(origin,destination)
+        art.path_artifacts.append(originPath)
+        art.path_artifacts.append(destinationPath)
+        art.file_artifacts.append(originFileName)
+        art.file_artifacts.append(destinationFileName)
+
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -9282,6 +9424,8 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [1, 2, 3, 4])
 
+        SimFileSystem.createFile(SimFileSystem.currentDirPath,fileName)
+
         retVal =  handle.value 
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -10166,6 +10310,183 @@ class CustomWinAPIs():
         logged_calls= ("CryptDestroyKey", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def DecryptFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LPCSTR', 'DWORD']
+        pNames= ['lpFileName', 'dwReserved']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("DecryptFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CryptStringToBrinaryA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LPCSTR', 'DWORD', 'DWORD', 'BYTE', 'DWORD', 'DWORD', 'DWORD']
+        pNames= ['pszString', 'cchString', 'dwFlags', '*pbBinary', '*pcbBinary', '*pdwSkip', '*pdwFlags']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        dwFlagsReverseLookUp = {0: 'CRYPT_STRING_BASE64HEADER', 1: 'CRYPT_STRING_BASE64', 2: 'CRYPT_STRING_BINARY', 3: 'CRYPT_STRING_BASE64REQUESTHEADER', 4: 'CRYPT_STRING_HEX', 5: 'CRYPT_STRING_HEXASCII', 6: 'CRYPT_STRING_BASE64_ANY', 7: 'CRYPT_STRING_ANY', 8: 'CRYPT_STRING_HEX_ANY', 9: 'CRYPT_STRING_BASE64X509CRLHEADER', 10: 'CRYPT_STRING_HEXADDR', 11: 'CRYPT_STRING_HEXASCIIADDR', 12: 'CRYPT_STRING_HEXRAW', 536870912: 'CRYPT_STRING_STRICT'}
+
+        pVals[2] = getLookUpVal(pVals[2],dwFlagsReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CryptStringToBinaryA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CryptBinaryToStringA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['BYTE', 'DWORD', 'DWORD', 'LPSTR', 'DWORD']
+        pNames= ['*pbBinary', 'cbBinary', 'dwFlags', 'pszString', '*pcchString']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        dwFlagsReverseLookUp = {0: 'CRYPT_STRING_BASE64HEADER', 1: 'CRYPT_STRING_BASE64', 2: 'CRYPT_STRING_BINARY', 3: 'CRYPT_STRING_BASE64REQUESTHEADER', 4: 'CRYPT_STRING_HEX', 5: 'CRYPT_STRING_HEXASCII', 9: 'CRYPT_STRING_BASE64X509CRLHEADER', 10: 'CRYPT_STRING_HEXADDR', 11: 'CRYPT_STRING_HEXASCIIADDR', 12: 'CRYPT_STRING_HEXRAW', 536870912: 'CRYPT_STRING_STRICT', 1073741824: 'CRYPT_STRING_NOCRLF', 2147483648: 'CRYPT_STRING_NOCR'}
+        
+        pVals[2] = getLookUpVal(pVals[2],dwFlagsReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CryptBinaryToStringA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CryptReleaseContext(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HCRYPTPROV', 'DWORD']
+        pNames= ['hProv', 'dwFlags']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CryptReleaseContext", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CryptDestroyHash(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HCRYPTHASH']
+        pNames= ['hHash']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CryptDestroyHash", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def SetWinEventHook(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['DWORD', 'DWORD', 'HMODULE', 'WINEVENTPROC', 'DWORD', 'DWORD', 'DWORD']
+        pNames= ['eventMin', 'eventMax', 'hmodWinEventProc', 'pfnWinEventProc', 'idProcess', 'idThread', 'dwFlags']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("SetWinEventHook", hex(callAddr), (retValStr), 'HWINEVENTHOOK', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def UnhookWindowsHookEx(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HHOOK']
+        pNames= ['hhk']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("UnhookWindowsHookEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def BitBlt(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HDC', 'int', 'int', 'int', 'int', 'HDC', 'int', 'int', 'DWORD']
+        pNames= ['hdc', 'x', 'y', 'cx', 'cy', 'hdcSrc', 'x1', 'y1', 'rop']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("BitBlt", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def StretchBlt(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HDC', 'int', 'int', 'int', 'int', 'HDC', 'int', 'int', 'int', 'int', 'DWORD']
+        pNames= ['hdcDest', 'xDest', 'yDest', 'wDest', 'hDest', 'hdcSrc', 'xSrc', 'ySrc', 'wSrc', 'hSrc', 'rop']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("StretchBlt", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CreateWindowExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['DWORD', 'LPCSTR', 'LPCSTR', 'DWORD', 'int', 'int', 'int', 'int', 'HWND', 'HMENU', 'HINSTANCE', 'LPVOID']
+        pNames= ['dwExStyle', 'lpClassName', 'lpWindowName', 'dwStyle', 'X', 'Y', 'nWidth', 'nHeight', 'hWndParent', 'hMenu', 'hInstance', 'lpParam']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CreateWindowExA", hex(callAddr), (retValStr), 'HWND', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetDateFormatA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LCID', 'DWORD', 'SYSTEMTIME', 'LPCSTR', 'LPSTR', 'int']
+        pNames= ['Locale', 'dwFlags', '*lpDate', 'lpFormat', 'lpDateStr', 'cchDate']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetDateFormatA", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetTimeFormatW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LCID', 'DWORD', 'SYSTEMTIME', 'LPCWSTR', 'LPWSTR', 'int']
+        pNames= ['Locale', 'dwFlags', '*lpTime', 'lpFormat', 'lpTimeStr', 'cchTime']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetTimeFormatW", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+
     def GetIpNetTable(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['PMIB_IPNETTABLE', 'PULONG', 'BOOL']
         pNames= ['IpNetTable', 'SizePointer', 'Order']
@@ -10433,6 +10754,27 @@ class CustomWinAPIs():
         logged_calls= ("DuplicateToken", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def DuplicateTokenEx(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HANDLE', 'DWORD', 'LPSECURITY_ATTRIBUTES', 'SECURITY_IMPERSONATION_LEVEL', 'TOKEN_TYPE', 'PHANDLE']
+        pNames= ['hExistingToken', 'dwDesiredAccess', 'lpTokenAttributes', 'ImpersonationLevel', 'TokenType', 'phNewToken']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        handle = Handle(HandleType.DuplicateToken)
+
+        try:
+            uc.mem_write(pVals[2], pack('<I',handle.value))
+        except:
+            pass
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("DuplicateTokenEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def WaitForMultipleObjects(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['DWORD', 'HANDLE', 'BOOL', 'DWORD']
         pNames= ['nCount', '*lpHandles', 'bWaitAll', 'dwMilliseconds']
@@ -10674,9 +11016,7 @@ class CustomWinAPIs():
         pNames = ['dwErrCode']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        global lastErrorCode
-
-        lastErrorCode = pVals[0]
+        emuSimVals.lastErrorCode = pVals[0]
 
         pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.ErrorCodes)
 
@@ -10694,9 +11034,7 @@ class CustomWinAPIs():
         pNames = ['dwErrCode', 'dwType']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        global lastErrorCode
-
-        lastErrorCode = pVals[0]
+        emuSimVals.lastErrorCode = pVals[0]
 
         pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.ErrorCodes)
 
@@ -10713,11 +11051,9 @@ class CustomWinAPIs():
         pNames = []
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        global lastErrorCode
-
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
         
-        retVal = lastErrorCode
+        retVal = emuSimVals.lastErrorCode
         retValStr = getLookUpVal(retVal, ReverseLookUps.ErrorCodes)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -10764,15 +11100,14 @@ class CustomWinAPIs():
         pTypes = ['HGLOBAL']
         pNames = ['hMem']
         pVals = makeArgVals(uc, em, esp, len(pTypes)) # Needs Reworked A little
-        global availMem
 
         if (pVals[0] in HandlesDict):
             # return pointer
             handle = HandlesDict[pVals[0]]
             # retValStr = hex(retVal)
-            allocMemoryVal = availMem
-            uc.mem_map(availMem, 4096)
-            availMem += 4096
+            allocMemoryVal = emuSimVals.availMem
+            uc.mem_map(emuSimVals.availMem, 4096)
+            emuSimVals.availMem += 4096
             # print(handle.data)
             # retHandle = Handle(HandleType.HGLOBAL, allocMemoryVal, pVals[0])
             uc.mem_write(allocMemoryVal, pack(f'<{len(handle.data)}s', handle.data.encode('ascii')))
@@ -10781,9 +11116,9 @@ class CustomWinAPIs():
         else:
             # return pointer
             print('test03')
-            allocMemoryVal = availMem
-            uc.mem_map(availMem, 4096)
-            availMem += 4096
+            allocMemoryVal = emuSimVals.availMem
+            uc.mem_map(emuSimVals.availMem, 4096)
+            emuSimVals.availMem += 4096
             # retHandle = Handle(HandleType.HGLOBAL, allocMemoryVal, pVals[0])
             uc.mem_write(allocMemoryVal, pack(f'<{len()}'))
             retVal = allocMemoryVal
@@ -10802,16 +11137,15 @@ class CustomWinAPIs():
         pNames = ['uFlags', 'dwBytes']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
         uFlags_ReverseLookUp = {66: 'GHND', 0: 'GMEM_FIXED', 2: 'GMEM_MOVEABLE', 64: 'GPTR'}
-        global availMem
 
         if (pVals[0] == 0 or pVals[0] == 0x0040):
             # GMEM_FIXED
             # gptr
             try:
-                retVal = availMem
+                retVal = emuSimVals.availMem
                 pVals[1] = ((pVals[1] // 4096) + 1) * 4096
-                uc.mem_map(availMem, pVals[1])
-                availMem += pVals[1]
+                uc.mem_map(emuSimVals.availMem, pVals[1])
+                emuSimVals.availMem += pVals[1]
                 retValStr = hex(retVal)
             except:
                 pass
@@ -10819,10 +11153,10 @@ class CustomWinAPIs():
             # GMEM_MOVEABLE
             # GHND
             try:
-                allocMemoryVal = availMem
+                allocMemoryVal = emuSimVals.availMem
                 pVals[1] = ((pVals[1] // 4096) + 1) * 4096
-                uc.mem_map(availMem, pVals[1])
-                availMem += pVals[1]
+                uc.mem_map(emuSimVals.availMem, pVals[1])
+                emuSimVals.availMem += pVals[1]
                 retHandle = Handle(HandleType.HGLOBAL, data=allocMemoryVal)
                 retVal = retHandle.value
                 retValStr = hex(retVal)
@@ -11516,19 +11850,18 @@ class CustomWinAPIs():
         pTypes= ['LPCTSTR']
         pNames= ['lpPathName']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-        #global currentDirectory
-
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         changeDir = pVals[0]
+
         #checks the path type
         if(".." in changeDir):
             #have a workaround for now to convert to an absolute path
-            changeDir = SimFileSystem.setCurrentDir(changeDir,0)
+            SimFileSystem.currentDirPath = SimFileSystem.setCurrentDir(changeDir,0)
         else:
             #is absolute path
-            changeDir = SimFileSystem.setCurrentDir(changeDir,1)
+            SimFileSystem.currentDirPath = SimFileSystem.setCurrentDir(changeDir,1)
         
-        art.path_artifacts.append(changeDir)          
+        art.path_artifacts.append(SimFileSystem.currentDirPath)          
         retVal = 0x1
         retValStr= 'True'
         uc.reg_write(UC_X86_REG_EAX, retVal)     
@@ -12372,7 +12705,6 @@ class CustomWinSysCalls():
         pTypes = ['HANDLE', 'PVOID', 'ULONG_PTR', 'PSIZE_T', 'ULONG', 'ULONG']
         pNames = ['ProcessHandle', '*BaseAddress', 'ZeroBits', 'RegionSize', 'AllocationType', 'Protect']
         
-        global availMem
 
         # Get pointer values
         allocLoc = getPointerVal(uc, pVals[1])
@@ -12389,10 +12721,10 @@ class CustomWinSysCalls():
             # print("Error: ", e)
             # print(traceback.format_exc())
             try:
-                allocLoc = availMem
+                allocLoc = emuSimVals.availMem
                 uc.mem_map(allocLoc, size)
                 uc.mem_write(pVals[3], pack('<Q',size)) # Write Size
-                availMem += size
+                emuSimVals.availMem += size
                 uc.reg_write(UC_X86_REG_EAX, retVal)
                 uc.mem_write(pVals[1], pack("<Q", allocLoc)) # Write Allocation Location
 
@@ -12585,322 +12917,9 @@ class CustomWinSysCalls():
         return logged_calls
 
 
-# Heap Functions
-class Heap:
-    realSize = 4096
-
-    def __init__(self, uc: Uc, handle: int, size: int):
-        global availMem
-        try:
-            self.baseAddress = availMem
-            uc.mem_map(self.baseAddress, self.realSize)
-            availMem += self.realSize
-        except:
-            print('Heap Create Failed')
-            pass
-        self.availableSize = size
-        if handle == 0:
-            self.handle = self.baseAddress
-        else:
-            self.handle = handle
-        self.allocations: dict[int,HeapAllocation] = {}
-        self.usedSize = 0
-        HeapsDict.update({self.handle: self})
-
-    def createAllocation(self, uc: Uc, size: int):
-        # Check avaible Memory Increase if Necessary
-        while (self.usedSize + size) > self.availableSize:
-            self.increaseSize()
-
-        newAllocation = HeapAllocation(uc, size)
-        self.usedSize = self.usedSize + size
-        self.allocations.update({newAllocation.address: newAllocation})
-        return newAllocation
-
-    def reAlloc(self, uc: Uc, addr: int, size: int):
-        # Check avaible Memory Increase if Necessary
-        while (self.usedSize + size) > self.availableSize:
-            self.increaseSize()
-
-        newAllo = HeapAllocation(uc, size)
-        oldAllo = self.allocations[addr]
-
-        try:
-            memory = uc.mem_read(oldAllo.address, oldAllo.size)
-            fmt = '<' + str(oldAllo.size) + 's'
-            uc.mem_write(newAllo.address, pack(fmt, memory))
-        except:
-            return oldAllo
-
-        self.usedSize = self.usedSize - oldAllo.size + size
-        self.free(uc, oldAllo.address)
-        self.allocations.update({newAllo.address: newAllo})
-        return newAllo
-
-    def increaseSize(self):
-        # Double or increase By 1/2 or Just Make Enough Room for new Allocation
-        # print('Heap Size Increased')
-        self.availableSize = self.availableSize * 2
-
-    def free(self, uc: Uc, addr: int):
-        if addr in self.allocations:
-            uc.mem_unmap(self.allocations[addr].address, self.allocations[addr].size)
-            self.usedSize -= self.allocations[addr].size
-            self.allocations.pop(addr)
-
-    def destroy(self, uc: Uc):
-        for i in self.allocations:
-            self.usedSize -= self.allocations[i].size
-            uc.mem_unmap(self.allocations[i].address, self.allocations[i].size)
-        self.allocations = {}
-        uc.mem_unmap(self.baseAddress, self.realSize)
-        HeapsDict.pop(self.baseAddress)
-
-    def printInfo(self):
-        print('Heap Info')
-        print('Handle: ', hex(self.handle))
-        print('BaseAddress: ', hex(self.baseAddress))
-        print('Used Size: ', self.usedSize)
-        print('Total Size: ', self.availableSize)
-        print('Allocations: ', len(self.allocations))
-        for i in self.allocations:
-            print(' Address:', hex(self.allocations[i].address), 'Size:', self.allocations[i].size)
 
 
-class HeapAllocation:
-    def __init__(self, uc: Uc, size: int):
-        global availMem
-        try:
-            self.address = availMem
-            self.size = size
-            uc.mem_map(self.address, self.size)
-            availMem += size
-        except:
-            print('Heap Allocation Failed')
-            pass
 
-class System_SnapShot: # Needs Reworked For new Struct System
-    def __init__(self, fakeThreads: bool, fakeModules: bool):
-        self.processOffset = 0
-        self.threadOffset = 0
-        self.moduleOffset = 0
-        self.baseThreadID = 1000
-        self.processDict = {4: PROCESSENTRY32(0, 10, 0, 0, 'System'),
-                            2688: PROCESSENTRY32(2688, 16, 0, 4, 'explorer.exe'),
-                            9172: PROCESSENTRY32(9172, 10, 2688, 10, 'calc.exe'),
-                            8280: PROCESSENTRY32(8280, 50, 2688, 16, 'chrome.exe'),
-                            11676: PROCESSENTRY32(11676, 78, 2688, 15, 'notepad.exe'),
-                            8768: PROCESSENTRY32(8768, 20, 2688, 4, 'firefox.exe')}
-        self.threadDict: dict[int, THREADENTRY32] = {}
-        self.moduleList: list[MODULEENTRY32] = []
-        if fakeThreads:
-            self.fakeThreads()
-        # if fakeModules: # Need To Fix Modules Thing
-            # self.fakeModules()
-        self.resetOffsets()
-
-    def fakeThreads(self):
-        for k, v in self.processDict.items():  # Create Fake Threads
-            for i in range(v.cntThreads):
-                self.threadDict.update(
-                    {self.baseThreadID: THREADENTRY32(self.baseThreadID, v.th32ProcessID, v.pcPriClassBase)})
-                self.baseThreadID += 1
-
-    # def fakeModules(self):
-    #     allDllsSizeDict = {'ntdll.dll': NTDLL_TOP - NTDLL_BASE, 'kernel32.dll': KERNEL32_TOP - KERNEL32_BASE,
-    #                        'KernelBase.dll': KERNELBASE_TOP - KERNELBASE_BASE,
-    #                        'advapi32.dll': ADVAPI32_TOP - ADVAPI32_BASE, 'comctl32.dll': COMCTL32_TOP - COMCTL32_BASE,
-    #                        'comdlg32.dll': COMDLG32_TOP - COMDLG32_BASE, 'gdi32.dll': GDI32_TOP - GDI32_BASE,
-    #                        'gdiplus.dll': GDIPLUS_TOP - GDIPLUS_BASE, 'imm32.dll': IMM32_TOP - IMM32_BASE,
-    #                        'mscoree.dll': MSCOREE_TOP - MSCOREE_BASE, 'msvcrt.dll': MSVCRT_TOP - MSVCRT_BASE,
-    #                        'netapi32.dll': NETAPI32_TOP - NETAPI32_BASE, 'ole32.dll': OLE32_TOP - OLE32_BASE,
-    #                        'oleaut32.dll': OLEAUT32_TOP - OLEAUT32_BASE, 'shell32.dll': SHELL32_TOP - SHELL32_BASE,
-    #                        'shlwapi.dll': SHLWAPI_TOP - SHLWAPI_BASE, 'urlmon.dll': URLMON_TOP - URLMON_BASE,
-    #                        'user32.dll': USER32_TOP - USER32_BASE, 'wininet.dll': WININET_TOP - WININET_BASE,
-    #                        'winmm.dll': WINMM_TOP - WINMM_BASE, 'ws2_32.dll': WS2_32_TOP - WS2_32_BASE,
-    #                        'wsock32.dll': WSOCK32_TOP - WSOCK32_BASE, 'advpack.dll': ADVPACK_TOP - ADVPACK_BASE,
-    #                        'bcrypt.dll': BCRYPT_TOP - BCRYPT_BASE, 'crypt32.dll': CRYPT32_TOP - CRYPT32_BASE,
-    #                        'dnsapi.dll': DNSAPI_TOP - DNSAPI_BASE, 'mpr.dll': MPR_TOP - MPR_BASE,
-    #                        'ncrypt.dll': NCRYPT_TOP - NCRYPT_BASE, 'netutils.dll': NETUTILS_TOP - NETUTILS_BASE,
-    #                        'samcli.dll': SAMCLI_TOP - SAMCLI_BASE, 'secur32.dll': SECUR32_TOP - SECUR32_BASE,
-    #                        'wkscli.dll': WKSCLI_TOP - WKSCLI_BASE, 'wtsapi32.dll': WTSAPI32_TOP - WTSAPI32_BASE}
-    #     for k, v in self.processDict.items():
-    #         moduleCount = randint(2, 16)  # Add Random Number of Modules
-    #         modules = set()
-    #         for i in range(moduleCount):
-    #             selectedDLL = choice(list(allDllsDict))
-    #             if selectedDLL not in modules:
-    #                 modules.add(selectedDLL)
-    #                 path = "C:\Windows\SysWOW64\\" + selectedDLL
-    #                 self.moduleList.append(
-    #                     MODULEENTRY32(v.th32ProcessID, allDllsDict[selectedDLL], allDllsSizeDict[selectedDLL],
-    #                                          allDllsDict[selectedDLL], selectedDLL, path))
-
-    def resetOffsets(self):
-        try:
-            self.processOffset = list(self.processDict.keys())[0]
-            self.threadOffset = list(self.threadDict.keys())[0]
-            self.moduleOffset = 0
-        except:
-            pass
-
-
-class RegValueTypes(Enum):
-    REG_BINARY = 3  # Binary data in any form.
-    REG_DWORD = 4  # A 32-bit number.
-    # REG_DWORD_LITTLE_ENDIAN = 4  # A 32-bit number in little-endian format. Windows is designed to run on little-endian computer architectures. Therefore, this value is defined as REG_DWORD in the Windows header files.
-    REG_DWORD_BIG_ENDIAN = 5  # A 32-bit number in big-endian format. Some UNIX systems support big-endian architectures.
-    REG_EXPAND_SZ = 2  # A null-terminated string that contains unexpanded references to environment variables (for example, "%PATH%"). It will be a Unicode or ANSI string depending on whether you use the Unicode or ANSI functions. To expand the environment variable references, use the ExpandEnvironmentStrings function.
-    REG_LINK = 6  # A null-terminated Unicode string that contains the target path of a symbolic link that was created by calling the RegCreateKeyEx function with REG_OPTION_CREATE_LINK.
-    REG_MULTI_SZ = 7  # A sequence of null-terminated strings, terminated by an empty string (\0). The following is an example: String1\0String2\0String3\0LastString\0\0 The first \0 terminates the first string, the second to the last \0 terminates the last string, and the final \0 terminates the sequence. Note that the final terminator must be factored into the length of the string.
-    REG_NONE = 0  # No defined value type.
-    REG_QWORD = 11	# A 64-bit number.
-    # REG_QWORD_LITTLE_ENDIAN = 11  # A 64-bit number in little-endian format. Windows is designed to run on little-endian computer architectures. Therefore, this value is defined as REG_QWORD in the Windows header files.
-    REG_SZ = 1  # A null-terminated string. This will be either a Unicode or an ANSI string, depending on whether you use the Unicode or ANSI functions.
-
-class RegKey:
-    PreDefinedKeys = {0x80000000: 'HKEY_CLASSES_ROOT',0x80000001: 'HKEY_CURRENT_USER',0x80000002: 'HKEY_LOCAL_MACHINE',0x80000003: 'HKEY_USERS',0x80000004: 'HKEY_PERFORMANCE_DATA',0x80000005: 'HKEY_CURRENT_CONFIG',0x80000006: 'HKEY_DYN_DATA'}
-    nextHandleValue = 0x80000010 # Registry Uses Different Range of Handles
-    nextRemoteHandleValues = 0x90000010 # Registry Start value for Remote Computer Handles
-    securityAccessRights = {983103: 'KEY_ALL_ACCESS', 32: 'KEY_CREATE_LINK', 4: 'KEY_CREATE_SUB_KEY', 8: 'KEY_ENUMERATE_SUB_KEYS', 131097: 'KEY_READ', 16: 'KEY_NOTIFY', 1: 'KEY_QUERY_VALUE', 2: 'KEY_SET_VALUE', 512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY', 131078: 'KEY_WRITE'}
-
-    def __init__(self, path: str, handle=0, remote: bool = False):
-        pathSplit = path.split('\\')
-        parentKeyPath = '\\'.join(pathSplit[:-1]) # Get Parent Key Path
-        if len(pathSplit) > 2: # Create Parent Keys of Subkey
-            newPath = ''
-            for i in range(len(pathSplit)-1):
-                if i == 0:
-                    newPath += pathSplit[i]
-                else:
-                    newPath += '\\' + pathSplit[i]
-                if newPath not in RegistryKeys:
-                    RegKey(newPath,remote=remote)
-        self.name = pathSplit[-1]
-        self.path = path
-        self.values: dict[str,KeyValue] = {}
-        self.childKeys: dict[str,RegKey] = {}
-        if handle == 0:
-            if not remote:
-                handle = RegKey.nextHandleValue
-                RegKey.nextHandleValue += 8
-            else:
-                handle = RegKey.nextRemoteHandleValues
-                RegKey.nextRemoteHandleValues += 8
-        self.handle = Handle(HandleType.HKEY, handleValue=handle, name=self.path)
-        RegistryKeys.update({self.path: self})
-        self.parentKey = None
-        if parentKeyPath != '':
-            for key, val in RegistryKeys.items():
-                if key == parentKeyPath:
-                    self.parentKey = val
-                    val.childKeys.update({self.name: self})            
-
-    def createPreDefinedKeys():
-        # Create Default Keys
-        for key, val in RegKey.PreDefinedKeys.items():
-            RegKey(path=val, handle=key)
-
-    def deleteKey(self):
-        if self.handle.value in HandlesDict: # Remove Handle
-            HandlesDict.pop(self.handle.value)
-        if self.path in RegistryKeys: # Delete Key
-            # print(f'Key: {self.path} deleted')
-            RegistryKeys.pop(self.path)
-
-    def setValue(self, valueType: RegValueTypes, data, valueName = '(Default)'):
-        val = KeyValue(valueType, data, valueName)
-        self.values.update({val.name: val})
-
-    def getValue(self, valueName: str = '(Default)'):
-        if valueName in self.values:
-            return self.values[valueName]
-        else: # Return Value Not Set
-            value = KeyValue(RegValueTypes.REG_SZ,emuSimVals.default_registry_value,valueName)
-            return value
-
-    def deleteValue(self, valueName: str = '(Default)'):
-        if valueName in self.values:
-            # print(f'Value: {self.values[valueName].name} deleted')
-            return self.values.pop(valueName)
-
-    def printInfo(self):
-        print(f'Name: {self.name}')
-        print(f'Path: {self.path}')
-        print(f'Handle: {hex(self.handle.value)}')
-        if isinstance(self.parentKey,RegKey):
-            parentName = self.parentKey.name
-        else:
-            parentName = 'No Parent'
-        print(f'Parent Key: {parentName}')
-        print(f'Child Keys Count: {len(self.childKeys)}')
-        if len(self.childKeys) > 0:
-            for sKey, sVal in self.childKeys.items():
-                print(f' >> {sKey}')
-        print(f'Values Count: {len(self.values)}')
-        if len(self.values) > 0:
-            print ("{:<20} {:<20} {:<20}".format('Name','Type','Data'))
-            for key, val in self.values.items():
-                print ("{:<20} {:<20} {:<20}".format(val.name,val.type.name,val.dataAsStr))
-
-    def printInfoAllKeys():
-        print(f'Number of Registry Keys: {len(RegistryKeys)}')
-        for rkey, rval in RegistryKeys.items():
-            print(f'Name: {rval.name}')
-            print(f'Path: {rval.path}')
-            print(f'Handle: {hex(rval.handle.value)}')
-            if isinstance(rval.parentKey,RegKey): 
-                parentName = rval.parentKey.name
-            else: 
-                parentName = 'No Parent'
-            print(f'Parent Key: {parentName}')
-            print(f'Child Keys Count: {len(rval.childKeys)}')
-            if len(rval.childKeys) > 0:
-                for sKey, sVal in rval.childKeys.items():
-                    print(f' >> {sKey}')
-            print(f'Values Count: {len(rval.values)}')
-            if len(rval.values) > 0:
-                print ("{:<20} {:<20} {:<20}".format('Name','Type','Data'))
-                for key, val in rval.values.items():
-                    print ("{:<20} {:<20} {:<20}".format(val.name,val.type.name,val.dataAsStr))
-            print('\n')
-    
-    def printTree():
-        def printTreeRecursive(key: RegKey, level=0):
-            if level == 0:
-                print(key.name)
-            else:
-                print(('  ' * level) + '└─╴' + key.name)
-            for sKey, sVal in key.childKeys.items():
-                printTreeRecursive(sVal, level+1)
-
-        print('Registry Tree')
-        for key, value in RegKey.PreDefinedKeys.items():
-            if value in RegistryKeys:
-                rKey = RegistryKeys[value]
-                printTreeRecursive(rKey)
-        print('\n')
-    
-        
-            
-class KeyValue():
-    def __init__(self, valueType: RegValueTypes, data, valueName: str):
-        self.name = valueName
-        self.type = valueType
-        self.data = data
-        if isinstance(data, str):
-            self.dataAsStr = data
-        elif isinstance(data, int):
-            self.dataAsStr = hex(data)
-        elif isinstance(data, bytearray):
-            self.dataAsStr = data.hex()
-        elif isinstance(data, list):
-            self.dataAsStr = (' ').join(data)
-        else:
-            self.dataAsStr = str(data)
-
-# Create Default Registry Keys
-RegKey.createPreDefinedKeys()
 
 def getStackVal(uc: Uc, em, esp, loc):
     # x64 Windows parameter order: rcx, rdx, r8, r9, stack

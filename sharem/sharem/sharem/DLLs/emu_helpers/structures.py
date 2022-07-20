@@ -2,12 +2,12 @@ from ctypes import LittleEndianStructure, sizeof
 from enum import Enum
 from struct import pack, unpack
 from time import gmtime, localtime, time_ns
-from sharem.sharem.DLLs.reverseLookUps import ReverseLookUps
+from sharem.sharem.DLLs.emu_helpers.reverseLookUps import ReverseLookUps
 
 from sharem.sharem.helper.ctypesUnion import LittleEndianUnion
 from sharem.sharem.helper.structHelpers import BOOL, DWORD, DWORD_PTR_32BIT, DWORD_PTR_64BIT, HANDLE_32BIT, HANDLE_64BIT, HINSTANCE_32BIT, HINSTANCE_64BIT, HKEY_32BIT, HKEY_64BIT, HWND_32BIT, HWND_64BIT, INT, LONG, LONGLONG, LPBYTE_32BIT, LPBYTE_64BIT, LPCSTR_32BIT, LPCSTR_64BIT, LPCWSTR_32BIT, LPCWSTR_64BIT, LPSTR_32BIT, LPSTR_64BIT, LPVOID_32BIT, LPVOID_64BIT, LPWSTR_32BIT, LPWSTR_64BIT, MAX_PATH, PCHAR_32BIT, PCHAR_64BIT, POINTER_32BIT, POINTER_64BIT, PVOID_32BIT, PVOID_64BIT, PWSTR_32BIT, PWSTR_64BIT, UCHAR, ULONG, ULONG_PTR_32BIT, ULONG_PTR_64BIT, ULONGLONG, USHORT, WCHAR, WORD, CHAR
 
-from ..helper.emuHelpers import Uc
+from ...helper.emuHelpers import Uc
 
 
 # Struct PROCESS_INFORMATION
@@ -1171,6 +1171,29 @@ class WSAPROTOCOL_INFOW(LittleEndianStructure):
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
 
+# Struct OVERLAPPED 
+# Alias Names: _OVERLAPPED
+# Alias Pointer Names: LPWSAPROTOCOL_INFOW
+
+def get_OVERLAPPED(uc: Uc, address: int, em):
+    return OVERLAPPED.from_buffer_copy(uc.mem_read(address, sizeof(OVERLAPPED)))
+
+# Struct Aliases:
+# get__OVERLAPPED = get_OVERLAPPED
+
+# Struct Pointers:
+LPWSAPROTOCOL_INFOW_32BIT = POINTER_32BIT
+LPWSAPROTOCOL_INFOW_64BIT = POINTER_64BIT
+
+class OVERLAPPED(LittleEndianStructure):
+    types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'GUID', 'DWORD', 'WSAPROTOCOLCHAIN', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'DWORD', 'DWORD', 'WCHAR']
+    __slots__ = ('dwServiceFlags1', 'dwServiceFlags2', 'dwServiceFlags3', 'dwServiceFlags4', 'dwProviderFlags', 'ProviderId', 'dwCatalogEntryId', 'ProtocolChain', 'iVersion', 'iAddressFamily', 'iMaxSockAddr', 'iMinSockAddr', 'iSocketType', 'iProtocol', 'iProtocolMaxOffset', 'iNetworkByteOrder', 'iSecurityScheme', 'dwMessageSize', 'dwProviderReserved', 'szProtocol')
+    lookUps = {}
+
+    _fields_ = [('dwServiceFlags1',DWORD),('dwServiceFlags2',DWORD),('dwServiceFlags3',DWORD),('dwServiceFlags4',DWORD),('dwProviderFlags',DWORD),('ProviderId',GUID),('dwCatalogEntryId',DWORD),('ProtocolChain',WSAPROTOCOLCHAIN),('iVersion',INT),('iAddressFamily',INT),('iMaxSockAddr',INT),('iMinSockAddr',INT),('iSocketType',INT),('iProtocol',INT),('iProtocolMaxOffset',INT),('iNetworkByteOrder',INT),('iSecurityScheme',INT),('dwMessageSize',DWORD),('dwProviderReserved',DWORD),('szProtocol',WCHAR*256)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
 
 # Struct NETRESOURCEA
 # Alias Names: _NETRESOURCEA

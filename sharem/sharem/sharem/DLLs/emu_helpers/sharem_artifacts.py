@@ -1,3 +1,98 @@
+class Artifacts_regex:
+	def __init__(self):
+		self.total_findPath = None
+		self.find_totalFiles = None
+		self.find_totalFilesBeginning = None
+		self.total_commandLineArguments = None
+		self.total_webTraffic = None
+		self.total_Registry = None
+		self.find_exe_dll = None
+
+	def initializeRegex(self):
+		self.Paths()
+		self.Files()
+		self.CommandLineArgs()
+		self.Web()
+		self.Registry()
+		self.ExeDLL()
+
+	def Paths(self):
+		find_environment = r"(?:(?:\%[A-Za-z86]+\%)(?:(?:\\|\\\\)(?:[^<>\"\*\/\\\|\?\n])+)+)"
+		find_environment_2 = r"(?:(?:\%[A-Za-z86]+\%)(?:(?:\/)(?:[^<>\"\*\/\\\|\?\n])+)+)"
+		find_letterDrives = r"(?:(?:[A-za-z]:)(?:(?:\\|\\\\)(?:[^<>\"\*\/\\\|\?\n])+)+)"
+		find_letterDrives_2 = r"(?:(?:[A-za-z]:)(?:(?:\/)(?:[^<>\"\*\/\\\|\?\n])+)+)"
+		find_letterDrives2 = r"(?:(?:[A-za-z]:)(?:(?:\\|\\\\)(?:[^<>\"\*\/\\\|\?\n])+)+(?:\.[^<>\"\*\/\\\|\?\n]{2,4}))"
+		find_letterDrives2_2 = r"(?:(?:[A-za-z]:)(?:(?:\/)(?:[^<>\"\*\/\\\|\?\n])+)+(?:\.[^<>\"\*\/\\\|\?\n]{2,4}))"
+		find_relativePaths = r"(?:(?:\.\.)(?:(?:\\|\\\\)(?:[^<>\"\*\/\\\|\?\n]+))+)"
+		find_relativePaths_2 = r"(?:(?:\.\.)(?:(?:\/)(?:[^<>\"\*\/\\\|\?\n]+))+)"
+		find_networkShares = r"(?:(?:\\\\)(?:[^<>\"\*\/\\\|\?\n]+)(?:(?:\\|\\\\)(?:[^<>\"\*\/\\\|\?\n]+(?:\$|\:)?))+)"
+		find_networkShares_2 = r"(?:(?:\\\\)(?:[^<>\"\*\/\\\|\?\n]+)(?:(?:\/)(?:[^<>\"\*\/\\\|\?\n]+(?:\$|\:)?))+)"
+		self.total_findPaths = find_letterDrives2 +"|"+find_letterDrives2_2+"|"+find_letterDrives+"|"+find_letterDrives_2+"|"+find_relativePaths+"|"+find_relativePaths_2+"|"+find_networkShares+"|"+find_networkShares_2+"|"+find_environment+"|"+find_environment_2
+
+	def Files(self):
+		find_files = r"(?:[^<>:\"\*\/\\\|\?\n]+)(?:\.[A-Za-z1743]{2,5})"
+		# gives a couple false positives, but this can be improved upon slowly
+		## works best when paired with other regex.
+		find_zip = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:7z|zip|rar|tar|tar\.gz|gzip|bzip2|wim|xz)(?:\b)"
+		find_genericFiles = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:bin|log|exe|dll|txt|ini|ico|lnk|tmp|bak|cfg|config|msi|dat|rtf|cer|sys|cab|iso|db|asp|aspx|html|htm|rdp|temp)(?:\b)"
+		find_images = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:jpg|gid|gmp|jpeg|png|tif|gif|bmp|tiff|svg)(?:\b)"
+		find_programming = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:cpp|java|js|php|py|bat|c|pyc|py3|pyw|jar|eps|vbs|scr|cs|ps1|ps1xml|ps2|ps2xml|psc1|psc2|r|rb|php3|vbx)(?:\b)"
+		find_workRelated = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:xls|xlsm|xlsx|ppt|pptx|doc|docx|pdf|wpd|odt|dodp|pps|key|diff|docm|eml|email|msg|pst|pub|sldm|sldx|wbk|xll|xla|xps|dbf|accdb|accde|accdr|accdt|sql|sqlite|mdb)(?:\b)"
+		find_videoAudio = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:mp4|mpg|mpeg|avi|mp3|wav|aac|adt|adts|aif|aifc|aiff|cda|flv|m4a)(?:\b)"
+		find_misc1 = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:reg|inf|application|gadget|msp|hta|cpl|msc|vb|vbe|jse|ws|wsf|wsc|wsh|scf|sh|csv|vmdk|cmx|vdi|yaml|raw|msh|msh1|msh1xml|msh2|msh2xml|mshxml|mst|ops|osd|pcd|pl|plg|prf|prg|printerexport|psd1|psdm1|pssc|pyo)(?:\b)"
+		find_misc2 = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:swf|aru|shs|pgm|pif|vba|hlp|apk|dotm|xltm|xlam|pptm|potm|ppam|ppsm|css|chm|drv|vxd|isp|its|jnlp|ksh|mad|maf|mag|mam|maq|mar|mas|mat|mau|mav|maw|mcf|mda|mde|mdt|mdw|mdz|msu)(?:\b)"
+		find_misc3 = r"(?:[^<>:\"\*\/\\\|\?\n]+\.)(?:md|info|epub|tga|url|sym|a\.out|btm|lua|ade|adp|app|appcontent-ms|appref-ms|bas|cdxml|cmd|cnt|crt|csh|der|diagcab|fxp|grp|hpj|ins|settingcontent-ms|shb|theme|udl|vbp|vsmacros|vsw|webpnp|website|wsb|xbap|xnk|pyz|sct|pyzw)(?:\b)"
+		self.find_totalFiles = find_genericFiles+"|"+find_images+"|"+find_programming+"|"+find_workRelated+"|"+find_videoAudio+"|"+find_misc1+"|"+find_misc2+"|"+find_misc3
+		self.find_totalFilesBeginning = "^"+find_genericFiles+"|^"+find_images+"|^"+find_programming+"|^"+find_workRelated+"|^"+find_videoAudio+"|^"+find_misc1+"|^"+find_misc2+"|^"+find_misc3
+		
+	def CommandLineArgs(self):
+		valid_cmd_characters = r"(?:[A-Za-z0-9 \/\\=\-_:!@#\$%\^&\*\(\)><\.\"'`\{\};\[\]\+,\|]+)"
+		find_cmdLine = r"(?:(?:cmd(?:\.exe)?)(?:\s+(?:\/[cCkKaAuUdDxXqQ]|\/[eEfFvV]:..|\/[tT]:[0-9a-fA-F])+)+)"
+		find_powershell = r"(?:powershell(?:\.exe)?)"
+		find_regCMD = r"(?:reg(?:\.exe)?(?:\s+(?:add|compare|copy|delete|export|import|load|query|restore|save|unload))+)"
+		find_netCMD = r"(?:net(?:\.exe)?(?:\s+(?:accounts|computer|config|continue|file|group|help|helpmsg|localgroup|name|pause|print|send|session|share|start|statistics|stop|time|use|user|view))+)"
+		find_schtasksCMD = r"(?:schtasks(?:\.exe)?\s+)(?:\/(?:change|create|delete|end|query|run))"
+		find_netsh = r"(?:netsh(?:\.exe)?\s+(?:abort|add|advfirewall|alias|branchcache|bridge|bye|commit|delete|dhcpclient|dnsclient|dump|exec|exit|firewall|help|http|interface|ipsec|ipsecdosprotection|lan|namespace|netio|offline|online|popd|pushd|quit|ras|rpc|set|show|trace|unalias|    wfp|winhttp|winsock))"
+		cmdline_args = find_cmdLine+valid_cmd_characters
+		powershell_args= find_powershell+valid_cmd_characters
+		reg_args = find_regCMD+valid_cmd_characters
+		net_args = find_netCMD+valid_cmd_characters
+		netsh_args = find_netsh+valid_cmd_characters
+		schtask_args = find_schtasksCMD+valid_cmd_characters
+		self.total_commandLineArguments = cmdline_args+"|"+powershell_args+ "|"+reg_args+"|"+net_args+"|"+netsh_args+"|"+schtask_args
+
+	def Web(self):
+		valid_web_ending1 = r"(?:\\|\/|\\\\|:)(?:[^\s\'\",]+)"
+		valid_web_ending2 = r"(?:\b)"
+		find_website = r"(?:(?:(?:http|https):\/\/|www)(?:[^\s\'\",]+))"
+		find_doubleLetterDomains = r"(?:www)?(?:[^\\\s\'\",])+\.(?:cn|bd|it|ul|cd|ch|br|ml|ga|us|pw|eu|cf|uk|ws|zw|ke|am|vn|tk|gq|pl|ca|pe|su|de|me|au|fr|be|pk|th|it|nid|tw|cc|ng|tz|lk|sa|ru)"
+		find_tripleLetterDomains = r"(?:www)?(?:[^\\\s\'\",])+\.(?:xyz|top|bar|cam|sbs|org|win|arn|moe|fun|uno|mail|stream|club|vip|ren|kim|mom|pro|gdn|biz|ooo|xin|cfd|men|com|net|edu|gov|mil|org|int)"
+		find_4LettersDomains = r"(?:www)?(?:[^\\\s\'\",])+\.(?:host|rest|shot|buss|cyou|surf|info|help|life|best|live|archi|acam|load|part|mobi|loan|asia|jetzt|email|space|site|date|want|casa|link|bond|store|click|work|mail)"
+		find_5MoreDomains = r"(?:www)?(?:[^\\\s\'\",])+\.(?:monster|name|reset|quest|finance|cloud|kenya|accountants|support|solar|online|yokohama|ryukyu|country|download|website|racing|digital|tokyo|world)"
+		find_2_valid1 = find_doubleLetterDomains + valid_web_ending1
+		find_2_valid2 = find_doubleLetterDomains + valid_web_ending2
+		find_3_valid1 = find_tripleLetterDomains + valid_web_ending1
+		find_3_valid2 = find_tripleLetterDomains + valid_web_ending2
+		find_4_valid1 = find_4LettersDomains + valid_web_ending1
+		find_4_valid2 = find_4LettersDomains + valid_web_ending2
+		find_5_valid1 = find_5MoreDomains + valid_web_ending1
+		find_5_valid2 = find_5MoreDomains + valid_web_ending2
+		find_genericTLD = r"(?:(?:[A-Za-z\.])+\.(?:[A-Za-z0-9]{2,63}))"
+		find_ftp = r"(?:(?:ftp):\/\/(?:[\S]+))"
+		find_ipAddress = r"(?:(?:[0-9]{,3}\.[0-9]{,3}\.[0-9]{,3}\.[0-9]{,3})(?:[^\s\'\",]+))"
+		self.total_webTraffic = find_website+"|"+find_ftp+"|"+find_ipAddress+"|"+find_2_valid1+"|"+find_2_valid2+"|"+find_3_valid1+"|"+find_3_valid2+"|"+    find_4_valid1+"|"+find_4_valid2+"|"+find_5_valid1+"|"+find_5_valid2
+
+	def Registry(self):
+		find_HKEY = r"(?:(?:HKEY|HKLM|HKCU|HKCC|HKCR|HKU)(?:\:)?(?:[_A-z0-9])+(?:\\[^\\\n]+)+)"
+		find_CurrentUser = r"(?:(?:AppEvents|Console|Control Panel|Environment|EUDC|Identities|Keyboard Layout|Network|Printers|Remote|Software|System|Uninstall|Volatile Environment)(?:\\[^\n]+)+)"
+		find_LocalMachine = r"(?:(?:SOFTWARE|SYSTEM|HARDWARE|SAM|BCD00000000)(?:\\[^\n]+){+)"
+		find_Users = r"(?:(?:\.DEFAULT|S[\-0-9]+(?:_Classes)?)(?:\\[^\n]+)+)"
+		find_CurrentConfig = r"(?:(?:SOFTWARE|SYSTEM)(?:\\[^\n]+)+)"
+		self.total_Registry = find_HKEY + "|" + find_CurrentUser + "|" + find_LocalMachine + "|" + find_Users + "|" + find_CurrentConfig
+
+	def ExeDLL(self):
+		self.find_exe_dll = r"(?:.*)(?:\.exe|\.dll)"
+
 class Artifacts_emulation:
 	def __init__(self):
 		self.path_artifacts = []
@@ -19,6 +114,7 @@ class Artifacts_emulation:
 		self.reg_HKLM = set()
 		self.reg_HKU = set()
 		self.reg_HKCC = set()
+
 
 	def removeDuplicates(self):
 		exe_dll_COPY = self.exe_dll_artifacts
@@ -251,6 +347,7 @@ class Artifacts_emulation:
 					self.registry_misc.discard(each[1])
 				except:
 					pass
+	
 	def exePathToCategory(self):
 		for item in self.path_artifacts:
 			if ("exe" in item.lower()):
@@ -259,3 +356,6 @@ class Artifacts_emulation:
 				self.exe_dll_artifacts.append(item)
 			else:
 				pass
+
+
+
