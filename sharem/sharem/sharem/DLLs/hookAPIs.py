@@ -10371,6 +10371,34 @@ class CustomWinAPIs():
         logged_calls= ("CryptDestroyHash", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def SetWinEventHook(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['DWORD', 'DWORD', 'HMODULE', 'WINEVENTPROC', 'DWORD', 'DWORD', 'DWORD']
+        pNames= ['eventMin', 'eventMax', 'hmodWinEventProc', 'pfnWinEventProc', 'idProcess', 'idThread', 'dwFlags']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("SetWinEventHook", hex(callAddr), (retValStr), 'HWINEVENTHOOK', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def UnhookWindowsHookEx(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HHOOK']
+        pNames= ['hhk']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("UnhookWindowsHookEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def GetIpNetTable(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['PMIB_IPNETTABLE', 'PULONG', 'BOOL']
