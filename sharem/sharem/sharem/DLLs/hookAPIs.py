@@ -10427,6 +10427,20 @@ class CustomWinAPIs():
         logged_calls= ("StretchBlt", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def CreateWindowExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['DWORD', 'LPCSTR', 'LPCSTR', 'DWORD', 'int', 'int', 'int', 'int', 'HWND', 'HMENU', 'HINSTANCE', 'LPVOID']
+        pNames= ['dwExStyle', 'lpClassName', 'lpWindowName', 'dwStyle', 'X', 'Y', 'nWidth', 'nHeight', 'hWndParent', 'hMenu', 'hInstance', 'lpParam']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CreateWindowExA", hex(callAddr), (retValStr), 'HWND', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def GetIpNetTable(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['PMIB_IPNETTABLE', 'PULONG', 'BOOL']
