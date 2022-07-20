@@ -10413,6 +10413,20 @@ class CustomWinAPIs():
         logged_calls= ("BitBlt", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def StretchBlt(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HDC', 'int', 'int', 'int', 'int', 'HDC', 'int', 'int', 'int', 'int', 'DWORD']
+        pNames= ['hdcDest', 'xDest', 'yDest', 'wDest', 'hDest', 'hdcSrc', 'xSrc', 'ySrc', 'wSrc', 'hSrc', 'rop']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("StretchBlt", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def GetIpNetTable(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['PMIB_IPNETTABLE', 'PULONG', 'BOOL']
