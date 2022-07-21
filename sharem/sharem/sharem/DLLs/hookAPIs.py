@@ -1,5 +1,6 @@
 from copy import deepcopy
 from enum import Enum, auto
+from pickletools import read_unicodestring1
 from random import choice, randint
 from time import perf_counter_ns
 from urllib.parse import quote, unquote
@@ -12773,9 +12774,10 @@ class CustomWinAPIs():
 class CustomWinSysCalls():
 
     def makeArgVals(self, uc: Uc, em, esp, numParams):
+        esp = uc.reg_read(UC_X86_REG_EDX) # Temp Fix for Windows 7 Will Make Better
         args = [0] * numParams
         for i in range(len(args)):
-            args[i] = self.getStackVal(uc, em, esp, i + 1)
+            args[i] = self.getStackVal(uc, em, esp, i) # i + 1
         return args
     
     def getStackVal(self, uc: Uc, em, esp, loc):
@@ -13049,6 +13051,37 @@ class CustomWinSysCalls():
         retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
         uc.reg_write(UC_X86_REG_EAX, retVal)
         logged_calls = ["NtCreateNamedPipeFile", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+
+        return logged_calls
+
+    def NtCreateKey(self, uc: Uc, eip, esp, callAddr, em):
+        pTypes = ['PHANDLE', 'ACCESS_MASK', 'POBJECT_ATTRIBUTES', 'ULONG', 'PUNICODE_STRING', 'ULONG', 'PUNLONG']
+        pNames = ['KeyHandle', 'DesiredAccess', 'ObjectAttributes', 'TitleIndex', 'Class', 'CreateOptions', 'Disposition']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+
+        # Add Lookup for access mask
+
+        if pVals[2] != 0x0:
+            oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em)
+            us = get_UNICODE_STRING(uc, oa.ObjectName, em)
+            name = read_unicode(uc, us.Buffer)
+            pVals[2] = makeStructVals(uc, oa, pVals[2])
+            pVals[2][2][2] = name
+        else:
+            pVals[2] = hex(pVals[2])
+
+        if pVals[4] != 0x0:
+            classUS = get_UNICODE_STRING(uc, pVals[4], em)
+            pVals[4] = makeStructVals(uc, classUS, pVals[4])
+        else:
+            pVals[4] = hex(pVals[4])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,4])
+
+        retVal = 0
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        logged_calls = ["NtCreateKey", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
 
         return logged_calls
 
