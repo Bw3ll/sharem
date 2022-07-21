@@ -10169,6 +10169,20 @@ class CustomWinAPIs():
         logged_calls= ("GetFileAttributesW", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def GetFileAttributesA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LPCSTR']
+        pNames= ['lpFileName']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetFileAttributesA", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def EnumDesktopWindows(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['HDESK', 'WNDENUMPROC', 'LPARAM']
         pNames= ['hDesktop', 'lpfn', 'lParam']
