@@ -9097,10 +9097,53 @@ class CustomWinAPIs():
 
     ### Has a structure of OSVERSIONINFOA, need help with.
     def GetVersionExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        # 'GetVersionExA': (1, ['LPOSVERSIONINFOA'], ['lpVersionInformation'], 'BOOL')
         pTypes = ['LPOSVERSIONINFOA']
         pNames = ['lpVersionInformation']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
+    
+        if pVals[0] != 0x0:
+            tempInfo = get_OSVERSIONINFOA(uc, pVals[0], em)
+            if tempInfo.dwOSVersionInfoSize == sizeof(OSVERSIONINFOA):
+                vinfo = get_OSVERSIONINFOA(uc, pVals[0], em)
+                # need to add actuall values to struct like 10.1.19064 etc
+                pVals[0] = makeStructVals(uc, vinfo, pVals[0])
+            elif tempInfo.dwOSVersionInfoSize == sizeof(OSVERSIONINFOEXA):
+                vinfo = get_OSVERSIONINFOEXA(uc, pVals[0], em)
+                # need to add actuall values to struct like 10.1.19064 etc
+                pVals[0] = makeStructVals(uc, vinfo, pVals[0])
+            else:
+                pVals[0] = hex(pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
+
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("GetVersionExA", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetVersionExW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['LPOSVERSIONINFOW']
+        pNames = ['lpVersionInformation']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        if pVals[0] != 0x0:
+            tempInfo = get_OSVERSIONINFOW(uc, pVals[0], em)
+            if tempInfo.dwOSVersionInfoSize == sizeof(OSVERSIONINFOW):
+                vinfo = get_OSVERSIONINFOW(uc, pVals[0], em)
+                # need to add actuall values to struct like 10.1.19064 etc
+                pVals[0] = makeStructVals(uc, vinfo, pVals[0])
+            elif tempInfo.dwOSVersionInfoSize == sizeof(OSVERSIONINFOEXW):
+                vinfo = get_OSVERSIONINFOEXW(uc, pVals[0], em)
+                # need to add actuall values to struct like 10.1.19064 etc
+                pVals[0] = makeStructVals(uc, vinfo, pVals[0])
+            else:
+                pVals[0] = hex(pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
@@ -9108,7 +9151,7 @@ class CustomWinAPIs():
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls = ("GetVersionExA", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+        logged_calls = ("GetVersionExW", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def SetErrorMode(self, uc: Uc, eip, esp, export_dict, callAddr, em):
@@ -9130,7 +9173,6 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def SetEndOfFile(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        # 'GetVersionExA': (1, ['LPOSVERSIONINFOA'], ['lpVersionInformation'], 'BOOL')
         pTypes = ['HANDLE']
         pNames = ['hFile']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -9145,7 +9187,6 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def ResetEvent(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        # 'GetVersionExA': (1, ['LPOSVERSIONINFOA'], ['lpVersionInformation'], 'BOOL')
         pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes = ['HANDLE']
         pNames = ['hEvent']
@@ -9816,7 +9857,7 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def CopyFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pTypes= ['LCPSTR', 'LCPSTR', 'BOOL']
+        pTypes= ['LPCSTR', 'LPCSTR', 'BOOL']
         pNames= ['lpExistingFileName', 'lpNewFileName', 'bFailIfExists']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 

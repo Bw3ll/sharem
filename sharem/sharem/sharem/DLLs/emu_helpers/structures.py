@@ -5,7 +5,7 @@ from time import gmtime, localtime, time_ns
 from sharem.sharem.DLLs.emu_helpers.reverseLookUps import ReverseLookUps
 
 from sharem.sharem.helper.ctypesUnion import LittleEndianUnion
-from sharem.sharem.helper.structHelpers import BOOL, DWORD, DWORD_PTR_32BIT, DWORD_PTR_64BIT, HANDLE_32BIT, HANDLE_64BIT, HINSTANCE_32BIT, HINSTANCE_64BIT, HKEY_32BIT, HKEY_64BIT, HWND_32BIT, HWND_64BIT, INT, LONG, LONGLONG, LPBYTE_32BIT, LPBYTE_64BIT, LPCSTR_32BIT, LPCSTR_64BIT, LPCWSTR_32BIT, LPCWSTR_64BIT, LPSTR_32BIT, LPSTR_64BIT, LPVOID_32BIT, LPVOID_64BIT, LPWSTR_32BIT, LPWSTR_64BIT, MAX_PATH, PCHAR_32BIT, PCHAR_64BIT, POINTER_32BIT, POINTER_64BIT, PVOID_32BIT, PVOID_64BIT, PWSTR_32BIT, PWSTR_64BIT, UCHAR, ULONG, ULONG_PTR_32BIT, ULONG_PTR_64BIT, ULONGLONG, USHORT, WCHAR, WORD, CHAR
+from sharem.sharem.helper.structHelpers import BOOL, BYTE, DWORD, DWORD_PTR_32BIT, DWORD_PTR_64BIT, HANDLE_32BIT, HANDLE_64BIT, HINSTANCE_32BIT, HINSTANCE_64BIT, HKEY_32BIT, HKEY_64BIT, HWND_32BIT, HWND_64BIT, INT, LONG, LONGLONG, LPBYTE_32BIT, LPBYTE_64BIT, LPCSTR_32BIT, LPCSTR_64BIT, LPCWSTR_32BIT, LPCWSTR_64BIT, LPSTR_32BIT, LPSTR_64BIT, LPVOID_32BIT, LPVOID_64BIT, LPWSTR_32BIT, LPWSTR_64BIT, MAX_PATH, PCHAR_32BIT, PCHAR_64BIT, POINTER_32BIT, POINTER_64BIT, PVOID_32BIT, PVOID_64BIT, PWSTR_32BIT, PWSTR_64BIT, UCHAR, ULONG, ULONG_PTR_32BIT, ULONG_PTR_64BIT, ULONGLONG, USHORT, WCHAR, WORD, CHAR
 
 from ...helper.emuHelpers import Uc
 
@@ -1272,3 +1272,115 @@ class NETRESOURCEW:
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
+
+
+# Struct OSVERSIONINFOA
+# Alias Names: _OSVERSIONINFOA
+# Alias Pointer Names: POSVERSIONINFOA, LPOSVERSIONINFOA
+
+def get_OSVERSIONINFOA(uc: Uc, address: int, em):
+    return OSVERSIONINFOA.from_buffer_copy(uc.mem_read(address, sizeof(OSVERSIONINFOA)))
+
+# Struct Aliases:
+# get__OSVERSIONINFOA = get_OSVERSIONINFOA
+
+# Struct Pointers:
+POSVERSIONINFOA_32BIT = POINTER_32BIT
+POSVERSIONINFOA_64BIT = POINTER_64BIT
+LPOSVERSIONINFOA_32BIT = POINTER_32BIT
+LPOSVERSIONINFOA_64BIT = POINTER_64BIT
+
+class OSVERSIONINFOA(LittleEndianStructure):
+    types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'CHAR']
+    __slots__ = ('dwOSVersionInfoSize', 'dwMajorVersion', 'dwMinorVersion', 'dwBuildNumber', 'dwPlatformId', 'szCSDVersion')
+    lookUps = {}
+
+    _fields_ = [('dwOSVersionInfoSize',DWORD),('dwMajorVersion',DWORD),('dwMinorVersion',DWORD),('dwBuildNumber',DWORD),('dwPlatformId',DWORD),('szCSDVersion',CHAR * 128)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+
+# Struct OSVERSIONINFOW
+# Alias Names: _OSVERSIONINFOW, RTL_OSVERSIONINFOW
+# Alias Pointer Names: POSVERSIONINFOW, LPOSVERSIONINFOW, PRTL_OSVERSIONINFOW
+
+def get_OSVERSIONINFOW(uc: Uc, address: int, em):
+    return OSVERSIONINFOW.from_buffer_copy(uc.mem_read(address, sizeof(OSVERSIONINFOW)))
+
+# Struct Aliases:
+# get__OSVERSIONINFOW = get_OSVERSIONINFOW
+# get_RTL_OSVERSIONINFOW = get_OSVERSIONINFOW
+
+# Struct Pointers:
+POSVERSIONINFOW_32BIT = POINTER_32BIT
+POSVERSIONINFOW_64BIT = POINTER_64BIT
+LPOSVERSIONINFOW_32BIT = POINTER_32BIT
+LPOSVERSIONINFOW_64BIT = POINTER_64BIT
+PRTL_OSVERSIONINFOW_32BIT = POINTER_32BIT
+PRTL_OSVERSIONINFOW_64BIT = POINTER_64BIT
+
+class OSVERSIONINFOW(LittleEndianStructure):
+    types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WCHAR']
+    __slots__ = ('dwOSVersionInfoSize', 'dwMajorVersion', 'dwMinorVersion', 'dwBuildNumber', 'dwPlatformId', 'szCSDVersion')
+    lookUps = {}
+
+    _fields_ = [('dwOSVersionInfoSize',DWORD),('dwMajorVersion',DWORD),('dwMinorVersion',DWORD),('dwBuildNumber',DWORD),('dwPlatformId',DWORD),('szCSDVersion',WCHAR * 128)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+# Struct OSVERSIONINFOEXA
+# Alias Names: _OSVERSIONINFOEXA
+# Alias Pointer Names: POSVERSIONINFOEXA, LPOSVERSIONINFOEXA
+
+def get_OSVERSIONINFOEXA(uc: Uc, address: int, em):
+    return OSVERSIONINFOEXA.from_buffer_copy(uc.mem_read(address, sizeof(OSVERSIONINFOEXA)))
+
+# Struct Aliases:
+# get__OSVERSIONINFOEXA = get_OSVERSIONINFOEXA
+
+# Struct Pointers:
+POSVERSIONINFOEXA_32BIT = POINTER_32BIT
+POSVERSIONINFOEXA_64BIT = POINTER_64BIT
+LPOSVERSIONINFOEXA_32BIT = POINTER_32BIT
+LPOSVERSIONINFOEXA_64BIT = POINTER_64BIT
+
+class OSVERSIONINFOEXA(LittleEndianStructure):
+    types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'CHAR', 'WORD', 'WORD', 'WORD', 'BYTE', 'BYTE']
+    __slots__ = ('dwOSVersionInfoSize', 'dwMajorVersion', 'dwMinorVersion', 'dwBuildNumber', 'dwPlatformId', 'szCSDVersion', 'wServicePackMajor', 'wServicePackMinor', 'wSuiteMask', 'wProductType', 'wReserved')
+    lookUps = {}
+
+    _fields_ = [('dwOSVersionInfoSize',DWORD),('dwMajorVersion',DWORD),('dwMinorVersion',DWORD),('dwBuildNumber',DWORD),('dwPlatformId',DWORD),('szCSDVersion',CHAR * 128),('wServicePackMajor',WORD),('wServicePackMinor',WORD),('wSuiteMask',WORD),('wProductType',BYTE),('wReserved',BYTE)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+# Struct OSVERSIONINFOEXW
+# Alias Names: _OSVERSIONINFOEXW, RTL_OSVERSIONINFOEXW
+# Alias Pointer Names: POSVERSIONINFOEXW, LPOSVERSIONINFOEXW, PRTL_OSVERSIONINFOEXW
+
+def get_OSVERSIONINFOEXW(uc: Uc, address: int, em):
+    return OSVERSIONINFOEXW.from_buffer_copy(uc.mem_read(address, sizeof(OSVERSIONINFOEXW)))
+
+# Struct Aliases:
+# get__OSVERSIONINFOEXW = get_OSVERSIONINFOEXW
+# get_RTL_OSVERSIONINFOEXW = get_OSVERSIONINFOEXW
+
+# Struct Pointers:
+POSVERSIONINFOEXW_32BIT = POINTER_32BIT
+POSVERSIONINFOEXW_64BIT = POINTER_64BIT
+LPOSVERSIONINFOEXW_32BIT = POINTER_32BIT
+LPOSVERSIONINFOEXW_64BIT = POINTER_64BIT
+PRTL_OSVERSIONINFOEXW_32BIT = POINTER_32BIT
+PRTL_OSVERSIONINFOEXW_64BIT = POINTER_64BIT
+
+class OSVERSIONINFOEXW(LittleEndianStructure):
+    types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WCHAR', 'WORD', 'WORD', 'WORD', 'BYTE', 'BYTE']
+    __slots__ = ('dwOSVersionInfoSize', 'dwMajorVersion', 'dwMinorVersion', 'dwBuildNumber', 'dwPlatformId', 'szCSDVersion', 'wServicePackMajor', 'wServicePackMinor', 'wSuiteMask', 'wProductType', 'wReserved')
+    lookUps = {}
+
+    _fields_ = [('dwOSVersionInfoSize',DWORD),('dwMajorVersion',DWORD),('dwMinorVersion',DWORD),('dwBuildNumber',DWORD),('dwPlatformId',DWORD),('szCSDVersion',WCHAR * 128),('wServicePackMajor',WORD),('wServicePackMinor',WORD),('wSuiteMask',WORD),('wProductType',BYTE),('wReserved',BYTE)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
