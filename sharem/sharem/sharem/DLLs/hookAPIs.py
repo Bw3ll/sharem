@@ -9508,7 +9508,13 @@ class CustomWinAPIs():
         pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.File.DesiredAccess)
         pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.File.ShareMode)
         pVals[3] = getLookUpVal(pVals[3], ReverseLookUps.File.CreationDistribution)
-        pVals[4] = getLookUpVal(pVals[4], ReverseLookUps.File.FlagsAndAttribute)
+        # pVals[4] = getLookUpVal(pVals[4], ReverseLookUps.File.FlagsAndAttribute)
+
+        if pVals[4] != 0x0:
+            ep = get_CREATEFILE2_EXTENDED_PARAMETERS(uc,pVals[4],em)
+            pVals[4] = makeStructVals(uc,ep,pVals[4])
+        else:
+            pVals[4] = hex(pVals[4])
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [1, 2, 3, 4])
 
@@ -9889,12 +9895,9 @@ class CustomWinAPIs():
     def CopyFile2(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes =['PCWSTR', 'PCWSTR', 'COPYFILE2_EXTENDED_PARAMETERS'] 
         pNames = ['pwszExistingFileName', 'pwszNewFileName', '*pExtendedParameters'] 
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        pVals = makeArgVals(uc, em, esp, len(pTypes)) # needs added
 
-        CopyFlagsReverseLookUp = {8: 'COPY_FILE_ALLOW_DECRYPTED_DESTINATION', 2048: 'COPY_FILE_COPY_SYMLINK',
-                                     1: 'COPY_FILE_FAIL_IF_EXISTS', 4096: 'COPY_FILE_NO_BUFFERING',
-                                     4: 'COPY_FILE_OPEN_SOURCE_FOR_WRITE', 2: 'COPY_FILE_RESTARTABLE',
-                                     268435456: 'COPY_FILE_REQUEST_COMPRESSED_TRAFFIC'}
+        CopyFlagsReverseLookUp = {8: 'COPY_FILE_ALLOW_DECRYPTED_DESTINATION', 2048: 'COPY_FILE_COPY_SYMLINK', 1: 'COPY_FILE_FAIL_IF_EXISTS', 4096: 'COPY_FILE_NO_BUFFERING', 4: 'COPY_FILE_OPEN_SOURCE_FOR_WRITE', 2: 'COPY_FILE_RESTARTABLE', 268435456: 'COPY_FILE_REQUEST_COMPRESSED_TRAFFIC'}
 
         pVals[2] = getLookUpVal(pVals[2], CopyFlagsReverseLookUp)
 
@@ -10447,7 +10450,7 @@ class CustomWinAPIs():
         logged_calls= ("DecryptFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def CryptStringToBrinaryA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+    def CryptStringToBinaryA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['LPCSTR', 'DWORD', 'DWORD', 'BYTE', 'DWORD', 'DWORD', 'DWORD']
         pNames= ['pszString', 'cchString', 'dwFlags', '*pbBinary', '*pcbBinary', '*pdwSkip', '*pdwFlags']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -10457,6 +10460,8 @@ class CustomWinAPIs():
         pVals[2] = getLookUpVal(pVals[2],dwFlagsReverseLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+
+        # needs expanded
 
         retVal = 0x1
         retValStr= 'SUCCESS'
@@ -10475,6 +10480,8 @@ class CustomWinAPIs():
         pVals[2] = getLookUpVal(pVals[2],dwFlagsReverseLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+
+        # needs expanded
 
         retVal = 0x1
         retValStr= 'SUCCESS'
@@ -10586,6 +10593,8 @@ class CustomWinAPIs():
         pNames= ['Locale', 'dwFlags', '*lpDate', 'lpFormat', 'lpDateStr', 'cchDate']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
+        # needs expanded
+
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
 
         retVal = 0x88888888
@@ -10599,6 +10608,8 @@ class CustomWinAPIs():
         pTypes= ['LCID', 'DWORD', 'SYSTEMTIME', 'LPCWSTR', 'LPWSTR', 'int']
         pNames= ['Locale', 'dwFlags', '*lpTime', 'lpFormat', 'lpTimeStr', 'cchTime']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # needs expanded
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
 
@@ -11000,6 +11011,8 @@ class CustomWinAPIs():
         pTypes =['HANDLE', 'THREAD_INFORMATION_CLASS', 'LPVOID', 'DWORD'] 
         pNames = ['hThread', 'ThreadInformationClass', 'ThreadInformation', 'ThreadInformationSize'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # need lookup for THREAD_INFORMATION_CLASS
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         

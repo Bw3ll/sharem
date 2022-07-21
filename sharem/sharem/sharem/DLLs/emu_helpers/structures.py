@@ -1384,3 +1384,84 @@ class OSVERSIONINFOEXW(LittleEndianStructure):
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
+
+
+# Struct CREATEFILE2_EXTENDED_PARAMETERS
+# Alias Names: _CREATEFILE2_EXTENDED_PARAMETERS
+# Alias Pointer Names: PCREATEFILE2_EXTENDED_PARAMETERS, LPCREATEFILE2_EXTENDED_PARAMETERS
+
+def get_CREATEFILE2_EXTENDED_PARAMETERS(uc: Uc, address: int, em):
+    if em.arch == 32:
+        return CREATEFILE2_EXTENDED_PARAMETERS.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(CREATEFILE2_EXTENDED_PARAMETERS.ARCH32)))
+    else:
+        return CREATEFILE2_EXTENDED_PARAMETERS.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(CREATEFILE2_EXTENDED_PARAMETERS.ARCH64)))
+
+# Struct Aliases:
+# get__CREATEFILE2_EXTENDED_PARAMETERS = get_CREATEFILE2_EXTENDED_PARAMETERS
+
+# Struct Pointers:
+PCREATEFILE2_EXTENDED_PARAMETERS_32BIT = POINTER_32BIT
+PCREATEFILE2_EXTENDED_PARAMETERS_64BIT = POINTER_64BIT
+LPCREATEFILE2_EXTENDED_PARAMETERS_32BIT = POINTER_32BIT
+LPCREATEFILE2_EXTENDED_PARAMETERS_64BIT = POINTER_64BIT
+
+class CREATEFILE2_EXTENDED_PARAMETERS:
+
+    class ARCH32(LittleEndianStructure):
+        types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPSECURITY_ATTRIBUTES', 'HANDLE']
+        __slots__ = ('dwSize', 'dwFileAttributes', 'dwFileFlags', 'dwSecurityQosFlags', 'lpSecurityAttributes', 'hTemplateFile')
+        lookUps = {} # need lookups
+
+        _fields_ = [('dwSize',DWORD),('dwFileAttributes',DWORD),('dwFileFlags',DWORD),('dwSecurityQosFlags',DWORD),('lpSecurityAttributes',LPSECURITY_ATTRIBUTES_32BIT),('hTemplateFile',HANDLE_32BIT)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure):
+        types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPSECURITY_ATTRIBUTES', 'HANDLE']
+        __slots__ = ('dwSize', 'dwFileAttributes', 'dwFileFlags', 'dwSecurityQosFlags', 'lpSecurityAttributes', 'hTemplateFile')
+        lookUps = {} # need lookups
+
+        _fields_ = [('dwSize',DWORD),('dwFileAttributes',DWORD),('dwFileFlags',DWORD),('dwSecurityQosFlags',DWORD),('lpSecurityAttributes',LPSECURITY_ATTRIBUTES_64BIT),('hTemplateFile',HANDLE_64BIT)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+# Pointer Param for COPYFILE2_EXTENDED_PARAMETERS
+PCOPYFILE2_PROGRESS_ROUTINE_32BIT = POINTER_32BIT
+PCOPYFILE2_PROGRESS_ROUTINE_64BIT = POINTER_64BIT
+
+# Struct COPYFILE2_EXTENDED_PARAMETERS
+# Alias Names: _COPYFILE2_EXTENDED_PARAMETERS
+# Alias Pointer Names:
+
+def get_COPYFILE2_EXTENDED_PARAMETERS(uc: Uc, address: int, em):
+    if em.arch == 32:
+        return COPYFILE2_EXTENDED_PARAMETERS.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(COPYFILE2_EXTENDED_PARAMETERS.ARCH32)))
+    else:
+        return COPYFILE2_EXTENDED_PARAMETERS.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(COPYFILE2_EXTENDED_PARAMETERS.ARCH64)))
+
+# Struct Aliases:
+# get__COPYFILE2_EXTENDED_PARAMETERS = get_COPYFILE2_EXTENDED_PARAMETERS
+
+class COPYFILE2_EXTENDED_PARAMETERS:
+
+    class ARCH32(LittleEndianStructure):
+        types = ['DWORD', 'DWORD', 'BOOL', 'PCOPYFILE2_PROGRESS_ROUTINE', 'PVOID']
+        __slots__ = ('dwSize', 'dwCopyFlags', 'pfCancel', 'pProgressRoutine', 'pvCallbackContext')
+        lookUps = {} # Need Lookups
+
+        _fields_ = [('dwSize',DWORD),('dwCopyFlags',DWORD),('pfCancel',BOOL),('pProgressRoutine',PCOPYFILE2_PROGRESS_ROUTINE_32BIT),('pvCallbackContext',PVOID_32BIT)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure):
+        types = ['DWORD', 'DWORD', 'BOOL', 'PCOPYFILE2_PROGRESS_ROUTINE', 'PVOID']
+        __slots__ = ('dwSize', 'dwCopyFlags', 'pfCancel', 'pProgressRoutine', 'pvCallbackContext')
+        lookUps = {} # Need Lookups
+
+        _fields_ = [('dwSize',DWORD),('dwCopyFlags',DWORD),('pfCancel',BOOL),('pProgressRoutine',PCOPYFILE2_PROGRESS_ROUTINE_64BIT),('pvCallbackContext',PVOID_64BIT)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
