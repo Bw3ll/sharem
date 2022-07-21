@@ -637,7 +637,7 @@ class STARTUPINFOA:
     class ARCH32(LittleEndianStructure):
         types = ['DWORD', 'LPSTR', 'LPSTR', 'LPSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WORD', 'WORD', 'LPBYTE', 'HANDLE', 'HANDLE', 'HANDLE']
         __slots__ = ('cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError')
-        lookUps = {}
+        lookUps = {11: ReverseLookUps.StartupInfo.flags}
 
         _fields_ = [('cb',DWORD),('lpReserved',LPSTR_32BIT),('lpDesktop',LPSTR_32BIT),('lpTitle',LPSTR_32BIT),('dwX',DWORD),('dwY',DWORD),('dwXSize',DWORD),('dwYSize',DWORD),('dwXCountChars',DWORD),('dwYCountChars',DWORD),('dwFillAttribute',DWORD),('dwFlags',DWORD),('wShowWindow',WORD),('cbReserved2',WORD),('lpReserved2',LPBYTE_32BIT),('hStdInput',HANDLE_32BIT),('hStdOutput',HANDLE_32BIT),('hStdError',HANDLE_32BIT)]
 
@@ -647,7 +647,7 @@ class STARTUPINFOA:
     class ARCH64(LittleEndianStructure):
         types = ['DWORD', 'LPSTR', 'LPSTR', 'LPSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WORD', 'WORD', 'LPBYTE', 'HANDLE', 'HANDLE', 'HANDLE']
         __slots__ = ('cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError')
-        lookUps = {}
+        lookUps = {11: ReverseLookUps.StartupInfo.flags}
 
         _fields_ = [('cb',DWORD),('lpReserved',LPSTR_64BIT),('lpDesktop',LPSTR_64BIT),('lpTitle',LPSTR_64BIT),('dwX',DWORD),('dwY',DWORD),('dwXSize',DWORD),('dwYSize',DWORD),('dwXCountChars',DWORD),('dwYCountChars',DWORD),('dwFillAttribute',DWORD),('dwFlags',DWORD),('wShowWindow',WORD),('cbReserved2',WORD),('lpReserved2',LPBYTE_64BIT),('hStdInput',HANDLE_64BIT),('hStdOutput',HANDLE_64BIT),('hStdError',HANDLE_64BIT)]
 
@@ -676,7 +676,7 @@ class STARTUPINFOW:
     class ARCH32(LittleEndianStructure):
         types = ['DWORD', 'LPWSTR', 'LPWSTR', 'LPWSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WORD', 'WORD', 'LPBYTE', 'HANDLE', 'HANDLE', 'HANDLE']
         __slots__ = ('cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError')
-        lookUps = {}
+        lookUps = {11: ReverseLookUps.StartupInfo.flags}
 
         _fields_ = [('cb',DWORD),('lpReserved',LPWSTR_32BIT),('lpDesktop',LPWSTR_32BIT),('lpTitle',LPWSTR_32BIT),('dwX',DWORD),('dwY',DWORD),('dwXSize',DWORD),('dwYSize',DWORD),('dwXCountChars',DWORD),('dwYCountChars',DWORD),('dwFillAttribute',DWORD),('dwFlags',DWORD),('wShowWindow',WORD),('cbReserved2',WORD),('lpReserved2',LPBYTE_32BIT),('hStdInput',HANDLE_32BIT),('hStdOutput',HANDLE_32BIT),('hStdError',HANDLE_32BIT)]
 
@@ -686,7 +686,7 @@ class STARTUPINFOW:
     class ARCH64(LittleEndianStructure):
         types = ['DWORD', 'LPWSTR', 'LPWSTR', 'LPWSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WORD', 'WORD', 'LPBYTE', 'HANDLE', 'HANDLE', 'HANDLE']
         __slots__ = ('cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError')
-        lookUps = {}
+        lookUps = {11: ReverseLookUps.StartupInfo.flags}
 
         _fields_ = [('cb',DWORD),('lpReserved',LPWSTR_64BIT),('lpDesktop',LPWSTR_64BIT),('lpTitle',LPWSTR_64BIT),('dwX',DWORD),('dwY',DWORD),('dwXSize',DWORD),('dwYSize',DWORD),('dwXCountChars',DWORD),('dwYCountChars',DWORD),('dwFillAttribute',DWORD),('dwFlags',DWORD),('wShowWindow',WORD),('cbReserved2',WORD),('lpReserved2',LPBYTE_64BIT),('hStdInput',HANDLE_64BIT),('hStdOutput',HANDLE_64BIT),('hStdError',HANDLE_64BIT)]
 
