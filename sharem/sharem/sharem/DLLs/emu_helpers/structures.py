@@ -2,12 +2,12 @@ from ctypes import LittleEndianStructure, sizeof
 from enum import Enum
 from struct import pack, unpack
 from time import gmtime, localtime, time_ns
-from sharem.sharem.DLLs.reverseLookUps import ReverseLookUps
+from sharem.sharem.DLLs.emu_helpers.reverseLookUps import ReverseLookUps
 
 from sharem.sharem.helper.ctypesUnion import LittleEndianUnion
-from sharem.sharem.helper.structHelpers import BOOL, DWORD, DWORD_PTR_32BIT, DWORD_PTR_64BIT, HANDLE_32BIT, HANDLE_64BIT, HINSTANCE_32BIT, HINSTANCE_64BIT, HKEY_32BIT, HKEY_64BIT, HWND_32BIT, HWND_64BIT, INT, LONG, LONGLONG, LPBYTE_32BIT, LPBYTE_64BIT, LPCSTR_32BIT, LPCSTR_64BIT, LPCWSTR_32BIT, LPCWSTR_64BIT, LPSTR_32BIT, LPSTR_64BIT, LPVOID_32BIT, LPVOID_64BIT, LPWSTR_32BIT, LPWSTR_64BIT, MAX_PATH, PCHAR_32BIT, PCHAR_64BIT, POINTER_32BIT, POINTER_64BIT, PVOID_32BIT, PVOID_64BIT, PWSTR_32BIT, PWSTR_64BIT, UCHAR, ULONG, ULONG_PTR_32BIT, ULONG_PTR_64BIT, ULONGLONG, USHORT, WCHAR, WORD, CHAR
+from sharem.sharem.helper.structHelpers import BOOL, BYTE, DWORD, DWORD_PTR_32BIT, DWORD_PTR_64BIT, HANDLE_32BIT, HANDLE_64BIT, HINSTANCE_32BIT, HINSTANCE_64BIT, HKEY_32BIT, HKEY_64BIT, HWND_32BIT, HWND_64BIT, INT, LONG, LONGLONG, LPBYTE_32BIT, LPBYTE_64BIT, LPCSTR_32BIT, LPCSTR_64BIT, LPCWSTR_32BIT, LPCWSTR_64BIT, LPSTR_32BIT, LPSTR_64BIT, LPVOID_32BIT, LPVOID_64BIT, LPWSTR_32BIT, LPWSTR_64BIT, MAX_PATH, PCHAR_32BIT, PCHAR_64BIT, POINTER_32BIT, POINTER_64BIT, PVOID_32BIT, PVOID_64BIT, PWSTR_32BIT, PWSTR_64BIT, UCHAR, ULONG, ULONG_PTR_32BIT, ULONG_PTR_64BIT, ULONGLONG, USHORT, WCHAR, WORD, CHAR
 
-from ..helper.emuHelpers import Uc
+from ...helper.emuHelpers import Uc
 
 
 # Struct PROCESS_INFORMATION
@@ -637,7 +637,7 @@ class STARTUPINFOA:
     class ARCH32(LittleEndianStructure):
         types = ['DWORD', 'LPSTR', 'LPSTR', 'LPSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WORD', 'WORD', 'LPBYTE', 'HANDLE', 'HANDLE', 'HANDLE']
         __slots__ = ('cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError')
-        lookUps = {}
+        lookUps = {11: ReverseLookUps.StartupInfo.flags}
 
         _fields_ = [('cb',DWORD),('lpReserved',LPSTR_32BIT),('lpDesktop',LPSTR_32BIT),('lpTitle',LPSTR_32BIT),('dwX',DWORD),('dwY',DWORD),('dwXSize',DWORD),('dwYSize',DWORD),('dwXCountChars',DWORD),('dwYCountChars',DWORD),('dwFillAttribute',DWORD),('dwFlags',DWORD),('wShowWindow',WORD),('cbReserved2',WORD),('lpReserved2',LPBYTE_32BIT),('hStdInput',HANDLE_32BIT),('hStdOutput',HANDLE_32BIT),('hStdError',HANDLE_32BIT)]
 
@@ -647,7 +647,7 @@ class STARTUPINFOA:
     class ARCH64(LittleEndianStructure):
         types = ['DWORD', 'LPSTR', 'LPSTR', 'LPSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WORD', 'WORD', 'LPBYTE', 'HANDLE', 'HANDLE', 'HANDLE']
         __slots__ = ('cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError')
-        lookUps = {}
+        lookUps = {11: ReverseLookUps.StartupInfo.flags}
 
         _fields_ = [('cb',DWORD),('lpReserved',LPSTR_64BIT),('lpDesktop',LPSTR_64BIT),('lpTitle',LPSTR_64BIT),('dwX',DWORD),('dwY',DWORD),('dwXSize',DWORD),('dwYSize',DWORD),('dwXCountChars',DWORD),('dwYCountChars',DWORD),('dwFillAttribute',DWORD),('dwFlags',DWORD),('wShowWindow',WORD),('cbReserved2',WORD),('lpReserved2',LPBYTE_64BIT),('hStdInput',HANDLE_64BIT),('hStdOutput',HANDLE_64BIT),('hStdError',HANDLE_64BIT)]
 
@@ -676,7 +676,7 @@ class STARTUPINFOW:
     class ARCH32(LittleEndianStructure):
         types = ['DWORD', 'LPWSTR', 'LPWSTR', 'LPWSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WORD', 'WORD', 'LPBYTE', 'HANDLE', 'HANDLE', 'HANDLE']
         __slots__ = ('cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError')
-        lookUps = {}
+        lookUps = {11: ReverseLookUps.StartupInfo.flags}
 
         _fields_ = [('cb',DWORD),('lpReserved',LPWSTR_32BIT),('lpDesktop',LPWSTR_32BIT),('lpTitle',LPWSTR_32BIT),('dwX',DWORD),('dwY',DWORD),('dwXSize',DWORD),('dwYSize',DWORD),('dwXCountChars',DWORD),('dwYCountChars',DWORD),('dwFillAttribute',DWORD),('dwFlags',DWORD),('wShowWindow',WORD),('cbReserved2',WORD),('lpReserved2',LPBYTE_32BIT),('hStdInput',HANDLE_32BIT),('hStdOutput',HANDLE_32BIT),('hStdError',HANDLE_32BIT)]
 
@@ -686,7 +686,7 @@ class STARTUPINFOW:
     class ARCH64(LittleEndianStructure):
         types = ['DWORD', 'LPWSTR', 'LPWSTR', 'LPWSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WORD', 'WORD', 'LPBYTE', 'HANDLE', 'HANDLE', 'HANDLE']
         __slots__ = ('cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError')
-        lookUps = {}
+        lookUps = {11: ReverseLookUps.StartupInfo.flags}
 
         _fields_ = [('cb',DWORD),('lpReserved',LPWSTR_64BIT),('lpDesktop',LPWSTR_64BIT),('lpTitle',LPWSTR_64BIT),('dwX',DWORD),('dwY',DWORD),('dwXSize',DWORD),('dwYSize',DWORD),('dwXCountChars',DWORD),('dwYCountChars',DWORD),('dwFillAttribute',DWORD),('dwFlags',DWORD),('wShowWindow',WORD),('cbReserved2',WORD),('lpReserved2',LPBYTE_64BIT),('hStdInput',HANDLE_64BIT),('hStdOutput',HANDLE_64BIT),('hStdError',HANDLE_64BIT)]
 
@@ -1308,6 +1308,199 @@ class NETRESOURCEW:
         lookUps = {0: ReverseLookUps.Net.Scope, 1: ReverseLookUps.Net.Type, 2: ReverseLookUps.Net.Display, 3: ReverseLookUps.Net.Usage}
 
         _fields_ = [('dwScope',DWORD),('dwType',DWORD),('dwDisplayType',DWORD),('dwUsage',DWORD),('lpLocalName',LPWSTR_64BIT),('lpRemoteName',LPWSTR_64BIT),('lpComment',LPWSTR_64BIT),('lpProvider',LPWSTR_64BIT)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+
+# Struct OSVERSIONINFOA
+# Alias Names: _OSVERSIONINFOA
+# Alias Pointer Names: POSVERSIONINFOA, LPOSVERSIONINFOA
+
+def get_OSVERSIONINFOA(uc: Uc, address: int, em):
+    return OSVERSIONINFOA.from_buffer_copy(uc.mem_read(address, sizeof(OSVERSIONINFOA)))
+
+# Struct Aliases:
+# get__OSVERSIONINFOA = get_OSVERSIONINFOA
+
+# Struct Pointers:
+POSVERSIONINFOA_32BIT = POINTER_32BIT
+POSVERSIONINFOA_64BIT = POINTER_64BIT
+LPOSVERSIONINFOA_32BIT = POINTER_32BIT
+LPOSVERSIONINFOA_64BIT = POINTER_64BIT
+
+class OSVERSIONINFOA(LittleEndianStructure):
+    types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'CHAR']
+    __slots__ = ('dwOSVersionInfoSize', 'dwMajorVersion', 'dwMinorVersion', 'dwBuildNumber', 'dwPlatformId', 'szCSDVersion')
+    lookUps = {}
+
+    _fields_ = [('dwOSVersionInfoSize',DWORD),('dwMajorVersion',DWORD),('dwMinorVersion',DWORD),('dwBuildNumber',DWORD),('dwPlatformId',DWORD),('szCSDVersion',CHAR * 128)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+
+# Struct OSVERSIONINFOW
+# Alias Names: _OSVERSIONINFOW, RTL_OSVERSIONINFOW
+# Alias Pointer Names: POSVERSIONINFOW, LPOSVERSIONINFOW, PRTL_OSVERSIONINFOW
+
+def get_OSVERSIONINFOW(uc: Uc, address: int, em):
+    return OSVERSIONINFOW.from_buffer_copy(uc.mem_read(address, sizeof(OSVERSIONINFOW)))
+
+# Struct Aliases:
+# get__OSVERSIONINFOW = get_OSVERSIONINFOW
+# get_RTL_OSVERSIONINFOW = get_OSVERSIONINFOW
+
+# Struct Pointers:
+POSVERSIONINFOW_32BIT = POINTER_32BIT
+POSVERSIONINFOW_64BIT = POINTER_64BIT
+LPOSVERSIONINFOW_32BIT = POINTER_32BIT
+LPOSVERSIONINFOW_64BIT = POINTER_64BIT
+PRTL_OSVERSIONINFOW_32BIT = POINTER_32BIT
+PRTL_OSVERSIONINFOW_64BIT = POINTER_64BIT
+
+class OSVERSIONINFOW(LittleEndianStructure):
+    types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WCHAR']
+    __slots__ = ('dwOSVersionInfoSize', 'dwMajorVersion', 'dwMinorVersion', 'dwBuildNumber', 'dwPlatformId', 'szCSDVersion')
+    lookUps = {}
+
+    _fields_ = [('dwOSVersionInfoSize',DWORD),('dwMajorVersion',DWORD),('dwMinorVersion',DWORD),('dwBuildNumber',DWORD),('dwPlatformId',DWORD),('szCSDVersion',WCHAR * 128)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+# Struct OSVERSIONINFOEXA
+# Alias Names: _OSVERSIONINFOEXA
+# Alias Pointer Names: POSVERSIONINFOEXA, LPOSVERSIONINFOEXA
+
+def get_OSVERSIONINFOEXA(uc: Uc, address: int, em):
+    return OSVERSIONINFOEXA.from_buffer_copy(uc.mem_read(address, sizeof(OSVERSIONINFOEXA)))
+
+# Struct Aliases:
+# get__OSVERSIONINFOEXA = get_OSVERSIONINFOEXA
+
+# Struct Pointers:
+POSVERSIONINFOEXA_32BIT = POINTER_32BIT
+POSVERSIONINFOEXA_64BIT = POINTER_64BIT
+LPOSVERSIONINFOEXA_32BIT = POINTER_32BIT
+LPOSVERSIONINFOEXA_64BIT = POINTER_64BIT
+
+class OSVERSIONINFOEXA(LittleEndianStructure):
+    types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'CHAR', 'WORD', 'WORD', 'WORD', 'BYTE', 'BYTE']
+    __slots__ = ('dwOSVersionInfoSize', 'dwMajorVersion', 'dwMinorVersion', 'dwBuildNumber', 'dwPlatformId', 'szCSDVersion', 'wServicePackMajor', 'wServicePackMinor', 'wSuiteMask', 'wProductType', 'wReserved')
+    lookUps = {}
+
+    _fields_ = [('dwOSVersionInfoSize',DWORD),('dwMajorVersion',DWORD),('dwMinorVersion',DWORD),('dwBuildNumber',DWORD),('dwPlatformId',DWORD),('szCSDVersion',CHAR * 128),('wServicePackMajor',WORD),('wServicePackMinor',WORD),('wSuiteMask',WORD),('wProductType',BYTE),('wReserved',BYTE)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+# Struct OSVERSIONINFOEXW
+# Alias Names: _OSVERSIONINFOEXW, RTL_OSVERSIONINFOEXW
+# Alias Pointer Names: POSVERSIONINFOEXW, LPOSVERSIONINFOEXW, PRTL_OSVERSIONINFOEXW
+
+def get_OSVERSIONINFOEXW(uc: Uc, address: int, em):
+    return OSVERSIONINFOEXW.from_buffer_copy(uc.mem_read(address, sizeof(OSVERSIONINFOEXW)))
+
+# Struct Aliases:
+# get__OSVERSIONINFOEXW = get_OSVERSIONINFOEXW
+# get_RTL_OSVERSIONINFOEXW = get_OSVERSIONINFOEXW
+
+# Struct Pointers:
+POSVERSIONINFOEXW_32BIT = POINTER_32BIT
+POSVERSIONINFOEXW_64BIT = POINTER_64BIT
+LPOSVERSIONINFOEXW_32BIT = POINTER_32BIT
+LPOSVERSIONINFOEXW_64BIT = POINTER_64BIT
+PRTL_OSVERSIONINFOEXW_32BIT = POINTER_32BIT
+PRTL_OSVERSIONINFOEXW_64BIT = POINTER_64BIT
+
+class OSVERSIONINFOEXW(LittleEndianStructure):
+    types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WCHAR', 'WORD', 'WORD', 'WORD', 'BYTE', 'BYTE']
+    __slots__ = ('dwOSVersionInfoSize', 'dwMajorVersion', 'dwMinorVersion', 'dwBuildNumber', 'dwPlatformId', 'szCSDVersion', 'wServicePackMajor', 'wServicePackMinor', 'wSuiteMask', 'wProductType', 'wReserved')
+    lookUps = {}
+
+    _fields_ = [('dwOSVersionInfoSize',DWORD),('dwMajorVersion',DWORD),('dwMinorVersion',DWORD),('dwBuildNumber',DWORD),('dwPlatformId',DWORD),('szCSDVersion',WCHAR * 128),('wServicePackMajor',WORD),('wServicePackMinor',WORD),('wSuiteMask',WORD),('wProductType',BYTE),('wReserved',BYTE)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+
+# Struct CREATEFILE2_EXTENDED_PARAMETERS
+# Alias Names: _CREATEFILE2_EXTENDED_PARAMETERS
+# Alias Pointer Names: PCREATEFILE2_EXTENDED_PARAMETERS, LPCREATEFILE2_EXTENDED_PARAMETERS
+
+def get_CREATEFILE2_EXTENDED_PARAMETERS(uc: Uc, address: int, em):
+    if em.arch == 32:
+        return CREATEFILE2_EXTENDED_PARAMETERS.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(CREATEFILE2_EXTENDED_PARAMETERS.ARCH32)))
+    else:
+        return CREATEFILE2_EXTENDED_PARAMETERS.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(CREATEFILE2_EXTENDED_PARAMETERS.ARCH64)))
+
+# Struct Aliases:
+# get__CREATEFILE2_EXTENDED_PARAMETERS = get_CREATEFILE2_EXTENDED_PARAMETERS
+
+# Struct Pointers:
+PCREATEFILE2_EXTENDED_PARAMETERS_32BIT = POINTER_32BIT
+PCREATEFILE2_EXTENDED_PARAMETERS_64BIT = POINTER_64BIT
+LPCREATEFILE2_EXTENDED_PARAMETERS_32BIT = POINTER_32BIT
+LPCREATEFILE2_EXTENDED_PARAMETERS_64BIT = POINTER_64BIT
+
+class CREATEFILE2_EXTENDED_PARAMETERS:
+
+    class ARCH32(LittleEndianStructure):
+        types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPSECURITY_ATTRIBUTES', 'HANDLE']
+        __slots__ = ('dwSize', 'dwFileAttributes', 'dwFileFlags', 'dwSecurityQosFlags', 'lpSecurityAttributes', 'hTemplateFile')
+        lookUps = {} # need lookups
+
+        _fields_ = [('dwSize',DWORD),('dwFileAttributes',DWORD),('dwFileFlags',DWORD),('dwSecurityQosFlags',DWORD),('lpSecurityAttributes',LPSECURITY_ATTRIBUTES_32BIT),('hTemplateFile',HANDLE_32BIT)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure):
+        types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPSECURITY_ATTRIBUTES', 'HANDLE']
+        __slots__ = ('dwSize', 'dwFileAttributes', 'dwFileFlags', 'dwSecurityQosFlags', 'lpSecurityAttributes', 'hTemplateFile')
+        lookUps = {} # need lookups
+
+        _fields_ = [('dwSize',DWORD),('dwFileAttributes',DWORD),('dwFileFlags',DWORD),('dwSecurityQosFlags',DWORD),('lpSecurityAttributes',LPSECURITY_ATTRIBUTES_64BIT),('hTemplateFile',HANDLE_64BIT)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+# Pointer Param for COPYFILE2_EXTENDED_PARAMETERS
+PCOPYFILE2_PROGRESS_ROUTINE_32BIT = POINTER_32BIT
+PCOPYFILE2_PROGRESS_ROUTINE_64BIT = POINTER_64BIT
+
+# Struct COPYFILE2_EXTENDED_PARAMETERS
+# Alias Names: _COPYFILE2_EXTENDED_PARAMETERS
+# Alias Pointer Names:
+
+def get_COPYFILE2_EXTENDED_PARAMETERS(uc: Uc, address: int, em):
+    if em.arch == 32:
+        return COPYFILE2_EXTENDED_PARAMETERS.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(COPYFILE2_EXTENDED_PARAMETERS.ARCH32)))
+    else:
+        return COPYFILE2_EXTENDED_PARAMETERS.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(COPYFILE2_EXTENDED_PARAMETERS.ARCH64)))
+
+# Struct Aliases:
+# get__COPYFILE2_EXTENDED_PARAMETERS = get_COPYFILE2_EXTENDED_PARAMETERS
+
+class COPYFILE2_EXTENDED_PARAMETERS:
+
+    class ARCH32(LittleEndianStructure):
+        types = ['DWORD', 'DWORD', 'BOOL', 'PCOPYFILE2_PROGRESS_ROUTINE', 'PVOID']
+        __slots__ = ('dwSize', 'dwCopyFlags', 'pfCancel', 'pProgressRoutine', 'pvCallbackContext')
+        lookUps = {} # Need Lookups
+
+        _fields_ = [('dwSize',DWORD),('dwCopyFlags',DWORD),('pfCancel',BOOL),('pProgressRoutine',PCOPYFILE2_PROGRESS_ROUTINE_32BIT),('pvCallbackContext',PVOID_32BIT)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure):
+        types = ['DWORD', 'DWORD', 'BOOL', 'PCOPYFILE2_PROGRESS_ROUTINE', 'PVOID']
+        __slots__ = ('dwSize', 'dwCopyFlags', 'pfCancel', 'pProgressRoutine', 'pvCallbackContext')
+        lookUps = {} # Need Lookups
+
+        _fields_ = [('dwSize',DWORD),('dwCopyFlags',DWORD),('pfCancel',BOOL),('pProgressRoutine',PCOPYFILE2_PROGRESS_ROUTINE_64BIT),('pvCallbackContext',PVOID_64BIT)]
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))

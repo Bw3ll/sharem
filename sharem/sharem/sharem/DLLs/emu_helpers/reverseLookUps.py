@@ -6570,3 +6570,21 @@ class ReverseLookUps:
             0x00000001: "RESOURCEUSAGE_CONNECTABLE",
             0x00000002: "RESOURCEUSAGE_CONTAINER",
         }
+
+    class StartupInfo:
+        flags = { # OR VALUES
+            1: "STARTF_USESHOWWINDOW",
+            2: "STARTF_USESIZE",
+            4: "STARTF_USEPOSITION",
+            8: "STARTF_USECOUNTCHARS",
+            16: "STARTF_USEFILLATTRIBUTE",
+            32: "STARTF_RUNFULLSCREEN",
+            64: "STARTF_FORCEONFEEDBACK",
+            128: "STARTF_FORCEOFFFEEDBACK",
+            256: "STARTF_USESTDHANDLES",
+            512: "STARTF_USEHOTKEY",
+            2048: "STARTF_TITLEISLINKNAME",
+            4096: "STARTF_TITLEISAPPID",
+            8192: "STARTF_PREVENTPINNING",
+            32768: "STARTF_UNTRUSTEDSOURCE",
+        }
