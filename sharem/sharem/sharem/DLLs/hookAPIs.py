@@ -9815,6 +9815,22 @@ class CustomWinAPIs():
         logged_calls= ("MulDiv", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def CopyFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LCPSTR', 'LCPSTR', 'BOOL']
+        pNames= ['lpExistingFileName', 'lpNewFileName', 'bFailIfExists']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CopyFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def CopyFileW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes =['LPCWSTR', 'LPCWSTR', 'BOOL'] 
         pNames = ['lpExistingFileName', 'lpNewFileName', 'bFailIfExists'] 
@@ -13152,38 +13168,5 @@ def bin_to_ipv4(ip):
         (ip & 0xff00) >> 8,
         (ip & 0xff))
 
-def SystemParametersInfoA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pTypes= ['UNINT', 'UNINT', 'PVOID', 'UINT']
-        pNames= ['uiAction', 'uiParam', 'pvParam', 'fWinIni']
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        # Might Need to Expand
-
-        pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.SystemParametersInfo.Action)
-
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
-
-        retVal = 0x1
-        retValStr='TRUE'
-        uc.reg_write(UC_X86_REG_EAX, retVal)     
-
-        logged_calls= ("SystemParametersInfoA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
-        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
-
-def CopyFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pTypes= ['LCPSTR', 'LCPSTR', 'BOOL']
-        pNames= ['lpExistingFileName', 'lpNewFileName', 'bFailIfExists']
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
-
-        # Might Need to Expand
-
-
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
-
-        retVal = 0x1
-        retValStr='TRUE'
-        uc.reg_write(UC_X86_REG_EAX, retVal)     
-
-        logged_calls= ("CopyFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
-        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
