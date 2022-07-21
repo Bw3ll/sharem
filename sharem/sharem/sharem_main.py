@@ -23047,6 +23047,48 @@ def emulation_txt_out(apiList, logged_syscalls):
 			emu_fileArtifacts_list += "\n".join(art.file_artifacts)
 			emu_fileArtifacts_list += "\n"
 
+		if(len(art.files_create) > 0):
+			emu_filesCreate_list = "\n"
+			emu_filesCreate_list += "\n".join(art.files_create)
+			emu_filesCreate_list += "\n"
+
+		if(len(art.files_write) > 0):
+			emu_filesWrite_list = "\n"
+			emu_filesWrite_list += "\n".join(art.files_write)
+			emu_filesWrite_list += "\n"
+		
+		if(len(art.files_delete) > 0):
+			emu_filesDelete_list = "\n"
+			emu_filesDelete_list += "\n".join(art.files_delete)
+			emu_filesDelete_list += "\n"
+		
+		if(len(art.files_access) > 0):
+			emu_filesAccess_list = "\n"
+			emu_filesAccess_list += "\n".join(art.files_access)
+			emu_filesAccess_list += "\n"
+		
+		if(len(art.files_copy) > 0):
+			emu_filesCopy_list = "\n"
+			emu_filesCopy_list += "\n".join(art.files_copy)
+			emu_filesCopy_list += "\n"
+
+		if(len(art.files_move) > 0):
+			emu_filesMoved_list = "\n"
+			emu_filesMoved_list += "\n".join(art.files_move)
+			emu_filesMoved_list += "\n"
+
+		if(len(art.file_artifacts) > 0):
+			emu_filesMisc_list = "\n"
+			emu_filesMisc_list += "\n".join(art.file_artifacts)
+			emu_filesMisc_list += "\n"
+
+		# emu_filesCreate_list = ', '.join(art.files_create)
+		# emu_filesWrite_list = ', '.join(art.files_write)
+		# emu_filesDelete_list = ', '.join(art.files_delete)
+		# emu_filesAccess_list = ', '.join(art.files_access)
+		# emu_filesCopy_list = ', '.join(art.files_copy)
+		# emu_filesMoved_list = ', '.join(art.files_move)
+
 		if(len(art.commandLine_artifacts) > 0):
 			emu_commandline_list = "\n"
 			emu_commandline_list += "\n".join(art.commandLine_artifacts)
@@ -23148,7 +23190,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 		txt_output += mag + "\n************* DLLs *************\n" + res
 		txt_output += "{}{:<18} {}\n".format(cya + "DLLs" + res, "",emu_dll_list)
 		emu_path_list = ', '.join(path_artifacts)
-		emu_fileArtifacts_list = ", ".join(art.file_artifacts)
+		# emu_fileArtifacts_list = ", ".join(art.file_artifacts)
 		emu_commandline_list = ", ".join(art.commandLine_arg)
 		emu_webArtifacts_list = ', '.join(art.web_artifacts)
 		emu_registry_list = ", ".join(art.registry_misc)
@@ -23164,6 +23206,13 @@ def emulation_txt_out(apiList, logged_syscalls):
 		emu_registry_hklm_list = ', '.join(art.reg_HKLM)
 		emu_registry_hku_list = ', '.join(art.reg_HKU)
 		emu_registry_hkcc_list = ', '.join(art.reg_HKCC)
+		emu_filesCreate_list = ', '.join(art.files_create)
+		emu_filesWrite_list = ', '.join(art.files_write)
+		emu_filesDelete_list = ', '.join(art.files_delete)
+		emu_filesAccess_list = ', '.join(art.files_access)
+		emu_filesCopy_list = ', '.join(art.files_copy)
+		emu_filesMoved_list = ', '.join(art.files_move)
+		emu_filesMisc_list = ', '.join(art.file_artifacts)
 		# emu_execartifacts_list = ", ".join(executables)
 
 
@@ -23179,8 +23228,26 @@ def emulation_txt_out(apiList, logged_syscalls):
 
 	if len(art.path_artifacts) > 0:
 		txt_output += "{}{:<13} {}\n".format(cya + "*** Paths ***" + res,"", emu_path_list)
-	if len(art.file_artifacts) > 0:
-		txt_output += "{}{:<9} {}\n".format(cya + "*** Files ***" + res,"", emu_fileArtifacts_list)
+	# if len(art.file_artifacts) > 0:
+	# 	txt_output += "{}{:<9} {}\n".format(cya + "*** Files ***" + res,"", emu_fileArtifacts_list)
+	##file artifacts
+	if(len(art.files_create) > 0 or len(art.files_write) > 0 or len(art.files_delete) > 0 or len(art.files_access) > 0 or len(art.files_copy) > 0 or len(art.files_move) > 0 or len(art.file_artifacts) > 0):
+		txt_output += "{}{:<9}\n".format(cya + "*** Files ***" + res,"")
+	if(len(art.files_create) > 0):
+		txt_output += "{}{:<9} {}\n".format(red + "** Create **" + res,"", emu_filesCreate_list)
+	if(len(art.files_write) > 0):
+		txt_output += "{}{:<9} {}\n".format(red + "** Write **" + res,"", emu_filesCreate_list)
+	if(len(art.files_delete) > 0):
+		txt_output += "{}{:<9} {}\n".format(red + "** Delete **" + res,"", emu_filesCreate_list)
+	if(len(art.files_access) > 0):
+		txt_output += "{}{:<9} {}\n".format(red + "** Read **" + res,"", emu_filesCreate_list)
+	if(len(art.files_copy) > 0):
+		txt_output += "{}{:<9} {}\n".format(red + "** Copy **" + res,"", emu_filesCreate_list)
+	if(len(art.files_move) > 0):
+		txt_output += "{}{:<9} {}\n".format(red + "** Move **" + res,"", emu_filesCreate_list)	
+	if(len(art.file_artifacts) > 0):
+		txt_output += "{}{:<9} {}\n".format(red + "** Misc **" + res,"", emu_filesMisc_list)	
+	#commandline artifacts
 	if len(art.commandLine_artifacts) > 0:
 		txt_output += "{}{:<8} {}\n".format(cya + "*** Command Line ***" + res,"", emu_commandline_list)
 	if len(art.web_artifacts) > 0:

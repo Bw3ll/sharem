@@ -18,6 +18,7 @@ class Directory_system:
         self.currentDir = None 
         self.currentDirPath = None
         self.users = ['Administrator']
+        self.deletedFiles = []
     
     ################################
     ## Initize the file system
@@ -189,6 +190,31 @@ class Directory_system:
 
         return destFileName, fileName, '\\'.join(destination), '\\'.join(origin)
 
+    def deleteFile(self,path):
+        path = self.convertPath(path)
+        filename = path[-1]
+        folder = self.findAndCreateFolder(path[:-1])
+        if(filename in folder.files):
+            filedata = folder.files.get(filename)
+            del folder.files[filename]
+        else:
+            filedata = 'File did not exist when shellcode tried to delete'
+
+        self.deletedFiles.append({filename:filedata})
+        # print(self.deletedFiles)
+        return '\\'.join(path),filename
+
+    def readFile(self,node,filename):
+        if(filename in node.files):
+            filedata = node.files.get(filename)
+        else:
+            filedata = 'File did not exist when shellcode tried to delete'
+        path = []
+        path = self.getPath(node,path)
+        
+        return '\\'.join(path),filename, filedata
+
+
     def moveFolder(self,origin,destination,replace):
         origin = self.convertPath(origin)
         destination = self.convertPath(destination)
@@ -197,17 +223,55 @@ class Directory_system:
         folderOrigin.parentDir = folderDest
         return '\\'.join(destination), '\\'.join(origin)
 
-    def internetDownload(self,destination):
-        destination = self.convertPath(destination)
-        fileName = destination[-1]
-        self.createFile(destination[:-1],fileName)
-        
+    def internetDownload(self,path):
+        path = self.convertPath(path)
+        fileName = path[-1]
+        self.createFile(path[:-1],fileName)
+        return '\\'.join(path),fileName
 
-
+    def findFirstFile(self,path):
+        path = self.convertPath(path)
+        print(path)
+        if('*' in path or '?' in path):
+            print(1)
+            #do search with wild cards
+            #will have to use Regex searching for this to make like easier
+        else:
+            node = self.rootDir
+            return (self.findFileRecurse(path,node))
 
     ################################
     ## Helper Functions
     ################################
+    def findFileRecurse(self,path,node):
+        #look for the first node in the path, unless it is the C:\ Drive
+        if(self.rootDir.name in path[0]):
+            path = path[1:]
+        nodeToLookFor = path[0]
+
+        
+        #If the the path is the final object return the file if it is found in the directory. If it is not found, create the file and return the default file data
+        if(len(path) == 1):
+            for eachFile in node.files:
+                if(eachFile == path[0]):
+                    return node,eachFile,node.files.get(eachFile)
+            #create the file
+        #go through the file system and then find the file node that will contain the file
+            node.files.update({path[0]:'EMPTY'})
+            return node,path[0],node.files.get(path[0])
+        for each in node.childrenDir:
+            if(each == nodeToLookFor):
+                childNode = node.childrenDir.get(each)
+                return self.findFileRecurse(path[1:],childNode)
+        #if the folder does not exist, create it here, along with the file needed
+        node = self.recurseCreateFolder(node,path[:-1])
+        node.files.update({path[0]:'EMPTY'})
+        return node,path[0],node.files.get(path[0])
+            
+
+    def findFileRegex(self,path):
+        print(1)
+
     def findAndCreateFolder(self,path):
         path = self.convertPath(path)
         folder = self.findFolder(path)
@@ -262,9 +326,7 @@ class Directory_system:
             returnList.insert(0,dirNode.name)
             return self.getPath(dirNode.parentDir,returnList)
     
-    #might not need this, holding this function here for now.
-    def findFile(self,filename):
-        print(1)
+    
         
     def detectDuplicateFileHandles(self,node,handle):
         #on creation detect if there is a duplicate file name and then rename it accordingly append '(N)' where n is the number of times it is duplicated starting at 1
@@ -330,6 +392,22 @@ class Directory_system:
             return 1
         else:
             return 0
+    
+    def altFileName(self,filename):
+        print(filename)
+        n = 0
+        filenamestr = filename.split('.')
+        if(len(filenamestr) > 8):
+            if (n > 9):
+                #ex altFile = TE0b15~1
+                hex_n = hex(n)
+                print(n,hex_n)
+                hex_n = format(hex_n,"04X")
+                print(hex_n)
+                altFileName = filename[:1] + n + "~1"
+            else:
+                #ex altFile = 
+                altFilename = filename[:5] + "~"+n
     ################################
     ## Output Functions
     ################################
