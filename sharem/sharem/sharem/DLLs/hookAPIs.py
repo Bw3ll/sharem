@@ -2021,13 +2021,8 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def CreateProcessA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        # print ("CreateProcessA2")
-        """'CreateProcess': (10, ['LPCSTR', 'LPSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID', 'LPCSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION'], ['lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles', 'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation'], 'BOOL'),"""
-
-        # function to get values for parameters - count as specified at the end - returned as a list
         pTypes = ['LPCSTR', 'LPSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID',
-                  'LPCSTR',
-                  'LPSTARTUPINFO', 'LPPROCESS_INFORMATION']
+                  'LPCSTR','LPSTARTUPINFOA', 'LPPROCESS_INFORMATION']
         pNames = ['lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles',
                   'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -2054,7 +2049,13 @@ class CustomWinAPIs():
         else:
             hex(pVals[3])
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,3,5,9])
+        if pVals[8] != 0x0:
+            si = get_STARTUPINFOA(uc, pVals[8], em)
+            pVals[8] = makeStructVals(uc, si, pVals[8])
+        else:
+            hex(pVals[8])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,3,5,8,9])
 
         retVal = 0x1
         retValStr = 'TRUE'
@@ -2065,7 +2066,7 @@ class CustomWinAPIs():
 
     def CreateProcessW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes = ['LPCWSTR', 'LPWSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD', 'LPVOID',
-                  'LPCWSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION']
+                  'LPCWSTR', 'LPSTARTUPINFOW', 'LPPROCESS_INFORMATION']
         pNames = ['lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes', 'bInheritHandles',
                   'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo', 'lpProcessInformation']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -2092,7 +2093,13 @@ class CustomWinAPIs():
         else:
             hex(pVals[3])
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,3,5,9])
+        if pVals[8] != 0x0:
+            si = get_STARTUPINFOW(uc, pVals[8], em)
+            pVals[8] = makeStructVals(uc, si, pVals[8])
+        else:
+            hex(pVals[8])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,3,5,8,9])
 
         retVal = 0x1
         retValStr = 'TRUE'
@@ -2103,8 +2110,7 @@ class CustomWinAPIs():
 
     def CreateProcessInternalA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes = ['DWORD', 'LPCTSTR', 'LPTSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD',
-                  'LPVOID',
-                  'LPCSTR', 'LPSTARTUPINFO', 'LPPROCESS_INFORMATION', 'DWORD']
+                  'LPVOID', 'LPCSTR', 'LPSTARTUPINFOA', 'LPPROCESS_INFORMATION', 'DWORD']
         pNames = ['unknown1', 'lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes',
                   'bInheritHandles', 'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo',
                   'lpProcessInformation', 'unknown2']
@@ -2133,7 +2139,13 @@ class CustomWinAPIs():
         else:
             hex(pVals[4])
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3,4,6,10])
+        if pVals[9] != 0x0:
+            si = get_STARTUPINFOA(uc, pVals[9], em)
+            pVals[9] = makeStructVals(uc, si, pVals[9])
+        else:
+            hex(pVals[9])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3,4,6,9,10])
 
         retVal = 0x1
         retValStr = hex(retVal)
@@ -2173,7 +2185,13 @@ class CustomWinAPIs():
         else:
             hex(pVals[4])
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3,4,6,10])
+        if pVals[9] != 0x0:
+            si = get_STARTUPINFOW(uc, pVals[9], em)
+            pVals[9] = makeStructVals(uc, si, pVals[9])
+        else:
+            hex(pVals[9])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3,4,6,9,10])
 
         retVal = 0x1
         retValStr = hex(retVal)
@@ -2184,8 +2202,7 @@ class CustomWinAPIs():
 
     def CreateProcessAsUserA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes = ['HANDLE', 'LPCSTR', 'LPSTR', 'LPSECURITY_ATTRIBUTES', 'LPSECURITY_ATTRIBUTES', 'BOOL', 'DWORD',
-                  'LPVOID',
-                  'LPCSTR', 'LPSTARTUPINFOA', 'LPPROCESS_INFORMATION']
+                  'LPVOID','LPCSTR', 'LPSTARTUPINFOA', 'LPPROCESS_INFORMATION']
         pNames = ['hToken', 'lpApplicationName', 'lpCommandLine', 'lpProcessAttributes', 'lpThreadAttributes',
                   'bInheritHandles', 'dwCreationFlags', 'lpEnvironment', 'lpCurrentDirectory', 'lpStartupInfo',
                   'lpProcessInformation']
@@ -2214,7 +2231,13 @@ class CustomWinAPIs():
         else:
             hex(pVals[4])
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3,4,6,10])
+        if pVals[9] != 0x0:
+            si = get_STARTUPINFOA(uc, pVals[9], em)
+            pVals[9] = makeStructVals(uc, si, pVals[9])
+        else:
+            hex(pVals[9])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3,4,6,9,10])
 
         
         retVal = 1
@@ -2255,7 +2278,13 @@ class CustomWinAPIs():
         else:
             hex(pVals[4])
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3,4,6,10])
+        if pVals[9] != 0x0:
+            si = get_STARTUPINFOW(uc, pVals[9], em)
+            pVals[9] = makeStructVals(uc, si, pVals[9])
+        else:
+            hex(pVals[9])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3,4,6,9,10])
 
         
         retVal = 1
@@ -9068,10 +9097,53 @@ class CustomWinAPIs():
 
     ### Has a structure of OSVERSIONINFOA, need help with.
     def GetVersionExA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        # 'GetVersionExA': (1, ['LPOSVERSIONINFOA'], ['lpVersionInformation'], 'BOOL')
         pTypes = ['LPOSVERSIONINFOA']
         pNames = ['lpVersionInformation']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
+    
+        if pVals[0] != 0x0:
+            tempInfo = get_OSVERSIONINFOA(uc, pVals[0], em)
+            if tempInfo.dwOSVersionInfoSize == sizeof(OSVERSIONINFOA):
+                vinfo = get_OSVERSIONINFOA(uc, pVals[0], em)
+                # need to add actuall values to struct like 10.1.19064 etc
+                pVals[0] = makeStructVals(uc, vinfo, pVals[0])
+            elif tempInfo.dwOSVersionInfoSize == sizeof(OSVERSIONINFOEXA):
+                vinfo = get_OSVERSIONINFOEXA(uc, pVals[0], em)
+                # need to add actuall values to struct like 10.1.19064 etc
+                pVals[0] = makeStructVals(uc, vinfo, pVals[0])
+            else:
+                pVals[0] = hex(pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
+
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("GetVersionExA", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetVersionExW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes = ['LPOSVERSIONINFOW']
+        pNames = ['lpVersionInformation']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        if pVals[0] != 0x0:
+            tempInfo = get_OSVERSIONINFOW(uc, pVals[0], em)
+            if tempInfo.dwOSVersionInfoSize == sizeof(OSVERSIONINFOW):
+                vinfo = get_OSVERSIONINFOW(uc, pVals[0], em)
+                # need to add actuall values to struct like 10.1.19064 etc
+                pVals[0] = makeStructVals(uc, vinfo, pVals[0])
+            elif tempInfo.dwOSVersionInfoSize == sizeof(OSVERSIONINFOEXW):
+                vinfo = get_OSVERSIONINFOEXW(uc, pVals[0], em)
+                # need to add actuall values to struct like 10.1.19064 etc
+                pVals[0] = makeStructVals(uc, vinfo, pVals[0])
+            else:
+                pVals[0] = hex(pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
@@ -9079,7 +9151,7 @@ class CustomWinAPIs():
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls = ("GetVersionExA", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
+        logged_calls = ("GetVersionExW", hex(callAddr), (retValStr), 'void', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def SetErrorMode(self, uc: Uc, eip, esp, export_dict, callAddr, em):
@@ -9101,7 +9173,6 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def SetEndOfFile(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        # 'GetVersionExA': (1, ['LPOSVERSIONINFOA'], ['lpVersionInformation'], 'BOOL')
         pTypes = ['HANDLE']
         pNames = ['hFile']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -9116,7 +9187,6 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def ResetEvent(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        # 'GetVersionExA': (1, ['LPOSVERSIONINFOA'], ['lpVersionInformation'], 'BOOL')
         pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes = ['HANDLE']
         pNames = ['hEvent']
@@ -9438,7 +9508,13 @@ class CustomWinAPIs():
         pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.File.DesiredAccess)
         pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.File.ShareMode)
         pVals[3] = getLookUpVal(pVals[3], ReverseLookUps.File.CreationDistribution)
-        pVals[4] = getLookUpVal(pVals[4], ReverseLookUps.File.FlagsAndAttribute)
+        # pVals[4] = getLookUpVal(pVals[4], ReverseLookUps.File.FlagsAndAttribute)
+
+        if pVals[4] != 0x0:
+            ep = get_CREATEFILE2_EXTENDED_PARAMETERS(uc,pVals[4],em)
+            pVals[4] = makeStructVals(uc,ep,pVals[4])
+        else:
+            pVals[4] = hex(pVals[4])
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [1, 2, 3, 4])
 
@@ -9786,6 +9862,22 @@ class CustomWinAPIs():
         logged_calls= ("MulDiv", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def CopyFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LPCSTR', 'LPCSTR', 'BOOL']
+        pNames= ['lpExistingFileName', 'lpNewFileName', 'bFailIfExists']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x1
+        retValStr='TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CopyFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def CopyFileW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes =['LPCWSTR', 'LPCWSTR', 'BOOL'] 
         pNames = ['lpExistingFileName', 'lpNewFileName', 'bFailIfExists'] 
@@ -9803,12 +9895,9 @@ class CustomWinAPIs():
     def CopyFile2(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes =['PCWSTR', 'PCWSTR', 'COPYFILE2_EXTENDED_PARAMETERS'] 
         pNames = ['pwszExistingFileName', 'pwszNewFileName', '*pExtendedParameters'] 
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        pVals = makeArgVals(uc, em, esp, len(pTypes)) # needs added
 
-        CopyFlagsReverseLookUp = {8: 'COPY_FILE_ALLOW_DECRYPTED_DESTINATION', 2048: 'COPY_FILE_COPY_SYMLINK',
-                                     1: 'COPY_FILE_FAIL_IF_EXISTS', 4096: 'COPY_FILE_NO_BUFFERING',
-                                     4: 'COPY_FILE_OPEN_SOURCE_FOR_WRITE', 2: 'COPY_FILE_RESTARTABLE',
-                                     268435456: 'COPY_FILE_REQUEST_COMPRESSED_TRAFFIC'}
+        CopyFlagsReverseLookUp = {8: 'COPY_FILE_ALLOW_DECRYPTED_DESTINATION', 2048: 'COPY_FILE_COPY_SYMLINK', 1: 'COPY_FILE_FAIL_IF_EXISTS', 4096: 'COPY_FILE_NO_BUFFERING', 4: 'COPY_FILE_OPEN_SOURCE_FOR_WRITE', 2: 'COPY_FILE_RESTARTABLE', 268435456: 'COPY_FILE_REQUEST_COMPRESSED_TRAFFIC'}
 
         pVals[2] = getLookUpVal(pVals[2], CopyFlagsReverseLookUp)
 
@@ -9891,6 +9980,25 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls= ("GetTimeZoneInformation", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetStartupInfoA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes =['LPSTARTUPINFOA'] 
+        pNames = ['lpStartupInfo'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        startupinfo = get_STARTUPINFOA(uc, pVals[0], em)
+        uc.mem_write(startupinfo.lpDesktop, pack(f'<{len(emuSimVals.computer_name)+1}s',emuSimVals.computer_name.encode('utf-16')[2:]))
+        startupinfo.writeToMemory(uc, pVals[0])
+        pVals[0] = makeStructVals(uc, startupinfo, pVals[0])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+        
+        retVal = 0x1
+        retValStr = "STARTUPINFO"
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("GetStartupInfoA", hex(callAddr), (retValStr), 'VOID', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def GetStartupInfoW(self, uc: Uc, eip, esp, export_dict, callAddr, em):
@@ -10356,7 +10464,7 @@ class CustomWinAPIs():
         logged_calls= ("DecryptFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def CryptStringToBrinaryA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+    def CryptStringToBinaryA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['LPCSTR', 'DWORD', 'DWORD', 'BYTE', 'DWORD', 'DWORD', 'DWORD']
         pNames= ['pszString', 'cchString', 'dwFlags', '*pbBinary', '*pcbBinary', '*pdwSkip', '*pdwFlags']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -10366,6 +10474,8 @@ class CustomWinAPIs():
         pVals[2] = getLookUpVal(pVals[2],dwFlagsReverseLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+
+        # needs expanded
 
         retVal = 0x1
         retValStr= 'SUCCESS'
@@ -10384,6 +10494,8 @@ class CustomWinAPIs():
         pVals[2] = getLookUpVal(pVals[2],dwFlagsReverseLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+
+        # needs expanded
 
         retVal = 0x1
         retValStr= 'SUCCESS'
@@ -10495,6 +10607,8 @@ class CustomWinAPIs():
         pNames= ['Locale', 'dwFlags', '*lpDate', 'lpFormat', 'lpDateStr', 'cchDate']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
+        # needs expanded
+
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
 
         retVal = 0x88888888
@@ -10508,6 +10622,8 @@ class CustomWinAPIs():
         pTypes= ['LCID', 'DWORD', 'SYSTEMTIME', 'LPCWSTR', 'LPWSTR', 'int']
         pNames= ['Locale', 'dwFlags', '*lpTime', 'lpFormat', 'lpTimeStr', 'cchTime']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # needs expanded
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
 
@@ -10909,6 +11025,8 @@ class CustomWinAPIs():
         pTypes =['HANDLE', 'THREAD_INFORMATION_CLASS', 'LPVOID', 'DWORD'] 
         pNames = ['hThread', 'ThreadInformationClass', 'ThreadInformation', 'ThreadInformationSize'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # need lookup for THREAD_INFORMATION_CLASS
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         
@@ -13118,38 +13236,5 @@ def bin_to_ipv4(ip):
         (ip & 0xff00) >> 8,
         (ip & 0xff))
 
-def SystemParametersInfoA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pTypes= ['UNINT', 'UNINT', 'PVOID', 'UINT']
-        pNames= ['uiAction', 'uiParam', 'pvParam', 'fWinIni']
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        # Might Need to Expand
-
-        pVals[0] = getLookUpVal(pVals[0], ReverseLookUps.SystemParametersInfo.Action)
-
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
-
-        retVal = 0x1
-        retValStr='TRUE'
-        uc.reg_write(UC_X86_REG_EAX, retVal)     
-
-        logged_calls= ("SystemParametersInfoA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
-        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
-
-def CopyFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-        pTypes= ['LCPSTR', 'LCPSTR', 'BOOL']
-        pNames= ['lpExistingFileName', 'lpNewFileName', 'bFailIfExists']
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
-
-        # Might Need to Expand
-
-
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
-
-        retVal = 0x1
-        retValStr='TRUE'
-        uc.reg_write(UC_X86_REG_EAX, retVal)     
-
-        logged_calls= ("CopyFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
-        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
