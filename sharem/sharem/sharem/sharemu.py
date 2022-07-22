@@ -39,8 +39,10 @@ class EMU():
         self.codeCoverage = True
         self.beginCoverage = False
         self.timelessDebugging = False  # todo: bramwell
-        self.winVersion = "Windows 7" # "Windows 10" ## Should make these value config. 
-        self.winSP = "SP1" # "2004"
+        # self.winVersion = "Windows 7" # "Windows 10" ## Should make these value config. 
+        # self.winSP = "SP1" # "2004"
+        self.winVersion = "Windows 10"
+        self.winSP = "2004"
 
 
 class Coverage():
