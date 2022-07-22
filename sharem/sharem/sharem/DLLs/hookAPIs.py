@@ -10580,6 +10580,74 @@ class CustomWinAPIs():
         logged_calls= ("NetShareGetInfo", hex(callAddr), (retValStr), 'NET_API_STATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def NetShareCheck(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LMSTR', 'LMSTR', 'LPDWORD']
+        pNames= ['servername', 'device', 'type']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retVal = 0x88888888
+        retValStr= 'NERR_Success'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("NetShareCheck", hex(callAddr), (retValStr), 'NET_API_STATUS', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def VirtualAllocExNuma(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HANDLE', 'LPVOID', 'SIZE_T', 'DWORD', 'DWORD', 'DWORD']
+        pNames= ['hProcess', 'lpAddress', 'dwSize', 'flAllocationType', 'flProtect', 'nndPreferred']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        {4096: 'MEM_COMMIT', 8192: 'MEM_RESERVE', 524288: 'MEM_RESET', 16777216: 'MEM_RESET_UNDO', 536870912: 'MEM_LARGE_PAGES', 4194304: 'MEM_PHYSICAL', 1048576: 'MEM_TOP_DOWN'}
+
+        pVals[3] = getLookUpVal(pVals[3],dwFlagsReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
+
+        retVal = 0x88888888
+        retValStr= hex(retval)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("VirtualAllocExNuma", hex(callAddr), (retValStr), 'LPVOID', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def VirtualAlloc2(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HANDLE', 'PVOID', 'SIZE_T', 'ULONG', 'ULONG', 'MEM_EXTENDED_PARAMETER', 'ULONG']
+        pNames= ['Process', 'BaseAddress', 'Size', 'AllocationType', 'PageProtection', '*ExtendedParameters', 'ParameterCount']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        {4096: 'MEM_COMMIT', 8192: 'MEM_RESERVE', 524288: 'MEM_RESET', 16777216: 'MEM_RESET_UNDO', 536870912: 'MEM_LARGE_PAGES', 4194304: 'MEM_PHYSICAL', 1048576: 'MEM_TOP_DOWN'}
+
+        pVals[3] = getLookUpVal(pVals[3],dwFlagsReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
+
+        retVal = 0x88888888
+        retValStr= hex(retval)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("VirtualAlloc2", hex(callAddr), (retValStr), 'PVOID', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def VirtualAlloc2FromApp(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HANDLE', 'PVOID', 'SIZE_T', 'ULONG', 'ULONG', 'MEM_EXTENDED_PARAMETER', 'ULONG']
+        pNames= ['Process', 'BaseAddress', 'Size', 'AllocationType', 'PageProtection', '*ExtendedParameters', 'ParameterCount']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        {4096: 'MEM_COMMIT', 8192: 'MEM_RESERVE', 524288: 'MEM_RESET', 16777216: 'MEM_RESET_UNDO', 536870912: 'MEM_LARGE_PAGES', 4194304: 'MEM_PHYSICAL', 1048576: 'MEM_TOP_DOWN'}
+
+        pVals[3] = getLookUpVal(pVals[3],dwFlagsReverseLookUp)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
+
+        retVal = 0x88888888
+        retValStr= hex(retval)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("VirtualAlloc2FromApp", hex(callAddr), (retValStr), 'PVOID', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
     def SetWinEventHook(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['DWORD', 'DWORD', 'HMODULE', 'WINEVENTPROC', 'DWORD', 'DWORD', 'DWORD']
         pNames= ['eventMin', 'eventMax', 'hmodWinEventProc', 'pfnWinEventProc', 'idProcess', 'idThread', 'dwFlags']
