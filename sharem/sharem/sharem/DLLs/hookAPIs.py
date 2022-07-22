@@ -1100,12 +1100,12 @@ class CustomWinAPIs():
         logged_calls= ("OpenProcessToken", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def GetLogicalProcessorInformation(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+    def xxGetLogicalProcessorInformation(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['P_SYSTEM_LOGICAL_PROCESSOR_INFORMATION', 'PDWORD']
         pNames= ['Buffer', 'ReturnedLength']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        # Might Need to Expand
+        # Needs Structure
         pVals[0] = getLookUpVal(pVals[0], GetLogicalProcessorInformation.SystemParametersInfo.Action)
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
@@ -1117,12 +1117,12 @@ class CustomWinAPIs():
         logged_calls= ("GetLogicalProcessorInformation", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def GetLogicalProcessorInformationEx(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+    def xxGetLogicalProcessorInformationEx(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         pTypes= ['LOGICAL_PROCESSOR_RELATIONSHIP', 'PSYSYEM_LOGICAL_PROCESSOR_INFORMATION_EX', 'PDWORD']
         pNames= ['RelationshipType', 'Buffer', 'ReturnedLength']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        # Might Need to Expand
+        # Needs Structure
         pVals[0] = getLookUpVal(pVals[0], GetLogicalProcessorInformationEx.SystemParametersInfo.Action)
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
