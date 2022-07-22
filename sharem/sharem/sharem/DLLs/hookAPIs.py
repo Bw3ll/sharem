@@ -12871,11 +12871,13 @@ class CustomWinAPIs():
         structureBuffer = pVals[1]
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         fileSearch = pVals[0]
-        print(fileSearch)
         node, filename, filedata = SimFileSystem.findFirstFile(fileSearch)
-        print(1)
-        print(node)
-        print(filename,filedata)
+        # print(filename,filedata)
+        altFileName = SimFileSystem.altFileName(filename,node)
+        # print('-------------')
+        # print(altFileName)
+        # print('-------------')
+
 
         retVal = 16
         retValStr= hex(retVal)

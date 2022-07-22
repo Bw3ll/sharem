@@ -231,7 +231,7 @@ class Directory_system:
 
     def findFirstFile(self,path):
         path = self.convertPath(path)
-        print(path)
+        # print(path)
         if('*' in path or '?' in path):
             print(1)
             #do search with wild cards
@@ -264,10 +264,10 @@ class Directory_system:
                 childNode = node.childrenDir.get(each)
                 return self.findFileRecurse(path[1:],childNode)
         #if the folder does not exist, create it here, along with the file needed
+        filename = path[-1]
         node = self.recurseCreateFolder(node,path[:-1])
-        node.files.update({path[0]:'EMPTY'})
-        return node,path[0],node.files.get(path[0])
-            
+        node.files.update({path[-1]:'EMPTY'})
+        return node,filename,node.files.get(filename)
 
     def findFileRegex(self,path):
         print(1)
@@ -393,21 +393,42 @@ class Directory_system:
         else:
             return 0
     
-    def altFileName(self,filename):
-        print(filename)
-        n = 0
+    def altFileName(self,filename,node):
+        print('==================')
+        print(node,filename)
+        
+        
+        #count the numder of repeat files
+        n = self.countDuplicateFiles(node,filename)
+        print(n)
+        filename = filename.upper()
         filenamestr = filename.split('.')
-        if(len(filenamestr) > 8):
+        filename = filenamestr[0]
+        # print(filename)
+        fileExt = filenamestr[1]
+        # print(fileExt)
+        if(len(filename) > 8):
             if (n > 9):
                 #ex altFile = TE0b15~1
                 hex_n = hex(n)
-                print(n,hex_n)
-                hex_n = format(hex_n,"04X")
-                print(hex_n)
-                altFileName = filename[:1] + n + "~1"
+                hex_n = format(n,"04X")
+                #default the naming scheme back to 1 for now, later increment this value more
+                n = 1
+                altFileName = filename[0:2]+str(hex_n) + "~"+str(n)+"."+fileExt
+                return altFileName
             else:
-                #ex altFile = 
-                altFilename = filename[:5] + "~"+n
+                #ex altFile = TestDo~1
+                altFilename = filename[0:6] + "~"+str(n)+"."+fileExt
+                return altFileName
+        return filename
+
+    def countDuplicateFiles(node,filename):
+        count = 1
+        for each in node.files:
+            if(each == filename):
+                count = count + 1
+        return count
+
     ################################
     ## Output Functions
     ################################
