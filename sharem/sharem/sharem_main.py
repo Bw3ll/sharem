@@ -45,8 +45,7 @@ try:
 		import _win32sysloader
 except:
 	print ("Pywin32 needs to be installed.\nhttps://pypi.org/project/pywin32/\n\tThe setup.py is not always effective at installing Pywin32, so it may need to be manually done.\n")
-	
-	
+
 colorama.init()
 # readRegs()
 # testingAssembly()
@@ -22868,6 +22867,8 @@ def emulation_txt_out(apiList, logged_syscalls):
 	api_names, api_params_values, api_params_types, api_params_names, api_address, ret_values, ret_type, api_bruteforce, syscallID = build_emu_results(apiList)
 
 	api_par_bundle = []
+	# txt_output = printOut.textOut()
+	# txt_output+= printOut.apisOut(api_names, api_params_values, api_params_types, api_params_names, api_address, ret_values, ret_type, api_bruteforce, syscallID)
 	# for v, t in zip(api_params_types[0], api_params_types[0]):
 	# 	api_par_bundle.append(v + " " + t)
 
@@ -22877,9 +22878,9 @@ def emulation_txt_out(apiList, logged_syscalls):
 	# web_artifacts = ["www.msn.com", "http://74.32.123.2:8080", "google.com"]
 	# file_artifacts = ["c:\\result.txt", "cmd.exe", "result.txt"]
 	# executables = ["c:\\windows\\system32\\ipconfig.exe", "cmd.exe"]
-	# print(commandLine_arg)
+	# # print(commandLine_arg)
 	txt_output = ""
-	# no_colors_out = ""
+	# # no_colors_out = ""
 
 	txt_output += "\n**************************\n"
 	txt_output += "     Emulation\n"
@@ -22890,95 +22891,97 @@ def emulation_txt_out(apiList, logged_syscalls):
 
 	txt_output += mag + "\n************* APIs *************\n\n" + res
 	# no_colors_out += "\n************* APIs *************\n\n"
-
-	verbose_mode = emulation_verbose
-	t = 0
-	for eachApi in api_names:
-		tuple_flag = 0
-		apName = api_names[t]
-		offset = api_address[t]
-		pType = api_params_types[t]
-		pName = api_params_names[t]
-		TypeBundle = []
-		retVal = ret_values[t]
-		retType = ret_type[t]
-		paramVal = api_params_values[t]
-		paramVal_tuple = api_params_values[t]
-		# print(paramVal)
-		for potentialTuple in paramVal:
-			if( type(potentialTuple) == tuple):
-				# print("is a tuple")
-				# print(potentialTuple)
-				tuple_flag = 1
+	txt_output =  printOut.apisOut(emulation_verbose,api_names, api_params_values, api_params_types, api_params_names, api_address, ret_values, ret_type, api_bruteforce, syscallID)
+	# verbose_mode = emulation_verbose
+	# t = 0
+	# for eachApi in api_names:
+	# 	tuple_flag = 0
+	# 	apName = api_names[t]
+	# 	offset = api_address[t]
+	# 	pType = api_params_types[t]
+	# 	pName = api_params_names[t]
+	# 	TypeBundle = []
+	# 	retVal = ret_values[t]
+	# 	retType = ret_type[t]
+	# 	paramVal = api_params_values[t]
+	# 	paramVal_tuple = api_params_values[t]
+	# 	# print(paramVal)
+	# 	for potentialTuple in paramVal:
+	# 		if( type(potentialTuple) == tuple):
+	# 			# print("is a tuple")
+	# 			# print(potentialTuple)
+	# 			tuple_flag = 1
 				
 
-		# DLL = dll_name[t]
-		for v, typ in zip(pType, pName):
-			TypeBundle.append(v + " " + typ)
-		joinedBund = ', '.join(TypeBundle)
-		try:
-			joinedBund= (textwrap3.fill(joinedBund, width=86))
-		except:
-			pass
-		joinedBundclr = joinedBund.replace(",", cya + "," + res)
-		retBundle = retType + " " + retVal
+	# 	# DLL = dll_name[t]
+	# 	for v, typ in zip(pType, pName):
+	# 		TypeBundle.append(v + " " + typ)
+	# 	joinedBund = ', '.join(TypeBundle)
+	# 	try:
+	# 		joinedBund= (textwrap3.fill(joinedBund, width=86))
+	# 	except:
+	# 		pass
+	# 	joinedBundclr = joinedBund.replace(",", cya + "," + res)
+	# 	retBundle = retType + " " + retVal
 
 
-		if verbose_mode:
-			txt_output += '{} {}{}\n'.format(gre + offset + res, yel + apName + res,
-											 cya + "(" + res + joinedBundclr + cya + ")" + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
-		else:
-			txt_output += '{} {}{} {}{}\n'.format(gre + offset + res, yel + apName + res,
-												  cya + "(" + res + joinedBundclr + cya + ")" + res,
-												  cya + "Ret: " + res,
-												  red + retBundle + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
+	# 	if verbose_mode:
+	# 		txt_output += '{} {}{}\n'.format(gre + offset + res, yel + apName + res,
+	# 										 cya + "(" + res + joinedBundclr + cya + ")" + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
+	# 	else:
+	# 		txt_output += '{} {}{} {}{}\n'.format(gre + offset + res, yel + apName + res,
+	# 											  cya + "(" + res + joinedBundclr + cya + ")" + res,
+	# 											  cya + "Ret: " + res,
+	# 											  red + retBundle + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
 
-		t += 1
-		if verbose_mode:
-			if (tuple_flag == 1):
-				index = 0
-				for pv in paramVal:
-					# print(paramVal[index])
-					# if there is a tuple in the list
-					if(type(paramVal[index]) == tuple):
-						# print(paramVal[1])
-						structure_names = paramVal[index][0]
-						structure_types = paramVal[index][1]
-						structure_values = paramVal[index][2]
-						#if there is only one tuple in the list.
-						# for ptyp, pname in zip(pType, pName):
-							# print(ptyp)
-							# print(type(pname))
-							# print(sname)
-							# print(stype)
-							# print(sval)
-							#gre ,structure_names, structure_types + res, structure_values
-						txt_output += '\t{} {} \n'.format(cya + pType[index], pName[index] + ":")
-						z = 0
-						for sn in structure_names:
-							txt_output += '\t\t{} {} {}\n'.format(gre + structure_names[z], structure_types[z] +":"+ res, structure_values[z])
-							z += 1
-					##normal printing
-					else:
-						# for ptyp, pname, pval in zip(pType, pName, potentialTuple):
-						txt_params='\t{} {} {}\n'.format(cya + pType[index], pName[index] + ":" + res, paramVal[index])
+	# 	t += 1
+	# 	if verbose_mode:
+	# 		if (tuple_flag == 1):
+	# 			# txt_output += printOut.printTuples(paramVal,retBundle)
+	# 			index = 0
+	# 			for pv in paramVal:
+	# 				# print(paramVal[index])
+	# 				# if there is a tuple in the list
+	# 				if(type(paramVal[index]) == tuple):
+	# 					# print(paramVal[1])
+	# 					structure_names = paramVal[index][0]
+	# 					structure_types = paramVal[index][1]
+	# 					structure_values = paramVal[index][2]
+	# 					#if there is only one tuple in the list.
+	# 					# for ptyp, pname in zip(pType, pName):
+	# 						# print(ptyp)
+	# 						# print(type(pname))
+	# 						# print(sname)
+	# 						# print(stype)
+	# 						# print(sval)
+	# 						#gre ,structure_names, structure_types + res, structure_values
+	# 					txt_output += '\t{} {} \n'.format(cya + pType[index], pName[index] + ":")
+	# 					z = 0
+	# 					for sn in structure_names:
+	# 						txt_output += '\t\t{} {} {}\n'.format(gre + structure_names[z], structure_types[z] +":"+ res, structure_values[z])
+	# 						z += 1
+	# 				#normal printing
+	# 				else:
+	# 					# for ptyp, pname, pval in zip(pType, pName, potentialTuple):
+	# 					txt_params='\t{} {} {}\n'.format(cya + pType[index], pName[index] + ":" + res, paramVal[index])
 
-						txt_output += txt_params
-					index += 1
-				txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
-			else:
-				for ptyp, pname, pval in zip(pType, pName, paramVal):
-					txt_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
-				txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
-			if api_bruteforce:
-				txt_output += "\t{}\n\n".format(whi + "Brute-forced" + res, )
-			else:
-				txt_output += "\n"
+	# 					txt_output += txt_params
+	# 				index += 1
+	# 			txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
+	# 		else:
+	# 			for ptyp, pname, pval in zip(pType, pName, paramVal):
+	# 				txt_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
+	# 			txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
+	# 		if api_bruteforce:
+	# 			txt_output += "\t{}\n\n".format(whi + "Brute-forced" + res, )
+	# 		else:
+	# 			txt_output += "\n"
 
-			# no_colors_out += "\t{} {}\n\n".format( "Return:", retVal)
+	# 		# no_colors_out += "\t{} {}\n\n".format( "Return:", retVal)
 
 	if len(logged_syscalls) > 0:
 		syscall_names, syscall_params_values, syscall_params_types, syscall_params_names, syscall_address, ret_values, ret_type, syscall_bruteforce, syscallID = build_emu_results(logged_syscalls)
+		# printOut.syscallsOut()
 		txt_output += mag + "\n************* Syscalls *************\n\n" + res
 		verbose_mode = emulation_verbose
 		t = 0
@@ -23018,286 +23021,8 @@ def emulation_txt_out(apiList, logged_syscalls):
 				else:
 					txt_output += "\n"
 
-	#emu_registry_add_list = ''
-	emu_registry_edit_list = ''
-	emu_registry_delete_list = ''
-	#emu_registry_persistence_list= ''
-	#emu_registry_credentials_list = ''
-	#emu_registry_strings_list = ''
-	#emu_registry_hkcr_list = ''
-	#emu_registry_hkcu_list = ''
-	#emu_registry_hklm_list = ''
-	#emu_registry_hku_list = ''
-	#emu_registry_hkcc_list = ''
 
-	if emulation_multiline:
-		if len(logged_dlls) > 0:
-			emu_dll_list = "\n"
-			emu_dll_list += '\n'.join(logged_dlls)
-			txt_output += mag + "\n************* DLLs *************\n" + res
-			txt_output += "{}{:<18} {}\n".format(cya + "DLLs" + res, "",emu_dll_list)
-
-		if(len(art.path_artifacts) > 0):
-			emu_path_list = "\n"
-			emu_path_list += "\n".join(art.path_artifacts)
-			emu_path_list += "\n"
-		
-		if(len(art.file_artifacts) > 0):
-			emu_fileArtifacts_list = "\n"
-			emu_fileArtifacts_list += "\n".join(art.file_artifacts)
-			emu_fileArtifacts_list += "\n"
-
-		if(len(art.files_create) > 0):
-			emu_filesCreate_list = "\n"
-			emu_filesCreate_list += "\n".join(art.files_create)
-			emu_filesCreate_list += "\n"
-
-		if(len(art.files_write) > 0):
-			emu_filesWrite_list = "\n"
-			emu_filesWrite_list += "\n".join(art.files_write)
-			emu_filesWrite_list += "\n"
-		
-		if(len(art.files_delete) > 0):
-			emu_filesDelete_list = "\n"
-			emu_filesDelete_list += "\n".join(art.files_delete)
-			emu_filesDelete_list += "\n"
-		
-		if(len(art.files_access) > 0):
-			emu_filesAccess_list = "\n"
-			emu_filesAccess_list += "\n".join(art.files_access)
-			emu_filesAccess_list += "\n"
-		
-		if(len(art.files_copy) > 0):
-			emu_filesCopy_list = "\n"
-			emu_filesCopy_list += "\n".join(art.files_copy)
-			emu_filesCopy_list += "\n"
-
-		if(len(art.files_move) > 0):
-			emu_filesMoved_list = "\n"
-			emu_filesMoved_list += "\n".join(art.files_move)
-			emu_filesMoved_list += "\n"
-
-		if(len(art.file_artifacts) > 0):
-			emu_filesMisc_list = "\n"
-			emu_filesMisc_list += "\n".join(art.file_artifacts)
-			emu_filesMisc_list += "\n"
-
-		# emu_filesCreate_list = ', '.join(art.files_create)
-		# emu_filesWrite_list = ', '.join(art.files_write)
-		# emu_filesDelete_list = ', '.join(art.files_delete)
-		# emu_filesAccess_list = ', '.join(art.files_access)
-		# emu_filesCopy_list = ', '.join(art.files_copy)
-		# emu_filesMoved_list = ', '.join(art.files_move)
-
-		if(len(art.commandLine_artifacts) > 0):
-			emu_commandline_list = "\n"
-			emu_commandline_list += "\n".join(art.commandLine_artifacts)
-			emu_commandline_list += "\n"
-
-		if(len(art.web_artifacts) > 0):
-			emu_webArtifacts_list = "\n"
-			emu_webArtifacts_list += "\n".join(art.web_artifacts)
-			emu_webArtifacts_list += "\n"
-
-		if(len(art.exe_dll_artifacts) > 0):
-			emu_exe_dll_list = "\n"
-			emu_exe_dll_list += "\n".join(art.exe_dll_artifacts)
-			emu_exe_dll_list += "\n"
-
-		if(len(art.registry_misc) > 0):
-			emu_registry_list = "\n"
-			emu_registry_list += "\n".join(art.registry_misc)
-			emu_registry_list += "\n"
-
-		if(len(art.registry_add_keys) > 0):
-			emu_registry_add_list = "\n"
-			emu_registry_add_list += "\n".join(art.registry_add_keys)
-			emu_registry_add_list += "\n"
-
-		if(len(art.registry_edit_keys) > 0):
-			for keyTuple in art.registry_edit_keys:
-				p = 0
-				for o in keyTuple:
-					if p == 0:
-						emu_registry_edit_list += "\n"+o
-					else:
-						emu_registry_edit_list += "\n\t"+o
-					p+=1
-				emu_registry_edit_list += "\n"
-
-		if(len(art.registry_delete_keys) > 0):
-			for each in art.registry_delete_keys:
-				if (type(each) == tuple):
-					p = 0
-					for o in each:
-						if p == 0:
-							emu_registry_delete_list += "\n"+o
-						else:
-							emu_registry_delete_list += "\n\t"+o
-						p+=1
-					#emu_registry_delete_list += "\n"
-				else:
-					#emu_registry_delete_list += "\n"
-					emu_registry_delete_list += "\n"+each
-				emu_registry_delete_list += "\n"
-
-		if(len(art.registry_persistence) > 0):
-			emu_registry_persistence_list = "\n"
-			emu_registry_persistence_list += "\n".join(art.registry_persistence)
-			emu_registry_persistence_list += "\n"
-
-		if(len(art.registry_credentials) > 0):
-			emu_registry_credentials_list = "\n"
-			emu_registry_credentials_list += "\n".join(art.registry_credentials)
-			emu_registry_credentials_list += "\n"
-
-		if(len(art.registry_discovery) > 0):
-			emu_registry_discovery_list = "\n"
-			emu_registry_discovery_list += "\n".join(art.registry_discovery)
-			emu_registry_discovery_list += "\n"
-
-		if(len(art.reg_HKCR) > 0):
-			emu_registry_hkcr_list = "\n"
-			emu_registry_hkcr_list += "\n".join(art.reg_HKCR)
-			emu_registry_hkcr_list += "\n"
-
-		if(len(art.reg_HKCU) > 0):
-			emu_registry_hkcu_list = "\n"
-			emu_registry_hkcu_list += "\n".join(art.reg_HKCU)
-			emu_registry_hkcu_list += "\n"
-
-		if(len(art.reg_HKLM) > 0):
-			emu_registry_hklm_list = "\n"
-			emu_registry_hklm_list += "\n".join(art.reg_HKLM)
-			emu_registry_hklm_list += "\n"
-
-		if(len(art.reg_HKU) > 0):
-			emu_registry_hku_list = "\n"
-			emu_registry_hku_list += "\n".join(art.reg_HKU)
-			emu_registry_hku_list += "\n"
-
-		if(len(art.reg_HKCC) > 0):
-			emu_registry_hkcc_list = "\n"
-			emu_registry_hkcc_list += "\n".join(art.reg_HKCC)
-			emu_registry_hkcc_list += "\n"
-
-		# emu_execartifacts_list = "\n"
-		# emu_execartifacts_list += "\n".join(executables)
-		# emu_execartifacts_list += "\n"
-
-	else:
-		emu_dll_list= ', '.join(logged_dlls)
-		txt_output += mag + "\n************* DLLs *************\n" + res
-		txt_output += "{}{:<18} {}\n".format(cya + "DLLs" + res, "",emu_dll_list)
-		emu_path_list = ', '.join(path_artifacts)
-		# emu_fileArtifacts_list = ", ".join(art.file_artifacts)
-		emu_commandline_list = ", ".join(art.commandLine_arg)
-		emu_webArtifacts_list = ', '.join(art.web_artifacts)
-		emu_registry_list = ", ".join(art.registry_misc)
-		emu_exe_dll_list = ", ".join(art.exe_dll_artifacts)
-		emu_registry_add_list = ', '.join(art.registry_add_keys)
-		emu_registry_edit_list = ', '.join(art.registry_edit_keys)
-		emu_registry_delete_list = ', '.join(art.registry_delete_keys)
-		emu_registry_persistence_list = ', '.join(art.registry_persistence)
-		emu_registry_credentials_list = ', '.join(art.registry_credentials)
-		emu_registry_discovery_list = ', '.join(art.registry_discovery)
-		emu_registry_hkcr_list = ', '.join(art.reg_HKCR)
-		emu_registry_hkcu_list = ', '.join(art.reg_HKCU)
-		emu_registry_hklm_list = ', '.join(art.reg_HKLM)
-		emu_registry_hku_list = ', '.join(art.reg_HKU)
-		emu_registry_hkcc_list = ', '.join(art.reg_HKCC)
-		emu_filesCreate_list = ', '.join(art.files_create)
-		emu_filesWrite_list = ', '.join(art.files_write)
-		emu_filesDelete_list = ', '.join(art.files_delete)
-		emu_filesAccess_list = ', '.join(art.files_access)
-		emu_filesCopy_list = ', '.join(art.files_copy)
-		emu_filesMoved_list = ', '.join(art.files_move)
-		emu_filesMisc_list = ', '.join(art.file_artifacts)
-		# emu_execartifacts_list = ", ".join(executables)
-
-
-	# txt_output += mag + "\n************* DLLs *************\n" + res
-	# txt_output += "{}{:<18} {}\n".format(cya + "DLLs" + res, "",emu_dll_list)
-
-	# no_colors_out += "\n************* DLLs *************\n"
-
-	# no_colors_out += "{}{:<18} {}\n".format("DLLs", "",emu_dll_list)
-
-	txt_output += mag + "\n************* Artifacts *************\n" 
-	# no_colors_out += "\n************* Artifacts *************\n"
-
-	if len(art.path_artifacts) > 0:
-		txt_output += "{}{:<13} {}\n".format(cya + "*** Paths ***" + res,"", emu_path_list)
-	# if len(art.file_artifacts) > 0:
-	# 	txt_output += "{}{:<9} {}\n".format(cya + "*** Files ***" + res,"", emu_fileArtifacts_list)
-	##file artifacts
-	if(len(art.files_create) > 0 or len(art.files_write) > 0 or len(art.files_delete) > 0 or len(art.files_access) > 0 or len(art.files_copy) > 0 or len(art.files_move) > 0 or len(art.file_artifacts) > 0):
-		txt_output += "{}{:<9}\n".format(cya + "*** Files ***" + res,"")
-	if(len(art.files_create) > 0):
-		txt_output += "{}{:<9} {}\n".format(red + "** Create **" + res,"", emu_filesCreate_list)
-	if(len(art.files_write) > 0):
-		txt_output += "{}{:<9} {}\n".format(red + "** Write **" + res,"", emu_filesCreate_list)
-	if(len(art.files_delete) > 0):
-		txt_output += "{}{:<9} {}\n".format(red + "** Delete **" + res,"", emu_filesCreate_list)
-	if(len(art.files_access) > 0):
-		txt_output += "{}{:<9} {}\n".format(red + "** Read **" + res,"", emu_filesCreate_list)
-	if(len(art.files_copy) > 0):
-		txt_output += "{}{:<9} {}\n".format(red + "** Copy **" + res,"", emu_filesCreate_list)
-	if(len(art.files_move) > 0):
-		txt_output += "{}{:<9} {}\n".format(red + "** Move **" + res,"", emu_filesCreate_list)	
-	if(len(art.file_artifacts) > 0):
-		txt_output += "{}{:<9} {}\n".format(red + "** Misc **" + res,"", emu_filesMisc_list)	
-	#commandline artifacts
-	if len(art.commandLine_artifacts) > 0:
-		txt_output += "{}{:<8} {}\n".format(cya + "*** Command Line ***" + res,"", emu_commandline_list)
-	if len(art.web_artifacts) > 0:
-		txt_output += "{}{:<13} {}\n".format(cya + "*** Web ***" + res,"", emu_webArtifacts_list)
-	if len(art.exe_dll_artifacts) > 0:
-		txt_output += "{}{:<8} {}\n".format(cya + "*** EXE / DLLs ***" + res,"", emu_exe_dll_list)
-	
-	### registry artifacts
-	if (len(art.registry_add_keys) > 0 or len(art.registry_edit_keys) > 0 or len(art.registry_delete_keys) > 0):
-		txt_output += "{}{:<9}\n".format(cya + "*** Registry Actions ***" + res,"")
-	if len(art.registry_add_keys) > 0:
-		txt_output += "{}{:<9} {}\n".format(red + "** Add **" + res,"", emu_registry_add_list)
-	if len(art.registry_edit_keys) > 0:
-		txt_output += "{}{:<9} {}\n".format(red + "** Edit **" + res,"", emu_registry_edit_list)
-	if len(art.registry_delete_keys) > 0:
-		txt_output += "{}{:<9} {}\n".format(red + "** Delete **" + res,"", emu_registry_delete_list)
-	if (len(art.registry_persistence) > 0 or len(art.registry_credentials) > 0 or len(art.registry_discovery) > 0):
-		txt_output += "{}{:<9}\n".format(cya + "*** Registry Techniques ***" + res,"")
-	if (len(art.registry_persistence) > 0):
-		txt_output += "{}{:<9} {}\n".format(red + "** Persistence **" + res,"", emu_registry_persistence_list)
-	if (len(art.registry_credentials) > 0):
-		txt_output += "{}{:<9} {}\n".format(red + "** Credentials **" + res,"", emu_registry_credentials_list)
-	if (len(art.registry_discovery) > 0):
-		txt_output += "{}{:<9} {}\n".format(red + "** Discovery **" + res,"", emu_registry_discovery_list)
-	if(len(art.reg_HKCR) > 0 or len(art.reg_HKCU) > 0 or len(art.reg_HKLM) > 0 or len(art.reg_HKU) > 0 or len(art.reg_HKCC) > 0):
-		txt_output += "{}{:<9}\n".format(cya + "*** Registry Hierarchy ***" + res,"")
-	if(len(art.reg_HKCR) > 0 ):
-		txt_output += "{}{:<9} {}\n".format(red + "** HKEY_Classes_Root **" + res,"", emu_registry_hkcr_list)
-	if(len(art.reg_HKCU) > 0 ):
-		txt_output += "{}{:<9} {}\n".format(red + "** HKEY_Current_User **" + res,"", emu_registry_hkcu_list)
-	if(len(art.reg_HKLM) > 0 ):
-		txt_output += "{}{:<9} {}\n".format(red + "** HKEY_Local_Machine **" + res,"", emu_registry_hklm_list)
-	if(len(art.reg_HKU) > 0 ):
-		txt_output += "{}{:<9} {}\n".format(red + "** HKEY_Users **" + res,"", emu_registry_hku_list)
-	if(len(art.reg_HKCC) > 0 ):
-		txt_output += "{}{:<9} {}\n".format(red + "** HKEY_Current_Config **" + res,"", emu_registry_hkcc_list)
-	if len(art.registry_misc) > 0:
-		txt_output += "{}{:<9} {}\n".format(cya + "*** Registry Miscellaneous ***" + res,"", emu_registry_list)
-	# if len(artifacts) > 0:
-	# 	txt_output += "{}{:<13} {}\n".format(cya + "Artifacts" + res,"", emu_artifacts_list)
-	# if len(net_artifacts) > 0:
-	# 	txt_output += "{}{:<9} {}\n".format(cya + "Web artifacts" + res,"", emu_webartifacts_list)
-	# if len(file_artifacts) > 0:
-	# 	txt_output += "{}{:<8} {}\n".format(cya + "File artifacts" + res,"", emu_fileartifacts_list)	
-	# txt_output += "{}{:<2} {}\n\n".format(cya + "Executable artifacts" + res,"", emu_execartifacts_list)
-
-	# no_colors_out += "{}{:<13} {}\n".format("Artifacts","", emu_artifacts_list)
-	# no_colors_out += "{}{:<9} {}\n".format("Web artifacts","", emu_webartifacts_list)
-	# no_colors_out += "{}{:<8} {}\n".format("File artifacts","", emu_fileartifacts_list)
-	# no_colors_out += "{}{:<2} {}\n\n".format("Executable artifacts","", emu_execartifacts_list)
+	txt_output += printOut.artifactsOut(art,emulation_multiline,logged_dlls)
 
 	no_colors_out = cleanColors(txt_output)
 	# print(txt_output)

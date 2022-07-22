@@ -729,7 +729,7 @@ def findArtifacts():
     art.hierarchyFind()
 
     art.removeDuplicates()
-
+    art.removeStructures(Regex)
     
 
 

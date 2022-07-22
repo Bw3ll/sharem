@@ -1,3 +1,5 @@
+import re
+
 class Artifacts_regex:
 	def __init__(self):
 		self.total_findPath = None
@@ -380,4 +382,46 @@ class Artifacts_emulation:
 		for each in self.exe_dll_artifacts:
 			if dllsObject in each:
 				self.exe_dll_artifacts.remove(each)
+
+
+	def removeStructures(self,Regex):
+		#go through and find structures
+		pathUpdateRemove = set()
+		filesUpdateRemove = set()
+		exeUpdateRemove = set()
+
+		for each in self.path_artifacts:
+			if('\', ' in each):
+				temp = each.split('\', ')
+				for next in temp:
+					next = next.strip('\'')
+					self.path_artifacts += re.findall(Regex.total_findPaths,next,re.IGNORECASE)
+					pathUpdateRemove.add(each)
+	
+		for each in self.file_artifacts:
+			if('\', ' in each):
+				temp = each.split('\', ')
+				for next in temp:
+					next = next.strip('\'')
+					self.file_artifacts += re.findall(Regex.find_totalFiles,next,re.IGNORECASE)
+					filesUpdateRemove.add(each)
+
+		for each in self.exe_dll_artifacts:
+			if('\', ' in each):
+				temp = each.split('\', ')
+				for next in temp:
+					next = next.strip('\'')
+					self.exe_dll_artifacts += re.findall(Regex.find_exe_dll,next,re.IGNORECASE)
+					exeUpdateRemove.add(each)
+
+
+		#update the path artifacts
+		for each in pathUpdateRemove:
+			self.path_artifacts.remove(each)
+		for each in filesUpdateRemove:
+			self.file_artifacts.remove(each)
+		for each in exeUpdateRemove:
+			self.exe_dll_artifacts.remove(each)
+		self.removeDuplicates()
+
 

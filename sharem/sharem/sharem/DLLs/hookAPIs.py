@@ -14,6 +14,7 @@ from sharem.sharem.DLLs.emu_helpers.sharem_artifacts import Artifacts_emulation
 from sharem.sharem.DLLs.emu_helpers.sharem_filesystem import Directory_system
 from sharem.sharem.DLLs.emu_helpers.tool_snapshot import System_SnapShot
 from sharem.sharem.DLLs.emu_helpers.reverseLookUps import ReverseLookUps
+from sharem.sharem.helper.printingOutput import PrintingOutput
 from sharem.sharem.DLLs.emu_helpers.structures import *
 from sharem.sharem.helper.structHelpers import makeStructVals
 from unicorn.x86_const import *
@@ -27,6 +28,7 @@ import re
 art = Artifacts_emulation()
 # Instance of File System
 SimFileSystem = Directory_system()
+printOut = PrintingOutput()
 
 
 
@@ -12930,7 +12932,7 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     
-    def FindFirstFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+    def xxFindFirstFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         #'FindFirstFileA': (2, ['LPCSTR', 'LPWIN32_FIND_DATAA'], ['lpFileName', 'lpFindFileData'], 'thunk HANDLE')
         pTypes= ['LPCSTR', 'LPWIN32_FIND_DATAA']
         pNames= ['lpFileName', 'lpFindFileData']
