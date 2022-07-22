@@ -1087,7 +1087,7 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         # Might Need to Expand
-        pVals[0] = getLookUpVal(pVals[0], OpenProcessToken.SystemParametersInfo.Action)
+        # pVals[0] = getLookUpVal(pVals[0], OpenProcessToken.SystemParametersInfo.Action)
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         retVal = 0x1
@@ -1104,7 +1104,7 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         # Might Need to Expand
-        pVals[0] = getLookUpVal(pVals[0], GetLogicalProcessorInformation.SystemParametersInfo.Action)
+        # pVals[0] = getLookUpVal(pVals[0], GetLogicalProcessorInformation.SystemParametersInfo.Action)
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         retVal = 0x1
@@ -1121,7 +1121,7 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         # Might Need to Expand
-        pVals[0] = getLookUpVal(pVals[0], GetLogicalProcessorInformationEx.SystemParametersInfo.Action)
+        # pVals[0] = getLookUpVal(pVals[0], GetLogicalProcessorInformationEx.SystemParametersInfo.Action)
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         retVal = 0x1
@@ -1138,7 +1138,7 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         # Might Need to Expand
-        pVals[0] = getLookUpVal(pVals[0], DeviceIoControl.SystemParametersInfo.Action)
+        # pVals[0] = getLookUpVal(pVals[0], DeviceIoControl.SystemParametersInfo.Action)
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         retVal = 0x1
@@ -10564,14 +10564,14 @@ class CustomWinAPIs():
         pNames= ['hProcess', 'lpAddress', 'dwSize', 'flAllocationType', 'flProtect', 'nndPreferred']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        {4096: 'MEM_COMMIT', 8192: 'MEM_RESERVE', 524288: 'MEM_RESET', 16777216: 'MEM_RESET_UNDO', 536870912: 'MEM_LARGE_PAGES', 4194304: 'MEM_PHYSICAL', 1048576: 'MEM_TOP_DOWN'}
+        dwFlagsReverseLookUp = {4096: 'MEM_COMMIT', 8192: 'MEM_RESERVE', 524288: 'MEM_RESET', 16777216: 'MEM_RESET_UNDO', 536870912: 'MEM_LARGE_PAGES', 4194304: 'MEM_PHYSICAL', 1048576: 'MEM_TOP_DOWN'}
 
         pVals[3] = getLookUpVal(pVals[3],dwFlagsReverseLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
 
         retVal = 0x88888888
-        retValStr= hex(retval)
+        retValStr= hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
         logged_calls= ("xxVirtualAllocExNuma", hex(callAddr), (retValStr), 'LPVOID', pVals, pTypes, pNames, False)
@@ -10582,14 +10582,14 @@ class CustomWinAPIs():
         pNames= ['Process', 'BaseAddress', 'Size', 'AllocationType', 'PageProtection', '*ExtendedParameters', 'ParameterCount']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        {4096: 'MEM_COMMIT', 8192: 'MEM_RESERVE', 524288: 'MEM_RESET', 16777216: 'MEM_RESET_UNDO', 536870912: 'MEM_LARGE_PAGES', 4194304: 'MEM_PHYSICAL', 1048576: 'MEM_TOP_DOWN'}
+        dwFlagsReverseLookUp = {4096: 'MEM_COMMIT', 8192: 'MEM_RESERVE', 524288: 'MEM_RESET', 16777216: 'MEM_RESET_UNDO', 536870912: 'MEM_LARGE_PAGES', 4194304: 'MEM_PHYSICAL', 1048576: 'MEM_TOP_DOWN'}
 
         pVals[3] = getLookUpVal(pVals[3],dwFlagsReverseLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
 
         retVal = 0x88888888
-        retValStr= hex(retval)
+        retValStr= hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
         logged_calls= ("xxVirtualAlloc2", hex(callAddr), (retValStr), 'PVOID', pVals, pTypes, pNames, False)
@@ -10600,14 +10600,14 @@ class CustomWinAPIs():
         pNames= ['Process', 'BaseAddress', 'Size', 'AllocationType', 'PageProtection', '*ExtendedParameters', 'ParameterCount']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        {4096: 'MEM_COMMIT', 8192: 'MEM_RESERVE', 524288: 'MEM_RESET', 16777216: 'MEM_RESET_UNDO', 536870912: 'MEM_LARGE_PAGES', 4194304: 'MEM_PHYSICAL', 1048576: 'MEM_TOP_DOWN'}
+        dwFlagsReverseLookUp = {4096: 'MEM_COMMIT', 8192: 'MEM_RESERVE', 524288: 'MEM_RESET', 16777216: 'MEM_RESET_UNDO', 536870912: 'MEM_LARGE_PAGES', 4194304: 'MEM_PHYSICAL', 1048576: 'MEM_TOP_DOWN'}
 
         pVals[3] = getLookUpVal(pVals[3],dwFlagsReverseLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3])
 
         retVal = 0x88888888
-        retValStr= hex(retval)
+        retValStr= hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
         logged_calls= ("xxVirtualAlloc2FromApp", hex(callAddr), (retValStr), 'PVOID', pVals, pTypes, pNames, False)
