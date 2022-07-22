@@ -1,6 +1,4 @@
 from copy import deepcopy
-from enum import Enum, auto
-from pickletools import read_unicodestring1
 from random import choice, randint
 from time import perf_counter_ns
 from urllib.parse import quote, unquote
@@ -12801,11 +12799,21 @@ class CustomWinAPIs():
 
 class CustomWinSysCalls():
 
-    def makeArgVals(self, uc: Uc, em, esp, numParams):
-        esp = uc.reg_read(UC_X86_REG_EDX) # Temp Fix for Windows 7 Will Make Better
+    def makeArgVals(self, uc: Uc, em, esp: int, numParams):
+        if em.arch == 32: # Needs improvements
+            if em.winVersion == "Windows 7":
+                esp = uc.reg_read(UC_X86_REG_EDX) - 4 # Params start at value edx
+            elif em.winVersion == "Windows 10":
+                esp = esp + 4
+            else: 
+                # other versions of Windows
+                pass
+        else: 
+            # 64 bit syscall versions
+            pass
         args = [0] * numParams
         for i in range(len(args)):
-            args[i] = self.getStackVal(uc, em, esp, i) # i + 1
+            args[i] = self.getStackVal(uc, em, esp, i+1)
         return args
     
     def getStackVal(self, uc: Uc, em, esp, loc):
@@ -13104,6 +13112,7 @@ class CustomWinSysCalls():
         else:
             pVals[4] = hex(pVals[4])
 
+        # Add Registry Stuff 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,4])
 
         retVal = 0
