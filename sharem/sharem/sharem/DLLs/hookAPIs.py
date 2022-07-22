@@ -1112,7 +1112,7 @@ class CustomWinAPIs():
         retValStr='True'
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
-        logged_calls= ("GetLogicalProcessorInformation", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        logged_calls= ("xxGetLogicalProcessorInformation", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def xxGetLogicalProcessorInformationEx(self, uc: Uc, eip, esp, export_dict, callAddr, em):
@@ -1129,7 +1129,7 @@ class CustomWinAPIs():
         retValStr='True'
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
-        logged_calls= ("GetLogicalProcessorInformationEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        logged_calls= ("xxGetLogicalProcessorInformationEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def DeviceIoControl(self, uc: Uc, eip, esp, export_dict, callAddr, em):
