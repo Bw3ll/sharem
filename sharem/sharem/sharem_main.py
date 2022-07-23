@@ -12261,413 +12261,12 @@ def checkForBad00(data, offset, end):
 	# input()
 
 
-def disHereMakeDB2Edited(data,offset, end, mode, CheckingForDB):  #### new one
-	dprint2("dis: disHereMakeDB2 - range " + str(hex(offset)) + " " + str(hex(end)) )
-	num_bytes=end-offset
-	dprint2 (num_bytes)
-	printAllsByRange(offset,offset+num_bytes)
-
-	global labels
-	global sBy
-	nada=""
-	Ascii="B"
-	stop=offset+1
-	val=""
-	stringVal=""
-	db=0
-	dbOut=""
-	t=offset
-	w=0
-	length=end-offset
-	dbFlag=False
-	skip=True
-	startAddString=""
-	stringVala=""
-	stringStart=0
-	stringInProgress=False
-	sVal=""
-	beforeS=""
-	curDisassembly=""
-	instr=""
-	# for x in range (length):
-		# if offset >= length:
-		# 	break
-
-	maxSize=offset+length
-	sample=""
-	while offset < maxSize:
-		stop=offset+1
-		sample=data[offset:stop]
-		bytesRes= (binaryToStr(data[offset:stop]))
-		instr="db 0"+bytesRes[1:]+" (!)"
-		Ascii2=makeAsciiforDB(bytesRes)
-		val +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-		# sVal +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-		dprint2 ("checkingDis", hex(offset), hex(length))
-	
-
-		if sBy.strings[offset]==True: # and sBy.boolspecial[offset]==False:
-			dbFlag=True
-			stringInProgress=True
-			stringval=val
-			# addDis(offset,stringVal)
-			truth,res=checkForLabel(str(hex(offset)),labels)
-			if truth:
-				val=res + val
-				stringVal=res + stringVal
-			stringStart, stringDistance=sBy.stringsStart[offset]
-			dprint2("FoundSTRING", hex(stringStart), hex(offset),"off")
-			if stringStart==offset:
-				dbOut=""
-				before=""
-				beforeS=sVal 
-				# beforeS=removeLastLine(sVal)
-				dprint2 (sVal, "\n", beforeS)
-				# print ("beforeS", sVal, beforeS)
-				sVal=""
-				startAddString=str(hex(offset))
-				stringVala=sBy.stringsValue[offset]+" ; string"
-				# bprint ("\t\t\tmaking strings", stringVala)
-
-				# input()
-				dbOut+=(binaryToStr(data[t:t+1]))
-				dprint2 (stringVala)
-				
-			if offset>stringStart:
-				dprint2 (stringVala)
-				dprint2 ("dbout ", hex(t))
-				dbOut+=(binaryToStr(data[t:t+1]))
-		if (sBy.strings[offset]==False):#  and sBy.boolspecial[offset]==False:
-			dprint2("FoundNOTSTRING", hex(stringStart), hex(offset),"off")
-
-			stringInProgress=False
-			if dbFlag==False  and sBy.boolspecial[offset]==False:
-				# print ("dbflag=False")
-				truth,res=checkForLabel(str(hex(offset)),labels)
-				if truth:
-					val=val+res
-					stringVal=stringVal+res
-				# curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-				
-
-				# print ("sStart1", hex(sStart1))
-				# Ascii3=toString(m[o].rawData2[sStart1:offset])
-				# print ("Ascii2", Ascii22)
-				# print ("Ascii3", Ascii3)
-				Ascii2=""
-				bytesRes=""
-				instr=""
-				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), "", "", ""))
-
-				stringVal+=curDisassembly
-				# bytesRes="0x"+binaryToStr(data[offset:offset+1],2)
-				bytesRes="0x"+data[offset:offset+1].hex()
-				addDis(offset, "db" + " " +bytesRes, "db", bytesRes,"A.")
-				# print ("y offset", hex(t))
-		
-				# stringVal= beforeS + stringVal
-				skip=True
-			if dbFlag==True:
-
-				# print ("sV, offset: ", hex(offset), "value ", sBy.stringsValue[offset])
-				nada=""
-				truth,res=checkForLabel(str(hex(offset)),labels)
-				if truth:
-					val=val+res
-					stringVal=stringVal+res
-				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(startAddString, stringVala+"",dbOut,nada ))
-				stringVal+=curDisassembly
-				# print ("addy", hex(offset))
-				# print ("startAddString", startAddString, type(startAddString))
-				# addDis(int(startAddString, 16),curDisassembly, "string","", "B")  #old
-				addDis(int(startAddString,16),"",stringVala, "", "StringB")   # new Fixed
-
-				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-				if  sBy.boolspecial[offset]==False:
-					stringVal+=curDisassembly
-					# addDis(offset,curDisassembly, "db", "0x"+bytesRes[2:],"C")
-					bytesRes="0x"+data[offset:offset+1].hex()
-					addDis(offset, "db" + " " +bytesRes, "db", bytesRes,"BD")  # new - not tested
-				if len(beforeS) > 0:
-					stringVal= beforeS +"\n"+ "C."+curDisassembly
-				dprint2 ("stringVal", stringVal)
-				dbOut=""
-				dprint2 (stringVal)
-				dbFlag=False
-				skip=True
-			if not skip:
-				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-				stringVal+=curDisassembly
-				# addDis(offset,stringVal, "db", "0x"+bytesRes[2:], "BD")  # old
-				bytesRes="0x"+data[offset:offset+1].hex()
-				addDis(offset, "db" + " " +bytesRes, "db", bytesRes,"BD")  # new - not tested
-			skip=False
-		# "bytesres
-		if sBy.boolspecial[offset]==True:
-			mes=sBy.specialVal[offset]
-			offset=sBy.specialEnd[offset]-1
-			t=offset
-			w=offset
-			distanceStr =str(hex(sBy.specialEnd[offset]-sBy.specialStart[offset] ))
-			if sBy.specialVal[t] == "al":
-				stringValSp="align " +distanceStr
-			elif sBy.specialVal[t] == "ff":
-				stringValSp="db 0xff x"  + distanceStr 
-			else:
-				stringValSp="align " +distanceStr
-			nada=""
-			dbOutSp=(binaryToStr(data[sBy.specialStart[offset]:sBy.specialEnd[offset]]))
-			curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(sBy.specialStart[offset])), stringValSp,dbOutSp,nada ))
-			stringVal+=""+curDisassembly
-			if sBy.specialVal[t] == "al":
-				stringValSp="align " +distanceStr
-				bytesRes= (binaryToStr(sample,2))
-				bytesOut="db 0x"+bytesRes+"\n"
-				# addDis(sBy.specialStart[offset],curDisassembly, bytesOut*int(len(dbOutSp)/4), "","D1")   #doesn't seem to be used  - old
-
-				mnemonicVal="align " + hex(sBy.specialEnd[offset] - sBy.specialStart[offset])
-				print ("distanceAlign", hex(sBy.specialStart[offset]), hex(sBy.specialEnd[offset]))
-				print (mnemonicVal)
-
-				addDis(sBy.specialStart[offset],mnemonicVal , mnemonicVal, "","D1")   		 #doesn't seem to be used   --> new 
-
-			elif sBy.specialVal[t] == "ff":
-				stringValSp="db 0xff x"  + distanceStr 
-				bytesRes= (binaryToStr(sample,2))
-				bytesOut="db 0x"+bytesRes+"\n"
-				# addDis(sBy.specialStart[offset],curDisassembly,bytesOut*int(len(dbOutSp)/4), "","D2")   # old
-
-
-				mnemonicVal="db 0xff x " + hex(sBy.specialEnd[offset] - sBy.specialStart[offset])
-
-
-				addDis(sBy.specialStart[offset],mnemonicVal,mnemonicVal, "","D2")		# new
-			else:
-				bytesRes= (binaryToStr(sample,2))
-				bytesOut="db 0x"+bytesRes+"\n"
-				# addDis(sBy.specialStart[offset],curDisassembly, (bytesOut)*int(len(dbOutSp)/4), "","D3")   	 #old	# this is the one used
-				stringValSp="align " +distanceStr
-
-				mnemonicVal="align " + hex(sBy.specialEnd[offset] - sBy.specialStart[offset])
-				print ("distanceAlign", hex(sBy.specialStart[offset]), hex(sBy.specialEnd[offset]))
-				print (mnemonicVal)
-
-				addDis(sBy.specialStart[offset],mnemonicVal , mnemonicVal, "","D3")   		# this is the one used    ---> new
-
-			# addDis(sBy.specialStart[offset],"D."+curDisassembly, "db 0xff\n"*int(len(dbOutSp)/4), "")
-			# print ("got it align", hex(offset))
-			dprint2(hex(len(sBy.boolspecial)))
-
-			# sBy.specialVal[t]=dataType
-			# sBy.specialStart[t]=start
-			# sBy.specialEnd[t]=end
-			# sBy.boolspecial[t]=True
-			# print("changing value align @	
-		offset +=1
-		stop += 1
-		t+=1
-		w+=1
-		# print ("t-eof", he)x(w), hex(length))
-		if w==(length):
-			if dbFlag==True:
-				nada=""
-				# stringVal +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-				# curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(startAddString, stringVala+"cat","","" ))
-				stringVal+=curDisassembly
-				# print ("findme")
-				# print (stringVala)
-				# print (dbOut)
-				addDis(int(startAddString,16),"",stringVala, "", "EndStringMaker")
-				# stringVal= beforeS + stringVal
-				dbOut=""
-				dbFlag=False
-				if len(dbOut)>0:
-					curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-					stringVal+=curDisassembly
-					addDis(offset,curDisassembly,"F")
-			w=0
-	# print("ending: disHereMakeDB2 - range " + str(hex(offset)) + " " + str(hex(end)) )
-	dprint2("returnDB2\n", val)
-	dprint2("stringval\n")
-	dprint2(stringVal)
-	dprint2 ("")
-	val=stringVal
-	return val
-
-
-
-
-def disHereMakeDB2old2(data,offset, end, mode, CheckingForDB):  #### new one
+def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 	# print("dis: disHereMakeDB2 - range " + str(hex(offset)) + " " + str(hex(end)) )
 	# print ("start of function --------------------------------?>>>>>>>>>>>>>>>>>>>")
 	# dprint2 (num_bytes)
 	# printAllsByRange(offset,offset+num_bytes)
-
-	global labels
-	global sBy
-	apiFound=set()
-	# print (sBy.ApiTable)
-	# print (sBy.ApiValue)
-
-	# t=offset
-	w=0
-	length=end-offset
-	dbFlag=False
-	skip=True
-	startAddString=""
-	stringVala=""
-	apiValA=""
-	apiStart=0
-	apiDistance=0
-	apiInProgress=False
-	apiEnd=0
-	apiStartstr=""
-	stringStart=0
-	stringInProgress=False
-	maxSize=offset+length
-	dbOut=""
-	apiSkip=False
-	# print ("maxsize", hex(maxSize), "offset-start", hex(offset), "end", hex(end))
-	# print ("sBy.strings", hex(len(sBy.strings)))
-	# print (hex(len(m[o].rawData2)))
-	while offset < maxSize:
-		check=sBy.strings[offset]
-
-		if sBy.strings[offset]==True: # and sBy.boolspecial[offset]==False:
-			dbFlag=True
-			stringInProgress=True
-			stringStart, stringDistance=sBy.stringsStart[offset]
-			startAddString=hex(stringStart)
-			# dprint2("FoundSTRING", hex(stringStart), hex(offset),"off")
-			if stringStart==offset:
-				startAddString=str(hex(offset))
-				stringVala=sBy.stringsValue[offset]+mag+" ; string"+res2+"\t\t"
-				# bprint ("\t\t\tmaking strings", stringVala)
-			# if ApiTable[offset]
-		elif sBy.ApiTable[offset]==True:
-			dbFlag=True
-			apiInProgress=True
-			apiStart= sBy.ApiStart[offset]
-			apiDistance=sBy.ApiEnd[offset] - sBy.ApiStart[offset]
-			if apiStart==offset:
-				apiStartstr=str(hex(offset))
-				apiValA=mag + sBy.ApiValue[offset] + yel + " - API pointer" +res2+"\t\t"
-			if apiStart+1==offset:
-				apiEnd=sBy.ApiEnd[offset]
-				apiSkip=False
-
-			# sBy.ApiTable[t]=True
-			# sBy.ApiStart[t]=start
-			# sBy.ApiValue[t]=word
-			# sBy.ApiEnd[t]= end
-			# print ("in api table range")
-		elif (sBy.strings[offset]==False) and (sBy.ApiTable[offset]==False):#  and sBy.boolspecial[offset]==False:
-			# dprint2("FoundNOTSTRING", hex(stringStart), hex(offset),"off")
-			# stringInProgress=False
-			# apiInProgress=False
-			if dbFlag==False  and sBy.boolspecial[offset]==False:
-				bytesRes="0x"+data[offset:offset+1].hex()
-				addDis(offset, "db" + " " +bytesRes, "db", bytesRes,"A.")
-				skip=True
-			elif dbFlag==True:
-				if stringInProgress:
-					# print ("startAddString", startAddString)
-					# print(type(startAddString))
-					addDis(int(startAddString,16),"",stringVala, "", "StringB")   # new Fixed
-					stringInProgress=False
-				if apiInProgress:
-					if apiStart not in apiFound:
-						addDis(int(apiStartstr,16),"",apiValA, "", "EndStringMaker")
-						apiFound.add(apiStart)
-						# print ("saveing", apiValA +" first")
-						apiInProgress=False
-				if  sBy.boolspecial[offset]==False:
-					bytesRes="0x"+data[offset:offset+1].hex()
-					addDis(offset, "db" + " " +bytesRes, "db", bytesRes,"BD")  # new - not tested
-				dbFlag=False
-				skip=True
-			if not skip:
-				bytesRes="0x"+data[offset:offset+1].hex()
-				addDis(offset, "db" + " " +bytesRes, "db", bytesRes,"BD")  # new - not tested
-			skip=False
-
-		if apiEnd==offset+3:
-			# print ("making 3rd", apiValA, hex(offset), hex(apiStart))	
-			if apiStart not in apiFound:
-				addDis(int(apiStartstr,16),"",apiValA, "", "making 3rd")
-			apiFound.add(apiStart)
-			apiInProgress=False
-			apiSkip=True
-		elif sBy.boolspecial[offset]==True and sBy.ApiTable[offset]==False:
-			offset=sBy.specialEnd[offset]-1
-			
-			# t=offset
-			# w=offset
-			if sBy.specialVal[offset] == "al":
-				# print ("making align", hex(offset), sBy.ApiTable[offset], sBy.ApiTable[offset-1])
-				mnemonicVal="align " + hex(sBy.specialEnd[offset] - sBy.specialStart[offset])
-				# print ("distanceAlign", hex(sBy.specialStart[offset]), hex(sBy.specialEnd[offset]))
-				# print (mnemonicVal)
-				addDis(sBy.specialStart[offset],mnemonicVal , mnemonicVal, "","D1")   		 #doesn't seem to be used   --> new 
-			elif sBy.specialVal[offset] == "ff":
-				mnemonicVal="db 0xff x " + hex(sBy.specialEnd[offset] - sBy.specialStart[offset])
-				addDis(sBy.specialStart[offset],mnemonicVal,mnemonicVal, "","D2")		# new
-			else:
-				if offset == sBy.specialEnd[offset]-1:
-					# print (apiFound)
-					# print ("making align2", hex(offset), sBy.ApiTable[offset], sBy.ApiTable[offset-1])
-
-					mnemonicVal="align2 " + hex(sBy.specialEnd[offset] - sBy.specialStart[offset])
-					# print ("distanceAlign", hex(sBy.specialStart[offset]), hex(sBy.specialEnd[offset]))
-					# print (mnemonicVal)
-					addDis(sBy.specialStart[offset],mnemonicVal , mnemonicVal, "","D3")   		# this is the one used    ---> new
-			# dprint2(hex(len(sBy.boolspecial)))
-		offset +=1
-		# t+=1
-		w+=1
-		# print(startAddString)
-		# print(type(startAddString))
-		if w==(length):
-			# sBy.shMnemonic.append(mnemonic)
-			# sBy.shOp_str.append(op_str)
-			t=0
-			# for each in sBy.shMnemonic:
-			# 	print (sBy.shMnemonic[t] + sBy.shOp_str[t])
-			# 	t+=1
-			# print(data[offset-2:offset+1].hex())
-			# print(data.hex())
-			if dbFlag==True:
-				stringVala=sBy.stringsValue[offset-1]+mag+" ; string"+res2+"\t\t"
-				# print("-->", startAddString, stringVala)
-				try:
-					addDis(int(startAddString,16),"",stringVala, "", "EndStringMaker")
-				except:
-					# print ("skip for now")
-					pass
-				if apiInProgress and apiSkip==False:
-					# print ("making api 2nd", apiValA, hex(offset), apiSkip)
-					if offset == apiStart+3:
-						if apiStart not in apiFound:
-							# print ("apiFound", apiFound)
-							addDis(int(apiStartstr,16),"",apiValA, "", "EndStringMaker")
-							apiInProgress=False
-			# if dbFlag==True:
-			# 	try:
-			# 		addDis(int(startAddString,16),"",stringVala, "", "EndStringMaker")
-			# 	except:
-			# 		try:
-			# 			addDis(int(startAddString),"",stringVala, "", "EndStringMaker")
-			# 		except:
-			# 			pass
-				dbFlag=False
-			w=0
-	return ""
-def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
-	bprint("dis: disHereMakeDB2 - range " + str(hex(offset)) + " " + str(hex(end)) )
-	# print ("start of function --------------------------------?>>>>>>>>>>>>>>>>>>>")
-	# dprint2 (num_bytes)
-	# printAllsByRange(offset,offset+num_bytes)
-
+	dbStart=offset
 	global labels
 	global sBy
 	apiFound=set()
@@ -12739,8 +12338,18 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 			# apiInProgress=False
 			# print ("***", stringVala, "dbflag", dbFlag, "stringInProgress", stringInProgress, "skip", skip)
 			if dbFlag==False  and sBy.boolspecial[offset]==False:
-				bytesRes="0x"+data[offset:offset+1].hex()
-				addDis(offset, "db" + " " +bytesRes, "db", bytesRes,"A.")
+				# bytesRes="0x"+data[offset:offset+1].hex()
+
+
+				getNextVal=(getNextBoolDB4
+					(True, True, True, True, sBy.boolspecial,sBy.ApiTable,sBy.strings, sBy.bytesType, offset))
+				# print (getNextVal, hex(getNextVal+offset))
+				bytesRes="0x"+data[offset:offset+getNextVal].hex()
+				processDB(data[offset:offset+getNextVal],offset)
+
+				# addDis(offset, "1 db" + " " +bytesRes, "1b db", bytesRes,"A.")
+
+				offset=getNextVal+offset-1  # -1 will add 1 later
 				skip=True
 			elif dbFlag==True:
 				if stringInProgress:
@@ -12750,19 +12359,29 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 					stringInProgress=False
 				elif  sBy.boolspecial[offset]==False:
 					bytesRes="0x"+data[offset:offset+1].hex()
-					addDis(offset, "db" + " " +bytesRes, "db", bytesRes,"BD1")  # new - not tested
+					# addDis(offset, "2 db" + " " +bytesRes, "2b db", bytesRes,"BD1")  # new - not tested
+
+					getNextVal=(getNextBoolDB4(True, True, True, True, sBy.boolspecial,sBy.ApiTable,sBy.strings, sBy.bytesType, offset))
+				# print (getNextVal, hex(getNextVal+offset))
+					bytesRes="0x"+data[offset:offset+getNextVal].hex()
+					processDB(data[offset:offset+getNextVal],offset)
+					offset=getNextVal+offset-1
 				if apiInProgress:
 					if apiStart not in apiFound:
 						addDis(int(apiStartstr,16),"",apiValA, "", "EndStringMaker")
 						apiFound.add(apiStart)
 						# print ("saveing", apiValA +" first")
 						apiInProgress=False
+						dbFlag=False
 				
 				dbFlag=False
 				skip=True
 			if not skip:
-				bytesRes="0x"+data[offset:offset+1].hex()
-				addDis(offset, "db" + " " +bytesRes, "db", bytesRes,"BD2")  # new - not tested
+				# bytesRes="0x"+data[offset:offset+1].hex()
+				# addDis(offset, "3 db" + " " +bytesRes, "3b db", bytesRes,"BD2")  # new - not tested
+				bytesRes="0x"+data[offset:offset+getNextVal].hex()
+				processDB(data[offset:offset+getNextVal],offset)
+				offset=getNextVal+offset-1
 			skip=False
 
 		if apiEnd==offset+3:
@@ -12772,9 +12391,11 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 			apiFound.add(apiStart)
 			apiInProgress=False
 			apiSkip=True
+			dbFlag=False
+
 		elif sBy.boolspecial[offset]==True and sBy.ApiTable[offset]==False:
 			offset=sBy.specialEnd[offset]-1
-			
+			#psb
 			# t=offset
 			# w=offset
 			if sBy.specialVal[offset] == "al":
@@ -12836,201 +12457,220 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 				dbFlag=False
 			w=0
 	return ""
-
-def disHereMakeDB233(data,offset, end, mode, CheckingForDB):
-	dprint2("dis: disHereMakeDB2 - range " + str(hex(offset)) + " " + str(hex(end)) )
-	num_bytes=end-offset
-	dprint2 (num_bytes)
-	printAllsByRange(offset,offset+num_bytes)
-
-	global labels
-	global sBy
-	nada=""
-	Ascii="B"
-	stop=offset+1
-	val=""
-	stringVal=""
-	db=0
-	dbOut=""
-	t=offset
-	w=0
-	length=end-offset
-	dbFlag=False
-	skip=True
-	startAddString=""
-	stringVala=""
-	stringStart=0
-	stringInProgress=False
-	sVal=""
-	beforeS=""
-	curDisassembly=""
-	instr=""
-	# for x in range (length):
-		# if offset >= length:
-		# 	break
-
-	maxSize=offset+length
-	sample=""
-	while offset < maxSize:
-		stop=offset+1
-		sample=data[offset:stop]
-		bytesRes= (binaryToStr(data[offset:stop]))
-		instr="db 0"+bytesRes[1:]+" (!)"
-		Ascii2=makeAsciiforDB(bytesRes)
-		val +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-		# sVal +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-		dprint2 ("checkingDis", hex(offset), hex(length))
+def processDB(binary, offset):
+	# print ("processDB", len(binary), hex(offset))
+	total= (len(binary))
+	numDD=int(total/4)
+	rem=total%4
+	# print ("total", total, "\tnumDD", int(numDD))
+	# print ("remainder",rem)
+	# print ("double checking math:", (numDD*4)+rem)
 	
+	start=0
 
-		if sBy.strings[offset]==True: # and sBy.boolspecial[offset]==False:
-			dbFlag=True
-			stringInProgress=True
-			stringval=val
-			# addDis(offset,stringVal)
-			truth,res=checkForLabel(str(hex(offset)),labels)
-			if truth:
-				val=res + val
-				stringVal=res + stringVal
-			stringStart, stringDistance=sBy.stringsStart[offset]
-			dprint2("FoundSTRING", hex(stringStart), hex(offset),"off")
-			if stringStart==offset:
-				dbOut=""
-				before=""
-				beforeS=sVal 
-				# beforeS=removeLastLine(sVal)
-				dprint2 (sVal, "\n", beforeS)
-				# print ("beforeS", sVal, beforeS)
-				sVal=""
-				startAddString=str(hex(offset))
-				stringVala=sBy.stringsValue[offset]+" ; string4"
-				# print ("\t\t\tmaking strings", stringVala)
+	# start=offset
 
-				# input()
-				dbOut+=(binaryToStr(data[t:t+1]))
-				dprint2 (stringVala)
-				
-			if offset>stringStart:
-				dprint2 (stringVala)
-				dprint2 ("dbout ", hex(t))
-				dbOut+=(binaryToStr(data[t:t+1]))
-		if (sBy.strings[offset]==False):#  and sBy.boolspecial[offset]==False:
-			dprint2("FoundNOTSTRING", hex(stringStart), hex(offset),"off")
-
-			stringInProgress=False
-			if dbFlag==False  and sBy.boolspecial[offset]==False:
-				# print ("dbflag=False")
-				truth,res=checkForLabel(str(hex(offset)),labels)
-				if truth:
-					val=val+res
-					stringVal=stringVal+res
-				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-				stringVal+=curDisassembly
-
-				addDis(offset,curDisassembly, "db", "0x"+bytesRes[2:],"A.")
-				# print ("y offset", hex(t))
+	# for x in range(numDD):
+	# 	bytesRes= binary[start:start+4].hex()
 		
-				# stringVal= beforeS + stringVal
-				skip=True
-			if dbFlag==True:
+	# 	print (bytesRes)
 
-				# print ("sV, offset: ", hex(offset), "value ", sBy.stringsValue[offset])
-				nada=""
-				truth,res=checkForLabel(str(hex(offset)),labels)
-				if truth:
-					val=val+res
-					stringVal=stringVal+res
-				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(startAddString, stringVala,dbOut,nada ))
-				stringVal+=curDisassembly
-				# print ("addy", hex(offset))
-				# print ("startAddString", startAddString, type(startAddString))
-				addDis(int(startAddString, 16),curDisassembly, "string","", "B")
-				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-				if  sBy.boolspecial[offset]==False:
-					stringVal+=curDisassembly
-					addDis(offset,curDisassembly, "db", "0x"+bytesRes[2:],"C")
-				if len(beforeS) > 0:
-					stringVal= beforeS +"\n"+ "C."+curDisassembly
-				dprint2 ("stringVal", stringVal)
-				dbOut=""
-				dprint2 (stringVal)
-				dbFlag=False
-				skip=True
-			if not skip:
-				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-				stringVal+=curDisassembly
-				addDis(offset,stringVal, "db", "0x"+bytesRes[2:], "BD")
-			skip=False
-		# "bytesres
-		if sBy.boolspecial[offset]==True:
-			mes=sBy.specialVal[offset]
-			offset=sBy.specialEnd[offset]-1
-			t=offset
-			w=offset
-			distanceStr =str(hex(sBy.specialEnd[offset]-sBy.specialStart[offset] ))
-			if sBy.specialVal[t] == "al":
-				stringValSp="align " +distanceStr
-			elif sBy.specialVal[t] == "ff":
-				stringValSp="db 0xff x"  + distanceStr 
-			else:
-				stringValSp="align " +distanceStr
-			nada=""
-			dbOutSp=(binaryToStr(data[sBy.specialStart[offset]:sBy.specialEnd[offset]]))
-			curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(sBy.specialStart[offset])), stringValSp,dbOutSp,nada ))
-			stringVal+=""+curDisassembly
-			if sBy.specialVal[t] == "al":
-				stringValSp="align " +distanceStr
-				bytesRes= (binaryToStr(sample,2))
-				bytesOut="db 0x"+bytesRes+"\n"
-				addDis(sBy.specialStart[offset],curDisassembly, bytesOut*int(len(dbOutSp)/4), "","D1")   #doesn't seem to be used
-			elif sBy.specialVal[t] == "ff":
-				stringValSp="db 0xff x"  + distanceStr 
-				bytesRes= (binaryToStr(sample,2))
-				bytesOut="db 0x"+bytesRes+"\n"
-				addDis(sBy.specialStart[offset],curDisassembly,bytesOut*int(len(dbOutSp)/4), "","D2")
-			else:
-				bytesRes= (binaryToStr(sample,2))
-				bytesOut="db 0x"+bytesRes+"\n"
-				addDis(sBy.specialStart[offset],curDisassembly, (bytesOut)*int(len(dbOutSp)/4), "","D3")   		# this is the one used
-				stringValSp="align " +distanceStr
-			# addDis(sBy.specialStart[offset],"D."+curDisassembly, "db 0xff\n"*int(len(dbOutSp)/4), "")
-			# print ("got it align", hex(offset))
-			dprint2(hex(len(sBy.boolspecial)))
+	# 	addDis(offset, hex(start)+" 3 dd" + " " +bytesRes,  hex(start)+"3b dd", bytesRes,"processDB")
 
-			# sBy.specialVal[t]=dataType
-			# sBy.specialStart[t]=start
-			# sBy.specialEnd[t]=end
-			# sBy.boolspecial[t]=True
-			# print("changing value align @	
-		offset +=1
-		stop += 1
-		t+=1
-		w+=1
-		# print ("t-eof", hex(w), hex(length))
-		if w==(length):
-			if dbFlag==True:
-				nada=""
-				# stringVal +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(startAddString, stringVala,dbOut,nada ))
-				stringVal+=curDisassembly
-				# print ("findme")
-				# print (stringVala)
-				# print (dbOut)
-				addDis(int(startAddString,16),curDisassembly,stringVala, "", "E")
-				# stringVal= beforeS + stringVal
-				dbOut=""
-				dbFlag=False
-				if len(dbOut)>0:
-					curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-					stringVal+=curDisassembly
-					addDis(offset,curDisassembly,"F")
-			w=0
-	# print("ending: disHereMakeDB2 - range " + str(hex(offset)) + " " + str(hex(end)) )
-	dprint2("returnDB2\n", val)
-	dprint2("stringval\n")
-	dprint2(stringVal)
-	dprint2 ("")
-	val=stringVal
-	return val
+	# 	start+=4
+
+	# print ("\n\n\n")
+	# start=0
+	while start <numDD*4:
+		bytesRes= binary[start:start+4].hex()
+		# debugInfo="\n\t" +str(len(binary)) + " " +str(hex(offset)) +" "  + str(hex(offset+start))
+
+		# print ("dd", binary[start:start+4].hex())
+		addDis(offset+start, hex(offset+start)+"dd" + " " +bytesRes,  "dd", bytesRes,"processDB")
+
+		start+=4
+
+	if rem==3:
+		# print ("dw", binary[start:start+2].hex())
+		bytesRes= binary[start:start+2].hex()
+
+		addDis(offset+start, hex(offset+start)+" dw" + " " +bytesRes,  "dw",bytesRes,"processDB")
+
+		start+=2
+		bytesRes= binary[start:start+1].hex()
+
+		# print ("dw", binary[start:start+1].hex())
+		addDis(offset+start, hex(offset+start)+" db" + " " +bytesRes,  "db", bytesRes,"processDB")
+		start+=1
+
+	if rem==2:
+		bytesRes= binary[start:start+2].hex()
+
+		# print ("dw", binary[start:start+2].hex())
+		addDis(offset+start, hex(offset+start)+"dw" + " " +bytesRes,  "dw", bytesRes,"processDB")
+
+		start+=2
+
+	if rem==1:
+		bytesRes= binary[start:start+1].hex()
+
+		# print ("db", binary[start:start+1].hex())
+		addDis(offset+start, hex(offset+start)+" db" + " " +bytesRes,  "db", bytesRes,"processDB")
+
+		start+=1
+
+
+def getNextBoolDB2(pattern1, pattern2,test1, test2, offset):
+	# print ("tests")
+	# print(len(test1), len(test2))c
+	# print (test1)
+	# print (test2)
+	test1=test1[offset:]
+	test2=test2[offset:]
+	try:
+		found=test1.index(pattern1)
+	except Exception as e:
+		print (e)
+		print(traceback.format_exc())
+		
+		print ("error1")
+		found=len(test1)-1
+	try:
+		found2=test2.index(pattern2)
+	except Exception as e:
+		print (e)
+		print(traceback.format_exc())
+		
+		print ("error2")
+		found2=len(test2)-1
+		
+	print ("found1:", found, "\tfound2:", found2, "offset", hex(offset), hex(offset+found), hex(offset+found2))
+	if found <= found2:
+		return found
+	else:
+		return found2
+
+def getNextBoolDB3(pattern1, pattern2,pattern3,test1, test2,test3, offset):
+	test1=test1[offset:]
+	test2=test2[offset:]
+	test3=test3[offset:]
+	print ("test2 apiTable", len(test2))
+	print (test2)
+
+	print ("test3 strings", len(test3))
+	print (test3)
+
+	try:
+		found=test1.index(pattern1)
+	except:
+		print ("error1")
+		found=len(test1)-1
+	try:
+		found2=test2.index(pattern2)
+	except:
+		print ("error2")
+		found2=len(test2)-1
+
+	try:
+		found3=test3.index(pattern3)
+	except:
+		print ("error2")
+		found3=len(test3)-1
+
+
+	print ("found1:", found, "\tfound2:", found2, "\tfound3", found3, "offset", hex(offset), hex(offset+found), hex(offset+found2), hex(offset+found3))
+	possible=[found, found2, found3]
+	minPossible=min(possible)
+	return minPossible
+
+
+def getNextBoolDB4(pattern1, pattern2,pattern3,pattern4, test1, test2,test3, test4, offset):
+	test1=test1[offset:]
+	test2=test2[offset:]
+	test3=test3[offset:]
+	test4=test4[offset:]
+
+	# print ("test2 apiTable", len(test2))
+	# print (test2)
+
+	# print ("test3 strings", len(test3))
+	# print (test3)
+
+	try:
+		found=test1.index(pattern1)
+	except:
+		# print ("error1")
+		found=len(test1)-1
+	try:
+		found2=test2.index(pattern2)
+	except:
+		# print ("error2")
+		found2=len(test2)-1
+
+	try:
+		found3=test3.index(pattern3)
+	except:
+		# print ("error3")
+		found3=len(test3)-1
+
+	try:
+		found4=test4.index(pattern4)
+	except:
+		# print ("error4")
+		found4=len(test4)-1
+
+	# print ("found1:", found, "\tfound2:", found2, "\tfound3", found3, "found 4", found4, "offset", hex(offset), hex(offset+found), hex(offset+found2), hex(offset+found3), hex(offset+found4))
+	possible=[found, found2, found3, found4]
+	minPossible=min(possible)
+	if minPossible==0:
+		minPossible=1
+	return minPossible
+
+
+
+
+def findDataBytesEmu(shellBytes):
+	global bAddReadTuple
+	# print (red+"findDataBytesEmu\n\n\n"+res)
+	maxEmuSize=len(m[o].rawData2)
+
+	emuOnce=bAddReadTuple  |  bAddWriteTuple
+	emuTwice=bAddReadTwiceTuple | bAddWriteTwiceTuple
+	emuThrice=bAddReadThriceTuple | bAddWriteThriceTuple
+
+
+	# print ("max", maxEmuSize, len(emuTwice), len(emuOnce))
+	readPercent=len(emuOnce)/maxEmuSize
+	readTwicePercent=len(emuTwice)/maxEmuSize
+	readThricePercent=len(emuThrice)/maxEmuSize
+
+	# print (readPercent, readTwicePercent)
+	maxPercent=0.4  # if we are conveting to more than 50% data, then may be more likely each byte is being decoded more than once. hence, ignore this feature.
+
+	
+	if not sh.decryptSuccess:
+		if readPercent < maxPercent:
+			for each in emuOnce:
+				# print (hex(each[0]), each[1])
+				modVal=each[0]-CODE_ADDR
+				modifysByRange(shellBytes, modVal,modVal+ each[1], "d")
+	else:
+		if readTwicePercent < maxPercent:
+			for each in emuTwice:
+				# print (hex(each[0]), each[1])
+				modVal=each[0]-CODE_ADDR
+				modifysByRange(shellBytes, modVal,modVal+ each[1], "d")
+		elif readThricePercent < maxPercent:
+			for each in emuThrice:
+				# print (hex(each[0]), each[1])
+				modVal=each[0]-CODE_ADDR
+				modifysByRange(shellBytes, modVal,modVal+ each[1], "d")
+		else:
+			print ("This is an advanced encoding. Some data cannot be distinguished between code.")
+
+
+	# print ("end findDataBytesEmu", hex(CODE_ADDR))
+
 def dprint4(*args):
 	debugging=True
 	dprint3(*args)
@@ -13417,6 +13057,7 @@ def anaFindCallsNew(start, data):   #nEW
 			if str(hex(destination)) not in searchFor:
 				searchFor.append(str(hex(destination)))
 				offsets.add(destination)
+				# print ("hidden call", hex(distination-2))
 				modifysByRange(data, destination-2, destination,"d")
 
 	t+=1
@@ -13433,6 +13074,8 @@ def anaCombined(data, start, current):   #original
 	t=0
 	destination=99999999
 	searchFor=[]
+	maxDest = len(m[o].rawData2)
+
 	for opcode in data[start:current]:
 		test=int(data[start+t])
 		# print (hex(test))
@@ -13447,20 +13090,23 @@ def anaCombined(data, start, current):   #original
 			# print ("ans:",ans)
 			if valb_1=="jmp":
 				# print ("checking short jump")
-				modifysByRange(data, start+t,start+t+num_bytes,"i","anaCombined")
+				# modifysByRange(data, start+t,start+t+num_bytes,"i","anaCombined")
 				if "ff" in valb_2:
 					# print ("has  ff")
 					signedNeg=signedNegHexTo(int(valb_2,16))
 					# print ("signedNeg", signedNeg)
 					valb_2=str(hex(signedNeg))
 				destination = (start+t) + int(valb_2,16)
-				# print("eb destination: " + str(hex(destination)))
-				if str(hex(destination)) not in labels:
-					labels.add(str(hex(destination)))
-					# print  ("3 appending label " + str(hex(destination)))
-				
-				if str(hex(destination)) not in searchFor:
-					searchFor.append(str(hex(destination)))
+				if destination < maxDest:
+					modifysByRange(data, start+t,start+t+num_bytes,"i","anaCombined")
+
+					# print("eb destination: " + str(hex(destination)))
+					if str(hex(destination)) not in labels:
+						labels.add(str(hex(destination)))
+						# print  ("3 appending label " + str(hex(destination)))
+					
+					if str(hex(destination)) not in searchFor:
+						searchFor.append(str(hex(destination)))
 		# FINE, IT IS NEGATIVE
 		elif test==ord(OP_SHORT_JUMP_NEG):
 			# print("FOUND 0xe9!")
@@ -13471,7 +13117,7 @@ def anaCombined(data, start, current):   #original
 				ans, valb_1, valb_2,num_bytes= disHereTiny(data[start+t:start+t+2])
 			# print (ans, valb_1, valb_2)
 			if valb_1=="jmp":
-				modifysByRange(data, start+t,start+t+num_bytes,"i","anaCombined")
+				# modifysByRange(data, start+t,start+t+num_bytes,"i","anaCombined")
 				if "ff" in valb_2:
 					# print ("has  ff")
 					signedNeg=signedNegHexTo(int(valb_2,16))
@@ -13480,19 +13126,22 @@ def anaCombined(data, start, current):   #original
 				# print ("checking short jump negative")
 				destination = (start+t) + int(valb_2,16)
 				# print("neg e9 destination: " + str(hex(destination)))
-				if str(hex(destination)) not in labels:
-					labels.add(str(hex(destination)))
-					# print  ("4 appending label " + str(hex(destination)))
+				if destination < maxDest:
+					modifysByRange(data, start+t,start+t+num_bytes,"i","anaCombined")
 
-				if str(hex(destination)) not in searchFor:
-					searchFor.append(str(hex(destination)))
+					if str(hex(destination)) not in labels:
+						labels.add(str(hex(destination)))
+						# print  ("4 appending label " + str(hex(destination)))
+
+					if str(hex(destination)) not in searchFor:
+						searchFor.append(str(hex(destination)))
 
 		elif test==ord(OP_CALL):
 			# print("FOUND 0xe8!")
 			ans, valb_1, valb_2, num_bytes= disHereTiny(data[start+t:start+t+5])
 			# print (ans, valb_1, valb_2)
 			if valb_1=="call":
-				modifysByRange(data, start+t,start+t+5,"i","anaCombined")
+				# modifysByRange(data, start+t,start+t+5,"i","anaCombined")
 				###check to see if = FF FF FF  - negative - otherwise, positive!
 				# print ("checking ff")
 				# print (int(data[start+t+4]), ord(OP_ff))
@@ -13503,9 +13152,12 @@ def anaCombined(data, start, current):   #original
 						ans, valb_1, valb_2, num_bytes= disHereTiny(data[start+t:start+t+5])
 						# print (valb_2)
 						# print("ff destination: " + str(hex(destination)))
-						if str(hex(destination)) not in labels:
-							# print  ("1 appending label " + str(hex(destination)))
-							labels.add(str(hex(destination)))
+						if destination < maxDest:
+							modifysByRange(data, start+t,start+t+5,"i","anaCombined1")
+
+							if str(hex(destination)) not in labels:
+								# print  ("1 appending label " + str(hex(destination)))
+								labels.add(str(hex(destination)))
 				#ok, it is positive
 				elif (int(data[start+t+4]))==0:
 					# if (int(data[start+t+3]))==0:
@@ -13514,13 +13166,26 @@ def anaCombined(data, start, current):   #original
 					# print ((hex(start+t)))
 					# print(hex(signedNeg))
 					# print("00 destination: " + str(hex(destination)))
-					if str(hex(destination)) not in labels:
-						# print  ("2 appending label " + str(hex(destination)))
-						labels.add(str(hex(destination)))
+					if destination < maxDest:
+
+						modifysByRange(data, start+t,start+t+5,"i","anaCombined2")
+
+						if str(hex(destination)) not in labels:
+							# print  ("2 appending label " + str(hex(destination)))
+							labels.add(str(hex(destination)))
+				else:
+					ans, valb_1, valb_2,num_bytes= disHereTiny(data[start+t:start+t+5])
+					destination = (start+t) + int(valb_2,16)
+					if destination < maxDest:
+						modifysByRange(data, start+t,start+t+5,"i","anaCombined3")
+
 				if str(hex(destination)) not in searchFor:
-					searchFor.append(str(hex(destination)))
-					offsets.add(destination)
-					modifysByRange(data, destination-2, destination,"d", "findAna")
+					# print  ("3 not in searchfor " + str(hex(destination)))
+					if destination < maxDest:
+						
+						searchFor.append(str(hex(destination)))
+						offsets.add(destination)
+						modifysByRange(data, destination-2, destination,"d", "findAna")
 
 		t+=1
 	for addy in searchFor:
@@ -14722,6 +14387,8 @@ def modifysByRangeUser():
 
 def modifysByRange(data, start,end, dataType, mode=None):  # 1/8/2002
 	bprint ("modRange modifysByRange", hex(start),hex(end),dataType, mode)
+	# print ("modRange modifysByRange", hex(start),hex(end),dataType, mode)
+
 	global sBy
 	BytesBool=False
 	t=0
@@ -15086,28 +14753,30 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None)
 
 	startingAddress=0
 	i=startingAddress
-	for x in shellBytes:
-		sBy.offsets.append(i)
-		sBy.values.append(x)
-		# sBy.instructions.append(True)
-		# sBy.data.append(False)
-		sBy.bytesType.append(True) # True = instructions
-		sBy.strings.append(False)
-		sBy.stringsStart.append(0xffffffff)
-		sBy.stringsValue.append("")
-		sBy.pushStringEnd.append(-1)
-		sBy.pushStringValue.append("")
-		sBy.boolPushString.append(False)
-		sBy.specialVal.append("")
-		sBy.boolspecial.append(False)
-		sBy.specialStart.append(0)
-		sBy.specialEnd.append(0)
-		sBy.comments.append("")
-		sBy.ApiTable.append(False)
-		sBy.ApiStart.append(0xfffffffd)
-		sBy.ApiEnd.append(0xfffffffd)
-		sBy.ApiValue.append("")
-		i+=1
+	if not mBool[o].bPreSysDisDone:
+
+		for x in shellBytes:
+			sBy.offsets.append(i)
+			sBy.values.append(x)
+			# sBy.instructions.append(True)
+			# sBy.data.append(False)
+			sBy.bytesType.append(True) # True = instructions
+			sBy.strings.append(False)
+			sBy.stringsStart.append(0xffffffff)
+			sBy.stringsValue.append("")
+			sBy.pushStringEnd.append(-1)
+			sBy.pushStringValue.append("")
+			sBy.boolPushString.append(False)
+			sBy.specialVal.append("")
+			sBy.boolspecial.append(False)
+			sBy.specialStart.append(0)
+			sBy.specialEnd.append(0)
+			sBy.comments.append("")
+			sBy.ApiTable.append(False)
+			sBy.ApiStart.append(0xfffffffd)
+			sBy.ApiEnd.append(0xfffffffd)
+			sBy.ApiValue.append("")
+			i+=1
 
 	start = time.time()
 	if mBool[o].bDoFindStrings and not mBool[o].bPreSysDisDone:
@@ -15180,11 +14849,9 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None)
 
 codeCoverageComplete=False
 def takeBytes(shellBytes,startingAddress, silent=None, decoder=False):
-	# print ("takeBytes")
+	# print ("take bytes")
 	# print ("---------->o", o)
 
-	# bprint ("takeBytes:", hex(startingAddress))
-	# print ("take bytse o", o)
 	global sBy
 	global shellEntry
 	global gDisassemblyText
@@ -15279,6 +14946,17 @@ def takeBytes(shellBytes,startingAddress, silent=None, decoder=False):
 			bprint ("\n\t[*] TakeBytes:", end-takeBytesS)
 		elif tooBig:
 			disHereShellLimited(shellBytes, startingAddress)
+	elif mBool[o].bPreSysDisDone and fRaw.status():
+		pass
+
+		# print ("delete later please we are doing it!!!")
+		# findDataBytesEmu(shellBytes)
+
+
+		### may need this in the future for non emulation - i don't believe it is needed any longer.
+		# clearTempDis()   # we must call this function before making new diassembly
+		# out2=findRange(shellBytes, startingAddress,len(sBy.offsets)-1, "takeBytes")
+
 		
 
 	# print ("**Sizes:  ")
@@ -15722,6 +15400,7 @@ def findRange(data, startingAddress, end2, caller=None):
 	global sBy
 	global shellEntry
 
+
 	if bit32:
 		bit=32
 	else:
@@ -15744,7 +15423,7 @@ def findRange(data, startingAddress, end2, caller=None):
 	# print ("disAnalysisDone", mBool[o].disAnalysisDone, "caller", caller)
 	if not codeCoverageComplete:
 		if not mBool[o].disAnalysisDone and "preSyscalDiscovery" in caller:
-			print ("inside disana")
+			# print ("inside disana")
 			disHereAnalysis(data, startingAddress, end, "ascii", True)
 			mBool[o].disAnalysisDone=True
 		elif caller=="takeBytes":
@@ -15824,7 +15503,8 @@ def findRange(data, startingAddress, end2, caller=None):
 	inside_shell=s2-s1
 	inside_MakeDB=s2-s1
 
-
+	if fRaw.status():
+		findDataBytesEmu(data)
 	s1 = time.time()
 	while current < max:
 		start, current, distance, typeBytes, skipF = findRange2(current)
@@ -16093,6 +15773,10 @@ def findRange2(current):
 	# print (len(fRaw.bytesInst))
 	# print (fRaw.status())
 	# print ("current", hex(current))
+
+	# modifysByRange(m[o].rawData2, 0x2c1, 0x2c1+3, "d", "anaFindAPIs")
+
+
 	if fRaw.status() and fRaw.bytesInst[current]=="INST":
 		try:
 			startF, endF, distF=fRaw.startEnd[current]

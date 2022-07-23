@@ -264,6 +264,56 @@ def catch_windows_api(uc, addr, ret, size, funcAddress):
     return ret
 
 
+bAddRead=set()
+bAddReadTwice=set()
+bAddReadTwiceTuple=set()
+bAddReadThrice=set()
+bAddReadThriceTuple=set()
+
+bAddWrite=set()
+
+bAddReadTuple=set()
+bAddWriteTuple=set()
+bAddWriteTwiceTuple=set()
+bAddWriteTwice=set()
+bAddWriteThriceTuple=set()
+bAddWriteThrice=set()
+
+
+def hook_mem_access(uc, access, address, size, value, user_data):
+    # print ("hook mem access!!!!!!!!!!!!!")
+    if access == UC_MEM_WRITE:
+        # print(">>> Memory is being WRITE at 0x%x, data size = %u, data value = 0x%x" \
+        #         %(address, size, value))
+        if address > 0x12000000 and address <0x12990070:
+            
+            if address in bAddWrite:
+                bAddWriteTwice.add(address)
+                bAddWriteTwiceTuple.add((address, size))
+            elif address in bAddWriteTwice:
+                print (red+"doing thrice1!!!!!"+res)
+                bAddWriteThriceTuple.add(address)
+                bAddWriteThrice.address((address, size))
+            else:
+                bAddWriteTuple.add((address, size))
+                bAddWrite.add(address)
+
+    else:   # READ
+        # print(">>> Memory is being READ at 0x%x, data size = %u" \
+                # %(address, size))
+        if address > 0x12000000 and address <0x12990070:
+            
+            if address in bAddRead:
+                bAddReadTwice.add(address)
+                bAddReadTwiceTuple.add((address, size))
+            elif address in bAddReadTwice:
+                print (red+"doing thrice!!!!!"+res)
+                bAddReadThriceTuple.add(address)
+                bAddReadThrice.address((address, size))
+            else:
+                bAddRead.add(address)
+                bAddReadTuple.add((address, size))
+
 def hook_code(uc, address, size, user_data):
     global cleanBytes, verbose
     global outFile
@@ -975,6 +1025,9 @@ def test_i386(mode, code):
             allocateWinStructs64(mu, mods)
 
         # tracing all instructions with customized callback
+
+        mu.hook_add(UC_HOOK_MEM_WRITE, hook_mem_access)
+        mu.hook_add(UC_HOOK_MEM_READ, hook_mem_access)
         mu.hook_add(UC_HOOK_CODE, hook_code)
 
         if len(coverage_objects) > 0:
