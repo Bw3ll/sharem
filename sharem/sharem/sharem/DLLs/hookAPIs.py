@@ -13283,16 +13283,16 @@ class CustomWinSysCalls():
         #     pVals[2] = makeStructVals(uc, oa, pVals[2])
         #     pVals[2][2][2] = name
         # else:
-        #     pVals[2] = hex(pVals[2])
+        pVals[2] = hex(pVals[2])
 
         # if pVals[4] != 0x0:
         #     classUS = get_UNICODE_STRING(uc, pVals[4], em)
         #     pVals[4] = makeStructVals(uc, classUS, pVals[4])
         # else:
-        #     pVals[4] = hex(pVals[4])
+        pVals[4] = hex(pVals[4])
 
         # Add Registry Stuff 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,4])
 
         retVal = 0
         retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
