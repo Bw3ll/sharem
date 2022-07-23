@@ -375,7 +375,13 @@ class PrintingOutput:
                 for sn in structure_names:
                     #checks if there is another strucutre within the struct, usually a dummy struct and prints it
                     #currently only works for one struct and one dummy struct
-                    if('{' in str(structure_values[z])):
+                    try:
+                        struc_values_temp=str(structure_values[z])
+
+                    except:
+                        struc_values_temp=structure_values[z]
+                    # print (struc_values_temp, type(struc_values_temp))
+                    if('{' in struc_values_temp):
                         text_output += self.unionStruct(structure_values,structure_names[z],structure_types[z])
                         z += 1
                         continue
