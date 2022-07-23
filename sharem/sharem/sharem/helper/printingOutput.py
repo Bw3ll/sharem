@@ -259,7 +259,7 @@ class PrintingOutput:
        
         # commandline artifacts
         if len(art.commandLine_artifacts) > 0:
-            stext_output += "{}{:<8} {}\n".format(self.cya + "*** Command Line ***" + self.res,"", emu_commandline_list)
+            text_output += "{}{:<8} {}\n".format(self.cya + "*** Command Line ***" + self.res,"", emu_commandline_list)
         #web
         if len(art.web_artifacts) > 0:
             text_output += "{}{:<13} {}\n".format(self.cya + "*** Web ***" + self.res,"", emu_webArtifacts_list)
@@ -369,7 +369,13 @@ class PrintingOutput:
                 for sn in structure_names:
                     #checks if there is another strucutre within the struct, usually a dummy struct and prints it
                     #currently only works for one struct and one dummy struct
-                    if('{' in structure_values[z]):
+                    try:
+                        struc_values_temp=str(structure_values[z])
+
+                    except:
+                        struc_values_temp=structure_values[z]
+                    print (struc_values_temp, type(struc_values_temp))
+                    if('{' in struc_values_temp):
                         text_output += self.unionStruct(structure_values,structure_names[z],structure_types[z])
                         z += 1
                         continue
