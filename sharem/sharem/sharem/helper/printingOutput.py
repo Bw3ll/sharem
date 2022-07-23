@@ -32,6 +32,9 @@ class PrintingOutput:
 
         return red,gre,yel,blu,mag,cya,whi,res,res2
 
+#####################
+#######  TEXT  ######
+#####################
 
     def apisOut(self,emulation_verbose,api_names, api_params_values, api_params_types, api_params_names, api_address, ret_values, ret_type, api_bruteforce, syscallID):
         text_output = ""
@@ -155,10 +158,6 @@ class PrintingOutput:
 
         return text_output
 
-    #json later
-    def jsonOut(self):
-        print(1)
-
     def artifactsOut(self,art,emulation_multiline,logged_dlls):
         text_output = ""
 
@@ -278,9 +277,97 @@ class PrintingOutput:
 
         return text_output
 
+#####################
+#######  JSON  ######
+#####################
+
+    def jsonApis(self,apiList):
+        for i in apiList:
+            tuple_flag = 0
+            api_dict = {}
+            api_name = i[0]
+            api_address = i[1]
+            ret_value = i[2]
+            ret_type = i[3]
+            try:
+                dll_name = i[8]
+            except:
+                dll_name = "kernel32.dll"
+                
+            
+            api_dict["api_name"] = api_name
+            api_dict["dll_name"] = dll_name
+            api_dict["return_value"]= ret_type+" " + str(ret_value)
+            api_dict["address"] = api_address
+            api_dict['parameters'] = []
+
+            api_params_values = i[4]
+            api_params_types = i[5]
+            api_params_names = i[6]
+            for potentialTuple in api_params_values:
+                if( type(potentialTuple) == tuple):
+                    # print("is a tuple")
+                    # print(potentialTuple)
+                    tuple_flag = 1
+                    
+            if (tuple_flag == 1):
+                api_dict.update(self.jsonTuples(api_params_values,api_params_types,api_params_names,api_dict))
+            else:
+                p = 0
+                # for pTyp, pName, pVal in zip(api_params_types, api_params_names, api_params_values):
+                # 	api_dict['parameters'].append({"type":pTyp + " " + pName,
+                # 								"value":str(pVal)})
+                for pName in api_params_names:
+                    api_type_value = []
+                    api_type_value.append({"type":api_params_types[p],
+                                                "value":str(api_params_values[p])})
+                    api_dict['parameters'].append({"type":api_params_names[p],
+                                                "value":api_type_value})
+                    p+=1
+            # list_of_apis.append(api_dict)
+            return api_dict
+
+    def jsonSyscalls(self,logged_syscalls,em):
+        for i in logged_syscalls:
+            syscalls_dict = {}
+            syscall_name = i[0]
+            syscall_address = i[1]
+            syscall_value = i[2]
+            syscall_type = i[3]
+            syscall_params_values = i[4]
+            syscall_params_types = i[5]
+            syscall_params_names = i[6]
+            syscall_callID = i[8]
+
+            for potentialTuple in syscall_params_values:
+                if( type(potentialTuple) == tuple):
+                    tuple_flag = 1
+            if (tuple_flag == 1):
+                syscalls_dict['parameters'] = []
+                syscalls_dict.update(self.jsonTuples(syscall_params_values,syscall_params_types,syscall_params_names,syscalls_dict))
+            else:
+                syscalls_dict["syscall_name"] = str(syscall_name)
+                syscalls_dict["return_value"] = str(syscall_type + " "+syscall_value)
+                syscalls_dict["address"] = str(syscall_address)
+
+                syscalls_dict['parameters'] = []
+
+
+                for pTyp, pName, pVal in zip(syscall_params_types, syscall_params_names, syscall_params_values):
+                    syscalls_dict['parameters'].append({"type":str(pTyp) + " " + str(pName),
+                                                        "value":str(pVal)})
+
+            syscalls_dict["syscall_callID"] = str(hex(syscall_callID))
+            syscalls_dict["OS_Release_SP"] = em.winVersion+", SP "+em.winSP
+
+		# print(syscall_name)
+        return syscalls_dict
+
+    def jsonArtifacts(self,art):
+        print(1)
 
 #####################
-#####  Printing  ####
+####  Artifacts  ####
 #####################
 
     def Pfiles(self,art,emu_filesCreate_list,emu_filesWrite_list,emu_filesDelete_list,emu_filesAccess_list,emu_filesCopy_list,emu_filesMoved_list,emu_filesMisc_list):
@@ -426,7 +513,6 @@ class PrintingOutput:
             text_output += '\t\t\t{} {} {}\n'.format(gre + structList[0], structList[1] +":"+ res, structList[2])
         return text_output
 
-
     def multiLine(self,artifact):
         if(len(artifact) > 0):
             emu_artifact_list = "\n"
@@ -438,6 +524,30 @@ class PrintingOutput:
         print(1)
         #for the artifacts output of files data and used in registry
 
-
+    def jsonTuples(self,paramValues,params_types,params_names,dictName):
+        t = 0
+        for pv in paramValues:
+            if( type(paramValues[t]) == tuple):
+                struct_values_list = []
+                struct_name = paramValues[t][0]
+                struct_type = paramValues[t][1]
+                struct_value = paramValues[t][2]
+                # print(struct_name)
+                # print(struct_type)
+                # print(struct_value)
+                for sType, sName, sVal in zip(struct_name, struct_type, struct_value):
+                    struct_values_list.append({"structure_type":sType + " " + sName,
+                                                "structure_value":str(sVal)})
+                dictName['parameters'].append({"type":params_types[t] + " " + params_names[t],
+                                        "value":struct_values_list})
+                
+            else:
+                type_value = []
+                type_value.append({"type":params_types[t],
+                                    "value":str(paramValues[t])})
+                dictName['parameters'].append({"type":params_names[t],
+                                        "value":type_value})
+            t+= 1
+        return dictName
 
 
