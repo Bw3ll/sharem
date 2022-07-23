@@ -22981,45 +22981,47 @@ def emulation_txt_out(apiList, logged_syscalls):
 
 	if len(logged_syscalls) > 0:
 		syscall_names, syscall_params_values, syscall_params_types, syscall_params_names, syscall_address, ret_values, ret_type, syscall_bruteforce, syscallID = build_emu_results(logged_syscalls)
-		# printOut.syscallsOut()
-		txt_output += mag + "\n************* Syscalls *************\n\n" + res
-		verbose_mode = emulation_verbose
-		t = 0
-		for eachApi in syscall_names:
-			apName = syscall_names[t]
-			offset = syscall_address[t]
-			pType = syscall_params_types[t]
-			pName = syscall_params_names[t]
-			TypeBundle = []
-			retVal = ret_values[t]
-			retType = ret_type[t]
-			paramVal = syscall_params_values[t]
-			# DLL = dll_name[t]
-			for v, typ in zip(pType, pName):
-				TypeBundle.append(v + " " + typ)
-			joinedBund = ', '.join(TypeBundle)
-			joinedBundclr = joinedBund.replace(",", cya + "," + res)
-			retBundle = retType + " " + retVal
 
-			if verbose_mode:
-				txt_output += '{} {}{}\n'.format(gre + offset + res, yel + apName + res,
-													cya + "(" + res + joinedBundclr + cya + ")" + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
-			else:
-				txt_output += '{} {}{} {}{}\n'.format(gre + offset + res, yel + apName + res,
-													  cya + "(" + res + joinedBundclr + cya + ")" + res,
-													  cya + "Ret: " + res,
-													  red + retBundle + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
+		
+		txt_output += printOut.syscallsOut(emulation_verbose,syscall_names, syscall_params_values, syscall_params_types, syscall_params_names, syscall_address, ret_values, ret_type, syscall_bruteforce, syscallID,em)
+		# txt_output += mag + "\n************* Syscalls *************\n\n" + res
+		# verbose_mode = emulation_verbose
+		# t = 0
+		# for eachApi in syscall_names:
+		# 	apName = syscall_names[t]
+		# 	offset = syscall_address[t]
+		# 	pType = syscall_params_types[t]
+		# 	pName = syscall_params_names[t]
+		# 	TypeBundle = []
+		# 	retVal = ret_values[t]
+		# 	retType = ret_type[t]
+		# 	paramVal = syscall_params_values[t]
+		# 	# DLL = dll_name[t]
+		# 	for v, typ in zip(pType, pName):
+		# 		TypeBundle.append(v + " " + typ)
+		# 	joinedBund = ', '.join(TypeBundle)
+		# 	joinedBundclr = joinedBund.replace(",", cya + "," + res)
+		# 	retBundle = retType + " " + retVal
 
-			t += 1
-			if verbose_mode:
-				for ptyp, pname, pval in zip(pType, pName, paramVal):
-					txt_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
-				txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
-				txt_output += "\t{} {} - ({}, SP {})\n".format(red + "EAX: " + res, hex(syscallID) + res, em.winVersion + res, em.winSP + res)
-				if syscall_bruteforce:
-					txt_output += "\t{}\n\n".format(whi + "Brute-forced" + res, )
-				else:
-					txt_output += "\n"
+		# 	if verbose_mode:
+		# 		txt_output += '{} {}{}\n'.format(gre + offset + res, yel + apName + res,
+		# 											cya + "(" + res + joinedBundclr + cya + ")" + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
+		# 	else:
+		# 		txt_output += '{} {}{} {}{}\n'.format(gre + offset + res, yel + apName + res,
+		# 											  cya + "(" + res + joinedBundclr + cya + ")" + res,
+		# 											  cya + "Ret: " + res,
+		# 											  red + retBundle + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
+
+		# 	t += 1
+		# 	if verbose_mode:
+		# 		for ptyp, pname, pval in zip(pType, pName, paramVal):
+		# 			txt_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
+		# 		txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
+		# 		txt_output += "\t{} {} - ({}, SP {})\n".format(red + "EAX: " + res, hex(syscallID) + res, em.winVersion + res, em.winSP + res)
+		# 		if syscall_bruteforce:
+		# 			txt_output += "\t{}\n\n".format(whi + "Brute-forced" + res, )
+		# 		else:
+		# 			txt_output += "\n"
 
 
 	txt_output += printOut.artifactsOut(art,emulation_multiline,logged_dlls)

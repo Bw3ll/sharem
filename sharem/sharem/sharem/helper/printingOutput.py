@@ -101,11 +101,12 @@ class PrintingOutput:
                     
         return text_output
     
-    def syscallsOut(self):
+    def syscallsOut(self,emulation_verbose,syscall_names, syscall_params_values, syscall_params_types, syscall_params_names, syscall_address, ret_values, ret_type, syscall_bruteforce, syscallID,em):
         text_output = ""
 
+        red,gre,yel,blu,mag,cya,whi,res,res2 = self.colors()
         
-        txt_output += mag + "\n************* Syscalls *************\n\n" + res
+        text_output += mag + "\n************* Syscalls *************\n\n" + res
         verbose_mode = emulation_verbose
         t = 0
         for eachApi in syscall_names:
@@ -118,9 +119,11 @@ class PrintingOutput:
             retType = ret_type[t]
             paramVal = syscall_params_values[t]
             # DLL = dll_name[t]
-            for pv in paramVal:
-                if(type(paramVal[index]) == tuple):
-                    print(pv)
+            for potentialTuple in paramVal:
+                if( type(potentialTuple) == tuple):
+                    # print("is a tuple")
+                    # print(potentialTuple)
+                    tuple_flag = 1
             for v, typ in zip(pType, pName):
                 TypeBundle.append(v + " " + typ)
             joinedBund = ', '.join(TypeBundle)
@@ -128,24 +131,27 @@ class PrintingOutput:
             retBundle = retType + " " + retVal
 
             if verbose_mode:
-                txt_output += '{} {}{}\n'.format(gre + offset + res, yel + apName + res,
+                text_output += '{} {}{}\n'.format(gre + offset + res, yel + apName + res,
                                                     cya + "(" + res + joinedBundclr + cya + ")" + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
             else:
-                txt_output += '{} {}{} {}{}\n'.format(gre + offset + res, yel + apName + res,
+                text_output += '{} {}{} {}{}\n'.format(gre + offset + res, yel + apName + res,
                                                     cya + "(" + res + joinedBundclr + cya + ")" + res,
                                                     cya + "Ret: " + res,
                                                     red + retBundle + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
 
             t += 1
             if verbose_mode:
-                for ptyp, pname, pval in zip(pType, pName, paramVal):
-                    txt_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
-                txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
-                txt_output += "\t{} {} - ({}, SP {})\n".format(red + "EAX: " + res, hex(syscallID) + res, em.winVersion + res, em.winSP + res)
-                if syscall_bruteforce:
-                    txt_output += "\t{}\n\n".format(whi + "Brute-forced" + res, )
+                if (tuple_flag == 1):
+                    text_output += self.printTuples(paramVal,pType,pName,retBundle)
                 else:
-                    txt_output += "\n"
+                    for ptyp, pname, pval in zip(pType, pName, paramVal):
+                        text_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
+                    text_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
+                text_output += "\t{} {} - ({}, SP {})\n".format(red + "EAX: " + res, hex(syscallID) + res, em.winVersion + res, em.winSP + res)
+                if syscall_bruteforce:
+                    text_output += "\t{}\n\n".format(whi + "Brute-forced" + res, )
+                else:
+                    text_output += "\n"
 
         return text_output
 
@@ -259,7 +265,7 @@ class PrintingOutput:
        
         # commandline artifacts
         if len(art.commandLine_artifacts) > 0:
-            stext_output += "{}{:<8} {}\n".format(self.cya + "*** Command Line ***" + self.res,"", emu_commandline_list)
+            text_output += "{}{:<8} {}\n".format(self.cya + "*** Command Line ***" + self.res,"", emu_commandline_list)
         #web
         if len(art.web_artifacts) > 0:
             text_output += "{}{:<13} {}\n".format(self.cya + "*** Web ***" + self.res,"", emu_webArtifacts_list)
@@ -369,7 +375,7 @@ class PrintingOutput:
                 for sn in structure_names:
                     #checks if there is another strucutre within the struct, usually a dummy struct and prints it
                     #currently only works for one struct and one dummy struct
-                    if('{' in structure_values[z]):
+                    if('{' in str(structure_values[z])):
                         text_output += self.unionStruct(structure_values,structure_names[z],structure_types[z])
                         z += 1
                         continue
