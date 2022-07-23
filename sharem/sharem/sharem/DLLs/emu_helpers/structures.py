@@ -1222,15 +1222,16 @@ class WIN32_FIND_DATAA(LittleEndianStructure):
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
-    def fileReturn(self,timeB1,timeB2,timeb3,filesize,filename,altFileName):
-        self.dwFileAttributes = 0x80 #normal
-        self.ftCreationTime = get_FILETIME(uc,buffer1,em)
-        self.ftLastAccessTime = get_FILETIME(uc,buffer2,em)
-        self.ftLastWriteTime = get_FILETIME(uc,buffer3,em)
-        self.nFileSizeHigh = filesize >> 32
-        self.nFileSizeLow = filesize & 0xffffffff
-        self.cFileName = filename
-        self.cAlternateFileName = altFileName
+
+    # def fileReturn(self,timeB1,timeB2,timeb3,filesize,filename,altFileName):
+    #     self.dwFileAttributes = 0x80 #normal
+    #     self.ftCreationTime = get_FILETIME(uc,buffer1,em)
+    #     self.ftLastAccessTime = get_FILETIME(uc,buffer2,em)
+    #     self.ftLastWriteTime = get_FILETIME(uc,buffer3,em)
+    #     self.nFileSizeHigh = filesize >> 32
+    #     self.nFileSizeLow = filesize & 0xffffffff
+    #     self.cFileName = filename
+    #     self.cAlternateFileName = altFileName
 
 
 
