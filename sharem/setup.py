@@ -3,7 +3,7 @@ import os
 import re
 
 NAME = "sharem"
-VERSION = "0.0.1"
+VERSION = "0.1.02"
 REQUIREMENTS = [
     #"ssdeep>=3.4",
     "capstone",
@@ -18,7 +18,9 @@ REQUIREMENTS = [
     "psutil>=5.8.0",
     "pypiwin32>=223 ; platform_system=='Windows'",
     "toml>=0.9.6",
-    "unicorn>=1.0.2"
+    "unicorn>=1.0.2",
+    "textwrap3>=0.9.2"
+
 ]
 
 setup(
