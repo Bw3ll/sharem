@@ -374,7 +374,7 @@ class PrintingOutput:
 
                     except:
                         struc_values_temp=structure_values[z]
-                    print (struc_values_temp, type(struc_values_temp))
+                    # print (struc_values_temp, type(struc_values_temp))
                     if('{' in struc_values_temp):
                         text_output += self.unionStruct(structure_values,structure_names[z],structure_types[z])
                         z += 1
