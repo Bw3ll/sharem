@@ -19275,6 +19275,9 @@ def emulationConf(conr):
 	emuObj.verbose = conr.getboolean('SHAREM EMULATION', 'timeless_debugging')
 	em.codeCoverage = conr.getboolean('SHAREM EMULATION',"complete_code_coverage")
 
+	em.winVersion = conr['SHAREM EMULATION']['windows_version']
+	em.winSP = conr['SHAREM EMULATION']['windows_release_osbuild']
+
 def emulationSimValueConf(conr):
 	global emuSimVals
 	global SimFileSystem
@@ -22267,109 +22270,10 @@ def emulation_json_out(apiList, logged_syscalls):
 					  "registry_hierarchy":[],
 					  "registry_miscellaneous":[]
 	}
-
-	for i in apiList:
-		tuple_flag = 0
-		api_dict = {}
-		api_name = i[0]
-		api_address = i[1]
-		ret_value = i[2]
-		ret_type = i[3]
-		try:
-			dll_name = i[8]
-		except:
-			dll_name = "kernel32.dll"
-			
-		
-		api_dict["api_name"] = api_name
-		api_dict["dll_name"] = dll_name
-		api_dict["return_value"]= ret_type+" " + str(ret_value)
-		api_dict["address"] = api_address
-		api_dict['parameters'] = []
-
-		api_params_values = i[4]
-		api_params_types = i[5]
-		api_params_names = i[6]
-		for potentialTuple in api_params_values:
-			if( type(potentialTuple) == tuple):
-				# print("is a tuple")
-				# print(potentialTuple)
-				tuple_flag = 1
-				
-		if (tuple_flag == 1):
-			t = 0
-			for pv in api_params_values:
-				if( type(api_params_values[t]) == tuple):
-					api_struct_values_list = []
-					api_struct_name = api_params_values[t][0]
-					api_struct_type = api_params_values[t][1]
-					api_struct_value = api_params_values[t][2]
-					# print(api_struct_name)
-					# print(api_struct_type)
-					# print(api_struct_value)
-					for sType, sName, sVal in zip(api_struct_name, api_struct_type, api_struct_value):
-						api_struct_values_list.append({"structure_type":sType + " " + sName,
-						 							"structure_value":str(sVal)})
-					# print(api_struct_values_list)
-					# print("1a")
-					api_dict['parameters'].append({"type":api_params_types[t] + " " + api_params_names[t],
-											"value":api_struct_values_list})
-					# for pTyp, pName, pVal in zip(api_params_types, api_params_names, api_params_values):
-					# 	api_dict['parameters'].append({"type":pTyp + " " + pName,
-					# 								"value":api_struct_values_list})
-					# 	# api_dict['parameters'].append({"structure_type":sTyp + " " + sName,
-						# 							"structure_value":str(sVal)})
-				else:
-					api_type_value = []
-					api_type_value.append({"type":api_params_types[t],
-											"value":str(api_params_values[t])})
-					api_dict['parameters'].append({"type":api_params_names[t],
-											"value":api_type_value})
-					# api_dict['parameters'].append({"type":api_params_types[t] + " " + api_params_names[t],
-											# "value":str(api_params_values[t])})
-				t+= 1
-		else:
-			p = 0
-			# for pTyp, pName, pVal in zip(api_params_types, api_params_names, api_params_values):
-			# 	api_dict['parameters'].append({"type":pTyp + " " + pName,
-			# 								"value":str(pVal)})
-			for pName in api_params_names:
-				api_type_value = []
-				api_type_value.append({"type":api_params_types[p],
-											"value":str(api_params_values[p])})
-				api_dict['parameters'].append({"type":api_params_names[p],
-											"value":api_type_value})
-				p+=1
-		# list_of_apis.append(api_dict)
-		emulation_dict["api_calls"].append(api_dict)
+	emulation_dict["api_calls"].append(printOut.jsonApis(apiList))
 	
-	for i in logged_syscalls:
-		syscalls_dict = {}
-		syscall_name = i[0]
-		syscall_address = i[1]
-		syscall_value = i[2]
-		syscall_type = i[3]
-		syscall_params_values = i[4]
-		syscall_params_types = i[5]
-		syscall_params_names = i[6]
-		syscall_callID = i[8]
-
-		syscalls_dict["syscall_name"] = str(syscall_name)
-		syscalls_dict["return_value"] = str(syscall_type + " "+syscall_value)
-		syscalls_dict["address"] = str(syscall_address)
-
-		syscalls_dict["parameters"] = []
-
-		for pTyp, pName, pVal in zip(syscall_params_types, syscall_params_names, syscall_params_values):
-			syscalls_dict['parameters'].append({"type":str(pTyp) + " " + str(pName),
-												"value":str(pVal)})
-
-		syscalls_dict["syscall_callID"] = str(hex(syscall_callID))
-		syscalls_dict["OS_Release_SP"] = em.winVersion+", SP "+em.winSP
-
-		# print(syscall_name)
-		emulation_dict["syscalls_emulation"].append(syscalls_dict)
-
+	emulation_dict["syscalls_emulation"].append(printOut.jsonSyscalls(logged_syscalls,em))
+	
 	
 	emulation_dict["dlls"].extend(logged_dlls)
 	emulation_dict["path_artifacts"].extend(art.path_artifacts)
@@ -22667,45 +22571,47 @@ def emulation_txt_out(apiList, logged_syscalls):
 
 	if len(logged_syscalls) > 0:
 		syscall_names, syscall_params_values, syscall_params_types, syscall_params_names, syscall_address, ret_values, ret_type, syscall_bruteforce, syscallID = build_emu_results(logged_syscalls)
-		# printOut.syscallsOut()
-		txt_output += mag + "\n************* Syscalls *************\n\n" + res
-		verbose_mode = emulation_verbose
-		t = 0
-		for eachApi in syscall_names:
-			apName = syscall_names[t]
-			offset = syscall_address[t]
-			pType = syscall_params_types[t]
-			pName = syscall_params_names[t]
-			TypeBundle = []
-			retVal = ret_values[t]
-			retType = ret_type[t]
-			paramVal = syscall_params_values[t]
-			# DLL = dll_name[t]
-			for v, typ in zip(pType, pName):
-				TypeBundle.append(v + " " + typ)
-			joinedBund = ', '.join(TypeBundle)
-			joinedBundclr = joinedBund.replace(",", cya + "," + res)
-			retBundle = retType + " " + retVal
 
-			if verbose_mode:
-				txt_output += '{} {}{}\n'.format(gre + offset + res, yel + apName + res,
-													cya + "(" + res + joinedBundclr + cya + ")" + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
-			else:
-				txt_output += '{} {}{} {}{}\n'.format(gre + offset + res, yel + apName + res,
-													  cya + "(" + res + joinedBundclr + cya + ")" + res,
-													  cya + "Ret: " + res,
-													  red + retBundle + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
 
-			t += 1
-			if verbose_mode:
-				for ptyp, pname, pval in zip(pType, pName, paramVal):
-					txt_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
-				txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
-				txt_output += "\t{} {} - ({}, SP {})\n".format(red + "EAX: " + res, hex(syscallID) + res, em.winVersion + res, em.winSP + res)
-				if syscall_bruteforce:
-					txt_output += "\t{}\n\n".format(whi + "Brute-forced" + res, )
-				else:
-					txt_output += "\n"
+		txt_output += printOut.syscallsOut(emulation_verbose,syscall_names, syscall_params_values, syscall_params_types, syscall_params_names, syscall_address, ret_values, ret_type, syscall_bruteforce, syscallID,em)
+		# txt_output += mag + "\n************* Syscalls *************\n\n" + res
+		# verbose_mode = emulation_verbose
+		# t = 0
+		# for eachApi in syscall_names:
+		# 	apName = syscall_names[t]
+		# 	offset = syscall_address[t]
+		# 	pType = syscall_params_types[t]
+		# 	pName = syscall_params_names[t]
+		# 	TypeBundle = []
+		# 	retVal = ret_values[t]
+		# 	retType = ret_type[t]
+		# 	paramVal = syscall_params_values[t]
+		# 	# DLL = dll_name[t]
+		# 	for v, typ in zip(pType, pName):
+		# 		TypeBundle.append(v + " " + typ)
+		# 	joinedBund = ', '.join(TypeBundle)
+		# 	joinedBundclr = joinedBund.replace(",", cya + "," + res)
+		# 	retBundle = retType + " " + retVal
+
+		# 	if verbose_mode:
+		# 		txt_output += '{} {}{}\n'.format(gre + offset + res, yel + apName + res,
+		# 											cya + "(" + res + joinedBundclr + cya + ")" + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
+		# 	else:
+		# 		txt_output += '{} {}{} {}{}\n'.format(gre + offset + res, yel + apName + res,
+		# 											  cya + "(" + res + joinedBundclr + cya + ")" + res,
+		# 											  cya + "Ret: " + res,
+		# 											  red + retBundle + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
+
+		# 	t += 1
+		# 	if verbose_mode:
+		# 		for ptyp, pname, pval in zip(pType, pName, paramVal):
+		# 			txt_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
+		# 		txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
+		# 		txt_output += "\t{} {} - ({}, SP {})\n".format(red + "EAX: " + res, hex(syscallID) + res, em.winVersion + res, em.winSP + res)
+		# 		if syscall_bruteforce:
+		# 			txt_output += "\t{}\n\n".format(whi + "Brute-forced" + res, )
+		# 		else:
+		# 			txt_output += "\n"
 
 
 	txt_output += printOut.artifactsOut(art,emulation_multiline,logged_dlls)

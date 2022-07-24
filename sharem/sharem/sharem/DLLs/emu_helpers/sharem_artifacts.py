@@ -389,6 +389,7 @@ class Artifacts_emulation:
 		pathUpdateRemove = set()
 		filesUpdateRemove = set()
 		exeUpdateRemove = set()
+		registryUpdateRemove = set()
 
 		for each in self.path_artifacts:
 			if('\', ' in each):
@@ -406,6 +407,14 @@ class Artifacts_emulation:
 					self.file_artifacts += re.findall(Regex.find_totalFiles,next,re.IGNORECASE)
 					filesUpdateRemove.add(each)
 
+		for each in self.registry_misc:
+			if('\', ' in each):
+				temp = each.split('\', ')
+				for next in temp:
+					next = next.strip('\'')
+					self.registry_artifacts += re.findall(Regex.total_Registry,next,re.IGNORECASE)
+					registryUpdateRemove.add(each)
+
 		for each in self.exe_dll_artifacts:
 			if('\', ' in each):
 				temp = each.split('\', ')
@@ -420,8 +429,12 @@ class Artifacts_emulation:
 			self.path_artifacts.remove(each)
 		for each in filesUpdateRemove:
 			self.file_artifacts.remove(each)
+		for each in registryUpdateRemove:
+			self.registry_misc.remove(each)
 		for each in exeUpdateRemove:
 			self.exe_dll_artifacts.remove(each)
+
+
 		self.removeDuplicates()
 
 

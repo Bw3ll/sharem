@@ -10000,8 +10000,8 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         timeZone = get_TIME_ZONE_INFORMATION(uc, pVals[0], em)
-        timeZone.DaylightName = 'ABCDEFGHIJKLMNOQRSTUVWXYZ01234' # Needs Work
-        timeZone.StandardName = 'TestStandard'
+        timeZone.DaylightName = 'UTC' # Add Config for TimeZones
+        timeZone.StandardName = 'UTC'
         timeZone.DaylightDate.setTime(False, emuSimVals.system_time_since_epoch)
         timeZone.StandardDate.setTime(False, emuSimVals.system_time_since_epoch)
         timeZone.writeToMemory(uc, pVals[0])
@@ -13276,20 +13276,20 @@ class CustomWinSysCalls():
 
         # Add Lookup for access mask
 
-        # if pVals[2] != 0x0: # Disabled Until Syscall Struct Print is Fixed
-        #     oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em)
-        #     us = get_UNICODE_STRING(uc, oa.ObjectName, em)
-        #     name = read_unicode(uc, us.Buffer)
-        #     pVals[2] = makeStructVals(uc, oa, pVals[2])
-        #     pVals[2][2][2] = name
-        # else:
-        pVals[2] = hex(pVals[2])
+        if pVals[2] != 0x0: # Disabled Until Syscall Struct Print is Fixed
+            oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em)
+            us = get_UNICODE_STRING(uc, oa.ObjectName, em)
+            name = read_unicode(uc, us.Buffer)
+            pVals[2] = makeStructVals(uc, oa, pVals[2])
+            pVals[2][2][2] = name
+        else:
+            pVals[2] = hex(pVals[2])
 
-        # if pVals[4] != 0x0:
-        #     classUS = get_UNICODE_STRING(uc, pVals[4], em)
-        #     pVals[4] = makeStructVals(uc, classUS, pVals[4])
-        # else:
-        pVals[4] = hex(pVals[4])
+        if pVals[4] != 0x0:
+            classUS = get_UNICODE_STRING(uc, pVals[4], em)
+            pVals[4] = makeStructVals(uc, classUS, pVals[4])
+        else:
+            pVals[4] = hex(pVals[4])
 
         # Add Registry Stuff 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,4])
