@@ -10000,8 +10000,8 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         timeZone = get_TIME_ZONE_INFORMATION(uc, pVals[0], em)
-        timeZone.DaylightName = 'ABCDEFGHIJKLMNOQRSTUVWXYZ01234' # Needs Work
-        timeZone.StandardName = 'TestStandard'
+        timeZone.DaylightName = 'UTC' # Add Config for TimeZones
+        timeZone.StandardName = 'UTC'
         timeZone.DaylightDate.setTime(False, emuSimVals.system_time_since_epoch)
         timeZone.StandardDate.setTime(False, emuSimVals.system_time_since_epoch)
         timeZone.writeToMemory(uc, pVals[0])
