@@ -19275,6 +19275,9 @@ def emulationConf(conr):
 	emuObj.verbose = conr.getboolean('SHAREM EMULATION', 'timeless_debugging')
 	em.codeCoverage = conr.getboolean('SHAREM EMULATION',"complete_code_coverage")
 
+	em.winVersion = conr['SHAREM EMULATION']['windows_version']
+	em.winSP = conr['SHAREM EMULATION']['windows_release_osbuild']
+
 def emulationSimValueConf(conr):
 	global emuSimVals
 	global SimFileSystem
