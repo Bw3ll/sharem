@@ -25,6 +25,8 @@ import hashlib
 import platform
 import textwrap3
 
+
+
 platformType = platform.uname()[0]
 
 slash = ""

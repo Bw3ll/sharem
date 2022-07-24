@@ -1,5 +1,7 @@
 import colorama
 import json
+import textwrap3
+
 colorama.init()
 # from ..Dlls.emu_helpers.sharem_artifacts import *
 
@@ -70,16 +72,18 @@ class PrintingOutput:
                 TypeBundle.append(v + " " + typ)
             joinedBund = ', '.join(TypeBundle)
             try:
-                joinedBund= (textwrap3.fill(joinedBund, width=86))
+                joinedBund= (textwrap3.fill(joinedBund, width=170, break_long_words=False))
             except:
                 pass
             joinedBundclr = joinedBund.replace(",", cya + "," + res)
             retBundle = retType + " " + retVal
 
-
             if verbose_mode:
-                text_output += '{} {}{}\n'.format(gre + offset + res, yel + apName + res,
+                temp = '{} {}{}\n'.format(gre + offset + res, yel + apName + res,
                                                 cya + "(" + res + joinedBundclr + cya + ")" + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
+                text_output+= (textwrap3.fill(temp, width=170, break_long_words=False))
+                text_output+="\n"
+
             else:
                 text_output += '{} {}{} {}{}\n'.format(gre + offset + res, yel + apName + res,
                                                     cya + "(" + res + joinedBundclr + cya + ")" + res,

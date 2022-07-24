@@ -1,0 +1,1 @@
+start python -m pip install -e ../sharem/
