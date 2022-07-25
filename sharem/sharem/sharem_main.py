@@ -25,6 +25,8 @@ import hashlib
 import platform
 import textwrap3
 
+
+
 platformType = platform.uname()[0]
 
 slash = ""
@@ -45,8 +47,7 @@ try:
 		import _win32sysloader
 except:
 	print ("Pywin32 needs to be installed.\nhttps://pypi.org/project/pywin32/\n\tThe setup.py is not always effective at installing Pywin32, so it may need to be manually done.\n")
-	
-	
+
 colorama.init()
 # readRegs()
 # testingAssembly()
@@ -12261,413 +12262,12 @@ def checkForBad00(data, offset, end):
 	# input()
 
 
-def disHereMakeDB2Edited(data,offset, end, mode, CheckingForDB):  #### new one
-	dprint2("dis: disHereMakeDB2 - range " + str(hex(offset)) + " " + str(hex(end)) )
-	num_bytes=end-offset
-	dprint2 (num_bytes)
-	printAllsByRange(offset,offset+num_bytes)
-
-	global labels
-	global sBy
-	nada=""
-	Ascii="B"
-	stop=offset+1
-	val=""
-	stringVal=""
-	db=0
-	dbOut=""
-	t=offset
-	w=0
-	length=end-offset
-	dbFlag=False
-	skip=True
-	startAddString=""
-	stringVala=""
-	stringStart=0
-	stringInProgress=False
-	sVal=""
-	beforeS=""
-	curDisassembly=""
-	instr=""
-	# for x in range (length):
-		# if offset >= length:
-		# 	break
-
-	maxSize=offset+length
-	sample=""
-	while offset < maxSize:
-		stop=offset+1
-		sample=data[offset:stop]
-		bytesRes= (binaryToStr(data[offset:stop]))
-		instr="db 0"+bytesRes[1:]+" (!)"
-		Ascii2=makeAsciiforDB(bytesRes)
-		val +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-		# sVal +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-		dprint2 ("checkingDis", hex(offset), hex(length))
-	
-
-		if sBy.strings[offset]==True: # and sBy.boolspecial[offset]==False:
-			dbFlag=True
-			stringInProgress=True
-			stringval=val
-			# addDis(offset,stringVal)
-			truth,res=checkForLabel(str(hex(offset)),labels)
-			if truth:
-				val=res + val
-				stringVal=res + stringVal
-			stringStart, stringDistance=sBy.stringsStart[offset]
-			dprint2("FoundSTRING", hex(stringStart), hex(offset),"off")
-			if stringStart==offset:
-				dbOut=""
-				before=""
-				beforeS=sVal 
-				# beforeS=removeLastLine(sVal)
-				dprint2 (sVal, "\n", beforeS)
-				# print ("beforeS", sVal, beforeS)
-				sVal=""
-				startAddString=str(hex(offset))
-				stringVala=sBy.stringsValue[offset]+" ; string"
-				# bprint ("\t\t\tmaking strings", stringVala)
-
-				# input()
-				dbOut+=(binaryToStr(data[t:t+1]))
-				dprint2 (stringVala)
-				
-			if offset>stringStart:
-				dprint2 (stringVala)
-				dprint2 ("dbout ", hex(t))
-				dbOut+=(binaryToStr(data[t:t+1]))
-		if (sBy.strings[offset]==False):#  and sBy.boolspecial[offset]==False:
-			dprint2("FoundNOTSTRING", hex(stringStart), hex(offset),"off")
-
-			stringInProgress=False
-			if dbFlag==False  and sBy.boolspecial[offset]==False:
-				# print ("dbflag=False")
-				truth,res=checkForLabel(str(hex(offset)),labels)
-				if truth:
-					val=val+res
-					stringVal=stringVal+res
-				# curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-				
-
-				# print ("sStart1", hex(sStart1))
-				# Ascii3=toString(m[o].rawData2[sStart1:offset])
-				# print ("Ascii2", Ascii22)
-				# print ("Ascii3", Ascii3)
-				Ascii2=""
-				bytesRes=""
-				instr=""
-				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), "", "", ""))
-
-				stringVal+=curDisassembly
-				# bytesRes="0x"+binaryToStr(data[offset:offset+1],2)
-				bytesRes="0x"+data[offset:offset+1].hex()
-				addDis(offset, "db" + " " +bytesRes, "db", bytesRes,"A.")
-				# print ("y offset", hex(t))
-		
-				# stringVal= beforeS + stringVal
-				skip=True
-			if dbFlag==True:
-
-				# print ("sV, offset: ", hex(offset), "value ", sBy.stringsValue[offset])
-				nada=""
-				truth,res=checkForLabel(str(hex(offset)),labels)
-				if truth:
-					val=val+res
-					stringVal=stringVal+res
-				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(startAddString, stringVala+"",dbOut,nada ))
-				stringVal+=curDisassembly
-				# print ("addy", hex(offset))
-				# print ("startAddString", startAddString, type(startAddString))
-				# addDis(int(startAddString, 16),curDisassembly, "string","", "B")  #old
-				addDis(int(startAddString,16),"",stringVala, "", "StringB")   # new Fixed
-
-				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-				if  sBy.boolspecial[offset]==False:
-					stringVal+=curDisassembly
-					# addDis(offset,curDisassembly, "db", "0x"+bytesRes[2:],"C")
-					bytesRes="0x"+data[offset:offset+1].hex()
-					addDis(offset, "db" + " " +bytesRes, "db", bytesRes,"BD")  # new - not tested
-				if len(beforeS) > 0:
-					stringVal= beforeS +"\n"+ "C."+curDisassembly
-				dprint2 ("stringVal", stringVal)
-				dbOut=""
-				dprint2 (stringVal)
-				dbFlag=False
-				skip=True
-			if not skip:
-				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-				stringVal+=curDisassembly
-				# addDis(offset,stringVal, "db", "0x"+bytesRes[2:], "BD")  # old
-				bytesRes="0x"+data[offset:offset+1].hex()
-				addDis(offset, "db" + " " +bytesRes, "db", bytesRes,"BD")  # new - not tested
-			skip=False
-		# "bytesres
-		if sBy.boolspecial[offset]==True:
-			mes=sBy.specialVal[offset]
-			offset=sBy.specialEnd[offset]-1
-			t=offset
-			w=offset
-			distanceStr =str(hex(sBy.specialEnd[offset]-sBy.specialStart[offset] ))
-			if sBy.specialVal[t] == "al":
-				stringValSp="align " +distanceStr
-			elif sBy.specialVal[t] == "ff":
-				stringValSp="db 0xff x"  + distanceStr 
-			else:
-				stringValSp="align " +distanceStr
-			nada=""
-			dbOutSp=(binaryToStr(data[sBy.specialStart[offset]:sBy.specialEnd[offset]]))
-			curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(sBy.specialStart[offset])), stringValSp,dbOutSp,nada ))
-			stringVal+=""+curDisassembly
-			if sBy.specialVal[t] == "al":
-				stringValSp="align " +distanceStr
-				bytesRes= (binaryToStr(sample,2))
-				bytesOut="db 0x"+bytesRes+"\n"
-				# addDis(sBy.specialStart[offset],curDisassembly, bytesOut*int(len(dbOutSp)/4), "","D1")   #doesn't seem to be used  - old
-
-				mnemonicVal="align " + hex(sBy.specialEnd[offset] - sBy.specialStart[offset])
-				print ("distanceAlign", hex(sBy.specialStart[offset]), hex(sBy.specialEnd[offset]))
-				print (mnemonicVal)
-
-				addDis(sBy.specialStart[offset],mnemonicVal , mnemonicVal, "","D1")   		 #doesn't seem to be used   --> new 
-
-			elif sBy.specialVal[t] == "ff":
-				stringValSp="db 0xff x"  + distanceStr 
-				bytesRes= (binaryToStr(sample,2))
-				bytesOut="db 0x"+bytesRes+"\n"
-				# addDis(sBy.specialStart[offset],curDisassembly,bytesOut*int(len(dbOutSp)/4), "","D2")   # old
-
-
-				mnemonicVal="db 0xff x " + hex(sBy.specialEnd[offset] - sBy.specialStart[offset])
-
-
-				addDis(sBy.specialStart[offset],mnemonicVal,mnemonicVal, "","D2")		# new
-			else:
-				bytesRes= (binaryToStr(sample,2))
-				bytesOut="db 0x"+bytesRes+"\n"
-				# addDis(sBy.specialStart[offset],curDisassembly, (bytesOut)*int(len(dbOutSp)/4), "","D3")   	 #old	# this is the one used
-				stringValSp="align " +distanceStr
-
-				mnemonicVal="align " + hex(sBy.specialEnd[offset] - sBy.specialStart[offset])
-				print ("distanceAlign", hex(sBy.specialStart[offset]), hex(sBy.specialEnd[offset]))
-				print (mnemonicVal)
-
-				addDis(sBy.specialStart[offset],mnemonicVal , mnemonicVal, "","D3")   		# this is the one used    ---> new
-
-			# addDis(sBy.specialStart[offset],"D."+curDisassembly, "db 0xff\n"*int(len(dbOutSp)/4), "")
-			# print ("got it align", hex(offset))
-			dprint2(hex(len(sBy.boolspecial)))
-
-			# sBy.specialVal[t]=dataType
-			# sBy.specialStart[t]=start
-			# sBy.specialEnd[t]=end
-			# sBy.boolspecial[t]=True
-			# print("changing value align @	
-		offset +=1
-		stop += 1
-		t+=1
-		w+=1
-		# print ("t-eof", he)x(w), hex(length))
-		if w==(length):
-			if dbFlag==True:
-				nada=""
-				# stringVal +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-				# curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(startAddString, stringVala+"cat","","" ))
-				stringVal+=curDisassembly
-				# print ("findme")
-				# print (stringVala)
-				# print (dbOut)
-				addDis(int(startAddString,16),"",stringVala, "", "EndStringMaker")
-				# stringVal= beforeS + stringVal
-				dbOut=""
-				dbFlag=False
-				if len(dbOut)>0:
-					curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-					stringVal+=curDisassembly
-					addDis(offset,curDisassembly,"F")
-			w=0
-	# print("ending: disHereMakeDB2 - range " + str(hex(offset)) + " " + str(hex(end)) )
-	dprint2("returnDB2\n", val)
-	dprint2("stringval\n")
-	dprint2(stringVal)
-	dprint2 ("")
-	val=stringVal
-	return val
-
-
-
-
-def disHereMakeDB2old2(data,offset, end, mode, CheckingForDB):  #### new one
+def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 	# print("dis: disHereMakeDB2 - range " + str(hex(offset)) + " " + str(hex(end)) )
 	# print ("start of function --------------------------------?>>>>>>>>>>>>>>>>>>>")
 	# dprint2 (num_bytes)
 	# printAllsByRange(offset,offset+num_bytes)
-
-	global labels
-	global sBy
-	apiFound=set()
-	# print (sBy.ApiTable)
-	# print (sBy.ApiValue)
-
-	# t=offset
-	w=0
-	length=end-offset
-	dbFlag=False
-	skip=True
-	startAddString=""
-	stringVala=""
-	apiValA=""
-	apiStart=0
-	apiDistance=0
-	apiInProgress=False
-	apiEnd=0
-	apiStartstr=""
-	stringStart=0
-	stringInProgress=False
-	maxSize=offset+length
-	dbOut=""
-	apiSkip=False
-	# print ("maxsize", hex(maxSize), "offset-start", hex(offset), "end", hex(end))
-	# print ("sBy.strings", hex(len(sBy.strings)))
-	# print (hex(len(m[o].rawData2)))
-	while offset < maxSize:
-		check=sBy.strings[offset]
-
-		if sBy.strings[offset]==True: # and sBy.boolspecial[offset]==False:
-			dbFlag=True
-			stringInProgress=True
-			stringStart, stringDistance=sBy.stringsStart[offset]
-			startAddString=hex(stringStart)
-			# dprint2("FoundSTRING", hex(stringStart), hex(offset),"off")
-			if stringStart==offset:
-				startAddString=str(hex(offset))
-				stringVala=sBy.stringsValue[offset]+mag+" ; string"+res2+"\t\t"
-				# bprint ("\t\t\tmaking strings", stringVala)
-			# if ApiTable[offset]
-		elif sBy.ApiTable[offset]==True:
-			dbFlag=True
-			apiInProgress=True
-			apiStart= sBy.ApiStart[offset]
-			apiDistance=sBy.ApiEnd[offset] - sBy.ApiStart[offset]
-			if apiStart==offset:
-				apiStartstr=str(hex(offset))
-				apiValA=mag + sBy.ApiValue[offset] + yel + " - API pointer" +res2+"\t\t"
-			if apiStart+1==offset:
-				apiEnd=sBy.ApiEnd[offset]
-				apiSkip=False
-
-			# sBy.ApiTable[t]=True
-			# sBy.ApiStart[t]=start
-			# sBy.ApiValue[t]=word
-			# sBy.ApiEnd[t]= end
-			# print ("in api table range")
-		elif (sBy.strings[offset]==False) and (sBy.ApiTable[offset]==False):#  and sBy.boolspecial[offset]==False:
-			# dprint2("FoundNOTSTRING", hex(stringStart), hex(offset),"off")
-			# stringInProgress=False
-			# apiInProgress=False
-			if dbFlag==False  and sBy.boolspecial[offset]==False:
-				bytesRes="0x"+data[offset:offset+1].hex()
-				addDis(offset, "db" + " " +bytesRes, "db", bytesRes,"A.")
-				skip=True
-			elif dbFlag==True:
-				if stringInProgress:
-					# print ("startAddString", startAddString)
-					# print(type(startAddString))
-					addDis(int(startAddString,16),"",stringVala, "", "StringB")   # new Fixed
-					stringInProgress=False
-				if apiInProgress:
-					if apiStart not in apiFound:
-						addDis(int(apiStartstr,16),"",apiValA, "", "EndStringMaker")
-						apiFound.add(apiStart)
-						# print ("saveing", apiValA +" first")
-						apiInProgress=False
-				if  sBy.boolspecial[offset]==False:
-					bytesRes="0x"+data[offset:offset+1].hex()
-					addDis(offset, "db" + " " +bytesRes, "db", bytesRes,"BD")  # new - not tested
-				dbFlag=False
-				skip=True
-			if not skip:
-				bytesRes="0x"+data[offset:offset+1].hex()
-				addDis(offset, "db" + " " +bytesRes, "db", bytesRes,"BD")  # new - not tested
-			skip=False
-
-		if apiEnd==offset+3:
-			# print ("making 3rd", apiValA, hex(offset), hex(apiStart))	
-			if apiStart not in apiFound:
-				addDis(int(apiStartstr,16),"",apiValA, "", "making 3rd")
-			apiFound.add(apiStart)
-			apiInProgress=False
-			apiSkip=True
-		elif sBy.boolspecial[offset]==True and sBy.ApiTable[offset]==False:
-			offset=sBy.specialEnd[offset]-1
-			
-			# t=offset
-			# w=offset
-			if sBy.specialVal[offset] == "al":
-				# print ("making align", hex(offset), sBy.ApiTable[offset], sBy.ApiTable[offset-1])
-				mnemonicVal="align " + hex(sBy.specialEnd[offset] - sBy.specialStart[offset])
-				# print ("distanceAlign", hex(sBy.specialStart[offset]), hex(sBy.specialEnd[offset]))
-				# print (mnemonicVal)
-				addDis(sBy.specialStart[offset],mnemonicVal , mnemonicVal, "","D1")   		 #doesn't seem to be used   --> new 
-			elif sBy.specialVal[offset] == "ff":
-				mnemonicVal="db 0xff x " + hex(sBy.specialEnd[offset] - sBy.specialStart[offset])
-				addDis(sBy.specialStart[offset],mnemonicVal,mnemonicVal, "","D2")		# new
-			else:
-				if offset == sBy.specialEnd[offset]-1:
-					# print (apiFound)
-					# print ("making align2", hex(offset), sBy.ApiTable[offset], sBy.ApiTable[offset-1])
-
-					mnemonicVal="align2 " + hex(sBy.specialEnd[offset] - sBy.specialStart[offset])
-					# print ("distanceAlign", hex(sBy.specialStart[offset]), hex(sBy.specialEnd[offset]))
-					# print (mnemonicVal)
-					addDis(sBy.specialStart[offset],mnemonicVal , mnemonicVal, "","D3")   		# this is the one used    ---> new
-			# dprint2(hex(len(sBy.boolspecial)))
-		offset +=1
-		# t+=1
-		w+=1
-		# print(startAddString)
-		# print(type(startAddString))
-		if w==(length):
-			# sBy.shMnemonic.append(mnemonic)
-			# sBy.shOp_str.append(op_str)
-			t=0
-			# for each in sBy.shMnemonic:
-			# 	print (sBy.shMnemonic[t] + sBy.shOp_str[t])
-			# 	t+=1
-			# print(data[offset-2:offset+1].hex())
-			# print(data.hex())
-			if dbFlag==True:
-				stringVala=sBy.stringsValue[offset-1]+mag+" ; string"+res2+"\t\t"
-				# print("-->", startAddString, stringVala)
-				try:
-					addDis(int(startAddString,16),"",stringVala, "", "EndStringMaker")
-				except:
-					# print ("skip for now")
-					pass
-				if apiInProgress and apiSkip==False:
-					# print ("making api 2nd", apiValA, hex(offset), apiSkip)
-					if offset == apiStart+3:
-						if apiStart not in apiFound:
-							# print ("apiFound", apiFound)
-							addDis(int(apiStartstr,16),"",apiValA, "", "EndStringMaker")
-							apiInProgress=False
-			# if dbFlag==True:
-			# 	try:
-			# 		addDis(int(startAddString,16),"",stringVala, "", "EndStringMaker")
-			# 	except:
-			# 		try:
-			# 			addDis(int(startAddString),"",stringVala, "", "EndStringMaker")
-			# 		except:
-			# 			pass
-				dbFlag=False
-			w=0
-	return ""
-def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
-	bprint("dis: disHereMakeDB2 - range " + str(hex(offset)) + " " + str(hex(end)) )
-	# print ("start of function --------------------------------?>>>>>>>>>>>>>>>>>>>")
-	# dprint2 (num_bytes)
-	# printAllsByRange(offset,offset+num_bytes)
-
+	dbStart=offset
 	global labels
 	global sBy
 	apiFound=set()
@@ -12739,8 +12339,18 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 			# apiInProgress=False
 			# print ("***", stringVala, "dbflag", dbFlag, "stringInProgress", stringInProgress, "skip", skip)
 			if dbFlag==False  and sBy.boolspecial[offset]==False:
-				bytesRes="0x"+data[offset:offset+1].hex()
-				addDis(offset, "db" + " " +bytesRes, "db", bytesRes,"A.")
+				# bytesRes="0x"+data[offset:offset+1].hex()
+
+
+				getNextVal=(getNextBoolDB4
+					(True, True, True, True, sBy.boolspecial,sBy.ApiTable,sBy.strings, sBy.bytesType, offset))
+				# print (getNextVal, hex(getNextVal+offset))
+				bytesRes="0x"+data[offset:offset+getNextVal].hex()
+				processDB(data[offset:offset+getNextVal],offset)
+
+				# addDis(offset, "1 db" + " " +bytesRes, "1b db", bytesRes,"A.")
+
+				offset=getNextVal+offset-1  # -1 will add 1 later
 				skip=True
 			elif dbFlag==True:
 				if stringInProgress:
@@ -12750,19 +12360,29 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 					stringInProgress=False
 				elif  sBy.boolspecial[offset]==False:
 					bytesRes="0x"+data[offset:offset+1].hex()
-					addDis(offset, "db" + " " +bytesRes, "db", bytesRes,"BD1")  # new - not tested
+					# addDis(offset, "2 db" + " " +bytesRes, "2b db", bytesRes,"BD1")  # new - not tested
+
+					getNextVal=(getNextBoolDB4(True, True, True, True, sBy.boolspecial,sBy.ApiTable,sBy.strings, sBy.bytesType, offset))
+				# print (getNextVal, hex(getNextVal+offset))
+					bytesRes="0x"+data[offset:offset+getNextVal].hex()
+					processDB(data[offset:offset+getNextVal],offset)
+					offset=getNextVal+offset-1
 				if apiInProgress:
 					if apiStart not in apiFound:
 						addDis(int(apiStartstr,16),"",apiValA, "", "EndStringMaker")
 						apiFound.add(apiStart)
 						# print ("saveing", apiValA +" first")
 						apiInProgress=False
+						dbFlag=False
 				
 				dbFlag=False
 				skip=True
 			if not skip:
-				bytesRes="0x"+data[offset:offset+1].hex()
-				addDis(offset, "db" + " " +bytesRes, "db", bytesRes,"BD2")  # new - not tested
+				# bytesRes="0x"+data[offset:offset+1].hex()
+				# addDis(offset, "3 db" + " " +bytesRes, "3b db", bytesRes,"BD2")  # new - not tested
+				bytesRes="0x"+data[offset:offset+getNextVal].hex()
+				processDB(data[offset:offset+getNextVal],offset)
+				offset=getNextVal+offset-1
 			skip=False
 
 		if apiEnd==offset+3:
@@ -12772,9 +12392,11 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 			apiFound.add(apiStart)
 			apiInProgress=False
 			apiSkip=True
+			dbFlag=False
+
 		elif sBy.boolspecial[offset]==True and sBy.ApiTable[offset]==False:
 			offset=sBy.specialEnd[offset]-1
-			
+			#psb
 			# t=offset
 			# w=offset
 			if sBy.specialVal[offset] == "al":
@@ -12836,201 +12458,220 @@ def disHereMakeDB2(data,offset, end, mode, CheckingForDB):  #### new one
 				dbFlag=False
 			w=0
 	return ""
-
-def disHereMakeDB233(data,offset, end, mode, CheckingForDB):
-	dprint2("dis: disHereMakeDB2 - range " + str(hex(offset)) + " " + str(hex(end)) )
-	num_bytes=end-offset
-	dprint2 (num_bytes)
-	printAllsByRange(offset,offset+num_bytes)
-
-	global labels
-	global sBy
-	nada=""
-	Ascii="B"
-	stop=offset+1
-	val=""
-	stringVal=""
-	db=0
-	dbOut=""
-	t=offset
-	w=0
-	length=end-offset
-	dbFlag=False
-	skip=True
-	startAddString=""
-	stringVala=""
-	stringStart=0
-	stringInProgress=False
-	sVal=""
-	beforeS=""
-	curDisassembly=""
-	instr=""
-	# for x in range (length):
-		# if offset >= length:
-		# 	break
-
-	maxSize=offset+length
-	sample=""
-	while offset < maxSize:
-		stop=offset+1
-		sample=data[offset:stop]
-		bytesRes= (binaryToStr(data[offset:stop]))
-		instr="db 0"+bytesRes[1:]+" (!)"
-		Ascii2=makeAsciiforDB(bytesRes)
-		val +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-		# sVal +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-		dprint2 ("checkingDis", hex(offset), hex(length))
+def processDB(binary, offset):
+	# print ("processDB", len(binary), hex(offset))
+	total= (len(binary))
+	numDD=int(total/4)
+	rem=total%4
+	# print ("total", total, "\tnumDD", int(numDD))
+	# print ("remainder",rem)
+	# print ("double checking math:", (numDD*4)+rem)
 	
+	start=0
 
-		if sBy.strings[offset]==True: # and sBy.boolspecial[offset]==False:
-			dbFlag=True
-			stringInProgress=True
-			stringval=val
-			# addDis(offset,stringVal)
-			truth,res=checkForLabel(str(hex(offset)),labels)
-			if truth:
-				val=res + val
-				stringVal=res + stringVal
-			stringStart, stringDistance=sBy.stringsStart[offset]
-			dprint2("FoundSTRING", hex(stringStart), hex(offset),"off")
-			if stringStart==offset:
-				dbOut=""
-				before=""
-				beforeS=sVal 
-				# beforeS=removeLastLine(sVal)
-				dprint2 (sVal, "\n", beforeS)
-				# print ("beforeS", sVal, beforeS)
-				sVal=""
-				startAddString=str(hex(offset))
-				stringVala=sBy.stringsValue[offset]+" ; string4"
-				# print ("\t\t\tmaking strings", stringVala)
+	# start=offset
 
-				# input()
-				dbOut+=(binaryToStr(data[t:t+1]))
-				dprint2 (stringVala)
-				
-			if offset>stringStart:
-				dprint2 (stringVala)
-				dprint2 ("dbout ", hex(t))
-				dbOut+=(binaryToStr(data[t:t+1]))
-		if (sBy.strings[offset]==False):#  and sBy.boolspecial[offset]==False:
-			dprint2("FoundNOTSTRING", hex(stringStart), hex(offset),"off")
-
-			stringInProgress=False
-			if dbFlag==False  and sBy.boolspecial[offset]==False:
-				# print ("dbflag=False")
-				truth,res=checkForLabel(str(hex(offset)),labels)
-				if truth:
-					val=val+res
-					stringVal=stringVal+res
-				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-				stringVal+=curDisassembly
-
-				addDis(offset,curDisassembly, "db", "0x"+bytesRes[2:],"A.")
-				# print ("y offset", hex(t))
+	# for x in range(numDD):
+	# 	bytesRes= binary[start:start+4].hex()
 		
-				# stringVal= beforeS + stringVal
-				skip=True
-			if dbFlag==True:
+	# 	print (bytesRes)
 
-				# print ("sV, offset: ", hex(offset), "value ", sBy.stringsValue[offset])
-				nada=""
-				truth,res=checkForLabel(str(hex(offset)),labels)
-				if truth:
-					val=val+res
-					stringVal=stringVal+res
-				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(startAddString, stringVala,dbOut,nada ))
-				stringVal+=curDisassembly
-				# print ("addy", hex(offset))
-				# print ("startAddString", startAddString, type(startAddString))
-				addDis(int(startAddString, 16),curDisassembly, "string","", "B")
-				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-				if  sBy.boolspecial[offset]==False:
-					stringVal+=curDisassembly
-					addDis(offset,curDisassembly, "db", "0x"+bytesRes[2:],"C")
-				if len(beforeS) > 0:
-					stringVal= beforeS +"\n"+ "C."+curDisassembly
-				dprint2 ("stringVal", stringVal)
-				dbOut=""
-				dprint2 (stringVal)
-				dbFlag=False
-				skip=True
-			if not skip:
-				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-				stringVal+=curDisassembly
-				addDis(offset,stringVal, "db", "0x"+bytesRes[2:], "BD")
-			skip=False
-		# "bytesres
-		if sBy.boolspecial[offset]==True:
-			mes=sBy.specialVal[offset]
-			offset=sBy.specialEnd[offset]-1
-			t=offset
-			w=offset
-			distanceStr =str(hex(sBy.specialEnd[offset]-sBy.specialStart[offset] ))
-			if sBy.specialVal[t] == "al":
-				stringValSp="align " +distanceStr
-			elif sBy.specialVal[t] == "ff":
-				stringValSp="db 0xff x"  + distanceStr 
-			else:
-				stringValSp="align " +distanceStr
-			nada=""
-			dbOutSp=(binaryToStr(data[sBy.specialStart[offset]:sBy.specialEnd[offset]]))
-			curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(sBy.specialStart[offset])), stringValSp,dbOutSp,nada ))
-			stringVal+=""+curDisassembly
-			if sBy.specialVal[t] == "al":
-				stringValSp="align " +distanceStr
-				bytesRes= (binaryToStr(sample,2))
-				bytesOut="db 0x"+bytesRes+"\n"
-				addDis(sBy.specialStart[offset],curDisassembly, bytesOut*int(len(dbOutSp)/4), "","D1")   #doesn't seem to be used
-			elif sBy.specialVal[t] == "ff":
-				stringValSp="db 0xff x"  + distanceStr 
-				bytesRes= (binaryToStr(sample,2))
-				bytesOut="db 0x"+bytesRes+"\n"
-				addDis(sBy.specialStart[offset],curDisassembly,bytesOut*int(len(dbOutSp)/4), "","D2")
-			else:
-				bytesRes= (binaryToStr(sample,2))
-				bytesOut="db 0x"+bytesRes+"\n"
-				addDis(sBy.specialStart[offset],curDisassembly, (bytesOut)*int(len(dbOutSp)/4), "","D3")   		# this is the one used
-				stringValSp="align " +distanceStr
-			# addDis(sBy.specialStart[offset],"D."+curDisassembly, "db 0xff\n"*int(len(dbOutSp)/4), "")
-			# print ("got it align", hex(offset))
-			dprint2(hex(len(sBy.boolspecial)))
+	# 	addDis(offset, hex(start)+" 3 dd" + " " +bytesRes,  hex(start)+"3b dd", bytesRes,"processDB")
 
-			# sBy.specialVal[t]=dataType
-			# sBy.specialStart[t]=start
-			# sBy.specialEnd[t]=end
-			# sBy.boolspecial[t]=True
-			# print("changing value align @	
-		offset +=1
-		stop += 1
-		t+=1
-		w+=1
-		# print ("t-eof", hex(w), hex(length))
-		if w==(length):
-			if dbFlag==True:
-				nada=""
-				# stringVal +=('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-				curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(startAddString, stringVala,dbOut,nada ))
-				stringVal+=curDisassembly
-				# print ("findme")
-				# print (stringVala)
-				# print (dbOut)
-				addDis(int(startAddString,16),curDisassembly,stringVala, "", "E")
-				# stringVal= beforeS + stringVal
-				dbOut=""
-				dbFlag=False
-				if len(dbOut)>0:
-					curDisassembly =('{:<10s} {:<35s}{:<26s}{:<10s}\n'.format(str(hex(offset)), instr, bytesRes, Ascii2))
-					stringVal+=curDisassembly
-					addDis(offset,curDisassembly,"F")
-			w=0
-	# print("ending: disHereMakeDB2 - range " + str(hex(offset)) + " " + str(hex(end)) )
-	dprint2("returnDB2\n", val)
-	dprint2("stringval\n")
-	dprint2(stringVal)
-	dprint2 ("")
-	val=stringVal
-	return val
+	# 	start+=4
+
+	# print ("\n\n\n")
+	# start=0
+	while start <numDD*4:
+		bytesRes= binary[start:start+4].hex()
+		# debugInfo="\n\t" +str(len(binary)) + " " +str(hex(offset)) +" "  + str(hex(offset+start))
+
+		# print ("dd", binary[start:start+4].hex())
+		addDis(offset+start, hex(offset+start)+"dd" + " " +bytesRes,  "dd", bytesRes,"processDB")
+
+		start+=4
+
+	if rem==3:
+		# print ("dw", binary[start:start+2].hex())
+		bytesRes= binary[start:start+2].hex()
+
+		addDis(offset+start, hex(offset+start)+" dw" + " " +bytesRes,  "dw",bytesRes,"processDB")
+
+		start+=2
+		bytesRes= binary[start:start+1].hex()
+
+		# print ("dw", binary[start:start+1].hex())
+		addDis(offset+start, hex(offset+start)+" db" + " " +bytesRes,  "db", bytesRes,"processDB")
+		start+=1
+
+	if rem==2:
+		bytesRes= binary[start:start+2].hex()
+
+		# print ("dw", binary[start:start+2].hex())
+		addDis(offset+start, hex(offset+start)+"dw" + " " +bytesRes,  "dw", bytesRes,"processDB")
+
+		start+=2
+
+	if rem==1:
+		bytesRes= binary[start:start+1].hex()
+
+		# print ("db", binary[start:start+1].hex())
+		addDis(offset+start, hex(offset+start)+" db" + " " +bytesRes,  "db", bytesRes,"processDB")
+
+		start+=1
+
+
+def getNextBoolDB2(pattern1, pattern2,test1, test2, offset):
+	# print ("tests")
+	# print(len(test1), len(test2))c
+	# print (test1)
+	# print (test2)
+	test1=test1[offset:]
+	test2=test2[offset:]
+	try:
+		found=test1.index(pattern1)
+	except Exception as e:
+		print (e)
+		print(traceback.format_exc())
+		
+		print ("error1")
+		found=len(test1)-1
+	try:
+		found2=test2.index(pattern2)
+	except Exception as e:
+		print (e)
+		print(traceback.format_exc())
+		
+		print ("error2")
+		found2=len(test2)-1
+		
+	print ("found1:", found, "\tfound2:", found2, "offset", hex(offset), hex(offset+found), hex(offset+found2))
+	if found <= found2:
+		return found
+	else:
+		return found2
+
+def getNextBoolDB3(pattern1, pattern2,pattern3,test1, test2,test3, offset):
+	test1=test1[offset:]
+	test2=test2[offset:]
+	test3=test3[offset:]
+	print ("test2 apiTable", len(test2))
+	print (test2)
+
+	print ("test3 strings", len(test3))
+	print (test3)
+
+	try:
+		found=test1.index(pattern1)
+	except:
+		print ("error1")
+		found=len(test1)-1
+	try:
+		found2=test2.index(pattern2)
+	except:
+		print ("error2")
+		found2=len(test2)-1
+
+	try:
+		found3=test3.index(pattern3)
+	except:
+		print ("error2")
+		found3=len(test3)-1
+
+
+	print ("found1:", found, "\tfound2:", found2, "\tfound3", found3, "offset", hex(offset), hex(offset+found), hex(offset+found2), hex(offset+found3))
+	possible=[found, found2, found3]
+	minPossible=min(possible)
+	return minPossible
+
+
+def getNextBoolDB4(pattern1, pattern2,pattern3,pattern4, test1, test2,test3, test4, offset):
+	test1=test1[offset:]
+	test2=test2[offset:]
+	test3=test3[offset:]
+	test4=test4[offset:]
+
+	# print ("test2 apiTable", len(test2))
+	# print (test2)
+
+	# print ("test3 strings", len(test3))
+	# print (test3)
+
+	try:
+		found=test1.index(pattern1)
+	except:
+		# print ("error1")
+		found=len(test1)-1
+	try:
+		found2=test2.index(pattern2)
+	except:
+		# print ("error2")
+		found2=len(test2)-1
+
+	try:
+		found3=test3.index(pattern3)
+	except:
+		# print ("error3")
+		found3=len(test3)-1
+
+	try:
+		found4=test4.index(pattern4)
+	except:
+		# print ("error4")
+		found4=len(test4)-1
+
+	# print ("found1:", found, "\tfound2:", found2, "\tfound3", found3, "found 4", found4, "offset", hex(offset), hex(offset+found), hex(offset+found2), hex(offset+found3), hex(offset+found4))
+	possible=[found, found2, found3, found4]
+	minPossible=min(possible)
+	if minPossible==0:
+		minPossible=1
+	return minPossible
+
+
+
+
+def findDataBytesEmu(shellBytes):
+	global bAddReadTuple
+	# print (red+"findDataBytesEmu\n\n\n"+res)
+	maxEmuSize=len(m[o].rawData2)
+
+	emuOnce=bAddReadTuple  |  bAddWriteTuple
+	emuTwice=bAddReadTwiceTuple | bAddWriteTwiceTuple
+	emuThrice=bAddReadThriceTuple | bAddWriteThriceTuple
+
+
+	# print ("max", maxEmuSize, len(emuTwice), len(emuOnce))
+	readPercent=len(emuOnce)/maxEmuSize
+	readTwicePercent=len(emuTwice)/maxEmuSize
+	readThricePercent=len(emuThrice)/maxEmuSize
+
+	# print (readPercent, readTwicePercent)
+	maxPercent=0.4  # if we are conveting to more than 50% data, then may be more likely each byte is being decoded more than once. hence, ignore this feature.
+
+	
+	if not sh.decryptSuccess:
+		if readPercent < maxPercent:
+			for each in emuOnce:
+				# print (hex(each[0]), each[1])
+				modVal=each[0]-CODE_ADDR
+				modifysByRange(shellBytes, modVal,modVal+ each[1], "d")
+	else:
+		if readTwicePercent < maxPercent:
+			for each in emuTwice:
+				# print (hex(each[0]), each[1])
+				modVal=each[0]-CODE_ADDR
+				modifysByRange(shellBytes, modVal,modVal+ each[1], "d")
+		elif readThricePercent < maxPercent:
+			for each in emuThrice:
+				# print (hex(each[0]), each[1])
+				modVal=each[0]-CODE_ADDR
+				modifysByRange(shellBytes, modVal,modVal+ each[1], "d")
+		else:
+			print ("This is an advanced encoding. Some data cannot be distinguished between code.")
+
+
+	# print ("end findDataBytesEmu", hex(CODE_ADDR))
+
 def dprint4(*args):
 	debugging=True
 	dprint3(*args)
@@ -13417,6 +13058,7 @@ def anaFindCallsNew(start, data):   #nEW
 			if str(hex(destination)) not in searchFor:
 				searchFor.append(str(hex(destination)))
 				offsets.add(destination)
+				# print ("hidden call", hex(distination-2))
 				modifysByRange(data, destination-2, destination,"d")
 
 	t+=1
@@ -13433,6 +13075,8 @@ def anaCombined(data, start, current):   #original
 	t=0
 	destination=99999999
 	searchFor=[]
+	maxDest = len(m[o].rawData2)
+
 	for opcode in data[start:current]:
 		test=int(data[start+t])
 		# print (hex(test))
@@ -13447,20 +13091,23 @@ def anaCombined(data, start, current):   #original
 			# print ("ans:",ans)
 			if valb_1=="jmp":
 				# print ("checking short jump")
-				modifysByRange(data, start+t,start+t+num_bytes,"i","anaCombined")
+				# modifysByRange(data, start+t,start+t+num_bytes,"i","anaCombined")
 				if "ff" in valb_2:
 					# print ("has  ff")
 					signedNeg=signedNegHexTo(int(valb_2,16))
 					# print ("signedNeg", signedNeg)
 					valb_2=str(hex(signedNeg))
 				destination = (start+t) + int(valb_2,16)
-				# print("eb destination: " + str(hex(destination)))
-				if str(hex(destination)) not in labels:
-					labels.add(str(hex(destination)))
-					# print  ("3 appending label " + str(hex(destination)))
-				
-				if str(hex(destination)) not in searchFor:
-					searchFor.append(str(hex(destination)))
+				if destination < maxDest:
+					modifysByRange(data, start+t,start+t+num_bytes,"i","anaCombined")
+
+					# print("eb destination: " + str(hex(destination)))
+					if str(hex(destination)) not in labels:
+						labels.add(str(hex(destination)))
+						# print  ("3 appending label " + str(hex(destination)))
+					
+					if str(hex(destination)) not in searchFor:
+						searchFor.append(str(hex(destination)))
 		# FINE, IT IS NEGATIVE
 		elif test==ord(OP_SHORT_JUMP_NEG):
 			# print("FOUND 0xe9!")
@@ -13471,7 +13118,7 @@ def anaCombined(data, start, current):   #original
 				ans, valb_1, valb_2,num_bytes= disHereTiny(data[start+t:start+t+2])
 			# print (ans, valb_1, valb_2)
 			if valb_1=="jmp":
-				modifysByRange(data, start+t,start+t+num_bytes,"i","anaCombined")
+				# modifysByRange(data, start+t,start+t+num_bytes,"i","anaCombined")
 				if "ff" in valb_2:
 					# print ("has  ff")
 					signedNeg=signedNegHexTo(int(valb_2,16))
@@ -13480,19 +13127,22 @@ def anaCombined(data, start, current):   #original
 				# print ("checking short jump negative")
 				destination = (start+t) + int(valb_2,16)
 				# print("neg e9 destination: " + str(hex(destination)))
-				if str(hex(destination)) not in labels:
-					labels.add(str(hex(destination)))
-					# print  ("4 appending label " + str(hex(destination)))
+				if destination < maxDest:
+					modifysByRange(data, start+t,start+t+num_bytes,"i","anaCombined")
 
-				if str(hex(destination)) not in searchFor:
-					searchFor.append(str(hex(destination)))
+					if str(hex(destination)) not in labels:
+						labels.add(str(hex(destination)))
+						# print  ("4 appending label " + str(hex(destination)))
+
+					if str(hex(destination)) not in searchFor:
+						searchFor.append(str(hex(destination)))
 
 		elif test==ord(OP_CALL):
 			# print("FOUND 0xe8!")
 			ans, valb_1, valb_2, num_bytes= disHereTiny(data[start+t:start+t+5])
 			# print (ans, valb_1, valb_2)
 			if valb_1=="call":
-				modifysByRange(data, start+t,start+t+5,"i","anaCombined")
+				# modifysByRange(data, start+t,start+t+5,"i","anaCombined")
 				###check to see if = FF FF FF  - negative - otherwise, positive!
 				# print ("checking ff")
 				# print (int(data[start+t+4]), ord(OP_ff))
@@ -13503,9 +13153,12 @@ def anaCombined(data, start, current):   #original
 						ans, valb_1, valb_2, num_bytes= disHereTiny(data[start+t:start+t+5])
 						# print (valb_2)
 						# print("ff destination: " + str(hex(destination)))
-						if str(hex(destination)) not in labels:
-							# print  ("1 appending label " + str(hex(destination)))
-							labels.add(str(hex(destination)))
+						if destination < maxDest:
+							modifysByRange(data, start+t,start+t+5,"i","anaCombined1")
+
+							if str(hex(destination)) not in labels:
+								# print  ("1 appending label " + str(hex(destination)))
+								labels.add(str(hex(destination)))
 				#ok, it is positive
 				elif (int(data[start+t+4]))==0:
 					# if (int(data[start+t+3]))==0:
@@ -13514,13 +13167,26 @@ def anaCombined(data, start, current):   #original
 					# print ((hex(start+t)))
 					# print(hex(signedNeg))
 					# print("00 destination: " + str(hex(destination)))
-					if str(hex(destination)) not in labels:
-						# print  ("2 appending label " + str(hex(destination)))
-						labels.add(str(hex(destination)))
+					if destination < maxDest:
+
+						modifysByRange(data, start+t,start+t+5,"i","anaCombined2")
+
+						if str(hex(destination)) not in labels:
+							# print  ("2 appending label " + str(hex(destination)))
+							labels.add(str(hex(destination)))
+				else:
+					ans, valb_1, valb_2,num_bytes= disHereTiny(data[start+t:start+t+5])
+					destination = (start+t) + int(valb_2,16)
+					if destination < maxDest:
+						modifysByRange(data, start+t,start+t+5,"i","anaCombined3")
+
 				if str(hex(destination)) not in searchFor:
-					searchFor.append(str(hex(destination)))
-					offsets.add(destination)
-					modifysByRange(data, destination-2, destination,"d", "findAna")
+					# print  ("3 not in searchfor " + str(hex(destination)))
+					if destination < maxDest:
+						
+						searchFor.append(str(hex(destination)))
+						offsets.add(destination)
+						modifysByRange(data, destination-2, destination,"d", "findAna")
 
 		t+=1
 	for addy in searchFor:
@@ -14722,6 +14388,8 @@ def modifysByRangeUser():
 
 def modifysByRange(data, start,end, dataType, mode=None):  # 1/8/2002
 	bprint ("modRange modifysByRange", hex(start),hex(end),dataType, mode)
+	# print ("modRange modifysByRange", hex(start),hex(end),dataType, mode)
+
 	global sBy
 	BytesBool=False
 	t=0
@@ -15086,28 +14754,30 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None)
 
 	startingAddress=0
 	i=startingAddress
-	for x in shellBytes:
-		sBy.offsets.append(i)
-		sBy.values.append(x)
-		# sBy.instructions.append(True)
-		# sBy.data.append(False)
-		sBy.bytesType.append(True) # True = instructions
-		sBy.strings.append(False)
-		sBy.stringsStart.append(0xffffffff)
-		sBy.stringsValue.append("")
-		sBy.pushStringEnd.append(-1)
-		sBy.pushStringValue.append("")
-		sBy.boolPushString.append(False)
-		sBy.specialVal.append("")
-		sBy.boolspecial.append(False)
-		sBy.specialStart.append(0)
-		sBy.specialEnd.append(0)
-		sBy.comments.append("")
-		sBy.ApiTable.append(False)
-		sBy.ApiStart.append(0xfffffffd)
-		sBy.ApiEnd.append(0xfffffffd)
-		sBy.ApiValue.append("")
-		i+=1
+	if not mBool[o].bPreSysDisDone:
+
+		for x in shellBytes:
+			sBy.offsets.append(i)
+			sBy.values.append(x)
+			# sBy.instructions.append(True)
+			# sBy.data.append(False)
+			sBy.bytesType.append(True) # True = instructions
+			sBy.strings.append(False)
+			sBy.stringsStart.append(0xffffffff)
+			sBy.stringsValue.append("")
+			sBy.pushStringEnd.append(-1)
+			sBy.pushStringValue.append("")
+			sBy.boolPushString.append(False)
+			sBy.specialVal.append("")
+			sBy.boolspecial.append(False)
+			sBy.specialStart.append(0)
+			sBy.specialEnd.append(0)
+			sBy.comments.append("")
+			sBy.ApiTable.append(False)
+			sBy.ApiStart.append(0xfffffffd)
+			sBy.ApiEnd.append(0xfffffffd)
+			sBy.ApiValue.append("")
+			i+=1
 
 	start = time.time()
 	if mBool[o].bDoFindStrings and not mBool[o].bPreSysDisDone:
@@ -15180,11 +14850,9 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None)
 
 codeCoverageComplete=False
 def takeBytes(shellBytes,startingAddress, silent=None, decoder=False):
-	# print ("takeBytes")
+	# print ("take bytes")
 	# print ("---------->o", o)
 
-	# bprint ("takeBytes:", hex(startingAddress))
-	# print ("take bytse o", o)
 	global sBy
 	global shellEntry
 	global gDisassemblyText
@@ -15279,6 +14947,17 @@ def takeBytes(shellBytes,startingAddress, silent=None, decoder=False):
 			bprint ("\n\t[*] TakeBytes:", end-takeBytesS)
 		elif tooBig:
 			disHereShellLimited(shellBytes, startingAddress)
+	elif mBool[o].bPreSysDisDone and fRaw.status():
+		pass
+
+		# print ("delete later please we are doing it!!!")
+		# findDataBytesEmu(shellBytes)
+
+
+		### may need this in the future for non emulation - i don't believe it is needed any longer.
+		# clearTempDis()   # we must call this function before making new diassembly
+		# out2=findRange(shellBytes, startingAddress,len(sBy.offsets)-1, "takeBytes")
+
 		
 
 	# print ("**Sizes:  ")
@@ -15722,6 +15401,7 @@ def findRange(data, startingAddress, end2, caller=None):
 	global sBy
 	global shellEntry
 
+
 	if bit32:
 		bit=32
 	else:
@@ -15744,7 +15424,7 @@ def findRange(data, startingAddress, end2, caller=None):
 	# print ("disAnalysisDone", mBool[o].disAnalysisDone, "caller", caller)
 	if not codeCoverageComplete:
 		if not mBool[o].disAnalysisDone and "preSyscalDiscovery" in caller:
-			print ("inside disana")
+			# print ("inside disana")
 			disHereAnalysis(data, startingAddress, end, "ascii", True)
 			mBool[o].disAnalysisDone=True
 		elif caller=="takeBytes":
@@ -15824,7 +15504,8 @@ def findRange(data, startingAddress, end2, caller=None):
 	inside_shell=s2-s1
 	inside_MakeDB=s2-s1
 
-
+	if fRaw.status():
+		findDataBytesEmu(data)
 	s1 = time.time()
 	while current < max:
 		start, current, distance, typeBytes, skipF = findRange2(current)
@@ -16093,6 +15774,10 @@ def findRange2(current):
 	# print (len(fRaw.bytesInst))
 	# print (fRaw.status())
 	# print ("current", hex(current))
+
+	# modifysByRange(m[o].rawData2, 0x2c1, 0x2c1+3, "d", "anaFindAPIs")
+
+
 	if fRaw.status() and fRaw.bytesInst[current]=="INST":
 		try:
 			startF, endF, distF=fRaw.startEnd[current]
@@ -19590,6 +19275,9 @@ def emulationConf(conr):
 	emuObj.verbose = conr.getboolean('SHAREM EMULATION', 'timeless_debugging')
 	em.codeCoverage = conr.getboolean('SHAREM EMULATION',"complete_code_coverage")
 
+	em.winVersion = conr['SHAREM EMULATION']['windows_version']
+	em.winSP = conr['SHAREM EMULATION']['windows_release_osbuild']
+
 def emulationSimValueConf(conr):
 	global emuSimVals
 	global SimFileSystem
@@ -22582,109 +22270,10 @@ def emulation_json_out(apiList, logged_syscalls):
 					  "registry_hierarchy":[],
 					  "registry_miscellaneous":[]
 	}
-
-	for i in apiList:
-		tuple_flag = 0
-		api_dict = {}
-		api_name = i[0]
-		api_address = i[1]
-		ret_value = i[2]
-		ret_type = i[3]
-		try:
-			dll_name = i[8]
-		except:
-			dll_name = "kernel32.dll"
-			
-		
-		api_dict["api_name"] = api_name
-		api_dict["dll_name"] = dll_name
-		api_dict["return_value"]= ret_type+" " + str(ret_value)
-		api_dict["address"] = api_address
-		api_dict['parameters'] = []
-
-		api_params_values = i[4]
-		api_params_types = i[5]
-		api_params_names = i[6]
-		for potentialTuple in api_params_values:
-			if( type(potentialTuple) == tuple):
-				# print("is a tuple")
-				# print(potentialTuple)
-				tuple_flag = 1
-				
-		if (tuple_flag == 1):
-			t = 0
-			for pv in api_params_values:
-				if( type(api_params_values[t]) == tuple):
-					api_struct_values_list = []
-					api_struct_name = api_params_values[t][0]
-					api_struct_type = api_params_values[t][1]
-					api_struct_value = api_params_values[t][2]
-					# print(api_struct_name)
-					# print(api_struct_type)
-					# print(api_struct_value)
-					for sType, sName, sVal in zip(api_struct_name, api_struct_type, api_struct_value):
-						api_struct_values_list.append({"structure_type":sType + " " + sName,
-						 							"structure_value":str(sVal)})
-					# print(api_struct_values_list)
-					# print("1a")
-					api_dict['parameters'].append({"type":api_params_types[t] + " " + api_params_names[t],
-											"value":api_struct_values_list})
-					# for pTyp, pName, pVal in zip(api_params_types, api_params_names, api_params_values):
-					# 	api_dict['parameters'].append({"type":pTyp + " " + pName,
-					# 								"value":api_struct_values_list})
-					# 	# api_dict['parameters'].append({"structure_type":sTyp + " " + sName,
-						# 							"structure_value":str(sVal)})
-				else:
-					api_type_value = []
-					api_type_value.append({"type":api_params_types[t],
-											"value":str(api_params_values[t])})
-					api_dict['parameters'].append({"type":api_params_names[t],
-											"value":api_type_value})
-					# api_dict['parameters'].append({"type":api_params_types[t] + " " + api_params_names[t],
-											# "value":str(api_params_values[t])})
-				t+= 1
-		else:
-			p = 0
-			# for pTyp, pName, pVal in zip(api_params_types, api_params_names, api_params_values):
-			# 	api_dict['parameters'].append({"type":pTyp + " " + pName,
-			# 								"value":str(pVal)})
-			for pName in api_params_names:
-				api_type_value = []
-				api_type_value.append({"type":api_params_types[p],
-											"value":str(api_params_values[p])})
-				api_dict['parameters'].append({"type":api_params_names[p],
-											"value":api_type_value})
-				p+=1
-		# list_of_apis.append(api_dict)
-		emulation_dict["api_calls"].append(api_dict)
+	emulation_dict["api_calls"].append(printOut.jsonApis(apiList))
 	
-	for i in logged_syscalls:
-		syscalls_dict = {}
-		syscall_name = i[0]
-		syscall_address = i[1]
-		syscall_value = i[2]
-		syscall_type = i[3]
-		syscall_params_values = i[4]
-		syscall_params_types = i[5]
-		syscall_params_names = i[6]
-		syscall_callID = i[8]
-
-		syscalls_dict["syscall_name"] = str(syscall_name)
-		syscalls_dict["return_value"] = str(syscall_type + " "+syscall_value)
-		syscalls_dict["address"] = str(syscall_address)
-
-		syscalls_dict["parameters"] = []
-
-		for pTyp, pName, pVal in zip(syscall_params_types, syscall_params_names, syscall_params_values):
-			syscalls_dict['parameters'].append({"type":str(pTyp) + " " + str(pName),
-												"value":str(pVal)})
-
-		syscalls_dict["syscall_callID"] = str(hex(syscall_callID))
-		syscalls_dict["OS_Release_SP"] = em.winVersion+", SP "+em.winSP
-
-		# print(syscall_name)
-		emulation_dict["syscalls_emulation"].append(syscalls_dict)
-
+	emulation_dict["syscalls_emulation"].append(printOut.jsonSyscalls(logged_syscalls,em))
+	
 	
 	emulation_dict["dlls"].extend(logged_dlls)
 	emulation_dict["path_artifacts"].extend(art.path_artifacts)
@@ -22868,6 +22457,8 @@ def emulation_txt_out(apiList, logged_syscalls):
 	api_names, api_params_values, api_params_types, api_params_names, api_address, ret_values, ret_type, api_bruteforce, syscallID = build_emu_results(apiList)
 
 	api_par_bundle = []
+	# txt_output = printOut.textOut()
+	# txt_output+= printOut.apisOut(api_names, api_params_values, api_params_types, api_params_names, api_address, ret_values, ret_type, api_bruteforce, syscallID)
 	# for v, t in zip(api_params_types[0], api_params_types[0]):
 	# 	api_par_bundle.append(v + " " + t)
 
@@ -22877,9 +22468,9 @@ def emulation_txt_out(apiList, logged_syscalls):
 	# web_artifacts = ["www.msn.com", "http://74.32.123.2:8080", "google.com"]
 	# file_artifacts = ["c:\\result.txt", "cmd.exe", "result.txt"]
 	# executables = ["c:\\windows\\system32\\ipconfig.exe", "cmd.exe"]
-	# print(commandLine_arg)
+	# # print(commandLine_arg)
 	txt_output = ""
-	# no_colors_out = ""
+	# # no_colors_out = ""
 
 	txt_output += "\n**************************\n"
 	txt_output += "     Emulation\n"
@@ -22890,347 +22481,140 @@ def emulation_txt_out(apiList, logged_syscalls):
 
 	txt_output += mag + "\n************* APIs *************\n\n" + res
 	# no_colors_out += "\n************* APIs *************\n\n"
-
-	verbose_mode = emulation_verbose
-	t = 0
-	for eachApi in api_names:
-		tuple_flag = 0
-		apName = api_names[t]
-		offset = api_address[t]
-		pType = api_params_types[t]
-		pName = api_params_names[t]
-		TypeBundle = []
-		retVal = ret_values[t]
-		retType = ret_type[t]
-		paramVal = api_params_values[t]
-		paramVal_tuple = api_params_values[t]
-		# print(paramVal)
-		for potentialTuple in paramVal:
-			if( type(potentialTuple) == tuple):
-				# print("is a tuple")
-				# print(potentialTuple)
-				tuple_flag = 1
+	txt_output =  printOut.apisOut(emulation_verbose,api_names, api_params_values, api_params_types, api_params_names, api_address, ret_values, ret_type, api_bruteforce, syscallID)
+	# verbose_mode = emulation_verbose
+	# t = 0
+	# for eachApi in api_names:
+	# 	tuple_flag = 0
+	# 	apName = api_names[t]
+	# 	offset = api_address[t]
+	# 	pType = api_params_types[t]
+	# 	pName = api_params_names[t]
+	# 	TypeBundle = []
+	# 	retVal = ret_values[t]
+	# 	retType = ret_type[t]
+	# 	paramVal = api_params_values[t]
+	# 	paramVal_tuple = api_params_values[t]
+	# 	# print(paramVal)
+	# 	for potentialTuple in paramVal:
+	# 		if( type(potentialTuple) == tuple):
+	# 			# print("is a tuple")
+	# 			# print(potentialTuple)
+	# 			tuple_flag = 1
 				
 
-		# DLL = dll_name[t]
-		for v, typ in zip(pType, pName):
-			TypeBundle.append(v + " " + typ)
-		joinedBund = ', '.join(TypeBundle)
-		try:
-			joinedBund= (textwrap3.fill(joinedBund, width=86))
-		except:
-			pass
-		joinedBundclr = joinedBund.replace(",", cya + "," + res)
-		retBundle = retType + " " + retVal
+	# 	# DLL = dll_name[t]
+	# 	for v, typ in zip(pType, pName):
+	# 		TypeBundle.append(v + " " + typ)
+	# 	joinedBund = ', '.join(TypeBundle)
+	# 	try:
+	# 		joinedBund= (textwrap3.fill(joinedBund, width=86))
+	# 	except:
+	# 		pass
+	# 	joinedBundclr = joinedBund.replace(",", cya + "," + res)
+	# 	retBundle = retType + " " + retVal
 
 
-		if verbose_mode:
-			txt_output += '{} {}{}\n'.format(gre + offset + res, yel + apName + res,
-											 cya + "(" + res + joinedBundclr + cya + ")" + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
-		else:
-			txt_output += '{} {}{} {}{}\n'.format(gre + offset + res, yel + apName + res,
-												  cya + "(" + res + joinedBundclr + cya + ")" + res,
-												  cya + "Ret: " + res,
-												  red + retBundle + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
+	# 	if verbose_mode:
+	# 		txt_output += '{} {}{}\n'.format(gre + offset + res, yel + apName + res,
+	# 										 cya + "(" + res + joinedBundclr + cya + ")" + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
+	# 	else:
+	# 		txt_output += '{} {}{} {}{}\n'.format(gre + offset + res, yel + apName + res,
+	# 											  cya + "(" + res + joinedBundclr + cya + ")" + res,
+	# 											  cya + "Ret: " + res,
+	# 											  red + retBundle + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
 
-		t += 1
-		if verbose_mode:
-			if (tuple_flag == 1):
-				index = 0
-				for pv in paramVal:
-					# print(paramVal[index])
-					# if there is a tuple in the list
-					if(type(paramVal[index]) == tuple):
-						# print(paramVal[1])
-						structure_names = paramVal[index][0]
-						structure_types = paramVal[index][1]
-						structure_values = paramVal[index][2]
-						#if there is only one tuple in the list.
-						# for ptyp, pname in zip(pType, pName):
-							# print(ptyp)
-							# print(type(pname))
-							# print(sname)
-							# print(stype)
-							# print(sval)
-							#gre ,structure_names, structure_types + res, structure_values
-						txt_output += '\t{} {} \n'.format(cya + pType[index], pName[index] + ":")
-						z = 0
-						for sn in structure_names:
-							txt_output += '\t\t{} {} {}\n'.format(gre + structure_names[z], structure_types[z] +":"+ res, structure_values[z])
-							z += 1
-					##normal printing
-					else:
-						# for ptyp, pname, pval in zip(pType, pName, potentialTuple):
-						txt_params='\t{} {} {}\n'.format(cya + pType[index], pName[index] + ":" + res, paramVal[index])
+	# 	t += 1
+	# 	if verbose_mode:
+	# 		if (tuple_flag == 1):
+	# 			# txt_output += printOut.printTuples(paramVal,retBundle)
+	# 			index = 0
+	# 			for pv in paramVal:
+	# 				# print(paramVal[index])
+	# 				# if there is a tuple in the list
+	# 				if(type(paramVal[index]) == tuple):
+	# 					# print(paramVal[1])
+	# 					structure_names = paramVal[index][0]
+	# 					structure_types = paramVal[index][1]
+	# 					structure_values = paramVal[index][2]
+	# 					#if there is only one tuple in the list.
+	# 					# for ptyp, pname in zip(pType, pName):
+	# 						# print(ptyp)
+	# 						# print(type(pname))
+	# 						# print(sname)
+	# 						# print(stype)
+	# 						# print(sval)
+	# 						#gre ,structure_names, structure_types + res, structure_values
+	# 					txt_output += '\t{} {} \n'.format(cya + pType[index], pName[index] + ":")
+	# 					z = 0
+	# 					for sn in structure_names:
+	# 						txt_output += '\t\t{} {} {}\n'.format(gre + structure_names[z], structure_types[z] +":"+ res, structure_values[z])
+	# 						z += 1
+	# 				#normal printing
+	# 				else:
+	# 					# for ptyp, pname, pval in zip(pType, pName, potentialTuple):
+	# 					txt_params='\t{} {} {}\n'.format(cya + pType[index], pName[index] + ":" + res, paramVal[index])
 
-						txt_output += txt_params
-					index += 1
-				txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
-			else:
-				for ptyp, pname, pval in zip(pType, pName, paramVal):
-					txt_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
-				txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
-			if api_bruteforce:
-				txt_output += "\t{}\n\n".format(whi + "Brute-forced" + res, )
-			else:
-				txt_output += "\n"
+	# 					txt_output += txt_params
+	# 				index += 1
+	# 			txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
+	# 		else:
+	# 			for ptyp, pname, pval in zip(pType, pName, paramVal):
+	# 				txt_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
+	# 			txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
+	# 		if api_bruteforce:
+	# 			txt_output += "\t{}\n\n".format(whi + "Brute-forced" + res, )
+	# 		else:
+	# 			txt_output += "\n"
 
-			# no_colors_out += "\t{} {}\n\n".format( "Return:", retVal)
+	# 		# no_colors_out += "\t{} {}\n\n".format( "Return:", retVal)
 
 	if len(logged_syscalls) > 0:
 		syscall_names, syscall_params_values, syscall_params_types, syscall_params_names, syscall_address, ret_values, ret_type, syscall_bruteforce, syscallID = build_emu_results(logged_syscalls)
-		txt_output += mag + "\n************* Syscalls *************\n\n" + res
-		verbose_mode = emulation_verbose
-		t = 0
-		for eachApi in syscall_names:
-			apName = syscall_names[t]
-			offset = syscall_address[t]
-			pType = syscall_params_types[t]
-			pName = syscall_params_names[t]
-			TypeBundle = []
-			retVal = ret_values[t]
-			retType = ret_type[t]
-			paramVal = syscall_params_values[t]
-			# DLL = dll_name[t]
-			for v, typ in zip(pType, pName):
-				TypeBundle.append(v + " " + typ)
-			joinedBund = ', '.join(TypeBundle)
-			joinedBundclr = joinedBund.replace(",", cya + "," + res)
-			retBundle = retType + " " + retVal
-
-			if verbose_mode:
-				txt_output += '{} {}{}\n'.format(gre + offset + res, yel + apName + res,
-													cya + "(" + res + joinedBundclr + cya + ")" + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
-			else:
-				txt_output += '{} {}{} {}{}\n'.format(gre + offset + res, yel + apName + res,
-													  cya + "(" + res + joinedBundclr + cya + ")" + res,
-													  cya + "Ret: " + res,
-													  red + retBundle + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
-
-			t += 1
-			if verbose_mode:
-				for ptyp, pname, pval in zip(pType, pName, paramVal):
-					txt_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
-				txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
-				txt_output += "\t{} {} - ({}, SP {})\n".format(red + "EAX: " + res, hex(syscallID) + res, em.winVersion + res, em.winSP + res)
-				if syscall_bruteforce:
-					txt_output += "\t{}\n\n".format(whi + "Brute-forced" + res, )
-				else:
-					txt_output += "\n"
-
-	#emu_registry_add_list = ''
-	emu_registry_edit_list = ''
-	emu_registry_delete_list = ''
-	#emu_registry_persistence_list= ''
-	#emu_registry_credentials_list = ''
-	#emu_registry_strings_list = ''
-	#emu_registry_hkcr_list = ''
-	#emu_registry_hkcu_list = ''
-	#emu_registry_hklm_list = ''
-	#emu_registry_hku_list = ''
-	#emu_registry_hkcc_list = ''
-
-	if emulation_multiline:
-		if len(logged_dlls) > 0:
-			emu_dll_list = "\n"
-			emu_dll_list += '\n'.join(logged_dlls)
-			txt_output += mag + "\n************* DLLs *************\n" + res
-			txt_output += "{}{:<18} {}\n".format(cya + "DLLs" + res, "",emu_dll_list)
-
-		if(len(art.path_artifacts) > 0):
-			emu_path_list = "\n"
-			emu_path_list += "\n".join(art.path_artifacts)
-			emu_path_list += "\n"
-		
-		if(len(art.file_artifacts) > 0):
-			emu_fileArtifacts_list = "\n"
-			emu_fileArtifacts_list += "\n".join(art.file_artifacts)
-			emu_fileArtifacts_list += "\n"
-
-		if(len(art.commandLine_artifacts) > 0):
-			emu_commandline_list = "\n"
-			emu_commandline_list += "\n".join(art.commandLine_artifacts)
-			emu_commandline_list += "\n"
-
-		if(len(art.web_artifacts) > 0):
-			emu_webArtifacts_list = "\n"
-			emu_webArtifacts_list += "\n".join(art.web_artifacts)
-			emu_webArtifacts_list += "\n"
-
-		if(len(art.exe_dll_artifacts) > 0):
-			emu_exe_dll_list = "\n"
-			emu_exe_dll_list += "\n".join(art.exe_dll_artifacts)
-			emu_exe_dll_list += "\n"
-
-		if(len(art.registry_misc) > 0):
-			emu_registry_list = "\n"
-			emu_registry_list += "\n".join(art.registry_misc)
-			emu_registry_list += "\n"
-
-		if(len(art.registry_add_keys) > 0):
-			emu_registry_add_list = "\n"
-			emu_registry_add_list += "\n".join(art.registry_add_keys)
-			emu_registry_add_list += "\n"
-
-		if(len(art.registry_edit_keys) > 0):
-			for keyTuple in art.registry_edit_keys:
-				p = 0
-				for o in keyTuple:
-					if p == 0:
-						emu_registry_edit_list += "\n"+o
-					else:
-						emu_registry_edit_list += "\n\t"+o
-					p+=1
-				emu_registry_edit_list += "\n"
-
-		if(len(art.registry_delete_keys) > 0):
-			for each in art.registry_delete_keys:
-				if (type(each) == tuple):
-					p = 0
-					for o in each:
-						if p == 0:
-							emu_registry_delete_list += "\n"+o
-						else:
-							emu_registry_delete_list += "\n\t"+o
-						p+=1
-					#emu_registry_delete_list += "\n"
-				else:
-					#emu_registry_delete_list += "\n"
-					emu_registry_delete_list += "\n"+each
-				emu_registry_delete_list += "\n"
-
-		if(len(art.registry_persistence) > 0):
-			emu_registry_persistence_list = "\n"
-			emu_registry_persistence_list += "\n".join(art.registry_persistence)
-			emu_registry_persistence_list += "\n"
-
-		if(len(art.registry_credentials) > 0):
-			emu_registry_credentials_list = "\n"
-			emu_registry_credentials_list += "\n".join(art.registry_credentials)
-			emu_registry_credentials_list += "\n"
-
-		if(len(art.registry_discovery) > 0):
-			emu_registry_discovery_list = "\n"
-			emu_registry_discovery_list += "\n".join(art.registry_discovery)
-			emu_registry_discovery_list += "\n"
-
-		if(len(art.reg_HKCR) > 0):
-			emu_registry_hkcr_list = "\n"
-			emu_registry_hkcr_list += "\n".join(art.reg_HKCR)
-			emu_registry_hkcr_list += "\n"
-
-		if(len(art.reg_HKCU) > 0):
-			emu_registry_hkcu_list = "\n"
-			emu_registry_hkcu_list += "\n".join(art.reg_HKCU)
-			emu_registry_hkcu_list += "\n"
-
-		if(len(art.reg_HKLM) > 0):
-			emu_registry_hklm_list = "\n"
-			emu_registry_hklm_list += "\n".join(art.reg_HKLM)
-			emu_registry_hklm_list += "\n"
-
-		if(len(art.reg_HKU) > 0):
-			emu_registry_hku_list = "\n"
-			emu_registry_hku_list += "\n".join(art.reg_HKU)
-			emu_registry_hku_list += "\n"
-
-		if(len(art.reg_HKCC) > 0):
-			emu_registry_hkcc_list = "\n"
-			emu_registry_hkcc_list += "\n".join(art.reg_HKCC)
-			emu_registry_hkcc_list += "\n"
-
-		# emu_execartifacts_list = "\n"
-		# emu_execartifacts_list += "\n".join(executables)
-		# emu_execartifacts_list += "\n"
-
-	else:
-		emu_dll_list= ', '.join(logged_dlls)
-		txt_output += mag + "\n************* DLLs *************\n" + res
-		txt_output += "{}{:<18} {}\n".format(cya + "DLLs" + res, "",emu_dll_list)
-		emu_path_list = ', '.join(path_artifacts)
-		emu_fileArtifacts_list = ", ".join(art.file_artifacts)
-		emu_commandline_list = ", ".join(art.commandLine_arg)
-		emu_webArtifacts_list = ', '.join(art.web_artifacts)
-		emu_registry_list = ", ".join(art.registry_misc)
-		emu_exe_dll_list = ", ".join(art.exe_dll_artifacts)
-		emu_registry_add_list = ', '.join(art.registry_add_keys)
-		emu_registry_edit_list = ', '.join(art.registry_edit_keys)
-		emu_registry_delete_list = ', '.join(art.registry_delete_keys)
-		emu_registry_persistence_list = ', '.join(art.registry_persistence)
-		emu_registry_credentials_list = ', '.join(art.registry_credentials)
-		emu_registry_discovery_list = ', '.join(art.registry_discovery)
-		emu_registry_hkcr_list = ', '.join(art.reg_HKCR)
-		emu_registry_hkcu_list = ', '.join(art.reg_HKCU)
-		emu_registry_hklm_list = ', '.join(art.reg_HKLM)
-		emu_registry_hku_list = ', '.join(art.reg_HKU)
-		emu_registry_hkcc_list = ', '.join(art.reg_HKCC)
-		# emu_execartifacts_list = ", ".join(executables)
 
 
-	# txt_output += mag + "\n************* DLLs *************\n" + res
-	# txt_output += "{}{:<18} {}\n".format(cya + "DLLs" + res, "",emu_dll_list)
+		txt_output += printOut.syscallsOut(emulation_verbose,syscall_names, syscall_params_values, syscall_params_types, syscall_params_names, syscall_address, ret_values, ret_type, syscall_bruteforce, syscallID,em)
+		# txt_output += mag + "\n************* Syscalls *************\n\n" + res
+		# verbose_mode = emulation_verbose
+		# t = 0
+		# for eachApi in syscall_names:
+		# 	apName = syscall_names[t]
+		# 	offset = syscall_address[t]
+		# 	pType = syscall_params_types[t]
+		# 	pName = syscall_params_names[t]
+		# 	TypeBundle = []
+		# 	retVal = ret_values[t]
+		# 	retType = ret_type[t]
+		# 	paramVal = syscall_params_values[t]
+		# 	# DLL = dll_name[t]
+		# 	for v, typ in zip(pType, pName):
+		# 		TypeBundle.append(v + " " + typ)
+		# 	joinedBund = ', '.join(TypeBundle)
+		# 	joinedBundclr = joinedBund.replace(",", cya + "," + res)
+		# 	retBundle = retType + " " + retVal
 
-	# no_colors_out += "\n************* DLLs *************\n"
+		# 	if verbose_mode:
+		# 		txt_output += '{} {}{}\n'.format(gre + offset + res, yel + apName + res,
+		# 											cya + "(" + res + joinedBundclr + cya + ")" + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
+		# 	else:
+		# 		txt_output += '{} {}{} {}{}\n'.format(gre + offset + res, yel + apName + res,
+		# 											  cya + "(" + res + joinedBundclr + cya + ")" + res,
+		# 											  cya + "Ret: " + res,
+		# 											  red + retBundle + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
 
-	# no_colors_out += "{}{:<18} {}\n".format("DLLs", "",emu_dll_list)
+		# 	t += 1
+		# 	if verbose_mode:
+		# 		for ptyp, pname, pval in zip(pType, pName, paramVal):
+		# 			txt_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
+		# 		txt_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
+		# 		txt_output += "\t{} {} - ({}, SP {})\n".format(red + "EAX: " + res, hex(syscallID) + res, em.winVersion + res, em.winSP + res)
+		# 		if syscall_bruteforce:
+		# 			txt_output += "\t{}\n\n".format(whi + "Brute-forced" + res, )
+		# 		else:
+		# 			txt_output += "\n"
 
-	txt_output += mag + "\n************* Artifacts *************\n" 
-	# no_colors_out += "\n************* Artifacts *************\n"
 
-	if len(art.path_artifacts) > 0:
-		txt_output += "{}{:<13} {}\n".format(cya + "*** Paths ***" + res,"", emu_path_list)
-	if len(art.file_artifacts) > 0:
-		txt_output += "{}{:<9} {}\n".format(cya + "*** Files ***" + res,"", emu_fileArtifacts_list)
-	if len(art.commandLine_artifacts) > 0:
-		txt_output += "{}{:<8} {}\n".format(cya + "*** Command Line ***" + res,"", emu_commandline_list)
-	if len(art.web_artifacts) > 0:
-		txt_output += "{}{:<13} {}\n".format(cya + "*** Web ***" + res,"", emu_webArtifacts_list)
-	if len(art.exe_dll_artifacts) > 0:
-		txt_output += "{}{:<8} {}\n".format(cya + "*** EXE / DLLs ***" + res,"", emu_exe_dll_list)
-	
-	### registry artifacts
-	if (len(art.registry_add_keys) > 0 or len(art.registry_edit_keys) > 0 or len(art.registry_delete_keys) > 0):
-		txt_output += "{}{:<9}\n".format(cya + "*** Registry Actions ***" + res,"")
-	if len(art.registry_add_keys) > 0:
-		txt_output += "{}{:<9} {}\n".format(red + "** Add **" + res,"", emu_registry_add_list)
-	if len(art.registry_edit_keys) > 0:
-		txt_output += "{}{:<9} {}\n".format(red + "** Edit **" + res,"", emu_registry_edit_list)
-	if len(art.registry_delete_keys) > 0:
-		txt_output += "{}{:<9} {}\n".format(red + "** Delete **" + res,"", emu_registry_delete_list)
-	if (len(art.registry_persistence) > 0 or len(art.registry_credentials) > 0 or len(art.registry_discovery) > 0):
-		txt_output += "{}{:<9}\n".format(cya + "*** Registry Techniques ***" + res,"")
-	if (len(art.registry_persistence) > 0):
-		txt_output += "{}{:<9} {}\n".format(red + "** Persistence **" + res,"", emu_registry_persistence_list)
-	if (len(art.registry_credentials) > 0):
-		txt_output += "{}{:<9} {}\n".format(red + "** Credentials **" + res,"", emu_registry_credentials_list)
-	if (len(art.registry_discovery) > 0):
-		txt_output += "{}{:<9} {}\n".format(red + "** Discovery **" + res,"", emu_registry_discovery_list)
-	if(len(art.reg_HKCR) > 0 or len(art.reg_HKCU) > 0 or len(art.reg_HKLM) > 0 or len(art.reg_HKU) > 0 or len(art.reg_HKCC) > 0):
-		txt_output += "{}{:<9}\n".format(cya + "*** Registry Hierarchy ***" + res,"")
-	if(len(art.reg_HKCR) > 0 ):
-		txt_output += "{}{:<9} {}\n".format(red + "** HKEY_Classes_Root **" + res,"", emu_registry_hkcr_list)
-	if(len(art.reg_HKCU) > 0 ):
-		txt_output += "{}{:<9} {}\n".format(red + "** HKEY_Current_User **" + res,"", emu_registry_hkcu_list)
-	if(len(art.reg_HKLM) > 0 ):
-		txt_output += "{}{:<9} {}\n".format(red + "** HKEY_Local_Machine **" + res,"", emu_registry_hklm_list)
-	if(len(art.reg_HKU) > 0 ):
-		txt_output += "{}{:<9} {}\n".format(red + "** HKEY_Users **" + res,"", emu_registry_hku_list)
-	if(len(art.reg_HKCC) > 0 ):
-		txt_output += "{}{:<9} {}\n".format(red + "** HKEY_Current_Config **" + res,"", emu_registry_hkcc_list)
-	if len(art.registry_misc) > 0:
-		txt_output += "{}{:<9} {}\n".format(cya + "*** Registry Miscellaneous ***" + res,"", emu_registry_list)
-	# if len(artifacts) > 0:
-	# 	txt_output += "{}{:<13} {}\n".format(cya + "Artifacts" + res,"", emu_artifacts_list)
-	# if len(net_artifacts) > 0:
-	# 	txt_output += "{}{:<9} {}\n".format(cya + "Web artifacts" + res,"", emu_webartifacts_list)
-	# if len(file_artifacts) > 0:
-	# 	txt_output += "{}{:<8} {}\n".format(cya + "File artifacts" + res,"", emu_fileartifacts_list)	
-	# txt_output += "{}{:<2} {}\n\n".format(cya + "Executable artifacts" + res,"", emu_execartifacts_list)
-
-	# no_colors_out += "{}{:<13} {}\n".format("Artifacts","", emu_artifacts_list)
-	# no_colors_out += "{}{:<9} {}\n".format("Web artifacts","", emu_webartifacts_list)
-	# no_colors_out += "{}{:<8} {}\n".format("File artifacts","", emu_fileartifacts_list)
-	# no_colors_out += "{}{:<2} {}\n\n".format("Executable artifacts","", emu_execartifacts_list)
+	txt_output += printOut.artifactsOut(art,emulation_multiline,logged_dlls)
 
 	no_colors_out = cleanColors(txt_output)
 	# print(txt_output)

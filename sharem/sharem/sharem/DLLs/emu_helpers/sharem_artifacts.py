@@ -1,3 +1,5 @@
+import re
+
 class Artifacts_regex:
 	def __init__(self):
 		self.total_findPath = None
@@ -114,7 +116,12 @@ class Artifacts_emulation:
 		self.reg_HKLM = set()
 		self.reg_HKU = set()
 		self.reg_HKCC = set()
-
+		self.files_create = []
+		self.files_write = []
+		self.files_delete = []
+		self.files_access= []
+		self.files_copy = []
+		self.files_move = []
 
 	def removeDuplicates(self):
 		exe_dll_COPY = self.exe_dll_artifacts
@@ -125,6 +132,11 @@ class Artifacts_emulation:
 		self.web_artifacts = set(self.web_artifacts)
 		self.exe_dll_artifacts = set(self.exe_dll_artifacts)
 		self.registry_misc = self.registry_misc - self.registry_add_keys
+		self.files_create = set(self.files_create)
+		self.files_write = set(self.files_write)
+		self.files_delete = set(self.files_delete)
+		self.files_access = set(self.files_access)
+		self.files_copy = set(self.files_copy)
 
 		#This will need to be built out better in the future, currently we do not have any functions that edit/delete with special values we want such as desktop being passed into it.
 		#self.registry_misc = self.registry_misc - self.registry_edit_keys
@@ -140,7 +152,15 @@ class Artifacts_emulation:
 			else:
 				pass
 
+		#remove any objects like ***<sharem.sharem.DLLs.emu_helpers.handles.Handle object at 0x0327E9D0>*** that get picked up from the regex
+		self.removeObjectsFromDLLS()
+
 		#convert back
+		self.files_copy = list(self.files_copy)
+		self.files_create = list(self.files_create)
+		self.files_write = list(self.files_write)
+		self.files_delete = list(self.files_delete)
+		self.files_access = list(self.files_access)
 		self.path_artifacts = list(self.path_artifacts)
 		self.file_artifacts = list(self.file_artifacts)
 		self.commandLine_artifacts = list(self.commandLine_artifacts)
@@ -357,5 +377,64 @@ class Artifacts_emulation:
 			else:
 				pass
 
+	def removeObjectsFromDLLS(self):
+		dllsObject = '<sharem.sharem.DLLs.emu_helpers.'
+		for each in self.exe_dll_artifacts:
+			if dllsObject in each:
+				self.exe_dll_artifacts.remove(each)
+
+
+	def removeStructures(self,Regex):
+		#go through and find structures
+		pathUpdateRemove = set()
+		filesUpdateRemove = set()
+		exeUpdateRemove = set()
+		registryUpdateRemove = set()
+
+		for each in self.path_artifacts:
+			if('\', ' in each):
+				temp = each.split('\', ')
+				for next in temp:
+					next = next.strip('\'')
+					self.path_artifacts += re.findall(Regex.total_findPaths,next,re.IGNORECASE)
+					pathUpdateRemove.add(each)
+	
+		for each in self.file_artifacts:
+			if('\', ' in each):
+				temp = each.split('\', ')
+				for next in temp:
+					next = next.strip('\'')
+					self.file_artifacts += re.findall(Regex.find_totalFiles,next,re.IGNORECASE)
+					filesUpdateRemove.add(each)
+
+		for each in self.registry_misc:
+			if('\', ' in each):
+				temp = each.split('\', ')
+				for next in temp:
+					next = next.strip('\'')
+					self.registry_artifacts += re.findall(Regex.total_Registry,next,re.IGNORECASE)
+					registryUpdateRemove.add(each)
+
+		for each in self.exe_dll_artifacts:
+			if('\', ' in each):
+				temp = each.split('\', ')
+				for next in temp:
+					next = next.strip('\'')
+					self.exe_dll_artifacts += re.findall(Regex.find_exe_dll,next,re.IGNORECASE)
+					exeUpdateRemove.add(each)
+
+
+		#update the path artifacts
+		for each in pathUpdateRemove:
+			self.path_artifacts.remove(each)
+		for each in filesUpdateRemove:
+			self.file_artifacts.remove(each)
+		for each in registryUpdateRemove:
+			self.registry_misc.remove(each)
+		for each in exeUpdateRemove:
+			self.exe_dll_artifacts.remove(each)
+
+
+		self.removeDuplicates()
 
 

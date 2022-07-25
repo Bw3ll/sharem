@@ -12,6 +12,7 @@ from sharem.sharem.DLLs.emu_helpers.sharem_artifacts import Artifacts_emulation
 from sharem.sharem.DLLs.emu_helpers.sharem_filesystem import Directory_system
 from sharem.sharem.DLLs.emu_helpers.tool_snapshot import System_SnapShot
 from sharem.sharem.DLLs.emu_helpers.reverseLookUps import ReverseLookUps
+from sharem.sharem.helper.printingOutput import PrintingOutput
 from sharem.sharem.DLLs.emu_helpers.structures import *
 from sharem.sharem.helper.structHelpers import makeStructVals
 from unicorn.x86_const import *
@@ -25,6 +26,7 @@ import re
 art = Artifacts_emulation()
 # Instance of File System
 SimFileSystem = Directory_system()
+printOut = PrintingOutput()
 
 
 
@@ -368,11 +370,11 @@ class CustomWinAPIs():
 
         writeAddress = pVals[3]
         bytesToWrite = pVals[2]
-
         handle = pVals[0]
         if(handle not in HandlesDict):
             handle = Handle(HandleType.CreateFileA)
             handle.name = "New File.txt"
+            handle.data = SimFileSystem.currentDir
             #check for duplicate files within the folder
             handle.name = SimFileSystem.detectDuplicateFileHandles(SimFileSystem.currentDir,handle)
             #write to the artifacts the path of the file along with the file itself.
@@ -418,6 +420,7 @@ class CustomWinAPIs():
         if(handle not in HandlesDict):
             handle = Handle(HandleType.CreateFileA)
             handle.name = "New File.txt"
+            handle.data = SimFileSystem.currentDir
             #check for duplicate files within the folder
             handle.name = SimFileSystem.detectDuplicateFileHandles(SimFileSystem.currentDir,handle)
             #write to the artifacts the path of the file along with the file itself.
@@ -472,12 +475,13 @@ class CustomWinAPIs():
 
         handle.name = pVals[0]
         handle.name = SimFileSystem.detectDuplicateFileHandles(SimFileSystem.currentDir,handle)
+        handle.data = SimFileSystem.currentDir
         SimFileSystem.createFile(SimFileSystem.currentDirPath, handle.name)
         path_list = []
         path_list = SimFileSystem.getPath(SimFileSystem.currentDir,path_list)
         path_list.append(handle.name)
         art.path_artifacts.append('\\'.join(path_list))
-        art.file_artifacts.append(handle.name)
+        art.files_create.append(handle.name)
 
         retVal = handle.value
         retValStr = hex(retVal)
@@ -508,7 +512,15 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip= [1, 2, 4, 5])
 
         handle.name = pVals[0]
+        handle.name = SimFileSystem.detectDuplicateFileHandles(SimFileSystem.currentDir,handle)
+        handle.data = SimFileSystem.currentDir
         SimFileSystem.createFile(SimFileSystem.currentDirPath, handle.name)
+        path_list = []
+        path_list = SimFileSystem.getPath(SimFileSystem.currentDir,path_list)
+        path_list.append(handle.name)
+        art.path_artifacts.append('\\'.join(path_list))
+        art.file_artifacts.append(handle.name)
+
 
 
 
@@ -2319,8 +2331,9 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
         origin = pVals[1]
         destination = pVals[2]
-        SimFileSystem.internetDownload(destination)
-
+        filePath, fileName = SimFileSystem.internetDownload(destination)
+        art.files_create.append(fileName)
+        art.path_artifacts.append(filePath)
 
         
         retVal = 0x0
@@ -7998,6 +8011,7 @@ class CustomWinAPIs():
         art.file_artifacts.append(originFileName)
         art.file_artifacts.append(destinationFileName)
 
+
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -9535,6 +9549,7 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [1, 2, 3, 4])
 
         SimFileSystem.createFile(SimFileSystem.currentDirPath,fileName)
+        
 
         retVal =  handle.value 
         retValStr = hex(retVal)
@@ -9900,6 +9915,13 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        origin = pVals[0]
+        destination = pVals[1]
+        originFileName,destinationFileName,originPath,destinationPath = SimFileSystem.copyFile(origin,destination)
+        art.path_artifacts.append(originPath)
+        art.path_artifacts.append(destinationPath)
+        art.file_artifacts.append(originFileName)
+        art.file_artifacts.append(destinationFileName)
 
         retVal = 0x1
         retValStr = "SUCCESS"
@@ -9918,6 +9940,13 @@ class CustomWinAPIs():
         pVals[2] = getLookUpVal(pVals[2], CopyFlagsReverseLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+        origin = pVals[0]
+        destination = pVals[1]
+        originFileName,destinationFileName,originPath,destinationPath = SimFileSystem.copyFile(origin,destination)
+        art.path_artifacts.append(originPath)
+        art.path_artifacts.append(destinationPath)
+        art.file_artifacts.append(originFileName)
+        art.file_artifacts.append(destinationFileName)
 
         retVal = 0x1
         retValStr = "S_OK"
@@ -9932,6 +9961,9 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        path, filename = SimFileSystem.deleteFile(pVals[0])
+        art.path_artifacts.append(path)
+        art.file_artifacts.append(filename)
 
         retVal = 0x1
         retValStr = "SUCCESS"
@@ -9946,6 +9978,9 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        path, filename = SimFileSystem.deleteFile(pVals[0])
+        art.path_artifacts.append(path)
+        art.files_delete.append(filename)
 
         retVal = 0x1
         retValStr = "SUCCESS"
@@ -9982,8 +10017,8 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         timeZone = get_TIME_ZONE_INFORMATION(uc, pVals[0], em)
-        timeZone.DaylightName = 'ABCDEFGHIJKLMNOQRSTUVWXYZ01234' # Needs Work
-        timeZone.StandardName = 'TestStandard'
+        timeZone.DaylightName = 'UTC' # Add Config for TimeZones
+        timeZone.StandardName = 'UTC'
         timeZone.DaylightDate.setTime(False, emuSimVals.system_time_since_epoch)
         timeZone.StandardDate.setTime(False, emuSimVals.system_time_since_epoch)
         timeZone.writeToMemory(uc, pVals[0])
@@ -11222,6 +11257,13 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        origin = pVals[0]
+        destination = pVals[1]
+        originFileName,destinationFileName,originPath,destinationPath = SimFileSystem.copyFile(origin,destination)
+        art.path_artifacts.append(originPath)
+        art.path_artifacts.append(destinationPath)
+        art.file_artifacts.append(originFileName)
+        art.file_artifacts.append(destinationFileName)
 
         retVal = 0x1
         retValStr = "SUCCESSFUL"
@@ -11235,7 +11277,32 @@ class CustomWinAPIs():
         pNames = ['hFile', 'lpBuffer', 'nNumberOfBytesToRead', 'lpNumberOfBytesRead', 'lpOverlapped'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
+        buffer = pVals[1]
+        handle = pVals[0]
+        bytesRead = pVals[3]
+        bytesToRead = pVals[2]
+
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        #check if the handle exists in the dictonary, if not create it and supply dummy data for the rest
+        if(handle not in HandlesDict):
+            handle = Handle(HandleType.CreateFileA)
+            handle.name = "New File.txt"
+            #check for duplicate files within the folder
+            handle.data = SimFileSystem.currentDir
+            handle.name = SimFileSystem.detectDuplicateFileHandles(SimFileSystem.currentDir,handle)
+            #write to the artifacts the path of the file along with the file itself.
+        else:
+            handle = HandlesDict.get(handle)
+        path, filename, filedata = SimFileSystem.readFile(handle.data,handle.name)
+        art.path_artifacts.append(path)
+        art.files_access.append(filename)
+        SimFileSystem.altFileName(filename)
+        
+        #write the filedata to the buffer
+        filedataBYTES = bytes(filedata,'utf-8')
+        uc.mem_write(buffer,filedataBYTES)
+        #write the number of bytes read
+        uc.mem_write(bytesRead,bytes(bytesToRead))
 
         retVal = 0x1
         retValStr = "TRUE"
@@ -12879,7 +12946,51 @@ class CustomWinAPIs():
         logged_calls= ("timeSetEvent", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    
+    def xxFindFirstFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        #'FindFirstFileA': (2, ['LPCSTR', 'LPWIN32_FIND_DATAA'], ['lpFileName', 'lpFindFileData'], 'thunk HANDLE')
+        pTypes= ['LPCSTR', 'LPWIN32_FIND_DATAA']
+        pNames= ['lpFileName', 'lpFindFileData']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
+        structureBuffer = pVals[1]
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        fileSearch = pVals[0]
+        node, filename, filedata = SimFileSystem.findFirstFile(fileSearch)
+        # print(filename,filedata)
+        altFileName = SimFileSystem.altFileName(filename,node)
+        # print('-------------')
+        # print(altFileName)
+        # print('-------------')
+
+
+        retVal = 16
+        retValStr= hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("FindFirstFileA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CopyFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+            pTypes= ['LCPSTR', 'LCPSTR', 'BOOL']
+            pNames= ['lpExistingFileName', 'lpNewFileName', 'bFailIfExists']
+            pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+            pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+            origin = pVals[0]
+            destination = pVals[1]
+            originFileName,destinationFileName,originPath,destinationPath = SimFileSystem.copyFile(origin,destination)
+            art.path_artifacts.append(originPath)
+            art.path_artifacts.append(destinationPath)
+            art.file_artifacts.append(originFileName)
+            art.file_artifacts.append(destinationFileName)
+
+            retVal = 0x1
+            retValStr='TRUE'
+            uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+            logged_calls= ("CopyFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+            return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
 
 class CustomWinSysCalls():
@@ -13182,7 +13293,7 @@ class CustomWinSysCalls():
 
         # Add Lookup for access mask
 
-        if pVals[2] != 0x0:
+        if pVals[2] != 0x0: # Disabled Until Syscall Struct Print is Fixed
             oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em)
             us = get_UNICODE_STRING(uc, oa.ObjectName, em)
             name = read_unicode(uc, us.Buffer)

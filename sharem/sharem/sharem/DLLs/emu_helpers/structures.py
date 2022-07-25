@@ -1182,8 +1182,8 @@ def get_OVERLAPPED(uc: Uc, address: int, em):
 # get__OVERLAPPED = get_OVERLAPPED
 
 # Struct Pointers:
-LPWSAPROTOCOL_INFOW_32BIT = POINTER_32BIT
-LPWSAPROTOCOL_INFOW_64BIT = POINTER_64BIT
+# LPWSAPROTOCOL_INFOW_32BIT = POINTER_32BIT
+# LPWSAPROTOCOL_INFOW_64BIT = POINTER_64BIT
 
 class OVERLAPPED(LittleEndianStructure):
     types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'GUID', 'DWORD', 'WSAPROTOCOLCHAIN', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'DWORD', 'DWORD', 'WCHAR']
@@ -1194,6 +1194,46 @@ class OVERLAPPED(LittleEndianStructure):
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
+
+# Struct WIN32_FIND_DATAA 
+# Alias Names: _WIN32_FIND_DATAA
+# Alias Pointer Names: WIN32_FIND_DATAA
+
+def get_WIN32_FIND_DATAA(uc: Uc, address: int, em):
+    return WIN32_FIND_DATAA.from_buffer_copy(uc.mem_read(address, sizeof(WIN32_FIND_DATAA)))
+
+# Struct Aliases:
+# get__OVERLAPPED = get_OVERLAPPED
+
+# Struct Pointers:
+# LPWSAPROTOCOL_INFOW_32BIT = POINTER_32BIT
+# LPWSAPROTOCOL_INFOW_64BIT = POINTER_64BIT
+
+class WIN32_FIND_DATAA(LittleEndianStructure):
+    types = ['DWORD','FILETIME','FILETIME','FILETIME','DWORD','DWORD','DWORD','DWORD','WCHAR','WCHAR','DWORD','DWORD','WORD']
+    __slots__ = ('dwFileAttributes','ftCreationTime','ftLastAccessTime','ftLastWriteTime','nFileSizeHigh','nFileSizeLow','dwReserved0','dwReserved1','cFileName','cAlternateFileName','dwFileType','dwCreatorType','wFinderFlags')
+    lookUps = {}
+    #dwFileAttributes -> ReverseLookup from the files class
+    #create some file time structures for the next three
+    #Highword/lowword file size, if need help getting high low look @ filetime as filetime where it split the time into high and low
+    #cFileName = fileName, get this from the handle/filesystem
+    #Alt file name 1 period, no spaces, 1-8 characters in length followed by extension[1-3 length]
+    _fields_ = [('dwFileAttributes',DWORD),('ftCreationTime',FILETIME),('ftLastAccessTime',FILETIME),('ftLastWriteTime',FILETIME),('nFileSizeHigh',DWORD),('nFileSizeLow',DWORD),('dwReserved0',DWORD),('dwReserved1',DWORD),('cFileName',WCHAR * MAX_PATH),('cAlternateFileName',WCHAR*14),('dwFileType',DWORD),('dwCreatorType',DWORD),('wFinderFlags',WORD)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+    # def fileReturn(self,timeB1,timeB2,timeb3,filesize,filename,altFileName):
+    #     self.dwFileAttributes = 0x80 #normal
+    #     self.ftCreationTime = get_FILETIME(uc,buffer1,em)
+    #     self.ftLastAccessTime = get_FILETIME(uc,buffer2,em)
+    #     self.ftLastWriteTime = get_FILETIME(uc,buffer3,em)
+    #     self.nFileSizeHigh = filesize >> 32
+    #     self.nFileSizeLow = filesize & 0xffffffff
+    #     self.cFileName = filename
+    #     self.cAlternateFileName = altFileName
+
+
 
 # Struct NETRESOURCEA
 # Alias Names: _NETRESOURCEA
