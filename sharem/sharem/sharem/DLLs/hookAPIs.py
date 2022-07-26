@@ -13039,12 +13039,21 @@ class CustomWinSysCalls():
 
         handle = Handle(HandleType.Process)
 
+        if pVals[2] != 0x0:
+            oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em)
+            us = get_UNICODE_STRING(uc, oa.ObjectName, em)
+            name = read_unicode(uc, us.Buffer)
+            pVals[2] = makeStructVals(uc, oa, pVals[2])
+            pVals[2][2][2] = name
+        else:
+            pVals[2] = hex(pVals[2])
+
         try:
             uc.mem_write(pVals[0], pack('<I',handle.value))
         except:
             pass
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
 
         retVal = 1
         retValStr = hex(retVal) 
