@@ -1178,6 +1178,23 @@ class CustomWinAPIs():
         logged_calls= ("LockResource", hex(callAddr), (retValStr), 'LPVOID', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def AdjustTokenPrivileges(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['HANDLE', 'BOOL', 'PTOKEN_PRIVILEGES', 'DWORD', 'PTOKEN_PRIVILEGES', 'PWORD']
+        pNames= ['TokenHandle', 'DiableAllPrivilileges', 'NewState', 'BufferLength', 'PreviousState', 'ReturnedLength']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+        # pVals[0] = getLookUpVal(pVals[0], DeviceIoControl.SystemParametersInfo.Action)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        retVal = 0x88888888
+
+        retValStr='True'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("AdjustTokenPrivileges", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def HeapCreate(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         # HANDLE HeapCreate([in] DWORD  flOptions,[in] SIZE_T dwInitialSize,[in] SIZE_T dwMaximumSize);
