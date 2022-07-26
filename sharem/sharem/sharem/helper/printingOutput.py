@@ -72,7 +72,7 @@ class PrintingOutput:
                 TypeBundle.append(v + " " + typ)
             joinedBund = ', '.join(TypeBundle)
             try:
-                joinedBund= (textwrap3.fill(joinedBund, width=170, break_long_words=False))
+                joinedBund= (textwrap3.fill(joinedBund, width=150, break_long_words=False))
             except:
                 pass
             joinedBundclr = joinedBund.replace(",", cya + "," + res)
@@ -81,7 +81,7 @@ class PrintingOutput:
             if verbose_mode:
                 temp = '{} {}{}\n'.format(gre + offset + res, yel + apName + res,
                                                 cya + "(" + res + joinedBundclr + cya + ")" + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
-                text_output+= (textwrap3.fill(temp, width=170, break_long_words=False))
+                text_output+= (textwrap3.fill(temp, width=150, break_long_words=False))
                 text_output+="\n"
 
             else:

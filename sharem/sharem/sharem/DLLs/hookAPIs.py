@@ -13316,6 +13316,8 @@ class CustomWinSysCalls():
             name = read_unicode(uc, us.Buffer)
             pVals[2] = makeStructVals(uc, oa, pVals[2])
             pVals[2][2][2] = name
+            rkey = RegKey(name)
+            uc.mem_write(pVals[0],pack('<I',rkey.handle.value))
         else:
             pVals[2] = hex(pVals[2])
 
@@ -13387,6 +13389,17 @@ def findStringsParms(uc: Uc, pTypes, pVals, skip):
                 try:
                     # print ("looking", i, pTypes[i], pVals[i])
                     if "WSTR" in pTypes[i]:
+                        pVals[i] = read_unicode(uc, pVals[i])
+                    else:
+                        pVals[i] = read_string(uc, pVals[i])
+                    # print (pVals[i],"*")
+                except:
+                    # print ("pass", i)
+                    pass
+            elif "char *" in pTypes[i]:
+                try:
+                    # print ("looking", i, pTypes[i], pVals[i])
+                    if "wchar" in pTypes[i]:
                         pVals[i] = read_unicode(uc, pVals[i])
                     else:
                         pVals[i] = read_string(uc, pVals[i])
