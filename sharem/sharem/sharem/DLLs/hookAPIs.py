@@ -13054,8 +13054,6 @@ class CustomWinSysCalls():
         pTypes = ['PHANDLE', 'ACCESS_MASK', 'POBJECT_ATTRIBUTES', 'HANDLE', 'BOOLEAN', 'HANDLE', 'HANDLE', 'HANDLE']
         pNames = ['ProcessHandle', 'DesiredAccess', 'ObjectAttributes', 'ParentProcess', 'InheritObjectTable', 'SectionHandle', 'DebugPort', 'ExceptionPort']
 
-        handle = Handle(HandleType.Process)
-
         if pVals[2] != 0x0:
             oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em)
             us = get_UNICODE_STRING(uc, oa.ObjectName, em)
@@ -13065,6 +13063,7 @@ class CustomWinSysCalls():
         else:
             pVals[2] = hex(pVals[2])
 
+        handle = Handle(HandleType.Process)
         try:
             uc.mem_write(pVals[0], pack('<I',handle.value))
         except:
@@ -13213,6 +13212,15 @@ class CustomWinSysCalls():
         pNames = ['ThreadHandle', 'DesiredAccess', 'ObjectAttributes', 'ProcessHandle', 'ClientId', 'ThreadContext', 'InitialTeb', 'CreateSuspended']
         dwDesiredAccessReverseLookUp = {2147483648: 'GENERIC_READ', 1073741824: 'GENERIC_WRITE', 536870912: 'GENERIC_EXECUTE', 268435456: 'GENERIC_ALL', 0xC0000000: 'GENERIC_READ | GENERIC_WRITE'}
 
+        if pVals[2] != 0x0:
+            oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em)
+            us = get_UNICODE_STRING(uc, oa.ObjectName, em)
+            name = read_unicode(uc, us.Buffer)
+            pVals[2] = makeStructVals(uc, oa, pVals[2])
+            pVals[2][2][2] = name
+        else:
+            pVals[2] = hex(pVals[2])
+
         handle = Handle(HandleType.Thread)
 
         try:
@@ -13224,7 +13232,7 @@ class CustomWinSysCalls():
 
         pVals[1] = getLookUpVal(pVals[1], dwDesiredAccessReverseLookUp)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2])
         
         retVal = 0
         retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
@@ -13240,6 +13248,15 @@ class CustomWinSysCalls():
         dwDesiredAccessReverseLookUp = {2147483648: 'GENERIC_READ', 1073741824: 'GENERIC_WRITE', 536870912: 'GENERIC_EXECUTE', 268435456: 'GENERIC_ALL', 0xC0000000: 'GENERIC_READ | GENERIC_WRITE'}
         dwCreateFlagsReverseLookUp = {4: 'CREATE_SUSPENDED', 65536: 'STACK_SIZE_PARAM_IS_A_RESERVATION'}
 
+        if pVals[2] != 0x0:
+            oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em)
+            us = get_UNICODE_STRING(uc, oa.ObjectName, em)
+            name = read_unicode(uc, us.Buffer)
+            pVals[2] = makeStructVals(uc, oa, pVals[2])
+            pVals[2][2][2] = name
+        else:
+            pVals[2] = hex(pVals[2])
+
         handle = Handle(HandleType.Thread)
 
         try:
@@ -13252,7 +13269,7 @@ class CustomWinSysCalls():
         pVals[1] = getLookUpVal(pVals[1], dwDesiredAccessReverseLookUp)
         pVals[6] = getLookUpVal(pVals[6], dwCreateFlagsReverseLookUp)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,6])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2,6])
         
         retVal = 0
         retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
@@ -13290,9 +13307,18 @@ class CustomWinSysCalls():
         createOptionsReverseLookup = {1: 'FILE_DIRECTORY_FILE', 2: 'FILE_WRITE_THROUGH', 4: 'FILE_SEQUENTIAL_ONLY', 8: 'FILE_NO_INTERMEDIATE_BUFFERING', 16: 'FILE_SYNCHRONOUS_IO_ALERT', 32: 'FILE_SYNCHRONOUS_IO_NONALERT', 64: 'FILE_NON_DIRECTORY_FILE', 128: 'FILE_CREATE_TREE_CONNECTION', 256: 'FILE_COMPLETE_IF_OPLOCKED', 512: 'FILE_NO_EA_KNOWLEDGE', 1024: 'FILE_OPEN_REMOTE_INSTANCE', 2048: 'FILE_RANDOM_ACCESS', 4096: 'FILE_DELETE_ON_CLOSE', 8192: 'FILE_OPEN_BY_FILE_ID', 16384: 'FILE_OPEN_FOR_BACKUP_INTENT', 32768: 'FILE_NO_COMPRESSION', 65536: 'FILE_OPEN_REQUIRING_OPLOCK', 1048576: 'FILE_RESERVE_OPFILTER', 2097152: 'FILE_OPEN_REPARSE_POINT', 4194304: 'FILE_OPEN_NO_RECALL', 8388608: 'FILE_OPEN_FOR_FREE_SPACE_QUERY', 16777215: 'FILE_VALID_OPTION_FLAGS', 50: 'FILE_VALID_MAILSLOT_OPTION_FLAGS', 54: 'FILE_VALID_SET_FLAGS'}
         maxInstancesReverseLookUp = {255: 'PIPE_UNLIMITED_INSTANCES'}
   
+        name = ''
+        if pVals[2] != 0x0:
+            oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em)
+            us = get_UNICODE_STRING(uc, oa.ObjectName, em)
+            name = read_unicode(uc, us.Buffer)
+            pVals[2] = makeStructVals(uc, oa, pVals[2])
+            pVals[2][2][2] = name
+        else:
+            pVals[2] = hex(pVals[2])
+
         try:
-            # Possibly Parse ObjectAttributes Struct for Name
-            handle = Handle(HandleType.ReadWritePipe)
+            handle = Handle(HandleType.ReadWritePipe, name=name)
             uc.mem_write(pVals[0], pack('<I', handle.value))
         except:
             pass
@@ -13303,7 +13329,7 @@ class CustomWinSysCalls():
         pVals[6] = getLookUpVal(pVals[6], createOptionsReverseLookup)
         pVals[10] = getLookUpVal(pVals[10], maxInstancesReverseLookUp)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,4,5,6,10])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2,4,5,6,10])
 
         retVal = 0
         retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
