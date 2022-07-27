@@ -147,20 +147,14 @@ def makeStructVals(uc: Uc, struct, address: int):
         if "_Array_" in str(value):
             value = value[:]
         elif "<sharem." in str(value): 
-            # Need to Figure out what to Do for Nested Structures/Unions
-            # that are not pointers. Temp Solution
-            tempTypes, tempNames, tempVals = makeSubStructVals(uc,value)
-            value = '{'
-            for t, n, v in zip(tempTypes, tempNames, tempVals):
-                value += f'{t} {n}: {v}, '
-            if value[-2:] == ', ':
-                value = value[:-2]
-            value += '}'
+            value = makeSubStructVals(uc,value)
         pVals.append(value)
 
     for i in range(len(pTypes)):
         if i in lookUps:
             pVals[i] = getLookUpVal(pVals[i],lookUps[i])
+        elif type(pVals[i]) == tuple:
+            pVals[i] = pVals[i]
         elif "STR" in pTypes[i]:  # finding ones with string
             try:
                 if "WSTR" in pTypes[i]:
