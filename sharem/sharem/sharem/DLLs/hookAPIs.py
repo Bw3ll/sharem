@@ -1131,6 +1131,7 @@ class CustomWinAPIs():
         pTypes= ['LOGICAL_PROCESSOR_RELATIONSHIP', 'PSYSYEM_LOGICAL_PROCESSOR_INFORMATION_EX', 'PDWORD']
         pNames= ['RelationshipType', 'Buffer', 'ReturnedLength']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
+        # Add relationship lookup
 
         # Needs Structure
         # pVals[0] = getLookUpVal(pVals[0], GetLogicalProcessorInformationEx.SystemParametersInfo.Action)
@@ -2078,8 +2079,7 @@ class CustomWinAPIs():
         hThread = Handle(HandleType.Thread)
         processInfo = get_PROCESS_INFORMATION(uc, pVals[9], em)
         processInfo.setValues(hProcess.value, hThread.value)
-        processInfo.writeToMemory(uc, pVals[9])
-
+        processInfo.writeToMemory(uc, pVals[9]) 
         pVals[9] = makeStructVals(uc, processInfo, pVals[9])
 
         if pVals[2] != 0x0:
@@ -7506,7 +7506,15 @@ class CustomWinAPIs():
         pNames = ['hRequest', 'lpBuffersIn', 'lpBuffersOut', 'dwFlags', 'dwContext']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        if pVals[1] != 0x0:
+            bufferIn = get_INTERNET_BUFFERSA(uc, pVals[1], em)
+            pVals[1] = makeStructVals(uc, bufferIn, pVals[1])
+        else:
+            pVals[1] = hex(pVals[1])
+
+        # Need to add out struct
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
         
         retVal = 0x1
         retValStr = 'TRUE'
@@ -7548,10 +7556,16 @@ class CustomWinAPIs():
         pNames = ['hFile', 'lpBuffersOut', 'dwFlags', 'dwContext']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
+        if pVals[1] != 0x0:
+            bufferIn = get_INTERNET_BUFFERSA(uc, pVals[1], em)
+            pVals[1] = makeStructVals(uc, bufferIn, pVals[1])
+        else:
+            pVals[1] = hex(pVals[1])
+
         dwFlagsReverseLookUp = {1: 'IRF_ASYNC', 4: 'IRF_SYNC', 8: 'IRF_USE_CONTEXT', 0: 'IRF_NO_WAIT'}
         pVals[2] = getLookUpVal(pVals[2], dwFlagsReverseLookUp)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2])
         
         retVal = 0x1
         retValStr = 'TRUE'
@@ -7565,10 +7579,16 @@ class CustomWinAPIs():
         pNames = ['hFile', 'lpBuffersOut', 'dwFlags', 'dwContext']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
+        if pVals[1] != 0x0:
+            bufferIn = get_INTERNET_BUFFERSW(uc, pVals[1], em)
+            pVals[1] = makeStructVals(uc, bufferIn, pVals[1])
+        else:
+            pVals[1] = hex(pVals[1])
+
         dwFlagsReverseLookUp = {1: 'IRF_ASYNC', 4: 'IRF_SYNC', 8: 'IRF_USE_CONTEXT', 0: 'IRF_NO_WAIT'}
         pVals[2] = getLookUpVal(pVals[2], dwFlagsReverseLookUp)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2])
         
         retVal = 0x1
         retValStr = 'TRUE'
@@ -8827,8 +8847,10 @@ class CustomWinAPIs():
             timeVal = get_SYSTEMTIME(uc, pVals[0], em)
             timeVal.setTime(True,emuSimVals.system_time_since_epoch)
             timeVal.writeToMemory(uc, pVals[0])
+            pVals[0] = makeStructVals(uc, timeVal, pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
 
-        pVals[0] = makeStructVals(uc, timeVal, pVals[0])
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
 
@@ -8849,8 +8871,9 @@ class CustomWinAPIs():
             timeVal = get_SYSTEMTIME(uc, pVals[0], em)
             timeVal.setTime(False, emuSimVals.system_time_since_epoch)
             timeVal.writeToMemory(uc, pVals[0])
-
-        pVals[0] = makeStructVals(uc, timeVal, pVals[0])
+            pVals[0] = makeStructVals(uc, timeVal, pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
 
@@ -9107,7 +9130,7 @@ class CustomWinAPIs():
         pTypes = ['HANDLE', 'PLARGE_INTEGER']
         pNames = ['hFile', 'lpFileSize']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-
+        # add large_integer struct
         randomPacking = 0xffffffff # For the try/pass uc.mem_write, uses a random value
 
         try:
@@ -10033,13 +10056,16 @@ class CustomWinAPIs():
         pNames = ['lpTimeZoneInformation'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        timeZone = get_TIME_ZONE_INFORMATION(uc, pVals[0], em)
-        timeZone.DaylightName = 'UTC' # Add Config for TimeZones
-        timeZone.StandardName = 'UTC'
-        timeZone.DaylightDate.setTime(False, emuSimVals.system_time_since_epoch)
-        timeZone.StandardDate.setTime(False, emuSimVals.system_time_since_epoch)
-        timeZone.writeToMemory(uc, pVals[0])
-        pVals[0] = makeStructVals(uc, timeZone, pVals[0])
+        if pVals[0] != 0x0:
+            timeZone = get_TIME_ZONE_INFORMATION(uc, pVals[0], em)
+            timeZone.DaylightName = 'UTC' # Add Config for TimeZones
+            timeZone.StandardName = 'UTC'
+            timeZone.DaylightDate.setTime(False, emuSimVals.system_time_since_epoch)
+            timeZone.StandardDate.setTime(False, emuSimVals.system_time_since_epoch)
+            timeZone.writeToMemory(uc, pVals[0])
+            pVals[0] = makeStructVals(uc, timeZone, pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
         
@@ -10055,10 +10081,13 @@ class CustomWinAPIs():
         pNames = ['lpStartupInfo'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        startupinfo = get_STARTUPINFOA(uc, pVals[0], em)
-        uc.mem_write(startupinfo.lpDesktop, pack(f'<{len(emuSimVals.computer_name)+1}s',emuSimVals.computer_name.encode('utf-16')[2:]))
-        startupinfo.writeToMemory(uc, pVals[0])
-        pVals[0] = makeStructVals(uc, startupinfo, pVals[0])
+        if pVals[0] != 0x0:
+            startupinfo = get_STARTUPINFOA(uc, pVals[0], em)
+            uc.mem_write(startupinfo.lpDesktop, pack(f'<{len(emuSimVals.computer_name)+1}s',emuSimVals.computer_name.encode('utf-16')[2:]))
+            startupinfo.writeToMemory(uc, pVals[0])
+            pVals[0] = makeStructVals(uc, startupinfo, pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
         
@@ -10074,10 +10103,13 @@ class CustomWinAPIs():
         pNames = ['lpStartupInfo'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        startupinfo = get_STARTUPINFOW(uc, pVals[0], em)
-        uc.mem_write(startupinfo.lpDesktop, pack(f'<{len(emuSimVals.computer_name)*2+2}s',emuSimVals.computer_name.encode('utf-16')[2:]))
-        startupinfo.writeToMemory(uc, pVals[0])
-        pVals[0] = makeStructVals(uc, startupinfo, pVals[0])
+        if pVals[0] != 0x0:
+            startupinfo = get_STARTUPINFOW(uc, pVals[0], em)
+            uc.mem_write(startupinfo.lpDesktop, pack(f'<{len(emuSimVals.computer_name)*2+2}s',emuSimVals.computer_name.encode('utf-16')[2:]))
+            startupinfo.writeToMemory(uc, pVals[0])
+            pVals[0] = makeStructVals(uc, startupinfo, pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
         
@@ -10095,16 +10127,16 @@ class CustomWinAPIs():
 
         # might expand with config
 
-        sysinfo = get_SYSTEM_INFO(uc, pVals[0], em)
-
-        sysinfo.DUMMYSTRUCTNAME.wProcessorArchitecture = 9
-        sysinfo.dwPageSize = 4096
-        sysinfo.dwNumberOfProcessors = 4
-        sysinfo.dwProcessorType = 8664
-
-        sysinfo.writeToMemory(uc, pVals[0])
-
-        pVals[0] = makeStructVals(uc, sysinfo, pVals[0])
+        if pVals[0] != 0x0:
+            sysinfo = get_SYSTEM_INFO(uc, pVals[0], em)
+            sysinfo.DUMMYSTRUCTNAME.wProcessorArchitecture = 9
+            sysinfo.dwPageSize = 4096
+            sysinfo.dwNumberOfProcessors = 4
+            sysinfo.dwProcessorType = 8664
+            sysinfo.writeToMemory(uc, pVals[0])
+            pVals[0] = makeStructVals(uc, sysinfo, pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
         
@@ -11058,6 +11090,7 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         handle = Handle(HandleType.DuplicateToken)
+        # add impersonation level lookup
 
         try:
             uc.mem_write(pVals[2], pack('<I',handle.value))
@@ -11176,9 +11209,27 @@ class CustomWinAPIs():
         pNames = ['hThread', 'ThreadInformationClass', 'ThreadInformation', 'ThreadInformationSize'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        # need lookup for THREAD_INFORMATION_CLASS
+        pVals[1] = getLookUpVal(pVals[1],ReverseLookUps.Thread.THREAD_INFORMATION_CLASS)
 
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        if pVals[2] != 0x0:
+            if pVals[1] == "ThreadMemoryPriority":
+                mp = get_MEMORY_PRIORITY_INFORMATION(uc, pVals[2], em)
+                mp.MemoryPriority = 5 # Normal
+                mp.writeToMemory(uc, pVals[2])
+                pVals[2] = makeStructVals(uc, mp, pVals[2])
+            elif pVals[1] == "ThreadAbsoluteCpuPriority":
+                pVals[2] = hex(pVals[2])
+                pass # need to figure out value to return
+            elif pVals[1] == "ThreadDynamicCodePolicy":
+                pVals[2] = hex(pVals[2])
+                pass # need to figure out value to return
+            else:
+                pVals[2] = hex(pVals[2])
+        else:
+            pVals[2] = hex(pVals[2]) 
+
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[1,2])
         
         retVal = 0x1
         retValStr = 'SUCCESS'
@@ -11460,7 +11511,7 @@ class CustomWinAPIs():
         
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
-        logged_calls = ("GlobalLock", hex(callAddr), (retValStr), 'LPVOID ', pVals, pTypes, pNames, False)
+        logged_calls = ("GlobalLock", hex(callAddr), (retValStr), 'LPVOID', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def GlobalAlloc(self, uc: Uc, eip, esp, export_dict, callAddr, em):
@@ -11875,11 +11926,13 @@ class CustomWinAPIs():
         pNames= ['lpSystemTimeAsFileTime']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        fileTime = get_FILETIME(uc, pVals[0], em)
-        fileTime.genTime()
-        fileTime.writeToMemory(uc, pVals[0])
-
-        pVals[0] = makeStructVals(uc, fileTime, pVals[0])
+        if pVals[0] != 0x0:
+            fileTime = get_FILETIME(uc, pVals[0], em)
+            fileTime.genTime()
+            fileTime.writeToMemory(uc, pVals[0])
+            pVals[0] = makeStructVals(uc, fileTime, pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
 
@@ -13345,7 +13398,7 @@ class CustomWinSysCalls():
 
         # Add Lookup for access mask
 
-        if pVals[2] != 0x0: # Disabled Until Syscall Struct Print is Fixed
+        if pVals[2] != 0x0:
             oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em)
             us = get_UNICODE_STRING(uc, oa.ObjectName, em)
             name = read_unicode(uc, us.Buffer)

@@ -1505,3 +1505,105 @@ class COPYFILE2_EXTENDED_PARAMETERS:
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
+
+# Struct INTERNET_BUFFERSA
+# Alias Names: _INTERNET_BUFFERSA
+# Alias Pointer Names: LPINTERNET_BUFFERSA
+
+def get_INTERNET_BUFFERSA(uc: Uc, address: int, em):
+    if em.arch == 32:
+        return INTERNET_BUFFERSA.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(INTERNET_BUFFERSA.ARCH32)))
+    else:
+        return INTERNET_BUFFERSA.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(INTERNET_BUFFERSA.ARCH64)))
+
+# Struct Aliases:
+# get__INTERNET_BUFFERSA = get_INTERNET_BUFFERSA
+
+# Struct Pointers:
+LPINTERNET_BUFFERSA_32BIT = POINTER_32BIT
+LPINTERNET_BUFFERSA_64BIT = POINTER_64BIT
+
+class INTERNET_BUFFERSA:
+
+    class ARCH32(LittleEndianStructure):
+        types = ['DWORD', 'LPINTERNET_BUFFERSA', 'LPCSTR', 'DWORD', 'DWORD', 'LPVOID', 'DWORD', 'DWORD', 'DWORD', 'DWORD']
+        __slots__ = ('dwStructSize', 'Next', 'lpcszHeader', 'dwHeadersLength', 'dwHeadersTotal', 'lpvBuffer', 'dwBufferLength', 'dwBufferTotal', 'dwOffsetLow', 'dwOffsetHigh')
+        lookUps = {}
+
+        _fields_ = [('dwStructSize',DWORD),('Next',LPINTERNET_BUFFERSA_32BIT),('lpcszHeader',LPCSTR_32BIT),('dwHeadersLength',DWORD),('dwHeadersTotal',DWORD),('lpvBuffer',LPVOID_32BIT),('dwBufferLength',DWORD),('dwBufferTotal',DWORD),('dwOffsetLow',DWORD),('dwOffsetHigh',DWORD)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure):
+        types = ['DWORD', 'LPINTERNET_BUFFERSA', 'LPCSTR', 'DWORD', 'DWORD', 'LPVOID', 'DWORD', 'DWORD', 'DWORD', 'DWORD']
+        __slots__ = ('dwStructSize', 'Next', 'lpcszHeader', 'dwHeadersLength', 'dwHeadersTotal', 'lpvBuffer', 'dwBufferLength', 'dwBufferTotal', 'dwOffsetLow', 'dwOffsetHigh')
+        lookUps = {}
+
+        _fields_ = [('dwStructSize',DWORD),('Next',LPINTERNET_BUFFERSA_64BIT),('lpcszHeader',LPCSTR_64BIT),('dwHeadersLength',DWORD),('dwHeadersTotal',DWORD),('lpvBuffer',LPVOID_64BIT),('dwBufferLength',DWORD),('dwBufferTotal',DWORD),('dwOffsetLow',DWORD),('dwOffsetHigh',DWORD)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+# Struct INTERNET_BUFFERSW
+# Alias Names: _INTERNET_BUFFERSW
+# Alias Pointer Names: LPINTERNET_BUFFERSW
+
+def get_INTERNET_BUFFERSW(uc: Uc, address: int, em):
+    if em.arch == 32:
+        return INTERNET_BUFFERSW.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(INTERNET_BUFFERSW.ARCH32)))
+    else:
+        return INTERNET_BUFFERSW.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(INTERNET_BUFFERSW.ARCH64)))
+
+# Struct Aliases:
+# get__INTERNET_BUFFERSW = get_INTERNET_BUFFERSW
+
+# Struct Pointers:
+LPINTERNET_BUFFERSW_32BIT = POINTER_32BIT
+LPINTERNET_BUFFERSW_64BIT = POINTER_64BIT
+
+class INTERNET_BUFFERSW:
+
+    class ARCH32(LittleEndianStructure):
+        types = ['DWORD', 'LPINTERNET_BUFFERSW', 'LPCWSTR', 'DWORD', 'DWORD', 'LPVOID', 'DWORD', 'DWORD', 'DWORD', 'DWORD']
+        __slots__ = ('dwStructSize', 'Next', 'lpcszHeader', 'dwHeadersLength', 'dwHeadersTotal', 'lpvBuffer', 'dwBufferLength', 'dwBufferTotal', 'dwOffsetLow', 'dwOffsetHigh')
+        lookUps = {}
+
+        _fields_ = [('dwStructSize',DWORD),('Next',LPINTERNET_BUFFERSW_32BIT),('lpcszHeader',LPCWSTR_32BIT),('dwHeadersLength',DWORD),('dwHeadersTotal',DWORD),('lpvBuffer',LPVOID_32BIT),('dwBufferLength',DWORD),('dwBufferTotal',DWORD),('dwOffsetLow',DWORD),('dwOffsetHigh',DWORD)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure):
+        types = ['DWORD', 'LPINTERNET_BUFFERSW', 'LPCWSTR', 'DWORD', 'DWORD', 'LPVOID', 'DWORD', 'DWORD', 'DWORD', 'DWORD']
+        __slots__ = ('dwStructSize', 'Next', 'lpcszHeader', 'dwHeadersLength', 'dwHeadersTotal', 'lpvBuffer', 'dwBufferLength', 'dwBufferTotal', 'dwOffsetLow', 'dwOffsetHigh')
+        lookUps = {}
+
+        _fields_ = [('dwStructSize',DWORD),('Next',LPINTERNET_BUFFERSW_64BIT),('lpcszHeader',LPCWSTR_64BIT),('dwHeadersLength',DWORD),('dwHeadersTotal',DWORD),('lpvBuffer',LPVOID_64BIT),('dwBufferLength',DWORD),('dwBufferTotal',DWORD),('dwOffsetLow',DWORD),('dwOffsetHigh',DWORD)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+# Struct MEMORY_PRIORITY_INFORMATION
+# Alias Names: _MEMORY_PRIORITY_INFORMATION
+# Alias Pointer Names: PMEMORY_PRIORITY_INFORMATION
+
+def get_MEMORY_PRIORITY_INFORMATION(uc: Uc, address: int, em):
+    return MEMORY_PRIORITY_INFORMATION.from_buffer_copy(uc.mem_read(address, sizeof(MEMORY_PRIORITY_INFORMATION)))
+
+# Struct Aliases:
+# get__MEMORY_PRIORITY_INFORMATION = get_MEMORY_PRIORITY_INFORMATION
+
+# Struct Pointers:
+PMEMORY_PRIORITY_INFORMATION_32BIT = POINTER_32BIT
+PMEMORY_PRIORITY_INFORMATION_64BIT = POINTER_64BIT
+
+class MEMORY_PRIORITY_INFORMATION(LittleEndianStructure):
+    types = ['ULONG']
+    __slots__ = ('MemoryPriority',)
+    lookUps = {0: ReverseLookUps.Thread.MEMORY_PRIORITY}
+
+    _fields_ = [('MemoryPriority',ULONG)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
