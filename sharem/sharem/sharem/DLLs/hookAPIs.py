@@ -1168,7 +1168,6 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         # Might Need to Expand
-        # pVals[0] = getLookUpVal(pVals[0], DeviceIoControl.SystemParametersInfo.Action)
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         retVal = 0x88888888
@@ -1185,7 +1184,6 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         # Might Need to Expand
-        # pVals[0] = getLookUpVal(pVals[0], DeviceIoControl.SystemParametersInfo.Action)
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         retVal = 0x88888888
@@ -1202,7 +1200,6 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         # Might Need to Expand
-        # pVals[0] = getLookUpVal(pVals[0], DeviceIoControl.SystemParametersInfo.Action)
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
         retVal = 0x88888888
@@ -1211,6 +1208,22 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)     
 
         logged_calls= ("LookupAccountNameA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def xxGetCurrentHwProfileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['LPHW_PROFILE_INFOA']
+        pNames= ['lpHwProfileInfo']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        retVal = 0x88888888
+
+        retValStr='True'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetCurrentHwProfileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def HeapCreate(self, uc: Uc, eip, esp, export_dict, callAddr, em):
