@@ -98,12 +98,25 @@ class Artifacts_regex:
 class Artifacts_emulation:
 	def __init__(self):
 		self.path_artifacts = []
+		self.path_copy = []
+		self.path_move = []
+
 		self.file_artifacts = []
+		self.files_create = []
+		self.files_write = []
+		self.files_delete = []
+		self.files_access= []
+		self.files_copy = []
+		self.files_move = []
+
 		self.commandLine_artifacts = []
-		self.web_artifacts = []
-		self.registry_artifacts = []
-		self.exe_dll_artifacts = []
 		self.commandLine_HookApis = set()
+
+		self.web_artifacts = []
+
+		self.exe_dll_artifacts = []
+
+		self.registry_artifacts = []
 		self.registry_edit_keys = set()
 		self.registry_add_keys = set()
 		self.registry_delete_keys = set()
@@ -116,12 +129,7 @@ class Artifacts_emulation:
 		self.reg_HKLM = set()
 		self.reg_HKU = set()
 		self.reg_HKCC = set()
-		self.files_create = []
-		self.files_write = []
-		self.files_delete = []
-		self.files_access= []
-		self.files_copy = []
-		self.files_move = []
+		
 
 	def removeDuplicates(self):
 		exe_dll_COPY = self.exe_dll_artifacts
@@ -137,6 +145,8 @@ class Artifacts_emulation:
 		self.files_delete = set(self.files_delete)
 		self.files_access = set(self.files_access)
 		self.files_copy = set(self.files_copy)
+		self.path_copy = set(self.path_copy)
+		self.path_move = set(self.path_move)
 
 		#This will need to be built out better in the future, currently we do not have any functions that edit/delete with special values we want such as desktop being passed into it.
 		#self.registry_misc = self.registry_misc - self.registry_edit_keys
@@ -156,6 +166,8 @@ class Artifacts_emulation:
 		self.removeObjectsFromDLLS()
 
 		#convert back
+		self.path_copy = set(self.path_copy)
+		self.path_move = set(self.path_move)
 		self.files_copy = list(self.files_copy)
 		self.files_create = list(self.files_create)
 		self.files_write = list(self.files_write)
@@ -382,7 +394,6 @@ class Artifacts_emulation:
 		for each in self.exe_dll_artifacts:
 			if dllsObject in each:
 				self.exe_dll_artifacts.remove(each)
-
 
 	def removeStructures(self,Regex):
 		#go through and find structures

@@ -1170,8 +1170,8 @@ class WSAPROTOCOL_INFOW(LittleEndianStructure):
 # Alias Names: _OVERLAPPED
 # Alias Pointer Names: LPWSAPROTOCOL_INFOW
 
-def get_OVERLAPPED(uc: Uc, address: int, em):
-    return OVERLAPPED.from_buffer_copy(uc.mem_read(address, sizeof(OVERLAPPED)))
+# def get_OVERLAPPED(uc: Uc, address: int, em):
+    # return OVERLAPPED.from_buffer_copy(uc.mem_read(address, sizeof(OVERLAPPED)))
 
 # Struct Aliases:
 # get__OVERLAPPED = get_OVERLAPPED
@@ -1179,16 +1179,27 @@ def get_OVERLAPPED(uc: Uc, address: int, em):
 # Struct Pointers:
 # LPWSAPROTOCOL_INFOW_32BIT = POINTER_32BIT
 # LPWSAPROTOCOL_INFOW_64BIT = POINTER_64BIT
+# class OVERLAPPED_Helpers:
+#     #sub structures
+#     class dummyStruct(LittleEndianUnion):
+#         types = ['DWORD', 'DWORD']
+#         __slots__ = ('Offset', 'OffsetHigh')
+#         lookUps = {}
+#         _fields_ = [('Offset',DWORD),('OffsetHigh',DWORD)]
+#     class dummyUnion(LittleEndianUnion):
+#         types = ['union', 'PVOID']
+#         __slots__ = ('DUMMYSTRUCTNAME', 'Pointer')
+#         lookUps = {}
+#         _fields_ = [('DUMMYSTRUCTNAME',OVERLAPPED_Helpers.dummyStruct),('Pointer',PVOID)]
 
-class OVERLAPPED(LittleEndianStructure):
-    types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'GUID', 'DWORD', 'WSAPROTOCOLCHAIN', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'DWORD', 'DWORD', 'WCHAR']
-    __slots__ = ('dwServiceFlags1', 'dwServiceFlags2', 'dwServiceFlags3', 'dwServiceFlags4', 'dwProviderFlags', 'ProviderId', 'dwCatalogEntryId', 'ProtocolChain', 'iVersion', 'iAddressFamily', 'iMaxSockAddr', 'iMinSockAddr', 'iSocketType', 'iProtocol', 'iProtocolMaxOffset', 'iNetworkByteOrder', 'iSecurityScheme', 'dwMessageSize', 'dwProviderReserved', 'szProtocol')
-    lookUps = {}
+# class OVERLAPPED(LittleEndianStructure):
+#     types = ['ULONG_PTR', 'ULONG_PTR', 'union', 'HANDLE']
+#     __slots__ = ('Internal','InternalHigh','DUMMYUNIONNAME','hEvent')
+#     lookUps = {}
+#     _fields_ = [('Internal',ULONG_PTR),('InternalHigh',ULONG_PTR),(DUMMYUNIONNAME,OVERLAPPED_Helpers.dummyUnion),('hEvent',HANDLE)]
 
-    _fields_ = [('dwServiceFlags1',DWORD),('dwServiceFlags2',DWORD),('dwServiceFlags3',DWORD),('dwServiceFlags4',DWORD),('dwProviderFlags',DWORD),('ProviderId',GUID),('dwCatalogEntryId',DWORD),('ProtocolChain',WSAPROTOCOLCHAIN),('iVersion',INT),('iAddressFamily',INT),('iMaxSockAddr',INT),('iMinSockAddr',INT),('iSocketType',INT),('iProtocol',INT),('iProtocolMaxOffset',INT),('iNetworkByteOrder',INT),('iSecurityScheme',INT),('dwMessageSize',DWORD),('dwProviderReserved',DWORD),('szProtocol',WCHAR*256)]
-
-    def writeToMemory(self, uc: Uc, address: int):
-        uc.mem_write(address, bytes(self))
+#     def writeToMemory(self, uc: Uc, address: int):
+#         uc.mem_write(address, bytes(self))
 
 # Struct WIN32_FIND_DATAA 
 # Alias Names: _WIN32_FIND_DATAA
@@ -1661,15 +1672,58 @@ class INTERNET_CACHE_ENTRY_INFOA:
 
         _fields_ = [('dwStructSize',DWORD),('lpszSourceUrlName',LPSTR_32BIT),('lpszLocalFileName',LPSTR_32BIT),('CacheEntryType',DWORD),('dwUseCount',DWORD),('dwHitRate',DWORD),('dwSizeLow',DWORD),('dwSizeHigh',DWORD),('LastModifiedTime',FILETIME),('ExpireTime',FILETIME),('LastAccessTime',FILETIME),('LastSyncTime',FILETIME),('lpHeaderInfo',LPSTR_32BIT), ('dwHeaderInfoSize',DWORD),('lpszFileExtension',LPSTR_32BIT),('DUMMYUNIONNAME', INTERNET_CACHE_ENTRY_INFOA_Helpers.union)]
 
+
+# Struct IO_STATUS_BLOCK
+# Alias Names: _INTERNET_BUFFERSA
+# Alias Pointer Names: LPINTERNET_BUFFERSA
+
+def get_IO_STATUS_BLOCK(uc: Uc, address: int, em):
+    if em.arch == 32:
+        return IO_STATUS_BLOCK.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(IO_STATUS_BLOCK.ARCH32)))
+    else:
+        return IO_STATUS_BLOCK.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(IO_STATUS_BLOCK.ARCH64)))
+
+# Struct Aliases:
+# get__INTERNET_BUFFERSA = get_INTERNET_BUFFERSA
+
+# Struct Pointers:
+PIO_STATUS_BLOCK_32BIT = POINTER_32BIT
+PIO_STATUS_BLOCK_64BIT = POINTER_64BIT
+
+class IO_STATUS_BLOCK_Helpers:
+    # Sub Structures/Unions
+    class Union_32BIT(LittleEndianUnion):
+        types = ['NTSTATUS', 'PVOID']
+        __slots__ = ('Status', 'Pointer')
+        lookUps = {}
+
+        _fields_ = [('Status',LONG),('Pointer',PVOID_32BIT)]
+
+    class Union_64BIT(LittleEndianUnion):
+        types = ['NTSTATUS', 'PVOID']
+        __slots__ = ('Status', 'Pointer')
+        lookUps = {}
+
+        _fields_ = [('Status',LONG),('Pointer',PVOID_64BIT)]
+
+class IO_STATUS_BLOCK:
+
+    class ARCH32(LittleEndianStructure):
+        types = ['union', 'ULONG_PTR']
+        __slots__ = ('DUMMYUNIONNAME', 'Information')
+        lookUps = {}
+
+        _fields_ = [('DUMMYUNIONNAME',IO_STATUS_BLOCK_Helpers.Union_32BIT),('Information',ULONG_PTR_32BIT)]
+
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
     class ARCH64(LittleEndianStructure):
-        types = ['DWORD', 'LPSTR', 'LPSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'FILETIME', 'FILETIME', 'FILETIME', 'FILETIME', 'LPSTR', 'DWORD', 'LPSTR', 'union']
-        __slots__ = ('dwStructSize', 'lpszSourceUrlName', 'lpszLocalFileName', 'CacheEntryType', 'dwUseCount','dwHitRate', 'dwSizeLow', 'dwSizeHigh', 'LastModifiedTime', 'ExpireTime', 'LastAccessTime', 'LastSyncTime', 'lpHeaderInfo', 'dwHeaderInfoSize', 'lpszFileExtension', 'DUMMYUNION')
+        types = ['union', 'ULONG_PTR']
+        __slots__ = ('DUMMYUNIONNAME', 'Information')
         lookUps = {}
 
-        _fields_ = [('dwStructSize',DWORD),('lpszSourceUrlName',LPSTR_64BIT),('lpszLocalFileName',LPSTR_64BIT),('CacheEntryType',DWORD),('dwUseCount',DWORD),('dwHitRate',DWORD),('dwSizeLow',DWORD),('dwSizeHigh',DWORD),('LastModifiedTime',FILETIME),('ExpireTime',FILETIME),('LastAccessTime',FILETIME),('LastSyncTime',FILETIME),('lpHeaderInfo',LPSTR_64BIT), ('dwHeaderInfoSize',DWORD),('lpszFileExtension',LPSTR_64BIT),('DUMMYUNIONNAME', INTERNET_CACHE_ENTRY_INFOA_Helpers.union)]
+        _fields_ = [('DUMMYUNIONNAME',IO_STATUS_BLOCK_Helpers.Union_64BIT),('Information',ULONG_PTR_64BIT)]
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))

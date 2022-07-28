@@ -1,3 +1,4 @@
+from json import decoder
 from capstone import *
 from sharem import *
 import re
@@ -23,6 +24,7 @@ import argparse
 from argparse import Namespace
 import hashlib
 import platform
+from sharem.sharem.helper.variable import Varaibles
 import textwrap3
 
 
@@ -275,6 +277,9 @@ bfindShell = True
 bfindShellFound = False
 bComments = True
 shellBit=32
+##add in the current directory later, as right now this will only output to the logs folder
+gVar = Varaibles()
+jsonP = jsonPrint(variableClass = gVar,filename=filename,rawHex=rawHex)
 
 #####SAME AS FROM SHAREM
 filename=""
@@ -7632,9 +7637,9 @@ def parseUnkownArch():
 			print(output)
 			filename = i
 			if count == 0:
-				current_arch = 32
+				jsonP.current_arch = 32
 			else:
-				current_arch = 64
+				jsonP.current_arch = 64
 
 			if i[-3:] == "txt":
 				if count == 0:
@@ -22200,200 +22205,7 @@ def clearImports():
 	FoundApisName.clear()
 	mBool[o].bEvilImportsFound = False
 
-def emulation_json_out(apiList, logged_syscalls):
-
-
-
-	# api1 = {"api_name": "winexec",
-	# 	"parameters":[{
-	# 	"type":"LPCSTR lpCmdLine",
-	# 	"value":"cmd.exe /c ping google.com > c:\\result.txt",
-
-	# 	}, {
-
-	# 	"type":"UINT uCmdShow",
-	# 	"Value":"0x5"
-	# 	}],
-	# 	"return_value":"INT 0x5"
-
-	# }
-	#path_artifacts, file_artifacts, commandLine_artifacts, web_artifacts, registry_artifacts,	exe_dll_artifacts = findArtifacts()
-
-
-	# syscall_names, syscall_params_values, syscall_params_types, syscall_params_names, syscall_address, ret_values, ret_type, syscall_bruteforce, syscallID = build_emu_results(logged_syscalls)
-
-
-
-	# emu_dlls = ["kernel32", "advapi32", "user32"]
-	# artifacts = ["c:\\result.txt", "cmd.exe", "google.com", "result.txt", "user32.dll", "calc.exe", "notepad.exe", "www.msn.com", "http://c2.net", "c:\\windows\system32\mstsc.exe"]
-
-	
-	# r = "(http|ftp|https):\/\/?|(www\.)?[a-zA-Z]+\.(com|eg|net|org)"
-	# rfile = ".*(\\.*)$"
-	# for i in artifacts:
-	# 	result = re.search(r, i)
-
-	# 	if result:
-	# 		net_artifacts.append(i)
-	# 	if i[-4:] == ".exe":
-	# 		exec_artifacts.append(i)
-
-	# 	result = re.search(rfile,i)
-	# 	if result:
-	# 		file_artifacts.append(i)
-
-	# sample = [('WinExec', '0x123123', '0x20', 'INT', ['cmd.exe /c ping google.com > C:\\result.txt', '0x5'], ['LPCSTR', 'UINT'], ['lpCmdLine', 'uCmdShow'], False), ('EncyptFileA', '0x321321', '0x20', 'INT', ['C:\\result.txt'], ['LPCSTR'], ['lpFileName'], False),
-# ('LoadLibraryA', '0x1337c0de', '0x45664c88', 'HINSTANCE', ['user32.dll'], ['LPCTSTR'], ['lpLibFileName'], False),('MessageBoxA', '0xdeadc0de', '0x20', 'INT', ['0x987987', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', 'You have been hacked by an elite haxor. Your IP address is now stored in C:\\result.txt but it is encrypted :)cmd.exe /c ping google.com > C:\\result.txt', '0x0'], ['HWND', 'LPCSTR', 'LPCSTR', 'UINT'], ['hWnd', 'lpText', 'lpCaption', 'uType'], False)]
-
-	# api_names = []
-	api_params_values = []
-	api_params_types = []
-	api_params_names = []
-	# api_address = []
-	# ret_values = []
-	# ret_type = []
-	
-	list_of_apis = []
-
-
-
-	emulation_dict = {"api_calls":[],
-					  "syscalls_emulation":[],
-					  "dlls":[],
-					  "path_artifacts":[],
-					  "file_artifacts":[],
-					  "commandLine_artifacts":[],
-					  "web_artifacts":[],
-					  "exe_dll_artifacts":[],
-					  "registry_actions":[],
-					  "registry_techniques":[],
-					  "registry_hierarchy":[],
-					  "registry_miscellaneous":[]
-	}
-	emulation_dict["api_calls"].append(printOut.jsonApis(apiList))
-	
-	emulation_dict["syscalls_emulation"].append(printOut.jsonSyscalls(logged_syscalls,em))
-	
-	
-	emulation_dict["dlls"].extend(logged_dlls)
-	emulation_dict["path_artifacts"].extend(art.path_artifacts)
-	emulation_dict["file_artifacts"].extend(art.file_artifacts)	
-	emulation_dict["commandLine_artifacts"].extend(art.commandLine_artifacts)
-	emulation_dict["web_artifacts"].extend(art.web_artifacts)
-	emulation_dict["exe_dll_artifacts"].extend(art.exe_dll_artifacts)
-	emulation_dict["registry_miscellaneous"].extend(art.registry_misc)
-	#registry
-
-	registryActionsDict = {}
-	addedKeysList = []
-	editedKeysList = []
-	deletedKeysList = []
-	for i in art.registry_add_keys:
-		addedKeysList.append({"key_path":i,
-								"value":""})
-	for i in art.registry_edit_keys:
-		editedKeysList.append({"key_path":i[0],
-								"value":str([i[1],i[2]])})
-	for i in art.registry_delete_keys:
-		if(type(i) == tuple):
-			deletedKeysList.append({"key_path":i[0],
-								"value":str(i[1])})
-		else:
-			deletedKeysList.append({"key_path":i,
-								"value":""})
-
-	registryActionsDict["added_keys"] = addedKeysList
-	registryActionsDict["edited_keys"] = editedKeysList
-	registryActionsDict["deleted_keys"] = deletedKeysList
-
-	emulation_dict["registry_actions"] = registryActionsDict
-
-	
-	registryTechniquesDict = {}
-	persistence_list = []
-	credentials_list = []
-	discovery_list = []
-	for i in art.registry_persistence:
-		persistence_list.append({"key_path": i})
-	for i in art.registry_credentials:
-		credentials_list.append({"key_path": i})
-	for i in art.registry_discovery:
-		discovery_list.append({"key_path": i})
-	registryTechniquesDict["persistence"] = persistence_list
-	registryTechniquesDict["credentials"] = credentials_list
-	registryTechniquesDict["discovery"] = discovery_list
-	emulation_dict["registry_techniques"] = registryTechniquesDict
-
-	#reg_strings_list = []
-	#for i in registry_strings:
-	#	reg_strings_list.append({"string":i})
-	## reg_strings_dict = reg_strings_list
-	#emulation_dict["registry_strings"] = reg_strings_list
-	
-	#Hkey hierarchy
-	registryHierarchyDict = {}
-	classes_root_keys = []
-	current_user_keys = []
-	local_machine_keys = []
-	users_keys = []
-	current_config_keys = []
-	for i in art.reg_HKCR:
-		classes_root_keys.append({"key_path":i})
-	for i in art.reg_HKCU:
-		current_user_keys.append({"key_path":i})
-	for i in art.reg_HKLM:
-		local_machine_keys.append({"key_path":i})
-	for i in art.reg_HKU:
-		users_keys.append({"key_path":i})
-	for i in art.reg_HKCC:
-		current_config_keys.append({"key_path":i})
-
-	registryHierarchyDict["hkey_classes_root"] = classes_root_keys
-	registryHierarchyDict["hkey_current_user"] = current_user_keys
-	registryHierarchyDict["hkey_local_machine"] = local_machine_keys
-	registryHierarchyDict["hkey_users"] = users_keys
-	registryHierarchyDict["hkey_current_config"] = current_config_keys
-
-	emulation_dict["registry_hierarchy"] = registryHierarchyDict
-
-
-	# print(emulation_dict)
-	# for api in list_of_apis:
-	# 	t = 0
-	# 	for x in api_params_types:
-	# 		pTyp = api_params_types[t]
-	# 		pName = api_params_names[t]
-	# 		pVal = api_params_values[t] 
-	# 		print("---> ", pTyp, pName, pVal)
-			# t += 1
-			# api['parameters'].append({"type":pTyp + " " + pName,
-									  # "value":pVal
-
-			# })
-	# print(list_of_apis)
-	# sys.exit()
-
-	# "api_calls": [
- #      {
- #         "api_name": "winexec",
- #         "parameters": [
- #            {
- #               "type": "LPCSTR lpCmdLine",
- #               "value": "cmd.exe /c ping google.com > c:\\result.txt"
- #            },
- #            {
- #               "type": "UINT uCmdShow",
- #               "Value": "0x5"
- #            }
- #         ],
- #         "return_value": "INT 0x5"
- #      }
- #   ],
-	
-
-	
-
-	return emulation_dict
+# 
 
 def getRetVal(retVal, retType=""):
 	print ("retVal in sharem: ", retVal)
@@ -22812,184 +22624,22 @@ def printToJson(bpAll, outputData):	#Output data to json
 	global filename
 	global sharem_out_dir
 	global FoundApisName
-
-	time = datetime.datetime.now()
-	filetime = time.strftime("%Y%m%d_%H%M%S")
-	time = time.strftime("%Y-%m-%d %H:%M:%S")
-	t = 0
-	for char in peName:
-		if(char == '.'):
-			break
-		t += 1
-
-	filename = filename.split(slash)[-1]
-	noExtension = peName[0:t]
-
-
-	if filename == "":
-		outfile = peName.split(".")[0]
-		outfileName = peName
-		if outfileName[-4]==".":
-			outfileName=outfileName[:-4]
-		chkExt = peName[-4]
-	else:	
-		outfile = filename.split(".")[0]
-		outfileName = filename
-		if outfileName[-4]==".":
-			outfileName=outfileName[:-4]
-			# print (outfileName)
-		chkExt = filename[-4]
-
-
-	# if filename == "":
-	# 	outfile = peName.split(".")[0]
-	# 	outfileName = peName
-	# 	chkExt = peName[-4]
-	# else:	
-	# 	outfile = filename.split(".")[0]
-	# 	outfileName = filename
-	# 	chkExt = filename[-4]
-
-	output_dir = os.getcwd()
-
-	if sharem_out_dir == "current_dir":
-		output_dir = os.path.join(os.path.dirname(__file__),"sharem", "logs")
-	else:
-		output_dir = sharem_out_dir
-
-
-	filler = ""
-	if chkExt == ".":
-		filler = ""
-	else:
-		filler = "-output"
-		filler=""
-
-
-	
-	# importsOut = showImports(out2File=True)
-
-	importsDict = {"imports":[]}
-	# print("length: ", len(FoundApisName), FoundApisName)
-	for dll, api, offset in FoundApisName:
-		dll = dll.decode()
-		api = api.decode()
-		offset = str(offset)
-
-		importsDict["imports"].append({"dll":dll,
-								  "offset":offset,
-								  "api":api})
-
-
-
-# 	emulation_dict = {
-# 	"Api_calls":[
-
-# 		{"api_name":"WinExec",
-# 		 "parameters":[{"Name":"lpCmdLine",
-# 		 				"Type":"LPCSTR",
-# 		 				"Value":"cmd.exe /c ping google.com > c:\\result.txt"},
-
-# 		 				{"Name":"uCmdShow",
-# 		 				"Type":"UINT",
-# 		 				"Value":"0x5"}
-
-# 		 ]
-# 		}
-
-# 	],
-
-# 	"DLLS":["kernel32", "advapi32", "user32"],
-
-# 	"artifacts":["c:\\result.txt", "cmd.exe", "google.com", "result.txt", "user32.dll"]
-
-# }
-	# emulationOut = output_dir + slash + outfile+filler + slash  + "Test" +"-32"  + ".json"
-	#jsonFileName =  os.getcwd() + slash + noExtension + "\\output_" + peName + "_" + filetime + ".json"
-	outfile=outfile.strip()
-	if useDirectory and not known_arch:
-		if current_arch == 32:
-			jsonFileName =  os.path.join(output_dir, outfile+filler, outfileName +"-32" + "_" + filetime + ".json")			
-
-		elif current_arch == 64:
-			jsonFileName =  os.path.join(output_dir, outfile +filler, outfileName + "-64"+ "_" + filetime + ".json")
-
-	else:
-		if shellBit == 32:
-			jsonFileName =  os.path.join(output_dir, outfile +filler, outfileName + "-32"+"_" + filetime + ".json")
-		else:
-			jsonFileName =  os.path.join(output_dir, outfile +filler, outfileName + "-64"+"_" + filetime + ".json")
-
-	# jsonImports =  output_dir + slash + outfile+filler + slash  + outfileName + "-imports"  + ".json"
-	# jsonFp =  output_dir + slash + outfile+filler + slash  + outfileName + "-disassembly"  + ".json"
-	if not rawHex:
-		jsonImports =  os.path.join(output_dir, outfile+filler, outfileName + "-imports"  + ".json")
-	jsonFp =  os.path.join(output_dir, outfile+filler, outfileName + "-disassembly"  + ".json")
-
-	
-	# jsonFileName =  os.getcwd() + slash + outfile + slash + outfileName + "_" + filetime + ".json"
-	# print("outfile: ", outfile, "outfileName", outfileName)
-	# input()
-	os.makedirs(os.path.dirname(jsonFileName), exist_ok=True)
-	#Just clear the output data pushed here if it's not selected
-	if not bpAll:
-		if not bpPushRet:
-			outputData['pushret'] = []
-		if not bpCallPop:
-			outputData['callpop'] = []
-		if not bpFstenv:
-			outputData['fstenv'] = []
-		if not bpSyscall:
-			outputData['syscall'] = []
-		if not bpPEB:
-			outputData['PEB'] = []
-		if not bpHeaven:
-			outputData['heavensGate'] = []
-		if not bpStrings:
-			outputData['strings'] = []
-		if not bpEvilImports:
-			outputData['imports'] = []
-		if not bpModules:
-			outputData['modules'] = []
-
-
-	disJsonOut = str(createDisassemblyJson())
-	# print (disJsonOut)
-	#create the json file, and write our data to it
-	outfile = open(jsonFileName, "w")
-	if not rawHex:
-		outimports = open(jsonImports, "w")
-
-	disFile = open(jsonFp, "w")
-	disFile.write(disJsonOut)
-	
-	if not rawHex:
-
-		js_imports = json.dumps(importsDict, indent=3)
-		outimports.write(js_imports)
-		outimports.close()
-	# emufile = open(emulationOut, "w")
-	# emu_ob = json.dumps(emulation_dict, indent=3)
-	js_ob = json.dumps(outputData, indent = 3)
-
-	outfile.write(js_ob)
-
-	
-
-	jsonOut = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs", "default", "jsondefault.json"), "w")
-	jsonOut.write(js_ob)
-
-	disasmOut = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs", "default", "jsondefaultdisasm.json"), "w")
-	disasmOut.write(disJsonOut)
-
-	jsonOut.close()
-	outfile.close()
-	
-	disFile.close()
-	disasmOut.close()
-
-
-	# emufile.write(emu_ob)
+	gVar.o = o
+	gVar.mBool = mBool
+	# gVar.decoder = decoder
+	# gVar.caller = caller
+	gVar.m = m
+	gVar.sh = sh
+	gVar.sBy = sBy
+	gVar.labels = labels
+	gVar.sh = sh
+	gVar.sh = sh
+	gVar.sh = sh
+	gVar.sh = sh
+	disResults = createDisassemblyJson()
+	jsonP.importData(importedData = outputData,FoundApisName = FoundApisName,filename = filename,importDiss = disResults)
+	# jsonP.generateDisassemblyResults()
+	jsonP.generateJson()
 
 
 def formatPrint(i, add4, addb, pe=False, syscall=False):
@@ -23139,7 +22789,7 @@ def generateOutputData(): #Generate the dictionary for json out
 		
 
 
-	jsonData['emulation'] = emulation_json_out(loggedList,logged_syscalls)
+	jsonData['emulation'] = jsonP.generateEmulationResults(loggedList,logged_syscalls,em,art)
 
 	#We grab the saved info, and loop through it, adding an object to the respective category's list and add a new object for each. The method is the same as the printsaved____() functions
 	if(bit32):
@@ -24297,13 +23947,13 @@ def printToText(outputData):	#Output data to text doc
 	# txtFileName =  os.getcwd() + slash + outfile + "\\output_" + outfileName + "_" + filetime + ".txt"
 	outfile=outfile.strip()
 	if useDirectory and not known_arch:
-		if current_arch == 32:
+		if jsonP.current_arch == 32:
 			# txtFileName =  output_dir + slash + outfile + filler+slash + slash + outfileName+"-32" + "_" + filetime + ".txt"
 
 			txtFileName =  os.path.join(output_dir, outfile + filler, outfileName+"-32" + "_" + filetime + ".txt")
 
 
-		elif current_arch == 64:
+		elif jsonP.current_arch == 64:
 			# txtFileName =  output_dir + slash + outfile + filler+slash + slash + outfileName + "-64"+ "_" + filetime + ".txt"
 			
 			txtFileName =  os.path.join(output_dir, outfile + filler, outfileName + "-64"+ "_" + filetime + ".txt")
