@@ -13,6 +13,7 @@ from sharem.sharem.DLLs.emu_helpers.sharem_filesystem import Directory_system
 from sharem.sharem.DLLs.emu_helpers.tool_snapshot import System_SnapShot
 from sharem.sharem.DLLs.emu_helpers.reverseLookUps import ReverseLookUps
 from sharem.sharem.helper.printingOutput import PrintingOutput
+from sharem.sharem.helper.jsonPrinting import *
 from sharem.sharem.DLLs.emu_helpers.structures import *
 from sharem.sharem.helper.structHelpers import makeStructVals
 from unicorn.x86_const import *
@@ -7922,14 +7923,17 @@ class CustomWinAPIs():
             originPath,destinationPath,originFileName,destinationFileName = SimFileSystem.moveFile(origin,destination,replace)
             art.path_artifacts.append(originPath)
             art.path_artifacts.append(destinationPath)
-            art.file_artifacts.append(originFileName)
-            art.file_artifacts.append(destinationFileName)
+            # art.file_artifacts.append(originFileName)
+            # art.file_artifacts.append(destinationFileName)
+            art.files_move.append((originPath,destinationPath))
+
         else:
             originPath, destinationPath = SimFileSystem.moveFolder(origin,destination,replace)
             art.path_artifacts.append(originPath)
             art.path_artifacts.append(destinationPath)
+            art.path_move.append((originPath,destinationPath))
 
-
+        # SimFileSystem.printALL(SimFileSystem.rootDir)
         retVal = 0x1
         retValStr = 'TRUE'
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -7948,6 +7952,8 @@ class CustomWinAPIs():
 
         replace = pVals[2]
         pVals[2] = getLookUpVal(pVals[2], dwFlagsReverseLookUp)
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
+
         origin = pVals[0]
         destination = pVals[1]
         folder = SimFileSystem.fileOrFolder(origin)
@@ -7955,14 +7961,16 @@ class CustomWinAPIs():
             originPath,destinationPath,originFileName,destinationFileName = SimFileSystem.moveFile(origin,destination,replace)
             art.path_artifacts.append(originPath)
             art.path_artifacts.append(destinationPath)
-            art.file_artifacts.append(originFileName)
-            art.file_artifacts.append(destinationFileName)
+            # art.file_artifacts.append(originFileName)
+            # art.file_artifacts.append(destinationFileName)
+            art.files_move.append((originPath,destinationPath))
         else:
             originPath, destinationPath = SimFileSystem.moveFolder(origin,destination,replace)
             art.path_artifacts.append(originPath)
             art.path_artifacts.append(destinationPath)
+            art.path_move.append((originPath,destinationPath))
+
             
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])
 
         
         
@@ -7991,8 +7999,7 @@ class CustomWinAPIs():
         originFileName,destinationFileName,originPath,destinationPath = SimFileSystem.copyFile(origin,destination)
         art.path_artifacts.append(originPath)
         art.path_artifacts.append(destinationPath)
-        art.file_artifacts.append(originFileName)
-        art.file_artifacts.append(destinationFileName)
+        art.files_copy.append((originPath,destinationPath))
 
 
         retVal = 0x1
@@ -8020,8 +8027,8 @@ class CustomWinAPIs():
         originFileName,destinationFileName,originPath,destinationPath = SimFileSystem.copyFile(origin,destination)
         art.path_artifacts.append(originPath)
         art.path_artifacts.append(destinationPath)
-        art.file_artifacts.append(originFileName)
-        art.file_artifacts.append(destinationFileName)
+        art.files_copy.append((originPath,destinationPath))
+
 
         retVal = 0x1
         retValStr = 'TRUE'
@@ -9881,9 +9888,14 @@ class CustomWinAPIs():
         pNames= ['lpExistingFileName', 'lpNewFileName', 'bFailIfExists']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        # Might Need to Expand
-
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        origin = pVals[0]
+        destination = pVals[1]
+        originFileName,destinationFileName,originPath,destinationPath = SimFileSystem.copyFile(origin,destination)
+        art.path_artifacts.append(originPath)
+        art.path_artifacts.append(destinationPath)
+        art.files_copy.append((originPath,destinationPath))
+
 
         retVal = 0x1
         retValStr='TRUE'
@@ -9903,8 +9915,7 @@ class CustomWinAPIs():
         originFileName,destinationFileName,originPath,destinationPath = SimFileSystem.copyFile(origin,destination)
         art.path_artifacts.append(originPath)
         art.path_artifacts.append(destinationPath)
-        art.file_artifacts.append(originFileName)
-        art.file_artifacts.append(destinationFileName)
+        art.files_copy.append((originPath,destinationPath))
 
         retVal = 0x1
         retValStr = "SUCCESS"
@@ -9928,8 +9939,8 @@ class CustomWinAPIs():
         originFileName,destinationFileName,originPath,destinationPath = SimFileSystem.copyFile(origin,destination)
         art.path_artifacts.append(originPath)
         art.path_artifacts.append(destinationPath)
-        art.file_artifacts.append(originFileName)
-        art.file_artifacts.append(destinationFileName)
+        art.files_copy.append((originPath,destinationPath))
+
 
         retVal = 0x1
         retValStr = "S_OK"
@@ -11212,6 +11223,14 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        origin = pVals[0]
+        destination = pVals[1]
+        originPath,destinationPath,originFileName,destinationFileName = SimFileSystem.moveFile(origin,destination,0x1)
+        art.path_artifacts.append(originPath)
+        art.path_artifacts.append(destinationPath)
+        # art.file_artifacts.append(originFileName)
+        # art.file_artifacts.append(destinationFileName)
+        art.files_move.append((originPath,destinationPath))
         
         retVal = 0x1
         retValStr = "TRUE"
@@ -11226,6 +11245,14 @@ class CustomWinAPIs():
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        origin = pVals[0]
+        destination = pVals[1]
+        originPath,destinationPath,originFileName,destinationFileName = SimFileSystem.moveFile(origin,destination,0x1)
+        art.path_artifacts.append(originPath)
+        art.path_artifacts.append(destinationPath)
+        # art.file_artifacts.append(originFileName)
+        # art.file_artifacts.append(destinationFileName)
+        art.files_move.append((originPath,destinationPath))
         
         retVal = 0x1
         retValStr = "TRUE"
@@ -12954,26 +12981,6 @@ class CustomWinAPIs():
         logged_calls= ("FindFirstFileA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def CopyFileA(self, uc: Uc, eip, esp, export_dict, callAddr, em):
-            pTypes= ['LCPSTR', 'LCPSTR', 'BOOL']
-            pNames= ['lpExistingFileName', 'lpNewFileName', 'bFailIfExists']
-            pVals = makeArgVals(uc, em, esp, len(pTypes))
-
-            pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
-            origin = pVals[0]
-            destination = pVals[1]
-            originFileName,destinationFileName,originPath,destinationPath = SimFileSystem.copyFile(origin,destination)
-            art.path_artifacts.append(originPath)
-            art.path_artifacts.append(destinationPath)
-            art.file_artifacts.append(originFileName)
-            art.file_artifacts.append(destinationFileName)
-
-            retVal = 0x1
-            retValStr='TRUE'
-            uc.reg_write(UC_X86_REG_EAX, retVal)     
-
-            logged_calls= ("CopyFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
-            return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
 
 class CustomWinSysCalls():

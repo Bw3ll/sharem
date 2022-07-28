@@ -1184,16 +1184,27 @@ def get_OVERLAPPED(uc: Uc, address: int, em):
 # Struct Pointers:
 # LPWSAPROTOCOL_INFOW_32BIT = POINTER_32BIT
 # LPWSAPROTOCOL_INFOW_64BIT = POINTER_64BIT
+# class OVERLAPPED_Helpers:
+#     #sub structures
+#     class dummyStruct(LittleEndianUnion):
+#         types = ['DWORD', 'DWORD']
+#         __slots__ = ('Offset', 'OffsetHigh')
+#         lookUps = {}
+#         _fields_ = [('Offset',DWORD),('OffsetHigh',DWORD)]
+#     class dummyUnion(LittleEndianUnion):
+#         types = ['union', 'PVOID']
+#         __slots__ = ('DUMMYSTRUCTNAME', 'Pointer')
+#         lookUps = {}
+#         _fields_ = [('DUMMYSTRUCTNAME',OVERLAPPED_Helpers.dummyStruct),('Pointer',PVOID)]
 
-class OVERLAPPED(LittleEndianStructure):
-    types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'GUID', 'DWORD', 'WSAPROTOCOLCHAIN', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'DWORD', 'DWORD', 'WCHAR']
-    __slots__ = ('dwServiceFlags1', 'dwServiceFlags2', 'dwServiceFlags3', 'dwServiceFlags4', 'dwProviderFlags', 'ProviderId', 'dwCatalogEntryId', 'ProtocolChain', 'iVersion', 'iAddressFamily', 'iMaxSockAddr', 'iMinSockAddr', 'iSocketType', 'iProtocol', 'iProtocolMaxOffset', 'iNetworkByteOrder', 'iSecurityScheme', 'dwMessageSize', 'dwProviderReserved', 'szProtocol')
-    lookUps = {}
+# class OVERLAPPED(LittleEndianStructure):
+#     types = ['ULONG_PTR', 'ULONG_PTR', 'union', 'HANDLE']
+#     __slots__ = ('Internal','InternalHigh','DUMMYUNIONNAME','hEvent')
+#     lookUps = {}
+#     _fields_ = [('Internal',ULONG_PTR),('InternalHigh',ULONG_PTR),(DUMMYUNIONNAME,OVERLAPPED_Helpers.dummyUnion),('hEvent',HANDLE)]
 
-    _fields_ = [('dwServiceFlags1',DWORD),('dwServiceFlags2',DWORD),('dwServiceFlags3',DWORD),('dwServiceFlags4',DWORD),('dwProviderFlags',DWORD),('ProviderId',GUID),('dwCatalogEntryId',DWORD),('ProtocolChain',WSAPROTOCOLCHAIN),('iVersion',INT),('iAddressFamily',INT),('iMaxSockAddr',INT),('iMinSockAddr',INT),('iSocketType',INT),('iProtocol',INT),('iProtocolMaxOffset',INT),('iNetworkByteOrder',INT),('iSecurityScheme',INT),('dwMessageSize',DWORD),('dwProviderReserved',DWORD),('szProtocol',WCHAR*256)]
-
-    def writeToMemory(self, uc: Uc, address: int):
-        uc.mem_write(address, bytes(self))
+#     def writeToMemory(self, uc: Uc, address: int):
+#         uc.mem_write(address, bytes(self))
 
 # Struct WIN32_FIND_DATAA 
 # Alias Names: _WIN32_FIND_DATAA

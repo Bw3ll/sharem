@@ -1,14 +1,26 @@
 import colorama
-import json
 import textwrap3
 
 colorama.init()
-# from ..Dlls.emu_helpers.sharem_artifacts import *
 
 
 class PrintingOutput:
     def __init__(self):
         self.txtOut = ""
+        self.emulation_dict = { 
+            "api_calls":[],
+            "syscalls_emulation":[],
+            "dlls":[],
+            "path_artifacts":[],
+            "file_artifacts":[],
+            "commandLine_artifacts":[],
+            "web_artifacts":[],
+            "exe_dll_artifacts":[],
+            "registry_actions":[],
+            "registry_techniques":[],
+            "registry_hierarchy":[],
+            "registry_miscellaneous":[]
+	    }
         self.red ='\u001b[31;1m'
         self.gre = '\u001b[32;1m'
         self.yel = '\u001b[33;1m'
@@ -18,6 +30,7 @@ class PrintingOutput:
         self.whi = '\u001b[37m'
         self.res = '\u001b[0m'
         self.res2 = '\u001b[0m'
+
 
 
     def colors(self):
@@ -165,60 +178,33 @@ class PrintingOutput:
     def artifactsOut(self,art,emulation_multiline,logged_dlls):
         text_output = ""
 
-        emu_registry_edit_list = ''
-        emu_registry_delete_list = ''
-
         if emulation_multiline:
-            ########
-            #call function to create the logged dlls
-            ########
             emu_dll_list = self.multiLine(logged_dlls)
             text_output += self.mag + "\n************* DLLs *************\n" + self.res
             text_output += "{}{:<18} {}\n".format(self.cya + "DLLs" + self.res, "",emu_dll_list)
-            ## ^ remove this to a new function
 
             emu_path_list = self.multiLine(art.path_artifacts)
+            emu_pathMove_list = self.multiLineTransition(art.path_move)
+            emu_pathCopy_list = self.multiLineTransition(art.path_copy)
+            
             emu_filesMisc_list = self.multiLine(art.file_artifacts)
             emu_filesCreate_list = self.multiLine(art.files_create)
             emu_filesWrite_list = self.multiLine(art.files_write)
             emu_filesDelete_list = self.multiLine(art.files_delete)
             emu_filesAccess_list = self.multiLine(art.files_access)
-            emu_filesCopy_list = self.multiLine(art.files_copy)
-            emu_filesMoved_list = self.multiLine(art.files_move)
+            emu_filesCopy_list = self.multiLineTransition(art.files_copy)
+            emu_filesMoved_list = self.multiLineTransition(art.files_move)
+            
             emu_commandline_list = self.multiLine(art.commandLine_artifacts)
+            
             emu_webArtifacts_list = self.multiLine(art.web_artifacts)
+            
             emu_exe_dll_list = self.multiLine(art.exe_dll_artifacts)
+            
             emu_registry_list = self.multiLine(art.registry_misc)
             emu_registry_add_list = self.multiLine(art.registry_add_keys)
-
-            #put these two into a function for themselves, as our file edits will be tuples to show before and after.
-            if(len(art.registry_edit_keys) > 0):
-                for keyTuple in art.registry_edit_keys:
-                    p = 0
-                    for o in keyTuple:
-                        if p == 0:
-                            emu_registry_edit_list += "\n"+o
-                        else:
-                            emu_registry_edit_list += "\n\t"+o
-                        p+=1
-                    emu_registry_edit_list += "\n"
-            
-            if(len(art.registry_delete_keys) > 0):
-                for each in art.registry_delete_keys:
-                    if (type(each) == tuple):
-                        p = 0
-                        for o in each:
-                            if p == 0:
-                                emu_registry_delete_list += "\n"+o
-                            else:
-                                emu_registry_delete_list += "\n\t"+o
-                            p+=1
-                        #emu_registry_delete_list += "\n"
-                    else:
-                        #emu_registry_delete_list += "\n"
-                        emu_registry_delete_list += "\n"+each
-                    emu_registry_delete_list += "\n"
-            
+            emu_registry_edit_list = self.multiLineTupleRegistry(art.registry_edit_keys)
+            emu_registry_delete_list = self.multiLineTupleRegistry(art.registry_delete_keys)
             emu_registry_persistence_list = self.multiLine(art.registry_persistence)
             emu_registry_credentials_list = self.multiLine(art.registry_credentials)
             emu_registry_discovery_list = self.multiLine(art.registry_discovery)
@@ -256,12 +242,13 @@ class PrintingOutput:
             emu_filesCopy_list = ', '.join(art.files_copy)
             emu_filesMoved_list = ', '.join(art.files_move)
             emu_filesMisc_list = ', '.join(art.file_artifacts)
+            emu_pathCopy_list = ', '.join(art.path_copy)
+            emu_pathMove_list = ', '.join(art.path_move)
     
         text_output += self.mag + "\n************* Artifacts *************\n" 
 
         #paths
-        if len(art.path_artifacts) > 0:
-            text_output += "{}{:<13} {}\n".format(self.cya + "*** Paths ***" + self.res,"", emu_path_list)
+        text_output += self.Ppaths(art,emu_path_list,emu_pathCopy_list,emu_pathMove_list)
 
         # files 
         text_output += self.Pfiles(art,emu_filesCreate_list,emu_filesWrite_list,emu_filesDelete_list,emu_filesAccess_list,emu_filesCopy_list,emu_filesMoved_list,emu_filesMisc_list)
@@ -281,98 +268,24 @@ class PrintingOutput:
 
         return text_output
 
-#####################
-#######  JSON  ######
-#####################
-
-    def jsonApis(self,apiList):
-        for i in apiList:
-            tuple_flag = 0
-            api_dict = {}
-            api_name = i[0]
-            api_address = i[1]
-            ret_value = i[2]
-            ret_type = i[3]
-            try:
-                dll_name = i[8]
-            except:
-                dll_name = "kernel32.dll"
-                
-            
-            api_dict["api_name"] = api_name
-            api_dict["dll_name"] = dll_name
-            api_dict["return_value"]= ret_type+" " + str(ret_value)
-            api_dict["address"] = api_address
-            api_dict['parameters'] = []
-
-            api_params_values = i[4]
-            api_params_types = i[5]
-            api_params_names = i[6]
-            for potentialTuple in api_params_values:
-                if( type(potentialTuple) == tuple):
-                    # print("is a tuple")
-                    # print(potentialTuple)
-                    tuple_flag = 1
-                    
-            if (tuple_flag == 1):
-                api_dict.update(self.jsonTuples(api_params_values,api_params_types,api_params_names,api_dict))
-            else:
-                p = 0
-                # for pTyp, pName, pVal in zip(api_params_types, api_params_names, api_params_values):
-                # 	api_dict['parameters'].append({"type":pTyp + " " + pName,
-                # 								"value":str(pVal)})
-                for pName in api_params_names:
-                    api_type_value = []
-                    api_type_value.append({"type":api_params_types[p],
-                                                "value":str(api_params_values[p])})
-                    api_dict['parameters'].append({"type":api_params_names[p],
-                                                "value":api_type_value})
-                    p+=1
-            # list_of_apis.append(api_dict)
-            return api_dict
-
-    def jsonSyscalls(self,logged_syscalls,em):
-        for i in logged_syscalls:
-            syscalls_dict = {}
-            syscall_name = i[0]
-            syscall_address = i[1]
-            syscall_value = i[2]
-            syscall_type = i[3]
-            syscall_params_values = i[4]
-            syscall_params_types = i[5]
-            syscall_params_names = i[6]
-            syscall_callID = i[8]
-
-            for potentialTuple in syscall_params_values:
-                if( type(potentialTuple) == tuple):
-                    tuple_flag = 1
-            if (tuple_flag == 1):
-                syscalls_dict['parameters'] = []
-                syscalls_dict.update(self.jsonTuples(syscall_params_values,syscall_params_types,syscall_params_names,syscalls_dict))
-            else:
-                syscalls_dict["syscall_name"] = str(syscall_name)
-                syscalls_dict["return_value"] = str(syscall_type + " "+syscall_value)
-                syscalls_dict["address"] = str(syscall_address)
-
-                syscalls_dict['parameters'] = []
-
-
-                for pTyp, pName, pVal in zip(syscall_params_types, syscall_params_names, syscall_params_values):
-                    syscalls_dict['parameters'].append({"type":str(pTyp) + " " + str(pName),
-                                                        "value":str(pVal)})
-
-            syscalls_dict["syscall_callID"] = str(hex(syscall_callID))
-            syscalls_dict["OS_Release_SP"] = em.winVersion+", SP "+em.winSP
-
-		# print(syscall_name)
-        return syscalls_dict
-
-    def jsonArtifacts(self,art):
-        print(1)
 
 #####################
 ####  Artifacts  ####
 #####################
+
+    def Ppaths(self,art,emu_path_list,emu_pathCopy_list,emu_pathMove_list):
+        text_output = ''
+
+        if (len(art.path_artifacts) > 0 or len(art.path_copy) > 0 or len(art.path_move) > 0):
+            text_output += "{}{:<9}\n".format(self.cya + "*** Paths ***" + self.res,"")
+        if(len(art.path_copy) > 0):
+            text_output += "{}{:<9} {}\n".format(self.red + "** Copy **" + self.res,"", emu_pathCopy_list)
+        if(len(art.path_move) > 0):
+            text_output += "{}{:<9} {}\n".format(self.red + "** Move **" + self.res,"", emu_pathMove_list)
+        if(len(art.path_artifacts) > 0):
+            text_output += "{}{:<9} {}\n".format(self.red + "** Misc **" + self.res,"", emu_path_list)	
+        
+        return text_output
 
     def Pfiles(self,art,emu_filesCreate_list,emu_filesWrite_list,emu_filesDelete_list,emu_filesAccess_list,emu_filesCopy_list,emu_filesMoved_list,emu_filesMisc_list):
         text_output = ""
@@ -523,35 +436,39 @@ class PrintingOutput:
             emu_artifact_list += "\n".join(artifact)
             emu_artifact_list += "\n"
             return emu_artifact_list
+    
+    def multiLineTransition(self,artifact):
+        emu_artifact_list = ''
+        if(len(artifact) > 0):
+                for each in artifact:
+                    if (type(each) == tuple):
+                        p = 0
+                        for o in each:
+                            if p == 0:
+                                emu_artifact_list += "\n"+o
+                            else:
+                                emu_artifact_list += " -> "+o
+                            p+=1
+                    else:
+                        emu_artifact_list += "\n"+each
+        emu_artifact_list += "\n"
+        return emu_artifact_list  
 
-    def multiLineTuple(self,artifact):
-        print(1)
-        #for the artifacts output of files data and used in registry
+    def multiLineTupleRegistry(self,artifact):
+        emu_artifact_list = ''
+        if(len(artifact) > 0):
+                for each in artifact:
+                    if (type(each) == tuple):
+                        p = 0
+                        for o in each:
+                            if p == 0:
+                                emu_artifact_list += "\n"+o
+                            else:
+                                emu_artifact_list += "\n\t"+o
+                            p+=1
+                    else:
+                        emu_artifact_list += "\n"+each
+                    emu_artifact_list += "\n"
+        return emu_artifact_list
 
-    def jsonTuples(self,paramValues,params_types,params_names,dictName):
-        t = 0
-        for pv in paramValues:
-            if( type(paramValues[t]) == tuple):
-                struct_values_list = []
-                struct_name = paramValues[t][0]
-                struct_type = paramValues[t][1]
-                struct_value = paramValues[t][2]
-                # print(struct_name)
-                # print(struct_type)
-                # print(struct_value)
-                for sType, sName, sVal in zip(struct_name, struct_type, struct_value):
-                    struct_values_list.append({"structure_type":sType + " " + sName,
-                                                "structure_value":str(sVal)})
-                dictName['parameters'].append({"type":params_types[t] + " " + params_names[t],
-                                        "value":struct_values_list})
-                
-            else:
-                type_value = []
-                type_value.append({"type":params_types[t],
-                                    "value":str(paramValues[t])})
-                dictName['parameters'].append({"type":params_names[t],
-                                        "value":type_value})
-            t+= 1
-        return dictName
-
-
+    
