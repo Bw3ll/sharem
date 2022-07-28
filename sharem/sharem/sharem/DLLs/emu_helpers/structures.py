@@ -1674,8 +1674,8 @@ class INTERNET_CACHE_ENTRY_INFOA:
 
 
 # Struct IO_STATUS_BLOCK
-# Alias Names: _INTERNET_BUFFERSA
-# Alias Pointer Names: LPINTERNET_BUFFERSA
+# Alias Names: 
+# Alias Pointer Names: 
 
 def get_IO_STATUS_BLOCK(uc: Uc, address: int, em):
     if em.arch == 32:
@@ -1776,3 +1776,32 @@ class INTERNET_CACHE_ENTRY_INFOW:
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
+
+# Struct CLIENT_ID
+# Alias Names: _CLIENT_ID
+# Alias Pointer Names: PCLIENT_ID 
+
+def get_CLIENT_ID(uc: Uc, address: int, em):
+    return LUID.from_buffer_copy(uc.mem_read(address, sizeof(LUID)))
+
+# Struct Aliases:
+# get__LUID = get_LUID
+
+# Struct Pointers:
+PCLIENT_ID_32BIT = POINTER_32BIT
+PCLIENT_ID_64BIT = POINTER_64BIT
+
+class CLIENT_ID(LittleEndianStructure):
+    types = ['HANDLE', 'HANDLE']
+    __slots__ = ('UniqueProcess', 'UniqueThread')
+    lookUps = {}
+
+    _fields_ = [('UniqueProcess',PVOID_32BIT),('UniqueThread',PVOID_32BIT)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+#print(sizeof(CLIENT_ID))
+#print(sizeof(CLIENT_ID.ARCH64))
+#exit()
+
