@@ -1613,3 +1613,85 @@ class MEMORY_PRIORITY_INFORMATION(LittleEndianStructure):
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
+
+
+
+# Struct IO_STATUS_BLOCK
+# Alias Names: _INTERNET_BUFFERSA
+# Alias Pointer Names: LPINTERNET_BUFFERSA
+
+def get_IO_STATUS_BLOCK(uc: Uc, address: int, em):
+    if em.arch == 32:
+        return IO_STATUS_BLOCK.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(IO_STATUS_BLOCK.ARCH32)))
+    else:
+        return IO_STATUS_BLOCK.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(IO_STATUS_BLOCK.ARCH64)))
+
+# Struct Aliases:
+# get__INTERNET_BUFFERSA = get_INTERNET_BUFFERSA
+
+# Struct Pointers:
+PIO_STATUS_BLOCK_32BIT = POINTER_32BIT
+PIO_STATUS_BLOCK_64BIT = POINTER_64BIT
+
+class IO_STATUS_BLOCK_Helpers:
+    # Sub Structures/Unions
+    class Union_32BIT(LittleEndianUnion):
+        types = ['NTSTATUS', 'PVOID']
+        __slots__ = ('Status', 'Pointer')
+        lookUps = {}
+
+        _fields_ = [('Status',LONG),('Pointer',PVOID_32BIT)]
+
+    class Union_64BIT(LittleEndianUnion):
+        types = ['NTSTATUS', 'PVOID']
+        __slots__ = ('Status', 'Pointer')
+        lookUps = {}
+
+        _fields_ = [('Status',LONG),('Pointer',PVOID_64BIT)]
+
+class IO_STATUS_BLOCK:
+
+    class ARCH32(LittleEndianStructure):
+        types = ['union', 'ULONG_PTR']
+        __slots__ = ('DUMMYUNIONNAME', 'Information')
+        lookUps = {}
+
+        _fields_ = [('DUMMYUNIONNAME',IO_STATUS_BLOCK_Helpers.Union_32BIT),('Information',ULONG_PTR_32BIT)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure):
+        types = ['union', 'ULONG_PTR']
+        __slots__ = ('DUMMYUNIONNAME', 'Information')
+        lookUps = {}
+
+        _fields_ = [('DUMMYUNIONNAME',IO_STATUS_BLOCK_Helpers.Union_64BIT),('Information',ULONG_PTR_64BIT)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+#print(sizeof(IO_STATUS_BLOCK.ARCH32))
+#print(sizeof(IO_STATUS_BLOCK.ARCH64))
+#exit()
+
+# Struct tagTHREADENTRY32
+# Alias Names: THREADENTRY32
+# Alias Pointer Names:
+
+def get_tagTHREADENTRY32(uc: Uc, address: int, em):
+    return tagTHREADENTRY32.from_buffer_copy(uc.mem_read(address, sizeof(tagTHREADENTRY32)))
+
+# Struct Aliases:
+get_THREADENTRY32 = get_tagTHREADENTRY32
+
+class tagTHREADENTRY32(LittleEndianStructure):
+    types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'LONG', 'LONG', 'DWORD']
+    __slots__ = ('dwSize', 'cntUsage', 'th32ThreadID', 'th32OwnerProcessID', 'tpBasePri', 'tpDeltaPri', 'dwFlags')
+    lookUps = {}
+
+    _fields_ = [('dwSize',DWORD),('cntUsage',DWORD),('th32ThreadID',DWORD),('th32OwnerProcessID',DWORD),('tpBasePri',LONG),('tpDeltaPri',LONG),('dwFlags',DWORD)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
