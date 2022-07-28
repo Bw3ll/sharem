@@ -1638,6 +1638,55 @@ class LUID(LittleEndianStructure):
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
 
+# Struct LUID_AND_ATTRIBUTES
+# Alias Names: _LUID_AND_ATTRIBUTES
+# Alias Pointer Names: PLUID_AND_ATTRIBUTES
+
+def get_LUID_AND_ATTRIBUTES(uc: Uc, address: int, em):
+    return LUID_AND_ATTRIBUTES.from_buffer_copy(uc.mem_read(address, sizeof(LUID_AND_ATTRIBUTES)))
+
+# Struct Aliases:
+# get__LUID_AND_ATTRIBUTES = get_LUID_AND_ATTRIBUTES
+
+# Struct Pointers:
+PLUID_AND_ATTRIBUTES_32BIT = POINTER_32BIT
+PLUID_AND_ATTRIBUTES_64BIT = POINTER_64BIT
+
+class LUID_AND_ATTRIBUTES(LittleEndianStructure):
+    types = ['LUID', 'DWORD']
+    __slots__ = ('Luid', 'Attributes')
+    lookUps = {}
+
+    _fields_ = [('Luid',LUID),('Attributes',DWORD)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+# Struct TOKEN_PRIVILEGES
+# Alias Names: _TOKEN_PRIVILEGES
+# Alias Pointer Names: PTOKEN_PRIVILEGES
+
+def get_TOKEN_PRIVILEGES(uc: Uc, address: int, em):
+    return TOKEN_PRIVILEGES.from_buffer_copy(uc.mem_read(address, sizeof(TOKEN_PRIVILEGES)))
+
+# Struct Aliases:
+# get__TOKEN_PRIVILEGES = get_TOKEN_PRIVILEGES
+
+# Struct Pointers:
+PTOKEN_PRIVILEGES_32BIT = POINTER_32BIT
+PTOKEN_PRIVILEGES_64BIT = POINTER_64BIT
+
+class TOKEN_PRIVILEGES(LittleEndianStructure):
+    types = ['DWORD', 'LUID_AND_ATTRIBUTES']
+    __slots__ = ('PrivilegeCount', 'Privileges')
+    lookUps = {}
+    ANYSIZE_ARRAY = 1 # Need to look into how to create this
+    _fields_ = [('PrivilegeCount',DWORD),('Privileges',LUID_AND_ATTRIBUTES * ANYSIZE_ARRAY)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+
 # Struct INTERNET_CACHE_ENTRY_INFOA
 # Alias Names: _INTERNET_CACHE_ENTRY_INFOA
 # Alias Pointer Names: LPINTERNET_CACHE_ENTRY_INFOA
