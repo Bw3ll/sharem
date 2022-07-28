@@ -1895,3 +1895,29 @@ class MIB_IPNETTABLE(LittleEndianStructure):
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
+
+# Struct MIB_IPNETROW
+# Alias Names: _MIB_IPNETROW
+# Alias Pointer Names: PMIB_IPNETROW
+
+def get_MIB_IPNETROW(uc: Uc, address: int, em):
+    return MIB_IPNETROW.from_buffer_copy(uc.mem_read(address, sizeof(MIB_IPNETROW)))
+
+# Struct Aliases:
+# get__MIB_IPNETTABLE = get_MIB_IPNETTABLE
+
+# Struct Pointers:
+PMIB_IPNETROW_32BIT = POINTER_32BIT
+PMIB_IPNETROW_64BIT = POINTER_64BIT
+
+class MIB_IPNETROW(LittleEndianStructure):
+    types = ['DWORD', 'DWORD', 'BYTE', 'DWORD', 'DWORD']
+    __slots__ = ('dwIndex', 'dwPhysAddrLen', 'bPhysAddr', 'dwAddr', 'dwType')
+    lookUps = {}
+
+    ANY_SIZE = 1
+
+    _fields_ = [('dwIndex',DWORD),('dwPhysAddrLen',DWORD), ('bPhysAddr',BYTE), ('dwAddr',DWORD), ('dwType',DWORD)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
