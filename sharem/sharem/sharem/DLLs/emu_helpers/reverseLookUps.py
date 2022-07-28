@@ -6572,7 +6572,7 @@ class ReverseLookUps:
         }
 
     class StartupInfo:
-        flags = { # OR VALUES
+        flags = {  # OR VALUES
             1: "STARTF_USESHOWWINDOW",
             2: "STARTF_USESIZE",
             4: "STARTF_USEPOSITION",
@@ -6587,4 +6587,18 @@ class ReverseLookUps:
             4096: "STARTF_TITLEISAPPID",
             8192: "STARTF_PREVENTPINNING",
             32768: "STARTF_UNTRUSTEDSOURCE",
+        }
+
+    class Thread:
+        THREAD_INFORMATION_CLASS = {
+            0: "ThreadMemoryPriority",
+            1: "ThreadAbsoluteCpuPriority",
+            2: "ThreadDynamicCodePolicy",
+        }
+        MEMORY_PRIORITY = {
+            1: "MEMORY_PRIORITY_VERY_LOW",
+            2: "MEMORY_PRIORITY_LOW",
+            3: "MEMORY_PRIORITY_MEDIUM",
+            4: "MEMORY_PRIORITY_BELOW_NORMAL",
+            5: "MEMORY_PRIORITY_NORMAL",
         }

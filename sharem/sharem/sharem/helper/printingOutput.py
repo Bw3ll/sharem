@@ -85,7 +85,7 @@ class PrintingOutput:
                 TypeBundle.append(v + " " + typ)
             joinedBund = ', '.join(TypeBundle)
             try:
-                joinedBund= (textwrap3.fill(joinedBund, width=170, break_long_words=False))
+                joinedBund= (textwrap3.fill(joinedBund, width=150, break_long_words=False))
             except:
                 pass
             joinedBundclr = joinedBund.replace(",", cya + "," + res)
@@ -94,7 +94,7 @@ class PrintingOutput:
             if verbose_mode:
                 temp = '{} {}{}\n'.format(gre + offset + res, yel + apName + res,
                                                 cya + "(" + res + joinedBundclr + cya + ")" + res)  # Example: WinExec(LPCSTR lpCmdLine, UINT uCmdShow)
-                text_output+= (textwrap3.fill(temp, width=170, break_long_words=False))
+                text_output+= (textwrap3.fill(temp, width=150, break_long_words=False))
                 text_output+="\n"
 
             else:
@@ -365,34 +365,19 @@ class PrintingOutput:
                 structure_names = paramVal[index][0]
                 structure_types = paramVal[index][1]
                 structure_values = paramVal[index][2]
-                #find the dummy struct
-                
-                # if(next):
-                #     text_output += text_output1
 
-                        # print(dict(each))
-                #structure Name:
                 text_output += '\t{} {} \n'.format(cya + pType[index], pName[index] + ":")
-                z = 0
 
-                #prints the variables within the strucutes
-                for sn in structure_names:
+                # prints the variables within the strucutes
+                for sn, st, sv in zip(structure_names, structure_types, structure_values):
                     #checks if there is another strucutre within the struct, usually a dummy struct and prints it
                     #currently only works for one struct and one dummy struct
-                    try:
-                        struc_values_temp=str(structure_values[z])
-
-                    except:
-                        struc_values_temp=structure_values[z]
-                    # print (struc_values_temp, type(struc_values_temp))
-                    if('{' in struc_values_temp):
-                        text_output += self.unionStruct(structure_values,structure_names[z],structure_types[z])
-                        z += 1
-                        continue
-                    text_output += '\t\t{} {} {}\n'.format(gre + structure_names[z], structure_types[z] +":"+ res, structure_values[z])
-                    z += 1
-            #normal printing
+                    if type(sv) == tuple: # Check for Nested Tuple
+                        text_output += self.subStruct(sv,sn,st)
+                    else:
+                        text_output += '\t\t{} {} {}\n'.format(gre + sn, st +":"+ res, sv)
             else:
+                #normal printing
                 txt_params='\t{} {} {}\n'.format(cya + pType[index], pName[index] + ":" + res, paramVal[index])
 
                 text_output += txt_params
@@ -400,34 +385,16 @@ class PrintingOutput:
         text_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
         return text_output
         
-    def unionStruct(self,structure_values,pType,pName):
-        for each in structure_values:
-            # print(each)
-            # print(type(each))
-            if ('{' in each):
-                #remove the {}s from string so we can check if there is another struct within this.
-                each = each[1:-1]
-                unionStruct = each.split(',')
-                #have a list of values
-                # print(unionStruct)
-                #recurse the list to check for more structures
-                
+    def subStruct(self,structure_values,pType,pName): 
         text_output = ''
         red,gre,yel,blu,mag,cya,whi,res,res2 = self.colors()
 
         #structure name
         text_output += '\t\t{} {} \n'.format(cya + pType, pName + ":")
-        for each in unionStruct:
-            structList = each.split(" ")
-            #remove a space in the list that keeps appearing
-            if('' in structList):
-                structList.remove("")
-            structList[1] = structList[1][:-1]
-            #for now this will not work as we do not have a triple struct
-            # if('{' in structList):
-            #     self.unionStruct(structList)
-            
-            text_output += '\t\t\t{} {} {}\n'.format(gre + structList[0], structList[1] +":"+ res, structList[2])
+        
+        pTypes, pNames, pVals = structure_values
+        for pT, pN, pV in zip(pTypes, pNames, pVals):
+            text_output += '\t\t\t{} {} {}\n'.format(gre + pT, pN +":"+ res, pV)
         return text_output
 
     def multiLine(self,artifact):
