@@ -1831,7 +1831,11 @@ class INTERNET_CACHE_ENTRY_INFOW:
 # Alias Pointer Names: PCLIENT_ID 
 
 def get_CLIENT_ID(uc: Uc, address: int, em):
-    return LUID.from_buffer_copy(uc.mem_read(address, sizeof(LUID)))
+    if em.arch == 32:
+        return CLIENT_ID.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(CLIENT_ID.ARCH32)))
+
+    else:
+        return CLIENT_ID.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(CLIENT_ID.ARCH64)))
 
 # Struct Aliases:
 # get__LUID = get_LUID
@@ -1841,14 +1845,26 @@ PCLIENT_ID_32BIT = POINTER_32BIT
 PCLIENT_ID_64BIT = POINTER_64BIT
 
 class CLIENT_ID(LittleEndianStructure):
-    types = ['HANDLE', 'HANDLE']
-    __slots__ = ('UniqueProcess', 'UniqueThread')
-    lookUps = {}
 
-    _fields_ = [('UniqueProcess',PVOID_32BIT),('UniqueThread',PVOID_32BIT)]
+    class ARCH32(LittleEndianStructure):
+        types = ['HANDLE', 'HANDLE']
+        __slots__ = ('UniqueProcess', 'UniqueThread')
+        lookUps = {}
 
-    def writeToMemory(self, uc: Uc, address: int):
-        uc.mem_write(address, bytes(self))
+        _fields_ = [('UniqueProcess',HANDLE_32BIT),('UniqueThread',HANDLE_32BIT)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure):
+        types = ['HANDLE', 'HANDLE']
+        __slots__ = ('UniqueProcess', 'UniqueThread')
+        lookUps = {}
+
+        _fields_ = [('UniqueProcess',HANDLE_64BIT),('UniqueThread',HANDLE_64BIT)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))    
 
 #print(sizeof(CLIENT_ID))
 #print(sizeof(CLIENT_ID.ARCH64))
@@ -1872,6 +1888,8 @@ class MIB_IPNETTABLE(LittleEndianStructure):
     types = ['DWORD', 'MIB_IPNETROW']
     __slots__ = ('dwNumEntries', 'table')
     lookUps = {}
+
+    ANY_SIZE = 1
 
     _fields_ = [('dwNumEntries',DWORD),('table',MIB_IPNETROW * ANY_SIZE)]
 
