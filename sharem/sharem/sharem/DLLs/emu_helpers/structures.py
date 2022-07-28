@@ -1854,3 +1854,26 @@ class CLIENT_ID(LittleEndianStructure):
 #print(sizeof(CLIENT_ID.ARCH64))
 #exit()
 
+# Struct MIB_IPNETTABLE
+# Alias Names: _MIB_IPNETTABLE
+# Alias Pointer Names: PMIB_IPNETTABLE
+
+def get_MIB_IPNETTABLE(uc: Uc, address: int, em):
+    return MIB_IPNETTABLE.from_buffer_copy(uc.mem_read(address, sizeof(MIB_IPNETTABLE)))
+
+# Struct Aliases:
+# get__MIB_IPNETTABLE = get_MIB_IPNETTABLE
+
+# Struct Pointers:
+PMIB_IPNETTABLE_32BIT = POINTER_32BIT
+PMIB_IPNETTABLE_64BIT = POINTER_64BIT
+
+class MIB_IPNETTABLE(LittleEndianStructure):
+    types = ['DWORD', 'MIB_IPNETROW']
+    __slots__ = ('dwNumEntries', 'table')
+    lookUps = {}
+
+    _fields_ = [('dwNumEntries',DWORD),('table',MIB_IPNETROW * ANY_SIZE)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
