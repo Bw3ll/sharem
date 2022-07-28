@@ -1602,3 +1602,123 @@ class MEMORY_PRIORITY_INFORMATION(LittleEndianStructure):
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
+
+# Struct LUID
+# Alias Names: _LUID
+# Alias Pointer Names: PLUID
+
+def get_LUID(uc: Uc, address: int, em):
+    return LUID.from_buffer_copy(uc.mem_read(address, sizeof(LUID)))
+
+# Struct Aliases:
+# get__LUID = get_LUID
+
+# Struct Pointers:
+PLUID_32BIT = POINTER_32BIT
+PLUID_64BIT = POINTER_64BIT
+
+class LUID(LittleEndianStructure):
+    types = ['DWORD', 'LONG']
+    __slots__ = ('LowPart', 'HighPart')
+    lookUps = {}
+
+    _fields_ = [('LowPart',DWORD),('HighPart',LONG)]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+# Struct INTERNET_CACHE_ENTRY_INFOA
+# Alias Names: _INTERNET_CACHE_ENTRY_INFOA
+# Alias Pointer Names: LPINTERNET_CACHE_ENTRY_INFOA
+
+def get_INTERNET_BUFFERSW(uc: Uc, address: int, em):
+    if em.arch == 32:
+        return INTERNET_BUFFERSW.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(INTERNET_BUFFERSW.ARCH32)))
+    else:
+        return INTERNET_BUFFERSW.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(INTERNET_BUFFERSW.ARCH64)))
+
+# Struct Aliases:
+# get__INTERNET_CACHE_ENTRY_INFOA = get_INTERNET_CACHE_ENTRY_INFOA
+
+# Struct Pointers:
+LPINTERNET_CACHE_ENTRY_INFOA_32BIT = POINTER_32BIT
+LPINTERNET_CACHE_ENTRY_INFOA_64BIT = POINTER_64BIT
+
+class INTERNET_CACHE_ENTRY_INFOA_Helpers:
+    class union(LittleEndianUnion):
+        type = ['DWORD', 'DWORD']
+        __slots__ = ('dwReserved', 'dwExemptDelta')
+        lookUps = {}
+
+        _fields_ = [('dwReserved',DWORD),('dwExemptDelta',DWORD)]
+
+class INTERNET_CACHE_ENTRY_INFOA:
+
+    class ARCH32(LittleEndianStructure):
+        types = ['DWORD', 'LPSTR', 'LPSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'FILETIME', 'FILETIME', 'FILETIME', 'FILETIME', 'LPSTR', 'DWORD', 'LPSTR', 'union']
+        __slots__ = ('dwStructSize', 'lpszSourceUrlName', 'lpszLocalFileName', 'CacheEntryType', 'dwUseCount','dwHitRate', 'dwSizeLow', 'dwSizeHigh', 'LastModifiedTime', 'ExpireTime', 'LastAccessTime', 'LastSyncTime', 'lpHeaderInfo', 'dwHeaderInfoSize', 'lpszFileExtension', 'DUMMYUNION')
+        lookUps = {}
+
+        _fields_ = [('dwStructSize',DWORD),('lpszSourceUrlName',LPSTR_32BIT),('lpszLocalFileName',LPSTR_32BIT),('CacheEntryType',DWORD),('dwUseCount',DWORD),('dwHitRate',DWORD),('dwSizeLow',DWORD),('dwSizeHigh',DWORD),('LastModifiedTime',FILETIME),('ExpireTime',FILETIME),('LastAccessTime',FILETIME),('LastSyncTime',FILETIME),('lpHeaderInfo',LPSTR_32BIT), ('dwHeaderInfoSize',DWORD),('lpszFileExtension',LPSTR_32BIT),('DUMMYUNIONNAME', INTERNET_CACHE_ENTRY_INFOA_Helpers.union)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure):
+        types = ['DWORD', 'LPSTR', 'LPSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'FILETIME', 'FILETIME', 'FILETIME', 'FILETIME', 'LPSTR', 'DWORD', 'LPSTR', 'union']
+        __slots__ = ('dwStructSize', 'lpszSourceUrlName', 'lpszLocalFileName', 'CacheEntryType', 'dwUseCount','dwHitRate', 'dwSizeLow', 'dwSizeHigh', 'LastModifiedTime', 'ExpireTime', 'LastAccessTime', 'LastSyncTime', 'lpHeaderInfo', 'dwHeaderInfoSize', 'lpszFileExtension', 'DUMMYUNION')
+        lookUps = {}
+
+        _fields_ = [('dwStructSize',DWORD),('lpszSourceUrlName',LPSTR_64BIT),('lpszLocalFileName',LPSTR_64BIT),('CacheEntryType',DWORD),('dwUseCount',DWORD),('dwHitRate',DWORD),('dwSizeLow',DWORD),('dwSizeHigh',DWORD),('LastModifiedTime',FILETIME),('ExpireTime',FILETIME),('LastAccessTime',FILETIME),('LastSyncTime',FILETIME),('lpHeaderInfo',LPSTR_64BIT), ('dwHeaderInfoSize',DWORD),('lpszFileExtension',LPSTR_64BIT),('DUMMYUNIONNAME', INTERNET_CACHE_ENTRY_INFOA_Helpers.union)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+# Struct INTERNET_CACHE_ENTRY_INFOW
+# Alias Names: _INTERNET_CACHE_ENTRY_INFOW
+# Alias Pointer Names: LPINTERNET_CACHE_ENTRY_INFOW
+
+def get_INTERNET_CACHE_ENTRY_INFOW(uc: Uc, address: int, em):
+    if em.arch == 32:
+        return INTERNET_CACHE_ENTRY_INFOW.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(INTERNET_CACHE_ENTRY_INFOW.ARCH32)))
+
+    else:
+        return INTERNET_CACHE_ENTRY_INFOW.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(INTERNET_CACHE_ENTRY_INFOW.ARCH64)))
+
+
+# Struct Aliases:
+# get__INTERNET_CACHE_ENTRY_INFOW = get_INTERNET_CACHE_ENTRY_INFOW
+
+# Struct Pointers:
+LPINTERNET_CACHE_ENTRY_INFOW_32BIT = POINTER_32BIT
+LPINTERNET_CACHE_ENTRY_INFOW_64BIT = POINTER_64BIT
+
+class INTERNET_CACHE_ENTRY_INFOW_Helpers:
+    class union(LittleEndianUnion):
+        types = ['DWORD', 'DWORD']
+        __slots__ = ('dwReserved', 'dwExemptDelta')
+        lookUps = {}
+
+        _fields_ = [('dwReserved',DWORD),('dwExemptDelta',DWORD)]
+
+class INTERNET_CACHE_ENTRY_INFOW:
+
+    class ARCH32(LittleEndianStructure):
+        types = ['DWORD', 'LPWSTR', 'LPWSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'FILETIME', 'FILETIME', 'FILETIME', 'FILETIME', 'LPWSTR', 'DWORD', 'LPWSTR', 'union']
+        __slots__ = ('dwStructSize', 'lpszSourceUrlName', 'lpszLocalFileName', 'CacheEntryType', 'dwUseCount', 'dwHitRate', 'dwSizeLow', 'dwSizeHigh', 'LastModifiedTime', 'ExpireTime', 'LastAccessTime', 'LastSyncTime', 'lpHeaderInfo', 'dwHeaderInfoSize', 'lpszFileExtension', 'DUMMYUNIONNAME')
+        lookUps = {}
+
+        _fields_ = [('dwStructSize',DWORD),('lpszSourceUrlName',LPWSTR_32BIT),('lpszLocalFileName',LPWSTR_32BIT),('CacheEntryType',DWORD),('dwUseCount',DWORD),('dwHitRate',DWORD),('dwSizeLow',DWORD),('dwSizeHigh',DWORD),('LastModifiedTime',FILETIME),('ExpireTime',FILETIME),('LastAccessTime',FILETIME),('LastSyncTime',FILETIME),('lpHeaderInfo',LPWSTR_32BIT),('dwHeaderInfoSize',DWORD),('lpszFileExtension',LPWSTR_32BIT),('union1',INTERNET_CACHE_ENTRY_INFOW_Helpers.union)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure):
+        types = ['DWORD', 'LPWSTR', 'LPWSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'FILETIME', 'FILETIME', 'FILETIME', 'FILETIME', 'LPWSTR', 'DWORD', 'LPWSTR', 'union']
+        __slots__ = ('dwStructSize', 'lpszSourceUrlName', 'lpszLocalFileName', 'CacheEntryType', 'dwUseCount', 'dwHitRate', 'dwSizeLow', 'dwSizeHigh', 'LastModifiedTime', 'ExpireTime', 'LastAccessTime', 'LastSyncTime', 'lpHeaderInfo', 'dwHeaderInfoSize', 'lpszFileExtension', 'DUMMYUNIONNAME')
+        lookUps = {}
+
+        _fields_ = [('dwStructSize',DWORD),('lpszSourceUrlName',LPWSTR_64BIT),('lpszLocalFileName',LPWSTR_64BIT),('CacheEntryType',DWORD),('dwUseCount',DWORD),('dwHitRate',DWORD),('dwSizeLow',DWORD),('dwSizeHigh',DWORD),('LastModifiedTime',FILETIME),('ExpireTime',FILETIME),('LastAccessTime',FILETIME),('LastSyncTime',FILETIME),('lpHeaderInfo',LPWSTR_64BIT),('dwHeaderInfoSize',DWORD),('lpszFileExtension',LPWSTR_64BIT),('DUMMYUNIONNAME',INTERNET_CACHE_ENTRY_INFOW_Helpers.union)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))

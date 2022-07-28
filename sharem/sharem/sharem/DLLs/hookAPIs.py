@@ -509,7 +509,7 @@ class CustomWinAPIs():
             pVals[3] = makeStructVals(uc, sa, pVals[3])
         else:
             hex(pVals[3])
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip= [1, 2, 4, 5])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip= [1, 2, 3, 4, 5])
 
         handle.name = pVals[0]
         handle.name = SimFileSystem.detectDuplicateFileHandles(SimFileSystem.currentDir,handle)
