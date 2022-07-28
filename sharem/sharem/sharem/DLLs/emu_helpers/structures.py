@@ -1875,7 +1875,11 @@ class CLIENT_ID(LittleEndianStructure):
 # Alias Pointer Names: PMIB_IPNETTABLE
 
 def get_MIB_IPNETTABLE(uc: Uc, address: int, em):
-    return MIB_IPNETTABLE.from_buffer_copy(uc.mem_read(address, sizeof(MIB_IPNETTABLE)))
+    if em.arch == 32:
+        return MIB_IPNETTABLE.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(MIB_IPNETTABLE.ARCH32)))
+
+    else:
+        return MIB_IPNETTABLE.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(MIB_IPNETTABLE.ARCH64)))
 
 # Struct Aliases:
 # get__MIB_IPNETTABLE = get_MIB_IPNETTABLE
@@ -1885,16 +1889,29 @@ PMIB_IPNETTABLE_32BIT = POINTER_32BIT
 PMIB_IPNETTABLE_64BIT = POINTER_64BIT
 
 class MIB_IPNETTABLE(LittleEndianStructure):
-    types = ['DWORD', 'MIB_IPNETROW']
-    __slots__ = ('dwNumEntries', 'table')
-    lookUps = {}
+    class ARCH32(LittleEndianStructure):
+        types = ['DWORD', 'MIB_IPNETROW']
+        __slots__ = ('dwNumEntries', 'table')
+        lookUps = {}
 
-    ANY_SIZE = 1
+        ANY_SIZE = 1
 
-    _fields_ = [('dwNumEntries',DWORD),('table',MIB_IPNETROW * ANY_SIZE)]
+        _fields_ = [('dwNumEntries',DWORD_PTR_32BIT),('table',PMIB_IPNETROW_32BIT * ANY_SIZE)]
 
-    def writeToMemory(self, uc: Uc, address: int):
-        uc.mem_write(address, bytes(self))
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure):
+        types = ['DWORD', 'MIB_IPNETROW']
+        __slots__ = ('dwNumEntries', 'table')
+        lookUps = {}
+
+        ANY_SIZE = 1
+
+        _fields_ = [('dwNumEntries',DWORD_PTR_64BIT),('table',PMIB_IPNETROW_64BIT * ANY_SIZE)]
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
 
 # Struct MIB_IPNETROW
 # Alias Names: _MIB_IPNETROW
