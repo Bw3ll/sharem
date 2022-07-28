@@ -1,8 +1,8 @@
 from ctypes import LittleEndianStructure, sizeof
-from enum import Enum
 from struct import pack, unpack
 from time import gmtime, localtime, time_ns
 from sharem.sharem.DLLs.emu_helpers.reverseLookUps import ReverseLookUps
+from sharem.sharem.DLLs.emu_helpers.sim_values import emuSimVals
 
 from sharem.sharem.helper.ctypesUnion import LittleEndianUnion
 from sharem.sharem.helper.structHelpers import BOOL, BYTE, DWORD, DWORD_PTR_32BIT, DWORD_PTR_64BIT, HANDLE_32BIT, HANDLE_64BIT, HINSTANCE_32BIT, HINSTANCE_64BIT, HKEY_32BIT, HKEY_64BIT, HWND_32BIT, HWND_64BIT, INT, LONG, LONGLONG, LPBYTE_32BIT, LPBYTE_64BIT, LPCSTR_32BIT, LPCSTR_64BIT, LPCWSTR_32BIT, LPCWSTR_64BIT, LPSTR_32BIT, LPSTR_64BIT, LPVOID_32BIT, LPVOID_64BIT, LPWSTR_32BIT, LPWSTR_64BIT, MAX_PATH, PCHAR_32BIT, PCHAR_64BIT, POINTER_32BIT, POINTER_64BIT, PVOID_32BIT, PVOID_64BIT, PWSTR_32BIT, PWSTR_64BIT, UCHAR, ULONG, ULONG_PTR_32BIT, ULONG_PTR_64BIT, ULONGLONG, USHORT, WCHAR, WORD, CHAR
@@ -30,9 +30,6 @@ LPPROCESS_INFORMATION_32BIT = POINTER_32BIT
 LPPROCESS_INFORMATION_64BIT = POINTER_64BIT
 
 class PROCESS_INFORMATION:
-    nextProcessID = 10000
-    nextThreadID = 20000
-
     class ARCH32(LittleEndianStructure):
         types = ['HANDLE', 'HANDLE', 'DWORD', 'DWORD']
         __slots__ = ('hProcess', 'hThread', 'dwProcessId', 'dwThreadId')
@@ -48,13 +45,11 @@ class PROCESS_INFORMATION:
             if pID != 0:
                 self.dwProcessId = pID
             else:
-                self.dwProcessId = PROCESS_INFORMATION.nextProcessID
-                PROCESS_INFORMATION.nextProcessID += 1
+                self.dwProcessId = emuSimVals.getNextPID()
             if tID != 0:
                 self.dwThreadId = tID
             else:
-                self.dwThreadId = PROCESS_INFORMATION.nextThreadID
-                PROCESS_INFORMATION.nextThreadID += 1
+                self.dwThreadId = emuSimVals.getNextTID()
 
     class ARCH64(LittleEndianStructure):
         types = ['HANDLE', 'HANDLE', 'DWORD', 'DWORD']
