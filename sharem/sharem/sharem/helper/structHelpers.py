@@ -1,4 +1,4 @@
-from ctypes import LittleEndianStructure, c_byte, c_char, c_double, c_float, c_int, c_int32, c_int64, c_longlong, c_short, c_ubyte, c_uint, c_uint32, c_uint64, c_ulonglong, c_ushort, c_wchar
+from ctypes import LittleEndianStructure, c_byte, c_char, c_double, c_float, c_int16, c_int32, c_int64, c_ubyte, c_uint16, c_uint32, c_uint64, c_ushort, c_wchar
 from struct import unpack
 
 from sharem.sharem.helper.ctypesUnion import LittleEndianUnion
@@ -22,17 +22,19 @@ UCHAR = c_ubyte
 BOOLEAN = BYTE
 BOOL = c_uint32
 
-USHORT = c_ushort
-SHORT = c_short
+USHORT = c_uint16
+SHORT = c_int16
 
-UINT = c_uint
-INT = c_int
+UINT = c_uint32
+INT = c_int32
 
 ULONG = c_uint32 # Windows LONG is 4 bytes
 LONG = c_int32 # Unix LONG is 8 bytes
 
-ULONGLONG = c_ulonglong
-LONGLONG = c_longlong
+ULONGLONG = c_uint64
+LONGLONG = c_int64
+
+ULONG64 = ULONGLONG
 
 DOUBLE = c_double
 FLOAT = c_float
@@ -102,6 +104,7 @@ class StructFieldsFromTypeHints(type(LittleEndianStructure)):
 
         annotations = get_type_hints(AnnotationDummy)
         namespace["_fields_"] = list(annotations.items())
+        namespace["_pack_"] = 8 # Packing Alignment Windows Default 8
         return type(LittleEndianStructure).__new__(cls, name, bases, namespace)
 
 # Union Meta Class
@@ -114,6 +117,7 @@ class UnionFieldsFromTypeHints(type(LittleEndianUnion)):
 
         annotations = get_type_hints(AnnotationDummy)
         namespace["_fields_"] = list(annotations.items())
+        namespace["_pack_"] = 8 # Packing Alignment Windows Default 8
         return type(LittleEndianUnion).__new__(cls, name, bases, namespace)
 
 

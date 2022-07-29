@@ -5,7 +5,7 @@ from sharem.sharem.DLLs.emu_helpers.reverseLookUps import ReverseLookUps
 from sharem.sharem.DLLs.emu_helpers.sim_values import emuSimVals
 
 from sharem.sharem.helper.ctypesUnion import LittleEndianUnion
-from sharem.sharem.helper.structHelpers import BOOL, BYTE, DWORD, DWORD_PTR_32BIT, DWORD_PTR_64BIT, HANDLE_32BIT, HANDLE_64BIT, HINSTANCE_32BIT, HINSTANCE_64BIT, HKEY_32BIT, HKEY_64BIT, HWND_32BIT, HWND_64BIT, INT, LONG, LONGLONG, LPBYTE_32BIT, LPBYTE_64BIT, LPCSTR_32BIT, LPCSTR_64BIT, LPCWSTR_32BIT, LPCWSTR_64BIT, LPSTR_32BIT, LPSTR_64BIT, LPVOID_32BIT, LPVOID_64BIT, LPWSTR_32BIT, LPWSTR_64BIT, MAX_PATH, PCHAR_32BIT, PCHAR_64BIT, POINTER_32BIT, POINTER_64BIT, PVOID_32BIT, PVOID_64BIT, PWSTR_32BIT, PWSTR_64BIT, UCHAR, ULONG, ULONG_PTR_32BIT, ULONG_PTR_64BIT, ULONGLONG, USHORT, WCHAR, WORD, CHAR, StructFieldsFromTypeHints, UnionFieldsFromTypeHints
+from sharem.sharem.helper.structHelpers import BOOL, BYTE, DWORD, DWORD_PTR_32BIT, DWORD_PTR_64BIT, HANDLE_32BIT, HANDLE_64BIT, HINSTANCE_32BIT, HINSTANCE_64BIT, HKEY_32BIT, HKEY_64BIT, HWND_32BIT, HWND_64BIT, INT, LONG, LONGLONG, LPBYTE_32BIT, LPBYTE_64BIT, LPCSTR_32BIT, LPCSTR_64BIT, LPCWSTR_32BIT, LPCWSTR_64BIT, LPSTR_32BIT, LPSTR_64BIT, LPVOID_32BIT, LPVOID_64BIT, LPWSTR_32BIT, LPWSTR_64BIT, MAX_PATH, PCHAR_32BIT, PCHAR_64BIT, POINTER_32BIT, POINTER_64BIT, PVOID_32BIT, PVOID_64BIT, PWSTR_32BIT, PWSTR_64BIT, UCHAR, ULONG, ULONG64, ULONG_PTR_32BIT, ULONG_PTR_64BIT, ULONGLONG, USHORT, WCHAR, WORD, CHAR, StructFieldsFromTypeHints, UnionFieldsFromTypeHints
 
 from ...helper.emuHelpers import Uc
 
@@ -1149,6 +1149,45 @@ class DISPLAY_DEVICEA(LittleEndianStructure, metaclass=StructFieldsFromTypeHints
         #self.DeviceID = not used
         #self.DeviceKey = reserved
 
+# Struct DISPLAY_DEVICEW
+# Alias Names: _DISPLAY_DEVICEW
+# Alias Pointer Names: PDISPLAY_DEVICEW, LPDISPLAY_DEVICEW
+
+def get_DISPLAY_DEVICEW(uc: Uc, address: int, em):
+    return DISPLAY_DEVICEW.from_buffer_copy(uc.mem_read(address, sizeof(DISPLAY_DEVICEW)))
+
+# Struct Aliases:
+# get__DISPLAY_DEVICEW = get_DISPLAY_DEVICEW
+
+# Struct Pointers:
+PDISPLAY_DEVICEW_32BIT = POINTER_32BIT
+PDISPLAY_DEVICEW_64BIT = POINTER_64BIT
+LPDISPLAY_DEVICEW_32BIT = POINTER_32BIT
+LPDISPLAY_DEVICEW_64BIT = POINTER_64BIT
+
+class DISPLAY_DEVICEW(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['DWORD', 'WCHAR', 'WCHAR', 'DWORD', 'WCHAR', 'WCHAR']
+    lookUps = {}
+
+    # Struct Members
+    cb: DWORD
+    DeviceName: WCHAR * 32
+    DeviceString: WCHAR * 128
+    StateFlags: DWORD
+    DeviceID: WCHAR * 128
+    DeviceKey: WCHAR * 128
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+    def screenDC(self):
+        self.cb = sizeof(self)
+        self.DeviceName = '\\\\.\\DISPLAY1\\Monitor0'
+        self.DeviceString = 'GENEREIC PNP MONITOR'
+        self.StateFlags = 0x1
+        #self.DeviceID = not used
+        #self.DeviceKey = reserved
+
 
 ## Struct VIDEOPARAMETERS 
 ## Alias Names: _VIDEOPARAMETERS
@@ -1525,9 +1564,9 @@ class WIN32_FIND_DATAA(LittleEndianStructure, metaclass=StructFieldsFromTypeHint
     dwReserved1: DWORD
     cFileName: CHAR * MAX_PATH
     cAlternateFileName: CHAR * 14
-    dwFileType: DWORD
-    dwCreatorType: DWORD
-    wFinderFlags: WORD
+    # dwFileType: DWORD # Obsolete Member that would be used on MacOS
+    # dwCreatorType: DWORD # Obsolete Member that would be used on MacOS
+    # wFinderFlags: WORD # Obsolete Member that would be used on MacOS
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
@@ -1542,7 +1581,43 @@ class WIN32_FIND_DATAA(LittleEndianStructure, metaclass=StructFieldsFromTypeHint
     #     self.cFileName = filename
     #     self.cAlternateFileName = altFileName
 
+# Struct WIN32_FIND_DATAW
+# Alias Names: _WIN32_FIND_DATAW
+# Alias Pointer Names: *PWIN32_FIND_DATAW, *LPWIN32_FIND_DATAW
 
+def get_WIN32_FIND_DATAW(uc: Uc, address: int, em):
+    return WIN32_FIND_DATAW.from_buffer_copy(uc.mem_read(address, sizeof(WIN32_FIND_DATAW)))
+
+# Struct Aliases:
+# get__WIN32_FIND_DATAW = get_WIN32_FIND_DATAW
+
+# Struct Pointers:
+PWIN32_FIND_DATAW_32BIT = POINTER_32BIT
+PWIN32_FIND_DATAW_64BIT = POINTER_64BIT
+LPWIN32_FIND_DATAW_32BIT = POINTER_32BIT
+LPWIN32_FIND_DATAW_64BIT = POINTER_64BIT
+
+class WIN32_FIND_DATAW(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['DWORD', 'FILETIME', 'FILETIME', 'FILETIME', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WCHAR', 'WCHAR', 'DWORD', 'DWORD','WORD']
+    lookUps = {}
+
+    # Struct Members
+    dwFileAttributes: DWORD
+    ftCreationTime: FILETIME
+    ftLastAccessTime: FILETIME
+    ftLastWriteTime: FILETIME
+    nFileSizeHigh: DWORD
+    nFileSizeLow: DWORD
+    dwReserved0: DWORD
+    dwReserved1: DWORD
+    cFileName: WCHAR * MAX_PATH
+    cAlternateFileName: WCHAR * 14
+    # dwFileType: DWORD # Obsolete Member that would be used on MacOS
+    # dwCreatorType: DWORD # Obsolete Member that would be used on MacOS
+    # wFinderFlags: WORD # Obsolete Member that would be used on MacOS
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
 
 # Struct NETRESOURCEA
 # Alias Names: _NETRESOURCEA
@@ -2404,6 +2479,33 @@ class MIB_IPNETTABLE(LittleEndianStructure, metaclass=StructFieldsFromTypeHints)
     # Struct Members
     dwNumEntries: DWORD
     table: MIB_IPNETROW * ANY_SIZE
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+# Struct APP_MEMORY_INFORMATION
+# Alias Names: _APP_MEMORY_INFORMATION
+# Alias Pointer Names: PAPP_MEMORY_INFORMATION
+
+def get_APP_MEMORY_INFORMATION(uc: Uc, address: int, em):
+    return APP_MEMORY_INFORMATION.from_buffer_copy(uc.mem_read(address, sizeof(APP_MEMORY_INFORMATION)))
+
+# Struct Aliases:
+# get__APP_MEMORY_INFORMATION = get_APP_MEMORY_INFORMATION
+
+# Struct Pointers:
+PAPP_MEMORY_INFORMATION_32BIT = POINTER_32BIT
+PAPP_MEMORY_INFORMATION_64BIT = POINTER_64BIT
+
+class APP_MEMORY_INFORMATION(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['ULONG64', 'ULONG64', 'ULONG64', 'ULONG64']
+    lookUps = {}
+
+    # Struct Members
+    AvailableCommit: ULONG64
+    PrivateCommitUsage: ULONG64
+    PeakPrivateCommitUsage: ULONG64
+    TotalCommitUsage: ULONG64
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
