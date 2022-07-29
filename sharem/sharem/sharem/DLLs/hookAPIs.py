@@ -2504,9 +2504,12 @@ class CustomWinAPIs():
         pNames= ['pExecInfo']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        info = get_SHELLEXECUTEINFOA(uc, pVals[0], em)
+        if pVals[0] != 0x0:
+            info = get_SHELLEXECUTEINFOA(uc, pVals[0], em)
+            pVals[0] = makeStructVals(uc, info, pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
 
-        pVals[0] = makeStructVals(uc, info, pVals[0])
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
 
@@ -2522,9 +2525,11 @@ class CustomWinAPIs():
         pNames= ['pExecInfo']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        info = get_SHELLEXECUTEINFOW(uc, pVals[0], em)
-
-        pVals[0] = makeStructVals(uc, info, pVals[0])
+        if pVals[0] != 0x0:
+            info = get_SHELLEXECUTEINFOW(uc, pVals[0], em)
+            pVals[0] = makeStructVals(uc, info, pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
 
