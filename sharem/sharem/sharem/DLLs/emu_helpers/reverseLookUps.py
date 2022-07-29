@@ -6602,3 +6602,11 @@ class ReverseLookUps:
             4: "MEMORY_PRIORITY_BELOW_NORMAL",
             5: "MEMORY_PRIORITY_NORMAL",
         }
+
+    class IPNET:
+        TYPE = {
+            1: "MIB_IPNET_TYPE_OTHER",
+            2: "MIB_IPNET_TYPE_INVALID",
+            3: "MIB_IPNET_TYPE_DYNAMIC",
+            4: "MIB_IPNET_TYPE_STATIC",
+        }
