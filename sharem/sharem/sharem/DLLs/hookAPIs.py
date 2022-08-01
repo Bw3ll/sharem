@@ -13437,7 +13437,6 @@ class CustomWinSysCalls():
         pNames = ['KeyHandle', 'DesiredAccess', 'ObjectAttributes', 'TitleIndex', 'Class', 'CreateOptions', 'Disposition']
         pVals = self.makeArgVals(uc, em, esp, len(pTypes))
 
-        # Add Lookup for access mask
 
         if pVals[2] != 0x0:
             oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em)
@@ -13445,8 +13444,13 @@ class CustomWinSysCalls():
             name = read_unicode(uc, us.Buffer)
             pVals[2] = makeStructVals(uc, oa, pVals[2])
             pVals[2][2][2] = name
-            rkey = RegKey(name)
-            uc.mem_write(pVals[0],pack('<I',rkey.handle.value))
+            if "\\Registry\\Machine" in name: # Special ObjectName Handling
+                name = name.replace("\\Registry\\Machine","HKEY_LOCAL_MACHINE")
+            elif "\\Registry\\User" in name:
+                name = name.replace("\\Registry\\User","HKEY_USERS")
+            rKey = RegKey(name)
+            art.registry_add_keys.add(rKey.path)
+            uc.mem_write(pVals[0],pack('<I',rKey.handle.value))
         else:
             pVals[2] = hex(pVals[2])
 
@@ -13456,8 +13460,9 @@ class CustomWinSysCalls():
         else:
             pVals[4] = hex(pVals[4])
 
-        # Add Registry Stuff 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,4])
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.ACCESS_MASK.RegKey)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2,4])
 
         retVal = 0
         retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)

@@ -862,7 +862,7 @@ class OBJECT_ATTRIBUTES:
 
     class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['ULONG', 'HANDLE', 'PUNICODE_STRING', 'ULONG', 'PVOID', 'PVOID']
-        lookUps = {}
+        lookUps = {3: ReverseLookUps.ObjectAttributes.Attributes}
 
         # Struct Members
         Length: ULONG
@@ -877,7 +877,7 @@ class OBJECT_ATTRIBUTES:
 
     class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['ULONG', 'HANDLE', 'PUNICODE_STRING', 'ULONG', 'PVOID', 'PVOID']
-        lookUps = {}
+        lookUps = {3: ReverseLookUps.ObjectAttributes.Attributes}
 
         # Struct Members
         Length: ULONG
