@@ -360,10 +360,10 @@ class jsonPrint:
             if (tuple_flag == 1):
                 api_dict.update(self.jsonTuples(api_params_values,api_params_types,api_params_names,api_dict))
             else:
-                p = 0
                 # for pTyp, pName, pVal in zip(api_params_types, api_params_names, api_params_values):
                 # 	api_dict['parameters'].append({"type":pTyp + " " + pName,
                 # 								"value":str(pVal)})
+                p = 0
                 for pName in api_params_names:
                     api_type_value = []
                     api_type_value.append({"type":api_params_types[p],
@@ -376,14 +376,15 @@ class jsonPrint:
 
     def syscalls(self,logged_syscalls,em):
         var = Variables()
-        syscalls_dict = {}
+        # syscalls_dict = {}
         # print(var.logged_syscalls)
         for i in var.logged_syscalls:
             # print(i)
             tuple_flag = 0
             print(type(i))
-            
+            print(i)
             syscalls_dict = {}
+            
             syscall_name = i[0]
             syscall_address = i[1]
             syscall_value = i[2]
@@ -395,26 +396,34 @@ class jsonPrint:
             for potentialTuple in syscall_params_values:
                 if( type(potentialTuple) == tuple):
                     tuple_flag = 1
+            syscalls_dict["syscall_name"] = str(syscall_name)
+            syscalls_dict["return_value"] = str(syscall_type + " "+syscall_value)
+            syscalls_dict["address"] = str(syscall_address)
+            syscalls_dict['parameters'] = []
+            
             if (tuple_flag == 1):
-                print(i)
-                syscalls_dict['parameters'] = []
                 syscalls_dict.update(self.jsonTuples(syscall_params_values,syscall_params_types,syscall_params_names,syscalls_dict))
             else:
-                syscalls_dict["syscall_name"] = str(syscall_name)
-                syscalls_dict["return_value"] = str(syscall_type + " "+syscall_value)
-                syscalls_dict["address"] = str(syscall_address)
+                p = 0
+                for pName in syscall_params_names:
+                    syscall_type_value = []
+                    syscall_type_value.append({"type":syscall_params_types[p],
+                                                "value":str(syscall_params_values[p])})
+                    syscalls_dict['parameters'].append({"type":syscall_params_names[p],
+                                                "value":syscall_type_value})
+                    p+=1
+        
 
-                syscalls_dict['parameters'] = []
 
-
-                for pTyp, pName, pVal in zip(syscall_params_types, syscall_params_names, syscall_params_values):
-                    syscalls_dict['parameters'].append({"type":str(pTyp) + " " + str(pName),
-                                                        "value":str(pVal)})
+                # for pTyp, pName, pVal in zip(syscall_params_types, syscall_params_names, syscall_params_values):
+                #     syscalls_dict['parameters'].append({"type":str(pTyp) + " " + str(pName),
+                #                                         "value":str(pVal)})
 
             syscalls_dict["syscall_callID"] = str(hex(syscall_callID))
             syscalls_dict["OS_Release_SP"] = var.emu.winVersion+", SP "+var.emu.winSP
 
-        self.emulation_dict['syscalls_emulation'] = syscalls_dict
+            # self.emulation_dict['syscalls_emulation'] = syscalls_dict
+            self.emulation_dict['syscalls_emulation'].append(syscalls_dict)
 
     def artifacts(self,art,apiList):
         self.dlls(apiList)
@@ -563,12 +572,12 @@ class jsonPrint:
                 struct_name = paramValues[t][0]
                 struct_type = paramValues[t][1]
                 struct_value = paramValues[t][2]
-                print(struct_name)
-                print(1)
-                print(struct_type)
-                print(1)
-                print(struct_value)
-                print(2)
+                # print(struct_name)
+                # print(1)
+                # print(struct_type)
+                # print(1)
+                # print(struct_value)
+                # print(2)
                 i = 0
                 for each in struct_value:
                     #found a union sturcutre
