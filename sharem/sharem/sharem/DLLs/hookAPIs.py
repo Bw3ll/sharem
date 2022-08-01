@@ -2378,9 +2378,12 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
         origin = pVals[1]
         destination = pVals[2]
-        filePath, fileName = SimFileSystem.internetDownload(destination)
+        filePath, fileName,datahash = SimFileSystem.internetDownload(origin,destination)
         art.files_create.append(fileName)
         art.path_artifacts.append(filePath)
+        
+        if(datahash != ''):
+            art.files_hashes.append((fileName,datahash))
 
         
         retVal = 0x0

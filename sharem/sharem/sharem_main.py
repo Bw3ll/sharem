@@ -24,7 +24,6 @@ import argparse
 from argparse import Namespace
 import hashlib
 import platform
-from sharem.sharem.helper.variable import Varaibles
 import textwrap3
 
 
@@ -278,8 +277,7 @@ bfindShellFound = False
 bComments = True
 shellBit=32
 ##add in the current directory later, as right now this will only output to the logs folder
-gVar = Varaibles()
-jsonP = jsonPrint(variableClass = gVar,filename=filename,rawHex=rawHex)
+jsonP = jsonPrint(filename=filename,rawHex=rawHex)
 
 #####SAME AS FROM SHAREM
 filename=""
@@ -1627,25 +1625,6 @@ def InMem2():
 		t+=1
   
 
-def cleanColors(out):
-	global red 
-	global gre 
-	global yel 
-	global blu 
-	global mag 
-	global cya 
-	global whi 
-	global res
-	res = '\u001b[0m'
-	out = out.replace(red, "")	
-	out = out.replace(gre, "")	
-	out = out.replace(yel, "")	
-	out = out.replace(blu, "")	
-	out = out.replace(mag, "")	
-	out = out.replace(cya, "")	
-	out = out.replace(whi, "")	
-	out = out.replace(res, "")	
-	return out
 
 def giveLoadedModules(mode=None):
 	global IATs
@@ -1686,7 +1665,7 @@ def giveLoadedModules(mode=None):
 	if mode =="text" or mode =="save":
 		# out = cleanColors(out)
 		if mode =="save":
-			out2 = cleanColors(out)
+			out2 = Variables.cleanColors(self= Variables,out = out)
 			outfileNoExt = outfile.split(".", 1)[0]
 			outfileName = outfileName.split("\\")[-1]
 			# txtFileName =  os.getcwd() + slash + outfileNoExt + slash + outfileName + "_" + "loaded_Modules" + ".txt"
@@ -12052,7 +12031,7 @@ def createDisassemblyLists(Colors=True, caller=None,decoder=False):
 	finalOutput= finalOutput+res2+""
 	# print(finalOutput)
 
-	finalOutputNoColors=cleanColors(finalOutput)
+	finalOutputNoColors= Variables.cleanColors(self = Variables, out=finalOutput)
 	# pMnemonic= i.mnemonic
 
 	
@@ -12139,10 +12118,10 @@ def createDisassemblyJson(Colors=True, caller=None,decoder=False):
 			if not showOpcodes:	 # If no hex, then move ASCII to left
 				myHex=myStrOut
 				myStrOut=""
-			pAddress = cleanColors(pAddress)
+			pAddress = Variables.cleanColors(self = Variables, out=pAddress)
 			disDict["address"] = pAddress.strip()
-			disDict["instruction"] = cleanColors(sBy.shMnemonic[j] + " " + sBy.shOp_str[j]).strip()
-			disDict["hex"] = cleanColors(myHex).strip()
+			disDict["instruction"] = Variables.cleanColors(self = Variables, out=sBy.shMnemonic[j] + " " + sBy.shOp_str[j]).strip()
+			disDict["hex"] = Variables.cleanColors(self = Variables, out=myHex).strip()
 
 
 			# pAddressInt = int(pAddress, 16)
@@ -12160,7 +12139,7 @@ def createDisassemblyJson(Colors=True, caller=None,decoder=False):
 					myStrOut=""
 				out='{:<12s} {:<45s} {:<33s}{:<10s}\n'.format(pAddress, whi+sBy.shMnemonic[j] + " " + sBy.shOp_str[j], myHex, myStrOut)
 				pass
-			disDict["string"] = cleanColors(myStrOut).strip()
+			disDict["string"] = Variables.cleanColors(self = Variables, out=myStrOut).strip()
 
 
 			# out=out+"\n"
@@ -12170,7 +12149,7 @@ def createDisassemblyJson(Colors=True, caller=None,decoder=False):
 				val_b2=sBy.comments[cAddress]
 				val_comment =('{:<10s} {:<45s} {:<33s}{:<10s}\n'.format(mag+nada, val_b2, nada, nada))
 				out+=val_comment
-				disDict["comment"] = cleanColors(val_comment).strip()	
+				disDict["comment"] = Variables.cleanColors(self = Variables, out=val_comment).strip()	
 			else:
 				disDict["comment"] = ""
 
@@ -12178,7 +12157,7 @@ def createDisassemblyJson(Colors=True, caller=None,decoder=False):
 			truth,myLabel=checkForLabel(str(hex(cAddress)),labels)
 			if truth:
 				out=yel+myLabel+res2+out
-				disDict["label"] = cleanColors(myLabel).strip()
+				disDict["label"] = Variables.cleanColors(self = Variables, out=myLabel).strip()
 			else:
 				disDict["label"] = ""
 
@@ -12200,8 +12179,8 @@ def createDisassemblyJson(Colors=True, caller=None,decoder=False):
 			cur=cAddress
 			if (sBy.pushStringEnd[cur]-2) == cur:
 				msg="; "+sBy.pushStringValue[cur] + " - Stack string"
-				# disList[4] = cleanColors(disList[4] + "; "+sBy.pushStringValue[cur] + " - Stack string")
-				disDict["comment"] = disDict["comment"] + cleanColors("; "+sBy.pushStringValue[cur] + " - Stack string")
+				# disList[4] = Variables.cleanColors(out=disList[4] + "; "+sBy.pushStringValue[cur] + " - Stack string")
+				disDict["comment"] = disDict["comment"] + Variables.cleanColors(self = Variables, out="; "+sBy.pushStringValue[cur] + " - Stack string")
 				newVal =('{:<12} {:<45s} {:<33}{:<10s}\n'.format(nada, msg, nada, nada))
 				out= newVal+out
 		except Exception as e:
@@ -22428,7 +22407,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 
 	txt_output += printOut.artifactsOut(art,emulation_multiline,logged_dlls)
 
-	no_colors_out = cleanColors(txt_output)
+	no_colors_out = Variables.cleanColors(self = Variables, out = txt_output)
 	# print(txt_output)
 	# sys.exit()
 	# global traversedAdds
@@ -22624,23 +22603,24 @@ def printToJson(bpAll, outputData):	#Output data to json
 	global filename
 	global sharem_out_dir
 	global FoundApisName
-	gVar.o = o
-	gVar.mBool = mBool
-	# gVar.decoder = decoder
-	# gVar.caller = caller
-	gVar.m = m
-	gVar.sh = sh
-	gVar.sBy = sBy
-	gVar.labels = labels
-	gVar.sh = sh
-	gVar.sh = sh
-	gVar.sh = sh
-	gVar.sh = sh
+	# gVar.o = o
+	# gVar.mBool = mBool
+	# # gVar.decoder = decoder
+	# # gVar.caller = caller
+	# gVar.m = m
+	# gVar.sh = sh
+	# gVar.sBy = sBy
+	# gVar.labels = labels
+	# gVar.sh = sh
+	# gVar.sh = sh
+	# gVar.sh = sh
+	# gVar.sh = sh
 	disResults = createDisassemblyJson()
 	jsonP.importData(importedData = outputData,FoundApisName = FoundApisName,filename = filename,importDiss = disResults)
 	# jsonP.generateDisassemblyResults()
 	jsonP.generateJson()
-
+	
+	
 
 def formatPrint(i, add4, addb, pe=False, syscall=False):
 	#print('{1:>{0}}'.format(length, string))
@@ -23896,7 +23876,7 @@ def printToText(outputData):	#Output data to text doc
 		info = showBasicInfo()
 	else:
 		info = showBasicInfoSections()
-	info=cleanColors(info)
+	info=Variables.cleanColors(self = Variables, out = info)
 
 	time = datetime.datetime.now()
 	epoch = time.timestamp()

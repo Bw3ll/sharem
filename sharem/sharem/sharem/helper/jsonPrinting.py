@@ -6,8 +6,13 @@ import pathlib
 import os
 import re
 
+from sharem.sharem.helper.variable import Variables
+
+
+# from sharem.sharem.helper.variable import Variables
+
 class jsonPrint:
-    def __init__(self,  variableClass,
+    def __init__(self,  
                         filename:str = '',
                         rawHex = False,
                         current_arch:int = 0,
@@ -50,6 +55,7 @@ class jsonPrint:
             "path_copy":[],
             "path_move":[],
             "path_misc":[],
+            "file_hash":[],
             "file_create":[],
             "file_delete":[],
             "file_read":[],
@@ -66,7 +72,6 @@ class jsonPrint:
             "registry_miscellaneous":[]
 	    }
         #move these into their own class later
-        self.variableGlobals = variableClass
 
 #####################
 ###  remove later ###
@@ -181,7 +186,7 @@ class jsonPrint:
         #import off_Label,labels,res,sBy
         red,gre,yel,blu,mag,cya,whi,res,res2 = self.variableGlobals.colors()
         # maxOpDisplay=self.variableGlobals.mBool[self.variableGlobals.o].maxOpDisplay
-
+        Varaibles().mBool
         # btsV=self.variableGlobals.mBool[self.variableGlobals.o].btsV
         
         # if not decoder:
@@ -337,7 +342,6 @@ class jsonPrint:
             except:
                 dll_name = "kernel32.dll"
                 
-            
             api_dict.update({'api_name':api_name})
             api_dict["dll_name"] = dll_name
             api_dict["return_value"]= ret_type+" " + str(ret_value)
@@ -371,8 +375,14 @@ class jsonPrint:
         self.emulation_dict['api_calls'] = api_dict
 
     def syscalls(self,logged_syscalls,em):
+        var = Variables()
         syscalls_dict = {}
-        for i in logged_syscalls:
+        # print(var.logged_syscalls)
+        for i in var.logged_syscalls:
+            # print(i)
+            tuple_flag = 0
+            print(type(i))
+            
             syscalls_dict = {}
             syscall_name = i[0]
             syscall_address = i[1]
@@ -382,11 +392,11 @@ class jsonPrint:
             syscall_params_types = i[5]
             syscall_params_names = i[6]
             syscall_callID = i[8]
-
             for potentialTuple in syscall_params_values:
                 if( type(potentialTuple) == tuple):
                     tuple_flag = 1
             if (tuple_flag == 1):
+                print(i)
                 syscalls_dict['parameters'] = []
                 syscalls_dict.update(self.jsonTuples(syscall_params_values,syscall_params_types,syscall_params_names,syscalls_dict))
             else:
@@ -402,7 +412,7 @@ class jsonPrint:
                                                         "value":str(pVal)})
 
             syscalls_dict["syscall_callID"] = str(hex(syscall_callID))
-            syscalls_dict["OS_Release_SP"] = em.winVersion+", SP "+em.winSP
+            syscalls_dict["OS_Release_SP"] = var.emu.winVersion+", SP "+var.emu.winSP
 
         self.emulation_dict['syscalls_emulation'] = syscalls_dict
 
@@ -447,6 +457,7 @@ class jsonPrint:
         self.emulation_dict["file_write"].extend(art.files_write)
         self.fileSysetemMovement(art.files_copy,'file_copy')
         self.fileSysetemMovement(art.files_move,'file_move')
+        self.filehashes(art.files_hashes,'file_hash')
 
 #-------------------
 #     Registry 
@@ -535,6 +546,14 @@ class jsonPrint:
             Dict.update({'origin':each[0]})
             Dict.update({'destination':each[1]})
             self.emulation_dict[emuDest].append(Dict)
+            
+    def filehashes(self,artCategory,emuDest):
+        for each in artCategory:
+            each = list(each)
+            Dict = {}
+            Dict.update({'file':each[0]})
+            Dict.update({'hash':each[1]})
+            self.emulation_dict[emuDest].append(Dict)
 
     def jsonTuples(self,paramValues,params_types,params_names,dictName):
         t = 0
@@ -544,12 +563,12 @@ class jsonPrint:
                 struct_name = paramValues[t][0]
                 struct_type = paramValues[t][1]
                 struct_value = paramValues[t][2]
-                # print(struct_name)
-                # print(1)
-                # print(struct_type)
-                # print(1)
-                # print(struct_value)
-                # print(2)
+                print(struct_name)
+                print(1)
+                print(struct_type)
+                print(1)
+                print(struct_value)
+                print(2)
                 i = 0
                 for each in struct_value:
                     #found a union sturcutre

@@ -7,20 +7,7 @@ colorama.init()
 class PrintingOutput:
     def __init__(self):
         self.txtOut = ""
-        self.emulation_dict = { 
-            "api_calls":[],
-            "syscalls_emulation":[],
-            "dlls":[],
-            "path_artifacts":[],
-            "file_artifacts":[],
-            "commandLine_artifacts":[],
-            "web_artifacts":[],
-            "exe_dll_artifacts":[],
-            "registry_actions":[],
-            "registry_techniques":[],
-            "registry_hierarchy":[],
-            "registry_miscellaneous":[]
-	    }
+        
         self.red ='\u001b[31;1m'
         self.gre = '\u001b[32;1m'
         self.yel = '\u001b[33;1m'
@@ -139,6 +126,7 @@ class PrintingOutput:
             retType = ret_type[t]
             paramVal = syscall_params_values[t]
             # DLL = dll_name[t]
+            tuple_flag = 0
             for potentialTuple in paramVal:
                 if( type(potentialTuple) == tuple):
                     # print("is a tuple")
@@ -194,6 +182,7 @@ class PrintingOutput:
             emu_filesAccess_list = self.multiLine(art.files_access)
             emu_filesCopy_list = self.multiLineTransition(art.files_copy)
             emu_filesMoved_list = self.multiLineTransition(art.files_move)
+            emu_filesHashes_list = self.multilineHash(art.files_hashes)
             
             emu_commandline_list = self.multiLine(art.commandLine_artifacts)
             
@@ -244,14 +233,14 @@ class PrintingOutput:
             emu_filesMisc_list = ', '.join(art.file_artifacts)
             emu_pathCopy_list = ', '.join(art.path_copy)
             emu_pathMove_list = ', '.join(art.path_move)
-    
+            emu_filesHashes_list = ', '.join(art.file_hashes)
         text_output += self.mag + "\n************* Artifacts *************\n" 
 
         #paths
         text_output += self.Ppaths(art,emu_path_list,emu_pathCopy_list,emu_pathMove_list)
 
         # files 
-        text_output += self.Pfiles(art,emu_filesCreate_list,emu_filesWrite_list,emu_filesDelete_list,emu_filesAccess_list,emu_filesCopy_list,emu_filesMoved_list,emu_filesMisc_list)
+        text_output += self.Pfiles(art,emu_filesCreate_list,emu_filesWrite_list,emu_filesDelete_list,emu_filesAccess_list,emu_filesCopy_list,emu_filesMoved_list,emu_filesMisc_list,emu_filesHashes_list)
        
         # commandline artifacts
         if len(art.commandLine_artifacts) > 0:
@@ -287,10 +276,12 @@ class PrintingOutput:
         
         return text_output
 
-    def Pfiles(self,art,emu_filesCreate_list,emu_filesWrite_list,emu_filesDelete_list,emu_filesAccess_list,emu_filesCopy_list,emu_filesMoved_list,emu_filesMisc_list):
+    def Pfiles(self,art,emu_filesCreate_list,emu_filesWrite_list,emu_filesDelete_list,emu_filesAccess_list,emu_filesCopy_list,emu_filesMoved_list,emu_filesMisc_list,emu_filesHashes_list):
         text_output = ""
-        if(len(art.files_create) > 0 or len(art.files_write) > 0 or len(art.files_delete) > 0 or len(art.files_access) > 0 or len(art.files_copy) > 0 or len(art.files_move) > 0 or len(art.file_artifacts) > 0):
+        if(len(art.files_create) > 0 or len(art.files_write) > 0 or len(art.files_delete) > 0 or len(art.files_access) > 0 or len(art.files_copy) > 0 or len(art.files_move) > 0 or len(art.file_artifacts) > 0 or len(art.files_hashes) > 0):
             text_output += "{}{:<9}\n".format(self.cya + "*** Files ***" + self.res,"")
+        if(len(art.files_hashes) > 0):
+            text_output += "{}{:<9} {}\n".format(self.red + "** Hashes **" + self.res,"", emu_filesHashes_list)	
         if(len(art.files_create) > 0):
             text_output += "{}{:<9} {}\n".format(self.red + "** Create **" + self.res,"", emu_filesCreate_list)
         if(len(art.files_write) > 0):
@@ -403,6 +394,24 @@ class PrintingOutput:
             emu_artifact_list += "\n".join(artifact)
             emu_artifact_list += "\n"
             return emu_artifact_list
+    
+    def multilineHash(self,artifact):
+        emu_artifact_list = ''
+        if(len(artifact) > 0):
+                for each in artifact:
+                    if (type(each) == tuple):
+                        p = 0
+                        for o in each:
+                            if p == 0:
+                                emu_artifact_list += "\n"+o
+                            else:
+                                emu_artifact_list += " : "+o
+                            p+=1
+                    else:
+                        emu_artifact_list += "\n"+each
+        emu_artifact_list += "\n"
+        return emu_artifact_list 
+        
     
     def multiLineTransition(self,artifact):
         emu_artifact_list = ''

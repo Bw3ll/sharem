@@ -837,6 +837,8 @@ def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 
 	vmode = emuObj.verbose
 	maxinst = emuObj.maxEmuInstr
+	var = Variables()
+	em = var.emu
 	arch = em.arch
 	bloop = em.maxLoop #emuObj.breakLoop  old
 	# iternum = emuObj.numOfIter

@@ -108,6 +108,7 @@ class Artifacts_emulation:
 		self.files_access= []
 		self.files_copy = []
 		self.files_move = []
+		self.files_hashes = []
 
 		self.commandLine_artifacts = []
 		self.commandLine_HookApis = set()
@@ -145,6 +146,7 @@ class Artifacts_emulation:
 		self.files_delete = set(self.files_delete)
 		self.files_access = set(self.files_access)
 		self.files_copy = set(self.files_copy)
+		self.files_hashes = set(self.files_hashes)
 		self.path_copy = set(self.path_copy)
 		self.path_move = set(self.path_move)
 
@@ -166,8 +168,9 @@ class Artifacts_emulation:
 		self.removeObjectsFromDLLS()
 
 		#convert back
-		self.path_copy = set(self.path_copy)
-		self.path_move = set(self.path_move)
+		self.path_copy = list(self.path_copy)
+		self.path_move = list(self.path_move)
+		self.files_hashes = list(self.files_hashes)
 		self.files_copy = list(self.files_copy)
 		self.files_create = list(self.files_create)
 		self.files_write = list(self.files_write)

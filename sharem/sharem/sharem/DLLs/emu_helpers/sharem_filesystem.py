@@ -1,6 +1,11 @@
+from tkinter import Variable
+
+from sharem.sharem.parseconf import Configuration
 from .handles import Handle,HandleType,HandlesDict
 from .sharem_artifacts import Artifacts_regex
 import re
+import urllib3
+import hashlib
 
 class Dir_nodes:
     def __init__(self, nameString,parent = None):
@@ -118,8 +123,13 @@ class Directory_system:
     def createFile(self,path,fileName,fileData = 'EMPTY'):
         path = self.convertPath(path)
         folderNode = self.findAndCreateFolder(path)
-        folderNode.files.update({fileName:fileData})
-
+        try:
+            folderNode.files.update({fileName:fileData})
+        except:
+            hashedData = hashlib.md5(fileData)
+            hashedData = hashedData.hexdigest()
+            folderNode.files.update({fileName:hashedData})
+        
     def writeFile(self,path,fileName,fileData = 'EMPTY'):
         path = self.convertPath(path)
         folderNode = self.findAndCreateFolder(path)
@@ -214,7 +224,6 @@ class Directory_system:
         
         return '\\'.join(path),filename, filedata
 
-
     def moveFolder(self,origin,destination,replace):
         origin = self.convertPath(origin)
         destination = self.convertPath(destination)
@@ -223,11 +232,39 @@ class Directory_system:
         folderOrigin.parentDir = folderDest
         return '\\'.join(destination), '\\'.join(origin)
 
-    def internetDownload(self,path):
-        path = self.convertPath(path)
-        fileName = path[-1]
-        self.createFile(path[:-1],fileName)
-        return '\\'.join(path),fileName
+    def internetDownload(self,origin,dest):
+        dest = self.convertPath(dest)
+        if(len(dest) == 1):
+            fileName = dest
+            dest = self.convertPath(self.currentDirPath)
+        else:
+            fileName = dest[-1]
+            dest = dest[:-1]
+        # print(fileName,dest)
+        #check that the user wants to download files
+        conf = Configuration()
+        if(conf.simulatedValues_download_files):
+            #move the manager to somewhere else that we can turn on and off with the config useage.
+            http = urllib3.PoolManager(num_pools=1)
+            r = http.request('GET',origin)
+            #check the status code
+            if(r.status == 200):
+                hashedData = hashlib.md5(r.data)
+                hashedData = hashedData.hexdigest()
+                # print(len(r.data))
+                self.createFile(path=dest,fileName=fileName,fileData=r.data)
+            else:
+                # print(r.status)
+                #error retrieving the file, give them a dummy data file
+                self.createFile(dest,fileName)
+                hashedData = ''
+        else:
+            #create the file with dummy data
+            # print('download is disabled')
+            self.createFile(dest,fileName)
+            hashedData = ''
+            
+        return '\\'.join(dest),fileName,hashedData
 
     def findFirstFile(self,path):
         path = self.convertPath(path)
@@ -274,6 +311,8 @@ class Directory_system:
 
     def findAndCreateFolder(self,path):
         path = self.convertPath(path)
+        if(len(path) == 1 and path[0].lower() == self.rootDir.name.lower()):
+            return self.rootDir
         folder = self.findFolder(path)
         if(folder == None):
             folder = self.recurseCreateFolder(self.rootDir,path)
@@ -325,8 +364,6 @@ class Directory_system:
         else:
             returnList.insert(0,dirNode.name)
             return self.getPath(dirNode.parentDir,returnList)
-    
-    
         
     def detectDuplicateFileHandles(self,node,handle):
         #on creation detect if there is a duplicate file name and then rename it accordingly append '(N)' where n is the number of times it is duplicated starting at 1
@@ -442,7 +479,8 @@ class Directory_system:
             print(('  ')*indent+each)
             child = dirNode.childrenDir.get(each)
             if(len(child.files) != 0):
-                print((' '*indent+"*F*"+str(child.files)))
+                for files in child.files:
+                    print((' '*indent+"*F*"+str(child.files)))
             self.printALL(child,indent+1)
 
     def outputFilesCreated(self,config):
