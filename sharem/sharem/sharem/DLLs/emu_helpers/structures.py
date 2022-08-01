@@ -5,7 +5,7 @@ from sharem.sharem.DLLs.emu_helpers.reverseLookUps import ReverseLookUps
 from sharem.sharem.DLLs.emu_helpers.sim_values import emuSimVals
 
 from sharem.sharem.helper.ctypesUnion import LittleEndianUnion
-from sharem.sharem.helper.structHelpers import BOOL, BYTE, DWORD, DWORD_PTR_32BIT, DWORD_PTR_64BIT, HANDLE_32BIT, HANDLE_64BIT, HINSTANCE_32BIT, HINSTANCE_64BIT, HKEY_32BIT, HKEY_64BIT, HWND_32BIT, HWND_64BIT, INT, LONG, LONGLONG, LPBYTE_32BIT, LPBYTE_64BIT, LPCSTR_32BIT, LPCSTR_64BIT, LPCWSTR_32BIT, LPCWSTR_64BIT, LPSTR_32BIT, LPSTR_64BIT, LPVOID_32BIT, LPVOID_64BIT, LPWSTR_32BIT, LPWSTR_64BIT, MAX_PATH, PCHAR_32BIT, PCHAR_64BIT, POINTER_32BIT, POINTER_64BIT, PVOID_32BIT, PVOID_64BIT, PWSTR_32BIT, PWSTR_64BIT, UCHAR, ULONG, ULONG_PTR_32BIT, ULONG_PTR_64BIT, ULONGLONG, USHORT, WCHAR, WORD, CHAR
+from sharem.sharem.helper.structHelpers import BOOL, BYTE, DWORD, DWORD_PTR_32BIT, DWORD_PTR_64BIT, HANDLE_32BIT, HANDLE_64BIT, HINSTANCE_32BIT, HINSTANCE_64BIT, HKEY_32BIT, HKEY_64BIT, HWND_32BIT, HWND_64BIT, INT, LONG, LONGLONG, LPBYTE_32BIT, LPBYTE_64BIT, LPCSTR_32BIT, LPCSTR_64BIT, LPCWSTR_32BIT, LPCWSTR_64BIT, LPSTR_32BIT, LPSTR_64BIT, LPVOID_32BIT, LPVOID_64BIT, LPWSTR_32BIT, LPWSTR_64BIT, MAX_PATH, PCHAR_32BIT, PCHAR_64BIT, POINTER_32BIT, POINTER_64BIT, PVOID_32BIT, PVOID_64BIT, PWSTR_32BIT, PWSTR_64BIT, UCHAR, ULONG, ULONG64, ULONG_PTR_32BIT, ULONG_PTR_64BIT, ULONGLONG, USHORT, WCHAR, WORD, CHAR, StructFieldsFromTypeHints, UnionFieldsFromTypeHints
 
 from ...helper.emuHelpers import Uc
 
@@ -30,11 +30,15 @@ LPPROCESS_INFORMATION_32BIT = POINTER_32BIT
 LPPROCESS_INFORMATION_64BIT = POINTER_64BIT
 
 class PROCESS_INFORMATION:
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['HANDLE', 'HANDLE', 'DWORD', 'DWORD']
-        __slots__ = ('hProcess', 'hThread', 'dwProcessId', 'dwThreadId')
         lookUps = {}
-        _fields_ = [('hProcess',HANDLE_32BIT),('hThread',HANDLE_32BIT),('dwProcessId',DWORD),('dwThreadId',DWORD)]
+
+        # Struct Members
+        hProcess: HANDLE_32BIT
+        hThread: HANDLE_32BIT
+        dwProcessId: DWORD
+        dwThreadId: DWORD
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -51,12 +55,15 @@ class PROCESS_INFORMATION:
             else:
                 self.dwThreadId = emuSimVals.getNextTID()
 
-    class ARCH64(LittleEndianStructure):
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['HANDLE', 'HANDLE', 'DWORD', 'DWORD']
-        __slots__ = ('hProcess', 'hThread', 'dwProcessId', 'dwThreadId')
         lookUps = {}
 
-        _fields_ = [('hProcess',HANDLE_64BIT),('hThread',HANDLE_64BIT),('dwProcessId',DWORD),('dwThreadId',DWORD)]
+        # Struct Members
+        hProcess: HANDLE_64BIT
+        hThread: HANDLE_64BIT
+        dwProcessId: DWORD
+        dwThreadId: DWORD
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -67,13 +74,11 @@ class PROCESS_INFORMATION:
             if pID != 0:
                 self.dwProcessId = pID
             else:
-                self.dwProcessId = PROCESS_INFORMATION.nextProcessID
-                PROCESS_INFORMATION.nextProcessID += 1
+                self.dwProcessId = emuSimVals.getNextPID()
             if tID != 0:
                 self.dwThreadId = tID
             else:
-                self.dwThreadId = PROCESS_INFORMATION.nextThreadID
-                PROCESS_INFORMATION.nextThreadID += 1
+                self.dwThreadId = emuSimVals.getNextTID()
 
 
 # class PROCESSENTRY32: # Needs Redone
@@ -146,22 +151,41 @@ def get_PROCESSENTRY32(uc: Uc, address: int, em):
 
 class PROCESSENTRY32:
 
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'DWORD', 'DWORD', 'ULONG_PTR', 'DWORD', 'DWORD', 'DWORD', 'LONG', 'DWORD', 'CHAR']
-        __slots__ = ('dwSize', 'cntUsage', 'th32ProcessID', 'th32DefaultHeapID', 'th32ModuleID', 'cntThreads', 'th32ParentProcessID', 'pcPriClassBase', 'dwFlags', 'szExeFile')
         lookUps = {}
 
-        _fields_ = [('dwSize',DWORD),('cntUsage',DWORD),('th32ProcessID',DWORD),('th32DefaultHeapID',ULONG_PTR_32BIT),('th32ModuleID',DWORD),('cntThreads',DWORD),('th32ParentProcessID',DWORD),('pcPriClassBase',LONG),('dwFlags',DWORD),('szExeFile',CHAR * MAX_PATH)]
+        # Struct Members
+        dwSize: DWORD
+        cntUsage: DWORD
+        th32ProcessID: DWORD
+        th32DefaultHeapID: ULONG_PTR_32BIT
+        th32ModuleID: DWORD
+        cntThreads: DWORD
+        th32ParentProcessID: DWORD
+        pcPriClassBase: LONG
+        dwFlags: DWORD
+        szExeFile: CHAR * MAX_PATH
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
-    class ARCH64(LittleEndianStructure):
+
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'DWORD', 'DWORD', 'ULONG_PTR', 'DWORD', 'DWORD', 'DWORD', 'LONG', 'DWORD', 'CHAR']
-        __slots__ = ('dwSize', 'cntUsage', 'th32ProcessID', 'th32DefaultHeapID', 'th32ModuleID', 'cntThreads', 'th32ParentProcessID', 'pcPriClassBase', 'dwFlags', 'szExeFile')
         lookUps = {}
 
-        _fields_ = [('dwSize',DWORD),('cntUsage',DWORD),('th32ProcessID',DWORD),('th32DefaultHeapID',ULONG_PTR_64BIT),('th32ModuleID',DWORD),('cntThreads',DWORD),('th32ParentProcessID',DWORD),('pcPriClassBase',LONG),('dwFlags',DWORD),('szExeFile',CHAR * MAX_PATH)]
+        # Struct Members
+        dwSize: DWORD
+        cntUsage: DWORD
+        th32ProcessID: DWORD
+        th32DefaultHeapID: ULONG_PTR_64BIT
+        th32ModuleID: DWORD
+        cntThreads: DWORD
+        th32ParentProcessID: DWORD
+        pcPriClassBase: LONG
+        dwFlags: DWORD
+        szExeFile: CHAR * MAX_PATH
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -181,22 +205,40 @@ def get_PROCESSENTRY32W(uc: Uc, address: int, em):
 
 class PROCESSENTRY32W:
 
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'DWORD', 'DWORD', 'ULONG_PTR', 'DWORD', 'DWORD', 'DWORD', 'LONG', 'DWORD', 'WCHAR']
-        __slots__ = ('dwSize', 'cntUsage', 'th32ProcessID', 'th32DefaultHeapID', 'th32ModuleID', 'cntThreads', 'th32ParentProcessID', 'pcPriClassBase', 'dwFlags', 'szExeFile')
         lookUps = {}
 
-        _fields_ = [('dwSize',DWORD),('cntUsage',DWORD),('th32ProcessID',DWORD),('th32DefaultHeapID',ULONG_PTR_32BIT),('th32ModuleID',DWORD),('cntThreads',DWORD),('th32ParentProcessID',DWORD),('pcPriClassBase',LONG),('dwFlags',DWORD),('szExeFile',WCHAR * MAX_PATH)]
+        # Struct Members
+        dwSize: DWORD
+        cntUsage: DWORD
+        th32ProcessID: DWORD
+        th32DefaultHeapID: ULONG_PTR_32BIT
+        th32ModuleID: DWORD
+        cntThreads: DWORD
+        th32ParentProcessID: DWORD
+        pcPriClassBase: LONG
+        dwFlags: DWORD
+        szExeFile: WCHAR * MAX_PATH
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
-    class ARCH64(LittleEndianStructure):
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'DWORD', 'DWORD', 'ULONG_PTR', 'DWORD', 'DWORD', 'DWORD', 'LONG', 'DWORD', 'WCHAR']
-        __slots__ = ('dwSize', 'cntUsage', 'th32ProcessID', 'th32DefaultHeapID', 'th32ModuleID', 'cntThreads', 'th32ParentProcessID', 'pcPriClassBase', 'dwFlags', 'szExeFile')
         lookUps = {}
 
-        _fields_ = [('dwSize',DWORD),('cntUsage',DWORD),('th32ProcessID',DWORD),('th32DefaultHeapID',ULONG_PTR_64BIT),('th32ModuleID',DWORD),('cntThreads',DWORD),('th32ParentProcessID',DWORD),('pcPriClassBase',LONG),('dwFlags',DWORD),('szExeFile',WCHAR * MAX_PATH)]
+        # Struct Members
+        dwSize: DWORD
+        cntUsage: DWORD
+        th32ProcessID: DWORD
+        th32DefaultHeapID: ULONG_PTR_64BIT
+        th32ModuleID: DWORD
+        cntThreads: DWORD
+        th32ParentProcessID: DWORD
+        pcPriClassBase: LONG
+        dwFlags: DWORD
+        szExeFile: WCHAR * MAX_PATH
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -301,12 +343,19 @@ PSYSTEMTIME_64BIT = POINTER_64BIT
 LPSYSTEMTIME_32BIT = POINTER_32BIT
 LPSYSTEMTIME_64BIT = POINTER_64BIT
 
-class SYSTEMTIME(LittleEndianStructure):
+class SYSTEMTIME(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
     types = ['WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD', 'WORD']
-    __slots__ = ('wYear', 'wMonth', 'wDayOfWeek', 'wDay', 'wHour', 'wMinute', 'wSecond', 'wMilliseconds')
     lookUps = {}
 
-    _fields_ = [('wYear',WORD),('wMonth',WORD),('wDayOfWeek',WORD),('wDay',WORD),('wHour',WORD),('wMinute',WORD),('wSecond',WORD),('wMilliseconds',WORD)]
+    # Struct Members
+    wYear: WORD
+    wMonth: WORD
+    wDayOfWeek: WORD
+    wDay: WORD
+    wHour: WORD
+    wMinute: WORD
+    wSecond: WORD
+    wMilliseconds: WORD
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
@@ -353,34 +402,54 @@ LPSYSTEM_INFO_32BIT = POINTER_32BIT
 LPSYSTEM_INFO_64BIT = POINTER_64BIT
 
 class SYSTEM_INFO_Helpers:
-    class DummyStruct(LittleEndianStructure):
+    class DummyStruct(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['WORD', 'WORD']
-        __slots__ = ('wProcessorArchitecture','wReserved')
         lookUps = {0: ReverseLookUps.Processor}
         
-        _fields_ = [('wProcessorArchitecture',WORD),('wReserved', WORD)]
+        # Struct Members
+        wProcessorArchitecture: WORD
+        wReserved: WORD
 
 class SYSTEM_INFO:
 
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['struct','DWORD','LPVOID','LPVOID','DWORD_PTR','DWORD','DWORD','DWORD','WORD','WORD']
-        __slots__ = ('DUMMYSTRUCTNAME','dwPageSize','lpMinimumApplicationAddress','lpMaximumApplicationAddress','dwActiveProcessorMask','dwNumberOfProcessors','dwProcessorType','dwAllocationGranularity','wProcessorLevel','wProcessorRevision')
         lookUps = {6: ReverseLookUps.ProcessorType}
 
-        _fields_ = [('DUMMYSTRUCTNAME',SYSTEM_INFO_Helpers.DummyStruct),('dwPageSize',DWORD),('lpMinimumApplicationAddress',LPVOID_32BIT),('lpMaximumApplicationAddress',LPVOID_32BIT),('dwActiveProcessorMask',DWORD_PTR_32BIT),('dwNumberOfProcessors',DWORD),('dwProcessorType',DWORD),('dwAllocationGranularity',DWORD),('wProcessorLevel',WORD),('wProcessorRevision',WORD)]
+        # Struct Members
+        DUMMYSTRUCTNAME: SYSTEM_INFO_Helpers.DummyStruct
+        dwPageSize: DWORD
+        lpMinimumApplicationAddress: LPVOID_32BIT
+        lpMaximumApplicationAddress: LPVOID_32BIT
+        dwActiveProcessorMask: DWORD_PTR_32BIT
+        dwNumberOfProcessors: DWORD
+        dwProcessorType: DWORD
+        dwAllocationGranularity: DWORD
+        wProcessorLevel: WORD
+        wProcessorRevision: WORD
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
-    class ARCH64(LittleEndianStructure):
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['struct','DWORD','LPVOID','LPVOID','DWORD_PTR','DWORD','DWORD','DWORD','WORD','WORD']
-        __slots__ = ('DUMMYSTRUCTNAME','dwPageSize','lpMinimumApplicationAddress','lpMaximumApplicationAddress','dwActiveProcessorMask','dwNumberOfProcessors','dwProcessorType','dwAllocationGranularity','wProcessorLevel','wProcessorRevision')
         lookUps = {6: ReverseLookUps.ProcessorType}
 
-        _fields_ = [('DUMMYSTRUCTNAME',SYSTEM_INFO_Helpers.DummyStruct),('dwPageSize',DWORD),('lpMinimumApplicationAddress',LPVOID_64BIT),('lpMaximumApplicationAddress',LPVOID_64BIT),('dwActiveProcessorMask',DWORD_PTR_64BIT),('dwNumberOfProcessors',DWORD),('dwProcessorType',DWORD),('dwAllocationGranularity',DWORD),('wProcessorLevel',WORD),('wProcessorRevision',WORD)]
+        # Struct Members
+        DUMMYSTRUCTNAME: SYSTEM_INFO_Helpers.DummyStruct
+        dwPageSize: DWORD
+        lpMinimumApplicationAddress: LPVOID_64BIT
+        lpMaximumApplicationAddress: LPVOID_64BIT
+        dwActiveProcessorMask: DWORD_PTR_64BIT
+        dwNumberOfProcessors: DWORD
+        dwProcessorType: DWORD
+        dwAllocationGranularity: DWORD
+        wProcessorLevel: WORD
+        wProcessorRevision: WORD
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
+
 
 # Struct LIST_ENTRY
 # Alias Names: _LIST_ENTRY
@@ -403,18 +472,22 @@ PRLIST_ENTRY_64BIT = POINTER_64BIT
 
 class LIST_ENTRY:
 
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['PLIST_ENTRY', 'PLIST_ENTRY']
-        __slots__ = ('Flink', 'Blink')
-        _fields_ = [('Flink',PLIST_ENTRY_32BIT),('Blink',PLIST_ENTRY_32BIT)]
+        
+        # Struct Members
+        Flink: PLIST_ENTRY_32BIT
+        Blink: PLIST_ENTRY_32BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
-    class ARCH64(LittleEndianStructure):
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['PLIST_ENTRY', 'PLIST_ENTRY']
-        __slots__ = ('Flink', 'Blink')
-        _fields_ = [('Flink',PLIST_ENTRY_64BIT),('Blink',PLIST_ENTRY_64BIT)]
+        
+        # Struct Members
+        Flink: PLIST_ENTRY_64BIT
+        Blink: PLIST_ENTRY_64BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -438,22 +511,22 @@ PSINGLE_LIST_ENTRY_64BIT = POINTER_64BIT
 
 class SINGLE_LIST_ENTRY:
 
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['PSINGLE_LIST_ENTRY']
-        __slots__ = ('Next')
         lookUps = {}
 
-        _fields_ = [('Next',PSINGLE_LIST_ENTRY_32BIT)]
+        # Struct Members
+        Next: PSINGLE_LIST_ENTRY_32BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
-    class ARCH64(LittleEndianStructure):
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['PSINGLE_LIST_ENTRY']
-        __slots__ = ('Next')
         lookUps = {}
 
-        _fields_ = [('Next',PSINGLE_LIST_ENTRY_64BIT)]
+        # Struct Members
+        Next: PSINGLE_LIST_ENTRY_64BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -474,12 +547,13 @@ PFILETIME_64BIT = POINTER_64BIT
 LPFILETIME_32BIT = POINTER_32BIT
 LPFILETIME_64BIT = POINTER_64BIT
 
-class FILETIME(LittleEndianStructure):
+class FILETIME(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
     types = ['DWORD', 'DWORD']
-    __slots__ = ('dwLowDateTime', 'dwHighDateTime')
     lookUps = {}
 
-    _fields_ = [('dwLowDateTime',DWORD),('dwHighDateTime',DWORD)]
+    # Struct Members
+    dwLowDateTime: DWORD
+    dwHighDateTime: DWORD
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
@@ -511,22 +585,26 @@ PUNICODE_STRING_64BIT = POINTER_64BIT
 
 class UNICODE_STRING:
 
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['USHORT', 'USHORT', 'PWSTR']
-        __slots__ = ('Length', 'MaximumLength', 'Buffer')
         lookUps = {}
 
-        _fields_ = [('Length',USHORT),('MaximumLength',USHORT),('Buffer',PWSTR_32BIT)]
+        # Struct Members
+        Length: USHORT
+        MaximumLength: USHORT
+        Buffer: PWSTR_32BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
-    class ARCH64(LittleEndianStructure):
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['USHORT', 'USHORT', 'PWSTR']
-        __slots__ = ('Length', 'MaximumLength', 'Buffer')
         lookUps = {}
 
-        _fields_ = [('Length',USHORT),('MaximumLength',USHORT),('Buffer',PWSTR_64BIT)]
+        # Struct Members
+        Length: USHORT
+        MaximumLength: USHORT
+        Buffer: PWSTR_64BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -546,22 +624,26 @@ def get_STRING(uc: Uc, address: int, em):
 
 class STRING:
 
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['USHORT', 'USHORT', 'PCHAR']
-        __slots__ = ('Length', 'MaximumLength', 'Buffer')
         lookUps = {}
 
-        _fields_ = [('Length',USHORT),('MaximumLength',USHORT),('Buffer',PCHAR_32BIT)]
+        # Struct Members
+        Length: USHORT
+        MaximumLength: USHORT
+        Buffer: PCHAR_32BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
-    class ARCH64(LittleEndianStructure):
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['USHORT', 'USHORT', 'PCHAR']
-        __slots__ = ('Length', 'MaximumLength', 'Buffer')
         lookUps = {}
 
-        _fields_ = [('Length',USHORT),('MaximumLength',USHORT),('Buffer',PCHAR_64BIT)]
+        # Struct Members
+        Length: USHORT
+        MaximumLength: USHORT
+        Buffer: PCHAR_64BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -582,12 +664,18 @@ PTIME_ZONE_INFORMATION_64BIT = POINTER_64BIT
 LPTIME_ZONE_INFORMATION_32BIT = POINTER_32BIT
 LPTIME_ZONE_INFORMATION_64BIT = POINTER_64BIT
 
-class TIME_ZONE_INFORMATION(LittleEndianStructure):
+class TIME_ZONE_INFORMATION(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
     types = ['LONG', 'WCHAR', 'SYSTEMTIME', 'LONG', 'WCHAR', 'SYSTEMTIME', 'LONG']
-    __slots__ = ('Bias', 'StandardName', 'StandardDate', 'StandardBias', 'DaylightName', 'DaylightDate', 'DaylightBias')
     lookUps = {}
 
-    _fields_ = [('Bias',LONG),('StandardName',WCHAR * 32),('StandardDate',SYSTEMTIME),('StandardBias',LONG),('DaylightName',WCHAR * 32),('DaylightDate',SYSTEMTIME),('DaylightBias',LONG)]
+    # Struct Members
+    Bias: LONG
+    StandardName: WCHAR * 32
+    StandardDate: SYSTEMTIME
+    StandardBias: LONG
+    DaylightName: WCHAR * 32
+    DaylightDate: SYSTEMTIME
+    DaylightBias: LONG
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
@@ -603,12 +691,16 @@ def get_REG_TZI_FORMAT(uc: Uc, address: int, em):
 # Struct Aliases:
 # get__REG_TZI_FORMAT = get_REG_TZI_FORMAT
 
-class REG_TZI_FORMAT(LittleEndianStructure):
+class REG_TZI_FORMAT(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
     types = ['LONG', 'LONG', 'LONG', 'SYSTEMTIME', 'SYSTEMTIME']
-    __slots__ = ('Bias', 'StandardBias', 'DaylightBias', 'StandardDate', 'DaylightDate')
     lookUps = {}
     
-    _fields_ = [('Bias',LONG),('StandardBias',LONG),('DaylightBias',LONG),('StandardDate',SYSTEMTIME),('DaylightDate',SYSTEMTIME)]
+    # Struct Members
+    Bias: LONG
+    StandardBias: LONG
+    DaylightBias: LONG
+    StandardDate: SYSTEMTIME
+    DaylightDate: SYSTEMTIME
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
@@ -629,22 +721,52 @@ LPSTARTUPINFOA_64BIT = POINTER_64BIT
 
 class STARTUPINFOA:
 
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'LPSTR', 'LPSTR', 'LPSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WORD', 'WORD', 'LPBYTE', 'HANDLE', 'HANDLE', 'HANDLE']
-        __slots__ = ('cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError')
         lookUps = {11: ReverseLookUps.StartupInfo.flags}
 
-        _fields_ = [('cb',DWORD),('lpReserved',LPSTR_32BIT),('lpDesktop',LPSTR_32BIT),('lpTitle',LPSTR_32BIT),('dwX',DWORD),('dwY',DWORD),('dwXSize',DWORD),('dwYSize',DWORD),('dwXCountChars',DWORD),('dwYCountChars',DWORD),('dwFillAttribute',DWORD),('dwFlags',DWORD),('wShowWindow',WORD),('cbReserved2',WORD),('lpReserved2',LPBYTE_32BIT),('hStdInput',HANDLE_32BIT),('hStdOutput',HANDLE_32BIT),('hStdError',HANDLE_32BIT)]
+        # Struct Members
+        cb: DWORD
+        lpReserved: LPSTR_32BIT
+        lpDesktop: LPSTR_32BIT
+        lpTitle: LPSTR_32BIT
+        dwX: DWORD
+        dwY: DWORD
+        dwXSize: DWORD
+        dwYSize: DWORD
+        dwXCountChars: DWORD
+        dwYCountChars: DWORD
+        dwFillAttribute: DWORD
+        dwFlags: DWORD
+        wShowWindow: WORD
+        hStdInput: HANDLE_32BIT
+        hStdOutput: HANDLE_32BIT
+        hStdError: HANDLE_32BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
-    class ARCH64(LittleEndianStructure):
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'LPSTR', 'LPSTR', 'LPSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WORD', 'WORD', 'LPBYTE', 'HANDLE', 'HANDLE', 'HANDLE']
-        __slots__ = ('cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError')
         lookUps = {11: ReverseLookUps.StartupInfo.flags}
 
-        _fields_ = [('cb',DWORD),('lpReserved',LPSTR_64BIT),('lpDesktop',LPSTR_64BIT),('lpTitle',LPSTR_64BIT),('dwX',DWORD),('dwY',DWORD),('dwXSize',DWORD),('dwYSize',DWORD),('dwXCountChars',DWORD),('dwYCountChars',DWORD),('dwFillAttribute',DWORD),('dwFlags',DWORD),('wShowWindow',WORD),('cbReserved2',WORD),('lpReserved2',LPBYTE_64BIT),('hStdInput',HANDLE_64BIT),('hStdOutput',HANDLE_64BIT),('hStdError',HANDLE_64BIT)]
+        # Struct Members
+        cb: DWORD
+        lpReserved: LPSTR_64BIT
+        lpDesktop: LPSTR_64BIT
+        lpTitle: LPSTR_64BIT
+        dwX: DWORD
+        dwY: DWORD
+        dwXSize: DWORD
+        dwYSize: DWORD
+        dwXCountChars: DWORD
+        dwYCountChars: DWORD
+        dwFillAttribute: DWORD
+        dwFlags: DWORD
+        wShowWindow: WORD
+        hStdInput: HANDLE_64BIT
+        hStdOutput: HANDLE_64BIT
+        hStdError: HANDLE_64BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -668,22 +790,52 @@ LPSTARTUPINFOW_64BIT = POINTER_64BIT
 
 class STARTUPINFOW:
 
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'LPWSTR', 'LPWSTR', 'LPWSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WORD', 'WORD', 'LPBYTE', 'HANDLE', 'HANDLE', 'HANDLE']
-        __slots__ = ('cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError')
         lookUps = {11: ReverseLookUps.StartupInfo.flags}
 
-        _fields_ = [('cb',DWORD),('lpReserved',LPWSTR_32BIT),('lpDesktop',LPWSTR_32BIT),('lpTitle',LPWSTR_32BIT),('dwX',DWORD),('dwY',DWORD),('dwXSize',DWORD),('dwYSize',DWORD),('dwXCountChars',DWORD),('dwYCountChars',DWORD),('dwFillAttribute',DWORD),('dwFlags',DWORD),('wShowWindow',WORD),('cbReserved2',WORD),('lpReserved2',LPBYTE_32BIT),('hStdInput',HANDLE_32BIT),('hStdOutput',HANDLE_32BIT),('hStdError',HANDLE_32BIT)]
+        # Struct Members
+        cb: DWORD
+        lpReserved: LPWSTR_32BIT
+        lpDesktop: LPWSTR_32BIT
+        lpTitle: LPWSTR_32BIT
+        dwX: DWORD
+        dwY: DWORD
+        dwXSize: DWORD
+        dwYSize: DWORD
+        dwXCountChars: DWORD
+        dwYCountChars: DWORD
+        dwFillAttribute: DWORD
+        dwFlags: DWORD
+        wShowWindow: WORD
+        hStdInput: HANDLE_32BIT
+        hStdOutput: HANDLE_32BIT
+        hStdError: HANDLE_32BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
-    class ARCH64(LittleEndianStructure):
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'LPWSTR', 'LPWSTR', 'LPWSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WORD', 'WORD', 'LPBYTE', 'HANDLE', 'HANDLE', 'HANDLE']
-        __slots__ = ('cb', 'lpReserved', 'lpDesktop', 'lpTitle', 'dwX', 'dwY', 'dwXSize', 'dwYSize', 'dwXCountChars', 'dwYCountChars', 'dwFillAttribute', 'dwFlags', 'wShowWindow', 'cbReserved2', 'lpReserved2', 'hStdInput', 'hStdOutput', 'hStdError')
         lookUps = {11: ReverseLookUps.StartupInfo.flags}
 
-        _fields_ = [('cb',DWORD),('lpReserved',LPWSTR_64BIT),('lpDesktop',LPWSTR_64BIT),('lpTitle',LPWSTR_64BIT),('dwX',DWORD),('dwY',DWORD),('dwXSize',DWORD),('dwYSize',DWORD),('dwXCountChars',DWORD),('dwYCountChars',DWORD),('dwFillAttribute',DWORD),('dwFlags',DWORD),('wShowWindow',WORD),('cbReserved2',WORD),('lpReserved2',LPBYTE_64BIT),('hStdInput',HANDLE_64BIT),('hStdOutput',HANDLE_64BIT),('hStdError',HANDLE_64BIT)]
+        # Struct Members
+        cb: DWORD
+        lpReserved: LPWSTR_64BIT
+        lpDesktop: LPWSTR_64BIT
+        lpTitle: LPWSTR_64BIT
+        dwX: DWORD
+        dwY: DWORD
+        dwXSize: DWORD
+        dwYSize: DWORD
+        dwXCountChars: DWORD
+        dwYCountChars: DWORD
+        dwFillAttribute: DWORD
+        dwFlags: DWORD
+        wShowWindow: WORD
+        hStdInput: HANDLE_64BIT
+        hStdOutput: HANDLE_64BIT
+        hStdError: HANDLE_64BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -708,22 +860,32 @@ POBJECT_ATTRIBUTES_64BIT = POINTER_64BIT
 
 class OBJECT_ATTRIBUTES:
 
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['ULONG', 'HANDLE', 'PUNICODE_STRING', 'ULONG', 'PVOID', 'PVOID']
-        __slots__ = ('Length', 'RootDirectory', 'ObjectName', 'Attributes', 'SecurityDescriptor', 'SecurityQualityOfService')
-        lookUps = {}
+        lookUps = {3: ReverseLookUps.ObjectAttributes.Attributes}
 
-        _fields_ = [('Length',ULONG),('RootDirectory',HANDLE_32BIT),('ObjectName',PUNICODE_STRING_32BIT),('Attributes',ULONG),('SecurityDescriptor',PVOID_32BIT),('SecurityQualityOfService',PVOID_32BIT)]
+        # Struct Members
+        Length: ULONG
+        RootDirectory: HANDLE_32BIT
+        ObjectName: PUNICODE_STRING_32BIT
+        Attributes: ULONG
+        SecurityDescriptor: PVOID_32BIT
+        SecurityQualityOfService: PVOID_32BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
-    class ARCH64(LittleEndianStructure):
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['ULONG', 'HANDLE', 'PUNICODE_STRING', 'ULONG', 'PVOID', 'PVOID']
-        __slots__ = ('Length', 'RootDirectory', 'ObjectName', 'Attributes', 'SecurityDescriptor', 'SecurityQualityOfService')
-        lookUps = {}
+        lookUps = {3: ReverseLookUps.ObjectAttributes.Attributes}
 
-        _fields_ = [('Length',ULONG),('RootDirectory',HANDLE_64BIT),('ObjectName',PUNICODE_STRING_64BIT),('Attributes',ULONG),('SecurityDescriptor',PVOID_64BIT),('SecurityQualityOfService',PVOID_64BIT)]
+        # Struct Members
+        Length: ULONG
+        RootDirectory: HANDLE_64BIT
+        ObjectName: PUNICODE_STRING_64BIT
+        Attributes: ULONG
+        SecurityDescriptor: PVOID_64BIT
+        SecurityQualityOfService: PVOID_64BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -740,19 +902,21 @@ PLARGE_INTEGER_32BIT = POINTER_32BIT
 PLARGE_INTEGER_64BIT = POINTER_64BIT
 
 class LARGE_INTEGER_Helpers:
-    class u(LittleEndianStructure):
+    class u(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD','LONG']
-        __slots__ = ('LowPart', 'HighPart')
         lookUps = {}
 
-        _fields_ = [('LowPart',DWORD),('HighPart',LONG)]
+        # Struct Members
+        LowPart: DWORD
+        HighPart: LONG
 
-class LARGE_INTEGER(LittleEndianUnion):
+class LARGE_INTEGER(LittleEndianUnion, metaclass=UnionFieldsFromTypeHints):
     types = ['struct','LONGLONG']
-    __slots__ = ('u','QuadPart')
     lookUps = {}
 
-    _fields_ = [('u',LARGE_INTEGER_Helpers.u),('QuadPart', LONGLONG)]
+    # Struct Members
+    u: LARGE_INTEGER_Helpers.u
+    QuadPart: LONGLONG
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
@@ -768,19 +932,21 @@ PULARGE_INTEGER_32BIT = POINTER_32BIT
 PULARGE_INTEGER_64BIT = POINTER_64BIT
 
 class ULARGE_INTEGER_Helpers:
-    class u(LittleEndianStructure):
+    class u(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD','DWORD']
-        __slots__ = ('LowPart', 'HighPart')
         lookUps = {}
 
-        _fields_ = [('LowPart',DWORD),('HighPart',DWORD)]
+        # Struct Members
+        LowPart: DWORD
+        HighPart: DWORD
 
-class ULARGE_INTEGER(LittleEndianUnion):
+class ULARGE_INTEGER(LittleEndianUnion, metaclass=UnionFieldsFromTypeHints):
     types = ['struct','ULONGLONG']
-    __slots__ = ('u','QuadPart')
     lookUps = {}
 
-    _fields_ = [('u',ULARGE_INTEGER_Helpers.u),('QuadPart', ULONGLONG)]
+    # Struct Members
+    u: ULARGE_INTEGER_Helpers.u
+    QuadPart: ULONGLONG
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
@@ -795,12 +961,15 @@ def get_GUID(uc: Uc, address: int, em):
 # Struct Aliases:
 # get__GUID = get_GUID
 
-class GUID(LittleEndianStructure):
+class GUID(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
     types = ['ULONG', 'USHORT', 'USHORT', 'UCHAR']
-    __slots__ = ('Data1', 'Data2', 'Data3', 'Data4')
     lookUps = {}
 
-    _fields_ = [('Data1',ULONG),('Data2',USHORT),('Data3',USHORT),('Data4',UCHAR*8)]
+    # Struct Members
+    Data1: ULONG
+    Data2: USHORT
+    Data3: USHORT
+    Data4: UCHAR * 8
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
@@ -827,22 +996,26 @@ LPSECURITY_ATTRIBUTES_64BIT = POINTER_64BIT
 
 class SECURITY_ATTRIBUTES:
 
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'LPVOID', 'BOOL']
-        __slots__ = ('nLength', 'lpSecurityDescriptor', 'bInheritHandle')
         lookUps = {}
 
-        _fields_ = [('nLength',DWORD),('lpSecurityDescriptor',LPVOID_32BIT),('bInheritHandle',BOOL)]
+        # Struct Members
+        nLength: DWORD
+        lpSecurityDescriptor: LPVOID_32BIT
+        bInheritHandle: BOOL
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
-    class ARCH64(LittleEndianStructure):
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'LPVOID', 'BOOL']
-        __slots__ = ('nLength', 'lpSecurityDescriptor', 'bInheritHandle')
         lookUps = {}
 
-        _fields_ = [('nLength',DWORD),('lpSecurityDescriptor',LPVOID_64BIT),('bInheritHandle',BOOL)]
+        # Struct Members
+        nLength: DWORD
+        lpSecurityDescriptor: LPVOID_64BIT
+        bInheritHandle: BOOL
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -866,22 +1039,28 @@ PVALENTA_64BIT = POINTER_64BIT
 
 class value_entA:
 
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['LPSTR', 'DWORD', 'DWORD_PTR', 'DWORD']
-        __slots__ = ('ve_valuename', 've_valuelen', 've_valueptr', 've_type')
         lookUps = {}
 
-        _fields_ = [('ve_valuename',LPSTR_32BIT),('ve_valuelen',DWORD),('ve_valueptr',DWORD_PTR_32BIT),('ve_type',DWORD)]
+        # Struct Members
+        ve_valuename: LPSTR_32BIT
+        ve_valuelen: DWORD
+        ve_valueptr: DWORD_PTR_32BIT
+        ve_type: DWORD
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
-    class ARCH64(LittleEndianStructure):
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['LPSTR', 'DWORD', 'DWORD_PTR', 'DWORD']
-        __slots__ = ('ve_valuename', 've_valuelen', 've_valueptr', 've_type')
         lookUps = {}
 
-        _fields_ = [('ve_valuename',LPSTR_64BIT),('ve_valuelen',DWORD),('ve_valueptr',DWORD_PTR_64BIT),('ve_type',DWORD)]
+        # Struct Members
+        ve_valuename: LPSTR_64BIT
+        ve_valuelen: DWORD
+        ve_valueptr: DWORD_PTR_64BIT
+        ve_type: DWORD
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -905,22 +1084,28 @@ PVALENTW_64BIT = POINTER_64BIT
 
 class value_entW:
 
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['LPWSTR', 'DWORD', 'DWORD_PTR', 'DWORD']
-        __slots__ = ('ve_valuename', 've_valuelen', 've_valueptr', 've_type')
         lookUps = {}
 
-        _fields_ = [('ve_valuename',LPWSTR_32BIT),('ve_valuelen',DWORD),('ve_valueptr',DWORD_PTR_32BIT),('ve_type',DWORD)]
+        # Struct Members
+        ve_valuename: LPWSTR_32BIT
+        ve_valuelen: DWORD
+        ve_valueptr: DWORD_PTR_32BIT
+        ve_type: DWORD
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
-    class ARCH64(LittleEndianStructure):
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['LPWSTR', 'DWORD', 'DWORD_PTR', 'DWORD']
-        __slots__ = ('ve_valuename', 've_valuelen', 've_valueptr', 've_type')
         lookUps = {}
 
-        _fields_ = [('ve_valuename',LPWSTR_64BIT),('ve_valuelen',DWORD),('ve_valueptr',DWORD_PTR_64BIT),('ve_type',DWORD)]
+        # Struct Members
+        ve_valuename: LPWSTR_64BIT
+        ve_valuelen: DWORD
+        ve_valueptr: DWORD_PTR_64BIT
+        ve_type: DWORD
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -941,15 +1126,60 @@ PDISPLAY_64BIT = POINTER_64BIT
 LPDISPLAY_32BIT = POINTER_32BIT
 LPDISPLAY_64BIT = POINTER_64BIT
 
-class DISPLAY_DEVICEA (LittleEndianStructure):
+class DISPLAY_DEVICEA(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
     types = ['DWORD','CHAR','CHAR','DWORD','CHAR','CHAR']
-    __slots__ = ('cb','DeviceName','DeviceString','StateFlags','DeviceID','DeviceKey')
     lookUps = {}
 
-    _fields_ = [('cb', DWORD ),('DeviceName', WCHAR * 32 ),('DeviceString', WCHAR * 128 ),('StateFlags', DWORD ),('DeviceID', CHAR * 128 ),('DeviceKey', CHAR * 128 )]
+    # Struct Members
+    cb: DWORD
+    DeviceName: CHAR * 32
+    DeviceString: CHAR * 128
+    StateFlags: DWORD
+    DeviceID: CHAR * 128
+    DeviceKey: CHAR * 128
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
+
+    def screenDC(self):
+        self.cb = sizeof(self)
+        self.DeviceName = '\\\\.\\DISPLAY1\\Monitor0'
+        self.DeviceString = 'GENEREIC PNP MONITOR'
+        self.StateFlags = 0x1
+        #self.DeviceID = not used
+        #self.DeviceKey = reserved
+
+# Struct DISPLAY_DEVICEW
+# Alias Names: _DISPLAY_DEVICEW
+# Alias Pointer Names: PDISPLAY_DEVICEW, LPDISPLAY_DEVICEW
+
+def get_DISPLAY_DEVICEW(uc: Uc, address: int, em):
+    return DISPLAY_DEVICEW.from_buffer_copy(uc.mem_read(address, sizeof(DISPLAY_DEVICEW)))
+
+# Struct Aliases:
+# get__DISPLAY_DEVICEW = get_DISPLAY_DEVICEW
+
+# Struct Pointers:
+PDISPLAY_DEVICEW_32BIT = POINTER_32BIT
+PDISPLAY_DEVICEW_64BIT = POINTER_64BIT
+LPDISPLAY_DEVICEW_32BIT = POINTER_32BIT
+LPDISPLAY_DEVICEW_64BIT = POINTER_64BIT
+
+class DISPLAY_DEVICEW(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['DWORD', 'WCHAR', 'WCHAR', 'DWORD', 'WCHAR', 'WCHAR']
+    lookUps = {}
+
+    # Struct Members
+    cb: DWORD
+    DeviceName: WCHAR * 32
+    DeviceString: WCHAR * 128
+    StateFlags: DWORD
+    DeviceID: WCHAR * 128
+    DeviceKey: WCHAR * 128
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
     def screenDC(self):
         self.cb = sizeof(self)
         self.DeviceName = '\\\\.\\DISPLAY1\\Monitor0'
@@ -973,7 +1203,7 @@ class DISPLAY_DEVICEA (LittleEndianStructure):
 #PVIDEOPARAMETERS_32BIT = POINTER_32BIT
 #PVIDEOPARAMETERS_64BIT = POINTER_64BIT
 
-#class VIDEOPARAMETERS (LittleEndianStructure):
+#class VIDEOPARAMETERS (LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
 #    types = ['GUID','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','ULONG','UCHAR']
 #    names = ['guid','dwOffset','dwCommand','dwFlags','dwMode','dwTVStandard','dwAvailableModes','dwAvailableTVStandard','dwFlickerFilter','dwOverScanX','dwOverScanY','dwMaxUnscaledX','dwMaxUnscaledY','dwPositionX','dwPositionY','dwBrightness','dwContrast','dwCPType','dwCPCommand','dwCPStandard','dwCPKey','bCP_APSTriggerBits','bOEMCopyProtection']
 #    __slots__ = ('guid','dwOffset','dwCommand','dwFlags','dwMode','dwTVStandard','dwAvailableModes','dwAvailableTVStandard','dwFlickerFilter','dwOverScanX','dwOverScanY','dwMaxUnscaledX','dwMaxUnscaledY','dwPositionX','dwPositionY','dwBrightness','dwContrast','dwCPType','dwCPCommand','dwCPStandard','dwCPKey','bCP_APSTriggerBits','bOEMCopyProtection')
@@ -1002,38 +1232,68 @@ LPSHELLEXECUTEINFOA_64BIT = POINTER_64BIT
 
 class SHELLEXECUTEINFOA_Helpers:
     # Sub Structures/Unions
-    class Union_32BIT(LittleEndianUnion):
+    class Union_32BIT(LittleEndianUnion, metaclass=UnionFieldsFromTypeHints):
         types = ['HANDLE', 'HANDLE']
-        __slots__ = ('hIcon', 'hMonitor')
         lookUps = {}
 
-        _fields_ = [('hIcon',HANDLE_32BIT),('hMonitor',HANDLE_32BIT)]
+        # Struct Members
+        hIcon: HANDLE_32BIT
+        hMonitor: HANDLE_32BIT
 
-    class Union_64BIT(LittleEndianUnion):
+    class Union_64BIT(LittleEndianUnion, metaclass=UnionFieldsFromTypeHints):
         types = ['HANDLE', 'HANDLE']
-        __slots__ = ('hIcon', 'hMonitor')
         lookUps = {}
 
-        _fields_ = [('hIcon',HANDLE_64BIT),('hMonitor',HANDLE_64BIT)]
+        # Struct Members
+        hIcon: HANDLE_64BIT
+        hMonitor: HANDLE_64BIT
 
 class SHELLEXECUTEINFOA:
 
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'ULONG', 'HWND', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'int', 'HINSTANCE', 'void', 'LPCSTR', 'HKEY', 'DWORD', 'union', 'HANDLE']
-        __slots__ = ('cbSize', 'fMask', 'hwnd', 'lpVerb','lpFile','lpParameters','lpDirectory','nShow','hInstApp','lpIDList','lpClass','hkeyClass','dwHotKey','DUMMYUNIONNAME','hProcess')
         lookUps = {1: ReverseLookUps.ShellExecute.Mask, 7: ReverseLookUps.ShellExecute.cmdShow}
 
-        _fields_ = [('cbSize',DWORD),('fMask',ULONG),('hwnd',HWND_32BIT),('lpVerb',LPCSTR_32BIT),('lpFile',LPCSTR_32BIT),('lpParameters',LPCSTR_32BIT),('lpDirectory',LPCSTR_32BIT),('nShow',INT),('hInstApp',HINSTANCE_32BIT), ('lpIDList',PVOID_32BIT),('lpClass',LPCSTR_32BIT),('hkeyClass',HKEY_32BIT),('dwHotKey',DWORD),('DUMMYUNIONNAME',SHELLEXECUTEINFOA_Helpers.Union_32BIT),('hProcess',HANDLE_32BIT)]
+        # Struct Members
+        cbSize: DWORD
+        fMask: ULONG
+        hwnd: HWND_32BIT
+        lpVerb: LPCSTR_32BIT
+        lpFile: LPCSTR_32BIT
+        lpParameters: LPCSTR_32BIT
+        lpDirectory: LPCSTR_32BIT
+        nShow: INT
+        hInstApp: HINSTANCE_32BIT
+        lpIDList: PVOID_32BIT
+        lpClass: LPCSTR_32BIT
+        hkeyClass: HKEY_32BIT
+        dwHotKey: DWORD
+        DUMMYUNIONNAME: SHELLEXECUTEINFOA_Helpers.Union_32BIT
+        hProcess: HANDLE_32BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
-    class ARCH64(LittleEndianStructure):
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'ULONG', 'HWND', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'LPCSTR', 'int', 'HINSTANCE', 'void', 'LPCSTR', 'HKEY', 'DWORD', 'union', 'HANDLE']
-        __slots__ = ('cbSize', 'fMask', 'hwnd', 'lpVerb','lpFile','lpParameters','lpDirectory','nShow','hInstApp','lpIDList','lpClass','hkeyClass','dwHotKey','DUMMYUNIONNAME','hProcess')
         lookUps = {1: ReverseLookUps.ShellExecute.Mask, 7: ReverseLookUps.ShellExecute.cmdShow}
 
-        _fields_ = [('cbSize',DWORD),('fMask',ULONG),('hwnd',HWND_64BIT),('lpVerb',LPCSTR_64BIT),('lpFile',LPCSTR_64BIT),('lpParameters',LPCSTR_64BIT),('lpDirectory',LPCSTR_64BIT),('nShow',INT),('hInstApp',HINSTANCE_64BIT), ('lpIDList',PVOID_64BIT),('lpClass',LPCSTR_64BIT),('hkeyClass',HKEY_64BIT),('dwHotKey',DWORD),('DUMMYUNIONNAME',SHELLEXECUTEINFOA_Helpers.Union_64BIT),('hProcess',HANDLE_64BIT)]
+        # Struct Members
+        cbSize: DWORD
+        fMask: ULONG
+        hwnd: HWND_64BIT
+        lpVerb: LPCSTR_64BIT
+        lpFile: LPCSTR_64BIT
+        lpParameters: LPCSTR_64BIT
+        lpDirectory: LPCSTR_64BIT
+        nShow: INT
+        hInstApp: HINSTANCE_64BIT
+        lpIDList: PVOID_64BIT
+        lpClass: LPCSTR_64BIT
+        hkeyClass: HKEY_64BIT
+        dwHotKey: DWORD
+        DUMMYUNIONNAME: SHELLEXECUTEINFOA_Helpers.Union_64BIT
+        hProcess: HANDLE_64BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -1057,38 +1317,68 @@ LPSHELLEXECUTEINFOW_64BIT = POINTER_64BIT
 
 class SHELLEXECUTEINFOW_Helpers:
     # Sub Structures/Unions
-    class Union_32BIT(LittleEndianUnion):
+    class Union_32BIT(LittleEndianUnion, metaclass=UnionFieldsFromTypeHints):
         types = ['HANDLE', 'HANDLE']
-        __slots__ = ('hIcon', 'hMonitor')
         lookUps = {}
 
-        _fields_ = [('hIcon',HANDLE_32BIT),('hMonitor',HANDLE_32BIT)]
+        # Union Members
+        hIcon: HANDLE_32BIT
+        hMonitor: HANDLE_32BIT
 
-    class Union_64BIT(LittleEndianUnion):
+    class Union_64BIT(LittleEndianUnion, metaclass=UnionFieldsFromTypeHints):
         types = ['HANDLE', 'HANDLE']
-        __slots__ = ('hIcon', 'hMonitor')
         lookUps = {}
 
-        _fields_ = [('hIcon',HANDLE_64BIT),('hMonitor',HANDLE_64BIT)]
+        # Union Members
+        hIcon: HANDLE_64BIT
+        hMonitor: HANDLE_64BIT
 
 class SHELLEXECUTEINFOW:
 
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'ULONG', 'HWND', 'LPCWSTR', 'LPCWSTR', 'LPCWSTR', 'LPCWSTR', 'int', 'HINSTANCE', 'void', 'LPCWSTR', 'HKEY', 'DWORD', 'union', 'HANDLE']
-        __slots__ = ('cbSize', 'fMask', 'hwnd', 'lpVerb','lpFile','lpParameters','lpDirectory','nShow','hInstApp','lpIDList','lpClass','hkeyClass','dwHotKey','DUMMYUNIONNAME','hProcess')
         lookUps = {1: ReverseLookUps.ShellExecute.Mask, 7: ReverseLookUps.ShellExecute.cmdShow}
 
-        _fields_ = [('cbSize',DWORD),('fMask',ULONG),('hwnd',HWND_32BIT),('lpVerb',LPCWSTR_32BIT),('lpFile',LPCWSTR_32BIT),('lpParameters',LPCWSTR_32BIT),('lpDirectory',LPCWSTR_32BIT),('nShow',INT),('hInstApp',HINSTANCE_32BIT), ('lpIDList',PVOID_32BIT),('lpClass',LPCWSTR_32BIT),('hkeyClass',HKEY_32BIT),('dwHotKey',DWORD),('DUMMYUNIONNAME',SHELLEXECUTEINFOW_Helpers.Union_32BIT),('hProcess',HANDLE_32BIT)]
+        # Struct Members
+        cbSize: DWORD
+        fMask: ULONG
+        hwnd: HWND_32BIT
+        lpVerb: LPCWSTR_32BIT
+        lpFile: LPCWSTR_32BIT
+        lpParameters: LPCWSTR_32BIT
+        lpDirectory: LPCWSTR_32BIT
+        nShow: INT
+        hInstApp: HINSTANCE_32BIT
+        lpIDList: PVOID_32BIT
+        lpClass: LPCWSTR_32BIT
+        hkeyClass: HKEY_32BIT
+        dwHotKey: DWORD
+        DUMMYUNIONNAME: SHELLEXECUTEINFOW_Helpers.Union_32BIT
+        hProcess: HANDLE_32BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
-    class ARCH64(LittleEndianStructure):
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'ULONG', 'HWND', 'LPCWSTR', 'LPCWSTR', 'LPCWSTR', 'LPCWSTR', 'int', 'HINSTANCE', 'void', 'LPCWSTR', 'HKEY', 'DWORD', 'union', 'HANDLE']
-        __slots__ = ('cbSize', 'fMask', 'hwnd', 'lpVerb','lpFile','lpParameters','lpDirectory','nShow','hInstApp','lpIDList','lpClass','hkeyClass','dwHotKey','DUMMYUNIONNAME','hProcess')
         lookUps = {1: ReverseLookUps.ShellExecute.Mask, 7: ReverseLookUps.ShellExecute.cmdShow}
 
-        _fields_ = [('cbSize',DWORD),('fMask',ULONG),('hwnd',HWND_64BIT),('lpVerb',LPCWSTR_64BIT),('lpFile',LPCWSTR_64BIT),('lpParameters',LPCWSTR_64BIT),('lpDirectory',LPCWSTR_64BIT),('nShow',INT),('hInstApp',HINSTANCE_64BIT), ('lpIDList',PVOID_64BIT),('lpClass',LPCWSTR_64BIT),('hkeyClass',HKEY_64BIT),('dwHotKey',DWORD),('DUMMYUNIONNAME',SHELLEXECUTEINFOW_Helpers.Union_64BIT),('hProcess',HANDLE_64BIT)]
+        # Struct Members
+        cbSize: DWORD
+        fMask: ULONG
+        hwnd: HWND_64BIT
+        lpVerb: LPCWSTR_64BIT
+        lpFile: LPCWSTR_64BIT
+        lpParameters: LPCWSTR_64BIT
+        lpDirectory: LPCWSTR_64BIT
+        nShow: INT
+        hInstApp: HINSTANCE_64BIT
+        lpIDList: PVOID_64BIT
+        lpClass: LPCWSTR_64BIT
+        hkeyClass: HKEY_64BIT
+        dwHotKey: DWORD
+        DUMMYUNIONNAME: SHELLEXECUTEINFOW_Helpers.Union_64BIT
+        hProcess: HANDLE_64BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -1107,12 +1397,13 @@ def get_WSAPROTOCOLCHAIN(uc: Uc, address: int, em):
 LPWSAPROTOCOLCHAIN_32BIT = POINTER_32BIT
 LPWSAPROTOCOLCHAIN_64BIT = POINTER_64BIT
 
-class WSAPROTOCOLCHAIN(LittleEndianStructure):
+class WSAPROTOCOLCHAIN(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
     types = ['int', 'DWORD']
-    __slots__ = ('ChainLen', 'ChainEntries')
     lookUps = {}
 
-    _fields_ = [('ChainLen',INT),('ChainEntries',DWORD * 7)]
+    # Struct Members
+    ChainLen: INT
+    ChainEntries: DWORD * 7
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
@@ -1132,12 +1423,31 @@ def get_WSAPROTOCOL_INFOA(uc: Uc, address: int, em):
 LPWSAPROTOCOL_INFOA_32BIT = POINTER_32BIT
 LPWSAPROTOCOL_INFOA_64BIT = POINTER_64BIT
 
-class WSAPROTOCOL_INFOA(LittleEndianStructure):
+class WSAPROTOCOL_INFOA(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
     types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'GUID', 'DWORD', 'WSAPROTOCOLCHAIN', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'DWORD', 'DWORD', 'CHAR']
-    __slots__ = ('dwServiceFlags1', 'dwServiceFlags2', 'dwServiceFlags3', 'dwServiceFlags4', 'dwProviderFlags', 'ProviderId', 'dwCatalogEntryId', 'ProtocolChain', 'iVersion', 'iAddressFamily', 'iMaxSockAddr', 'iMinSockAddr', 'iSocketType', 'iProtocol', 'iProtocolMaxOffset', 'iNetworkByteOrder', 'iSecurityScheme', 'dwMessageSize', 'dwProviderReserved', 'szProtocol')
     lookUps = {0: ReverseLookUps.Socket.ServiceFlags, 9: ReverseLookUps.Socket.Af, 12: ReverseLookUps.Socket.Type, 13: ReverseLookUps.Socket.Protocol, 15: ReverseLookUps.Socket.NetworkByteOrder, 16: ReverseLookUps.Socket.SecurityScheme}
 
-    _fields_ = [('dwServiceFlags1',DWORD),('dwServiceFlags2',DWORD),('dwServiceFlags3',DWORD),('dwServiceFlags4',DWORD),('dwProviderFlags',DWORD),('ProviderId',GUID),('dwCatalogEntryId',DWORD),('ProtocolChain',WSAPROTOCOLCHAIN),('iVersion',INT),('iAddressFamily',INT),('iMaxSockAddr',INT),('iMinSockAddr',INT),('iSocketType',INT),('iProtocol',INT),('iProtocolMaxOffset',INT),('iNetworkByteOrder',INT),('iSecurityScheme',INT),('dwMessageSize',DWORD),('dwProviderReserved',DWORD),('szProtocol',CHAR*256)]
+    # Struct Members
+    dwServiceFlags1: DWORD
+    dwServiceFlags2: DWORD
+    dwServiceFlags3: DWORD
+    dwServiceFlags4: DWORD
+    dwProviderFlags: DWORD
+    ProviderId: GUID
+    dwCatalogEntryId: DWORD
+    ProtocolChain: WSAPROTOCOLCHAIN
+    iVersion: INT
+    iAddressFamily: INT
+    iMaxSockAddr: INT
+    iMinSockAddr: INT
+    iSocketType: INT
+    iProtocol: INT
+    iProtocolMaxOffset: INT
+    iNetworkByteOrder: INT
+    iSecurityScheme: INT
+    dwMessageSize: DWORD
+    dwProviderReserved: DWORD
+    szProtocol: CHAR*256
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
@@ -1156,12 +1466,31 @@ def get_WSAPROTOCOL_INFOW(uc: Uc, address: int, em):
 LPWSAPROTOCOL_INFOW_32BIT = POINTER_32BIT
 LPWSAPROTOCOL_INFOW_64BIT = POINTER_64BIT
 
-class WSAPROTOCOL_INFOW(LittleEndianStructure):
+class WSAPROTOCOL_INFOW(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
     types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'GUID', 'DWORD', 'WSAPROTOCOLCHAIN', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'int', 'DWORD', 'DWORD', 'WCHAR']
-    __slots__ = ('dwServiceFlags1', 'dwServiceFlags2', 'dwServiceFlags3', 'dwServiceFlags4', 'dwProviderFlags', 'ProviderId', 'dwCatalogEntryId', 'ProtocolChain', 'iVersion', 'iAddressFamily', 'iMaxSockAddr', 'iMinSockAddr', 'iSocketType', 'iProtocol', 'iProtocolMaxOffset', 'iNetworkByteOrder', 'iSecurityScheme', 'dwMessageSize', 'dwProviderReserved', 'szProtocol')
     lookUps = {0: ReverseLookUps.Socket.ServiceFlags, 9: ReverseLookUps.Socket.Af, 12: ReverseLookUps.Socket.Type, 13: ReverseLookUps.Socket.Protocol, 15: ReverseLookUps.Socket.NetworkByteOrder, 16: ReverseLookUps.Socket.SecurityScheme}
 
-    _fields_ = [('dwServiceFlags1',DWORD),('dwServiceFlags2',DWORD),('dwServiceFlags3',DWORD),('dwServiceFlags4',DWORD),('dwProviderFlags',DWORD),('ProviderId',GUID),('dwCatalogEntryId',DWORD),('ProtocolChain',WSAPROTOCOLCHAIN),('iVersion',INT),('iAddressFamily',INT),('iMaxSockAddr',INT),('iMinSockAddr',INT),('iSocketType',INT),('iProtocol',INT),('iProtocolMaxOffset',INT),('iNetworkByteOrder',INT),('iSecurityScheme',INT),('dwMessageSize',DWORD),('dwProviderReserved',DWORD),('szProtocol',WCHAR*256)]
+    # Struct Members
+    dwServiceFlags1: DWORD
+    dwServiceFlags2: DWORD
+    dwServiceFlags3: DWORD
+    dwServiceFlags4: DWORD
+    dwProviderFlags: DWORD
+    ProviderId: GUID
+    dwCatalogEntryId: DWORD
+    ProtocolChain: WSAPROTOCOLCHAIN
+    iVersion: INT
+    iAddressFamily: INT
+    iMaxSockAddr: INT
+    iMinSockAddr: INT
+    iSocketType: INT
+    iProtocol: INT
+    iProtocolMaxOffset: INT
+    iNetworkByteOrder: INT
+    iSecurityScheme: INT
+    dwMessageSize: DWORD
+    dwProviderReserved: DWORD
+    szProtocol: WCHAR*256
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
@@ -1170,8 +1499,8 @@ class WSAPROTOCOL_INFOW(LittleEndianStructure):
 # Alias Names: _OVERLAPPED
 # Alias Pointer Names: LPWSAPROTOCOL_INFOW
 
-def get_OVERLAPPED(uc: Uc, address: int, em):
-    return OVERLAPPED.from_buffer_copy(uc.mem_read(address, sizeof(OVERLAPPED)))
+# def get_OVERLAPPED(uc: Uc, address: int, em):
+    # return OVERLAPPED.from_buffer_copy(uc.mem_read(address, sizeof(OVERLAPPED)))
 
 # Struct Aliases:
 # get__OVERLAPPED = get_OVERLAPPED
@@ -1192,7 +1521,7 @@ def get_OVERLAPPED(uc: Uc, address: int, em):
 #         lookUps = {}
 #         _fields_ = [('DUMMYSTRUCTNAME',OVERLAPPED_Helpers.dummyStruct),('Pointer',PVOID)]
 
-# class OVERLAPPED(LittleEndianStructure):
+# class OVERLAPPED(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
 #     types = ['ULONG_PTR', 'ULONG_PTR', 'union', 'HANDLE']
 #     __slots__ = ('Internal','InternalHigh','DUMMYUNIONNAME','hEvent')
 #     lookUps = {}
@@ -1215,16 +1544,29 @@ def get_WIN32_FIND_DATAA(uc: Uc, address: int, em):
 # LPWSAPROTOCOL_INFOW_32BIT = POINTER_32BIT
 # LPWSAPROTOCOL_INFOW_64BIT = POINTER_64BIT
 
-class WIN32_FIND_DATAA(LittleEndianStructure):
+class WIN32_FIND_DATAA(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
     types = ['DWORD','FILETIME','FILETIME','FILETIME','DWORD','DWORD','DWORD','DWORD','WCHAR','WCHAR','DWORD','DWORD','WORD']
-    __slots__ = ('dwFileAttributes','ftCreationTime','ftLastAccessTime','ftLastWriteTime','nFileSizeHigh','nFileSizeLow','dwReserved0','dwReserved1','cFileName','cAlternateFileName','dwFileType','dwCreatorType','wFinderFlags')
     lookUps = {}
     #dwFileAttributes -> ReverseLookup from the files class
     #create some file time structures for the next three
     #Highword/lowword file size, if need help getting high low look @ filetime as filetime where it split the time into high and low
     #cFileName = fileName, get this from the handle/filesystem
     #Alt file name 1 period, no spaces, 1-8 characters in length followed by extension[1-3 length]
-    _fields_ = [('dwFileAttributes',DWORD),('ftCreationTime',FILETIME),('ftLastAccessTime',FILETIME),('ftLastWriteTime',FILETIME),('nFileSizeHigh',DWORD),('nFileSizeLow',DWORD),('dwReserved0',DWORD),('dwReserved1',DWORD),('cFileName',WCHAR * MAX_PATH),('cAlternateFileName',WCHAR*14),('dwFileType',DWORD),('dwCreatorType',DWORD),('wFinderFlags',WORD)]
+    
+    # Struct Members
+    dwFileAttributes: DWORD
+    ftCreationTime: FILETIME
+    ftLastAccessTime: FILETIME
+    ftLastWriteTime: FILETIME
+    nFileSizeHigh: DWORD
+    nFileSizeLow: DWORD
+    dwReserved0: DWORD
+    dwReserved1: DWORD
+    cFileName: CHAR * MAX_PATH
+    cAlternateFileName: CHAR * 14
+    # dwFileType: DWORD # Obsolete Member that would be used on MacOS
+    # dwCreatorType: DWORD # Obsolete Member that would be used on MacOS
+    # wFinderFlags: WORD # Obsolete Member that would be used on MacOS
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
@@ -1239,7 +1581,43 @@ class WIN32_FIND_DATAA(LittleEndianStructure):
     #     self.cFileName = filename
     #     self.cAlternateFileName = altFileName
 
+# Struct WIN32_FIND_DATAW
+# Alias Names: _WIN32_FIND_DATAW
+# Alias Pointer Names: *PWIN32_FIND_DATAW, *LPWIN32_FIND_DATAW
 
+def get_WIN32_FIND_DATAW(uc: Uc, address: int, em):
+    return WIN32_FIND_DATAW.from_buffer_copy(uc.mem_read(address, sizeof(WIN32_FIND_DATAW)))
+
+# Struct Aliases:
+# get__WIN32_FIND_DATAW = get_WIN32_FIND_DATAW
+
+# Struct Pointers:
+PWIN32_FIND_DATAW_32BIT = POINTER_32BIT
+PWIN32_FIND_DATAW_64BIT = POINTER_64BIT
+LPWIN32_FIND_DATAW_32BIT = POINTER_32BIT
+LPWIN32_FIND_DATAW_64BIT = POINTER_64BIT
+
+class WIN32_FIND_DATAW(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['DWORD', 'FILETIME', 'FILETIME', 'FILETIME', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WCHAR', 'WCHAR', 'DWORD', 'DWORD','WORD']
+    lookUps = {}
+
+    # Struct Members
+    dwFileAttributes: DWORD
+    ftCreationTime: FILETIME
+    ftLastAccessTime: FILETIME
+    ftLastWriteTime: FILETIME
+    nFileSizeHigh: DWORD
+    nFileSizeLow: DWORD
+    dwReserved0: DWORD
+    dwReserved1: DWORD
+    cFileName: WCHAR * MAX_PATH
+    cAlternateFileName: WCHAR * 14
+    # dwFileType: DWORD # Obsolete Member that would be used on MacOS
+    # dwCreatorType: DWORD # Obsolete Member that would be used on MacOS
+    # wFinderFlags: WORD # Obsolete Member that would be used on MacOS
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
 
 # Struct NETRESOURCEA
 # Alias Names: _NETRESOURCEA
@@ -1260,22 +1638,36 @@ LPNETRESOURCEA_64BIT = POINTER_64BIT
 
 class NETRESOURCEA:
 
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPSTR', 'LPSTR', 'LPSTR', 'LPSTR']
-        __slots__ = ('dwScope', 'dwType', 'dwDisplayType', 'dwUsage', 'lpLocalName', 'lpRemoteName', 'lpComment', 'lpProvider')
         lookUps = {0: ReverseLookUps.Net.Scope, 1: ReverseLookUps.Net.Type, 2: ReverseLookUps.Net.Display, 3: ReverseLookUps.Net.Usage}
 
-        _fields_ = [('dwScope',DWORD),('dwType',DWORD),('dwDisplayType',DWORD),('dwUsage',DWORD),('lpLocalName',LPSTR_32BIT),('lpRemoteName',LPSTR_32BIT),('lpComment',LPSTR_32BIT),('lpProvider',LPSTR_32BIT)]
+        # Struct Members
+        dwScope: DWORD
+        dwType: DWORD
+        dwDisplayType: DWORD
+        dwUsage: DWORD
+        lpLocalName: LPSTR_32BIT
+        lpRemoteName: LPSTR_32BIT
+        lpComment: LPSTR_32BIT
+        lpProvider: LPSTR_32BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
-    class ARCH64(LittleEndianStructure):
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPSTR', 'LPSTR', 'LPSTR', 'LPSTR']
-        __slots__ = ('dwScope', 'dwType', 'dwDisplayType', 'dwUsage', 'lpLocalName', 'lpRemoteName', 'lpComment', 'lpProvider')
         lookUps = {0: ReverseLookUps.Net.Scope, 1: ReverseLookUps.Net.Type, 2: ReverseLookUps.Net.Display, 3: ReverseLookUps.Net.Usage}
 
-        _fields_ = [('dwScope',DWORD),('dwType',DWORD),('dwDisplayType',DWORD),('dwUsage',DWORD),('lpLocalName',LPSTR_64BIT),('lpRemoteName',LPSTR_64BIT),('lpComment',LPSTR_64BIT),('lpProvider',LPSTR_64BIT)]
+        # Struct Members
+        dwScope: DWORD
+        dwType: DWORD
+        dwDisplayType: DWORD
+        dwUsage: DWORD
+        lpLocalName: LPSTR_64BIT
+        lpRemoteName: LPSTR_64BIT
+        lpComment: LPSTR_64BIT
+        lpProvider: LPSTR_64BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -1299,22 +1691,36 @@ LPNETRESOURCEW_64BIT = POINTER_64BIT
 
 class NETRESOURCEW:
 
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPWSTR', 'LPWSTR', 'LPWSTR', 'LPWSTR']
-        __slots__ = ('dwScope', 'dwType', 'dwDisplayType', 'dwUsage', 'lpLocalName', 'lpRemoteName', 'lpComment', 'lpProvider')
         lookUps = {0: ReverseLookUps.Net.Scope, 1: ReverseLookUps.Net.Type, 2: ReverseLookUps.Net.Display, 3: ReverseLookUps.Net.Usage}
 
-        _fields_ = [('dwScope',DWORD),('dwType',DWORD),('dwDisplayType',DWORD),('dwUsage',DWORD),('lpLocalName',LPWSTR_32BIT),('lpRemoteName',LPWSTR_32BIT),('lpComment',LPWSTR_32BIT),('lpProvider',LPWSTR_32BIT)]
+        # Struct Members
+        dwScope: DWORD
+        dwType: DWORD
+        dwDisplayType: DWORD
+        dwUsage: DWORD
+        lpLocalName: LPWSTR_32BIT
+        lpRemoteName: LPWSTR_32BIT
+        lpComment: LPWSTR_32BIT
+        lpProvider: LPWSTR_32BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
-    class ARCH64(LittleEndianStructure):
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPWSTR', 'LPWSTR', 'LPWSTR', 'LPWSTR']
-        __slots__ = ('dwScope', 'dwType', 'dwDisplayType', 'dwUsage', 'lpLocalName', 'lpRemoteName', 'lpComment', 'lpProvider')
         lookUps = {0: ReverseLookUps.Net.Scope, 1: ReverseLookUps.Net.Type, 2: ReverseLookUps.Net.Display, 3: ReverseLookUps.Net.Usage}
 
-        _fields_ = [('dwScope',DWORD),('dwType',DWORD),('dwDisplayType',DWORD),('dwUsage',DWORD),('lpLocalName',LPWSTR_64BIT),('lpRemoteName',LPWSTR_64BIT),('lpComment',LPWSTR_64BIT),('lpProvider',LPWSTR_64BIT)]
+        # Struct Members
+        dwScope: DWORD
+        dwType: DWORD
+        dwDisplayType: DWORD
+        dwUsage: DWORD
+        lpLocalName: LPWSTR_64BIT
+        lpRemoteName: LPWSTR_64BIT
+        lpComment: LPWSTR_64BIT
+        lpProvider: LPWSTR_64BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -1336,12 +1742,17 @@ POSVERSIONINFOA_64BIT = POINTER_64BIT
 LPOSVERSIONINFOA_32BIT = POINTER_32BIT
 LPOSVERSIONINFOA_64BIT = POINTER_64BIT
 
-class OSVERSIONINFOA(LittleEndianStructure):
+class OSVERSIONINFOA(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
     types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'CHAR']
-    __slots__ = ('dwOSVersionInfoSize', 'dwMajorVersion', 'dwMinorVersion', 'dwBuildNumber', 'dwPlatformId', 'szCSDVersion')
     lookUps = {}
 
-    _fields_ = [('dwOSVersionInfoSize',DWORD),('dwMajorVersion',DWORD),('dwMinorVersion',DWORD),('dwBuildNumber',DWORD),('dwPlatformId',DWORD),('szCSDVersion',CHAR * 128)]
+    # Struct Members
+    dwOSVersionInfoSize: DWORD
+    dwMajorVersion: DWORD
+    dwMinorVersion: DWORD
+    dwBuildNumber: DWORD
+    dwPlatformId: DWORD
+    szCSDVersion: CHAR * 128
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
@@ -1366,12 +1777,17 @@ LPOSVERSIONINFOW_64BIT = POINTER_64BIT
 PRTL_OSVERSIONINFOW_32BIT = POINTER_32BIT
 PRTL_OSVERSIONINFOW_64BIT = POINTER_64BIT
 
-class OSVERSIONINFOW(LittleEndianStructure):
+class OSVERSIONINFOW(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
     types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WCHAR']
-    __slots__ = ('dwOSVersionInfoSize', 'dwMajorVersion', 'dwMinorVersion', 'dwBuildNumber', 'dwPlatformId', 'szCSDVersion')
     lookUps = {}
 
-    _fields_ = [('dwOSVersionInfoSize',DWORD),('dwMajorVersion',DWORD),('dwMinorVersion',DWORD),('dwBuildNumber',DWORD),('dwPlatformId',DWORD),('szCSDVersion',WCHAR * 128)]
+    # Struct Members
+    dwOSVersionInfoSize: DWORD
+    dwMajorVersion: DWORD
+    dwMinorVersion: DWORD
+    dwBuildNumber: DWORD
+    dwPlatformId: DWORD
+    szCSDVersion: WCHAR * 128
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
@@ -1392,12 +1808,22 @@ POSVERSIONINFOEXA_64BIT = POINTER_64BIT
 LPOSVERSIONINFOEXA_32BIT = POINTER_32BIT
 LPOSVERSIONINFOEXA_64BIT = POINTER_64BIT
 
-class OSVERSIONINFOEXA(LittleEndianStructure):
+class OSVERSIONINFOEXA(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
     types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'CHAR', 'WORD', 'WORD', 'WORD', 'BYTE', 'BYTE']
-    __slots__ = ('dwOSVersionInfoSize', 'dwMajorVersion', 'dwMinorVersion', 'dwBuildNumber', 'dwPlatformId', 'szCSDVersion', 'wServicePackMajor', 'wServicePackMinor', 'wSuiteMask', 'wProductType', 'wReserved')
     lookUps = {}
 
-    _fields_ = [('dwOSVersionInfoSize',DWORD),('dwMajorVersion',DWORD),('dwMinorVersion',DWORD),('dwBuildNumber',DWORD),('dwPlatformId',DWORD),('szCSDVersion',CHAR * 128),('wServicePackMajor',WORD),('wServicePackMinor',WORD),('wSuiteMask',WORD),('wProductType',BYTE),('wReserved',BYTE)]
+    # Struct Members
+    dwOSVersionInfoSize: DWORD
+    dwMajorVersion: DWORD
+    dwMinorVersion: DWORD
+    dwBuildNumber: DWORD
+    dwPlatformId: DWORD
+    szCSDVersion: CHAR * 128
+    wServicePackMajor: WORD
+    wServicePackMinor: WORD
+    wSuiteMask: WORD
+    wProductType: BYTE
+    wReserved: BYTE
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
@@ -1421,12 +1847,22 @@ LPOSVERSIONINFOEXW_64BIT = POINTER_64BIT
 PRTL_OSVERSIONINFOEXW_32BIT = POINTER_32BIT
 PRTL_OSVERSIONINFOEXW_64BIT = POINTER_64BIT
 
-class OSVERSIONINFOEXW(LittleEndianStructure):
+class OSVERSIONINFOEXW(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
     types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'WCHAR', 'WORD', 'WORD', 'WORD', 'BYTE', 'BYTE']
-    __slots__ = ('dwOSVersionInfoSize', 'dwMajorVersion', 'dwMinorVersion', 'dwBuildNumber', 'dwPlatformId', 'szCSDVersion', 'wServicePackMajor', 'wServicePackMinor', 'wSuiteMask', 'wProductType', 'wReserved')
     lookUps = {}
 
-    _fields_ = [('dwOSVersionInfoSize',DWORD),('dwMajorVersion',DWORD),('dwMinorVersion',DWORD),('dwBuildNumber',DWORD),('dwPlatformId',DWORD),('szCSDVersion',WCHAR * 128),('wServicePackMajor',WORD),('wServicePackMinor',WORD),('wSuiteMask',WORD),('wProductType',BYTE),('wReserved',BYTE)]
+    # Struct Members
+    dwOSVersionInfoSize: DWORD
+    dwMajorVersion: DWORD
+    dwMinorVersion: DWORD
+    dwBuildNumber: DWORD
+    dwPlatformId: DWORD
+    szCSDVersion: WCHAR * 128
+    wServicePackMajor: WORD
+    wServicePackMinor: WORD
+    wSuiteMask: WORD
+    wProductType: BYTE
+    wReserved: BYTE
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
@@ -1453,22 +1889,32 @@ LPCREATEFILE2_EXTENDED_PARAMETERS_64BIT = POINTER_64BIT
 
 class CREATEFILE2_EXTENDED_PARAMETERS:
 
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPSECURITY_ATTRIBUTES', 'HANDLE']
-        __slots__ = ('dwSize', 'dwFileAttributes', 'dwFileFlags', 'dwSecurityQosFlags', 'lpSecurityAttributes', 'hTemplateFile')
         lookUps = {} # need lookups
 
-        _fields_ = [('dwSize',DWORD),('dwFileAttributes',DWORD),('dwFileFlags',DWORD),('dwSecurityQosFlags',DWORD),('lpSecurityAttributes',LPSECURITY_ATTRIBUTES_32BIT),('hTemplateFile',HANDLE_32BIT)]
+        # Struct Members
+        dwSize: DWORD
+        dwFileAttributes: DWORD
+        dwFileFlags: DWORD
+        dwSecurityQosFlags: DWORD
+        lpSecurityAttributes: LPSECURITY_ATTRIBUTES_32BIT
+        hTemplateFile: HANDLE_32BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
-    class ARCH64(LittleEndianStructure):
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'DWORD', 'DWORD', 'DWORD', 'LPSECURITY_ATTRIBUTES', 'HANDLE']
-        __slots__ = ('dwSize', 'dwFileAttributes', 'dwFileFlags', 'dwSecurityQosFlags', 'lpSecurityAttributes', 'hTemplateFile')
         lookUps = {} # need lookups
 
-        _fields_ = [('dwSize',DWORD),('dwFileAttributes',DWORD),('dwFileFlags',DWORD),('dwSecurityQosFlags',DWORD),('lpSecurityAttributes',LPSECURITY_ATTRIBUTES_64BIT),('hTemplateFile',HANDLE_64BIT)]
+        # Struct Members
+        dwSize: DWORD
+        dwFileAttributes: DWORD
+        dwFileFlags: DWORD
+        dwSecurityQosFlags: DWORD
+        lpSecurityAttributes: LPSECURITY_ATTRIBUTES_64BIT
+        hTemplateFile: HANDLE_64BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -1492,22 +1938,30 @@ def get_COPYFILE2_EXTENDED_PARAMETERS(uc: Uc, address: int, em):
 
 class COPYFILE2_EXTENDED_PARAMETERS:
 
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'DWORD', 'BOOL', 'PCOPYFILE2_PROGRESS_ROUTINE', 'PVOID']
-        __slots__ = ('dwSize', 'dwCopyFlags', 'pfCancel', 'pProgressRoutine', 'pvCallbackContext')
         lookUps = {} # Need Lookups
 
-        _fields_ = [('dwSize',DWORD),('dwCopyFlags',DWORD),('pfCancel',BOOL),('pProgressRoutine',PCOPYFILE2_PROGRESS_ROUTINE_32BIT),('pvCallbackContext',PVOID_32BIT)]
+        # Struct Members
+        dwSize: DWORD
+        dwCopyFlags: DWORD
+        pfCancel: BOOL
+        pProgressRoutine: PCOPYFILE2_PROGRESS_ROUTINE_32BIT
+        pvCallbackContext: PVOID_32BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
-    class ARCH64(LittleEndianStructure):
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'DWORD', 'BOOL', 'PCOPYFILE2_PROGRESS_ROUTINE', 'PVOID']
-        __slots__ = ('dwSize', 'dwCopyFlags', 'pfCancel', 'pProgressRoutine', 'pvCallbackContext')
         lookUps = {} # Need Lookups
 
-        _fields_ = [('dwSize',DWORD),('dwCopyFlags',DWORD),('pfCancel',BOOL),('pProgressRoutine',PCOPYFILE2_PROGRESS_ROUTINE_64BIT),('pvCallbackContext',PVOID_64BIT)]
+        # Struct Members
+        dwSize: DWORD
+        dwCopyFlags: DWORD
+        pfCancel: BOOL
+        pProgressRoutine: PCOPYFILE2_PROGRESS_ROUTINE_64BIT
+        pvCallbackContext: PVOID_64BIT
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -1531,22 +1985,40 @@ LPINTERNET_BUFFERSA_64BIT = POINTER_64BIT
 
 class INTERNET_BUFFERSA:
 
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'LPINTERNET_BUFFERSA', 'LPCSTR', 'DWORD', 'DWORD', 'LPVOID', 'DWORD', 'DWORD', 'DWORD', 'DWORD']
-        __slots__ = ('dwStructSize', 'Next', 'lpcszHeader', 'dwHeadersLength', 'dwHeadersTotal', 'lpvBuffer', 'dwBufferLength', 'dwBufferTotal', 'dwOffsetLow', 'dwOffsetHigh')
         lookUps = {}
 
-        _fields_ = [('dwStructSize',DWORD),('Next',LPINTERNET_BUFFERSA_32BIT),('lpcszHeader',LPCSTR_32BIT),('dwHeadersLength',DWORD),('dwHeadersTotal',DWORD),('lpvBuffer',LPVOID_32BIT),('dwBufferLength',DWORD),('dwBufferTotal',DWORD),('dwOffsetLow',DWORD),('dwOffsetHigh',DWORD)]
+        # Struct Members
+        dwStructSize: DWORD
+        Next: LPINTERNET_BUFFERSA_32BIT
+        lpcszHeader: LPCSTR_32BIT
+        dwHeadersLength: DWORD
+        dwHeadersTotal: DWORD
+        lpvBuffer: LPVOID_32BIT
+        dwBufferLength: DWORD
+        dwBufferTotal: DWORD
+        dwOffsetLow: DWORD
+        dwOffsetHigh: DWORD
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
-    class ARCH64(LittleEndianStructure):
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'LPINTERNET_BUFFERSA', 'LPCSTR', 'DWORD', 'DWORD', 'LPVOID', 'DWORD', 'DWORD', 'DWORD', 'DWORD']
-        __slots__ = ('dwStructSize', 'Next', 'lpcszHeader', 'dwHeadersLength', 'dwHeadersTotal', 'lpvBuffer', 'dwBufferLength', 'dwBufferTotal', 'dwOffsetLow', 'dwOffsetHigh')
         lookUps = {}
 
-        _fields_ = [('dwStructSize',DWORD),('Next',LPINTERNET_BUFFERSA_64BIT),('lpcszHeader',LPCSTR_64BIT),('dwHeadersLength',DWORD),('dwHeadersTotal',DWORD),('lpvBuffer',LPVOID_64BIT),('dwBufferLength',DWORD),('dwBufferTotal',DWORD),('dwOffsetLow',DWORD),('dwOffsetHigh',DWORD)]
+        # Struct Members
+        dwStructSize: DWORD
+        Next: LPINTERNET_BUFFERSA_64BIT
+        lpcszHeader: LPCSTR_64BIT
+        dwHeadersLength: DWORD
+        dwHeadersTotal: DWORD
+        lpvBuffer: LPVOID_64BIT
+        dwBufferLength: DWORD
+        dwBufferTotal: DWORD
+        dwOffsetLow: DWORD
+        dwOffsetHigh: DWORD
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -1570,22 +2042,40 @@ LPINTERNET_BUFFERSW_64BIT = POINTER_64BIT
 
 class INTERNET_BUFFERSW:
 
-    class ARCH32(LittleEndianStructure):
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'LPINTERNET_BUFFERSW', 'LPCWSTR', 'DWORD', 'DWORD', 'LPVOID', 'DWORD', 'DWORD', 'DWORD', 'DWORD']
-        __slots__ = ('dwStructSize', 'Next', 'lpcszHeader', 'dwHeadersLength', 'dwHeadersTotal', 'lpvBuffer', 'dwBufferLength', 'dwBufferTotal', 'dwOffsetLow', 'dwOffsetHigh')
         lookUps = {}
 
-        _fields_ = [('dwStructSize',DWORD),('Next',LPINTERNET_BUFFERSW_32BIT),('lpcszHeader',LPCWSTR_32BIT),('dwHeadersLength',DWORD),('dwHeadersTotal',DWORD),('lpvBuffer',LPVOID_32BIT),('dwBufferLength',DWORD),('dwBufferTotal',DWORD),('dwOffsetLow',DWORD),('dwOffsetHigh',DWORD)]
+        # Struct Members
+        dwStructSize: DWORD
+        Next: LPINTERNET_BUFFERSW_32BIT
+        lpcszHeader: LPCWSTR_32BIT
+        dwHeadersLength: DWORD
+        dwHeadersTotal: DWORD
+        lpvBuffer: LPVOID_32BIT
+        dwBufferLength: DWORD
+        dwBufferTotal: DWORD
+        dwOffsetLow: DWORD
+        dwOffsetHigh: DWORD
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
-    class ARCH64(LittleEndianStructure):
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'LPINTERNET_BUFFERSW', 'LPCWSTR', 'DWORD', 'DWORD', 'LPVOID', 'DWORD', 'DWORD', 'DWORD', 'DWORD']
-        __slots__ = ('dwStructSize', 'Next', 'lpcszHeader', 'dwHeadersLength', 'dwHeadersTotal', 'lpvBuffer', 'dwBufferLength', 'dwBufferTotal', 'dwOffsetLow', 'dwOffsetHigh')
         lookUps = {}
 
-        _fields_ = [('dwStructSize',DWORD),('Next',LPINTERNET_BUFFERSW_64BIT),('lpcszHeader',LPCWSTR_64BIT),('dwHeadersLength',DWORD),('dwHeadersTotal',DWORD),('lpvBuffer',LPVOID_64BIT),('dwBufferLength',DWORD),('dwBufferTotal',DWORD),('dwOffsetLow',DWORD),('dwOffsetHigh',DWORD)]
+        # Struct Members
+        dwStructSize: DWORD
+        Next: LPINTERNET_BUFFERSW_64BIT
+        lpcszHeader: LPCWSTR_64BIT
+        dwHeadersLength: DWORD
+        dwHeadersTotal: DWORD
+        lpvBuffer: LPVOID_64BIT
+        dwBufferLength: DWORD
+        dwBufferTotal: DWORD
+        dwOffsetLow: DWORD
+        dwOffsetHigh: DWORD
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
@@ -1604,12 +2094,419 @@ def get_MEMORY_PRIORITY_INFORMATION(uc: Uc, address: int, em):
 PMEMORY_PRIORITY_INFORMATION_32BIT = POINTER_32BIT
 PMEMORY_PRIORITY_INFORMATION_64BIT = POINTER_64BIT
 
-class MEMORY_PRIORITY_INFORMATION(LittleEndianStructure):
+class MEMORY_PRIORITY_INFORMATION(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
     types = ['ULONG']
-    __slots__ = ('MemoryPriority',)
     lookUps = {0: ReverseLookUps.Thread.MEMORY_PRIORITY}
 
-    _fields_ = [('MemoryPriority',ULONG)]
+    # Struct Members
+    MemoryPriority: ULONG
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
+
+# Struct LUID
+# Alias Names: _LUID
+# Alias Pointer Names: PLUID
+
+def get_LUID(uc: Uc, address: int, em):
+    return LUID.from_buffer_copy(uc.mem_read(address, sizeof(LUID)))
+
+# Struct Aliases:
+# get__LUID = get_LUID
+
+# Struct Pointers:
+PLUID_32BIT = POINTER_32BIT
+PLUID_64BIT = POINTER_64BIT
+
+class LUID(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['DWORD', 'LONG']
+    lookUps = {}
+
+    # Struct Members
+    LowPart: DWORD
+    HighPart: LONG
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+# Struct LUID_AND_ATTRIBUTES
+# Alias Names: _LUID_AND_ATTRIBUTES
+# Alias Pointer Names: PLUID_AND_ATTRIBUTES
+
+def get_LUID_AND_ATTRIBUTES(uc: Uc, address: int, em):
+    return LUID_AND_ATTRIBUTES.from_buffer_copy(uc.mem_read(address, sizeof(LUID_AND_ATTRIBUTES)))
+
+# Struct Aliases:
+# get__LUID_AND_ATTRIBUTES = get_LUID_AND_ATTRIBUTES
+
+# Struct Pointers:
+PLUID_AND_ATTRIBUTES_32BIT = POINTER_32BIT
+PLUID_AND_ATTRIBUTES_64BIT = POINTER_64BIT
+
+class LUID_AND_ATTRIBUTES(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['LUID', 'DWORD']
+    lookUps = {}
+
+    # Struct Members
+    Luid: LUID
+    Attributes: DWORD
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+# Struct TOKEN_PRIVILEGES
+# Alias Names: _TOKEN_PRIVILEGES
+# Alias Pointer Names: PTOKEN_PRIVILEGES
+
+def get_TOKEN_PRIVILEGES(uc: Uc, address: int, em):
+    return TOKEN_PRIVILEGES.from_buffer_copy(uc.mem_read(address, sizeof(TOKEN_PRIVILEGES)))
+
+# Struct Aliases:
+# get__TOKEN_PRIVILEGES = get_TOKEN_PRIVILEGES
+
+# Struct Pointers:
+PTOKEN_PRIVILEGES_32BIT = POINTER_32BIT
+PTOKEN_PRIVILEGES_64BIT = POINTER_64BIT
+
+class TOKEN_PRIVILEGES(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['DWORD', 'LUID_AND_ATTRIBUTES']
+    lookUps = {}
+
+    ANYSIZE_ARRAY = 1 # Need to look into how to create this
+
+    # Struct Members
+    PrivilegeCount: DWORD
+    Privileges: LUID_AND_ATTRIBUTES * ANYSIZE_ARRAY
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+
+# Struct INTERNET_CACHE_ENTRY_INFOA
+# Alias Names: _INTERNET_CACHE_ENTRY_INFOA
+# Alias Pointer Names: LPINTERNET_CACHE_ENTRY_INFOA
+
+def get_INTERNET_BUFFERSW(uc: Uc, address: int, em):
+    if em.arch == 32:
+        return INTERNET_BUFFERSW.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(INTERNET_BUFFERSW.ARCH32)))
+    else:
+        return INTERNET_BUFFERSW.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(INTERNET_BUFFERSW.ARCH64)))
+
+# Struct Aliases:
+# get__INTERNET_CACHE_ENTRY_INFOA = get_INTERNET_CACHE_ENTRY_INFOA
+
+# Struct Pointers:
+LPINTERNET_CACHE_ENTRY_INFOA_32BIT = POINTER_32BIT
+LPINTERNET_CACHE_ENTRY_INFOA_64BIT = POINTER_64BIT
+
+class INTERNET_CACHE_ENTRY_INFOA_Helpers:
+    class union(LittleEndianUnion, metaclass=UnionFieldsFromTypeHints):
+        type = ['DWORD', 'DWORD']
+        lookUps = {}
+
+        dwReserved: DWORD
+        dwExemptDelta: DWORD
+
+class INTERNET_CACHE_ENTRY_INFOA:
+
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['DWORD', 'LPSTR', 'LPSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'FILETIME', 'FILETIME', 'FILETIME', 'FILETIME', 'LPSTR', 'DWORD', 'LPSTR', 'union']
+        lookUps = {}
+
+        # Struct Members
+        dwStructSize: DWORD
+        lpszSourceUrlName: LPSTR_32BIT
+        lpszLocalFileName: LPSTR_32BIT
+        CacheEntryType: DWORD
+        dwUseCount: DWORD
+        dwHitRate: DWORD
+        dwSizeLow: DWORD
+        dwSizeHigh: DWORD
+        LastModifiedTime: FILETIME
+        ExpireTime: FILETIME
+        LastAccessTime: FILETIME
+        LastSyncTime: FILETIME
+        lpHeaderInfo: LPSTR_32BIT
+        dwHeaderInfoSize: DWORD
+        lpszFileExtension: LPSTR_32BIT
+        DUMMYUNIONNAME:  INTERNET_CACHE_ENTRY_INFOA_Helpers.union
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+
+# Struct IO_STATUS_BLOCK
+# Alias Names: 
+# Alias Pointer Names: 
+
+def get_IO_STATUS_BLOCK(uc: Uc, address: int, em):
+    if em.arch == 32:
+        return IO_STATUS_BLOCK.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(IO_STATUS_BLOCK.ARCH32)))
+    else:
+        return IO_STATUS_BLOCK.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(IO_STATUS_BLOCK.ARCH64)))
+
+# Struct Aliases:
+# get__INTERNET_BUFFERSA = get_INTERNET_BUFFERSA
+
+# Struct Pointers:
+PIO_STATUS_BLOCK_32BIT = POINTER_32BIT
+PIO_STATUS_BLOCK_64BIT = POINTER_64BIT
+
+class IO_STATUS_BLOCK_Helpers:
+    # Sub Structures/Unions
+    class Union_32BIT(LittleEndianUnion, metaclass=UnionFieldsFromTypeHints):
+        types = ['NTSTATUS', 'PVOID']
+        lookUps = {}
+
+        # Union Members
+        Status: LONG
+        Pointer: PVOID_32BIT
+
+    class Union_64BIT(LittleEndianUnion, metaclass=UnionFieldsFromTypeHints):
+        types = ['NTSTATUS', 'PVOID']
+        lookUps = {}
+
+        # Union Members
+        Status: LONG
+        Pointer: PVOID_64BIT
+
+class IO_STATUS_BLOCK:
+
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['union', 'ULONG_PTR']
+        lookUps = {}
+
+        # Struct Members
+        DUMMYUNIONNAME: IO_STATUS_BLOCK_Helpers.Union_32BIT
+        Information: ULONG_PTR_32BIT
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['union', 'ULONG_PTR']
+        lookUps = {}
+
+        # Struct Members
+        DUMMYUNIONNAME: IO_STATUS_BLOCK_Helpers.Union_64BIT
+        Information: ULONG_PTR_64BIT
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+# Struct INTERNET_CACHE_ENTRY_INFOW
+# Alias Names: _INTERNET_CACHE_ENTRY_INFOW
+# Alias Pointer Names: LPINTERNET_CACHE_ENTRY_INFOW
+
+def get_INTERNET_CACHE_ENTRY_INFOW(uc: Uc, address: int, em):
+    if em.arch == 32:
+        return INTERNET_CACHE_ENTRY_INFOW.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(INTERNET_CACHE_ENTRY_INFOW.ARCH32)))
+
+    else:
+        return INTERNET_CACHE_ENTRY_INFOW.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(INTERNET_CACHE_ENTRY_INFOW.ARCH64)))
+
+
+# Struct Aliases:
+# get__INTERNET_CACHE_ENTRY_INFOW = get_INTERNET_CACHE_ENTRY_INFOW
+
+# Struct Pointers:
+LPINTERNET_CACHE_ENTRY_INFOW_32BIT = POINTER_32BIT
+LPINTERNET_CACHE_ENTRY_INFOW_64BIT = POINTER_64BIT
+
+class INTERNET_CACHE_ENTRY_INFOW_Helpers:
+    class union(LittleEndianUnion, metaclass=UnionFieldsFromTypeHints):
+        types = ['DWORD', 'DWORD']
+        lookUps = {}
+
+        # Union Members
+        dwReserved: DWORD
+        dwExemptDelta: DWORD
+
+class INTERNET_CACHE_ENTRY_INFOW:
+
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['DWORD', 'LPWSTR', 'LPWSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'FILETIME', 'FILETIME', 'FILETIME', 'FILETIME', 'LPWSTR', 'DWORD', 'LPWSTR', 'union']
+        lookUps = {}
+
+        # Struct Members
+        # Struct Members
+        dwStructSize: DWORD
+        lpszSourceUrlName: LPWSTR_32BIT
+        lpszLocalFileName: LPWSTR_32BIT
+        CacheEntryType: DWORD
+        dwUseCount: DWORD
+        dwHitRate: DWORD
+        dwSizeLow: DWORD
+        dwSizeHigh: DWORD
+        LastModifiedTime: FILETIME
+        ExpireTime: FILETIME
+        LastAccessTime: FILETIME
+        LastSyncTime: FILETIME
+        lpHeaderInfo: LPWSTR_32BIT
+        dwHeaderInfoSize: DWORD
+        lpszFileExtension: LPWSTR_32BIT
+        union1: INTERNET_CACHE_ENTRY_INFOW_Helpers.union
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['DWORD', 'LPWSTR', 'LPWSTR', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'DWORD', 'FILETIME', 'FILETIME', 'FILETIME', 'FILETIME', 'LPWSTR', 'DWORD', 'LPWSTR', 'union']
+        lookUps = {}
+
+        # Struct Members
+        # Struct Members
+        dwStructSize: DWORD
+        lpszSourceUrlName: LPWSTR_64BIT
+        lpszLocalFileName: LPWSTR_64BIT
+        CacheEntryType: DWORD
+        dwUseCount: DWORD
+        dwHitRate: DWORD
+        dwSizeLow: DWORD
+        dwSizeHigh: DWORD
+        LastModifiedTime: FILETIME
+        ExpireTime: FILETIME
+        LastAccessTime: FILETIME
+        LastSyncTime: FILETIME
+        lpHeaderInfo: LPWSTR_64BIT
+        dwHeaderInfoSize: DWORD
+        lpszFileExtension: LPWSTR_64BIT
+        DUMMYUNIONNAME: INTERNET_CACHE_ENTRY_INFOW_Helpers.union
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+# Struct CLIENT_ID
+# Alias Names: _CLIENT_ID
+# Alias Pointer Names: PCLIENT_ID 
+
+def get_CLIENT_ID(uc: Uc, address: int, em):
+    if em.arch == 32:
+        return CLIENT_ID.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(CLIENT_ID.ARCH32)))
+
+    else:
+        return CLIENT_ID.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(CLIENT_ID.ARCH64)))
+
+# Struct Aliases:
+# get__LUID = get_LUID
+
+# Struct Pointers:
+PCLIENT_ID_32BIT = POINTER_32BIT
+PCLIENT_ID_64BIT = POINTER_64BIT
+
+class CLIENT_ID(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['HANDLE', 'HANDLE']
+        lookUps = {}
+
+        # Struct Members
+        UniqueProcess: HANDLE_32BIT
+        UniqueThread: HANDLE_32BIT
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['HANDLE', 'HANDLE']
+        lookUps = {}
+
+        # Struct Members
+        UniqueProcess: HANDLE_64BIT
+        UniqueThread: HANDLE_64BIT
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))    
+
+# Struct MIB_IPNETROW
+# Alias Names: _MIB_IPNETROW
+# Alias Pointer Names: PMIB_IPNETROW
+
+def get_MIB_IPNETROW(uc: Uc, address: int, em):
+    return MIB_IPNETROW.from_buffer_copy(uc.mem_read(address, sizeof(MIB_IPNETROW)))
+
+# Struct Aliases:
+# get__MIB_IPNETROW_LH = get_MIB_IPNETROW_LH
+
+# Struct Pointers:
+PMIB_IPNETROW_32BIT = POINTER_32BIT
+PMIB_IPNETROW_64BIT = POINTER_64BIT
+
+class MIB_IPNETROW_Helpers:
+    class union(LittleEndianUnion, metaclass=UnionFieldsFromTypeHints):
+        types = ['DWORD', 'MIB_IPNET_TYPE']
+        lookUps = {0: ReverseLookUps.IPNET.TYPE, 1: ReverseLookUps.IPNET.TYPE}
+
+        dwType: DWORD
+        Type: DWORD
+
+class MIB_IPNETROW(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['IF_INDEX', 'DWORD', 'UCHAR', 'DWORD', 'union']
+    lookUps = {}
+
+    MAXLEN_PHYSADDR = 8
+
+    # Struct Members
+    dwIndex: DWORD
+    dwPhysAddrLen: DWORD
+    bPhysAddr: UCHAR * MAXLEN_PHYSADDR
+    dwAddr: DWORD
+    DUMMYUNION: MIB_IPNETROW_Helpers.union
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+# Struct MIB_IPNETTABLE
+# Alias Names: _MIB_IPNETTABLE
+# Alias Pointer Names: PMIB_IPNETTABLE
+
+def get_MIB_IPNETTABLE(uc: Uc, address: int, em):
+    return MIB_IPNETTABLE.from_buffer_copy(uc.mem_read(address, sizeof(MIB_IPNETTABLE)))
+
+# Struct Aliases:
+# get__MIB_IPNETTABLE = get_MIB_IPNETTABLE
+
+# Struct Pointers:
+PMIB_IPNETTABLE_32BIT = POINTER_32BIT
+PMIB_IPNETTABLE_64BIT = POINTER_64BIT
+
+class MIB_IPNETTABLE(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['DWORD', 'MIB_IPNETROW']
+    lookUps = {}
+
+    ANY_SIZE = 1
+
+    # Struct Members
+    dwNumEntries: DWORD
+    table: MIB_IPNETROW * ANY_SIZE
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+# Struct APP_MEMORY_INFORMATION
+# Alias Names: _APP_MEMORY_INFORMATION
+# Alias Pointer Names: PAPP_MEMORY_INFORMATION
+
+def get_APP_MEMORY_INFORMATION(uc: Uc, address: int, em):
+    return APP_MEMORY_INFORMATION.from_buffer_copy(uc.mem_read(address, sizeof(APP_MEMORY_INFORMATION)))
+
+# Struct Aliases:
+# get__APP_MEMORY_INFORMATION = get_APP_MEMORY_INFORMATION
+
+# Struct Pointers:
+PAPP_MEMORY_INFORMATION_32BIT = POINTER_32BIT
+PAPP_MEMORY_INFORMATION_64BIT = POINTER_64BIT
+
+class APP_MEMORY_INFORMATION(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['ULONG64', 'ULONG64', 'ULONG64', 'ULONG64']
+    lookUps = {}
+
+    # Struct Members
+    AvailableCommit: ULONG64
+    PrivateCommitUsage: ULONG64
+    PeakPrivateCommitUsage: ULONG64
+    TotalCommitUsage: ULONG64
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+

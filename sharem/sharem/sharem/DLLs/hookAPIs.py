@@ -510,7 +510,7 @@ class CustomWinAPIs():
             pVals[3] = makeStructVals(uc, sa, pVals[3])
         else:
             hex(pVals[3])
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip= [1, 2, 4, 5])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip= [1, 2, 3, 4, 5])
 
         handle.name = pVals[0]
         handle.name = SimFileSystem.detectDuplicateFileHandles(SimFileSystem.currentDir,handle)
@@ -1226,6 +1226,23 @@ class CustomWinAPIs():
 
         logged_calls= ("GetCurrentHwProfileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def RegisterRawInputDevices(self, uc: Uc, eip, esp, export_dict, callAddr, em):
+        pTypes= ['PCRAWINPUTDEVICE', 'UINT', 'UINT']
+        pNames= ['pRawInputDevices', 'uiNumDevices', 'cbSize']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        retVal = 0x88888888
+
+        retValStr='True'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("RegisterRawInputDevices", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def HeapCreate(self, uc: Uc, eip, esp, export_dict, callAddr, em):
         # HANDLE HeapCreate([in] DWORD  flOptions,[in] SIZE_T dwInitialSize,[in] SIZE_T dwMaximumSize);
@@ -2507,9 +2524,12 @@ class CustomWinAPIs():
         pNames= ['pExecInfo']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        info = get_SHELLEXECUTEINFOA(uc, pVals[0], em)
+        if pVals[0] != 0x0:
+            info = get_SHELLEXECUTEINFOA(uc, pVals[0], em)
+            pVals[0] = makeStructVals(uc, info, pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
 
-        pVals[0] = makeStructVals(uc, info, pVals[0])
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
 
@@ -2525,9 +2545,11 @@ class CustomWinAPIs():
         pNames= ['pExecInfo']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        info = get_SHELLEXECUTEINFOW(uc, pVals[0], em)
-
-        pVals[0] = makeStructVals(uc, info, pVals[0])
+        if pVals[0] != 0x0:
+            info = get_SHELLEXECUTEINFOW(uc, pVals[0], em)
+            pVals[0] = makeStructVals(uc, info, pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
 
@@ -13435,7 +13457,6 @@ class CustomWinSysCalls():
         pNames = ['KeyHandle', 'DesiredAccess', 'ObjectAttributes', 'TitleIndex', 'Class', 'CreateOptions', 'Disposition']
         pVals = self.makeArgVals(uc, em, esp, len(pTypes))
 
-        # Add Lookup for access mask
 
         if pVals[2] != 0x0:
             oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em)
@@ -13443,8 +13464,13 @@ class CustomWinSysCalls():
             name = read_unicode(uc, us.Buffer)
             pVals[2] = makeStructVals(uc, oa, pVals[2])
             pVals[2][2][2] = name
-            rkey = RegKey(name)
-            uc.mem_write(pVals[0],pack('<I',rkey.handle.value))
+            if "\\Registry\\Machine" in name: # Special ObjectName Handling
+                name = name.replace("\\Registry\\Machine","HKEY_LOCAL_MACHINE")
+            elif "\\Registry\\User" in name:
+                name = name.replace("\\Registry\\User","HKEY_USERS")
+            rKey = RegKey(name)
+            art.registry_add_keys.add(rKey.path)
+            uc.mem_write(pVals[0],pack('<I',rKey.handle.value))
         else:
             pVals[2] = hex(pVals[2])
 
@@ -13454,8 +13480,9 @@ class CustomWinSysCalls():
         else:
             pVals[4] = hex(pVals[4])
 
-        # Add Registry Stuff 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,4])
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.ACCESS_MASK.RegKey)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2,4])
 
         retVal = 0
         retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
@@ -13464,8 +13491,111 @@ class CustomWinSysCalls():
 
         return logged_calls
 
+    def NtSetValueKey(self, uc: Uc, eip, esp, callAddr, em):
+        pTypes =['HANDLE', 'PUNICODE_STRING', 'ULONG', 'ULONG', 'PVOID', 'ULONG']
+        pNames = ['KeyHandle', 'ValueName', 'TitleIndex', 'Type', 'Data', 'DataSize']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
 
+        retVal = 0
+        if pVals[1] != 0x0:
+            uStr = get_UNICODE_STRING(uc, pVals[1], em)
+            valName = read_unicode(uc, uStr.Buffer)
+            uStr = makeStructVals(uc, uStr, pVals[1])
+            valType = RegValueTypes(pVals[3])
+            if pVals[0] in HandlesDict:
+                hKey = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey = RegistryKeys[hKey.name]
+                else:
+                    rKey = RegKey(hKey.name) # Create Key if it doesn't Exist
+                    art.registry_add_keys.add(rKey.path)
+                
+                if valType == RegValueTypes.REG_BINARY:
+                    bin = uc.mem_read(pVals[4],pVals[5])
+                    rKey.setValue(valType,bin,valName)
+                    pVals[4] = bin.hex()
+                elif valType == RegValueTypes.REG_DWORD:
+                    if em.arch == 64:
+                        mem = uc.mem_read(esp+(8*1),4)
+                    else:
+                        mem = uc.mem_read(esp+(4*5),4)
+                    val = unpack('<I',mem)[0]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_DWORD_BIG_ENDIAN:
+                    if em.arch == 64:
+                        mem = uc.mem_read(esp+(8*1),4)
+                    else:
+                        mem = uc.mem_read(esp+(4*5),4)
+                    val = unpack('>I',mem)[0]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_QWORD:
+                    if em.arch == 32:
+                        mem = uc.mem_read(pVals[4],8)
+                        val = unpack('<Q',mem)[0]
+                    else:
+                        val = pVals[4]
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = hex(val)
+                elif valType == RegValueTypes.REG_SZ:
+                    val = read_unicode(uc, pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_EXPAND_SZ:
+                    val = read_unicode(uc, pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_LINK:
+                    val = read_unicode(uc,pVals[4])
+                    rKey.setValue(valType,val,valName)
+                    pVals[4] = val
+                elif valType == RegValueTypes.REG_MULTI_SZ:
+                    mem = uc.mem_read(pVals[4],pVals[5])
+                    hexStrings = mem.hex()
+                    string = bytes.fromhex(hexStrings).decode('utf-16')
+                    multiString = string.split('\x00')[:-1]
+                    rKey.setValue(valType,multiString,valName)
+                    kVal = rKey.getValue(valName)
+                    pVals[4] = kVal.dataAsStr
+                elif valType == RegValueTypes.REG_NONE:
+                    rKey.setValue(valType,pVals[4],valName)
+                registry_key_address = rKey                         
+                written_values = registry_key_address.getValue(valName)
+                art.registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.dataAsStr))
+            else:
+                # Handle Not Found
+                retVal = 3221225480
+                pass
+        else:
+            pVals[1] = hex(pVals[1])
 
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[1])
+    
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls = ["NtSetValueKey", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+        return logged_calls
+
+    def NtClose(self, uc: Uc, eip, esp, callAddr, em):
+        pTypes = ['HANDLE']
+        pNames = ['Handle']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+
+        handle = pVals[0]
+        
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        if handle in HandlesDict:
+            HandlesDict.pop(handle)
+    
+        retVal = 0
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls = ["NtClose", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+        return logged_calls
 
 
 

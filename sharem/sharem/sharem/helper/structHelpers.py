@@ -1,5 +1,7 @@
-from ctypes import c_byte, c_char, c_double, c_float, c_int, c_int32, c_int64, c_longlong, c_short, c_ubyte, c_uint, c_uint32, c_uint64, c_ulonglong, c_ushort, c_wchar
+from ctypes import LittleEndianStructure, c_byte, c_char, c_double, c_float, c_int16, c_int32, c_int64, c_ubyte, c_uint16, c_uint32, c_uint64, c_ushort, c_wchar
 from struct import unpack
+
+from sharem.sharem.helper.ctypesUnion import LittleEndianUnion
 from ..helper.emuHelpers import Uc
 
 # Window C Type Mappings
@@ -20,17 +22,19 @@ UCHAR = c_ubyte
 BOOLEAN = BYTE
 BOOL = c_uint32
 
-USHORT = c_ushort
-SHORT = c_short
+USHORT = c_uint16
+SHORT = c_int16
 
-UINT = c_uint
-INT = c_int
+UINT = c_uint32
+INT = c_int32
 
 ULONG = c_uint32 # Windows LONG is 4 bytes
 LONG = c_int32 # Unix LONG is 8 bytes
 
-ULONGLONG = c_ulonglong
-LONGLONG = c_longlong
+ULONGLONG = c_uint64
+LONGLONG = c_int64
+
+ULONG64 = ULONGLONG
 
 DOUBLE = c_double
 FLOAT = c_float
@@ -89,6 +93,36 @@ POINTER_32BIT = c_uint32 # Base Pointer
 # Pointers to Structures 64 Bit
 POINTER_64BIT = c_uint64 # Base Pointer
 
+# Strcture Meta Class
+# Based on https://blag.nullteilerfrei.de/2021/06/20/prettier-struct-definitions-for-python-ctypes/
+class StructFieldsFromTypeHints(type(LittleEndianStructure)):
+    def __new__(cls, name, bases, namespace):
+        from typing import get_type_hints
+
+        class AnnotationDummy:
+            __annotations__ = namespace.get("__annotations__", {})
+
+        annotations = get_type_hints(AnnotationDummy)
+        namespace["_fields_"] = list(annotations.items())
+        namespace["_pack_"] = 8 # Packing Alignment Windows Default 8
+        return type(LittleEndianStructure).__new__(cls, name, bases, namespace)
+
+# Union Meta Class
+class UnionFieldsFromTypeHints(type(LittleEndianUnion)):
+    def __new__(cls, name, bases, namespace):
+        from typing import get_type_hints
+
+        class AnnotationDummy:
+            __annotations__ = namespace.get("__annotations__", {})
+
+        annotations = get_type_hints(AnnotationDummy)
+        namespace["_fields_"] = list(annotations.items())
+        namespace["_pack_"] = 8 # Packing Alignment Windows Default 8
+        return type(LittleEndianUnion).__new__(cls, name, bases, namespace)
+
+
+
+
 # Helpers
 def read_string(uc: Uc, address: int):
     ret = ""
@@ -136,7 +170,10 @@ def makeStructVals(uc: Uc, struct, address: int):
     try: # Until Names Param is removed
         pNames = struct.names
     except:
-        pNames = list(struct.__slots__)
+        try:
+            pNames = list(struct.__slots__)
+        except:
+            pNames = list(struct.__annotations__.keys())
     lookUps = struct.lookUps
     pVals = []
     for name in pNames:
@@ -146,7 +183,7 @@ def makeStructVals(uc: Uc, struct, address: int):
             value = '' # Empty String if Value Not Found
         if "_Array_" in str(value):
             value = value[:]
-        elif "<sharem." in str(value): 
+        elif "emu_helpers.structures" in str(value): 
             value = makeSubStructVals(uc,value)
         pVals.append(value)
 
@@ -198,7 +235,10 @@ def makeSubStructVals(uc: Uc, struct):
     try: # Until Names Param is removed
         pNames = struct.names
     except:
-        pNames = list(struct.__slots__)
+        try:
+            pNames = list(struct.__slots__)
+        except:
+            pNames = list(struct.__annotations__.keys())
     lookUps = struct.lookUps
     pVals = []
     for name in pNames:
@@ -208,6 +248,8 @@ def makeSubStructVals(uc: Uc, struct):
             pass
         if "_Array_" in str(value):
             value = value[:]
+        # elif "emu_helpers.structures" in str(value): # Needed for Additonal Nested Structures
+        #     value = makeSubStructVals(uc,value)
         pVals.append(value)
 
     for i in range(len(pTypes)):
