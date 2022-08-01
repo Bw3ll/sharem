@@ -59,6 +59,7 @@ class PrintingOutput:
             retType = ret_type[t]
             paramVal = api_params_values[t]
             paramVal_tuple = api_params_values[t]
+            aBruteForce = api_bruteforce[t]
             # print(paramVal)
             for potentialTuple in paramVal:
                 if( type(potentialTuple) == tuple):
@@ -98,7 +99,7 @@ class PrintingOutput:
                     for ptyp, pname, pval in zip(pType, pName, paramVal):
                         text_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
                     text_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
-                if api_bruteforce:
+                if aBruteForce:
                     text_output += "\t{}\n\n".format(whi + "Brute-forced" + res, )
                 else:
                     text_output += "\n"
@@ -125,7 +126,7 @@ class PrintingOutput:
             retVal = ret_values[t]
             retType = ret_type[t]
             paramVal = syscall_params_values[t]
-            bruteForce = syscall_bruteforce[t]
+            sBruteForce = syscall_bruteforce[t]
             sid = syscallID[t]
             # DLL = dll_name[t]
             tuple_flag = 0
@@ -158,7 +159,7 @@ class PrintingOutput:
                         text_output += '\t{} {} {}\n'.format(cya + ptyp, pname + ":" + res, pval)
                     text_output += "\t{} {}\n".format(red + "Return:" + res, retBundle)
                 text_output += "\t{} {} - ({}, SP {})\n".format(red + "EAX: " + res, hex(sid) + res, em.winVersion + res, em.winSP + res)
-                if bruteForce:
+                if sBruteForce:
                     text_output += "\t{}\n\n".format(whi + "Brute-forced" + res, )
                 else:
                     text_output += "\n"
