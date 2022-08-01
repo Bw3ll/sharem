@@ -5,6 +5,7 @@ from sharem.sharem.DLLs.emu_helpers.reverseLookUps import ReverseLookUps
 from sharem.sharem.DLLs.emu_helpers.sim_values import emuSimVals
 
 from sharem.sharem.helper.ctypesUnion import LittleEndianUnion
+from sharem.sharem.helper.emu import EMU
 from sharem.sharem.helper.structHelpers import BOOL, BYTE, DWORD, DWORD_PTR_32BIT, DWORD_PTR_64BIT, HANDLE_32BIT, HANDLE_64BIT, HINSTANCE_32BIT, HINSTANCE_64BIT, HKEY_32BIT, HKEY_64BIT, HWND_32BIT, HWND_64BIT, INT, LONG, LONGLONG, LPBYTE_32BIT, LPBYTE_64BIT, LPCSTR_32BIT, LPCSTR_64BIT, LPCWSTR_32BIT, LPCWSTR_64BIT, LPSTR_32BIT, LPSTR_64BIT, LPVOID_32BIT, LPVOID_64BIT, LPWSTR_32BIT, LPWSTR_64BIT, MAX_PATH, PCHAR_32BIT, PCHAR_64BIT, POINTER_32BIT, POINTER_64BIT, PVOID_32BIT, PVOID_64BIT, PWSTR_32BIT, PWSTR_64BIT, UCHAR, ULONG, ULONG64, ULONG_PTR_32BIT, ULONG_PTR_64BIT, ULONGLONG, USHORT, WCHAR, WORD, CHAR, StructFieldsFromTypeHints, UnionFieldsFromTypeHints
 
 from ...helper.emuHelpers import Uc
@@ -14,7 +15,7 @@ from ...helper.emuHelpers import Uc
 # Alias Names: _PROCESS_INFORMATION
 # Alias Pointer Names: *PPROCESS_INFORMATION, *LPPROCESS_INFORMATION
 
-def get_PROCESS_INFORMATION(uc: Uc, address: int, em):
+def get_PROCESS_INFORMATION(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return PROCESS_INFORMATION.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(PROCESS_INFORMATION.ARCH32)))
     else:
@@ -140,7 +141,7 @@ class PROCESS_INFORMATION:
 # Alias Names: tagPROCESSENTRY32
 # Alias Pointer Names: 
 
-def get_PROCESSENTRY32(uc: Uc, address: int, em):
+def get_PROCESSENTRY32(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return PROCESSENTRY32.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(PROCESSENTRY32.ARCH32)))
     else:
@@ -194,7 +195,7 @@ class PROCESSENTRY32:
 # Alias Names: tagPROCESSENTRY32W
 # Alias Pointer Names: 
 
-def get_PROCESSENTRY32W(uc: Uc, address: int, em):
+def get_PROCESSENTRY32W(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return PROCESSENTRY32W.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(PROCESSENTRY32W.ARCH32)))
     else:
@@ -331,7 +332,7 @@ class MODULEENTRY32: # Needs Redone
 # Alias Names: _SYSTEMTIME
 # Alias Pointer Names: *PSYSTEMTIME, *LPSYSTEMTIME
 
-def get_SYSTEMTIME(uc: Uc, address: int, em):
+def get_SYSTEMTIME(uc: Uc, address: int, em: EMU):
     return SYSTEMTIME.from_buffer_copy(uc.mem_read(address, sizeof(SYSTEMTIME)))
 
 # Struct Aliases:
@@ -388,7 +389,7 @@ class SYSTEMTIME(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
 # Alias Names: _SYSTEM_INFO
 # Alias Pointer Names: *LPSYSTEM_INFO
 
-def get_SYSTEM_INFO(uc: Uc, address: int, em):
+def get_SYSTEM_INFO(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return SYSTEM_INFO.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(SYSTEM_INFO.ARCH32)))
     else:
@@ -455,7 +456,7 @@ class SYSTEM_INFO:
 # Alias Names: _LIST_ENTRY
 # Alias Pointer Names: *PLIST_ENTRY, PRLIST_ENTRY
 
-def get_LIST_ENTRY(uc: Uc, address: int, em):
+def get_LIST_ENTRY(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return LIST_ENTRY.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(LIST_ENTRY.ARCH32)))
     else:
@@ -496,7 +497,7 @@ class LIST_ENTRY:
 # Alias Names: _SINGLE_LIST_ENTRY
 # Alias Pointer Names: *PSINGLE_LIST_ENTRY
 
-def get_SINGLE_LIST_ENTRY(uc: Uc, address: int, em):
+def get_SINGLE_LIST_ENTRY(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return SINGLE_LIST_ENTRY.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(SINGLE_LIST_ENTRY.ARCH32)))
     else:
@@ -535,7 +536,7 @@ class SINGLE_LIST_ENTRY:
 # Alias Names: _FILETIME
 # Alias Pointer Names: PFILETIME, LPFILETIME
 
-def get_FILETIME(uc: Uc, address: int, em):
+def get_FILETIME(uc: Uc, address: int, em: EMU):
     return FILETIME.from_buffer_copy(uc.mem_read(address, sizeof(FILETIME)))
 
 # Struct Aliases:
@@ -570,7 +571,7 @@ class FILETIME(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
 # Alias Names: _UNICODE_STRING
 # Alias Pointer Names: PUNICODE_STRING
 
-def get_UNICODE_STRING(uc: Uc, address: int, em):
+def get_UNICODE_STRING(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return UNICODE_STRING.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(UNICODE_STRING.ARCH32)))
     else:
@@ -613,7 +614,7 @@ class UNICODE_STRING:
 # Alias Names: _STRING
 # Alias Pointer Names:
 
-def get_STRING(uc: Uc, address: int, em):
+def get_STRING(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return STRING.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(STRING.ARCH32)))
     else:
@@ -652,7 +653,7 @@ class STRING:
 # Alias Names: _TIME_ZONE_INFORMATION
 # Alias Pointer Names: *PTIME_ZONE_INFORMATION, *LPTIME_ZONE_INFORMATION
 
-def get_TIME_ZONE_INFORMATION(uc: Uc, address: int, em):
+def get_TIME_ZONE_INFORMATION(uc: Uc, address: int, em: EMU):
     return TIME_ZONE_INFORMATION.from_buffer_copy(uc.mem_read(address, sizeof(TIME_ZONE_INFORMATION)))
 
 # Struct Aliases:
@@ -685,7 +686,7 @@ class TIME_ZONE_INFORMATION(LittleEndianStructure, metaclass=StructFieldsFromTyp
 # Alias Names: _REG_TZI_FORMAT
 # Alias Pointer Names:
 
-def get_REG_TZI_FORMAT(uc: Uc, address: int, em):
+def get_REG_TZI_FORMAT(uc: Uc, address: int, em: EMU):
     return REG_TZI_FORMAT.from_buffer_copy(uc.mem_read(address, sizeof(REG_TZI_FORMAT)))
 
 # Struct Aliases:
@@ -709,7 +710,7 @@ class REG_TZI_FORMAT(LittleEndianStructure, metaclass=StructFieldsFromTypeHints)
 # Alias Names:
 # Alias Pointer Names: *LPSTARTUPINFOA
 
-def get_STARTUPINFOA(uc: Uc, address: int, em):
+def get_STARTUPINFOA(uc: Uc, address: int, em: EMU):
         if em.arch == 32:
             return STARTUPINFOA.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(STARTUPINFOA.ARCH32)))
         else:
@@ -775,7 +776,7 @@ class STARTUPINFOA:
 # Alias Names: _STARTUPINFOW
 # Alias Pointer Names: *LPSTARTUPINFOW
 
-def get_STARTUPINFOW(uc: Uc, address: int, em):
+def get_STARTUPINFOW(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return STARTUPINFOW.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(STARTUPINFOW.ARCH32)))
     else:
@@ -845,7 +846,7 @@ class STARTUPINFOW:
 # Alias Names: _OBJECT_ATTRIBUTES
 # Alias Pointer Names: POBJECT_ATTRIBUTES
 
-def get_OBJECT_ATTRIBUTES(uc: Uc, address: int, em):
+def get_OBJECT_ATTRIBUTES(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return OBJECT_ATTRIBUTES.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(OBJECT_ATTRIBUTES.ARCH32)))
     else:
@@ -891,7 +892,7 @@ class OBJECT_ATTRIBUTES:
             uc.mem_write(address, bytes(self))
 
 
-def get_LARGE_INTEGER(uc: Uc, address: int, em):
+def get_LARGE_INTEGER(uc: Uc, address: int, em: EMU):
     return LARGE_INTEGER.from_buffer_copy(uc.mem_read(address, sizeof(LARGE_INTEGER)))
 
 # Struct Aliases:
@@ -921,7 +922,7 @@ class LARGE_INTEGER(LittleEndianUnion, metaclass=UnionFieldsFromTypeHints):
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
 
-def get_ULARGE_INTEGER(uc: Uc, address: int, em):
+def get_ULARGE_INTEGER(uc: Uc, address: int, em: EMU):
     return LARGE_INTEGER.from_buffer_copy(uc.mem_read(address, sizeof(ULARGE_INTEGER)))
 
 # Struct Aliases:
@@ -955,7 +956,7 @@ class ULARGE_INTEGER(LittleEndianUnion, metaclass=UnionFieldsFromTypeHints):
 # Alias Names: _GUID
 # Alias Pointer Names:
 
-def get_GUID(uc: Uc, address: int, em):
+def get_GUID(uc: Uc, address: int, em: EMU):
     return GUID.from_buffer_copy(uc.mem_read(address, sizeof(GUID)))
 
 # Struct Aliases:
@@ -979,7 +980,7 @@ class GUID(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
 # Alias Names: _SECURITY_ATTRIBUTES
 # Alias Pointer Names: *PSECURITY_ATTRIBUTES, *LPSECURITY_ATTRIBUTES
 
-def get_SECURITY_ATTRIBUTES(uc: Uc, address: int, em):
+def get_SECURITY_ATTRIBUTES(uc: Uc, address: int, em: EMU):
         if em.arch == 32:
             return SECURITY_ATTRIBUTES.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(SECURITY_ATTRIBUTES.ARCH32)))
         else:
@@ -1024,7 +1025,7 @@ class SECURITY_ATTRIBUTES:
 # Alias Names: VALENTA
 # Alias Pointer Names: *PVALENTA
 
-def get_value_entA(uc: Uc, address: int, em):
+def get_value_entA(uc: Uc, address: int, em: EMU):
         if em.arch == 32:
             return value_entA.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(value_entA.ARCH32)))
         else:
@@ -1069,7 +1070,7 @@ class value_entA:
 # Alias Names: VALENTW
 # Alias Pointer Names: *PVALENTW
 
-def get_value_entW(uc: Uc, address: int, em):
+def get_value_entW(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return value_entW.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(value_entW.ARCH32)))
     else:
@@ -1114,7 +1115,7 @@ class value_entW:
 # Alias Names: _DISPLAY_DEVICEA
 # Alias Pointer Names:  *PDISPLAY_DEVICEA, *LPDISPLAY_DEVICEA;
 
-def get_DISPLAY_DEVICEA(uc: Uc, address: int, em):
+def get_DISPLAY_DEVICEA(uc: Uc, address: int, em: EMU):
     return DISPLAY_DEVICEA.from_buffer_copy(uc.mem_read(address, sizeof(DISPLAY_DEVICEA)))
 
 # Struct Aliases:
@@ -1153,7 +1154,7 @@ class DISPLAY_DEVICEA(LittleEndianStructure, metaclass=StructFieldsFromTypeHints
 # Alias Names: _DISPLAY_DEVICEW
 # Alias Pointer Names: PDISPLAY_DEVICEW, LPDISPLAY_DEVICEW
 
-def get_DISPLAY_DEVICEW(uc: Uc, address: int, em):
+def get_DISPLAY_DEVICEW(uc: Uc, address: int, em: EMU):
     return DISPLAY_DEVICEW.from_buffer_copy(uc.mem_read(address, sizeof(DISPLAY_DEVICEW)))
 
 # Struct Aliases:
@@ -1193,7 +1194,7 @@ class DISPLAY_DEVICEW(LittleEndianStructure, metaclass=StructFieldsFromTypeHints
 ## Alias Names: _VIDEOPARAMETERS
 ## Alias Pointer Names: *PVIDEOPARAMETERS
 
-#def get_VIDEOPARAMETERS(uc: Uc, address: int, em):
+#def get_VIDEOPARAMETERS(uc: Uc, address: int, em: EMU):
 #    return VIDEOPARAMETERS.from_buffer_copy(uc.mem_read(address, sizeof(VIDEOPARAMETERS)))
 
 ## Struct Aliases:
@@ -1217,7 +1218,7 @@ class DISPLAY_DEVICEW(LittleEndianStructure, metaclass=StructFieldsFromTypeHints
 # Alias Names: SHELLEXECUTEINFOA
 # Alias Pointer Names: *LPSHELLEXECUTEINFOA
 
-def get_SHELLEXECUTEINFOA(uc: Uc, address: int, em):
+def get_SHELLEXECUTEINFOA(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return SHELLEXECUTEINFOA.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(SHELLEXECUTEINFOA.ARCH32)))
     else:
@@ -1302,7 +1303,7 @@ class SHELLEXECUTEINFOA:
 # Alias Names: SHELLEXECUTEINFOW
 # Alias Pointer Names: *LPSHELLEXECUTEINFOW
 
-def get_SHELLEXECUTEINFOW(uc: Uc, address: int, em):
+def get_SHELLEXECUTEINFOW(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return SHELLEXECUTEINFOW.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(SHELLEXECUTEINFOW.ARCH32)))
     else:
@@ -1387,7 +1388,7 @@ class SHELLEXECUTEINFOW:
 # Alias Names: _WSAPROTOCOLCHAIN
 # Alias Pointer Names: LPWSAPROTOCOLCHAIN
 
-def get_WSAPROTOCOLCHAIN(uc: Uc, address: int, em):
+def get_WSAPROTOCOLCHAIN(uc: Uc, address: int, em: EMU):
     return WSAPROTOCOLCHAIN.from_buffer_copy(uc.mem_read(address, sizeof(WSAPROTOCOLCHAIN)))
 
 # Struct Aliases:
@@ -1413,7 +1414,7 @@ class WSAPROTOCOLCHAIN(LittleEndianStructure, metaclass=StructFieldsFromTypeHint
 # Alias Names: _WSAPROTOCOL_INFOA
 # Alias Pointer Names: LPWSAPROTOCOL_INFOA
 
-def get_WSAPROTOCOL_INFOA(uc: Uc, address: int, em):
+def get_WSAPROTOCOL_INFOA(uc: Uc, address: int, em: EMU):
     return WSAPROTOCOL_INFOA.from_buffer_copy(uc.mem_read(address, sizeof(WSAPROTOCOL_INFOA)))
 
 # Struct Aliases:
@@ -1456,7 +1457,7 @@ class WSAPROTOCOL_INFOA(LittleEndianStructure, metaclass=StructFieldsFromTypeHin
 # Alias Names: _WSAPROTOCOL_INFOW
 # Alias Pointer Names: LPWSAPROTOCOL_INFOW
 
-def get_WSAPROTOCOL_INFOW(uc: Uc, address: int, em):
+def get_WSAPROTOCOL_INFOW(uc: Uc, address: int, em: EMU):
     return WSAPROTOCOL_INFOW.from_buffer_copy(uc.mem_read(address, sizeof(WSAPROTOCOL_INFOW)))
 
 # Struct Aliases:
@@ -1499,7 +1500,7 @@ class WSAPROTOCOL_INFOW(LittleEndianStructure, metaclass=StructFieldsFromTypeHin
 # Alias Names: _OVERLAPPED
 # Alias Pointer Names: LPWSAPROTOCOL_INFOW
 
-# def get_OVERLAPPED(uc: Uc, address: int, em):
+# def get_OVERLAPPED(uc: Uc, address: int, em: EMU):
     # return OVERLAPPED.from_buffer_copy(uc.mem_read(address, sizeof(OVERLAPPED)))
 
 # Struct Aliases:
@@ -1534,7 +1535,7 @@ class WSAPROTOCOL_INFOW(LittleEndianStructure, metaclass=StructFieldsFromTypeHin
 # Alias Names: _WIN32_FIND_DATAA
 # Alias Pointer Names: WIN32_FIND_DATAA
 
-def get_WIN32_FIND_DATAA(uc: Uc, address: int, em):
+def get_WIN32_FIND_DATAA(uc: Uc, address: int, em: EMU):
     return WIN32_FIND_DATAA.from_buffer_copy(uc.mem_read(address, sizeof(WIN32_FIND_DATAA)))
 
 # Struct Aliases:
@@ -1585,7 +1586,7 @@ class WIN32_FIND_DATAA(LittleEndianStructure, metaclass=StructFieldsFromTypeHint
 # Alias Names: _WIN32_FIND_DATAW
 # Alias Pointer Names: *PWIN32_FIND_DATAW, *LPWIN32_FIND_DATAW
 
-def get_WIN32_FIND_DATAW(uc: Uc, address: int, em):
+def get_WIN32_FIND_DATAW(uc: Uc, address: int, em: EMU):
     return WIN32_FIND_DATAW.from_buffer_copy(uc.mem_read(address, sizeof(WIN32_FIND_DATAW)))
 
 # Struct Aliases:
@@ -1623,7 +1624,7 @@ class WIN32_FIND_DATAW(LittleEndianStructure, metaclass=StructFieldsFromTypeHint
 # Alias Names: _NETRESOURCEA
 # Alias Pointer Names: LPNETRESOURCEA
 
-def get_NETRESOURCEA(uc: Uc, address: int, em):
+def get_NETRESOURCEA(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return NETRESOURCEA.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(NETRESOURCEA.ARCH32)))
     else:
@@ -1676,7 +1677,7 @@ class NETRESOURCEA:
 # Alias Names: _NETRESOURCEW
 # Alias Pointer Names: LPNETRESOURCEW
 
-def get_NETRESOURCEW(uc: Uc, address: int, em):
+def get_NETRESOURCEW(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return NETRESOURCEW.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(NETRESOURCEW.ARCH32)))
     else:
@@ -1730,7 +1731,7 @@ class NETRESOURCEW:
 # Alias Names: _OSVERSIONINFOA
 # Alias Pointer Names: POSVERSIONINFOA, LPOSVERSIONINFOA
 
-def get_OSVERSIONINFOA(uc: Uc, address: int, em):
+def get_OSVERSIONINFOA(uc: Uc, address: int, em: EMU):
     return OSVERSIONINFOA.from_buffer_copy(uc.mem_read(address, sizeof(OSVERSIONINFOA)))
 
 # Struct Aliases:
@@ -1762,7 +1763,7 @@ class OSVERSIONINFOA(LittleEndianStructure, metaclass=StructFieldsFromTypeHints)
 # Alias Names: _OSVERSIONINFOW, RTL_OSVERSIONINFOW
 # Alias Pointer Names: POSVERSIONINFOW, LPOSVERSIONINFOW, PRTL_OSVERSIONINFOW
 
-def get_OSVERSIONINFOW(uc: Uc, address: int, em):
+def get_OSVERSIONINFOW(uc: Uc, address: int, em: EMU):
     return OSVERSIONINFOW.from_buffer_copy(uc.mem_read(address, sizeof(OSVERSIONINFOW)))
 
 # Struct Aliases:
@@ -1796,7 +1797,7 @@ class OSVERSIONINFOW(LittleEndianStructure, metaclass=StructFieldsFromTypeHints)
 # Alias Names: _OSVERSIONINFOEXA
 # Alias Pointer Names: POSVERSIONINFOEXA, LPOSVERSIONINFOEXA
 
-def get_OSVERSIONINFOEXA(uc: Uc, address: int, em):
+def get_OSVERSIONINFOEXA(uc: Uc, address: int, em: EMU):
     return OSVERSIONINFOEXA.from_buffer_copy(uc.mem_read(address, sizeof(OSVERSIONINFOEXA)))
 
 # Struct Aliases:
@@ -1832,7 +1833,7 @@ class OSVERSIONINFOEXA(LittleEndianStructure, metaclass=StructFieldsFromTypeHint
 # Alias Names: _OSVERSIONINFOEXW, RTL_OSVERSIONINFOEXW
 # Alias Pointer Names: POSVERSIONINFOEXW, LPOSVERSIONINFOEXW, PRTL_OSVERSIONINFOEXW
 
-def get_OSVERSIONINFOEXW(uc: Uc, address: int, em):
+def get_OSVERSIONINFOEXW(uc: Uc, address: int, em: EMU):
     return OSVERSIONINFOEXW.from_buffer_copy(uc.mem_read(address, sizeof(OSVERSIONINFOEXW)))
 
 # Struct Aliases:
@@ -1872,7 +1873,7 @@ class OSVERSIONINFOEXW(LittleEndianStructure, metaclass=StructFieldsFromTypeHint
 # Alias Names: _CREATEFILE2_EXTENDED_PARAMETERS
 # Alias Pointer Names: PCREATEFILE2_EXTENDED_PARAMETERS, LPCREATEFILE2_EXTENDED_PARAMETERS
 
-def get_CREATEFILE2_EXTENDED_PARAMETERS(uc: Uc, address: int, em):
+def get_CREATEFILE2_EXTENDED_PARAMETERS(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return CREATEFILE2_EXTENDED_PARAMETERS.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(CREATEFILE2_EXTENDED_PARAMETERS.ARCH32)))
     else:
@@ -1927,7 +1928,7 @@ PCOPYFILE2_PROGRESS_ROUTINE_64BIT = POINTER_64BIT
 # Alias Names: _COPYFILE2_EXTENDED_PARAMETERS
 # Alias Pointer Names:
 
-def get_COPYFILE2_EXTENDED_PARAMETERS(uc: Uc, address: int, em):
+def get_COPYFILE2_EXTENDED_PARAMETERS(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return COPYFILE2_EXTENDED_PARAMETERS.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(COPYFILE2_EXTENDED_PARAMETERS.ARCH32)))
     else:
@@ -1970,7 +1971,7 @@ class COPYFILE2_EXTENDED_PARAMETERS:
 # Alias Names: _INTERNET_BUFFERSA
 # Alias Pointer Names: LPINTERNET_BUFFERSA
 
-def get_INTERNET_BUFFERSA(uc: Uc, address: int, em):
+def get_INTERNET_BUFFERSA(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return INTERNET_BUFFERSA.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(INTERNET_BUFFERSA.ARCH32)))
     else:
@@ -2027,7 +2028,7 @@ class INTERNET_BUFFERSA:
 # Alias Names: _INTERNET_BUFFERSW
 # Alias Pointer Names: LPINTERNET_BUFFERSW
 
-def get_INTERNET_BUFFERSW(uc: Uc, address: int, em):
+def get_INTERNET_BUFFERSW(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return INTERNET_BUFFERSW.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(INTERNET_BUFFERSW.ARCH32)))
     else:
@@ -2084,7 +2085,7 @@ class INTERNET_BUFFERSW:
 # Alias Names: _MEMORY_PRIORITY_INFORMATION
 # Alias Pointer Names: PMEMORY_PRIORITY_INFORMATION
 
-def get_MEMORY_PRIORITY_INFORMATION(uc: Uc, address: int, em):
+def get_MEMORY_PRIORITY_INFORMATION(uc: Uc, address: int, em: EMU):
     return MEMORY_PRIORITY_INFORMATION.from_buffer_copy(uc.mem_read(address, sizeof(MEMORY_PRIORITY_INFORMATION)))
 
 # Struct Aliases:
@@ -2108,7 +2109,7 @@ class MEMORY_PRIORITY_INFORMATION(LittleEndianStructure, metaclass=StructFieldsF
 # Alias Names: _LUID
 # Alias Pointer Names: PLUID
 
-def get_LUID(uc: Uc, address: int, em):
+def get_LUID(uc: Uc, address: int, em: EMU):
     return LUID.from_buffer_copy(uc.mem_read(address, sizeof(LUID)))
 
 # Struct Aliases:
@@ -2133,7 +2134,7 @@ class LUID(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
 # Alias Names: _LUID_AND_ATTRIBUTES
 # Alias Pointer Names: PLUID_AND_ATTRIBUTES
 
-def get_LUID_AND_ATTRIBUTES(uc: Uc, address: int, em):
+def get_LUID_AND_ATTRIBUTES(uc: Uc, address: int, em: EMU):
     return LUID_AND_ATTRIBUTES.from_buffer_copy(uc.mem_read(address, sizeof(LUID_AND_ATTRIBUTES)))
 
 # Struct Aliases:
@@ -2158,7 +2159,7 @@ class LUID_AND_ATTRIBUTES(LittleEndianStructure, metaclass=StructFieldsFromTypeH
 # Alias Names: _TOKEN_PRIVILEGES
 # Alias Pointer Names: PTOKEN_PRIVILEGES
 
-def get_TOKEN_PRIVILEGES(uc: Uc, address: int, em):
+def get_TOKEN_PRIVILEGES(uc: Uc, address: int, em: EMU):
     return TOKEN_PRIVILEGES.from_buffer_copy(uc.mem_read(address, sizeof(TOKEN_PRIVILEGES)))
 
 # Struct Aliases:
@@ -2186,7 +2187,7 @@ class TOKEN_PRIVILEGES(LittleEndianStructure, metaclass=StructFieldsFromTypeHint
 # Alias Names: _INTERNET_CACHE_ENTRY_INFOA
 # Alias Pointer Names: LPINTERNET_CACHE_ENTRY_INFOA
 
-def get_INTERNET_BUFFERSW(uc: Uc, address: int, em):
+def get_INTERNET_BUFFERSW(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return INTERNET_BUFFERSW.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(INTERNET_BUFFERSW.ARCH32)))
     else:
@@ -2239,7 +2240,7 @@ class INTERNET_CACHE_ENTRY_INFOA:
 # Alias Names: 
 # Alias Pointer Names: 
 
-def get_IO_STATUS_BLOCK(uc: Uc, address: int, em):
+def get_IO_STATUS_BLOCK(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return IO_STATUS_BLOCK.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(IO_STATUS_BLOCK.ARCH32)))
     else:
@@ -2298,7 +2299,7 @@ class IO_STATUS_BLOCK:
 # Alias Names: _INTERNET_CACHE_ENTRY_INFOW
 # Alias Pointer Names: LPINTERNET_CACHE_ENTRY_INFOW
 
-def get_INTERNET_CACHE_ENTRY_INFOW(uc: Uc, address: int, em):
+def get_INTERNET_CACHE_ENTRY_INFOW(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return INTERNET_CACHE_ENTRY_INFOW.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(INTERNET_CACHE_ENTRY_INFOW.ARCH32)))
 
@@ -2380,7 +2381,7 @@ class INTERNET_CACHE_ENTRY_INFOW:
 # Alias Names: _CLIENT_ID
 # Alias Pointer Names: PCLIENT_ID 
 
-def get_CLIENT_ID(uc: Uc, address: int, em):
+def get_CLIENT_ID(uc: Uc, address: int, em: EMU):
     if em.arch == 32:
         return CLIENT_ID.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(CLIENT_ID.ARCH32)))
 
@@ -2422,7 +2423,7 @@ class CLIENT_ID(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
 # Alias Names: _MIB_IPNETROW
 # Alias Pointer Names: PMIB_IPNETROW
 
-def get_MIB_IPNETROW(uc: Uc, address: int, em):
+def get_MIB_IPNETROW(uc: Uc, address: int, em: EMU):
     return MIB_IPNETROW.from_buffer_copy(uc.mem_read(address, sizeof(MIB_IPNETROW)))
 
 # Struct Aliases:
@@ -2460,7 +2461,7 @@ class MIB_IPNETROW(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
 # Alias Names: _MIB_IPNETTABLE
 # Alias Pointer Names: PMIB_IPNETTABLE
 
-def get_MIB_IPNETTABLE(uc: Uc, address: int, em):
+def get_MIB_IPNETTABLE(uc: Uc, address: int, em: EMU):
     return MIB_IPNETTABLE.from_buffer_copy(uc.mem_read(address, sizeof(MIB_IPNETTABLE)))
 
 # Struct Aliases:
@@ -2487,7 +2488,7 @@ class MIB_IPNETTABLE(LittleEndianStructure, metaclass=StructFieldsFromTypeHints)
 # Alias Names: _APP_MEMORY_INFORMATION
 # Alias Pointer Names: PAPP_MEMORY_INFORMATION
 
-def get_APP_MEMORY_INFORMATION(uc: Uc, address: int, em):
+def get_APP_MEMORY_INFORMATION(uc: Uc, address: int, em: EMU):
     return APP_MEMORY_INFORMATION.from_buffer_copy(uc.mem_read(address, sizeof(APP_MEMORY_INFORMATION)))
 
 # Struct Aliases:
