@@ -183,7 +183,7 @@ def makeStructVals(uc: Uc, struct, address: int):
             value = '' # Empty String if Value Not Found
         if "_Array_" in str(value):
             value = value[:]
-        elif "<sharem." in str(value): 
+        elif "emu_helpers.structures" in str(value): 
             value = makeSubStructVals(uc,value)
         pVals.append(value)
 
@@ -248,6 +248,8 @@ def makeSubStructVals(uc: Uc, struct):
             pass
         if "_Array_" in str(value):
             value = value[:]
+        # elif "emu_helpers.structures" in str(value): # Needed for Additonal Nested Structures
+        #     value = makeSubStructVals(uc,value)
         pVals.append(value)
 
     for i in range(len(pTypes)):

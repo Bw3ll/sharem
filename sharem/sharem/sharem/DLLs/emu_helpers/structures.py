@@ -2509,3 +2509,4 @@ class APP_MEMORY_INFORMATION(LittleEndianStructure, metaclass=StructFieldsFromTy
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
+
