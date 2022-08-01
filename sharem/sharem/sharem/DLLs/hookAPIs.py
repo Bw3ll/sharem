@@ -13124,14 +13124,68 @@ class CustomWinAPIs():
         logged_calls= ("FindFirstFileA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def NtClose(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
-        logged_calls = CustomWinSysCalls().WinAPItoSyscall(uc,eip,esp,callAddr,em,CustomWinSysCalls().NtClose)
-        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+    
 
+
+
+    # Place Other Function Above Here
+
+
+    # Windows API Nt Functions that Call Syscalls
     def NtCreateProcess(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
-        logged_calls = CustomWinSysCalls().WinAPItoSyscall(uc,eip,esp,callAddr,em,CustomWinSysCalls().NtCreateProcess)
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtCreateProcess)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
 
+    def NtTerminateProcess(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtTerminateProcess)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+
+    def NtCreateThread(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtCreateThread)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+
+    def NtCreateThreadEx(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtCreateThreadEx)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+
+    def NtTerminateThread(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtTerminateThread)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+
+    def NtAllocateVirtualMemory(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtAllocateVirtualMemory)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+
+    def NtWriteVirtualMemory(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtWriteVirtualMemory)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+    
+    def NtReadVirtualMemory(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtReadVirtualMemory)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+
+    def NtShutdownSystem(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtShutdownSystem)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+    
+    def NtCreateNamedPipeFile(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtCreateNamedPipeFile)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+    
+    def NtCreateKey(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtCreateKey)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+    
+    def NtSetValueKey(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtSetValueKey)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+    
+    def NtClose(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtClose)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+    
+    # Only Place Nt Functions here
+    # Place Others Above Nt Section
 
 
 class CustomWinSysCalls():
@@ -13173,7 +13227,7 @@ class CustomWinSysCalls():
                 arg = unpack('<I', arg)[0]
         return arg
 
-    def WinAPItoSyscall(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU, syscall: Callable[[Uc,int,int,int,EMU],list]):
+    def winApiToSyscall(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU, syscall: Callable[[Uc,int,int,int,EMU],list]):
         if em.arch == 32: # Needs improvements
             if em.winVersion == "Windows 7":
                 esp = uc.reg_write(UC_X86_REG_EDX, (esp + 4))# Params start at value edx
@@ -13664,7 +13718,7 @@ def stackCleanup(uc: Uc, em: EMU, esp: int, numParams: int):
     return bytes
     # uc.reg_write(UC_X86_REG_ESP, esp + bytes)
 
-def findStringsParms(uc: Uc, pTypes, pVals, skip):
+def findStringsParms(uc: Uc, pTypes: 'list[str]', pVals: 'list', skip: 'list[int]'):
     i = 0
     for each in pTypes:
         if i not in skip:
