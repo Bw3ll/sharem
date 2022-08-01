@@ -22243,13 +22243,13 @@ def build_emu_results(apiList):
 		api_params_values.append(i[4])
 		api_params_types.append(i[5])
 		api_params_names.append(i[6])
-		api_bruteforce = i[7]
+		api_bruteforce.append(i[7])
 		# try:
 		# 	dll_name.append(i[8])
 		# except:
 		# 	dll_name.append("")
 		if len(i) > 8:
-			sysCallID = i[8]
+			sysCallID.append(i[8])
 
 	return api_names, api_params_values, api_params_types, api_params_names, api_address, ret_values, ret_type, api_bruteforce, sysCallID
 
