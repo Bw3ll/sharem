@@ -2511,3 +2511,57 @@ class APP_MEMORY_INFORMATION(LittleEndianStructure, metaclass=StructFieldsFromTy
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
 
+
+# Struct MEMORY_BASIC_INFORMATION
+# Alias Names: _MEMORY_BASIC_INFORMATION
+# Alias Pointer Names: PMEMORY_BASIC_INFORMATION
+
+def get_MEMORY_BASIC_INFORMATION(uc: Uc, address: int, em):
+    if em.arch == 32:
+        return MEMORY_BASIC_INFORMATION.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(MEMORY_BASIC_INFORMATION.ARCH32)))
+    else:
+        return MEMORY_BASIC_INFORMATION.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(MEMORY_BASIC_INFORMATION.ARCH64)))
+
+# Struct Aliases:
+# get__MEMORY_BASIC_INFORMATION = get_MEMORY_BASIC_INFORMATION
+
+# Struct Pointers:
+PMEMORY_BASIC_INFORMATION_32BIT = POINTER_32BIT
+PMEMORY_BASIC_INFORMATION_64BIT = POINTER_64BIT
+
+class MEMORY_BASIC_INFORMATION:
+
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['PVOID', 'PVOID', 'DWORD', 'WORD', 'SIZE_T', 'DWORD', 'DWORD', 'DWORD']
+        lookUps = {}
+
+        # Struct Members
+        BaseAddress: PVOID_32BIT
+        AllocationBase: PVOID_32BIT
+        AllocationProtect: DWORD
+        PartitionId: WORD
+        RegionSize: SIZE_T
+        State: DWORD
+        Protect: DWORD
+        Type: DWORD
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['PVOID', 'PVOID', 'DWORD', 'WORD', 'SIZE_T', 'DWORD', 'DWORD', 'DWORD']
+        lookUps = {}
+
+        # Struct Members
+        BaseAddress: PVOID_64BIT
+        AllocationBase: PVOID_64BIT
+        AllocationProtect: DWORD
+        PartitionId: WORD
+        RegionSize: SIZE_T
+        State: DWORD
+        Protect: DWORD
+        Type: DWORD
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+

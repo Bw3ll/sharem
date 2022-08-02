@@ -10631,7 +10631,7 @@ class CustomWinAPIs():
         logged_calls= ("DecryptFileA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def xxCryptStringToBinaryA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def CryptStringToBinaryA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= ['LPCSTR', 'DWORD', 'DWORD', 'BYTE', 'DWORD', 'DWORD', 'DWORD']
         pNames= ['pszString', 'cchString', 'dwFlags', '*pbBinary', '*pcbBinary', '*pdwSkip', '*pdwFlags']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -10651,7 +10651,7 @@ class CustomWinAPIs():
         logged_calls= ("CryptStringToBinaryA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def xxCryptBinaryToStringA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def CryptBinaryToStringA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= ['BYTE', 'DWORD', 'DWORD', 'LPSTR', 'DWORD']
         pNames= ['*pbBinary', 'cbBinary', 'dwFlags', 'pszString', '*pcchString']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -10671,7 +10671,7 @@ class CustomWinAPIs():
         logged_calls= ("CryptBinaryToStringA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def xxCryptReleaseContext(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def CryptReleaseContext(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= ['HCRYPTPROV', 'DWORD']
         pNames= ['hProv', 'dwFlags']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -10685,7 +10685,7 @@ class CustomWinAPIs():
         logged_calls= ("CryptReleaseContext", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def xxCryptDestroyHash(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def CryptDestroyHash(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= ['HCRYPTHASH']
         pNames= ['hHash']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -10699,7 +10699,7 @@ class CustomWinAPIs():
         logged_calls= ("CryptDestroyHash", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def xxNetShareGetInfo(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def NetShareGetInfo(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= ['LMSTR', 'LMSTR', 'DWORD', 'LPBYTE']
         pNames= ['servername', 'netname', 'level', '*bufptr']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -10713,7 +10713,7 @@ class CustomWinAPIs():
         logged_calls= ("NetShareGetInfo", hex(callAddr), (retValStr), 'NET_API_STATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def xxNetShareCheck(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def NetShareCheck(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= ['LMSTR', 'LMSTR', 'LPDWORD']
         pNames= ['servername', 'device', 'type']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -10727,7 +10727,7 @@ class CustomWinAPIs():
         logged_calls= ("NetShareCheck", hex(callAddr), (retValStr), 'NET_API_STATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def xxVirtualAllocExNuma(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def VirtualAllocExNuma(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= ['HANDLE', 'LPVOID', 'SIZE_T', 'DWORD', 'DWORD', 'DWORD']
         pNames= ['hProcess', 'lpAddress', 'dwSize', 'flAllocationType', 'flProtect', 'nndPreferred']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -10745,7 +10745,7 @@ class CustomWinAPIs():
         logged_calls= ("VirtualAllocExNuma", hex(callAddr), (retValStr), 'LPVOID', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def xxVirtualAlloc2(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def VirtualAlloc2(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= ['HANDLE', 'PVOID', 'SIZE_T', 'ULONG', 'ULONG', 'MEM_EXTENDED_PARAMETER', 'ULONG']
         pNames= ['Process', 'BaseAddress', 'Size', 'AllocationType', 'PageProtection', '*ExtendedParameters', 'ParameterCount']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -10763,7 +10763,7 @@ class CustomWinAPIs():
         logged_calls= ("VirtualAlloc2", hex(callAddr), (retValStr), 'PVOID', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def xxVirtualAlloc2FromApp(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def VirtualAlloc2FromApp(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= ['HANDLE', 'PVOID', 'SIZE_T', 'ULONG', 'ULONG', 'MEM_EXTENDED_PARAMETER', 'ULONG']
         pNames= ['Process', 'BaseAddress', 'Size', 'AllocationType', 'PageProtection', '*ExtendedParameters', 'ParameterCount']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -10781,7 +10781,7 @@ class CustomWinAPIs():
         logged_calls= ("VirtualAlloc2FromApp", hex(callAddr), (retValStr), 'PVOID', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def xxSetWinEventHook(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def SetWinEventHook(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= ['DWORD', 'DWORD', 'HMODULE', 'WINEVENTPROC', 'DWORD', 'DWORD', 'DWORD']
         pNames= ['eventMin', 'eventMax', 'hmodWinEventProc', 'pfnWinEventProc', 'idProcess', 'idThread', 'dwFlags']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -10795,7 +10795,7 @@ class CustomWinAPIs():
         logged_calls= ("SetWinEventHook", hex(callAddr), (retValStr), 'HWINEVENTHOOK', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def xxUnhookWindowsHookEx(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def UnhookWindowsHookEx(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= ['HHOOK']
         pNames= ['hhk']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -10809,7 +10809,7 @@ class CustomWinAPIs():
         logged_calls= ("UnhookWindowsHookEx", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def xxBitBlt(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def BitBlt(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= ['HDC', 'int', 'int', 'int', 'int', 'HDC', 'int', 'int', 'DWORD']
         pNames= ['hdc', 'x', 'y', 'cx', 'cy', 'hdcSrc', 'x1', 'y1', 'rop']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -10823,7 +10823,7 @@ class CustomWinAPIs():
         logged_calls= ("BitBlt", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def xxStretchBlt(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def StretchBlt(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= ['HDC', 'int', 'int', 'int', 'int', 'HDC', 'int', 'int', 'int', 'int', 'DWORD']
         pNames= ['hdcDest', 'xDest', 'yDest', 'wDest', 'hDest', 'hdcSrc', 'xSrc', 'ySrc', 'wSrc', 'hSrc', 'rop']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -10837,7 +10837,7 @@ class CustomWinAPIs():
         logged_calls= ("StretchBlt", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def xxCreateWindowExA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def CreateWindowExA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= ['DWORD', 'LPCSTR', 'LPCSTR', 'DWORD', 'int', 'int', 'int', 'int', 'HWND', 'HMENU', 'HINSTANCE', 'LPVOID']
         pNames= ['dwExStyle', 'lpClassName', 'lpWindowName', 'dwStyle', 'X', 'Y', 'nWidth', 'nHeight', 'hWndParent', 'hMenu', 'hInstance', 'lpParam']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -10851,7 +10851,7 @@ class CustomWinAPIs():
         logged_calls= ("CreateWindowExA", hex(callAddr), (retValStr), 'HWND', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def xxGetDateFormatA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def GetDateFormatA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= ['LCID', 'DWORD', 'SYSTEMTIME', 'LPCSTR', 'LPSTR', 'int']
         pNames= ['Locale', 'dwFlags', '*lpDate', 'lpFormat', 'lpDateStr', 'cchDate']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -10867,7 +10867,7 @@ class CustomWinAPIs():
         logged_calls= ("GetDateFormatA", hex(callAddr), (retValStr), 'int', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def xxGetTimeFormatW(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def GetTimeFormatW(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= ['LCID', 'DWORD', 'SYSTEMTIME', 'LPCWSTR', 'LPWSTR', 'int']
         pNames= ['Locale', 'dwFlags', '*lpTime', 'lpFormat', 'lpTimeStr', 'cchTime']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -10884,7 +10884,7 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
 
-    def xxGetIpNetTable(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def GetIpNetTable(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= ['PMIB_IPNETTABLE', 'PULONG', 'BOOL']
         pNames= ['IpNetTable', 'SizePointer', 'Order']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -10898,7 +10898,7 @@ class CustomWinAPIs():
         logged_calls= ("GetIpNetTable", hex(callAddr), (retValStr), 'ULONG', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def xxGetLogicalDrives(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def GetLogicalDrives(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= []
         pNames= []
         pVals = makeArgVals(uc, em, esp, len(pTypes))
