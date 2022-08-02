@@ -1245,6 +1245,21 @@ class CustomWinAPIs():
         logged_calls= ("RegisterRawInputDevices", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    def FreeEnvironmentStringsW(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes= ['LPWCH']
+        pNames= ['penv']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        retVal = 0x88888888
+
+        retValStr='True'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("FreeEnvironmentStringsW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def HeapCreate(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         # HANDLE HeapCreate([in] DWORD  flOptions,[in] SIZE_T dwInitialSize,[in] SIZE_T dwMaximumSize);
