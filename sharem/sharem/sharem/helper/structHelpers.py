@@ -14,6 +14,8 @@ MAX_PATH = 260
 BYTE = c_byte
 WORD = c_ushort
 DWORD = c_uint32
+SIZE_T_32BIT = c_uint32
+SIZE_T_64BIT = c_uint64
 
 CHAR = c_char
 WCHAR = c_wchar
