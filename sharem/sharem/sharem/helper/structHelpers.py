@@ -14,8 +14,6 @@ MAX_PATH = 260
 BYTE = c_byte
 WORD = c_ushort
 DWORD = c_uint32
-SIZE_T_32BIT = c_uint32
-SIZE_T_64BIT = c_uint64
 
 CHAR = c_char
 WCHAR = c_wchar
@@ -72,6 +70,8 @@ DWORD_PTR_64BIT = c_uint64
 ULONG_PTR_32BIT = c_uint32
 ULONG_PTR_64BIT = c_uint64
 
+SIZE_T_32BIT = ULONG_PTR_32BIT
+SIZE_T_64BIT = ULONG_PTR_64BIT
 
 # Handles 32 Bit
 HANDLE_32BIT = c_uint32 # Base Handle

@@ -6,7 +6,7 @@ from sharem.sharem.DLLs.emu_helpers.sim_values import emuSimVals
 
 from sharem.sharem.helper.ctypesUnion import LittleEndianUnion
 from sharem.sharem.helper.emu import EMU
-from sharem.sharem.helper.structHelpers import BOOL, BYTE, DWORD, DWORD_PTR_32BIT, DWORD_PTR_64BIT, HANDLE_32BIT, HANDLE_64BIT, HINSTANCE_32BIT, HINSTANCE_64BIT, HKEY_32BIT, HKEY_64BIT, HWND_32BIT, HWND_64BIT, INT, LONG, LONGLONG, LPBYTE_32BIT, LPBYTE_64BIT, LPCSTR_32BIT, LPCSTR_64BIT, LPCWSTR_32BIT, LPCWSTR_64BIT, LPSTR_32BIT, LPSTR_64BIT, LPVOID_32BIT, LPVOID_64BIT, LPWSTR_32BIT, LPWSTR_64BIT, MAX_PATH, PCHAR_32BIT, PCHAR_64BIT, POINTER_32BIT, POINTER_64BIT, PVOID_32BIT, PVOID_64BIT, PWSTR_32BIT, PWSTR_64BIT, UCHAR, ULONG, ULONG64, ULONG_PTR_32BIT, ULONG_PTR_64BIT, ULONGLONG, USHORT, WCHAR, WORD, CHAR, StructFieldsFromTypeHints, UnionFieldsFromTypeHints
+from sharem.sharem.helper.structHelpers import BOOL, BYTE, DWORD, DWORD_PTR_32BIT, DWORD_PTR_64BIT, HANDLE_32BIT, HANDLE_64BIT, HINSTANCE_32BIT, HINSTANCE_64BIT, HKEY_32BIT, HKEY_64BIT, HMENU_32BIT, HMENU_64BIT, HWND_32BIT, HWND_64BIT, INT, LONG, LONGLONG, LPBYTE_32BIT, LPBYTE_64BIT, LPCSTR_32BIT, LPCSTR_64BIT, LPCWSTR_32BIT, LPCWSTR_64BIT, LPSTR_32BIT, LPSTR_64BIT, LPVOID_32BIT, LPVOID_64BIT, LPWSTR_32BIT, LPWSTR_64BIT, MAX_PATH, PCHAR_32BIT, PCHAR_64BIT, POINTER_32BIT, POINTER_64BIT, PVOID_32BIT, PVOID_64BIT, PWSTR_32BIT, PWSTR_64BIT, SIZE_T_32BIT, SIZE_T_64BIT, UCHAR, ULONG, ULONG64, ULONG_PTR_32BIT, ULONG_PTR_64BIT, ULONGLONG, USHORT, WCHAR, WORD, CHAR, StructFieldsFromTypeHints, UnionFieldsFromTypeHints
 
 from ...helper.emuHelpers import Uc
 
@@ -2540,7 +2540,7 @@ class MEMORY_BASIC_INFORMATION:
         AllocationBase: PVOID_32BIT
         AllocationProtect: DWORD
         PartitionId: WORD
-        RegionSize: SIZE_T
+        RegionSize: SIZE_T_32BIT
         State: DWORD
         Protect: DWORD
         Type: DWORD
@@ -2557,7 +2557,7 @@ class MEMORY_BASIC_INFORMATION:
         AllocationBase: PVOID_64BIT
         AllocationProtect: DWORD
         PartitionId: WORD
-        RegionSize: SIZE_T
+        RegionSize: SIZE_T_64BIT
         State: DWORD
         Protect: DWORD
         Type: DWORD
@@ -2594,10 +2594,10 @@ class CREATESTRUCTA:
         hInstance: HINSTANCE_32BIT
         hMenu: HMENU_32BIT
         hwndParent: HWND_32BIT
-        cy: int
-        cx: int
-        y: int
-        x: int
+        cy: INT
+        cx: INT
+        y: INT
+        x: INT
         style: LONG
         lpszName: LPCSTR_32BIT
         lpszClass: LPCSTR_32BIT
@@ -2615,10 +2615,10 @@ class CREATESTRUCTA:
         hInstance: HINSTANCE_64BIT
         hMenu: HMENU_64BIT
         hwndParent: HWND_64BIT
-        cy: int
-        cx: int
-        y: int
-        x: int
+        cy: INT
+        cx: INT
+        y: INT
+        x: INT
         style: LONG
         lpszName: LPCSTR_64BIT
         lpszClass: LPCSTR_64BIT
