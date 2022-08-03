@@ -13214,7 +13214,9 @@ class CustomWinSysCalls():
         if em.arch == 32: # Needs improvements
             if em.winVersion == "Windows 7":
                 esp = uc.reg_write(UC_X86_REG_EDX, (esp + 4))# Params start at value edx
-            elif em.winVersion == "Windows 10":
+            elif em.winVersion == "Windows 8":
+                esp = esp
+            elif em.winVersion == "Windows 10" or em.winVersion == "Windows 11":
                 esp = esp - 4
             else: 
                 # other versions of Windows
@@ -13229,7 +13231,9 @@ class CustomWinSysCalls():
         if em.arch == 32: # Needs improvements
             if em.winVersion == "Windows 7":
                 esp = uc.reg_read(UC_X86_REG_EDX) - 4 # Params start at value edx
-            elif em.winVersion == "Windows 10":
+            elif em.winVersion == "Windows 8":
+                esp = esp
+            elif em.winVersion == "Windows 10" or em.winVersion == "Windows 11":
                 esp = esp + 4
             else: 
                 # other versions of Windows
@@ -13263,9 +13267,9 @@ class CustomWinSysCalls():
         return arg
 
     def NtCreateProcess(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
-        pVals = self.makeArgVals(uc, em, esp, 8)
         pTypes = ['PHANDLE', 'ACCESS_MASK', 'POBJECT_ATTRIBUTES', 'HANDLE', 'BOOLEAN', 'HANDLE', 'HANDLE', 'HANDLE']
         pNames = ['ProcessHandle', 'DesiredAccess', 'ObjectAttributes', 'ParentProcess', 'InheritObjectTable', 'SectionHandle', 'DebugPort', 'ExceptionPort']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
 
         if pVals[2] != 0x0:
             oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em)
@@ -13290,9 +13294,9 @@ class CustomWinSysCalls():
         return logged_calls
 
     def NtTerminateProcess(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
-        pVals = self.makeArgVals(uc, em, esp, 2)
         pTypes = ['HANDLE', 'NTSTATUS']
         pNames = ['ProcessHandle', 'ExitStatus']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
 
         if pVals[0] in HandlesDict:
             HandlesDict.pop(pVals[0])
@@ -13309,9 +13313,9 @@ class CustomWinSysCalls():
         return logged_calls
 
     def NtAllocateVirtualMemory(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
-        pVals = self.makeArgVals(uc, em, esp, 6) 
         pTypes = ['HANDLE', 'PVOID', 'ULONG_PTR', 'PSIZE_T', 'ULONG', 'ULONG']
         pNames = ['ProcessHandle', '*BaseAddress', 'ZeroBits', 'RegionSize', 'AllocationType', 'Protect']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes)) 
         
 
         # Get pointer values
@@ -13355,9 +13359,9 @@ class CustomWinSysCalls():
         return logged_calls
 
     def NtReadVirtualMemory(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
-        pVals = self.makeArgVals(uc, em, esp, 5)
         pTypes = ['HANDLE', 'PVOID', 'PVOID', 'ULONG', 'PULONG']
         pNames = ['ProcessHandle', 'BaseAddress', 'Buffer', 'NumberOfBytesToRead', 'NumberOfBytesReaded']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
 
         baseAddress = getPointerVal(uc, pVals[1])
         buffer = getPointerVal(uc, pVals[2])
@@ -13379,9 +13383,9 @@ class CustomWinSysCalls():
         return logged_calls
 
     def NtWriteVirtualMemory(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
-        pVals = self.makeArgVals(uc, em, esp, 5)
         pTypes = ['HANDLE', 'PVOID', 'PVOID', 'ULONG', 'PULONG']
         pNames = ['ProcessHandle', 'BaseAddress', 'Buffer', 'NumberOfBytesToWrite', 'NumberOfBytesWritten']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
 
         baseAddress = getPointerVal(uc, pVals[1])
         buffer = getPointerVal(uc, pVals[2])
@@ -13403,9 +13407,10 @@ class CustomWinSysCalls():
         return logged_calls
 
     def NtShutdownSystem(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
-        pVals = self.makeArgVals(uc, em, esp, 1)
         pTypes = ['SHUTDOWN_ACTION']
         pNames = ['Action']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+
         actionReversLookup = {0: 'ShutdownNoReboot', 1: 'ShutdownReboot', 2: 'ShutdownPowerOff'}
 
         pVals[0] = getLookUpVal(pVals[0], actionReversLookup)
@@ -13420,9 +13425,10 @@ class CustomWinSysCalls():
         return logged_calls
 
     def NtCreateThread(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
-        pVals = self.makeArgVals(uc, em, esp, 8)
         pTypes = ['PHANDLE', 'ACCESS_MASK', 'POBJECT_ATTRIBUTES', 'HANDLE', 'PCLIENT_ID', 'PCONTEXT', 'PINITIAL_TEB', 'BOOLEAN']
         pNames = ['ThreadHandle', 'DesiredAccess', 'ObjectAttributes', 'ProcessHandle', 'ClientId', 'ThreadContext', 'InitialTeb', 'CreateSuspended']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+
         dwDesiredAccessReverseLookUp = {2147483648: 'GENERIC_READ', 1073741824: 'GENERIC_WRITE', 536870912: 'GENERIC_EXECUTE', 268435456: 'GENERIC_ALL', 0xC0000000: 'GENERIC_READ | GENERIC_WRITE'}
 
         if pVals[2] != 0x0:
@@ -13455,9 +13461,10 @@ class CustomWinSysCalls():
         return logged_calls
 
     def NtCreateThreadEx(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
-        pVals = self.makeArgVals(uc, em, esp, 11)
         pTypes = ['PHANDLE', 'ACCESS_MASK', 'POBJECT_ATTRIBUTES', 'HANDLE', 'PVOID', 'PVOID', 'ULONG', 'ULONG', 'ULONG', 'ULONG', 'PVOID']
         pNames = ['ThreadHandle', 'DesiredAccess', 'ObjectAttributes', 'ProcessHandle', 'StartR__OUTine', 'Argument', 'CreateFlags', 'ZeroBits', 'StackSize', 'MaximumStackSize', 'AttributeList']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+
         dwDesiredAccessReverseLookUp = {2147483648: 'GENERIC_READ', 1073741824: 'GENERIC_WRITE', 536870912: 'GENERIC_EXECUTE', 268435456: 'GENERIC_ALL', 0xC0000000: 'GENERIC_READ | GENERIC_WRITE'}
         dwCreateFlagsReverseLookUp = {4: 'CREATE_SUSPENDED', 65536: 'STACK_SIZE_PARAM_IS_A_RESERVATION'}
 
@@ -13492,9 +13499,10 @@ class CustomWinSysCalls():
         return logged_calls
 
     def NtTerminateThread(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
-        pVals = self.makeArgVals(uc, em, esp, 2)
         pTypes = ['HANDLE', 'NTSTATUS']
         pNames = ['ThreadHandle', 'ExitStatus']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+
 
         if pVals[0] in HandlesDict:
             HandlesDict.pop(pVals[0])
@@ -13511,9 +13519,10 @@ class CustomWinSysCalls():
         return logged_calls
 
     def NtCreateNamedPipeFile(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
-        pVals = self.makeArgVals(uc, em, esp, 14)
         pTypes = ['PHANDLE', 'ACCESS_MASK', 'POBJECT_ATTRIBUTES', 'PIO_STATUS_BLOCK', 'ULONG', 'ULONG', 'ULONG', 'BOOLEAN', 'BOOLEAN', 'BOOLEAN', 'ULONG', 'ULONG', 'ULONG', 'PLARGE_INTEGER']
         pNames = ['NamedPipeFileHandle', 'DesiredAccess', 'ObjectAttributes', 'IoStatusBlock', 'ShareAccess', 'CreateDisposition', 'CreateOptions', 'WriteModeMessage', 'ReadModeMessage', 'NonBlocking', 'MaxInstances', 'InBufferSize', 'OutBufferSize', 'DefaultTimeOut']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+
         desiredAccessReverseLookUp = {0x0001: 'FILE_READ_DATA', 0x0002: 'FILE_WRITE_DATA', 0x0004: 'FILE_CREATE_PIPE_INSTANCE', 0x0080: 'FILE_READ_ATTRIBUTES', 0x0100: 'FILE_WRITE_ATTRIBUTES', 0x00100000: 'SYNCHRONIZE', 0x00200000: 'READ_CONTROL', 0x00080000: 'WRITE_OWNER', 0x00040000: 'WRITE_DAC', 0x01000000: 'ACCESS_SYSTEM_SECURITY'}
         shareAccessReverseLookUp = {0x1: 'FILE_SHARE_READ', 0x2: 'FILE_SHARE_WRITE', 0x4: 'FILE_SHARE_DELETE'}
         createDispositionReverseLookUp = {0x00000000: 'FILE_SUPERSEDE', 0x00000001: 'FILE_OPEN', 0x00000002: 'FILE_CREATE', 0x00000003: 'FILE_OPEN_IF', 0x00000004: 'FILE_OVERWRITE', 0x00000005: 'FILE_OVERWRITE_IF', 0x00000005: 'FILE_MAXIMUM_DISPOSITION'}
