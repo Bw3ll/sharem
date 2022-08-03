@@ -13198,6 +13198,11 @@ class CustomWinAPIs():
     def NtClose(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtClose)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+
+    def NtQuerySystemTime(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtQuerySystemTime)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+    
     
     # Only Place Nt Functions here
     # Place Others Above Nt Section
@@ -13689,6 +13694,28 @@ class CustomWinSysCalls():
         uc.reg_write(UC_X86_REG_EAX, retVal)
     
         logged_calls = ["NtClose", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+        return logged_calls
+
+    def NtQuerySystemTime(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = ['PLARGE_INTEGER']
+        pNames = ['SystemTime']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+        
+        if pVals[0] != 0x0:
+            li = get_LARGE_INTEGER(uc, pVals[0], em)
+            timeEpoch = time_ns() # Might Need to Check
+            li.QuadPart = timeEpoch
+            pVals[0] = makeStructVals(uc, li, pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retVal = 0
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls = ["NtQuerySystemTime", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
         return logged_calls
 
 

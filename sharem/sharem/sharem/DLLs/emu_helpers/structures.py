@@ -910,12 +910,21 @@ class LARGE_INTEGER_Helpers:
         # Struct Members
         LowPart: DWORD
         HighPart: LONG
+    
+    class DUMMYSTRUCTNAME(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['DWORD','LONG']
+        lookUps = {}
+
+        # Struct Members
+        LowPart: DWORD
+        HighPart: LONG
 
 class LARGE_INTEGER(LittleEndianUnion, metaclass=UnionFieldsFromTypeHints):
-    types = ['struct','LONGLONG']
+    types = ['struct','struct','LONGLONG']
     lookUps = {}
 
     # Struct Members
+    DUMMYSTRUCTNAME: LARGE_INTEGER_Helpers.DUMMYSTRUCTNAME
     u: LARGE_INTEGER_Helpers.u
     QuadPart: LONGLONG
 
@@ -941,11 +950,20 @@ class ULARGE_INTEGER_Helpers:
         LowPart: DWORD
         HighPart: DWORD
 
+    class DUMMYSTRUCTNAME(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['DWORD','DWORD']
+        lookUps = {}
+
+        # Struct Members
+        LowPart: DWORD
+        HighPart: DWORD
+
 class ULARGE_INTEGER(LittleEndianUnion, metaclass=UnionFieldsFromTypeHints):
     types = ['struct','ULONGLONG']
     lookUps = {}
 
     # Struct Members
+    DUMMYSTRUCTNAME: ULARGE_INTEGER_Helpers.DUMMYSTRUCTNAME
     u: ULARGE_INTEGER_Helpers.u
     QuadPart: ULONGLONG
 
