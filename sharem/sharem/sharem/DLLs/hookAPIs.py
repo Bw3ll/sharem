@@ -13190,6 +13190,21 @@ class CustomWinAPIs():
 
 class CustomWinSysCalls():
 
+    def winApiToSyscall(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU, syscall: Callable[[Uc,int,int,int,EMU],list]):
+        if em.arch == 32: # Needs improvements
+            if em.winVersion == "Windows 7":
+                esp = uc.reg_write(UC_X86_REG_EDX, (esp + 4))# Params start at value edx
+            elif em.winVersion == "Windows 10":
+                esp = esp - 4
+            else: 
+                # other versions of Windows
+                pass
+        else: 
+            # 64 bit syscall versions
+            uc.reg_write(UC_X86_REG_R10, uc.reg_read(UC_X86_REG_RCX)) # mov r10, rcx
+
+        return tuple(syscall(uc, eip, esp, callAddr, em))
+
     def makeArgVals(self, uc: Uc, em: EMU, esp: int, numParams: int):
         if em.arch == 32: # Needs improvements
             if em.winVersion == "Windows 7":
@@ -13226,22 +13241,6 @@ class CustomWinSysCalls():
                 arg = uc.mem_read(esp + (4 * loc), 4)
                 arg = unpack('<I', arg)[0]
         return arg
-
-    def winApiToSyscall(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU, syscall: Callable[[Uc,int,int,int,EMU],list]):
-        if em.arch == 32: # Needs improvements
-            if em.winVersion == "Windows 7":
-                esp = uc.reg_write(UC_X86_REG_EDX, (esp + 4))# Params start at value edx
-            elif em.winVersion == "Windows 10":
-                esp = esp - 4
-            else: 
-                # other versions of Windows
-                pass
-        else: 
-            # 64 bit syscall versions
-            pass
-
-        return tuple(syscall(uc, eip, esp, callAddr, em))
-        
 
     def NtCreateProcess(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
         pVals = self.makeArgVals(uc, em, esp, 8)
