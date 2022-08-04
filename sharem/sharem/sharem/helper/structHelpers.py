@@ -250,8 +250,8 @@ def makeSubStructVals(uc: Uc, struct):
             pass
         if "_Array_" in str(value):
             value = value[:]
-        # elif "emu_helpers.structures" in str(value): # Needed for Additonal Nested Structures
-        #     value = makeSubStructVals(uc,value)
+        elif "emu_helpers.structures" in str(value): # Needed for Additonal Nested Structures
+            value = makeSubStructValsString(uc,value)
         pVals.append(value)
 
     for i in range(len(pTypes)):
@@ -288,3 +288,79 @@ def makeSubStructVals(uc: Uc, struct):
     # zipped = tuple(zip(pTypes, pNames, pVals))
     
     return (pTypes, pNames, pVals)
+
+def makeSubStructValsString(uc: Uc, struct):
+    pTypes = struct.types
+    try: # Until Names Param is removed
+        pNames = struct.names
+    except:
+        try:
+            pNames = list(struct.__slots__)
+        except:
+            pNames = list(struct.__annotations__.keys())
+    lookUps = struct.lookUps
+    pVals = []
+    for name in pNames:
+        try:
+            value = getattr(struct, name)
+        except:
+            pass
+        if "_Array_" in str(value):
+            value = value[:]
+        elif "emu_helpers.structures" in str(value): # Needed for Additonal Nested Structures
+            value = makeSubStructValsString(uc,value)
+        pVals.append(value)
+
+    for i in range(len(pTypes)):
+        if i in lookUps:
+            pVals[i] = getLookUpVal(pVals[i],lookUps[i])
+        elif "STR" in pTypes[i]:  # finding ones with string
+            try:
+                if "WSTR" in pTypes[i]:
+                    pVals[i] = read_unicode(uc, pVals[i])
+                else:
+                    pVals[i] = read_string(uc, pVals[i])
+            except:
+                pass
+        elif pTypes[i][0] == 'P': # Pointer Builder
+            try:
+                pointerVal = getPointerVal(uc, pVals[i])
+                pVals[i] = buildPtrString(pVals[i], pointerVal)
+            except:
+                pass
+        elif pTypes[i] == 'BOOLEAN' or pTypes[i] == 'BOOL':
+            if pVals[i] == 0x1:
+                pVals[i] = 'TRUE'
+            elif pVals[i] == 0x0:
+                pVals[i] = 'FALSE'
+            else:
+                pVals[i] = hex(pVals[i])
+        else:
+            try:
+                pVals[i] = hex(pVals[i])
+            except:
+                pVals[i] = str(pVals[i])
+                # If fail then Param is Probably String and Just Display value
+
+    # zipped = tuple(zip(pTypes, pNames, pVals))
+    red ='\u001b[31;1m'
+    gre = '\u001b[32;1m'
+    yel = '\u001b[33;1m'
+    blu = '\u001b[34;1m'
+    mag = '\u001b[35;1m'
+    cya = '\u001b[36;1m'
+    whi = '\u001b[37m'
+    res = '\u001b[0m'
+    res2 = '\u001b[0m'
+
+    stringForm = yel + "{"
+    for t, n, v in zip(pTypes, pNames, pVals):
+        stringForm += f"{gre}{t} {n}: {whi}{v}{yel}, "
+    if stringForm[-1] == " ":
+        stringForm = stringForm[:-1]
+    if stringForm[-1] == ",":
+        stringForm = stringForm[:-1]
+    stringForm += yel + "}"
+
+    # return (pTypes, pNames, pVals)
+    return stringForm 
