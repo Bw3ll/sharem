@@ -3352,9 +3352,6 @@ class CustomWinAPIs():
         pNames = ['hKey', 'lpSubKey']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
         
-        
-        
-
         keyPath = ''
         lpSubKey = read_string(uc, pVals[1])
         if lpSubKey != '[NULL]':
@@ -3507,9 +3504,6 @@ class CustomWinAPIs():
         pTypes = ['HKEY', 'LPCWSTR', 'REGSAM', 'DWORD']
         pNames = ['hKey', 'lpSubKey', 'samDesired', 'Reserved']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
-
-        
-
 
         samDesiredReverseLookUp = {512: 'KEY_WOW64_32KEY', 256: 'KEY_WOW64_64KEY'}
 
@@ -13194,6 +13188,10 @@ class CustomWinAPIs():
     def NtSetValueKey(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtSetValueKey)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+
+    def NtDeleteKey(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtDeleteKey)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
     
     def NtClose(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtClose)
@@ -13684,6 +13682,29 @@ class CustomWinSysCalls():
         uc.reg_write(UC_X86_REG_EAX, retVal)
     
         logged_calls = ["NtSetValueKey", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+        return logged_calls
+
+    def NtDeleteKey(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = ['HANDLE']
+        pNames = ['KeyHandle']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+
+        if pVals[0] in HandlesDict:
+            hKey = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey = RegistryKeys[hKey.name]
+                art.registry_delete_keys.add(rKey.path)
+                rKey.deleteKey()
+            else:
+                art.registry_delete_keys.add(hKey.name)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retVal = 0
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls = ["NtDeleteKey", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
         return logged_calls
 
     def NtClose(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):

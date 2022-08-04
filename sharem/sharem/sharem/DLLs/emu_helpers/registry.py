@@ -63,11 +63,14 @@ class RegKey:
             RegKey(path=val, handle=key)
 
     def deleteKey(self):
-        if self.handle.value in HandlesDict: # Remove Handle
-            HandlesDict.pop(self.handle.value)
+        # if self.handle.value in HandlesDict: # Remove Handle
+        #     HandlesDict.pop(self.handle.value)
         if self.path in RegistryKeys: # Delete Key
             # print(f'Key: {self.path} deleted')
             RegistryKeys.pop(self.path)
+            if self.name in self.parentKey.childKeys:
+                parent = self.parentKey.childKeys
+                parent.pop(self.name)
 
     def setValue(self, valueType: RegValueTypes, data, valueName = '(Default)'):
         val = KeyValue(valueType, data, valueName)
