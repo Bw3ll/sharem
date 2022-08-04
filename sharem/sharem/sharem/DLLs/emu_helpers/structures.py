@@ -2644,3 +2644,183 @@ class CREATESTRUCTA:
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
+
+# Struct KEY_BASIC_INFORMATION
+# Alias Names: _KEY_BASIC_INFORMATION
+# Alias Pointer Names: PKEY_BASIC_INFORMATION
+
+def get_KEY_BASIC_INFORMATION(uc: Uc, address: int, em):
+    return KEY_BASIC_INFORMATION.from_buffer_copy(uc.mem_read(address, sizeof(KEY_BASIC_INFORMATION)))
+
+# Struct Aliases:
+# get__KEY_BASIC_INFORMATION = get_KEY_BASIC_INFORMATION
+
+# Struct Pointers:
+PKEY_BASIC_INFORMATION_32BIT = POINTER_32BIT
+PKEY_BASIC_INFORMATION_64BIT = POINTER_64BIT
+
+class KEY_BASIC_INFORMATION(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['LARGE_INTEGER', 'ULONG', 'ULONG', 'WCHAR']
+    lookUps = {}
+
+    # Struct Members
+    LastWriteTime: LARGE_INTEGER
+    TitleIndex: ULONG
+    NameLength: ULONG
+    Name: WCHAR * 1
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+
+# Struct KEY_NODE_INFORMATION
+# Alias Names: _KEY_NODE_INFORMATION
+# Alias Pointer Names: PKEY_NODE_INFORMATION
+
+def get_KEY_NODE_INFORMATION(uc: Uc, address: int, em):
+    return KEY_NODE_INFORMATION.from_buffer_copy(uc.mem_read(address, sizeof(KEY_NODE_INFORMATION)))
+
+# Struct Aliases:
+# get__KEY_NODE_INFORMATION = get_KEY_NODE_INFORMATION
+
+# Struct Pointers:
+PKEY_NODE_INFORMATION_32BIT = POINTER_32BIT
+PKEY_NODE_INFORMATION_64BIT = POINTER_64BIT
+
+class KEY_NODE_INFORMATION(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['LARGE_INTEGER', 'ULONG', 'ULONG', 'ULONG', 'ULONG', 'WCHAR']
+    lookUps = {}
+
+    # Struct Members
+    LastWriteTime: LARGE_INTEGER
+    TitleIndex: ULONG
+    ClassOffset: ULONG
+    ClassLength: ULONG
+    NameLength: ULONG
+    Name: WCHAR * 1
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+# Struct KEY_CACHED_INFORMATION
+# Alias Names: _KEY_CACHED_INFORMATION
+# Alias Pointer Names: PKEY_CACHED_INFORMATION
+
+def get_KEY_CACHED_INFORMATION(uc: Uc, address: int, em):
+    return KEY_CACHED_INFORMATION.from_buffer_copy(uc.mem_read(address, sizeof(KEY_CACHED_INFORMATION)))
+
+# Struct Aliases:
+# get__KEY_CACHED_INFORMATION = get_KEY_CACHED_INFORMATION
+
+# Struct Pointers:
+PKEY_CACHED_INFORMATION_32BIT = POINTER_32BIT
+PKEY_CACHED_INFORMATION_64BIT = POINTER_64BIT
+
+class KEY_CACHED_INFORMATION(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['LARGE_INTEGER', 'ULONG', 'ULONG', 'ULONG', 'ULONG', 'ULONG', 'ULONG', 'ULONG']
+    lookUps = {}
+
+    # Struct Members
+    LastWriteTime: LARGE_INTEGER
+    TitleIndex: ULONG
+    SubKeys: ULONG
+    MaxNameLen: ULONG
+    Values: ULONG
+    MaxValueNameLen: ULONG
+    MaxValueDataLen: ULONG
+    NameLength: ULONG
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+# Struct KEY_NAME_INFORMATION
+# Alias Names: _KEY_NAME_INFORMATION
+# Alias Pointer Names: PKEY_NAME_INFORMATION
+
+def get_KEY_NAME_INFORMATION(uc: Uc, address: int, em):
+    return KEY_NAME_INFORMATION.from_buffer_copy(uc.mem_read(address, sizeof(KEY_NAME_INFORMATION)))
+
+# Struct Aliases:
+# get__KEY_NAME_INFORMATION = get_KEY_NAME_INFORMATION
+
+# Struct Pointers:
+PKEY_NAME_INFORMATION_32BIT = POINTER_32BIT
+PKEY_NAME_INFORMATION_64BIT = POINTER_64BIT
+
+class KEY_NAME_INFORMATION(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['ULONG', 'WCHAR']
+    lookUps = {}
+
+    # Struct Members
+    NameLength: ULONG
+    Name: WCHAR * 1
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+# Struct KEY_FULL_INFORMATION
+# Alias Names: _KEY_FULL_INFORMATION
+# Alias Pointer Names: PKEY_FULL_INFORMATION
+
+def get_KEY_FULL_INFORMATION(uc: Uc, address: int, em):
+    return KEY_FULL_INFORMATION.from_buffer_copy(uc.mem_read(address, sizeof(KEY_FULL_INFORMATION)))
+
+# Struct Aliases:
+# get__KEY_FULL_INFORMATION = get_KEY_FULL_INFORMATION
+
+# Struct Pointers:
+PKEY_FULL_INFORMATION_32BIT = POINTER_32BIT
+PKEY_FULL_INFORMATION_64BIT = POINTER_64BIT
+
+class KEY_FULL_INFORMATION(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['LARGE_INTEGER', 'ULONG', 'ULONG', 'ULONG', 'ULONG', 'ULONG', 'ULONG', 'ULONG', 'ULONG', 'ULONG', 'WCHAR']
+    lookUps = {}
+
+    # Struct Members
+    LastWriteTime: LARGE_INTEGER
+    TitleIndex: ULONG
+    ClassOffset: ULONG
+    ClassLength: ULONG
+    SubKeys: ULONG
+    MaxNameLen: ULONG
+    MaxClassLen: ULONG
+    Values: ULONG
+    MaxValueNameLen: ULONG
+    MaxValueDataLen: ULONG
+    Class: WCHAR * 1
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+# Struct KEY_VIRTUALIZATION_INFORMATION
+# Alias Names: _KEY_VIRTUALIZATION_INFORMATION
+# Alias Pointer Names: PKEY_VIRTUALIZATION_INFORMATION
+
+def get_KEY_VIRTUALIZATION_INFORMATION(uc: Uc, address: int, em):
+    return KEY_VIRTUALIZATION_INFORMATION.from_buffer_copy(uc.mem_read(address, sizeof(KEY_VIRTUALIZATION_INFORMATION)))
+
+# Struct Aliases:
+# get__KEY_VIRTUALIZATION_INFORMATION = get_KEY_VIRTUALIZATION_INFORMATION
+
+# Struct Pointers:
+PKEY_VIRTUALIZATION_INFORMATION_32BIT = POINTER_32BIT
+PKEY_VIRTUALIZATION_INFORMATION_64BIT = POINTER_64BIT
+
+class KEY_VIRTUALIZATION_INFORMATION(LittleEndianStructure):
+    types = ['ULONG', 'ULONG', 'ULONG', 'ULONG', 'ULONG', 'ULONG']
+    lookUps = {}
+
+    __annotations__ = {'VirtualizationCandidate': ULONG, 'VirtualizationEnabled': ULONG, 'VirtualTarget': ULONG, 'VirtualStore': ULONG, 'VirtualSource': ULONG, 'Reserved': ULONG}
+
+    # Struct Members Uses Mask
+    _fields_ = [
+        ('VirtualizationCandidate', ULONG, 1),
+        ('VirtualizationEnabled', ULONG, 1),
+        ('VirtualTarget', ULONG, 1),
+        ('VirtualStore', ULONG, 1),
+        ('VirtualSource', ULONG, 1),
+        ('Reserved', ULONG, 27),
+    ]
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))

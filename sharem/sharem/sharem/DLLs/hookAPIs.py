@@ -13214,7 +13214,9 @@ class CustomWinSysCalls():
                 esp = uc.reg_write(UC_X86_REG_EDX, (esp + 4))# Params start at value edx
             elif em.winVersion == "Windows 8":
                 esp = esp
-            elif em.winVersion == "Windows 10" or em.winVersion == "Windows 11":
+            elif em.winVersion == "Windows 10":
+                esp = esp - 4
+            elif em.winVersion == "Windows 11":
                 esp = esp - 4
             else: 
                 # other versions of Windows
@@ -13231,7 +13233,9 @@ class CustomWinSysCalls():
                 esp = uc.reg_read(UC_X86_REG_EDX) - 4 # Params start at value edx
             elif em.winVersion == "Windows 8":
                 esp = esp
-            elif em.winVersion == "Windows 10" or em.winVersion == "Windows 11":
+            elif em.winVersion == "Windows 10":
+                esp = esp + 4
+            elif em.winVersion == "Windows 11":
                 esp = esp + 4
             else: 
                 # other versions of Windows
