@@ -13175,6 +13175,14 @@ class CustomWinAPIs():
     def NtCreateKey(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtCreateKey)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+
+    def NtOpenKey(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtOpenKey)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+    
+    def NtOpenKeyEx(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtOpenKeyEx)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
     
     def NtSetValueKey(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtSetValueKey)
@@ -13574,6 +13582,57 @@ class CustomWinSysCalls():
         pNames = ['KeyHandle', 'DesiredAccess', 'ObjectAttributes', 'TitleIndex', 'Class', 'CreateOptions', 'Disposition']
         pVals = self.makeArgVals(uc, em, esp, len(pTypes))
 
+        if pVals[2] != 0x0:
+            oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em)
+            us = get_UNICODE_STRING(uc, oa.ObjectName, em)
+            name = read_unicode(uc, us.Buffer)
+            pVals[2] = makeStructVals(uc, oa, pVals[2])
+            pVals[2][2][2] = name
+            if "\\Registry\\Machine" in name: # Special ObjectName Handling
+                name = name.replace("\\Registry\\Machine","HKEY_LOCAL_MACHINE")
+            elif "\\Registry\\User" in name:
+                name = name.replace("\\Registry\\User","HKEY_USERS")
+            if name in RegistryKeys: # Check Reg for Key
+                rKey = RegistryKeys[name]
+                if pVals[6] != 0x0:
+                    uc.mem_write(pVals[6],pack('<I',2))
+                    pVals[6] = f'{hex(pVals[6])} -> REG_OPENED_EXISTING_KEY'
+                else:
+                    pVals[6] = hex(pVals[6])
+            else: # if Not Found Create New Key
+                rKey = RegKey(name)
+                if pVals[6] != 0x0:
+                    uc.mem_write(pVals[6],pack('<I',1))
+                    pVals[6] = f'{hex(pVals[6])} -> REG_CREATED_NEW_KEY'
+                else:
+                    pVals[6] = hex(pVals[6])
+            art.registry_add_keys.add(rKey.path)
+            uc.mem_write(pVals[0],pack('<I',rKey.handle.value))
+        else:
+            pVals[2] = hex(pVals[2])
+            pVals[6] = hex(pVals[6])
+
+        if pVals[4] != 0x0:
+            classUS = get_UNICODE_STRING(uc, pVals[4], em)
+            pVals[4] = makeStructVals(uc, classUS, pVals[4])
+        else:
+            pVals[4] = hex(pVals[4])
+
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.ACCESS_MASK.RegKey)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2,4,6])
+
+        retVal = 0
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        logged_calls = ["NtCreateKey", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+
+        return logged_calls
+
+    def NtOpenKey(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = ['PHANDLE', 'ACCESS_MASK', 'POBJECT_ATTRIBUTES']
+        pNames = ['pKeyHandle', 'DesiredAccess', 'ObjectAttributes']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
 
         if pVals[2] != 0x0:
             oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em)
@@ -13585,26 +13644,61 @@ class CustomWinSysCalls():
                 name = name.replace("\\Registry\\Machine","HKEY_LOCAL_MACHINE")
             elif "\\Registry\\User" in name:
                 name = name.replace("\\Registry\\User","HKEY_USERS")
-            rKey = RegKey(name)
+            if name in RegistryKeys: # Check Reg for Key
+                rKey = RegistryKeys[name]
+            else: # if Not Found Create New Key
+                rKey = RegKey(name)
             art.registry_add_keys.add(rKey.path)
             uc.mem_write(pVals[0],pack('<I',rKey.handle.value))
         else:
             pVals[2] = hex(pVals[2])
 
-        if pVals[4] != 0x0:
-            classUS = get_UNICODE_STRING(uc, pVals[4], em)
-            pVals[4] = makeStructVals(uc, classUS, pVals[4])
-        else:
-            pVals[4] = hex(pVals[4])
-
         pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.ACCESS_MASK.RegKey)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2,4])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2])
 
         retVal = 0
         retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
         uc.reg_write(UC_X86_REG_EAX, retVal)
-        logged_calls = ["NtCreateKey", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+        logged_calls = ["NtOpenKey", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+
+        return logged_calls
+
+    def NtOpenKeyEx(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = ['PHANDLE', 'ACCESS_MASK', 'POBJECT_ATTRIBUTES', 'ULONG']
+        pNames = ['KeyHandle', 'DesiredAccess', 'ObjectAttributes', 'OpenOptions']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+
+        openOptions = {4: 'REG_OPTION_BACKUP_RESTORE', 8: 'REG_OPTION_OPEN_LINK', 12: 'REG_OPTION_OPEN_LINK | REG_OPTION_BACKUP_RESTORE'}
+
+        if pVals[2] != 0x0:
+            oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em)
+            us = get_UNICODE_STRING(uc, oa.ObjectName, em)
+            name = read_unicode(uc, us.Buffer)
+            pVals[2] = makeStructVals(uc, oa, pVals[2])
+            pVals[2][2][2] = name
+            if "\\Registry\\Machine" in name: # Special ObjectName Handling
+                name = name.replace("\\Registry\\Machine","HKEY_LOCAL_MACHINE")
+            elif "\\Registry\\User" in name:
+                name = name.replace("\\Registry\\User","HKEY_USERS")
+            if name in RegistryKeys: # Check Reg for Key
+                rKey = RegistryKeys[name]
+            else: # if Not Found Create New Key
+                rKey = RegKey(name)
+            art.registry_add_keys.add(rKey.path)
+            uc.mem_write(pVals[0],pack('<I',rKey.handle.value))
+        else:
+            pVals[2] = hex(pVals[2])
+
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.ACCESS_MASK.RegKey)
+        pVals[3] = getLookUpVal(pVals[3], openOptions)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1,2,3])
+
+        retVal = 0
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        logged_calls = ["NtOpenKeyEx", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
 
         return logged_calls
 

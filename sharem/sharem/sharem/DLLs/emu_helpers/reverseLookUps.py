@@ -6612,7 +6612,7 @@ class ReverseLookUps:
         }
 
     class ACCESS_MASK:
-        RegKey = {  # Might Need a Little Work
+        RegKey = {  # Need a Little Work for syswow64 key
             1: "KEY_QUERY_VALUE",
             2: "KEY_SET_VALUE",
             3: "KEY_QUERY_VALUE | KEY_SET_VALUE",
