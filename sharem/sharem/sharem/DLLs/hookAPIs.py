@@ -5059,9 +5059,6 @@ class CustomWinAPIs():
         pNames = ['hKey', 'lpSubKey', 'lpValueName']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
         
-        
-
-
         valName = read_unicode(uc,pVals[2])
         if valName == '[NULL]':
             valName = '(Default)'
@@ -13207,6 +13204,10 @@ class CustomWinAPIs():
     def NtEnumerateValueKey(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtEnumerateValueKey)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+
+    def NtFlushKey(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtFlushKey)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
     
     def NtClose(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtClose)
@@ -13583,7 +13584,7 @@ class CustomWinSysCalls():
         pVals = self.makeArgVals(uc, em, esp, len(pTypes))
 
         if pVals[2] != 0x0:
-            oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em)
+            oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em) # need to ad root dir handling
             us = get_UNICODE_STRING(uc, oa.ObjectName, em)
             name = read_unicode(uc, us.Buffer)
             pVals[2] = makeStructVals(uc, oa, pVals[2])
@@ -13635,7 +13636,7 @@ class CustomWinSysCalls():
         pVals = self.makeArgVals(uc, em, esp, len(pTypes))
 
         if pVals[2] != 0x0:
-            oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em)
+            oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em) # need to ad root dir handling
             us = get_UNICODE_STRING(uc, oa.ObjectName, em)
             name = read_unicode(uc, us.Buffer)
             pVals[2] = makeStructVals(uc, oa, pVals[2])
@@ -13672,7 +13673,7 @@ class CustomWinSysCalls():
         openOptions = {4: 'REG_OPTION_BACKUP_RESTORE', 8: 'REG_OPTION_OPEN_LINK', 12: 'REG_OPTION_OPEN_LINK | REG_OPTION_BACKUP_RESTORE'}
 
         if pVals[2] != 0x0:
-            oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em)
+            oa = get_OBJECT_ATTRIBUTES(uc,pVals[2],em) # need to ad root dir handling
             us = get_UNICODE_STRING(uc, oa.ObjectName, em)
             name = read_unicode(uc, us.Buffer)
             pVals[2] = makeStructVals(uc, oa, pVals[2])
@@ -14245,6 +14246,20 @@ class CustomWinSysCalls():
         uc.reg_write(UC_X86_REG_EAX, retVal)
     
         logged_calls = ["NtEnumerateValueKey", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+        return logged_calls
+
+    def NtFlushKey(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = ['HANDLE']
+        pNames = ['KeyHandle']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+        
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retVal = 0
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls = ["NtFlushKey", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
         return logged_calls
 
     def NtClose(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
