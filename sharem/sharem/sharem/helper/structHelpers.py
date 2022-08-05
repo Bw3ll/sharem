@@ -1,5 +1,6 @@
 from ctypes import LittleEndianStructure, c_byte, c_char, c_double, c_float, c_int16, c_int32, c_int64, c_ubyte, c_uint16, c_uint32, c_uint64, c_ushort, c_wchar
 from struct import unpack
+from sharem.sharem.DLLs.emu_helpers.handles import Handle, HandlesDict
 
 from sharem.sharem.helper.ctypesUnion import LittleEndianUnion
 from ..helper.emuHelpers import Uc
@@ -202,6 +203,25 @@ def makeStructVals(uc: Uc, struct, address: int):
                     pVals[i] = read_string(uc, pVals[i])
             except:
                 pass
+        elif pTypes[i][0] == 'H': # Handle Builder
+                handleKey = getLookUpVal(pVals[i],HandlesDict)
+                if isinstance(handleKey, Handle):
+                    if handleKey.name != '':
+                        pVals[i] = f'{handleKey.name}'
+                    else:
+                        pVals[i] = hex(pVals[i])
+                else:
+                    pVals[i] = hex(pVals[i])
+        elif pTypes[i][0:2] == 'PH': # Pointer Handle Builder
+            pointerVal = getPointerVal(uc, pVals[i])
+            handleKey = getLookUpVal(pointerVal,HandlesDict)
+            if isinstance(handleKey, Handle):
+                if handleKey.name != '':
+                    pVals[i] = f'{hex(pVals[i])} -> {handleKey.name}'
+                else:
+                    pVals[i] = buildPtrString(pVals[i],pointerVal)
+            else:
+                pVals[i] = buildPtrString(pVals[i],pointerVal)
         elif pTypes[i][0] == 'P': # Pointer Builder
             try:
                 pointerVal = getPointerVal(uc, pVals[i])
@@ -265,6 +285,25 @@ def makeSubStructVals(uc: Uc, struct):
                     pVals[i] = read_string(uc, pVals[i])
             except:
                 pass
+        elif pTypes[i][0] == 'H': # Handle Builder
+                handleKey = getLookUpVal(pVals[i],HandlesDict)
+                if isinstance(handleKey, Handle):
+                    if handleKey.name != '':
+                        pVals[i] = f'{handleKey.name}'
+                    else:
+                        pVals[i] = hex(pVals[i])
+                else:
+                    pVals[i] = hex(pVals[i])
+        elif pTypes[i][0:2] == 'PH': # Pointer Handle Builder
+            pointerVal = getPointerVal(uc, pVals[i])
+            handleKey = getLookUpVal(pointerVal,HandlesDict)
+            if isinstance(handleKey, Handle):
+                if handleKey.name != '':
+                    pVals[i] = f'{hex(pVals[i])} -> {handleKey.name}'
+                else:
+                    pVals[i] = buildPtrString(pVals[i],pointerVal)
+            else:
+                pVals[i] = buildPtrString(pVals[i],pointerVal)
         elif pTypes[i][0] == 'P': # Pointer Builder
             try:
                 pointerVal = getPointerVal(uc, pVals[i])
@@ -322,6 +361,25 @@ def makeSubStructValsString(uc: Uc, struct):
                     pVals[i] = read_string(uc, pVals[i])
             except:
                 pass
+        elif pTypes[i][0] == 'H': # Handle Builder
+                handleKey = getLookUpVal(pVals[i],HandlesDict)
+                if isinstance(handleKey, Handle):
+                    if handleKey.name != '':
+                        pVals[i] = f'{handleKey.name}'
+                    else:
+                        pVals[i] = hex(pVals[i])
+                else:
+                    pVals[i] = hex(pVals[i])
+        elif pTypes[i][0:2] == 'PH': # Pointer Handle Builder
+            pointerVal = getPointerVal(uc, pVals[i])
+            handleKey = getLookUpVal(pointerVal,HandlesDict)
+            if isinstance(handleKey, Handle):
+                if handleKey.name != '':
+                    pVals[i] = f'{hex(pVals[i])} -> {handleKey.name}'
+                else:
+                    pVals[i] = buildPtrString(pVals[i],pointerVal)
+            else:
+                pVals[i] = buildPtrString(pVals[i],pointerVal)
         elif pTypes[i][0] == 'P': # Pointer Builder
             try:
                 pointerVal = getPointerVal(uc, pVals[i])
