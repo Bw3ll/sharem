@@ -1,7 +1,9 @@
 from enum import Enum
+from struct import pack
 
 from sharem.sharem.DLLs.emu_helpers.handles import Handle, HandleType, HandlesDict
 from sharem.sharem.DLLs.emu_helpers.sim_values import emuSimVals
+from ...helper.emuHelpers import Uc
 
 RegistryKeys: 'dict[str,RegKey]' = {} # Dictionary of All Reg Keys
 
@@ -162,6 +164,90 @@ class KeyValue():
             self.dataAsStr = (' ').join(data)
         else:
             self.dataAsStr = str(data)
+
+    def writeToMemory(self, uc: Uc, address: int, unicode: bool = True):
+        if unicode:
+            if self.type == RegValueTypes.REG_BINARY:
+                uc.mem_write(address,pack(f'<{len(self.data)}s',self.data))
+            elif self.type == RegValueTypes.REG_DWORD:
+                uc.mem_write(address,pack(f'<I',self.data))
+            elif self.type == RegValueTypes.REG_DWORD_BIG_ENDIAN:
+                uc.mem_write(address,pack(f'>I',self.data))
+            elif self.type == RegValueTypes.REG_QWORD:
+                uc.mem_write(address,pack(f'<Q',self.data))
+            elif self.type == RegValueTypes.REG_SZ:
+                uc.mem_write(address,pack(f'<{(len(self.dataAsStr)*2)+2}s',self.dataAsStr.encode('utf-16')[2:]))
+            elif self.type == RegValueTypes.REG_EXPAND_SZ:
+                uc.mem_write(address,pack(f'<{(len(self.dataAsStr)*2)+2}s',self.dataAsStr.encode('utf-16')[2:]))
+            elif self.type == RegValueTypes.REG_MULTI_SZ:
+                uc.mem_write(address,pack(f'<{(len(self.dataAsStr)*2)+2}s',self.dataAsStr.encode('utf-16')[2:]))
+            elif self.type == RegValueTypes.REG_LINK:
+                uc.mem_write(address,pack(f'<{(len(self.dataAsStr)*2)+2}s',self.dataAsStr.encode('utf-16')[2:]))
+            elif self.type == RegValueTypes.REG_NONE:
+                uc.mem_write(address,pack(f'<{(len(self.dataAsStr)*2)+2}s',self.dataAsStr.encode('utf-16')[2:]))
+        else: # Ascii
+            if self.type == RegValueTypes.REG_BINARY:
+                uc.mem_write(address,pack(f'<{len(self.data)}s',self.data))
+            elif self.type == RegValueTypes.REG_DWORD:
+                uc.mem_write(address,pack(f'<I',self.data))
+            elif self.type == RegValueTypes.REG_DWORD_BIG_ENDIAN:
+                uc.mem_write(address,pack(f'>I',self.data))
+            elif self.type == RegValueTypes.REG_QWORD:
+                uc.mem_write(address,pack(f'<Q',self.data))
+            elif self.type == RegValueTypes.REG_SZ:
+                uc.mem_write(address,pack(f'<{len(self.dataAsStr)+2}s',self.dataAsStr.encode('ascii')))
+            elif self.type == RegValueTypes.REG_EXPAND_SZ:
+                uc.mem_write(address,pack(f'<{len(self.dataAsStr)+2}s',self.dataAsStr.encode('ascii')))
+            elif self.type == RegValueTypes.REG_MULTI_SZ:
+                uc.mem_write(address,pack(f'<{len(self.dataAsStr)+2}s',self.dataAsStr.encode('ascii')))
+            elif self.type == RegValueTypes.REG_LINK:
+                uc.mem_write(address,pack(f'<{(len(self.dataAsStr)*2)+2}s',self.dataAsStr.encode('utf-16')[2:]))
+            elif self.type == RegValueTypes.REG_NONE:
+                uc.mem_write(address,pack(f'<{len(self.dataAsStr)+2}s',self.dataAsStr.encode('ascii')))
+
+    def dataLength(self, unicode: bool = True):
+        if unicode:
+            if self.type == RegValueTypes.REG_BINARY:
+                return len(self.data)
+            elif self.type == RegValueTypes.REG_DWORD:
+                return 4
+            elif self.type == RegValueTypes.REG_DWORD_BIG_ENDIAN:
+                return 4
+            elif self.type == RegValueTypes.REG_QWORD:
+                return 8
+            elif self.type == RegValueTypes.REG_SZ:
+                return (len(self.dataAsStr)*2)+2
+            elif self.type == RegValueTypes.REG_EXPAND_SZ:
+                return (len(self.dataAsStr)*2)+2
+            elif self.type == RegValueTypes.REG_MULTI_SZ:
+                return len(self.dataAsStr)+1
+            elif self.type == RegValueTypes.REG_LINK:
+                return (len(self.dataAsStr)*2)+2
+            elif self.type == RegValueTypes.REG_NONE:
+                return (len(self.dataAsStr)*2)+2
+            else:
+                return (len(self.dataAsStr)*2)+2
+        else: # Ascii
+            if self.type == RegValueTypes.REG_BINARY:
+                return len(self.data)
+            elif self.type == RegValueTypes.REG_DWORD:
+                return 4
+            elif self.type == RegValueTypes.REG_DWORD_BIG_ENDIAN:
+                return 4
+            elif self.type == RegValueTypes.REG_QWORD:
+                return 8
+            elif self.type == RegValueTypes.REG_SZ:
+                return len(self.dataAsStr)+2
+            elif self.type == RegValueTypes.REG_EXPAND_SZ:
+                return len(self.dataAsStr)+2
+            elif self.type == RegValueTypes.REG_MULTI_SZ:
+                return len(self.dataAsStr)+1
+            elif self.type == RegValueTypes.REG_LINK:
+                return (len(self.dataAsStr)*2)+2
+            elif self.type == RegValueTypes.REG_NONE:
+                return len(self.dataAsStr)+2
+            else:
+                return len(self.dataAsStr)+2
 
 # Create Default Registry Keys
 RegKey.createPreDefinedKeys()

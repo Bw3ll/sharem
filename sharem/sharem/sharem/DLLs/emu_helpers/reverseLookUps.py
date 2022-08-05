@@ -7747,3 +7747,13 @@ class ReverseLookUps:
             9: "KeyLayerInformation",
             10: "MaxKeyInfoClass",
         }
+
+        KEY_VALUE = {
+            0: "KeyValueBasicInformation",
+            1: "KeyValueFullInformation",
+            2: "KeyValuePartialInformation",
+            3: "KeyValueFullInformationAlign64",
+            4: "KeyValuePartialInformationAlign64",
+            5: "KeyValueLayerInformation",
+            6: "MaxKeyValueInfoClass",
+        }
