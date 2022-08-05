@@ -13184,10 +13184,18 @@ class CustomWinAPIs():
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtDeleteKey)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
 
+    def NtQueryKey(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtQueryKey)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+    
     def NtEnumerateKey(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtEnumerateKey)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
 
+    def NtQueryValueKey(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtQueryValueKey)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+    
     def NtEnumerateValueKey(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtEnumerateValueKey)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
@@ -13709,6 +13717,113 @@ class CustomWinSysCalls():
         logged_calls = ["NtDeleteKey", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
         return logged_calls
 
+    def NtQueryKey(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = ['HANDLE', 'KEY_INFORMATION_CLASS', 'PVOID', 'ULONG', 'PULONG']
+        pNames = ['KeyHandle', 'KeyInformationClass', 'KeyInformation', 'Length', 'ResultLength']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+        
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.INFORMATION_CLASS.KEY)
+
+        retVal = 0
+        if pVals[0] in HandlesDict:
+            hKey = HandlesDict[pVals[0]]
+            if hKey.name in RegistryKeys:
+                rKey = RegistryKeys[hKey.name]
+                if pVals[1] == "KeyBasicInformation":
+                    requiredSize = sizeof(KEY_BASIC_INFORMATION) + len(rKey.name.encode('utf-16')[2:])
+                    if pVals[3] >= requiredSize and pVals[2] != 0x0:
+                        info = get_KEY_BASIC_INFORMATION(uc, pVals[3], em)
+                        info.LastWriteTime.QuadPart = time_ns() # Write Time
+                        info.TitleIndex = 0
+                        info.NameLength = len(rKey.name.encode('utf-16')[2:])
+                        info.Name = rKey.name[0]
+                        nameAddress = pVals[3] + KEY_BASIC_INFORMATION.Name.offset
+                        info.writeToMemory(uc, pVals[2])
+                        uc.mem_write(nameAddress, rKey.name.encode('utf-16')[2:])
+                        pVals[2] = makeStructVals(uc, info, pVals[2])
+                        pVals[2][2][3] = rKey.name
+                        uc.mem_write(pVals[4],pack('<I',requiredSize))
+                        art.registry_add_keys.add(rKey.path)
+                    else:
+                        pVals[2] = hex(pVals[2])
+                        uc.mem_write(pVals[4],pack('<I',requiredSize))
+                        retVal = 3221225507 # STATUS_BUFFER_TOO_SMALL
+                elif pVals[1] == "KeyNodeInformation":
+                    requiredSize = sizeof(KEY_NODE_INFORMATION) + len(rKey.name.encode('utf-16')[2:])
+                    if pVals[3] >= requiredSize and pVals[2] != 0x0:
+                        info = get_KEY_NODE_INFORMATION(uc, pVals[3], em)
+                        info.LastWriteTime.QuadPart = time_ns() # Write Time
+                        info.TitleIndex = 0
+                        info.ClassOffset = 0
+                        info.ClassLength = 0
+                        info.NameLength = len(rKey.name.encode('utf-16')[2:])
+                        info.Name = rKey.name[0]
+                        nameAddress = pVals[2] + KEY_NODE_INFORMATION.Name.offset
+                        info.writeToMemory(uc, pVals[2])
+                        uc.mem_write(nameAddress, rKey.name.encode('utf-16')[2:])
+                        pVals[2] = makeStructVals(uc, info, pVals[2])
+                        pVals[2][2][5] = rKey.name
+                        uc.mem_write(pVals[4],pack('<I',requiredSize))
+                        art.registry_add_keys.add(rKey.path)
+                    else:
+                        pVals[2] = hex(pVals[2])
+                        uc.mem_write(pVals[4],pack('<I',requiredSize))
+                        retVal = 3221225507 # STATUS_BUFFER_TOO_SMALL
+                elif pVals[1] == "KeyFullInformation":
+                    requiredSize = sizeof(KEY_FULL_INFORMATION)
+                    if pVals[3] >= requiredSize and pVals[2] != 0x0:
+                        info = get_KEY_FULL_INFORMATION(uc, pVals[2], em)
+                        info.LastWriteTime.QuadPart = time_ns() # Write Time
+                        info.TitleIndex = 0
+                        info.ClassOffset = 0
+                        info.ClassLength = 0
+                        info.SubKeys = len(rKey.childKeys)
+                        maxSubKey = 0
+                        for sKey in rKey.childKeys:
+                            if (len(sKey)*2) > maxSubKey: 
+                                maxSubKey = (len(sKey)*2)
+                        info.MaxNameLen = maxSubKey
+                        info.MaxClassLen = 0
+                        info.Values = len(rKey.values)
+                        maxValName = 0
+                        for k, value in rKey.values.items():
+                            if (len(value.name)*2) > maxValName: 
+                                maxValName = (len(value.name)*2)
+                        info.MaxValueNameLen = maxValName
+                        maxValData = 0
+                        for k, value in rKey.values.items():
+                            if value.dataLength(True) > maxValData:
+                                maxValData = value.dataLength(True)
+                        info.MaxValueDataLen = maxValData
+                        info.writeToMemory(uc, pVals[2])
+                        pVals[2] = makeStructVals(uc, info, pVals[2])
+                        uc.mem_write(pVals[4],pack('<I',requiredSize))
+                        art.registry_add_keys.add(rKey.path)
+                    else:
+                        pVals[2] = hex(pVals[2])
+                        uc.mem_write(pVals[4],pack('<I',requiredSize))
+                        retVal = 3221225507 # STATUS_BUFFER_TOO_SMALL
+                else:
+                    pVals[2] = hex(pVals[2])
+                    uc.mem_write(pVals[4],pack('<I',0))
+                    retVal = 3221225485 # STATUS_INVALID_PARAMETER
+            else: # Key Not Found
+                pVals[2] = hex(pVals[2])
+                uc.mem_write(pVals[4],pack('<I',0))
+                retVal = 3221225480 # STATUS_INVALID_HANDLE
+        else: # Handle Not Found
+            pVals[2] = hex(pVals[2])
+            uc.mem_write(pVals[4],pack('<I',0))
+            retVal = 3221225480 # STATUS_INVALID_HANDLE
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[1,2])
+    
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls = ["NtQueryKey", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+        return logged_calls
+
     def NtEnumerateKey(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
         pTypes = ['HANDLE', 'ULONG', 'KEY_INFORMATION_CLASS', 'PVOID', 'ULONG', 'PULONG']
         pNames = ['KeyHandle', 'Index', 'KeyInformationClass', 'KeyInformation', 'Length', 'ResultLength']
@@ -13733,7 +13848,7 @@ class CustomWinSysCalls():
                             info.TitleIndex = 0
                             info.NameLength = len(childKey.name.encode('utf-16')[2:])
                             info.Name = childKey.name[0]
-                            nameAddress = pVals[3] + sizeof(KEY_BASIC_INFORMATION) - 8
+                            nameAddress = pVals[3] + KEY_BASIC_INFORMATION.Name.offset
                             info.writeToMemory(uc, pVals[3])
                             uc.mem_write(nameAddress, childKey.name.encode('utf-16')[2:])
                             pVals[3] = makeStructVals(uc, info, pVals[3])
@@ -13754,7 +13869,7 @@ class CustomWinSysCalls():
                             info.ClassLength = 0
                             info.NameLength = len(childKey.name.encode('utf-16')[2:])
                             info.Name = childKey.name[0]
-                            nameAddress = pVals[3] + sizeof(KEY_NODE_INFORMATION) - 8
+                            nameAddress = pVals[3] + KEY_NODE_INFORMATION.Name.offset
                             info.writeToMemory(uc, pVals[3])
                             uc.mem_write(nameAddress, childKey.name.encode('utf-16')[2:])
                             pVals[3] = makeStructVals(uc, info, pVals[3])
@@ -13807,6 +13922,10 @@ class CustomWinSysCalls():
                     pVals[3] = hex(pVals[3])
                     uc.mem_write(pVals[5],pack('<I',0))
                     retVal = 2147483674 # STATUS_NO_MORE_ENTRIES
+            else: # Key Not Found
+                pVals[3] = hex(pVals[3])
+                uc.mem_write(pVals[5],pack('<I',0))
+                retVal = 3221225480 # STATUS_INVALID_HANDLE
         else: # Handle Not Found
             pVals[3] = hex(pVals[3])
             uc.mem_write(pVals[5],pack('<I',0))
@@ -13820,13 +13939,123 @@ class CustomWinSysCalls():
         logged_calls = ["NtEnumerateKey", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
         return logged_calls
 
+    def NtQueryValueKey(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = ['HANDLE', 'PUNICODE_STRING', 'KEY_VALUE_INFORMATION_CLASS', 'PVOID', 'ULONG', 'PULONG']
+        pNames = ['KeyHandle', 'ValueName', 'KeyValueInformationClass', 'KeyValueInformation', 'Length', 'ResultLength']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+        
+        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.INFORMATION_CLASS.KEY_VALUE)
+
+        retVal = 0
+        if pVals[0] in HandlesDict:
+            hKey = HandlesDict[pVals[0]]
+            keyPath = hKey.name
+            if hKey.name in RegistryKeys:
+                rKey = RegistryKeys[hKey.name]
+                if pVals[1] != 0x0:
+                    uniStr = get_UNICODE_STRING(uc, pVals[1], em)
+                    valName = read_unicode(uc, uniStr.Buffer)
+                    pVals[1] = makeStructVals(uc, uniStr, pVals[1])
+                    if valName == "[NULL]":
+                        keyValue = rKey.getValue()
+                    else:
+                        keyValue = rKey.getValue(valName)
+                    if pVals[2] == "KeyValueBasicInformation":
+                        requiredSize = sizeof(KEY_VALUE_BASIC_INFORMATION) + len(keyValue.name.encode('utf-16')[2:])
+                        if pVals[4] >= requiredSize and pVals[3] != 0x0:
+                            info = get_KEY_VALUE_BASIC_INFORMATION(uc, pVals[3], em)
+                            info.TitleIndex = 0
+                            info.Type = keyValue.type.value
+                            info.NameLength = len(keyValue.name.encode('utf-16')[2:]) 
+                            info.Name = keyValue.name[0]
+                            info.writeToMemory(uc, pVals[3])
+                            nameAddress = pVals[3] + KEY_VALUE_BASIC_INFORMATION.Name.offset
+                            uc.mem_write(nameAddress, keyValue.name.encode('utf-16')[2:])
+                            pVals[3] = makeStructVals(uc, info, pVals[3])
+                            pVals[3][2][3] = keyValue.name
+                            uc.mem_write(pVals[5],pack('<I',requiredSize))
+                            art.registry_add_keys.add(keyPath)
+                        else:
+                            pVals[3] = hex(pVals[3])
+                            uc.mem_write(pVals[5],pack('<I',requiredSize))
+                            retVal = 3221225507 # STATUS_BUFFER_TOO_SMALL
+                    elif pVals[2] == "KeyValuePartialInformation":
+                        requiredSize = sizeof(KEY_VALUE_PARTIAL_INFORMATION) + keyValue.dataLength(True)
+                        if pVals[4] >= requiredSize and pVals[3] != 0x0:
+                            info = get_KEY_VALUE_PARTIAL_INFORMATION(uc, pVals[3], em)
+                            info.TitleIndex = 0
+                            info.Type = keyValue.type.value
+                            info.DataLength = keyValue.dataLength(True)
+                            info.writeToMemory(uc, pVals[3])
+                            dataAddress = pVals[3] + KEY_VALUE_PARTIAL_INFORMATION.Data.offset
+                            keyValue.writeToMemory(uc, dataAddress, True)
+                            pVals[3] = makeStructVals(uc, info, pVals[3])
+                            pVals[3][2][1] = keyValue.type.name
+                            pVals[3][2][3] = keyValue.dataAsStr
+                            uc.mem_write(pVals[5],pack('<I',requiredSize))
+                            art.registry_add_keys.add(keyPath)
+                        else:
+                            pVals[3] = hex(pVals[3])
+                            uc.mem_write(pVals[5],pack('<I',requiredSize))
+                            retVal = 3221225507 # STATUS_BUFFER_TOO_SMALL
+                    elif pVals[2] == "KeyValueFullInformation":
+                        requiredSize = sizeof(KEY_VALUE_FULL_INFORMATION) + len(keyValue.name.encode('utf-16')[2:]) + keyValue.dataLength(True) 
+                        if pVals[4] >= requiredSize and pVals[3] != 0x0:
+                            info = get_KEY_VALUE_FULL_INFORMATION(uc, pVals[3], em)
+                            info.TitleIndex = 0
+                            info.Type = keyValue.type.value
+                            info.DataOffset = KEY_VALUE_FULL_INFORMATION.Name.offset + len(keyValue.name.encode('utf-16')[2:])
+                            info.DataLength = keyValue.dataLength(True)
+                            info.NameLength = len(keyValue.name.encode('utf-16')[2:])
+                            info.Name = keyValue.name[0]
+                            info.writeToMemory(uc, pVals[3])
+                            nameAddress = pVals[3] + KEY_VALUE_FULL_INFORMATION.Name.offset
+                            writeUnicodeStrToMemory(uc, nameAddress, keyValue.name)
+                            dataAddress = pVals[3] + KEY_VALUE_FULL_INFORMATION.Name.offset + len(keyValue.name.encode('utf-16')[2:])
+                            keyValue.writeToMemory(uc, dataAddress, True)
+                            pVals[3] = makeStructVals(uc, info, pVals[3])
+                            pVals[3][2][1] = keyValue.type.name
+                            pVals[3][2][5] = f'{keyValue.name} : {keyValue.dataAsStr}'
+                            uc.mem_write(pVals[5],pack('<I',requiredSize))
+                            art.registry_add_keys.add(keyPath)
+                        else:
+                            pVals[3] = hex(pVals[3])
+                            uc.mem_write(pVals[5],pack('<I',requiredSize))
+                            retVal = 3221225507 # STATUS_BUFFER_TOO_SMALL
+                    else:
+                        pVals[3] = hex(pVals[3])
+                        uc.mem_write(pVals[5],pack('<I',0))
+                        retVal = 3221225485 # STATUS_INVALID_PARAMETER
+                else:
+                    pVals[1] = hex(pVals[1])
+                    pVals[3] = hex(pVals[3])
+                    uc.mem_write(pVals[5],pack('<I',0))
+                    retVal = 3221225485 # STATUS_INVALID_PARAMETER
+            else: # Key Not Found
+                pVals[1] = hex(pVals[1])
+                pVals[3] = hex(pVals[3])
+                uc.mem_write(pVals[5],pack('<I',0))
+                retVal = 3221225480 # STATUS_INVALID_HANDLE
+        else: # Handle Not Found
+            pVals[1] = hex(pVals[1])
+            pVals[3] = hex(pVals[3])
+            uc.mem_write(pVals[5],pack('<I',0))
+            retVal = 3221225480 # STATUS_INVALID_HANDLE
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[1,2,3])
+
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls = ["NtQueryValueKey", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+        return logged_calls
+
     def NtEnumerateValueKey(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
         pTypes = ['HANDLE', 'ULONG', 'KEY_VALUE_INFORMATION_CLASS', 'PVOID', 'ULONG', 'PULONG']
         pNames = ['KeyHandle', 'Index', 'KeyValueInformation', 'KeyValueInformation', 'Length', 'ResultLength']
         pVals = self.makeArgVals(uc, em, esp, len(pTypes))
         
         pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.INFORMATION_CLASS.KEY_VALUE)
-
 
         retVal = 0
         if pVals[0] in HandlesDict:
@@ -13857,7 +14086,7 @@ class CustomWinSysCalls():
                             uc.mem_write(pVals[5],pack('<I',requiredSize))
                             retVal = 3221225507 # STATUS_BUFFER_TOO_SMALL
                     elif pVals[2] == "KeyValuePartialInformation":
-                        requiredSize = sizeof(KEY_VALUE_PARTIAL_INFORMATION) + keyValue.dataLength
+                        requiredSize = sizeof(KEY_VALUE_PARTIAL_INFORMATION) + keyValue.dataLength(True)
                         if pVals[4] >= requiredSize and pVals[3] != 0x0:
                             info = get_KEY_VALUE_PARTIAL_INFORMATION(uc, pVals[3], em)
                             info.TitleIndex = 0
@@ -13907,6 +14136,10 @@ class CustomWinSysCalls():
                     pVals[3] = hex(pVals[3])
                     uc.mem_write(pVals[5],pack('<I',0))
                     retVal = 2147483674 # STATUS_NO_MORE_ENTRIES
+            else: # Key Not Found
+                pVals[3] = hex(pVals[3])
+                uc.mem_write(pVals[5],pack('<I',0))
+                retVal = 3221225480 # STATUS_INVALID_HANDLE
         else: # Handle Not Found
             pVals[3] = hex(pVals[3])
             uc.mem_write(pVals[5],pack('<I',0))
