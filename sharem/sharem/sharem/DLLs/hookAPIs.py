@@ -13212,6 +13212,15 @@ class CustomWinAPIs():
     def NtCompressKey(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtCompressKey)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+
+    def NtFreezeRegistry(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtFreezeRegistry)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+    
+    def NtThawRegistry(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtThawRegistry)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+    
     
     def NtClose(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtClose)
@@ -14278,6 +14287,47 @@ class CustomWinSysCalls():
         uc.reg_write(UC_X86_REG_EAX, retVal)
     
         logged_calls = ["NtCompressKey", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+        return logged_calls
+
+    def NtFreezeRegistry(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = ['ULONG']
+        pNames = ['Time_OutInSeconds']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+        
+        if not RegKey.Frozen:
+            if pVals[0] > 900:
+                retVal = 3221225485 # STATUS_INVALID_PARAMETER
+            else:
+                RegKey.Frozen = True
+                retVal = 0
+        else:
+            retVal = 3221225865 # STATUS_TOO_LATE
+        
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls = ["NtFreezeRegistry", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+        return logged_calls
+
+    def NtThawRegistry(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = []
+        pNames = []
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+        
+        if RegKey.Frozen:
+            RegKey.Frozen = False
+            retVal = 0
+        else:
+            retVal = 3221225865 # STATUS_TOO_LATE
+        
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls = ["NtThawRegistry", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
         return logged_calls
 
     def NtClose(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
