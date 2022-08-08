@@ -8993,15 +8993,13 @@ class CustomWinAPIs():
         pNames = ['lpPerformanceCount']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        try:
-            li = get_LARGE_INTEGER(uc, pVals[0], em)
-            pc = perf_counter_ns()
-            li.QuadPart = pc
-            li.writeToMemory(uc,pVals[0])
-        except:
-            pass
-
-        pVals[0] = makeStructVals(uc,li,pVals[0])
+        if pVals[0] != 0x0:
+            pc = get_LARGE_INTEGER(uc, pVals[0], em)
+            pc.QuadPart = perf_counter_ns()
+            pc.writeToMemory(uc,pVals[0])
+            pVals[0] = makeStructVals(uc,pc,pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
 
@@ -9010,6 +9008,28 @@ class CustomWinAPIs():
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
         logged_calls = ("QueryPerformanceCounter", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def QueryPerformanceFrequency(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['LARGE_INTEGER *']
+        pNames = ['lpFrequency']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        if pVals[0] != 0x0:
+            freq = get_LARGE_INTEGER(uc, pVals[0], em)
+            freq.QuadPart = 10000
+            freq.writeToMemory(uc,pVals[0])
+            pVals[0] = makeStructVals(uc,freq,pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
+        
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
+    
+        retVal = 0
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls= ("QueryPerformanceFrequency", hex(callAddr), (retValStr), 'Return Value Type', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def GetUserNameA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
@@ -13220,14 +13240,21 @@ class CustomWinAPIs():
     def NtThawRegistry(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtThawRegistry)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
-    
-    
+
+    def NtLockRegistryKey(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtLockRegistryKey)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+       
     def NtClose(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtClose)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
 
     def NtQuerySystemTime(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtQuerySystemTime)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+
+    def NtQueryPerformanceCounter(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtQueryPerformanceCounter)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
     
     
@@ -14330,6 +14357,20 @@ class CustomWinSysCalls():
         logged_calls = ["NtThawRegistry", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
         return logged_calls
 
+    def NtLockRegistryKey(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = ['HANDLE']
+        pNames = ['KeyHandle']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+        
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retVal = 0
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls = ["NtLockRegistryKey", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+        return logged_calls
+
     def NtClose(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
         pTypes = ['HANDLE']
         pNames = ['Handle']
@@ -14371,6 +14412,36 @@ class CustomWinSysCalls():
         logged_calls = ["NtQuerySystemTime", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
         return logged_calls
 
+    def NtQueryPerformanceCounter(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = ['PLARGE_INTEGER', 'PLARGE_INTEGER']
+        pNames = ['PerformanceCounter', 'PerformanceFrequency']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+
+        if pVals[0] != 0x0:
+            pc = get_LARGE_INTEGER(uc, pVals[0], em)
+            pc.QuadPart = perf_counter_ns()
+            pc.writeToMemory(uc,pVals[0])
+            pVals[0] = makeStructVals(uc,pc,pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
+
+        if pVals[1] != 0x0:
+            freq = get_LARGE_INTEGER(uc, pVals[1], em)
+            freq.QuadPart = 10000
+            freq.writeToMemory(uc,pVals[1])
+            pVals[1] = makeStructVals(uc,freq,pVals[1])
+        else:
+            pVals[1] = hex(pVals[1])
+        
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0,1])
+    
+        retVal = 0
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls = ["NtQueryPerformanceCounter", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+        return logged_calls
+    
 
 
 def getStackVal(uc: Uc, em: EMU, esp: int, loc: int):
