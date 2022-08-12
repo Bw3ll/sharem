@@ -13367,6 +13367,23 @@ class CustomWinSysCalls():
         logged_calls = ["NtCreateProcess", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
         return logged_calls
 
+    def NtDeviceIoControlFile(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = ['HANDLE', 'HANDLE', 'PIO_APC_ROUTINE', 'PVOID', 'PIO_STATUS_BLOCK', 'ULONG', 'PVOID', 'ULONG', 'PVOID', 'ULONG']
+        pNames = ['FileHandle', 'Event', 'ApcRoutine', 'ApcContext', 'IoStatusBlock', 'IoControlCode', 'InputBuffer', 'InputBufferLength', 'OutputBuffer', 'OutputBufferLength']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+
+        pVals[] = getLookupVal(pVals[], ReverseLookups.NTSTATUS)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        retVal = 0
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        logged_calls = ['NtDeviceIoControlFile', hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+
+        return logged_calls
+
+
     def NtTerminateProcess(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
         pTypes = ['HANDLE', 'NTSTATUS']
         pNames = ['ProcessHandle', 'ExitStatus']
