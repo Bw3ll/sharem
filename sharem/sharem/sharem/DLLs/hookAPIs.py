@@ -13384,7 +13384,7 @@ class CustomWinSysCalls():
         #pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
         retVal = 0
-        retValStr = getLookUpVal(retVal)
+        retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
         logged_calls = ['NtDeviceIoControlFile', hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
 
@@ -13400,7 +13400,7 @@ class CustomWinSysCalls():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
         retVal = 0
-        retValStr = getLookUpVal(retVal)
+        retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
         logged_calls = ['NtDisplayString', hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
 
@@ -13416,7 +13416,7 @@ class CustomWinSysCalls():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
         retVal = 0
-        retValStr = getLookUpVal(retVal)
+        retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
         logged_calls = ['NtDuplicateToken', hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
 
@@ -13432,7 +13432,7 @@ class CustomWinSysCalls():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
         retVal = 0
-        retValStr = getLookUpVal(retVal)
+        retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
         logged_calls = ['NtDrawText', hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
 
