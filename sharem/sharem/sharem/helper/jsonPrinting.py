@@ -126,7 +126,7 @@ class jsonPrint:
 			fileNameOnly = self.filename
 		
 		folder_out = os.path.join(self.sharem_out_dir,fileNameOnly)
-		 
+
 		#create the main json file output name
 		if(self.current_arch == 64):
 			mainName = fileNameOnly+'-64_'+fileNameTime+'.json'
@@ -372,7 +372,7 @@ class jsonPrint:
 												"value":api_type_value})
 					p+=1
 			# list_of_apis.append(api_dict)
-		self.emulation_dict['api_calls'] = api_dict
+		self.emulation_dict['api_calls'].append(api_dict)
 
 	def syscalls(self,logged_syscalls,em):
 		var = Variables()
@@ -412,6 +412,8 @@ class jsonPrint:
 					syscalls_dict['parameters'].append({"type":syscall_params_names[p],
 												"value":syscall_type_value})
 					p+=1
+		
+
 
 				# for pTyp, pName, pVal in zip(syscall_params_types, syscall_params_names, syscall_params_values):
 				#     syscalls_dict['parameters'].append({"type":str(pTyp) + " " + str(pName),
