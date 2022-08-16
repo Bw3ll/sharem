@@ -13390,6 +13390,54 @@ class CustomWinSysCalls():
 
         return logged_calls
 
+    def NtDisplayString(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = ['PUNICODE_STRING']
+        pNames = ['String']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+
+        pVals[] = getLookupVal(pVals[], ReverseLookups.NTSTATUS)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        retVal = 0
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        logged_calls = ['NtDisplayString', hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+
+        return logged_calls
+
+    def NtDuplicateToken(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = ['HANDLE', 'ACCESS_MASK', 'POBJECT_ATTRIBUTES', 'BOOLEAN', 'TOKEN_TYPE', 'PHANDLE']
+        pNames = ['ExistingTokenHandle', 'DesiredAccess', 'ObjectAttributes', 'EffectiveOnly', 'TokenType', 'NewTokenHandle']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+
+        pVals[] = getLookupVal(pVals[], ReverseLookups.NTSTATUS)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        retVal = 0
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        logged_calls = ['NtDuplicateToken', hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+
+        return logged_calls
+
+    def NtDrawText(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = ['PUNICODE_STRING']
+        pNames = ['Text']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+
+        pVals[] = getLookupVal(pVals[], ReverseLookups.NTSTATUS)
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        retVal = 0
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        logged_calls = ['NtDrawText', hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+
+        return logged_calls
+
 
     def NtTerminateProcess(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
         pTypes = ['HANDLE', 'NTSTATUS']
