@@ -173,15 +173,15 @@ class Configuration(metaclass=Singleton):
 		
 		
 		
-		self.decryptConf(conf)
-		self.searchConf(conf)
-		self.disassemblyConf(conf)
-		self.emulationConf(conf)
-		self.emulationSimValueConf(conf)
-		self.stringsConf(conf)
-		self.syscallsConf(conf)
-		self.patternConf(conf)
-		self.startUp(conf)
+		# self.decryptConf(conf)
+		# self.searchConf(conf)
+		# self.disassemblyConf(conf)
+		# self.emulationConf(conf)
+		# self.emulationSimValueConf(conf)
+		# self.stringsConf(conf)
+		# self.syscallsConf(conf)
+		# self.patternConf(conf)
+		# self.startUp(conf)
 		return conf
 		
 

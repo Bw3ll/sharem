@@ -22405,7 +22405,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 		# 			txt_output += "\n"
 
 
-	txt_output += printOut.artifactsOut(art,emulation_multiline,logged_dlls)
+	txt_output += printOut.artifactsOut(logged_dlls)
 
 	no_colors_out = Variables.cleanColors(self = Variables, out = txt_output)
 	# print(txt_output)
