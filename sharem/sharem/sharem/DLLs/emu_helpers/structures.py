@@ -2908,3 +2908,26 @@ class KEY_VALUE_BASIC_INFORMATION(LittleEndianStructure, metaclass=StructFieldsF
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
 
+# Struct KEY_WRITE_TIME_INFORMATION
+# Alias Names: _KEY_WRITE_TIME_INFORMATION
+# Alias Pointer Names: PKEY_WRITE_TIME_INFORMATION
+
+def get_KEY_WRITE_TIME_INFORMATION(uc: Uc, address: int, em: EMU):
+    return KEY_WRITE_TIME_INFORMATION.from_buffer_copy(uc.mem_read(address, sizeof(KEY_WRITE_TIME_INFORMATION)))
+
+# Struct Aliases:
+# get__KEY_WRITE_TIME_INFORMATION = get_KEY_WRITE_TIME_INFORMATION
+
+# Struct Pointers:
+PKEY_WRITE_TIME_INFORMATION_32BIT = POINTER_32BIT
+PKEY_WRITE_TIME_INFORMATION_64BIT = POINTER_64BIT
+
+class KEY_WRITE_TIME_INFORMATION(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['LARGE_INTEGER']
+    lookUps = {}
+
+    # Struct Members
+    LastWriteTime: LARGE_INTEGER
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))

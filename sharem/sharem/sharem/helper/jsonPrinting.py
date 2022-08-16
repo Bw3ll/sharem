@@ -381,8 +381,8 @@ class jsonPrint:
         for i in var.logged_syscalls:
             # print(i)
             tuple_flag = 0
-            print(type(i))
-            print(i)
+            # print(type(i))
+            # print(i)
             syscalls_dict = {}
             
             syscall_name = i[0]
