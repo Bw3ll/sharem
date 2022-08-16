@@ -13379,7 +13379,7 @@ class CustomWinSysCalls():
         pNames = ['FileHandle', 'Event', 'ApcRoutine', 'ApcContext', 'IoStatusBlock', 'IoControlCode', 'InputBuffer', 'InputBufferLength', 'OutputBuffer', 'OutputBufferLength']
         pVals = self.makeArgVals(uc, em, esp, len(pTypes))
 
-        pVals[] = getLookupVal(pVals[], ReverseLookups.NTSTATUS)
+        pVals = getLookupVal(pVals, ReverseLookups.NTSTATUS)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
