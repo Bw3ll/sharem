@@ -402,9 +402,12 @@ class Artifacts_emulation:
 
 	def removeObjectsFromDLLS(self):
 		dllsObject = '<sharem.sharem.DLLs.emu_helpers.'
+		removeSet = set()
 		for each in self.exe_dll_artifacts:
 			if dllsObject in each:
-				self.exe_dll_artifacts.remove(each)
+				removeSet.add(each)
+		for each in removeSet:
+			self.exe_dll_artifacts.remove(each)
 
 	def removeStructures(self,Regex):
 		#go through and find structures

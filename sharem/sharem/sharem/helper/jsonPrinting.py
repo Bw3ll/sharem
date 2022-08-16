@@ -412,8 +412,6 @@ class jsonPrint:
 					syscalls_dict['parameters'].append({"type":syscall_params_names[p],
 												"value":syscall_type_value})
 					p+=1
-		
-
 
 				# for pTyp, pName, pVal in zip(syscall_params_types, syscall_params_names, syscall_params_values):
 				#     syscalls_dict['parameters'].append({"type":str(pTyp) + " " + str(pName),

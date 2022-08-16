@@ -6612,7 +6612,7 @@ class ReverseLookUps:
         }
 
     class ACCESS_MASK:
-        RegKey = { # Might Need a Little Work
+        RegKey = {  # Need a Little Work for syswow64 key
             1: "KEY_QUERY_VALUE",
             2: "KEY_SET_VALUE",
             3: "KEY_QUERY_VALUE | KEY_SET_VALUE",
@@ -7731,4 +7731,29 @@ class ReverseLookUps:
             8162: "OBJ_DONT_REPARSE | OBJ_FORCE_ACCESS_CHECK | OBJ_KERNEL_HANDLE | OBJ_OPENLINK | OBJ_OPENIF | OBJ_CASE_INSENSITIVE | OBJ_EXCLUSIVE | OBJ_INHERIT | OBJ_IGNORE_IMPERSONATED_DEVICEMAP",
             8176: "OBJ_DONT_REPARSE | OBJ_FORCE_ACCESS_CHECK | OBJ_KERNEL_HANDLE | OBJ_OPENLINK | OBJ_OPENIF | OBJ_CASE_INSENSITIVE | OBJ_EXCLUSIVE | OBJ_PERMANENT | OBJ_IGNORE_IMPERSONATED_DEVICEMAP",
             8178: "OBJ_VALID_ATTRIBUTES",
+        }
+
+    class INFORMATION_CLASS:
+        KEY = {
+            0: "KeyBasicInformation",
+            1: "KeyNodeInformation",
+            2: "KeyFullInformation",
+            3: "KeyNameInformation",
+            4: "KeyCachedInformation",
+            5: "KeyFlagsInformation",
+            6: "KeyVirtualizationInformation",
+            7: "KeyHandleTagsInformation",
+            8: "KeyTrustInformation",
+            9: "KeyLayerInformation",
+            10: "MaxKeyInfoClass",
+        }
+
+        KEY_VALUE = {
+            0: "KeyValueBasicInformation",
+            1: "KeyValueFullInformation",
+            2: "KeyValuePartialInformation",
+            3: "KeyValueFullInformationAlign64",
+            4: "KeyValuePartialInformationAlign64",
+            5: "KeyValueLayerInformation",
+            6: "MaxKeyValueInfoClass",
         }
