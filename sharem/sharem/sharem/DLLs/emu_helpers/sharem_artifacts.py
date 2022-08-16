@@ -97,6 +97,8 @@ class Artifacts_regex:
 
 class Artifacts_emulation:
 	def __init__(self):
+		self.correlation = []
+
 		self.path_artifacts = []
 		self.path_copy = []
 		self.path_move = []
@@ -149,11 +151,16 @@ class Artifacts_emulation:
 		self.files_hashes = set(self.files_hashes)
 		self.path_copy = set(self.path_copy)
 		self.path_move = set(self.path_move)
-
+		self.correlation = set(self.correlation)
 		#This will need to be built out better in the future, currently we do not have any functions that edit/delete with special values we want such as desktop being passed into it.
 		#self.registry_misc = self.registry_misc - self.registry_edit_keys
 		#self.registry_misc = self.registry_misc - self.registry_delete_keys
-
+		#remove regex picking up file/web artifacts that are duplicates
+		## EX.
+		##		warpeace3498tols.pdf <-- removes this
+		##		warpeace3498tols.pdf : bdb4133424ef3125be7259eea3f156d0
+		self.web_artifacts = self.dupRemoveArtifacts(self.web_artifacts)
+		self.file_artifacts = self.dupRemoveArtifacts(self.file_artifacts)
 		##this can be moved to a function later - removes powershell and cmd from the exe/dlls as it is picked up from the files and command line.
 		#exe_dll_COPY = self.exe_dll_artifacts
 		for each in exe_dll_COPY:
@@ -168,6 +175,7 @@ class Artifacts_emulation:
 		self.removeObjectsFromDLLS()
 
 		#convert back
+		self.correlation = list(self.correlation)
 		self.path_copy = list(self.path_copy)
 		self.path_move = list(self.path_move)
 		self.files_hashes = list(self.files_hashes)
@@ -452,3 +460,18 @@ class Artifacts_emulation:
 		self.removeDuplicates()
 
 
+	def dupRemoveArtifacts(self,artifact_set):
+		#remove the duplicate artifacts that are also tuples
+		tempSet = set()
+		for item in artifact_set:
+			if(type(item) == tuple):
+				tempSet.add(item[0])
+			else:
+				pass
+		artifact_set = artifact_set - tempSet
+		return artifact_set
+
+############################################################################################
+############################			Documentation			############################
+############################################################################################
+#

@@ -8,7 +8,7 @@ from sharem.sharem.DLLs.emu_helpers.handles import Handle, HandleType, HandlesDi
 from sharem.sharem.DLLs.emu_helpers.heap import Heap, HeapsDict
 from sharem.sharem.DLLs.emu_helpers.registry import RegKey, RegValueTypes, RegistryKeys
 from sharem.sharem.DLLs.emu_helpers.sim_values import emuSimVals
-from sharem.sharem.DLLs.emu_helpers.sharem_artifacts import Artifacts_emulation
+# from sharem.sharem.DLLs.emu_helpers.sharem_artifacts import Artifacts_emulation
 from sharem.sharem.DLLs.emu_helpers.sharem_filesystem import Directory_system
 from sharem.sharem.DLLs.emu_helpers.tool_snapshot import System_SnapShot
 from sharem.sharem.DLLs.emu_helpers.reverseLookUps import ReverseLookUps
@@ -23,8 +23,9 @@ from ..modules import allDllsDict
 import traceback
 import re
 
+var = Variables()
 #Artifacts class initialization
-art = Artifacts_emulation()
+art = var.art
 # Instance of File System
 SimFileSystem = Directory_system()
 printOut = PrintingOutput()
@@ -2395,12 +2396,18 @@ class CustomWinAPIs():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
         origin = pVals[1]
         destination = pVals[2]
-        filePath, fileName,datahash = SimFileSystem.internetDownload(origin,destination)
+        filePath, fileName,datahash,statusCode = SimFileSystem.internetDownload(origin,destination)
         art.files_create.append(fileName)
         art.path_artifacts.append(filePath)
         
         if(datahash != ''):
-            art.files_hashes.append((fileName,datahash))
+            originFileName = origin.split('/')
+            orgName = originFileName[-1]
+            # art.files_hashes.append((orgName,datahash))
+            art.correlation.append((orgName,fileName))
+            art.file_artifacts.append((orgName,datahash))
+        if(statusCode != ''):
+            art.web_artifacts.append((origin,statusCode))
 
         
         retVal = 0x0
