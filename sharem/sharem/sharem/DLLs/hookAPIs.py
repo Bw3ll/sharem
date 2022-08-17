@@ -13228,6 +13228,10 @@ class CustomWinAPIs():
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtSetValueKey)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
 
+    def NtDeleteValueKey(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtDeleteValueKey)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+
     def NtDeleteKey(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtDeleteKey)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
@@ -13921,7 +13925,6 @@ class CustomWinSysCalls():
                 art.registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.dataAsStr))
             else:
                 retVal = 3221225480 # STATUS_INVALID_HANDLE
-                pass
         else:
             pVals[1] = hex(pVals[1])
 
@@ -13931,6 +13934,37 @@ class CustomWinSysCalls():
         uc.reg_write(UC_X86_REG_EAX, retVal)
     
         logged_calls = ["NtSetValueKey", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+        return logged_calls
+
+    def NtDeleteValueKey(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = ['HANDLE', 'PUNICODE_STRING']
+        pNames = ['KeyHandle', 'ValueName']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+
+        retVal = 0
+        if pVals[1] != 0x0:
+            valNameStruct = get_UNICODE_STRING(uc, pVals[1], em)
+            valName = read_unicode(uc, valNameStruct.Buffer)
+            pVals[1] = makeStructVals(uc, valNameStruct, pVals[1])
+            if pVals[0] in HandlesDict:
+                hKey = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey = RegistryKeys[hKey.name]
+                    rKey.deleteValue(valName)
+                    art.registry_delete_keys.add((rKey.path,valName))
+                else: # Key Not Found
+                    retVal = 3221225480 # STATUS_INVALID_HANDLE
+            else: # Handle Not Found
+                retVal = 3221225480 # STATUS_INVALID_HANDLE
+        else:
+            pVals[1] = hex(pVals[1])
+        
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls = ["NtDeleteValueKey", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
         return logged_calls
 
     def NtDeleteKey(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
