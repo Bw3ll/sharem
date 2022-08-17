@@ -3,6 +3,7 @@ from random import choice, randint
 from time import perf_counter_ns
 from typing import Callable
 from urllib.parse import quote, unquote
+from sharem.sharem.DLLs.emu_helpers.atom import AtomTable
 from sharem.sharem.helper.emu import EMU
 from .emu_helpers.sharem_artifacts import Artifacts_emulation
 from .emu_helpers.sharem_filesystem import Directory_system
@@ -1277,6 +1278,39 @@ class CustomWinAPIs():
 
         logged_calls= ("GetEnvironmentStringsW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def FindResourceA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes= ['HMODULE', 'LPCSTR', 'LPCSTR']
+        pNames= ['hModule', 'lpName', 'lpType']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        retVal = 0x88888888
+
+        retValStr='True'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("FindResourceA", hex(callAddr), (retValStr), 'HRSRC', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetDriveTypeA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes= ['LPCSTR']
+        pNames= ['lpRootPathName']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Might Need to Expand
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        retVal = 0x88888888
+
+        retValStr='True'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("GetDriveTypeA", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def HeapCreate(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         # HANDLE HeapCreate([in] DWORD  flOptions,[in] SIZE_T dwInitialSize,[in] SIZE_T dwMaximumSize);
@@ -13228,6 +13262,10 @@ class CustomWinAPIs():
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtSetValueKey)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
 
+    def NtDeleteValueKey(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtDeleteValueKey)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+
     def NtDeleteKey(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtDeleteKey)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
@@ -13288,10 +13326,9 @@ class CustomWinAPIs():
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtDrawText)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
 
-    def NtFindAtom(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
-        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtFindAtom)
+    def NtAddAtom(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtAddAtom)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
-    
     
     # Only Place Nt Functions here
     # Place Others Above Nt Section
@@ -13457,27 +13494,6 @@ class CustomWinSysCalls():
         logged_calls = ['NtDrawText', hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
 
         return logged_calls
-
-    def NtFindAtom(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
-        pTypes = ['PWCHAR', 'PRTL_ATOM']
-        pNames = ['AtomName', 'Atom']
-        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
-
-        if pVals[0] != 0x0:
-            string = read_unicode(uc, pVals[0])
-            pVals[0] = makeStructVals(uc, string, pVals[0])
-        else:
-            pVals[0] = hex(pVals[0])
-        
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
-
-        retVal = 0
-        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
-        uc.reg_write(UC_X86_REG_EAX, retVal)
-        logged_calls = ['NtFindAtom', hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
-
-        return logged_calls
-
 
 
     def NtTerminateProcess(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
@@ -13946,7 +13962,6 @@ class CustomWinSysCalls():
                 art.registry_edit_keys.add((registry_key_address.path,written_values.name,written_values.dataAsStr))
             else:
                 retVal = 3221225480 # STATUS_INVALID_HANDLE
-                pass
         else:
             pVals[1] = hex(pVals[1])
 
@@ -13956,6 +13971,37 @@ class CustomWinSysCalls():
         uc.reg_write(UC_X86_REG_EAX, retVal)
     
         logged_calls = ["NtSetValueKey", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+        return logged_calls
+
+    def NtDeleteValueKey(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = ['HANDLE', 'PUNICODE_STRING']
+        pNames = ['KeyHandle', 'ValueName']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+
+        retVal = 0
+        if pVals[1] != 0x0:
+            valNameStruct = get_UNICODE_STRING(uc, pVals[1], em)
+            valName = read_unicode(uc, valNameStruct.Buffer)
+            pVals[1] = makeStructVals(uc, valNameStruct, pVals[1])
+            if pVals[0] in HandlesDict:
+                hKey = HandlesDict[pVals[0]]
+                if hKey.name in RegistryKeys:
+                    rKey = RegistryKeys[hKey.name]
+                    rKey.deleteValue(valName)
+                    art.registry_delete_keys.add((rKey.path,valName))
+                else: # Key Not Found
+                    retVal = 3221225480 # STATUS_INVALID_HANDLE
+            else: # Handle Not Found
+                retVal = 3221225480 # STATUS_INVALID_HANDLE
+        else:
+            pVals[1] = hex(pVals[1])
+        
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls = ["NtDeleteValueKey", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
         return logged_calls
 
     def NtDeleteKey(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
@@ -14570,6 +14616,30 @@ class CustomWinSysCalls():
     
         logged_calls = ["NtQueryPerformanceCounter", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
         return logged_calls
+
+    def NtAddAtom(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = ['PWCHAR', 'PRTL_ATOM']
+        pNames = ['AtomName', 'Atom']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+        
+        atomName = read_unicode(uc, pVals[0])
+
+        id = AtomTable.add(atomName)
+
+        if pVals[1] != 0x0:
+            uc.mem_write(pVals[1], pack('<I',id))
+        else:
+            pVals[1] = hex(pVals[1])
+
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retVal = 0
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls = ["NtAddAtom", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+        return logged_calls
     
 
 
@@ -14627,6 +14697,10 @@ def findStringsParms(uc: Uc, pTypes: 'list[str]', pVals: 'list', skip: 'list[int
                 except:
                     # print ("pass", i)
                     pass
+            elif "PCHAR" in pTypes[i]:
+                pVals[i] = read_string(uc, pVals[i])
+            elif "PWCHAR" in pTypes[i]:
+                pVals[i] = read_unicode(uc, pVals[i])
             elif "char *" in pTypes[i]:
                 try:
                     # print ("looking", i, pTypes[i], pVals[i])
