@@ -13287,6 +13287,10 @@ class CustomWinAPIs():
     def NtDrawText(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtDrawText)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+
+    def NtFindAtom(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtFindAtom)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
     
     
     # Only Place Nt Functions here
@@ -13453,6 +13457,27 @@ class CustomWinSysCalls():
         logged_calls = ['NtDrawText', hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
 
         return logged_calls
+
+    def NtFindAtom(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = ['PWCHAR', 'PRTL_ATOM']
+        pNames = ['AtomName', 'Atom']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+
+        if pVals[0] != 0x0:
+            string = read_unicode(uc, pVals[0])
+            pVals[0] = makeStructVals(uc, string, pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
+        
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
+
+        retVal = 0
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        logged_calls = ['NtFindAtom', hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+
+        return logged_calls
+
 
 
     def NtTerminateProcess(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
