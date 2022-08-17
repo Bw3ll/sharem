@@ -3,6 +3,7 @@ from random import choice, randint
 from time import perf_counter_ns
 from typing import Callable
 from urllib.parse import quote, unquote
+from sharem.sharem.DLLs.emu_helpers.atom import AtomTable
 from sharem.sharem.helper.emu import EMU
 from .emu_helpers.sharem_artifacts import Artifacts_emulation
 from .emu_helpers.sharem_filesystem import Directory_system
@@ -13291,7 +13292,10 @@ class CustomWinAPIs():
     def NtDrawText(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtDrawText)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
-    
+
+    def NtAddAtom(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtAddAtom)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
     
     # Only Place Nt Functions here
     # Place Others Above Nt Section
@@ -14579,6 +14583,30 @@ class CustomWinSysCalls():
     
         logged_calls = ["NtQueryPerformanceCounter", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
         return logged_calls
+
+    def NtAddAtom(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = ['PWCHAR', 'PRTL_ATOM']
+        pNames = ['AtomName', 'Atom']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+        
+        atomName = read_unicode(uc, pVals[0])
+
+        id = AtomTable.add(atomName)
+
+        if pVals[1] != 0x0:
+            uc.mem_write(pVals[1], pack('<I',id))
+        else:
+            pVals[1] = hex(pVals[1])
+
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retVal = 0
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls = ["NtAddAtom", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+        return logged_calls
     
 
 
@@ -14636,6 +14664,10 @@ def findStringsParms(uc: Uc, pTypes: 'list[str]', pVals: 'list', skip: 'list[int
                 except:
                     # print ("pass", i)
                     pass
+            elif "PCHAR" in pTypes[i]:
+                pVals[i] = read_string(uc, pVals[i])
+            elif "PWCHAR" in pTypes[i]:
+                pVals[i] = read_unicode(uc, pVals[i])
             elif "char *" in pTypes[i]:
                 try:
                     # print ("looking", i, pTypes[i], pVals[i])
