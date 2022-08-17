@@ -13280,6 +13280,14 @@ class CustomWinAPIs():
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtQueryPerformanceCounter)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
     
+    def NtDisplayString(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtDisplayString)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+    
+    def NtDrawText(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtDrawText)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+    
     
     # Only Place Nt Functions here
     # Place Others Above Nt Section
@@ -13379,7 +13387,7 @@ class CustomWinSysCalls():
         pNames = ['FileHandle', 'Event', 'ApcRoutine', 'ApcContext', 'IoStatusBlock', 'IoControlCode', 'InputBuffer', 'InputBufferLength', 'OutputBuffer', 'OutputBufferLength']
         pVals = self.makeArgVals(uc, em, esp, len(pTypes))
 
-        pVals = getLookupVal(pVals, ReverseLookups.NTSTATUS)
+        # pVals = getLookupVal(pVals, ReverseLookups.NTSTATUS)
 
         #pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
@@ -13395,12 +13403,16 @@ class CustomWinSysCalls():
         pNames = ['String']
         pVals = self.makeArgVals(uc, em, esp, len(pTypes))
 
-        #pVals[] = getLookupVal(pVals[], ReverseLookups.NTSTATUS)
-
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        if pVals[0] != 0x0:
+            string = get_UNICODE_STRING(uc, pVals[0], em)
+            pVals[0] = makeStructVals(uc, string, pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
+        
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
 
         retVal = 0
-        retValStr = hex(retVal)
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
         uc.reg_write(UC_X86_REG_EAX, retVal)
         logged_calls = ['NtDisplayString', hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
 
@@ -13416,7 +13428,7 @@ class CustomWinSysCalls():
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
         retVal = 0
-        retValStr = hex(retVal)
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
         uc.reg_write(UC_X86_REG_EAX, retVal)
         logged_calls = ['NtDuplicateToken', hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
 
@@ -13427,12 +13439,16 @@ class CustomWinSysCalls():
         pNames = ['Text']
         pVals = self.makeArgVals(uc, em, esp, len(pTypes))
 
-        #pVals[] = getLookupVal(pVals[], ReverseLookups.NTSTATUS)
-
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        if pVals[0] != 0x0:
+            text = get_UNICODE_STRING(uc, pVals[0], em)
+            pVals[0] = makeStructVals(uc, text, pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
+        
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
 
         retVal = 0
-        retValStr = hex(retVal)
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
         uc.reg_write(UC_X86_REG_EAX, retVal)
         logged_calls = ['NtDrawText', hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
 
