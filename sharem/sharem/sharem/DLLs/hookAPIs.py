@@ -4,6 +4,7 @@ from time import perf_counter_ns
 from typing import Callable
 from urllib.parse import quote, unquote
 from sharem.sharem.DLLs.emu_helpers.atom import AtomTable
+from sharem.sharem.DLLs.emu_helpers.memHelper import Memory
 from sharem.sharem.helper.emu import EMU
 from .emu_helpers.sharem_artifacts import Artifacts_emulation
 from .emu_helpers.sharem_filesystem import Directory_system
@@ -13329,7 +13330,11 @@ class CustomWinAPIs():
     def NtAddAtom(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtAddAtom)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
-    
+
+    def NtDeleteAtom(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtDeleteAtom)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+
     # Only Place Nt Functions here
     # Place Others Above Nt Section
 
@@ -14574,6 +14579,7 @@ class CustomWinSysCalls():
             li = get_LARGE_INTEGER(uc, pVals[0], em)
             timeEpoch = time_ns() # Might Need to Check
             li.QuadPart = timeEpoch
+            li.writeToMemory(uc, pVals[0])
             pVals[0] = makeStructVals(uc, li, pVals[0])
         else:
             pVals[0] = hex(pVals[0])
@@ -14626,13 +14632,9 @@ class CustomWinSysCalls():
 
         id = AtomTable.add(atomName)
 
-        if pVals[1] != 0x0:
-            uc.mem_write(pVals[1], pack('<I',id))
-        else:
-            pVals[1] = hex(pVals[1])
+        Memory.Write.UINT(uc,pVals[1],id)
 
-
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        pTypes, pVals= findStringsParms(uc, pTypes,pVals, skip=[])
     
         retVal = 0
         retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
@@ -14640,7 +14642,23 @@ class CustomWinSysCalls():
     
         logged_calls = ["NtAddAtom", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
         return logged_calls
+
+
+    def NtDeleteAtom(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = ['RTL_ATOM']
+        pNames = ['Atom']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+        
+        AtomTable.delete(pVals[0])
+
+        pTypes, pVals= findStringsParms(uc, pTypes,pVals, skip=[])
     
+        retVal = 0
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls = ["NtDeleteAtom", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+        return logged_calls
 
 
 def getStackVal(uc: Uc, em: EMU, esp: int, loc: int):
