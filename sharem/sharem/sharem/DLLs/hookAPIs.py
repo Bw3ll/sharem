@@ -13350,6 +13350,10 @@ class CustomWinAPIs():
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtDeleteAtom)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
 
+    def NtFindAtom(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtFindAtom)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+
     # Only Place Nt Functions here
     # Place Others Above Nt Section
 
@@ -14637,6 +14641,30 @@ class CustomWinSysCalls():
     
         logged_calls = ["NtQueryPerformanceCounter", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
         return logged_calls
+
+    def NtFindAtom(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+        pTypes = ['PWCHAR', 'PRTL_ATOM']
+        pNames = ['AtomName', 'Atom']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+        
+        atomName = read_unicode(uc, pVals[0])
+
+        id = AtomTable.find(atomName)
+
+        if pVals[1] != 0x0:
+            uc.mem_write(pVals[1],pack('<I',id))
+
+        #Memory.Write.UINT(uc,pVals[1],id)
+
+        pTypes, pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retVal = 0
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls = ["NtFindAtom", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+        return logged_calls
+
 
     def NtAddAtom(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
         pTypes = ['PWCHAR', 'PRTL_ATOM']
