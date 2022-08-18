@@ -13335,6 +13335,10 @@ class CustomWinAPIs():
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtDeleteAtom)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
 
+    def NtFindAtom(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtFindAtom)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+
     # Only Place Nt Functions here
     # Place Others Above Nt Section
 
