@@ -11162,16 +11162,28 @@ class CustomWinAPIs():
         logged_calls= ("WNetAddConnectionA", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def xxPeekMessageA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def PeekMessageA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= ['LPMSG', 'HWND', 'UINT', 'UINT', 'UINT']
         pNames= ['lpMsg', 'hWnd', 'wMsgFilterMin', 'wMsgFilterMax', 'wRemoveMsg']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        dwFlagsReverseLookUp = {0: 'PM_NOREMOVE', 1: 'PM_REMOVE', 2: 'PM_NOYIELD'}
+        dwFlagsReverseLookUp = {0: 'WM_KEYFIRST', 1: 'WM_MOUSEFIRST'}
+        pVals[2] = getLookUpVal(pVals[2],dwFlagsReverseLookUp)
 
+        dwFlagsReverseLookUp = {0: 'PM_NOREMOVE', 1: 'PM_REMOVE', 2: 'PM_NOYIELD'}
         pVals[4] = getLookUpVal(pVals[4],dwFlagsReverseLookUp)
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4])
+        handle = Handle(HandleType.PeekMessageA)
+
+        try:
+            uc.mem_write(pVals[0], pack('<I', handle.value))
+            # uc.mem_write(pVals[4], PCLIENT_ID)
+            # Maybe create PCLIENT_ID need to determing how to generate process and thread IDs
+        except:
+            pass
+
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,4])
 
         retVal = 0x1
         retValStr= 'MESSAGE_AVAILABLE'
