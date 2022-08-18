@@ -1,5 +1,13 @@
 from dataclasses import dataclass
 
+MIN_INT_ATOM = 0x0001
+MAXINTATOM = 0xBFFF
+MINSTRINGATOM = 0xC000
+MAXSTRINGATOM = 0xFFFF
+
+# Need to Add Integer Atom Handling
+# dddd
+
 
 @dataclass
 class Atom:
@@ -44,6 +52,12 @@ class AtomTable:
             if name.lower() == atom.name.lower():
                 return atom.ID
         return 0  # Atom Not Found
+
+    def name(id: int):
+        for atom in AtomTable.Atoms:
+            if id == atom.ID:
+                return atom.name
+        return hex(0)
 
     def incIdCounter():
         AtomTable.IdCounter += 1
