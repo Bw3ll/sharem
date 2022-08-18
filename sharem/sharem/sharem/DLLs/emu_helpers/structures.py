@@ -2792,6 +2792,61 @@ class KEY_FULL_INFORMATION(LittleEndianStructure, metaclass=StructFieldsFromType
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
 
+# Struct tagMSG
+# Alias Names: MSG, NPMSG
+# Alias Pointer Names: PMSG, LPMSG
+
+def get_tagMSG(uc: Uc, address: int, em):
+    if em.arch == 32:
+        return tagMSG.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(tagMSG.ARCH32)))
+    else:
+        return tagMSG.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(tagMSG.ARCH64)))
+
+# Struct Aliases:
+# get_MSG = get_tagMSG
+# get_NPMSG = get_tagMSG
+
+# Struct Pointers:
+PMSG_32BIT = POINTER_32BIT
+PMSG_64BIT = POINTER_64BIT
+LPMSG_32BIT = POINTER_32BIT
+LPMSG_64BIT = POINTER_64BIT
+
+class tagMSG:
+
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['HWND', 'UINT', 'WPARAM', 'LPARAM', 'DWORD', 'POINT', 'DWORD']
+        lookUps = {}
+
+        # Struct Members
+        hwnd: HWND_32BIT
+        message: UINT
+        wParam: WPARAM
+        lParam: LPARAM_32BIT
+        time: DWORD
+        pt: POINT_32BIT
+        lPrivate: DWORD
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['HWND', 'UINT', 'WPARAM', 'LPARAM', 'DWORD', 'POINT', 'DWORD']
+        lookUps = {}
+
+        # Struct Members
+        hwnd: HWND_64BIT
+        message: UINT
+        wParam: WPARAM
+        lParam: LPARAM_64BIT
+        time: DWORD
+        pt: POINT_64BIT
+        lPrivate: DWORD
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+
 # Struct KEY_VIRTUALIZATION_INFORMATION
 # Alias Names: _KEY_VIRTUALIZATION_INFORMATION
 # Alias Pointer Names: PKEY_VIRTUALIZATION_INFORMATION
