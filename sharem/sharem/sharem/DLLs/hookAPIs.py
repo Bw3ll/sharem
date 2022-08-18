@@ -13242,8 +13242,295 @@ class CustomWinAPIs():
         logged_calls= ("FindFirstFileA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    
+    def AddAtomA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['LPCSTR']
+        pNames = ['lpString']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        atomName = read_string(uc, pVals[0])
+        retVal = AtomTable.add(atomName)
 
+        pTypes, pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+  
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls= ("AddAtomA", hex(callAddr), (retValStr), 'ATOM', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def AddAtomW(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['LPCWSTR']
+        pNames = ['lpString']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        atomName = read_unicode(uc, pVals[0])
+        retVal = AtomTable.add(atomName)
+
+        pTypes, pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls= ("AddAtomW", hex(callAddr), (retValStr), 'ATOM', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def DeleteAtom(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['ATOM']
+        pNames = ['nAtom']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        AtomTable.delete(pVals[0])
+
+        pTypes, pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retVal = 0
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls= ("DeleteAtom", hex(callAddr), (retValStr), 'ATOM', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def FindAtomA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['LPCSTR']
+        pNames = ['lpString']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        atomName = read_string(uc, pVals[0])
+        retVal = AtomTable.find(atomName)
+
+        pTypes, pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls= ("FindAtomA", hex(callAddr), (retValStr), 'ATOM', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def FindAtomW(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['LPCWSTR']
+        pNames = ['lpString']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        atomName = read_unicode(uc, pVals[0])
+        retVal = AtomTable.find(atomName)
+
+        pTypes, pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls= ("FindAtomW", hex(callAddr), (retValStr), 'ATOM', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetAtomNameA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['ATOM','LPSTR','INT']
+        pNames = ['nAtom','lpBuffer','nSize']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        name = AtomTable.name(pVals[0])
+
+        if pVals[2] >= len(name):
+            writeAsciiStrToMemory(uc, pVals[1], name)
+            retVal = len(name)
+        else:
+            retVal = 0
+
+        pTypes, pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls= ("GetAtomNameA", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetAtomNameW(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['ATOM','LPWSTR','INT']
+        pNames = ['nAtom','lpBuffer','nSize']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        name = AtomTable.name(pVals[0])
+
+        if pVals[2] >= len(name):
+            writeUnicodeStrToMemory(uc, pVals[1], name)
+            retVal = len(name)
+        else:
+            retVal = 0
+
+        pTypes, pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls= ("GetAtomNameW", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GlobalAddAtomA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['LPCSTR']
+        pNames = ['lpString']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        atomName = read_string(uc, pVals[0])
+        retVal = AtomTable.add(atomName)
+
+        pTypes, pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls= ("GlobalAddAtomA", hex(callAddr), (retValStr), 'ATOM', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GlobalAddAtomW(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['LPCWSTR']
+        pNames = ['lpString']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        atomName = read_unicode(uc, pVals[0])
+        retVal = AtomTable.add(atomName)
+
+        pTypes, pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls= ("GlobalAddAtomW", hex(callAddr), (retValStr), 'ATOM', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GlobalAddAtomExA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['LPCSTR','DWORD']
+        pNames = ['lpString','FLAGS']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        atomName = read_string(uc,pVals[0])
+        retVal = AtomTable.add(atomName)
+
+        pTypes, pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls= ("GlobalAddAtomExA", hex(callAddr), (retValStr), 'ATOM', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GlobalAddAtomExW(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['LPCWSTR','DWORD']
+        pNames = ['lpString','FLAGS']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        atomName = read_unicode(uc,pVals[0])
+        retVal = AtomTable.add(atomName)
+
+        pTypes, pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls= ("GlobalAddAtomExW", hex(callAddr), (retValStr), 'ATOM', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GlobalDeleteAtom(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['ATOM']
+        pNames = ['nAtom']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        AtomTable.delete(pVals[0])
+        
+        pTypes, pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retVal = 0
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls= ("GlobalDeleteAtom", hex(callAddr), (retValStr), 'ATOM', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GlobalFindAtomA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['LPCSTR']
+        pNames = ['lpString']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        atomName = read_string(uc, pVals[0])
+        retVal = AtomTable.find(atomName)
+
+        pTypes, pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls= ("GlobalFindAtomA", hex(callAddr), (retValStr), 'ATOM', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GlobalFindAtomW(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['LPCWSTR']
+        pNames = ['lpString']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        atomName = read_unicode(uc, pVals[0])
+        retVal = AtomTable.find(atomName)
+
+        pTypes, pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls= ("GlobalFindAtomW", hex(callAddr), (retValStr), 'ATOM', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GlobalGetAtomNameA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['ATOM','LPSTR','INT']
+        pNames = ['nAtom','lpBuffer','nSize']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        name = AtomTable.name(pVals[0])
+
+        if pVals[2] >= len(name):
+            writeAsciiStrToMemory(uc, pVals[1], name)
+            retVal = len(name)
+        else:
+            retVal = 0
+
+        pTypes, pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls= ("GlobalGetAtomNameA", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GlobalGetAtomNameW(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['ATOM','LPWSTR','INT']
+        pNames = ['nAtom','lpBuffer','nSize']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        name = AtomTable.name(pVals[0])
+
+        if pVals[2] >= len(name):
+            writeUnicodeStrToMemory(uc, pVals[1], name)
+            retVal = len(name)
+        else:
+            retVal = 0
+
+        pTypes, pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls= ("GlobalGetAtomNameW", hex(callAddr), (retValStr), 'UINT', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def InitAtomTable(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['DWORD']
+        pNames = ['nSize']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+        pTypes, pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+    
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+    
+        logged_calls= ("InitAtomTable", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
 
     # Place Other Function Above Here
