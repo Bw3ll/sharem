@@ -11204,7 +11204,7 @@ class CustomWinAPIs():
         logged_calls= ("PeekMessageA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def xxPostMessageA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def PostMessageA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= ['HWND', 'UINT', 'WPARAM', 'LPARAM']
         pNames= ['hWnd', 'Msg', 'wParam', 'lParam']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -11218,7 +11218,7 @@ class CustomWinAPIs():
         logged_calls= ("PeekMessageA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def xxPostThreadMessageA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def PostThreadMessageA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= ['DWORD', 'UINT', 'WPARAM', 'LPARAM']
         pNames= ['idThread', 'Msg', 'wParam', 'lParam']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
