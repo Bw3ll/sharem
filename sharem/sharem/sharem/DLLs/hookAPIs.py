@@ -10815,6 +10815,21 @@ class CustomWinAPIs():
         dwFlagsReverseLookUp1 = {0: 'SHARE_NAME', 1: 'SHARED_RESOURCE_INFO', 2: 'SHARED_RESOURCE_INFO', 501: 'NAME_TYPE_RESOURCE', 502: 'PERMS_RESOURCE_CONNECTIONS', 503: 'PERMS_RESOURCE_CONNECTIONS', 1005: 'SHARE_ROOT_VOLUME_INDICATOR'}
         pVals[2] = getLookUpVal(pVals[2],dwFlagsReverseLookUp1)
 
+        if pVals[2] == 0:
+            continue
+        elif pVals[2] == 1:
+            continue
+        elif pVals[2] == 2:
+            continue
+        elif pVals[2] == 501:
+            continue
+        elif pVals[2] == 502:
+            continue
+        elif pVals[2] == 503:
+            continue
+        elif pVals[2] == 1005:
+            continue
+
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[2])
 
         retVal = 0x88888888

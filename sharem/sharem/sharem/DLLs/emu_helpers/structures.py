@@ -328,6 +328,62 @@ class MODULEENTRY32: # Needs Redone
         self.szModule = unpackedStruct[8].decode()
         self.szExePath = unpackedStruct[9].decode()
 
+# Struct SHARE_INFO_0
+# Alias Names: _SHARE_INFO_0
+# Alias Pointer Names: PSHARE_INFO_0, LPSHARE_INFO_0
+
+def get_SHARE_INFO_0(uc: Uc, address: int, em: EMU):
+    return SHARE_INFO_0.from_buffer_copy(uc.mem_read(address, sizeof(SHARE_INFO_0)))
+
+# Struct Aliases:
+# get__SHARE_INFO_0 = get_SHARE_INFO_0
+
+# Struct Pointers:
+PSHARE_INFO_0_32BIT = POINTER_32BIT
+PSHARE_INFO_0_64BIT = POINTER_64BIT
+LPSHARE_INFO_0_32BIT = POINTER_32BIT
+LPSHARE_INFO_0_64BIT = POINTER_64BIT
+
+class SHARE_INFO_0(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['LMSTR']
+    lookUps = {}
+
+    # Struct Members
+    shi0_netname: LMSTR
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+
+# Struct SHARE_INFO_1
+# Alias Names: _SHARE_INFO_1
+# Alias Pointer Names: PSHARE_INFO_1, LPSHARE_INFO_1
+
+def get_SHARE_INFO_1(uc: Uc, address: int, em: EMU):
+    return SHARE_INFO_1.from_buffer_copy(uc.mem_read(address, sizeof(SHARE_INFO_1)))
+
+# Struct Aliases:
+# get__SHARE_INFO_1 = get_SHARE_INFO_1
+
+# Struct Pointers:
+PSHARE_INFO_1_32BIT = POINTER_32BIT
+PSHARE_INFO_1_64BIT = POINTER_64BIT
+LPSHARE_INFO_1_32BIT = POINTER_32BIT
+LPSHARE_INFO_1_64BIT = POINTER_64BIT
+
+class SHARE_INFO_1(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['LMSTR', 'DWORD', 'LMSTR']
+    lookUps = {}
+
+    # Struct Members
+    shi1_netname: LMSTR
+    shi1_type: DWORD
+    shi1_remark: LMSTR
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+
 # Struct SYSTEMTIME
 # Alias Names: _SYSTEMTIME
 # Alias Pointer Names: *PSYSTEMTIME, *LPSYSTEMTIME
