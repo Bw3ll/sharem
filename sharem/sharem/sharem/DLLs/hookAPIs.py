@@ -11167,23 +11167,30 @@ class CustomWinAPIs():
         pNames= ['lpMsg', 'hWnd', 'wMsgFilterMin', 'wMsgFilterMax', 'wRemoveMsg']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        dwFlagsReverseLookUp = {0: 'WM_KEYFIRST', 1: 'WM_MOUSEFIRST'}
-        pVals[2] = getLookUpVal(pVals[2],dwFlagsReverseLookUp)
+        dwFlagsReverseLookUp1 = {0x0100: 'WM_KEYFIRST', 0x0200: 'WM_MOUSEFIRST'}
+        pVals[2] = getLookUpVal(pVals[2],dwFlagsReverseLookUp1)
 
-        dwFlagsReverseLookUp = {0: 'PM_NOREMOVE', 1: 'PM_REMOVE', 2: 'PM_NOYIELD'}
-        pVals[4] = getLookUpVal(pVals[4],dwFlagsReverseLookUp)
+        dwFlagsReverseLookUp2 = {0: 'PM_NOREMOVE', 1: 'PM_REMOVE', 2: 'PM_NOYIELD'}
+        pVals[4] = getLookUpVal(pVals[4],dwFlagsReverseLookUp2)
 
         handle = Handle(HandleType.PeekMessageA)
 
-        try:
-            uc.mem_write(pVals[0], pack('<I', handle.value))
-            # uc.mem_write(pVals[4], PCLIENT_ID)
-            # Maybe create PCLIENT_ID need to determing how to generate process and thread IDs
-        except:
-            pass
+        if pVals[0] != 0x0:
+            msg = get_MSG(uc,pVals[0],em)
+            #msg.setAnyValues = ForStruct
+            msg.hwnd = 0x55555555
+            msg.message = 77
+            msg.wparam = 1
+            msg.lparam = 2
+            msg.time = "00:08:51"
+            msg.pt = "50:50"
+            msg.lprivate = 1
+            msg.writeToMemory(uc,pVals[0])
+            pVals[0] = makeStructVals(uc, msg, pVals[0])
+        else:
+            pVals[0] = hex(pVals[0])
 
-
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,4])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0,2,4])
 
         retVal = 0x1
         retValStr= 'MESSAGE_AVAILABLE'
