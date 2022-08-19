@@ -10810,7 +10810,12 @@ class CustomWinAPIs():
         pNames= ['servername', 'netname', 'level', '*bufptr']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        pVals[0] = "SERVERNAME-LOCAL-PC"
+
+        dwFlagsReverseLookUp1 = {0: 'SHARE_NAME', 1: 'SHARED_RESOURCE_INFO', 2: 'SHARED_RESOURCE_INFO', 501: 'NAME_TYPE_RESOURCE', 502: 'PERMS_RESOURCE_CONNECTIONS', 503: 'PERMS_RESOURCE_CONNECTIONS', 1005: 'SHARE_ROOT_VOLUME_INDICATOR'}
+        pVals[2] = getLookUpVal(pVals[2],dwFlagsReverseLookUp1)
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[2])
 
         retVal = 0x88888888
         retValStr= 'NERR_Success'
