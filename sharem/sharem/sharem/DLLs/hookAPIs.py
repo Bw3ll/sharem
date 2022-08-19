@@ -13681,6 +13681,10 @@ class CustomWinAPIs():
         logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtFindAtom)
         return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
 
+    def NtLockFile(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        logged_calls = CustomWinSysCalls().winApiToSyscall(uc, eip, esp, callAddr, em, CustomWinSysCalls().NtLockFile)
+        return logged_calls, stackCleanup(uc, em, esp, len(logged_calls[5]))
+
     # Only Place Nt Functions here
     # Place Others Above Nt Section
 
@@ -14896,6 +14900,35 @@ class CustomWinSysCalls():
     
         logged_calls = ["NtLockRegistryKey", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
         return logged_calls
+
+    def NtLockFile(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
+    pTypes = ['HANDLE', 'HANDLE', 'PIO_APC_ROUTINE', 'PVOID', 'PIO_STATUS_BLOCK', 'PLARGE_INTEGER', 'PLARGE_INTEGER', 'ULONG', 'BOOLEAN', 'BOOLEAN']
+    pNames = ['FileHandle', 'Event', 'ApcRoutine', 'ApcContext', 'IoStatusBlock', 'ByteOffset', 'Length', 'Key', 'FailImmediately', 'ExclusiveLock']
+    pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+
+    #pVals[] = getLookupVal(pVals[], ReverseLookups.NTSTATUS)
+    if pVals[4] != 0x0:
+            iostatusblock = get_IO_STATUS_BLOCK(uc,pVals[4],em)
+            #msg.setAnyValues = ForStruct
+            iostatusblock.status = 'STATUS_SUCCESS'
+            iostatusblock.pointer = 0x77777777
+            iostatusblock.information = 2222
+
+            iostatusblock.writeToMemory(uc,pVals[4])
+            pVals[4] = makeStructVals(uc, iostatusblock, pVals[4])
+        else:
+            pVals[4] = hex(pVals[4])
+
+    pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4])
+
+    retVal = 0
+    retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+    uc.reg_write(UC_X86_REG_EAX, retVal)
+    logged_calls = ['NtLockFile', hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+
+    return logged_calls
+
+[ ? ] Function Stop
 
     def NtClose(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
         pTypes = ['HANDLE']
