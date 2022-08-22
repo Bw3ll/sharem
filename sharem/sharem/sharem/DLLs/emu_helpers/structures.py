@@ -384,6 +384,219 @@ class SHARE_INFO_1(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         uc.mem_write(address, bytes(self))
 
 
+# Struct SHARE_INFO_2
+# Alias Names: _SHARE_INFO_2
+# Alias Pointer Names: PSHARE_INFO_2, LPSHARE_INFO_2
+
+def get_SHARE_INFO_2(uc: Uc, address: int, em: EMU):
+    return SHARE_INFO_2.from_buffer_copy(uc.mem_read(address, sizeof(SHARE_INFO_2)))
+
+# Struct Aliases:
+# get__SHARE_INFO_2 = get_SHARE_INFO_2
+
+# Struct Pointers:
+PSHARE_INFO_2_32BIT = POINTER_32BIT
+PSHARE_INFO_2_64BIT = POINTER_64BIT
+LPSHARE_INFO_2_32BIT = POINTER_32BIT
+LPSHARE_INFO_2_64BIT = POINTER_64BIT
+
+class SHARE_INFO_2(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['LMSTR', 'DWORD', 'LMSTR', 'DWORD', 'DWORD', 'DWORD', 'LMSTR', 'LMSTR']
+    lookUps = {}
+
+    # Struct Members
+    shi2_netname: LMSTR
+    shi2_type: DWORD
+    shi2_remark: LMSTR
+    shi2_permissions: DWORD
+    shi2_max_uses: DWORD
+    shi2_current_uses: DWORD
+    shi2_path: LMSTR
+    shi2_passwd: LMSTR
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+
+# Struct SHARE_INFO_501
+# Alias Names: _SHARE_INFO_501
+# Alias Pointer Names: PSHARE_INFO_501, LPSHARE_INFO_501
+
+def get_SHARE_INFO_501(uc: Uc, address: int, em: EMU):
+    return SHARE_INFO_501.from_buffer_copy(uc.mem_read(address, sizeof(SHARE_INFO_501)))
+
+# Struct Aliases:
+# get__SHARE_INFO_501 = get_SHARE_INFO_501
+
+# Struct Pointers:
+PSHARE_INFO_501_32BIT = POINTER_32BIT
+PSHARE_INFO_501_64BIT = POINTER_64BIT
+LPSHARE_INFO_501_32BIT = POINTER_32BIT
+LPSHARE_INFO_501_64BIT = POINTER_64BIT
+
+class SHARE_INFO_501(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['LMSTR', 'DWORD', 'LMSTR', 'DWORD']
+    lookUps = {}
+
+    # Struct Members
+    shi501_netname: LMSTR
+    shi501_type: DWORD
+    shi501_remark: LMSTR
+    shi501_flags: DWORD
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+
+# Struct SHARE_INFO_502
+# Alias Names: _SHARE_INFO_502
+# Alias Pointer Names: PSHARE_INFO_502, LPSHARE_INFO_502
+
+def get_SHARE_INFO_502(uc: Uc, address: int, em: EMU):
+    if em.arch == 32:
+        return SHARE_INFO_502.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(SHARE_INFO_502.ARCH32)))
+    else:
+        return SHARE_INFO_502.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(SHARE_INFO_502.ARCH64)))
+
+# Struct Aliases:
+# get__SHARE_INFO_502 = get_SHARE_INFO_502
+
+# Struct Pointers:
+PSHARE_INFO_502_32BIT = POINTER_32BIT
+PSHARE_INFO_502_64BIT = POINTER_64BIT
+LPSHARE_INFO_502_32BIT = POINTER_32BIT
+LPSHARE_INFO_502_64BIT = POINTER_64BIT
+
+class SHARE_INFO_502:
+
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['LMSTR', 'DWORD', 'LMSTR', 'DWORD', 'DWORD', 'DWORD', 'LMSTR', 'LMSTR', 'DWORD', 'PSECURITY_DESCRIPTOR']
+        lookUps = {}
+
+        # Struct Members
+        shi502_netname: LMSTR
+        shi502_type: DWORD
+        shi502_remark: LMSTR
+        shi502_permissions: DWORD
+        shi502_max_uses: DWORD
+        shi502_current_uses: DWORD
+        shi502_path: LMSTR
+        shi502_passwd: LMSTR
+        shi502_reserved: DWORD
+        shi502_security_descriptor: PSECURITY_DESCRIPTOR_32BIT
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['LMSTR', 'DWORD', 'LMSTR', 'DWORD', 'DWORD', 'DWORD', 'LMSTR', 'LMSTR', 'DWORD', 'PSECURITY_DESCRIPTOR']
+        lookUps = {}
+
+        # Struct Members
+        shi502_netname: LMSTR
+        shi502_type: DWORD
+        shi502_remark: LMSTR
+        shi502_permissions: DWORD
+        shi502_max_uses: DWORD
+        shi502_current_uses: DWORD
+        shi502_path: LMSTR
+        shi502_passwd: LMSTR
+        shi502_reserved: DWORD
+        shi502_security_descriptor: PSECURITY_DESCRIPTOR_64BIT
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+
+# Struct SHARE_INFO_503
+# Alias Names: _SHARE_INFO_503
+# Alias Pointer Names: PSHARE_INFO_503, LPSHARE_INFO_503
+
+def get_SHARE_INFO_503(uc: Uc, address: int, em: EMU):
+    if em.arch == 32:
+        return SHARE_INFO_503.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(SHARE_INFO_503.ARCH32)))
+    else:
+        return SHARE_INFO_503.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(SHARE_INFO_503.ARCH64)))
+
+# Struct Aliases:
+# get__SHARE_INFO_503 = get_SHARE_INFO_503
+
+# Struct Pointers:
+PSHARE_INFO_503_32BIT = POINTER_32BIT
+PSHARE_INFO_503_64BIT = POINTER_64BIT
+LPSHARE_INFO_503_32BIT = POINTER_32BIT
+LPSHARE_INFO_503_64BIT = POINTER_64BIT
+
+class SHARE_INFO_503:
+
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['LMSTR', 'DWORD', 'LMSTR', 'DWORD', 'DWORD', 'DWORD', 'LMSTR', 'LMSTR', 'LMSTR', 'DWORD', 'PSECURITY_DESCRIPTOR']
+        lookUps = {}
+
+        # Struct Members
+        shi503_netname: LMSTR
+        shi503_type: DWORD
+        shi503_remark: LMSTR
+        shi503_permissions: DWORD
+        shi503_max_uses: DWORD
+        shi503_current_uses: DWORD
+        shi503_path: LMSTR
+        shi503_passwd: LMSTR
+        shi503_servername: LMSTR
+        shi503_reserved: DWORD
+        shi503_security_descriptor: PSECURITY_DESCRIPTOR_32BIT
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['LMSTR', 'DWORD', 'LMSTR', 'DWORD', 'DWORD', 'DWORD', 'LMSTR', 'LMSTR', 'LMSTR', 'DWORD', 'PSECURITY_DESCRIPTOR']
+        lookUps = {}
+
+        # Struct Members
+        shi503_netname: LMSTR
+        shi503_type: DWORD
+        shi503_remark: LMSTR
+        shi503_permissions: DWORD
+        shi503_max_uses: DWORD
+        shi503_current_uses: DWORD
+        shi503_path: LMSTR
+        shi503_passwd: LMSTR
+        shi503_servername: LMSTR
+        shi503_reserved: DWORD
+        shi503_security_descriptor: PSECURITY_DESCRIPTOR_64BIT
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+
+# Struct SHARE_INFO_1005
+# Alias Names: _SHARE_INFO_1005
+# Alias Pointer Names: PSHARE_INFO_1005, LPSHARE_INFO_1005
+
+def get_SHARE_INFO_1005(uc: Uc, address: int, em: EMU):
+    return SHARE_INFO_1005.from_buffer_copy(uc.mem_read(address, sizeof(SHARE_INFO_1005)))
+
+# Struct Aliases:
+# get__SHARE_INFO_1005 = get_SHARE_INFO_1005
+
+# Struct Pointers:
+PSHARE_INFO_1005_32BIT = POINTER_32BIT
+PSHARE_INFO_1005_64BIT = POINTER_64BIT
+LPSHARE_INFO_1005_32BIT = POINTER_32BIT
+LPSHARE_INFO_1005_64BIT = POINTER_64BIT
+
+class SHARE_INFO_1005(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['DWORD']
+    lookUps = {}
+
+    # Struct Members
+    shi1005_flags: DWORD
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+
 # Struct SYSTEMTIME
 # Alias Names: _SYSTEMTIME
 # Alias Pointer Names: *PSYSTEMTIME, *LPSYSTEMTIME
