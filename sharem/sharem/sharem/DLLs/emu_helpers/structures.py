@@ -531,7 +531,11 @@ class SHARE_INFO_503:
 
     class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['LMSTR', 'DWORD', 'LMSTR', 'DWORD', 'DWORD', 'DWORD', 'LMSTR', 'LMSTR', 'LMSTR', 'DWORD', 'PSECURITY_DESCRIPTOR']
-        lookUps = {}
+        
+        rw1 = {0: 'STYPE_DISKTREE',  1: 'STYPE_PRINTQ', 2: 'STYPE_DEVICE', 3: 'STYPE_IPC', 2147483648: 'STYPE_SPECIAL', 1073741824: 'STYPE_TEMPORARY'}
+        rw2 = {1: 'ACCESS_READ', 2: 'ACCESS_WRITE', 4: 'ACCESS_CREATE', 8: 'ACCESS_EXEC', 16: 'ACCESS_DELETE', 32: 'ACCESS_ATRIB', 64: 'ACCESS_PERM', 32768: 'ACCESS_ALL'}
+        lookUps = {1: rw1, 3: rw2}
+
 
         # Struct Members
         shi503_netname: LMSTR
@@ -551,7 +555,11 @@ class SHARE_INFO_503:
 
     class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['LMSTR', 'DWORD', 'LMSTR', 'DWORD', 'DWORD', 'DWORD', 'LMSTR', 'LMSTR', 'LMSTR', 'DWORD', 'PSECURITY_DESCRIPTOR']
-        lookUps = {}
+        
+        rw1 = {0: 'STYPE_DISKTREE',  1: 'STYPE_PRINTQ', 2: 'STYPE_DEVICE', 3: 'STYPE_IPC', 2147483648: 'STYPE_SPECIAL', 1073741824: 'STYPE_TEMPORARY'}
+        rw2 = {1: 'ACCESS_READ', 2: 'ACCESS_WRITE', 4: 'ACCESS_CREATE', 8: 'ACCESS_EXEC', 16: 'ACCESS_DELETE', 32: 'ACCESS_ATRIB', 64: 'ACCESS_PERM', 32768: 'ACCESS_ALL'}
+        lookUps = {1: rw1, 3: rw2}
+
 
         # Struct Members
         shi503_netname: LMSTR
