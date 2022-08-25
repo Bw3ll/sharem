@@ -10805,7 +10805,7 @@ class CustomWinAPIs():
         logged_calls= ("CryptDestroyHash", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def NetShareGetInfo(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def xxNetShareGetInfo(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes= ['LMSTR', 'LMSTR', 'DWORD', 'LPBYTE']
         pNames= ['servername', 'netname', 'level', '*bufptr']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -10816,19 +10816,40 @@ class CustomWinAPIs():
         pVals[2] = getLookUpVal(pVals[2],dwFlagsReverseLookUp1)
 
         if pVals[2] == 0:
-            continue
+            shareinfo = get_SHARE_INFO_0(uc, pVals[2], em)
+            shareinfo.shi0_netname = 0x88888888
+            shareinfo.writeToMemory(uc, pVals[2])
+            uc.mem_write(pVals[3])
         elif pVals[2] == 1:
-            continue
+            shareinfo = get_SHARE_INFO_1(uc, pVals[2], em)
+            shareinfo.shi0_netname = 0x88888888
+            shareinfo.writeToMemory(uc, pVals[2])
+            uc.mem_write(pVals[3])
         elif pVals[2] == 2:
-            continue
+            shareinfo = get_SHARE_INFO_2(uc, pVals[2], em)
+            shareinfo.shi0_netname = 0x88888888
+            shareinfo.writeToMemory(uc, pVals[2])
+            uc.mem_write(pVals[3])
         elif pVals[2] == 501:
-            continue
+            shareinfo = get_SHARE_INFO_501(uc, pVals[2], em)
+            shareinfo.shi0_netname = 0x88888888
+            shareinfo.writeToMemory(uc, pVals[2])
+            uc.mem_write(pVals[3])
         elif pVals[2] == 502:
-            continue
+            shareinfo = get_SHARE_INFO_502(uc, pVals[2], em)
+            shareinfo.shi0_netname = 0x88888888
+            shareinfo.writeToMemory(uc, pVals[2])
+            uc.mem_write(pVals[3])
         elif pVals[2] == 503:
-            continue
+            shareinfo = get_SHARE_INFO_503(uc, pVals[2], em)
+            shareinfo.shi0_netname = 0x88888888
+            shareinfo.writeToMemory(uc, pVals[2])
+            uc.mem_write(pVals[3])
         elif pVals[2] == 1005:
-            continue
+            shareinfo = get_SHARE_INFO_1005(uc, pVals[2], em)
+            shareinfo.shi0_netname = 0x88888888
+            shareinfo.writeToMemory(uc, pVals[2])
+            uc.mem_write(pVals[3])
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[2])
 
