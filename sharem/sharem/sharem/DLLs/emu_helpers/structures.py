@@ -657,6 +657,35 @@ class SHARE_INFO_1005(LittleEndianStructure, metaclass=StructFieldsFromTypeHints
         uc.mem_write(address, bytes(self))
 
 
+
+# Struct RECTL
+# Alias Names: _RECTL
+# Alias Pointer Names: PRECTL
+
+def get_RECTL(uc: Uc, address: int, em: EMU):
+    return RECTL.from_buffer_copy(uc.mem_read(address, sizeof(RECTL)))
+
+# Struct Aliases:
+# get__RECTL = get_RECTL
+
+# Struct Pointers:
+PRECTL_32BIT = POINTER_32BIT
+PRECTL_64BIT = POINTER_64BIT
+
+class RECTL(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['LONG', 'LONG', 'LONG', 'LONG']
+    lookUps = {}
+
+    # Struct Members
+    left: LONG
+    top: LONG
+    right: LONG
+    bottom: LONG
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+
 # Struct MODULEINFO
 # Alias Names: _MODULEINFO
 # Alias Pointer Names: LPMODULEINFO
