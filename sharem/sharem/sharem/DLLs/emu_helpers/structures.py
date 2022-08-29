@@ -771,6 +771,35 @@ class MODULEINFO:
             uc.mem_write(address, bytes(self))
 
 
+# Struct tagDRAWTEXTPARAMS
+# Alias Names: DRAWTEXTPARAMS
+# Alias Pointer Names: LPDRAWTEXTPARAMS
+
+def get_tagDRAWTEXTPARAMS(uc: Uc, address: int, em: EMU):
+    return tagDRAWTEXTPARAMS.from_buffer_copy(uc.mem_read(address, sizeof(tagDRAWTEXTPARAMS)))
+
+# Struct Aliases:
+# get_DRAWTEXTPARAMS = get_tagDRAWTEXTPARAMS
+
+# Struct Pointers:
+LPDRAWTEXTPARAMS_32BIT = POINTER_32BIT
+LPDRAWTEXTPARAMS_64BIT = POINTER_64BIT
+
+class tagDRAWTEXTPARAMS(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['UINT', 'int', 'int', 'int', 'UINT']
+    lookUps = {}
+
+    # Struct Members
+    cbSize: UINT
+    iTabLength: int
+    iLeftMargin: int
+    iRightMargin: int
+    uiLengthDrawn: UINT
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+
 # Struct IMAGE_DATA_DIRECTORY
 # Alias Names: _IMAGE_DATA_DIRECTORY
 # Alias Pointer Names: PIMAGE_DATA_DIRECTORY
