@@ -770,6 +770,33 @@ class MODULEINFO:
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
+
+# Struct IMAGE_DATA_DIRECTORY
+# Alias Names: _IMAGE_DATA_DIRECTORY
+# Alias Pointer Names: PIMAGE_DATA_DIRECTORY
+
+def get_IMAGE_DATA_DIRECTORY(uc: Uc, address: int, em: EMU):
+    return IMAGE_DATA_DIRECTORY.from_buffer_copy(uc.mem_read(address, sizeof(IMAGE_DATA_DIRECTORY)))
+
+# Struct Aliases:
+# get__IMAGE_DATA_DIRECTORY = get_IMAGE_DATA_DIRECTORY
+
+# Struct Pointers:
+PIMAGE_DATA_DIRECTORY_32BIT = POINTER_32BIT
+PIMAGE_DATA_DIRECTORY_64BIT = POINTER_64BIT
+
+class IMAGE_DATA_DIRECTORY(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['DWORD', 'DWORD']
+    lookUps = {}
+
+    # Struct Members
+    VirtualAddress: DWORD
+    Size: DWORD
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
+
 # Struct SYSTEMTIME
 # Alias Names: _SYSTEMTIME
 # Alias Pointer Names: *PSYSTEMTIME, *LPSYSTEMTIME
