@@ -657,6 +657,49 @@ class SHARE_INFO_1005(LittleEndianStructure, metaclass=StructFieldsFromTypeHints
         uc.mem_write(address, bytes(self))
 
 
+# Struct MODULEINFO
+# Alias Names: _MODULEINFO
+# Alias Pointer Names: LPMODULEINFO
+
+def get_MODULEINFO(uc: Uc, address: int, em: EMU):
+    if em.arch == 32:
+        return MODULEINFO.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(MODULEINFO.ARCH32)))
+    else:
+        return MODULEINFO.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(MODULEINFO.ARCH64)))
+
+# Struct Aliases:
+# get__MODULEINFO = get_MODULEINFO
+
+# Struct Pointers:
+LPMODULEINFO_32BIT = POINTER_32BIT
+LPMODULEINFO_64BIT = POINTER_64BIT
+
+class MODULEINFO:
+
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['LPVOID', 'DWORD', 'LPVOID']
+        lookUps = {}
+
+        # Struct Members
+        lpBaseOfDll: LPVOID_32BIT
+        SizeOfImage: DWORD
+        EntryPoint: LPVOID_32BIT
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['LPVOID', 'DWORD', 'LPVOID']
+        lookUps = {}
+
+        # Struct Members
+        lpBaseOfDll: LPVOID_64BIT
+        SizeOfImage: DWORD
+        EntryPoint: LPVOID_64BIT
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
 # Struct SYSTEMTIME
 # Alias Names: _SYSTEMTIME
 # Alias Pointer Names: *PSYSTEMTIME, *LPSYSTEMTIME
