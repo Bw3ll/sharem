@@ -448,6 +448,57 @@ class SHARE_INFO_501(LittleEndianStructure, metaclass=StructFieldsFromTypeHints)
         uc.mem_write(address, bytes(self))
 
 
+# Struct SECURITY_DESCRIPTOR
+# Alias Names: _SECURITY_DESCRIPTOR
+# Alias Pointer Names: PISECURITY_DESCRIPTOR
+
+def get_SECURITY_DESCRIPTOR(uc: Uc, address: int, em: EMU):
+    if em.arch == 32:
+        return SECURITY_DESCRIPTOR.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(SECURITY_DESCRIPTOR.ARCH32)))
+    else:
+        return SECURITY_DESCRIPTOR.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(SECURITY_DESCRIPTOR.ARCH64)))
+
+# Struct Aliases:
+# get__SECURITY_DESCRIPTOR = get_SECURITY_DESCRIPTOR
+
+# Struct Pointers:
+PISECURITY_DESCRIPTOR_32BIT = POINTER_32BIT
+PISECURITY_DESCRIPTOR_64BIT = POINTER_64BIT
+
+class SECURITY_DESCRIPTOR:
+
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['BYTE', 'BYTE', 'SECURITY_DESCRIPTOR_CONTROL', 'PSID', 'PSID', 'PACL', 'PACL']
+        lookUps = {}
+
+        # Struct Members
+        Revision: BYTE
+        Sbz1: BYTE
+        Control: SECURITY_DESCRIPTOR_CONTROL
+        Owner: PSID_32BIT
+        Group: PSID_32BIT
+        Sacl: PACL_32BIT
+        Dacl: PACL_32BIT
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['BYTE', 'BYTE', 'SECURITY_DESCRIPTOR_CONTROL', 'PSID', 'PSID', 'PACL', 'PACL']
+        lookUps = {}
+
+        # Struct Members
+        Revision: BYTE
+        Sbz1: BYTE
+        Control: SECURITY_DESCRIPTOR_CONTROL
+        Owner: PSID_64BIT
+        Group: PSID_64BIT
+        Sacl: PACL_64BIT
+        Dacl: PACL_64BIT
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
 # Struct SHARE_INFO_502
 # Alias Names: _SHARE_INFO_502
 # Alias Pointer Names: PSHARE_INFO_502, LPSHARE_INFO_502
@@ -555,7 +606,7 @@ class SHARE_INFO_503:
 
     class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['LMSTR', 'DWORD', 'LMSTR', 'DWORD', 'DWORD', 'DWORD', 'LMSTR', 'LMSTR', 'LMSTR', 'DWORD', 'PSECURITY_DESCRIPTOR']
-        
+
         rw1 = {0: 'STYPE_DISKTREE',  1: 'STYPE_PRINTQ', 2: 'STYPE_DEVICE', 3: 'STYPE_IPC', 2147483648: 'STYPE_SPECIAL', 1073741824: 'STYPE_TEMPORARY'}
         rw2 = {1: 'ACCESS_READ', 2: 'ACCESS_WRITE', 4: 'ACCESS_CREATE', 8: 'ACCESS_EXEC', 16: 'ACCESS_DELETE', 32: 'ACCESS_ATRIB', 64: 'ACCESS_PERM', 32768: 'ACCESS_ALL'}
         lookUps = {1: rw1, 3: rw2}
