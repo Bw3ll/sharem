@@ -861,6 +861,37 @@ class SINGLE_LIST_ENTRY:
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
 
+
+# Struct tagRECT
+# Alias Names: RECT, NPRECT
+# Alias Pointer Names: PRECT, LPRECT
+
+def get_tagRECT(uc: Uc, address: int, em: EMU):
+    return tagRECT.from_buffer_copy(uc.mem_read(address, sizeof(tagRECT)))
+
+# Struct Aliases:
+# get_RECT = get_tagRECT
+# get_NPRECT = get_tagRECT
+
+# Struct Pointers:
+PRECT_32BIT = POINTER_32BIT
+PRECT_64BIT = POINTER_64BIT
+LPRECT_32BIT = POINTER_32BIT
+LPRECT_64BIT = POINTER_64BIT
+
+class tagRECT(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+    types = ['LONG', 'LONG', 'LONG', 'LONG']
+    lookUps = {}
+
+    # Struct Members
+    left: LONG
+    top: LONG
+    right: LONG
+    bottom: LONG
+
+    def writeToMemory(self, uc: Uc, address: int):
+        uc.mem_write(address, bytes(self))
+
 # Struct FILETIME
 # Alias Names: _FILETIME
 # Alias Pointer Names: PFILETIME, LPFILETIME
