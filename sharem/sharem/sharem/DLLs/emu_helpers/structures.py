@@ -1761,6 +1761,55 @@ class DISPLAY_DEVICEW(LittleEndianStructure, metaclass=StructFieldsFromTypeHints
 #        uc.mem_write(address, bytes(self))
 
 
+# Struct tagTRACKMOUSEEVENT
+# Alias Names: TRACKMOUSEEVENT
+# Alias Pointer Names: LPTRACKMOUSEEVENT
+
+def get_tagTRACKMOUSEEVENT(uc: Uc, address: int, em: EMU):
+    if em.arch == 32:
+        return tagTRACKMOUSEEVENT.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(tagTRACKMOUSEEVENT.ARCH32)))
+    else:
+        return tagTRACKMOUSEEVENT.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(tagTRACKMOUSEEVENT.ARCH64)))
+
+# Struct Aliases:
+# get_TRACKMOUSEEVENT = get_tagTRACKMOUSEEVENT
+
+# Struct Pointers:
+LPTRACKMOUSEEVENT_32BIT = POINTER_32BIT
+LPTRACKMOUSEEVENT_64BIT = POINTER_64BIT
+
+class tagTRACKMOUSEEVENT:
+
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['DWORD', 'DWORD', 'HWND', 'DWORD']
+        #{2147483648: 'TME_CANCEL', 1: 'TME_HOVER', 2: 'TME_LEAVE', 16: 'TME_NONCLIENT', 1073741824: 'TME_QUERY'}
+        lookUps = {}
+
+        # Struct Members
+        cbSize: DWORD
+        dwFlags: DWORD
+        hwndTrack: HWND_32BIT
+        dwHoverTime: DWORD
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['DWORD', 'DWORD', 'HWND', 'DWORD']
+        #{2147483648: 'TME_CANCEL', 1: 'TME_HOVER', 2: 'TME_LEAVE', 16: 'TME_NONCLIENT', 1073741824: 'TME_QUERY'}
+        lookUps = {}
+
+        # Struct Members
+        cbSize: DWORD
+        dwFlags: DWORD
+        hwndTrack: HWND_64BIT
+        dwHoverTime: DWORD
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+
+
 # Struct _SHELLEXECUTEINFOA
 # Alias Names: SHELLEXECUTEINFOA
 # Alias Pointer Names: *LPSHELLEXECUTEINFOA
