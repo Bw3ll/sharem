@@ -657,6 +657,47 @@ class SHARE_INFO_1005(LittleEndianStructure, metaclass=StructFieldsFromTypeHints
         uc.mem_write(address, bytes(self))
 
 
+# Struct STARTUPINFOEXA
+# Alias Names: _STARTUPINFOEXA
+# Alias Pointer Names: LPSTARTUPINFOEXA
+
+def get_STARTUPINFOEXA(uc: Uc, address: int, em: EMU):
+    if em.arch == 32:
+        return STARTUPINFOEXA.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(STARTUPINFOEXA.ARCH32)))
+    else:
+        return STARTUPINFOEXA.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(STARTUPINFOEXA.ARCH64)))
+
+# Struct Aliases:
+# get__STARTUPINFOEXA = get_STARTUPINFOEXA
+
+# Struct Pointers:
+LPSTARTUPINFOEXA_32BIT = POINTER_32BIT
+LPSTARTUPINFOEXA_64BIT = POINTER_64BIT
+
+class STARTUPINFOEXA:
+
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['STARTUPINFOA', 'LPPROC_THREAD_ATTRIBUTE_LIST']
+        lookUps = {}
+
+        # Struct Members
+        StartupInfo: STARTUPINFOA
+        lpAttributeList: LPPROC_THREAD_ATTRIBUTE_LIST_32BIT
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['STARTUPINFOA', 'LPPROC_THREAD_ATTRIBUTE_LIST']
+        lookUps = {}
+
+        # Struct Members
+        StartupInfo: STARTUPINFOA
+        lpAttributeList: LPPROC_THREAD_ATTRIBUTE_LIST_64BIT
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
 
 # Struct RECTL
 # Alias Names: _RECTL
