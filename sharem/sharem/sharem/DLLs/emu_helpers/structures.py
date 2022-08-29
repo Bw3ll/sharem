@@ -1782,8 +1782,8 @@ class tagTRACKMOUSEEVENT:
 
     class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'DWORD', 'HWND', 'DWORD']
-        #{2147483648: 'TME_CANCEL', 1: 'TME_HOVER', 2: 'TME_LEAVE', 16: 'TME_NONCLIENT', 1073741824: 'TME_QUERY'}
-        lookUps = {}
+        rv = {2147483648: 'TME_CANCEL', 1: 'TME_HOVER', 2: 'TME_LEAVE', 16: 'TME_NONCLIENT', 1073741824: 'TME_QUERY'}
+        lookUps = {0: rv}
 
         # Struct Members
         cbSize: DWORD
@@ -1796,8 +1796,8 @@ class tagTRACKMOUSEEVENT:
 
     class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'DWORD', 'HWND', 'DWORD']
-        #{2147483648: 'TME_CANCEL', 1: 'TME_HOVER', 2: 'TME_LEAVE', 16: 'TME_NONCLIENT', 1073741824: 'TME_QUERY'}
-        lookUps = {}
+        rv = {2147483648: 'TME_CANCEL', 1: 'TME_HOVER', 2: 'TME_LEAVE', 16: 'TME_NONCLIENT', 1073741824: 'TME_QUERY'}
+        lookUps = {0: rv}
 
         # Struct Members
         cbSize: DWORD
