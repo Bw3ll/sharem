@@ -771,6 +771,58 @@ class MODULEINFO:
             uc.mem_write(address, bytes(self))
 
 
+# Struct tagMENUINFO
+# Alias Names: MENUINFO
+# Alias Pointer Names: LPMENUINFO
+
+def get_tagMENUINFO(uc: Uc, address: int, em: EMU):
+    if em.arch == 32:
+        return tagMENUINFO.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(tagMENUINFO.ARCH32)))
+    else:
+        return tagMENUINFO.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(tagMENUINFO.ARCH64)))
+
+# Struct Aliases:
+# get_MENUINFO = get_tagMENUINFO
+
+# Struct Pointers:
+LPMENUINFO_32BIT = POINTER_32BIT
+LPMENUINFO_64BIT = POINTER_64BIT
+
+class tagMENUINFO:
+
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['DWORD', 'DWORD', 'DWORD', 'UINT', 'HBRUSH', 'DWORD', 'ULONG_PTR']
+        lookUps = {}
+
+        # Struct Members
+        cbSize: DWORD
+        fMask: DWORD
+        dwStyle: DWORD
+        cyMax: UINT
+        hbrBack: HBRUSH_32BIT
+        dwContextHelpID: DWORD
+        dwMenuData: ULONG_PTR_32BIT
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['DWORD', 'DWORD', 'DWORD', 'UINT', 'HBRUSH', 'DWORD', 'ULONG_PTR']
+        lookUps = {}
+
+        # Struct Members
+        cbSize: DWORD
+        fMask: DWORD
+        dwStyle: DWORD
+        cyMax: UINT
+        hbrBack: HBRUSH_64BIT
+        dwContextHelpID: DWORD
+        dwMenuData: ULONG_PTR_64BIT
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+
 # Struct tagDRAWTEXTPARAMS
 # Alias Names: DRAWTEXTPARAMS
 # Alias Pointer Names: LPDRAWTEXTPARAMS
