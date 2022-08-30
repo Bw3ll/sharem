@@ -1865,6 +1865,55 @@ class tagTRACKMOUSEEVENT:
             uc.mem_write(address, bytes(self))
 
 
+# Struct tagMINMAXINFO
+# Alias Names: MINMAXINFO
+# Alias Pointer Names: PMINMAXINFO, LPMINMAXINFO
+
+def get_tagMINMAXINFO(uc: Uc, address: int, em: EMU):
+    if em.arch == 32:
+        return tagMINMAXINFO.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(tagMINMAXINFO.ARCH32)))
+    else:
+        return tagMINMAXINFO.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(tagMINMAXINFO.ARCH64)))
+
+# Struct Aliases:
+# get_MINMAXINFO = get_tagMINMAXINFO
+
+# Struct Pointers:
+PMINMAXINFO_32BIT = POINTER_32BIT
+PMINMAXINFO_64BIT = POINTER_64BIT
+LPMINMAXINFO_32BIT = POINTER_32BIT
+LPMINMAXINFO_64BIT = POINTER_64BIT
+
+class tagMINMAXINFO:
+
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['POINT', 'POINT', 'POINT', 'POINT', 'POINT']
+        lookUps = {}
+
+        # Struct Members
+        ptReserved: POINT_32BIT
+        ptMaxSize: POINT_32BIT
+        ptMaxPosition: POINT_32BIT
+        ptMinTrackSize: POINT_32BIT
+        ptMaxTrackSize: POINT_32BIT
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['POINT', 'POINT', 'POINT', 'POINT', 'POINT']
+        lookUps = {}
+
+        # Struct Members
+        ptReserved: POINT_64BIT
+        ptMaxSize: POINT_64BIT
+        ptMaxPosition: POINT_64BIT
+        ptMinTrackSize: POINT_64BIT
+        ptMaxTrackSize: POINT_64BIT
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
 
 # Struct _SHELLEXECUTEINFOA
 # Alias Names: SHELLEXECUTEINFOA
