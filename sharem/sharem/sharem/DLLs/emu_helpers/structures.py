@@ -1865,6 +1865,51 @@ class tagTRACKMOUSEEVENT:
             uc.mem_write(address, bytes(self))
 
 
+# Struct ICONINFO
+# Alias Names: _ICONINFO
+# Alias Pointer Names:
+
+def get_ICONINFO(uc: Uc, address: int, em: EMU):
+    if em.arch == 32:
+        return ICONINFO.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(ICONINFO.ARCH32)))
+    else:
+        return ICONINFO.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(ICONINFO.ARCH64)))
+
+# Struct Aliases:
+# get__ICONINFO = get_ICONINFO
+
+class ICONINFO:
+
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['BOOL', 'DWORD', 'DWORD', 'HBITMAP', 'HBITMAP']
+        lookUps = {}
+
+        # Struct Members
+        fIcon: BOOL
+        xHotspot: DWORD
+        yHotspot: DWORD
+        hbmMask: HBITMAP_32BIT
+        hbmColor: HBITMAP_32BIT
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['BOOL', 'DWORD', 'DWORD', 'HBITMAP', 'HBITMAP']
+        lookUps = {}
+
+        # Struct Members
+        fIcon: BOOL
+        xHotspot: DWORD
+        yHotspot: DWORD
+        hbmMask: HBITMAP_64BIT
+        hbmColor: HBITMAP_64BIT
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+
+
 # Struct tagMINMAXINFO
 # Alias Names: MINMAXINFO
 # Alias Pointer Names: PMINMAXINFO, LPMINMAXINFO
