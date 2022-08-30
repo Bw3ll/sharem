@@ -792,7 +792,9 @@ class tagMENUINFO:
 
     class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'DWORD', 'DWORD', 'UINT', 'HBRUSH', 'DWORD', 'ULONG_PTR']
-        lookUps = {}
+        rv1 = {2147483648: 'MIM_APPLYTOSUBMENUS', 2: 'MIM_BACKGROUND', 4: 'MIM_HELPID', 1: 'MIM_MAXHEIGHT', 8: 'MIM_MENUDATA', 16: 'MIM_STYLE', }
+        rv2 = {2147483648: 'MNS_NOCHECK', 268435456: 'MNS_AUTODISMISS', 67108864: 'MNS_CHECKORBMP', 536870912: 'MNS_DRAGDROP', 1073741824: 'MNS_MODELESS', 134217728: 'MNS_NOTIFYBYPOS'}
+        lookUps = {1: rv1, 2: rv2}
 
         # Struct Members
         cbSize: DWORD
@@ -808,7 +810,9 @@ class tagMENUINFO:
 
     class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'DWORD', 'DWORD', 'UINT', 'HBRUSH', 'DWORD', 'ULONG_PTR']
-        lookUps = {}
+        rv1 = {2147483648: 'MIM_APPLYTOSUBMENUS', 2: 'MIM_BACKGROUND', 4: 'MIM_HELPID', 1: 'MIM_MAXHEIGHT', 8: 'MIM_MENUDATA', 16: 'MIM_STYLE', }
+        rv2 = {2147483648: 'MNS_NOCHECK', 268435456: 'MNS_AUTODISMISS', 67108864: 'MNS_CHECKORBMP', 536870912: 'MNS_DRAGDROP', 1073741824: 'MNS_MODELESS', 134217728: 'MNS_NOTIFYBYPOS'}
+        lookUps = {1: rv1, 2: rv2}
 
         # Struct Members
         cbSize: DWORD
@@ -1835,7 +1839,7 @@ class tagTRACKMOUSEEVENT:
     class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'DWORD', 'HWND', 'DWORD']
         rv = {2147483648: 'TME_CANCEL', 1: 'TME_HOVER', 2: 'TME_LEAVE', 16: 'TME_NONCLIENT', 1073741824: 'TME_QUERY'}
-        lookUps = {0: rv}
+        lookUps = {1: rv}
 
         # Struct Members
         cbSize: DWORD
@@ -1849,7 +1853,7 @@ class tagTRACKMOUSEEVENT:
     class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['DWORD', 'DWORD', 'HWND', 'DWORD']
         rv = {2147483648: 'TME_CANCEL', 1: 'TME_HOVER', 2: 'TME_LEAVE', 16: 'TME_NONCLIENT', 1073741824: 'TME_QUERY'}
-        lookUps = {0: rv}
+        lookUps = {1: rv}
 
         # Struct Members
         cbSize: DWORD
