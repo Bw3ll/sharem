@@ -10816,69 +10816,69 @@ class CustomWinAPIs():
         pVals[2] = getLookUpVal(pVals[2],dwFlagsReverseLookUp1)
 
         if pVals[2] == 0:
-            shareinfo = get_SHARE_INFO_0(uc, pVals[2], em)
+            shareinfo = get_SHARE_INFO_0(uc, pVals[3], em)
             shareinfo.shi0_netname = 0x88888888
-            shareinfo.writeToMemory(uc, pVals[2])
+            shareinfo.writeToMemory(uc, pVals[3])
             uc.mem_write(pVals[3])
         elif pVals[2] == 1:
-            shareinfo = get_SHARE_INFO_1(uc, pVals[2], em)
+            shareinfo = get_SHARE_INFO_1(uc, pVals[3], em)
             shareinfo.shi1_netname = 0x88888888
-            shareinfo.shi1_type = 0
-            shareinfo.shi1_remark = 0
-            shareinfo.writeToMemory(uc, pVals[2])
+            shareinfo.shi1_type = 0x00000001
+            shareinfo.shi1_remark = 0x2
+            shareinfo.writeToMemory(uc, pVals[3])
             uc.mem_write(pVals[3])
         elif pVals[2] == 2:
-            shareinfo = get_SHARE_INFO_2(uc, pVals[2], em)
+            shareinfo = get_SHARE_INFO_2(uc, pVals[3], em)
             shareinfo.shi2_netname = 0x88888888
-            shareinfo.shi2_type = 0
-            shareinfo.shi2_remark = 0
-            shareinfo.shi2_permissions = 0
-            shareinfo.shi2_max_uses = 0
-            shareinfo.shi2_current_uses = 0
-            shareinfo.shi2_path = 0
-            shareinfo.shi2_passwd = 0
-            shareinfo.writeToMemory(uc, pVals[2])
+            shareinfo.shi2_type = 0x00000001
+            shareinfo.shi2_remark = 0x2
+            shareinfo.shi2_permissions = 0x3
+            shareinfo.shi2_max_uses = 0x4
+            shareinfo.shi2_current_uses = 0x5
+            shareinfo.shi2_path = 0x6
+            shareinfo.shi2_passwd = 0x7
+            shareinfo.writeToMemory(uc, pVals[3])
             uc.mem_write(pVals[3])
         elif pVals[2] == 501:
-            shareinfo = get_SHARE_INFO_501(uc, pVals[2], em)
+            shareinfo = get_SHARE_INFO_501(uc, pVals[3], em)
             shareinfo.shi501_netname = 0x88888888
-            shareinfo.shi501_type = 0
-            shareinfo.shi501_remark = 0
-            shareinfo.shi501_flags = 0
-            shareinfo.writeToMemory(uc, pVals[2])
+            shareinfo.shi501_type = 0x00000001
+            shareinfo.shi501_remark = 0x2
+            shareinfo.shi501_flags = 0x3
+            shareinfo.writeToMemory(uc, pVals[3])
             uc.mem_write(pVals[3])
         elif pVals[2] == 502:
-            shareinfo = get_SHARE_INFO_502(uc, pVals[2], em)
+            shareinfo = get_SHARE_INFO_502(uc, pVals[3], em)
             shareinfo.shi502_netname = 0x88888888
-            shareinfo.shi502_type = 0
-            shareinfo.shi502_remark = 0
-            shareinfo.shi502_permissions = 0
-            shareinfo.shi502_max_uses = 0
-            shareinfo.shi502_current_uses = 0
-            shareinfo.shi502_path = 0
-            shareinfo.shi502_passwd = 0
-            shareinfo.shi502_reserved = 0
-            shareinfo.shi502_security_descriptor = 0
-            shareinfo.writeToMemory(uc, pVals[2])
+            shareinfo.shi502_type = 0x00000001
+            shareinfo.shi502_remark = 0x5
+            shareinfo.shi502_permissions = 0x00000001
+            shareinfo.shi502_max_uses = 0x7
+            shareinfo.shi502_current_uses = 0x8
+            shareinfo.shi502_path = 0x9
+            shareinfo.shi502_passwd = 0x11
+            shareinfo.shi502_reserved = 0x0
+            shareinfo.shi502_security_descriptor = 0x13
+            shareinfo.writeToMemory(uc, pVals[3])
             uc.mem_write(pVals[3])
         elif pVals[2] == 503:
-            shareinfo = get_SHARE_INFO_503(uc, pVals[2], em)
+            shareinfo = get_SHARE_INFO_503(uc, pVals[3], em)
             shareinfo.shi0_netname = 0x88888888
-            shareinfo.shi503_type = 0
-            shareinfo.shi503_remark = 0
-            shareinfo.shi503_permissions = 0
-            shareinfo.shi503_max_uses = 0
-            shareinfo.shi503_current_uses = 0
-            shareinfo.shi503_path = 0
-            shareinfo.shi503_passwd = 0
-            shareinfo.shi503_reserved = 0
-            shareinfo.shi503_security_descriptor = 0
-            shareinfo.writeToMemory(uc, pVals[2])
+            shareinfo.shi503_type = 0x00000001
+            shareinfo.shi503_remark = 0x2
+            shareinfo.shi503_permissions = 0x00000001
+            shareinfo.shi503_max_uses = 0x4
+            shareinfo.shi503_current_uses = 0x5
+            shareinfo.shi503_path = 0x6
+            shareinfo.shi503_passwd = 0x7
+            shareinfo.shi503_reserved = 0x0
+            shareinfo.shi503_security_descriptor = 0x9
+            shareinfo.writeToMemory(uc, pVals[3])
             uc.mem_write(pVals[3])
         elif pVals[2] == 1005:
-            shareinfo = get_SHARE_INFO_1005(uc, pVals[2], em)
+            shareinfo = get_SHARE_INFO_1005(uc, pVals[3], em)
             shareinfo.shi1005_flags = 0x0001
-            shareinfo.writeToMemory(uc, pVals[2])
+            shareinfo.writeToMemory(uc, pVals[3])
             uc.mem_write(pVals[3])
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[2])
