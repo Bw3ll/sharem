@@ -14968,12 +14968,12 @@ class CustomWinSysCalls():
         return logged_calls
 
     def NtLockFile(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
-    pTypes = ['HANDLE', 'HANDLE', 'PIO_APC_ROUTINE', 'PVOID', 'PIO_STATUS_BLOCK', 'PLARGE_INTEGER', 'PLARGE_INTEGER', 'ULONG', 'BOOLEAN', 'BOOLEAN']
-    pNames = ['FileHandle', 'Event', 'ApcRoutine', 'ApcContext', 'IoStatusBlock', 'ByteOffset', 'Length', 'Key', 'FailImmediately', 'ExclusiveLock']
-    pVals = self.makeArgVals(uc, em, esp, len(pTypes))
+        pTypes = ['HANDLE', 'HANDLE', 'PIO_APC_ROUTINE', 'PVOID', 'PIO_STATUS_BLOCK', 'PLARGE_INTEGER', 'PLARGE_INTEGER', 'ULONG', 'BOOLEAN', 'BOOLEAN']
+        pNames = ['FileHandle', 'Event', 'ApcRoutine', 'ApcContext', 'IoStatusBlock', 'ByteOffset', 'Length', 'Key', 'FailImmediately', 'ExclusiveLock']
+        pVals = self.makeArgVals(uc, em, esp, len(pTypes))
 
-    #pVals[] = getLookupVal(pVals[], ReverseLookups.NTSTATUS)
-    if pVals[4] != 0x0:
+        #pVals[] = getLookupVal(pVals[], ReverseLookups.NTSTATUS)
+        if pVals[4] != 0x0:
             iostatusblock = get_IO_STATUS_BLOCK(uc,pVals[4],em)
             #msg.setAnyValues = ForStruct
             iostatusblock.status = 'STATUS_SUCCESS'
@@ -14985,16 +14985,13 @@ class CustomWinSysCalls():
         else:
             pVals[4] = hex(pVals[4])
 
-    pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[4])
 
-    retVal = 0
-    retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
-    uc.reg_write(UC_X86_REG_EAX, retVal)
-    logged_calls = ['NtLockFile', hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
-
-    return logged_calls
-
-[ ? ] Function Stop
+        retVal = 0
+        retValStr = getLookUpVal(retVal, ReverseLookUps.NTSTATUS)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        logged_calls = ['NtLockFile', hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
+        return logged_calls
 
     def NtClose(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
         pTypes = ['HANDLE']
