@@ -202,6 +202,7 @@ class Configuration(metaclass=Singleton):
 		sharem_decoder = self.config.items("SHAREM DECRYPT")
 		sharem_emulation = self.config.items("SHAREM EMULATION")
 		sharem_disassembly = self.config.items("SHAREM DISASSEMBLY")
+		sharem_emuSimValues = self.config.items("SHAREM EMULATION SIMULATED VALUES")
 
 		for key, val in self.args.items():
 			for x in sharem_search:
@@ -210,23 +211,22 @@ class Configuration(metaclass=Singleton):
 			for x in sharem_strings:
 				if key in x:
 					self.config["SHAREM STRINGS"][str(key)] = str(val)
-
 			for x in sharem_syscalls:
 				if key in x:
 					self.config["SHAREM SYSCALLS"][str(key)] = str(val)
 			for x in sharem_decoder:
 				if key in x:
-
 					self.config["SHAREM DECRYPT"][str(key)] = str(val)
-
 			for x in sharem_emulation:
 				if key in x:
-
 					self.config["SHAREM EMULATION"][str(key)] = str(val)
 			for x in sharem_disassembly:
 				if key in x:
-
 					self.config["SHAREM DISASSEMBLY"][str(key)] = str(val)
+			for x in sharem_emuSimValues:
+				if key in x:
+					self.config["SHAREM EMULATION SIMULATED VALUES"][str(key)] = str(val)
+			
 
 			# print("Key: ", key, "Val: ", val)
 			# print(vars(self.config))

@@ -19189,10 +19189,7 @@ def modConf():
 					'fast_mode', 
 					'find_all', 
 					'dist_mode', 
-					'cpu_count', 'nodes_file', 'output_file', 'dec_operation_type', 'decrypt_file', 'stub_file', 'use_same_file', 'stub_entry_point', 'stub_end', 'shellEntry', 'pebpoints', 'minimum_str_length', 'max_callpop_distance', 'default_outdir', 'print_emulation_result', 'emulation_verbose_mode', 'emulation_multiline','max_num_of_instr','iterations_before_break','break_infinite_loops','timeless_debugging',"complete_code_coverage"]
-
-
-
+					'cpu_count', 'nodes_file', 'output_file', 'dec_operation_type', 'decrypt_file', 'stub_file', 'use_same_file', 'stub_entry_point', 'stub_end', 'shellEntry', 'pebpoints', 'minimum_str_length', 'max_callpop_distance', 'default_outdir', 'print_emulation_result', 'emulation_verbose_mode', 'emulation_multiline','max_num_of_instr','iterations_before_break','break_infinite_loops','timeless_debugging',"complete_code_coverage",'current_user','computer_name','temp_file_prefix','default_registry_value','computer_ip_address','timezone','system_time_since_epoch','system_uptime_minutes','clipboard_data','users','drive_letter','start_directory']
 
 
 	maxEmuInstr = emuObj.maxEmuInstr
@@ -19200,7 +19197,7 @@ def modConf():
 	numOfIter = em.maxLoop
 
 
-	listofBools = [bPushRet, bCallPop, bFstenv, bSyscall, bHeaven, bPEB, bDisassembly, pebPresent, bit32, bytesForward, bytesBack, linesForward, linesBack,p2screen, bPushStackStrings, bAsciiStrings, bWideCharStrings, dFastMode, dFindAll, dDistr, dCPUcount, dNodesFile, dOutputFile, decryptOpTypes, decryptFile, stubFile, sameFile, stubEntry, stubEnd, shellEntry, pebPoints, minStrLen, maxDistance, sharem_out_dir, bPrintEmulation, emulation_verbose, emulation_multiline, maxEmuInstr, numOfIter, emuObj.breakLoop, emuObj.verbose,em.codeCoverage]
+	listofBools = [bPushRet, bCallPop, bFstenv, bSyscall, bHeaven, bPEB, bDisassembly, pebPresent, bit32, bytesForward, bytesBack, linesForward, linesBack,p2screen, bPushStackStrings, bAsciiStrings, bWideCharStrings, dFastMode, dFindAll, dDistr, dCPUcount, dNodesFile, dOutputFile, decryptOpTypes, decryptFile, stubFile, sameFile, stubEntry, stubEnd, shellEntry, pebPoints, minStrLen, maxDistance, sharem_out_dir, bPrintEmulation, emulation_verbose, emulation_multiline, maxEmuInstr, numOfIter, emuObj.breakLoop, emuObj.verbose,em.codeCoverage, conr.simulatedValues_current_user,conr.simulatedValues_computer_name,conr.simulatedValues_temp_file_prefix,conr.simulatedValues_default_registry_value,conr.simulatedValues_computer_ip_address,conr.simulatedValues_timezone,conr.simulatedValues_system_time_since_epoch,conr.simulatedValues_system_uptime_minutes,conr.simulatedValues_clipboard_data,conr.simulatedValues_users,conr.simulatedValues_drive_letter,conr.simulatedValues_start_directory]
 
 	listofSyscalls = []
 	for osv in syscallSelection:
@@ -19266,18 +19263,18 @@ def emulationSimValueConf(conr):
 	global emuSimVals
 	global SimFileSystem
 
-	emuSimVals.user_name = conr['SHAREM EMULATION SIMULATED VALUES']['current_user']
-	emuSimVals.computer_name = conr['SHAREM EMULATION SIMULATED VALUES']['computer_name']
-	emuSimVals.temp_file_prefix = conr['SHAREM EMULATION SIMULATED VALUES']['temp_file_prefix']
-	emuSimVals.default_registry_value = conr['SHAREM EMULATION SIMULATED VALUES']['default_registry_value']
-	emuSimVals.computer_ip_address = conr['SHAREM EMULATION SIMULATED VALUES']['computer_ip_address']
-	emuSimVals.timezone = conr['SHAREM EMULATION SIMULATED VALUES']['timezone']
-	emuSimVals.system_time_since_epoch = int(conr['SHAREM EMULATION SIMULATED VALUES']['system_time_since_epoch'])
-	emuSimVals.system_uptime_minutes = int(conr['SHAREM EMULATION SIMULATED VALUES']['system_uptime_minutes'])
-	emuSimVals.clipboard_data = conr['SHAREM EMULATION SIMULATED VALUES']['clipboard_data']
-	emuSimVals.users = ast.literal_eval(conr['SHAREM EMULATION SIMULATED VALUES']['users'])
-	emuSimVals.drive_letter = conr['SHAREM EMULATION SIMULATED VALUES']['drive_letter']
-	emuSimVals.start_directory = conr['SHAREM EMULATION SIMULATED VALUES']['start_directory']
+	conr.simulatedValues_current_user = conr['SHAREM EMULATION SIMULATED VALUES']['current_user']
+	conr.simulatedValues_computer_name = conr['SHAREM EMULATION SIMULATED VALUES']['computer_name']
+	conr.simulatedValues_temp_file_prefix = conr['SHAREM EMULATION SIMULATED VALUES']['temp_file_prefix']
+	conr.simulatedValues_default_registry_value = conr['SHAREM EMULATION SIMULATED VALUES']['default_registry_value']
+	conr.simulatedValues_computer_ip_address = conr['SHAREM EMULATION SIMULATED VALUES']['computer_ip_address']
+	conr.simulatedValues_timezone = conr['SHAREM EMULATION SIMULATED VALUES']['timezone']
+	conr.simulatedValues_system_time_since_epoch = int(conr['SHAREM EMULATION SIMULATED VALUES']['system_time_since_epoch'])
+	conr.simulatedValues_system_uptime_minutes = int(conr['SHAREM EMULATION SIMULATED VALUES']['system_uptime_minutes'])
+	conr.simulatedValues_clipboard_data = conr['SHAREM EMULATION SIMULATED VALUES']['clipboard_data']
+	conr.simulatedValues_users = ast.literal_eval(conr['SHAREM EMULATION SIMULATED VALUES']['users'])
+	conr.simulatedValues_drive_letter = conr['SHAREM EMULATION SIMULATED VALUES']['drive_letter']
+	conr.simulatedValues_start_directory = conr['SHAREM EMULATION SIMULATED VALUES']['start_directory']
 	
 	# Create Simulated File System
 	SimFileSystem.InitializeFileSystem(emuSimVals)
@@ -19894,6 +19891,9 @@ def emulationSubmenu():
 		elif choice == "s":
 			# syscallSelectionMenu()
 			emuSyscallSubMenu()
+
+		elif choice == "d":
+			emuSimValuesMenu()
 
 
 

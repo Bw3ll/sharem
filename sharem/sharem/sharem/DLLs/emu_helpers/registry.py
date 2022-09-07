@@ -3,6 +3,7 @@ from struct import pack
 
 from sharem.sharem.DLLs.emu_helpers.handles import Handle, HandleType, HandlesDict
 from sharem.sharem.DLLs.emu_helpers.sim_values import emuSimVals
+from sharem.sharem.parseconf import Configuration
 from ...helper.emuHelpers import Uc
 
 RegistryKeys: 'dict[str,RegKey]' = {} # Dictionary of All Reg Keys
@@ -83,7 +84,8 @@ class RegKey:
         if valueName in self.values:
             return self.values[valueName]
         else: # Return Value Not Set
-            value = KeyValue(RegValueTypes.REG_SZ,emuSimVals.default_registry_value,valueName)
+            conr = Configuration()
+            value = KeyValue(RegValueTypes.REG_SZ,conr.simulatedValues_default_registry_value,valueName)
             return value
 
     def deleteValue(self, valueName: str = '(Default)'):

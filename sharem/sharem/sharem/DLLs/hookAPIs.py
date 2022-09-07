@@ -6,6 +6,7 @@ from urllib.parse import quote, unquote
 from sharem.sharem.DLLs.emu_helpers.atom import AtomTable
 from sharem.sharem.DLLs.emu_helpers.memHelper import Memory
 from sharem.sharem.helper.emu import EMU
+from sharem.sharem.parseconf import Configuration
 from .emu_helpers.sharem_artifacts import Artifacts_emulation
 from .emu_helpers.sharem_filesystem import Directory_system
 from sharem.sharem.DLLs.emu_helpers.handles import Handle, HandleType, HandlesDict
@@ -34,7 +35,7 @@ art = var.art
 SimFileSystem = Directory_system()
 printOut = PrintingOutput()
 
-
+conr = Configuration()
 
 FakeProcess = 0xbadd0000
 
@@ -8661,7 +8662,7 @@ class CustomWinAPIs():
         pNames = ['lpBuffer', 'nSize']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        computerName = emuSimVals.computer_name.encode('ascii')
+        computerName = conr.simulatedValues_computer_name.encode('ascii')
         uc.mem_write(pVals[0], pack(f'<{len(computerName) + 2}s', computerName))
         uc.mem_write(pVals[1], pack('<I', len(computerName)))
 
@@ -8680,7 +8681,7 @@ class CustomWinAPIs():
         pNames = ['lpBuffer', 'nSize']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        computerName = emuSimVals.computer_name.encode('utf-16')[2:]
+        computerName = conr.simulatedValues_computer_name.encode('utf-16')[2:]
         uc.mem_write(pVals[0], pack(f'<{len(computerName) + 2}s', computerName))
         uc.mem_write(pVals[1], pack('<I', len(computerName)))
 
@@ -8705,7 +8706,7 @@ class CustomWinAPIs():
         # Possibly Implement Different Formats
         pVals[0] = getLookUpVal(pVals[0], nameTypeReverseLookup)
 
-        computerName = emuSimVals.computer_name.encode('ascii')
+        computerName = conr.simulatedValues_computer_name.encode('ascii')
         uc.mem_write(pVals[1], pack(f'<{len(computerName) + 2}s', computerName))
         uc.mem_write(pVals[2], pack('<I', len(computerName)))
 
@@ -8730,7 +8731,7 @@ class CustomWinAPIs():
         # Possibly Implement Different Formats
         pVals[0] = getLookUpVal(pVals[0], nameTypeReverseLookup)
 
-        computerName = emuSimVals.computer_name.encode('utf-16')[2:]
+        computerName = conr.simulatedValues_computer_name.encode('utf-16')[2:]
         uc.mem_write(pVals[1], pack(f'<{len(computerName) + 2}s', computerName))
         uc.mem_write(pVals[2], pack('<I', len(computerName)))
 
@@ -8749,7 +8750,7 @@ class CustomWinAPIs():
         pNames = ['*name', 'namelen']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        computerName = emuSimVals.computer_name.encode('ascii')
+        computerName = conr.simulatedValues_computer_name.encode('ascii')
         uc.mem_write(pVals[0], pack(f'<{len(computerName) + 2}s', computerName))
 
         pVals[0] = read_string(uc, pVals[0])
@@ -8886,18 +8887,18 @@ class CustomWinAPIs():
             while len(value) < 4:  # Pad to 4
                 value = str(0) + value
             if preFix != '[NULL]':
-                path = f'{tempPath}{emuSimVals.temp_file_prefix}{preFix[:3]}{value}.TMP'
+                path = f'{tempPath}{conr.simulatedValues_temp_file_prefix}{preFix[:3]}{value}.TMP'
             else:
-                path = f'{tempPath}{emuSimVals.temp_file_prefix}{value}.TMP'
+                path = f'{tempPath}{conr.simulatedValues_temp_file_prefix}{value}.TMP'
         else:
             retVal = pVals[2]
             value = hex(retVal)[2:]
             while len(value) < 4:  # Pad to 4
                 value = str(0) + value
             if preFix != '[NULL]':
-                path = f'{tempPath}{emuSimVals.temp_file_prefix}{preFix[:3]}{value}.TMP'
+                path = f'{tempPath}{conr.simulatedValues_temp_file_prefix}{preFix[:3]}{value}.TMP'
             else:
-                path = f'{tempPath}{emuSimVals.temp_file_prefix}{value}.TMP'
+                path = f'{tempPath}{conr.simulatedValues_temp_file_prefix}{value}.TMP'
 
         pathEncoded = path.encode('ascii')
         uc.mem_write(pVals[3], pack(f'<{len(pathEncoded)}s', pathEncoded))
@@ -8925,18 +8926,18 @@ class CustomWinAPIs():
             while len(value) < 4:  # Pad to 4
                 value = str(0) + value
             if preFix != '[NULL]':
-                path = f'{tempPath}{emuSimVals.temp_file_prefix}{preFix[:3]}{value}.TMP'
+                path = f'{tempPath}{conr.simulatedValues_temp_file_prefix}{preFix[:3]}{value}.TMP'
             else:
-                path = f'{tempPath}{emuSimVals.temp_file_prefix}{value}.TMP'
+                path = f'{tempPath}{conr.simulatedValues_temp_file_prefix}{value}.TMP'
         else:
             retVal = pVals[2]
             value = hex(retVal)[2:]
             while len(value) < 4:  # Pad to 4
                 value = str(0) + value
             if preFix != '[NULL]':
-                path = f'{tempPath}{emuSimVals.temp_file_prefix}{preFix[:3]}{value}.TMP'
+                path = f'{tempPath}{conr.simulatedValues_temp_file_prefix}{preFix[:3]}{value}.TMP'
             else:
-                path = f'{tempPath}{emuSimVals.temp_file_prefix}{value}.TMP'
+                path = f'{tempPath}{conr.simulatedValues_temp_file_prefix}{value}.TMP'
 
         pathEncoded = path.encode('utf-16')[2:]
 
@@ -8994,7 +8995,7 @@ class CustomWinAPIs():
         
         if pVals[0] != 0x0:
             timeVal = get_SYSTEMTIME(uc, pVals[0], em)
-            timeVal.setTime(True,emuSimVals.system_time_since_epoch)
+            timeVal.setTime(True,conr.simulatedValues_system_time_since_epoch)
             timeVal.writeToMemory(uc, pVals[0])
             pVals[0] = makeStructVals(uc, timeVal, pVals[0])
         else:
@@ -9018,7 +9019,7 @@ class CustomWinAPIs():
 
         if pVals[0] != 0x0:
             timeVal = get_SYSTEMTIME(uc, pVals[0], em)
-            timeVal.setTime(False, emuSimVals.system_time_since_epoch)
+            timeVal.setTime(False, conr.simulatedValues_system_time_since_epoch)
             timeVal.writeToMemory(uc, pVals[0])
             pVals[0] = makeStructVals(uc, timeVal, pVals[0])
         else:
@@ -9040,7 +9041,7 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
-        retVal = emuSimVals.system_uptime_minutes * 60 * 1000
+        retVal = conr.simulatedValues_system_uptime_minutes * 60 * 1000
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -9054,7 +9055,7 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
-        retVal = emuSimVals.system_uptime_minutes * 60 * 1000
+        retVal = conr.simulatedValues_system_uptime_minutes * 60 * 1000
         if retVal > int(49.7 * 24 * 60 * 60 * 1000): # Max Value aprox 49.7 days
             retVal = int(49.7 * 24 * 60 * 60 * 1000)
         retValStr = hex(retVal)
@@ -9070,7 +9071,7 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
-        retVal = emuSimVals.system_uptime_minutes * 60 * 1000
+        retVal = conr.simulatedValues_system_uptime_minutes * 60 * 1000
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -9127,7 +9128,7 @@ class CustomWinAPIs():
         pNames = ['lpBuffer', 'pcbBuffer']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        username = emuSimVals.user_name.encode('ascii')
+        username = conr.simulatedValues_current_user.encode('ascii')
         uc.mem_write(pVals[0], pack(f'<{len(username) + 2}s', username))
         uc.mem_write(pVals[1], pack('<I', len(username)))
 
@@ -9146,7 +9147,7 @@ class CustomWinAPIs():
         pNames = ['lpBuffer', 'pcbBuffer']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        username = emuSimVals.user_name.encode('utf-16')[2:]
+        username = conr.simulatedValues_current_user.encode('utf-16')[2:]
         uc.mem_write(pVals[0], pack(f'<{len(username) + 2}s', username))
         uc.mem_write(pVals[1], pack('<I', len(username)))
 
@@ -9170,7 +9171,7 @@ class CustomWinAPIs():
                                    10: 'NameServicePrincipal', 12: 'NameDnsDomain', 13: 'NameGivenName',
                                    14: 'NameSurname'}
         # Possibly Implement Different Formats
-        username = emuSimVals.user_name.encode('ascii')
+        username = conr.simulatedValues_current_user.encode('ascii')
         uc.mem_write(pVals[1], pack(f'<{len(username) + 2}s', username))
         uc.mem_write(pVals[2], pack('<I', len(username)))
 
@@ -9196,7 +9197,7 @@ class CustomWinAPIs():
                                    10: 'NameServicePrincipal', 12: 'NameDnsDomain', 13: 'NameGivenName',
                                    14: 'NameSurname'}
         # Possibly Implement Different Formats
-        username = emuSimVals.user_name.encode('utf-16')[2:]
+        username = conr.simulatedValues_current_user.encode('utf-16')[2:]
         uc.mem_write(pVals[1], pack(f'<{len(username) + 2}s', username))
         uc.mem_write(pVals[2], pack('<I', len(username)))
 
@@ -9703,7 +9704,7 @@ class CustomWinAPIs():
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip = [0])
 
-        fakeData = emuSimVals.clipboard_data # Might Need Changed
+        fakeData = conr.simulatedValues_clipboard_data # Might Need Changed
 
         handle = Handle(HandleType.ClipBoard,data=fakeData)
 
@@ -9725,7 +9726,7 @@ class CustomWinAPIs():
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[0])
         
-        fakeData = emuSimVals.clipboard_data
+        fakeData = conr.simulatedValues_clipboard_data
 
         handle = Handle(HandleType.ClipBoard,data=fakeData)
 
@@ -10233,8 +10234,8 @@ class CustomWinAPIs():
             timeZone = get_TIME_ZONE_INFORMATION(uc, pVals[0], em)
             timeZone.DaylightName = 'UTC' # Add Config for TimeZones
             timeZone.StandardName = 'UTC'
-            timeZone.DaylightDate.setTime(False, emuSimVals.system_time_since_epoch)
-            timeZone.StandardDate.setTime(False, emuSimVals.system_time_since_epoch)
+            timeZone.DaylightDate.setTime(False, conr.simulatedValues_system_time_since_epoch)
+            timeZone.StandardDate.setTime(False, conr.simulatedValues_system_time_since_epoch)
             timeZone.writeToMemory(uc, pVals[0])
             pVals[0] = makeStructVals(uc, timeZone, pVals[0])
         else:
@@ -10256,7 +10257,7 @@ class CustomWinAPIs():
 
         if pVals[0] != 0x0:
             startupinfo = get_STARTUPINFOA(uc, pVals[0], em)
-            uc.mem_write(startupinfo.lpDesktop, pack(f'<{len(emuSimVals.computer_name)+1}s',emuSimVals.computer_name.encode('utf-16')[2:]))
+            uc.mem_write(startupinfo.lpDesktop, pack(f'<{len(conr.simulatedValues_computer_name)+1}s',conr.simulatedValues_computer_name.encode('utf-16')[2:]))
             startupinfo.writeToMemory(uc, pVals[0])
             pVals[0] = makeStructVals(uc, startupinfo, pVals[0])
         else:
@@ -10278,7 +10279,7 @@ class CustomWinAPIs():
 
         if pVals[0] != 0x0:
             startupinfo = get_STARTUPINFOW(uc, pVals[0], em)
-            uc.mem_write(startupinfo.lpDesktop, pack(f'<{len(emuSimVals.computer_name)*2+2}s',emuSimVals.computer_name.encode('utf-16')[2:]))
+            uc.mem_write(startupinfo.lpDesktop, pack(f'<{len(conr.simulatedValues_computer_name)*2+2}s',conr.simulatedValues_computer_name.encode('utf-16')[2:]))
             startupinfo.writeToMemory(uc, pVals[0])
             pVals[0] = makeStructVals(uc, startupinfo, pVals[0])
         else:
