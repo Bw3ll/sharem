@@ -959,6 +959,7 @@ def emuSimValuesMenu():
 		elif simValueIn == "u":
 			print("   Enter List of Users Seperated by Comas")
 			conr.simulatedValues_users = list(set(input("   Users: ").replace(" ", "").split(',')))
+			SimFileSystem.InitializeFileSystem()
 		elif simValueIn == "n":
 			conr.simulatedValues_computer_name = input("   Enter Computer Name: ")
 		elif simValueIn == "a":
@@ -967,8 +968,10 @@ def emuSimValuesMenu():
 			conr.simulatedValues_temp_file_prefix = input("   Enter Temp File Prefix: ")
 		elif simValueIn == "l":
 			conr.simulatedValues_drive_letter = input("   Enter Drive Letter: ")
+			SimFileSystem.InitializeFileSystem()
 		elif simValueIn == "s":
 			conr.simulatedValues_start_directory = input("   Enter Start Directory: ")
+			SimFileSystem.InitializeFileSystem()
 		elif simValueIn == "d":
 			if conr.simulatedValues_download_files:
 				conr.simulatedValues_download_files = False

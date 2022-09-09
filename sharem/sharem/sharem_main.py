@@ -19277,8 +19277,7 @@ def emulationSimValueConf(conr):
 	conr.simulatedValues_start_directory = conr['SHAREM EMULATION SIMULATED VALUES']['start_directory']
 	
 	# Create Simulated File System
-	SimFileSystem.InitializeFileSystem(emuSimVals)
-
+	SimFileSystem.InitializeFileSystem()
 
 
 def SharemSearchConfig(conr):

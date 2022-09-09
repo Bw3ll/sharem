@@ -28,10 +28,10 @@ class Directory_system:
 	################################
 	## Initize the file system
 	################################
-	def InitializeFileSystem(self, config):
+	def InitializeFileSystem(self):
 		#Allow drive letter change from the config
-		driveLetter = config.drive_letter
-		self.currentDir = config.start_directory
+		driveLetter = Configuration().simulatedValues_drive_letter
+		self.currentDir = Configuration().simulatedValues_start_directory
 		self.rootDir = Dir_nodes(driveLetter)
 		# self.currentDir = self.rootDir
 		self.rootDir.childrenDir.update(self.CreateNewFolder('Microsoft',self.rootDir))
@@ -42,7 +42,7 @@ class Directory_system:
 		self.rootDir.childrenDir.update(self.CreateNewFolder('Windows',self.rootDir))
 		
 		##can have the possiblilty of multiple users
-		self.users = config.users # Get List of Users To Create
+		self.users = Configuration().simulatedValues_users # Get List of Users To Create
 		self.usersDir = self.rootDir.childrenDir.get('Users')
 		self.usersDir.childrenDir.update(self.CreateUsers(self.usersDir))
 
@@ -50,7 +50,7 @@ class Directory_system:
 		self.windowsDir = self.rootDir.childrenDir.get('Windows')
 		self.windowsDir.childrenDir.update(self.CreateWindowsFolder(self.windowsDir))
 
-		self.currentDirPath = self.setCurrentDir(config.start_directory,1)
+		self.currentDirPath = self.setCurrentDir(self.currentDir,1)
 		
 	def CreateUsers(self,usersDir):
 		usersFolder = {}
@@ -203,12 +203,12 @@ class Directory_system:
 	def deleteFile(self,path):
 		path = self.convertPath(path)
 		filename = path[-1]
-		folder = self.findAndCreateFolder(path[:-1])
-		if(filename in folder.files):
-			filedata = folder.files.get(filename)
-			del folder.files[filename]
-		else:
-			filedata = 'File did not exist when shellcode tried to delete'
+		# folder = self.findAndCreateFolder(path[:-1]) # Needs Fixed
+		# if(filename in folder.files):
+			# filedata = folder.files.get(filename)
+			# del folder.files[filename]
+		# else:
+		filedata = 'File did not exist when shellcode tried to delete'
 
 		self.deletedFiles.append({filename:filedata})
 		# print(self.deletedFiles)
