@@ -1,5 +1,8 @@
-from ctypes import c_byte, c_char, c_double, c_float, c_int, c_int32, c_int64, c_longlong, c_short, c_ubyte, c_uint, c_uint32, c_uint64, c_ulonglong, c_ushort, c_wchar
+from ctypes import LittleEndianStructure, c_byte, c_char, c_double, c_float, c_int16, c_int32, c_int64, c_ubyte, c_uint16, c_uint32, c_uint64, c_ushort, c_wchar
 from struct import unpack
+from sharem.sharem.DLLs.emu_helpers.handles import Handle, HandlesDict
+
+from sharem.sharem.helper.ctypesUnion import LittleEndianUnion
 from ..helper.emuHelpers import Uc
 
 # Window C Type Mappings
@@ -12,6 +15,7 @@ MAX_PATH = 260
 BYTE = c_byte
 WORD = c_ushort
 DWORD = c_uint32
+QWORD = c_uint64
 
 CHAR = c_char
 WCHAR = c_wchar
@@ -20,17 +24,19 @@ UCHAR = c_ubyte
 BOOLEAN = BYTE
 BOOL = c_uint32
 
-USHORT = c_ushort
-SHORT = c_short
+USHORT = c_uint16
+SHORT = c_int16
 
-UINT = c_uint
-INT = c_int
+UINT = c_uint32
+INT = c_int32
 
 ULONG = c_uint32 # Windows LONG is 4 bytes
 LONG = c_int32 # Unix LONG is 8 bytes
 
-ULONGLONG = c_ulonglong
-LONGLONG = c_longlong
+ULONGLONG = c_uint64
+LONGLONG = c_int64
+
+ULONG64 = ULONGLONG
 
 DOUBLE = c_double
 FLOAT = c_float
@@ -55,6 +61,7 @@ LPARAM_64BIT = c_int64
 
 ATOM = WORD
 LANGID = WORD
+SECURITY_DESCRIPTOR_CONTROL = WORD
 
 COLORREF = DWORD
 LGRPID = DWORD
@@ -66,6 +73,12 @@ DWORD_PTR_64BIT = c_uint64
 ULONG_PTR_32BIT = c_uint32
 ULONG_PTR_64BIT = c_uint64
 
+SIZE_T_32BIT = ULONG_PTR_32BIT
+SIZE_T_64BIT = ULONG_PTR_64BIT
+
+LMSTR = c_uint32
+LPPROC_THREAD_ATTRIBUTE_LIST_32BIT = c_uint32
+LPPROC_THREAD_ATTRIBUTE_LIST_64BIT = c_uint64
 
 # Handles 32 Bit
 HANDLE_32BIT = c_uint32 # Base Handle
@@ -88,6 +101,36 @@ POINTER_32BIT = c_uint32 # Base Pointer
 
 # Pointers to Structures 64 Bit
 POINTER_64BIT = c_uint64 # Base Pointer
+
+# Strcture Meta Class
+# Based on https://blag.nullteilerfrei.de/2021/06/20/prettier-struct-definitions-for-python-ctypes/
+class StructFieldsFromTypeHints(type(LittleEndianStructure)):
+    def __new__(cls, name, bases, namespace):
+        from typing import get_type_hints
+
+        class AnnotationDummy:
+            __annotations__ = namespace.get("__annotations__", {})
+
+        annotations = get_type_hints(AnnotationDummy)
+        namespace["_fields_"] = list(annotations.items())
+        namespace["_pack_"] = 8 # Packing Alignment Windows Default 8
+        return type(LittleEndianStructure).__new__(cls, name, bases, namespace)
+
+# Union Meta Class
+class UnionFieldsFromTypeHints(type(LittleEndianUnion)):
+    def __new__(cls, name, bases, namespace):
+        from typing import get_type_hints
+
+        class AnnotationDummy:
+            __annotations__ = namespace.get("__annotations__", {})
+
+        annotations = get_type_hints(AnnotationDummy)
+        namespace["_fields_"] = list(annotations.items())
+        namespace["_pack_"] = 8 # Packing Alignment Windows Default 8
+        return type(LittleEndianUnion).__new__(cls, name, bases, namespace)
+
+
+
 
 # Helpers
 def read_string(uc: Uc, address: int):
@@ -136,7 +179,10 @@ def makeStructVals(uc: Uc, struct, address: int):
     try: # Until Names Param is removed
         pNames = struct.names
     except:
-        pNames = list(struct.__slots__)
+        try:
+            pNames = list(struct.__slots__)
+        except:
+            pNames = list(struct.__annotations__.keys())
     lookUps = struct.lookUps
     pVals = []
     for name in pNames:
@@ -146,21 +192,15 @@ def makeStructVals(uc: Uc, struct, address: int):
             value = '' # Empty String if Value Not Found
         if "_Array_" in str(value):
             value = value[:]
-        elif "<sharem." in str(value): 
-            # Need to Figure out what to Do for Nested Structures/Unions
-            # that are not pointers. Temp Solution
-            tempTypes, tempNames, tempVals = makeSubStructVals(uc,value)
-            value = '{'
-            for t, n, v in zip(tempTypes, tempNames, tempVals):
-                value += f'{t} {n}: {v}, '
-            if value[-2:] == ', ':
-                value = value[:-2]
-            value += '}'
+        elif "emu_helpers.structures" in str(value): 
+            value = makeSubStructVals(uc,value)
         pVals.append(value)
 
     for i in range(len(pTypes)):
         if i in lookUps:
             pVals[i] = getLookUpVal(pVals[i],lookUps[i])
+        elif type(pVals[i]) == tuple:
+            pVals[i] = pVals[i]
         elif "STR" in pTypes[i]:  # finding ones with string
             try:
                 if "WSTR" in pTypes[i]:
@@ -169,6 +209,25 @@ def makeStructVals(uc: Uc, struct, address: int):
                     pVals[i] = read_string(uc, pVals[i])
             except:
                 pass
+        elif pTypes[i][0] == 'H': # Handle Builder
+                handleKey = getLookUpVal(pVals[i],HandlesDict)
+                if isinstance(handleKey, Handle):
+                    if handleKey.name != '':
+                        pVals[i] = f'{handleKey.name}'
+                    else:
+                        pVals[i] = hex(pVals[i])
+                else:
+                    pVals[i] = hex(pVals[i])
+        elif pTypes[i][0:2] == 'PH': # Pointer Handle Builder
+            pointerVal = getPointerVal(uc, pVals[i])
+            handleKey = getLookUpVal(pointerVal,HandlesDict)
+            if isinstance(handleKey, Handle):
+                if handleKey.name != '':
+                    pVals[i] = f'{hex(pVals[i])} -> {handleKey.name}'
+                else:
+                    pVals[i] = buildPtrString(pVals[i],pointerVal)
+            else:
+                pVals[i] = buildPtrString(pVals[i],pointerVal)
         elif pTypes[i][0] == 'P': # Pointer Builder
             try:
                 pointerVal = getPointerVal(uc, pVals[i])
@@ -204,7 +263,10 @@ def makeSubStructVals(uc: Uc, struct):
     try: # Until Names Param is removed
         pNames = struct.names
     except:
-        pNames = list(struct.__slots__)
+        try:
+            pNames = list(struct.__slots__)
+        except:
+            pNames = list(struct.__annotations__.keys())
     lookUps = struct.lookUps
     pVals = []
     for name in pNames:
@@ -214,6 +276,8 @@ def makeSubStructVals(uc: Uc, struct):
             pass
         if "_Array_" in str(value):
             value = value[:]
+        elif "emu_helpers.structures" in str(value): # Needed for Additonal Nested Structures
+            value = makeSubStructValsString(uc,value)
         pVals.append(value)
 
     for i in range(len(pTypes)):
@@ -227,6 +291,25 @@ def makeSubStructVals(uc: Uc, struct):
                     pVals[i] = read_string(uc, pVals[i])
             except:
                 pass
+        elif pTypes[i][0] == 'H': # Handle Builder
+                handleKey = getLookUpVal(pVals[i],HandlesDict)
+                if isinstance(handleKey, Handle):
+                    if handleKey.name != '':
+                        pVals[i] = f'{handleKey.name}'
+                    else:
+                        pVals[i] = hex(pVals[i])
+                else:
+                    pVals[i] = hex(pVals[i])
+        elif pTypes[i][0:2] == 'PH': # Pointer Handle Builder
+            pointerVal = getPointerVal(uc, pVals[i])
+            handleKey = getLookUpVal(pointerVal,HandlesDict)
+            if isinstance(handleKey, Handle):
+                if handleKey.name != '':
+                    pVals[i] = f'{hex(pVals[i])} -> {handleKey.name}'
+                else:
+                    pVals[i] = buildPtrString(pVals[i],pointerVal)
+            else:
+                pVals[i] = buildPtrString(pVals[i],pointerVal)
         elif pTypes[i][0] == 'P': # Pointer Builder
             try:
                 pointerVal = getPointerVal(uc, pVals[i])
@@ -250,3 +333,98 @@ def makeSubStructVals(uc: Uc, struct):
     # zipped = tuple(zip(pTypes, pNames, pVals))
     
     return (pTypes, pNames, pVals)
+
+def makeSubStructValsString(uc: Uc, struct):
+    pTypes = struct.types
+    try: # Until Names Param is removed
+        pNames = struct.names
+    except:
+        try:
+            pNames = list(struct.__slots__)
+        except:
+            pNames = list(struct.__annotations__.keys())
+    lookUps = struct.lookUps
+    pVals = []
+    for name in pNames:
+        try:
+            value = getattr(struct, name)
+        except:
+            pass
+        if "_Array_" in str(value):
+            value = value[:]
+        elif "emu_helpers.structures" in str(value): # Needed for Additonal Nested Structures
+            value = makeSubStructValsString(uc,value)
+        pVals.append(value)
+
+    for i in range(len(pTypes)):
+        if i in lookUps:
+            pVals[i] = getLookUpVal(pVals[i],lookUps[i])
+        elif "STR" in pTypes[i]:  # finding ones with string
+            try:
+                if "WSTR" in pTypes[i]:
+                    pVals[i] = read_unicode(uc, pVals[i])
+                else:
+                    pVals[i] = read_string(uc, pVals[i])
+            except:
+                pass
+        elif pTypes[i][0] == 'H': # Handle Builder
+                handleKey = getLookUpVal(pVals[i],HandlesDict)
+                if isinstance(handleKey, Handle):
+                    if handleKey.name != '':
+                        pVals[i] = f'{handleKey.name}'
+                    else:
+                        pVals[i] = hex(pVals[i])
+                else:
+                    pVals[i] = hex(pVals[i])
+        elif pTypes[i][0:2] == 'PH': # Pointer Handle Builder
+            pointerVal = getPointerVal(uc, pVals[i])
+            handleKey = getLookUpVal(pointerVal,HandlesDict)
+            if isinstance(handleKey, Handle):
+                if handleKey.name != '':
+                    pVals[i] = f'{hex(pVals[i])} -> {handleKey.name}'
+                else:
+                    pVals[i] = buildPtrString(pVals[i],pointerVal)
+            else:
+                pVals[i] = buildPtrString(pVals[i],pointerVal)
+        elif pTypes[i][0] == 'P': # Pointer Builder
+            try:
+                pointerVal = getPointerVal(uc, pVals[i])
+                pVals[i] = buildPtrString(pVals[i], pointerVal)
+            except:
+                pass
+        elif pTypes[i] == 'BOOLEAN' or pTypes[i] == 'BOOL':
+            if pVals[i] == 0x1:
+                pVals[i] = 'TRUE'
+            elif pVals[i] == 0x0:
+                pVals[i] = 'FALSE'
+            else:
+                pVals[i] = hex(pVals[i])
+        else:
+            try:
+                pVals[i] = hex(pVals[i])
+            except:
+                pVals[i] = str(pVals[i])
+                # If fail then Param is Probably String and Just Display value
+
+    # zipped = tuple(zip(pTypes, pNames, pVals))
+    red ='\u001b[31;1m'
+    gre = '\u001b[32;1m'
+    yel = '\u001b[33;1m'
+    blu = '\u001b[34;1m'
+    mag = '\u001b[35;1m'
+    cya = '\u001b[36;1m'
+    whi = '\u001b[37m'
+    res = '\u001b[0m'
+    res2 = '\u001b[0m'
+
+    stringForm = yel + "{"
+    for t, n, v in zip(pTypes, pNames, pVals):
+        stringForm += f"{gre}{t} {n}: {whi}{v}{yel}, "
+    if stringForm[-1] == " ":
+        stringForm = stringForm[:-1]
+    if stringForm[-1] == ",":
+        stringForm = stringForm[:-1]
+    stringForm += yel + "}"
+
+    # return (pTypes, pNames, pVals)
+    return stringForm 

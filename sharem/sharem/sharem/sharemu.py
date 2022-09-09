@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+from sharem.sharem.helper.variable import Variables
 from unicorn import *
 from unicorn.x86_const import *
 from capstone import *
@@ -28,21 +29,22 @@ import traceback
 
 # from sharemuDeob import *
 
-class EMU():
-    def __init__(self):
-        self.maxCounter = 500000
-        self.arch = 32
-        self.debug = False
-        self.breakOutOfLoops = True
-        self.maxLoop = 50000  # to break out of loops
-        self.entryOffset = 0
-        self.codeCoverage = True
-        self.beginCoverage = False
-        self.timelessDebugging = False  # todo: bramwell
-        # self.winVersion = "Windows 7" # "Windows 10" ## Should make these value config. 
-        # self.winSP = "SP1" # "2004"
-        self.winVersion = "Windows 10"
-        self.winSP = "2004"
+# class EMU():
+#     def __init__(self):
+#         self.maxCounter = 500000
+#         self.arch = 32
+#         self.debug = False
+#         self.breakOutOfLoops = True
+#         self.maxLoop = 50000  # to break out of loops
+#         self.entryOffset = 0
+#         self.codeCoverage = True
+#         self.beginCoverage = False
+#         self.timelessDebugging = False  # todo: bramwell
+#         # self.winVersion = "Windows 7" # "Windows 10" ## Should make these value config. 
+#         # self.winSP = "SP1" # "2004"
+#         self.winVersion = "Windows 10"
+#         self.winSP = "2004"
+
 
 
 class Coverage():
@@ -93,10 +95,10 @@ class Coverage():
         print(f"Stack = {binaryToStr(self.stack)}")
 
 
-artifacts = []
-net_artifacts = []
-file_artifacts = []
-exec_artifacts = []
+# artifacts = []
+# net_artifacts = []
+# file_artifacts = []
+# exec_artifacts = []
 coverage_objects = []
 programCounter = 0
 verbose = True
@@ -708,6 +710,8 @@ def logCall(funcName, funcInfo):
 
 def logSysCall(syscallName, syscallInfo):
     global paramValues
+    var = Variables()
+    var.logged_syscalls.append(syscallInfo)
     logged_syscalls.append(syscallInfo)
     paramValues += syscallInfo[4]
 
@@ -996,4 +1000,5 @@ def haha():
     fRaw.show()
 fRaw=sharDeobf()
 
-em = EMU()
+vars = Variables()
+em = vars.emu

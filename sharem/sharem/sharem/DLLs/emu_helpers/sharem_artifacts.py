@@ -97,13 +97,29 @@ class Artifacts_regex:
 
 class Artifacts_emulation:
 	def __init__(self):
+		self.correlation = []
+
 		self.path_artifacts = []
+		self.path_copy = []
+		self.path_move = []
+
 		self.file_artifacts = []
+		self.files_create = []
+		self.files_write = []
+		self.files_delete = []
+		self.files_access= []
+		self.files_copy = []
+		self.files_move = []
+		self.files_hashes = []
+
 		self.commandLine_artifacts = []
-		self.web_artifacts = []
-		self.registry_artifacts = []
-		self.exe_dll_artifacts = []
 		self.commandLine_HookApis = set()
+
+		self.web_artifacts = []
+
+		self.exe_dll_artifacts = []
+
+		self.registry_artifacts = []
 		self.registry_edit_keys = set()
 		self.registry_add_keys = set()
 		self.registry_delete_keys = set()
@@ -116,12 +132,7 @@ class Artifacts_emulation:
 		self.reg_HKLM = set()
 		self.reg_HKU = set()
 		self.reg_HKCC = set()
-		self.files_create = []
-		self.files_write = []
-		self.files_delete = []
-		self.files_access= []
-		self.files_copy = []
-		self.files_move = []
+		
 
 	def removeDuplicates(self):
 		exe_dll_COPY = self.exe_dll_artifacts
@@ -137,11 +148,19 @@ class Artifacts_emulation:
 		self.files_delete = set(self.files_delete)
 		self.files_access = set(self.files_access)
 		self.files_copy = set(self.files_copy)
-
+		self.files_hashes = set(self.files_hashes)
+		self.path_copy = set(self.path_copy)
+		self.path_move = set(self.path_move)
+		self.correlation = set(self.correlation)
 		#This will need to be built out better in the future, currently we do not have any functions that edit/delete with special values we want such as desktop being passed into it.
 		#self.registry_misc = self.registry_misc - self.registry_edit_keys
 		#self.registry_misc = self.registry_misc - self.registry_delete_keys
-
+		#remove regex picking up file/web artifacts that are duplicates
+		## EX.
+		##		warpeace3498tols.pdf <-- removes this
+		##		warpeace3498tols.pdf : bdb4133424ef3125be7259eea3f156d0
+		self.web_artifacts = self.dupRemoveArtifacts(self.web_artifacts)
+		self.file_artifacts = self.dupRemoveArtifacts(self.file_artifacts)
 		##this can be moved to a function later - removes powershell and cmd from the exe/dlls as it is picked up from the files and command line.
 		#exe_dll_COPY = self.exe_dll_artifacts
 		for each in exe_dll_COPY:
@@ -156,6 +175,10 @@ class Artifacts_emulation:
 		self.removeObjectsFromDLLS()
 
 		#convert back
+		self.correlation = list(self.correlation)
+		self.path_copy = list(self.path_copy)
+		self.path_move = list(self.path_move)
+		self.files_hashes = list(self.files_hashes)
 		self.files_copy = list(self.files_copy)
 		self.files_create = list(self.files_create)
 		self.files_write = list(self.files_write)
@@ -379,10 +402,12 @@ class Artifacts_emulation:
 
 	def removeObjectsFromDLLS(self):
 		dllsObject = '<sharem.sharem.DLLs.emu_helpers.'
+		removeSet = set()
 		for each in self.exe_dll_artifacts:
 			if dllsObject in each:
-				self.exe_dll_artifacts.remove(each)
-
+				removeSet.add(each)
+		for each in removeSet:
+			self.exe_dll_artifacts.remove(each)
 
 	def removeStructures(self,Regex):
 		#go through and find structures
@@ -438,3 +463,18 @@ class Artifacts_emulation:
 		self.removeDuplicates()
 
 
+	def dupRemoveArtifacts(self,artifact_set):
+		#remove the duplicate artifacts that are also tuples
+		tempSet = set()
+		for item in artifact_set:
+			if(type(item) == tuple):
+				tempSet.add(item[0])
+			else:
+				pass
+		artifact_set = artifact_set - tempSet
+		return artifact_set
+
+############################################################################################
+############################			Documentation			############################
+############################################################################################
+#

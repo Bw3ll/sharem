@@ -2,6 +2,8 @@ import sys
 import re
 import colorama
 import itertools
+
+from sharem.sharem.parseconf import Configuration
 from .helper import get_max_length
 from .helper import foundBooleans
 from .sharemu import *
@@ -837,6 +839,8 @@ def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 
 	vmode = emuObj.verbose
 	maxinst = emuObj.maxEmuInstr
+	var = Variables()
+	em = var.emu
 	arch = em.arch
 	bloop = em.maxLoop #emuObj.breakLoop  old
 	# iternum = emuObj.numOfIter
@@ -844,12 +848,12 @@ def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 
 
 	if em.breakOutOfLoops:
-  		bloopTog = "x"
+		bloopTog = "x"
 	else:
 		bloopTog = " "
 
 	if vmode:
-  		vmodeTog = "x"
+		vmodeTog = "x"
 	else:
 		vmodeTog = " "
 
@@ -879,6 +883,7 @@ def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 
 	text += "  {}        \n".format(cya + "z"+res+" -"+yel+"  Initiate emulation."+ res)
 	text += "  {}        \n".format(cya + "s"+res+" -"+yel+"  Select syscall versions."+ res)
+	text += "  {}        \n".format(cya + "d"+res+" -"+yel+"  Edit Simulated Values."+ res)
 	text += "  {}{:>3} [{}]\n".format(cya + "m"+res+" -"+yel+"  Maximum instructions to emulate."+ res, "", cya + str(maxinst)+ res)
 
 
@@ -913,6 +918,78 @@ def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 
 	text += "\n"
 	print(text)
+
+def emuSimValuesMenu():
+	conr = Configuration()
+	print("\n")
+	print(f"{yel} ...................................")
+	print(f"{yel} Emulation Simulation Values")
+	print(f"{yel} ...................................")
+
+	def emuSimValHelpList():
+		print(f"\n{mag} Computer Settings:")
+		print(f"{cya}    c {whi}- {yel}Current User {whi}[{cya}{conr.simulatedValues_current_user}{whi}]")
+		print(f"{cya}    u {whi}- {yel}Users {whi}[{cya}{str(conr.simulatedValues_users)[1:-1]}{whi}]")
+		print(f"{cya}    n {whi}- {yel}Computer Name {whi}[{cya}{conr.simulatedValues_computer_name}{whi}]")
+		print(f"{cya}    a {whi}- {yel}Computer IP Address {whi}[{cya}{conr.simulatedValues_computer_ip_address}{whi}]")
+
+		print(f"\n{mag} File System:")
+		print(f"{cya}    p {whi}- {yel}Temp File Prefix {whi}[{cya}{conr.simulatedValues_temp_file_prefix}{whi}]")
+		print(f"{cya}    l {whi}- {yel}Drive Letter {whi}[{cya}{conr.simulatedValues_drive_letter}{whi}]")
+		print(f"{cya}    s {whi}- {yel}Start Directory {whi}[{cya}{conr.simulatedValues_start_directory}{whi}]")
+		print(f"{cya}    d {whi}- {yel}File Download {whi}[{cya}{conr.simulatedValues_download_files}{whi}]")
+
+		print(f"\n{mag} System Time:")
+		print(f"{cya}    z {whi}- {yel}Timezone {whi}[{cya}{conr.simulatedValues_timezone}{whi}]")
+		print(f"{cya}    e {whi}- {yel}Time since Epoch {whi}[{cya}{conr.simulatedValues_system_time_since_epoch}{whi}]")
+		print(f"{cya}    t {whi}- {yel}Uptime in Minutes {whi}[{cya}{conr.simulatedValues_system_uptime_minutes}{whi}]")
+
+		print(f"\n{mag} Other:")
+		print(f"{cya}    r {whi}- {yel}Default Registry Value {whi}[{cya}{conr.simulatedValues_default_registry_value}{whi}]")
+		print(f"{cya}    b {whi}- {yel}Clipboard Data {whi}[{cya}{conr.simulatedValues_clipboard_data}{whi}]")
+
+		print(f"\n{cya}  h {whi}- {yel}Show This Menu")
+
+	emuSimValHelpList()
+	print("\n" + cya + " Sharem>" + gre + "Print>" + yel + "SimValues> " + res, end="")
+	simValueIn = input().lower()[0]
+	while simValueIn != 'x':
+		if simValueIn == "c":
+			conr.simulatedValues_current_user = input("   Enter Current User: ")
+		elif simValueIn == "u":
+			print("   Enter List of Users Seperated by Comas")
+			conr.simulatedValues_users = list(set(input("   Users: ").replace(" ", "").split(',')))
+		elif simValueIn == "n":
+			conr.simulatedValues_computer_name = input("   Enter Computer Name: ")
+		elif simValueIn == "a":
+			conr.simulatedValues_computer_ip_address = input("   Enter Computer IP Address: ")
+		elif simValueIn == "p":
+			conr.simulatedValues_temp_file_prefix = input("   Enter Temp File Prefix: ")
+		elif simValueIn == "l":
+			conr.simulatedValues_drive_letter = input("   Enter Drive Letter: ")
+		elif simValueIn == "s":
+			conr.simulatedValues_start_directory = input("   Enter Start Directory: ")
+		elif simValueIn == "d":
+			if conr.simulatedValues_download_files:
+				conr.simulatedValues_download_files = False
+			else:
+				conr.simulatedValues_download_files = True
+		elif simValueIn == "z":
+			conr.simulatedValues_timezone = input("   Enter Timezone: ") # possible add list of timezones
+		elif simValueIn == "e":
+			conr.simulatedValues_system_time_since_epoch = int(input("   Enter Time Since Epoch: "))
+		elif simValueIn == "t":
+			conr.simulatedValues_system_uptime_minutes = int(input("   Enter Uptime in Minutes: "))
+		elif simValueIn == "r":
+			conr.simulatedValues_default_registry_value = input("   Enter Defualt Registry Value: ")
+		elif simValueIn == "b":
+			conr.simulatedValues_clipboard_data = input("   Enter Clipboard data: ")
+		elif simValueIn == "h":
+			emuSimValHelpList()
+		
+		print("\n" + cya + " Sharem>" + gre + "Print>" + yel + "SimValues> " + res, end="")
+		simValueIn = input().lower()[0]
+
 
 def disPrintStyle(disassemblyFound, toggList):
 
