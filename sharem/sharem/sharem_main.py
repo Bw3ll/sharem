@@ -21306,17 +21306,20 @@ def emuSyscallSubMenu(): #Printing/settings for syscalls
 		if(re.match("^x$", syscallIN, re.IGNORECASE)):
 			# print("Returning to print menu.")
 			break
+
 		elif(re.match("^h$", syscallIN, re.IGNORECASE)):
-			emuSyscallSubMenu()
+			emuSyscallPrintSubMenu(emuSyscallSelection, showDisassembly, syscallPrintBit, True)
+
 		elif(re.match("^g$", syscallIN, re.IGNORECASE)):
 			emuSyscallSelectionsSubMenu()
 			print("\nChanges applied: ")
-			emuSyscallSubMenu()
+			emuSyscallPrintSubMenu(emuSyscallSelection, showDisassembly, syscallPrintBit, True)
+		
 		elif(re.match("^c$", syscallIN, re.IGNORECASE)):
 			for key in emuSyscallSelection.keys():
-				emuSyscallSelection[key] = False
+				emuSyscallSelection[key][0] = False
 			print("\nChanges applied: ")
-			emuSyscallSubMenu()			
+			emuSyscallPrintSubMenu(emuSyscallSelection, showDisassembly, syscallPrintBit, True)			
 
 
 def uiModulesSubMenu():		#Find and display loaded modules
@@ -21997,20 +22000,36 @@ def findAll():  #Find everything
 
 def emuSyscallSelectionsSubMenu(): #Select osversions for syscalls
 	global emuSyscallSelection
+	global em
 	x = ''
 
-	print("\nEnter input deliminted by commas or spaces.\n\tE.g. v3, xp2, r3\n")
+	#currently modified to only work for one version. 
+	print("\nEnter code for desired syscall ID version.\n\tE.g. v3\n")
 	# while x != 'e':
 	sysSelectIN = input("> ")
 	selections = sysSelectIN.replace(",", " ")
 	selectionList = selections.split()
+	while(len(selectionList) > 1):
+		sysSelectIN = input("Please enter only one code.\n> ")
+		selections = sysSelectIN.replace(",", " ")
+		selectionList = selections.split()
+
+	selection = selectionList[0]
 
 	validKeys = emuSyscallSelection.keys()
-	for selection in selectionList:
-		if(selection in validKeys):
-			emuSyscallSelection[selection] = (not emuSyscallSelection[selection])
+	foundKey = False
+	for key in validKeys:
+		if(selection == key):
+			emuSyscallSelection[key][0] = True
+			foundKey = True
 		else:
-			print("Code ", selection, " is not valid.")
+			emuSyscallSelection[key][0] = False
+	if(not foundKey):
+		print("Invalid code.")
+	else:
+		em.winVersion = emuSyscallSelection[selection][1]
+		em.winSP = emuSyscallSelection[selection][2]
+
 
 
 def syscallSelectionsSubMenu(): #Select osversions for syscalls

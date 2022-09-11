@@ -10,49 +10,45 @@ global objs
 
 
 
+#[selected, windows version, update version]
 SYSCALL_BOOL_DICT = {
-"l": False,
-"d": False,
-"D": False,
-"all": False,
-"xp": False,
-"xp1": False,
-"xp2": False,
-"s3": False,
-"s30": False,
-"s32": False,
-"s3r": False,
-"s3r2": False,
-"v": False,
-"v0": False,
-"v1": False,
-"v2": False,
-"s8": False,
-"s80": False,
-"s82": False,
-"s8r": False,
-"s8r1": False,
-"w7": False,
-"w70": False,
-"w71": False,
-"s12": False,
-"s120": False,
-"s12r": False,
-"w8": False,
-"w80": False,
-"w81": False,
-"w10": False,
-"r0": False,
-"r1": False,
-"r2": False,
-"r3": False,
-"r4": False,
-"r5": False,
-"r6": False,
-"r7": False,
-"r8": False,
-"r9": False,
-"r10": False}
+"xp1": [False,"Windows XP","SP1"],
+"xp2": [False,"Windows XP","SP2"],
+
+"s30": [False,"Windows Server 2003", "SP0"],
+"s32": [False,"Windows Server 2003", "SP2"],
+"s3r": [False,"Windows Server 2003", "R2"],
+"s3r2": [False,"Windows Server 2003", "R2 SP2"],
+
+"v0": [False,"Windows Vista","SP0"],
+"v1": [False,"Windows Vista","SP1"],
+"v2": [False,"Windows Vista","SP2"],
+
+"s80": [False,"Windows Server 2008", "SP0"],
+"s82": [False,"Windows Server 2008", "SP2"],
+"s8r": [False,"Windows Server 2008", "R2"],
+"s8r1": [False,"Windows Server 2008", "R2 SP1"],
+
+"w70": [False,"Windows 7", "SP0"],
+"w71": [False,"Windows 7", "SP1"],
+
+"s120": [False,"Windows Server 2012", "SP0"],
+"s12r": [False,"Windows Server 2012", "R2"],
+
+"w80": [False,"Windows 8", "8.0"],
+"w81": [False,"Windows 8", "8.1"],
+
+"r0": [False,"Windows 10", "1507"],
+"r1": [False,"Windows 10", "1511"],
+"r2": [False,"Windows 10", "1607"],
+"r3": [False,"Windows 10", "1703"],
+"r4": [False,"Windows 10", "1709"],
+"r5": [False,"Windows 10", "1803"],
+"r6": [False,"Windows 10", "1809"],
+"r7": [False,"Windows 10", "1903"],
+"r8": [False,"Windows 10", "1909"],
+"r9": [False,"Windows 10", "2004"],
+"r10": [False,"Windows 10", "20H2"]}
 
 
 #MOV <REG>, [FS:0x30]
