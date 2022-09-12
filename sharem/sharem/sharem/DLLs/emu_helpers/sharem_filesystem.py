@@ -218,7 +218,7 @@ class Directory_system:
 		if(filename in node.files):
 			filedata = node.files.get(filename)
 		else:
-			filedata = 'File did not exist when shellcode tried to delete'
+			filedata = 'File did not exist when shellcode tried to read'
 		path = []
 		path = self.getPath(node,path)
 		
