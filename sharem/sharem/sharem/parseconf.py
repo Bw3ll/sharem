@@ -133,6 +133,7 @@ class Configuration(metaclass=Singleton):
 		self.emulation_complete_code_coverage = True
 		self.emulation_windows_version = 'Windows 10'
 		self.emulation_windows_release_osbuild = '2004'
+		self.emulation_windows_syscall_code = 'xp1'
 
 		##[SHAREM DISASSEMBLY]
 		self.dissassembly_enable_hidden_calls = True
@@ -412,7 +413,8 @@ class Configuration(metaclass=Singleton):
 		self.emulation_complete_code_coverage = conr.getboolean('SHAREM EMULATION',"complete_code_coverage")
 
 		self.emulation_windows_version = conr['SHAREM EMULATION']['windows_version']
-		self.emulation_windows_release_osbuild = conr['SHAREM EMULATION']['windows_release_osbuild']      
+		self.emulation_windows_release_osbuild = conr['SHAREM EMULATION']['windows_release_osbuild']
+		self.emulation_windows_syscall_code = conr['SHAREM EMULATION']['emulation_windows_syscall_code']      
 		
 		#set the default values for the emulation object.
 		emuObj = emulationOptions()
