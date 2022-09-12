@@ -203,12 +203,12 @@ class Directory_system:
 	def deleteFile(self,path):
 		path = self.convertPath(path)
 		filename = path[-1]
-		# folder = self.findAndCreateFolder(path[:-1]) # Needs Fixed
-		# if(filename in folder.files):
-			# filedata = folder.files.get(filename)
-			# del folder.files[filename]
-		# else:
-		filedata = 'File did not exist when shellcode tried to delete'
+		folder = self.findAndCreateFolder(path[:-1])
+		if(filename in folder.files):
+			filedata = folder.files.get(filename)
+			del folder.files[filename]
+		else:
+			filedata = 'File did not exist when shellcode tried to delete'
 
 		self.deletedFiles.append({filename:filedata})
 		# print(self.deletedFiles)
@@ -348,7 +348,7 @@ class Directory_system:
 
 	def getNodeRelative(self,dirNode,dirName):
 		#assuming that the currentDir has been set, as a node
-		if ('..' in dirName):
+		if dirName[0] == '..':
 			parent = dirNode.parentDir
 			dirName.remove('..')
 			return self.getNodeRelative(parent,dirName)
@@ -405,24 +405,28 @@ class Directory_system:
 
 	def findFolder(self,path):
 		path = self.convertPath(path)
-		if('..' in path):
+		if path[0] == '..': # The Parent of Current Directory
+			return self.getNodeRelative(self.currentDir,path)
+		elif path[0] == '.': # The Current Directory
 			return self.getNodeRelative(self.currentDir,path)
 		else:
 			return self.getNodeAbsoulte(self.rootDir,path,1)
 		
-	def convertPath(self,path):
-		if (type(path) == str):
+	def convertPath(self, path):
+		if isinstance(path,str):
 			#normalize a path to oly be a single \,( \\ -> \, / -> \ )
 			if('/' in path):
-				path = path.split('/')
+				pathSplit = path.split('/')
 			elif('\\\\' in path):
-				path = path.split('\\\\')
+				pathSplit = path.split('\\\\')
 			else:
-				path = path.split('\\')
-		for each in path:
+				pathSplit = path.split('\\')
+		else:
+			pathSplit = path
+		for each in pathSplit:
 			if (each == ''):
-				path.remove(each)
-		return path
+				pathSplit.remove(each)
+		return pathSplit
 
 	def fileOrFolder(self,path):
 		REGEX = Artifacts_regex()

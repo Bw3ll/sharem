@@ -13759,7 +13759,7 @@ class CustomWinAPIs():
 class CustomWinSysCalls():
 
     def winApiToSyscall(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU, syscall: Callable[[Uc,int,int,int,EMU],list]):
-        if em.arch == 32: # Needs improvements
+        if em.arch == 32:
             if em.winVersion == "Windows 7":
                 esp = uc.reg_write(UC_X86_REG_EDX, (esp + 4)) # Params start at value in edx
             elif em.winVersion == "Windows 8":
@@ -13778,7 +13778,7 @@ class CustomWinSysCalls():
         return tuple(syscall(uc, eip, esp, callAddr, em))
 
     def makeArgVals(self, uc: Uc, em: EMU, esp: int, numParams: int):
-        if em.arch == 32: # Needs improvements
+        if em.arch == 32:
             if em.winVersion == "Windows 7":
                 esp = uc.reg_read(UC_X86_REG_EDX) - 4 # Params start at value in edx
             elif em.winVersion == "Windows 8":
