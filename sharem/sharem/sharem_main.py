@@ -249,6 +249,7 @@ heavRawHexOverride = False
 fstenvRawHexOverride = False
 
 emuSyscallSelection = SYSCALL_BOOL_DICT
+emuSyscallCode = ""
 
 
 
@@ -19168,6 +19169,7 @@ def modConf():
 	global emulation_multiline
 	global emuObj 
 	global emuSimVals 
+	global emuSyscallSelection
 
 	listofStrings = ['pushret', 
 					'callpop', 
@@ -19207,9 +19209,12 @@ def modConf():
 	listofBools.append(listofSyscalls)
 
 
-
 	for booli, boolStr in zip(listofBools, listofStrings):
 		configOptions[boolStr] = booli
+
+	configOptions['windows_version'] = em.winVersion
+	configOptions['windows_release_osbuild'] = em.winSP
+	configOptions['windows_syscall_code'] = emuSyscallCode
 
 
 # bPrintEmulation = conr.getboolean('SHAREM EMULATION', 'print_emulation_result')
@@ -19241,7 +19246,10 @@ def emulationConf(conr):
 	global bPrintEmulation
 	global emulation_verbose
 	global emulation_multiline
-	global emuObj  
+	global emuObj 
+	global emuSyscallCode
+	global emuSyscallSelection
+
 
 	bPrintEmulation = conr.getboolean('SHAREM EMULATION', 'print_emulation_result')
 	emulation_verbose = conr.getboolean('SHAREM EMULATION', 'emulation_verbose_mode')
@@ -19258,6 +19266,18 @@ def emulationConf(conr):
 
 	em.winVersion = conr['SHAREM EMULATION']['windows_version']
 	em.winSP = conr['SHAREM EMULATION']['windows_release_osbuild']
+	emuSyscallCode = conr['SHAREM EMULATION']['windows_syscall_code']
+
+	validKeys = emuSyscallSelection.keys()
+	foundKey = False
+	for key in validKeys:
+		if(emuSyscallCode == key):
+			emuSyscallSelection[key][0] = True
+			foundKey = True
+		else:
+			emuSyscallSelection[key][0] = False
+	if(not foundKey):
+		print("Invalid code in config for windows_syscall_code.")
 
 def emulationSimValueConf(conr):
 	global emuSimVals
@@ -22001,6 +22021,9 @@ def findAll():  #Find everything
 def emuSyscallSelectionsSubMenu(): #Select osversions for syscalls
 	global emuSyscallSelection
 	global em
+	global configOptions
+	global emuSyscallCode
+
 	x = ''
 
 	#currently modified to only work for one version. 
@@ -22029,6 +22052,8 @@ def emuSyscallSelectionsSubMenu(): #Select osversions for syscalls
 	else:
 		em.winVersion = emuSyscallSelection[selection][1]
 		em.winSP = emuSyscallSelection[selection][2]
+		emuSyscallCode = selection
+
 
 
 
@@ -24677,6 +24702,7 @@ def SharemMainResetGlobals():
 	fstenvRawHexOverride = False
 
 	emuSyscallSelection = SYSCALL_BOOL_DICT
+	emuSyscallCode = ""
 
 
 
