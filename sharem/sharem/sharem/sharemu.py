@@ -987,11 +987,15 @@ def startEmu(arch, data, vb):
     print(cya + "\t[*]" + res2 + " CPU counter: " + str(programCounter))
     print(cya + "\t[*]" + res2 + " Emulation complete")
 
+
     fRaw.merge2()
     fRaw.completed()
     fRaw.findAPIs()
 
     outFile.close()
+
+    SimFileSystem.outputFilesCreated()
+
 
 def emuInit():
     pass

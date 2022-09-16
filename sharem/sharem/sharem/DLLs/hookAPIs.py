@@ -346,7 +346,6 @@ class CustomWinAPIs():
         pVals[0] = getLookUpVal(pVals[0],ReverseLookUps.ErrorCodes)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
-
         retVal = 0
         uc.reg_write(UC_X86_REG_EAX, retVal)
         
@@ -9230,10 +9229,10 @@ class CustomWinAPIs():
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
     def Sleep(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
-        # 'Sleep': (1, ['DWORD'], ['dwMilliseconds'], 'thunk void')
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes = ['DWORD']
         pNames = ['dwMilliseconds']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 

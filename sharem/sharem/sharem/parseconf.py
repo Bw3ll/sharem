@@ -173,7 +173,6 @@ class Configuration(metaclass=Singleton):
 		#initialize the config
 		
 		
-		
 		# self.decryptConf(conf)
 		# self.searchConf(conf)
 		# self.disassemblyConf(conf)
@@ -308,7 +307,7 @@ class Configuration(metaclass=Singleton):
 	def searchConf(self,conr):
 		vars = Variables()
 		
-		self.default_outdir = conr['SHAREM SEARCH']['default_outdir']
+		self.search_default_outdir = conr['SHAREM SEARCH']['default_outdir']
 		self.search_max_callpop_distance = int(conr['SHAREM SEARCH']['max_callpop_distance'])
 		self.search_max_num_of_zeroes = int(conr['SHAREM SEARCH']['max_num_of_zeroes'])
 		self.search_pushret= conr.getboolean('SHAREM SEARCH','pushret')
@@ -450,7 +449,7 @@ class Configuration(metaclass=Singleton):
 		self.simulatedValues_drive_letter = conr['SHAREM EMULATION SIMULATED VALUES']['drive_letter']
 		self.simulatedValues_start_directory = conr['SHAREM EMULATION SIMULATED VALUES']['start_directory']  
 		self.simulatedValues_download_files = conr['SHAREM EMULATION SIMULATED VALUES']['file_download']
-		
+
 	def stringsConf(self,conr):
 		# global bPushStackStrings
 		# global bWideCharStrings

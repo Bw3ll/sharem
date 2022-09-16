@@ -243,6 +243,7 @@ class Directory_system:
 		# print(fileName,dest)
 		#check that the user wants to download files
 		conf = Configuration()
+		conf.simulatedValues_download_files = True # Needs Fixed
 		if conf.simulatedValues_download_files:
 			#move the manager to somewhere else that we can turn on and off with the config useage.
 			http = urllib3.PoolManager(num_pools=1)
@@ -253,20 +254,20 @@ class Directory_system:
 				hashedData = hashedData.hexdigest()
 				# print(len(r.data))
 				self.createFile(path=dest,fileName=fileName,fileData=r.data)
+				return '\\'.join(dest),fileName,hashedData,r.status
 			else:
 				# print(r.status)
 				#error retrieving the file, give them a dummy data file
 				self.createFile(dest,fileName)
 				hashedData = ''
+				return '\\'.join(dest),fileName,hashedData,r.status
 		else:
 			#create the file with dummy data
 			# print('download is disabled')
 			self.createFile(dest,fileName)
 			hashedData = ''
 			statusCode = ''
-
-			
-		return '\\'.join(dest),fileName,hashedData,r.status
+			return '\\'.join(dest),fileName,hashedData,statusCode
 
 	def findFirstFile(self,path):
 		path = self.convertPath(path)
@@ -489,8 +490,13 @@ class Directory_system:
 					print((' '*indent+"*F*"+str(child.files)))
 			self.printALL(child,indent+1)
 
-	def outputFilesCreated(self,config):
+	def outputFilesCreated(self):
 		#check if output is enabled or not.
+		print(Configuration().search_default_outdir)
+		# if Configuration().default_outdir == "current_dir":
+			# outDir = os.path.join(os.path.dirname(__file__), "sharem", "logs")
+		# else:
+			# outDir = sharem_out_dir
 		print(1)
 		#output the files to the output directory given in the config
 
