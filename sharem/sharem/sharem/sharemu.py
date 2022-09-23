@@ -996,7 +996,6 @@ def startEmu(arch, data, vb):
 
     SimFileSystem.outputFilesCreated()
 
-
 def emuInit():
     pass
 

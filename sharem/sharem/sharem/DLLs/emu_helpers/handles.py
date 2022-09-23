@@ -59,6 +59,7 @@ class HandleType(Enum):
     Socket = auto()
     # Events
     Event = auto()
+    Heap = auto()
 
 
 class Handle:

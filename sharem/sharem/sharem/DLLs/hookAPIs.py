@@ -1358,7 +1358,7 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[0])
         
-        retVal = heap.handle
+        retVal = heap.handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -1507,7 +1507,7 @@ class CustomWinAPIs():
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
         
-        retVal = heap.handle
+        retVal = heap.handle.value
         retValStr = hex(retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -8107,7 +8107,11 @@ class CustomWinAPIs():
         dwFlagsReverseLookUp = {2: 'MOVEFILE_COPY_ALLOWED', 16: 'MOVEFILE_CREATE_HARDLINK',
                                 4: 'MOVEFILE_DELAY_UNTIL_REBOOT', 32: 'MOVEFILE_FAIL_IF_NOT_TRACKABLE',
                                 1: 'MOVEFILE_REPLACE_EXISTING', 8: 'MOVEFILE_WRITE_THROUGH'}
-        replace = pVals[2]
+        if pVals[2] == 1:
+            replace = True
+        else:
+            replace = False
+        
         pVals[2] = getLookUpVal(pVals[2], dwFlagsReverseLookUp)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2])

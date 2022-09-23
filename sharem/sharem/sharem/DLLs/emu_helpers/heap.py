@@ -1,4 +1,5 @@
 from struct import pack
+from sharem.sharem.DLLs.emu_helpers.handles import Handle, HandleType
 from sharem.sharem.DLLs.emu_helpers.sim_values import emuSimVals
 from sharem.sharem.helper.emuHelpers import Uc
 
@@ -8,24 +9,16 @@ HeapsDict: 'dict[int,Heap]' = {}  # Dictionary of All Heaps
 
 # Heap Functions
 class Heap:
-    realSize = 4096
 
     def __init__(self, uc: Uc, handle: int, size: int):
-        try:
-            self.baseAddress = emuSimVals.availMem
-            uc.mem_map(self.baseAddress, self.realSize)
-            emuSimVals.availMem += self.realSize
-        except:
-            print('Heap Create Failed')
-            pass
         self.availableSize = size
         if handle == 0:
-            self.handle = self.baseAddress
+            self.handle = Handle(HandleType.Heap)
         else:
-            self.handle = handle
+            self.handle = Handle(HandleType.Heap)
         self.allocations: dict[int,HeapAllocation] = {}
         self.usedSize = 0
-        HeapsDict.update({self.handle: self})
+        HeapsDict.update({self.handle.value: self})
 
     def createAllocation(self, uc: Uc, size: int):
         # Check avaible Memory Increase if Necessary
@@ -73,13 +66,11 @@ class Heap:
             self.usedSize -= self.allocations[i].size
             uc.mem_unmap(self.allocations[i].address, self.allocations[i].size)
         self.allocations = {}
-        uc.mem_unmap(self.baseAddress, self.realSize)
-        HeapsDict.pop(self.baseAddress)
+        HeapsDict.pop(self.handle)
 
     def printInfo(self):
         print('Heap Info')
         print('Handle: ', hex(self.handle))
-        print('BaseAddress: ', hex(self.baseAddress))
         print('Used Size: ', self.usedSize)
         print('Total Size: ', self.availableSize)
         print('Allocations: ', len(self.allocations))

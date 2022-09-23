@@ -1,5 +1,6 @@
-from tkinter import Variable
-
+from pathlib import Path, PureWindowsPath
+from ntpath import normpath, join 
+from typing import Union
 from sharem.sharem.parseconf import Configuration
 from .handles import Handle,HandleType,HandlesDict
 from .sharem_artifacts import Artifacts_regex
@@ -14,13 +15,62 @@ class Dir_nodes:
 		self.childrenDir = {}
 		self.files = {}
 		# ^ lists of files, it is sorted by {name of the file: and data, if there is no data defualts to EMPTY}
+
+class Directory: # A Directory That Contains Many Files or Sub Directories
+	def __init__(self, dirName: str, parentDir: 'Directory', root = False):
+		self.name = dirName
+		self.childrenDir: dict[str,Directory] = {} 
+		self.files: dict[str,File] = {}
+		if root:
+			self.parentDir = None
+			self.absolutePath = str(normpath(join(self.name,'/')))
+		else:
+			self.parentDir = parentDir
+			self.parentDir.childrenDir.update({self.name: self})
+			self.absolutePath = str(normpath(join(self.parentDir.absolutePath,self.name)))
+		Directory_system.allPaths.update({self.absolutePath: self})
+		Directory_system.allDirPaths.update({self.absolutePath: self})
+
+	def createChildDirectory(self, dirName: str):
+		return Directory(dirName,self)
+
+	def createChildFile(self, fileName: str, fileData: str, fileHash: str = '[NULL]', overWrite = False):
+		return File(self,fileName,fileData,fileHash,overWrite)
+		
+class File: # An Individual File
+	def __init__(self, dir: Directory, fname: str, fdata: str, fhash: str = '[NULL]', overWrite = False):
+		self.name = fname
+		self.data = fdata
+		self.hash = fhash
+		self.directory = dir
+		if not overWrite:
+			if self.name in self.directory.files: # Handle Duplicate File Names
+				count = 0
+				for eachFile in self.directory.files:
+					if(eachFile == self.name):
+						count += 1
+				if(count > 0):
+					try:
+						splitName = self.name.split(".")
+						self.name = f"{splitName[0]}({count}).{splitName[1]}"
+					except:
+						self.name =  f"{self.name}({count})"
+		self.absolutePath = normpath(join(self.directory.absolutePath,self.name))
+		self.directory.files.update({fname:self})
+		Directory_system.allPaths.update({self.absolutePath: self})
+		Directory_system.allFilePaths.update({self.absolutePath: self})
+
 class Directory_system:
+	allPaths: 'dict[str]' = {}
+	allDirPaths: 'dict[str,Directory]' = {}
+	allFilePaths: 'dict[str,File]' = {}
+
 	def __init__(self):
 		#drive letter is grabbed from the config
 		self.rootDir = None
 		self.usersDir = None
 		self.windowsDir = None
-		self.currentDir = None 
+		self.currentDir = None
 		self.currentDirPath = None
 		self.users = ['Administrator']
 		self.deletedFiles = []
@@ -31,190 +81,138 @@ class Directory_system:
 	def InitializeFileSystem(self):
 		#Allow drive letter change from the config
 		driveLetter = Configuration().simulatedValues_drive_letter
-		self.currentDir = Configuration().simulatedValues_start_directory
-		self.rootDir = Dir_nodes(driveLetter)
-		# self.currentDir = self.rootDir
-		self.rootDir.childrenDir.update(self.CreateNewFolder('Microsoft',self.rootDir))
-		self.rootDir.childrenDir.update(self.CreateNewFolder('Program Files',self.rootDir))
-		self.rootDir.childrenDir.update(self.CreateNewFolder('Program Files(x86)',self.rootDir))
-		self.rootDir.childrenDir.update(self.CreateNewFolder('ProgramData',self.rootDir))
-		self.rootDir.childrenDir.update(self.CreateNewFolder('Users',self.rootDir))
-		self.rootDir.childrenDir.update(self.CreateNewFolder('Windows',self.rootDir))
+		self.rootDir = Directory(driveLetter,None,True)
+		self.currentDir = self.rootDir
+
+		# Main Directories
+		self.rootDir.createChildDirectory('Microsoft')
+		self.rootDir.createChildDirectory('Program Files')
+		self.rootDir.createChildDirectory('Program Files(x86)')
+		self.rootDir.createChildDirectory('ProgramData')
+		self.rootDir.createChildDirectory('Users')
+		self.rootDir.createChildDirectory('Windows')
 		
-		##can have the possiblilty of multiple users
-		self.users = Configuration().simulatedValues_users # Get List of Users To Create
-		self.usersDir = self.rootDir.childrenDir.get('Users')
-		self.usersDir.childrenDir.update(self.CreateUsers(self.usersDir))
+		# Create User Folders
+		self.CreateUsers()
 
 		#create the default windows folder
-		self.windowsDir = self.rootDir.childrenDir.get('Windows')
-		self.windowsDir.childrenDir.update(self.CreateWindowsFolder(self.windowsDir))
+		self.CreateWindowsFolder()
 
-		self.currentDirPath = self.setCurrentDir(self.currentDir,1)
+		self.setCurrentDir(Configuration().simulatedValues_start_directory)
 		
-	def CreateUsers(self,usersDir):
-		usersFolder = {}
-		usersFolder.update(self.CreateNewFolder('Default',usersDir))
-		usersFolder.update(self.CreateNewFolder('Public',usersDir))
-		#userName derived from config
-		usersFolder.update(self.CreateNewFolder('Administrator',usersDir))
+	def CreateUsers(self):
+		def CreateUsersCommonFolders(user: Directory):
+			#Add more folders if needed later
+			folders = {'AppData','Desktop','Documents','Downloads','Favorites','Links','Pictures','Music','Saved Games','Videos'}
+			for f in folders:
+				user.createChildDirectory(f)
+
+		self.users = Configuration().simulatedValues_users
+		self.usersDir = self.rootDir.childrenDir['Users']
+		CreateUsersCommonFolders(self.usersDir.createChildDirectory('Default'))
+		CreateUsersCommonFolders(self.usersDir.createChildDirectory('Public'))
+		CreateUsersCommonFolders(self.usersDir.createChildDirectory('Administrator'))
+		
 		for username in self.users:
-		#    username =details_dict.get(each)
-		#    username = str(username)
-			usersFolder.update(self.CreateNewFolder(username,usersDir))
-		for each in usersFolder:
-			uFolder = usersFolder.get(each)
-			self.CreateUsersCommonFolders(uFolder)
-		return usersFolder
+			CreateUsersCommonFolders(self.usersDir.createChildDirectory(username))
 	
-	def CreateWindowsFolder(self,windowsDir):
-		#add more folders if needed later
-		windowsFolder = {}
-		windowsFolder.update(self.CreateNewFolder('System32',windowsDir))
-		windowsFolder.update(self.CreateNewFolder('SysWOW64',windowsDir))
-		return windowsFolder
-	
-	def CreateUsersCommonFolders(self,user):
-		user.childrenDir.update(self.CreateNewFolder('AppData',user))
-		user.childrenDir.update(self.CreateNewFolder('Desktop',user))
-		user.childrenDir.update(self.CreateNewFolder('Documents',user))
-		user.childrenDir.update(self.CreateNewFolder('Downloads',user))
-		user.childrenDir.update(self.CreateNewFolder('Favorites',user))
-		user.childrenDir.update(self.CreateNewFolder('Links',user))
-		user.childrenDir.update(self.CreateNewFolder('Pictures',user))
-		user.childrenDir.update(self.CreateNewFolder('Music',user))
-		user.childrenDir.update(self.CreateNewFolder('Saved Games',user))
-		user.childrenDir.update(self.CreateNewFolder('Videos',user))
+	def CreateWindowsFolder(self):
+		#Add more folders if needed later
+		folders = {'System32','SysWOW64'}
+		self.windowsDir = self.rootDir.childrenDir['Windows']
+		for f in folders:
+			self.windowsDir.createChildDirectory(f)
 	
 	def getFileDependencies(self,config):
 		#get the inputted files from the user that the shellcode depends on
 		#!!DOES NOT WORK CURRENTLY!!
+		# Might Add
 		print(1)
+
 	################################
 	## Api Functions
 	################################
-	def setCurrentDir(self,dirSTR,typePath):
-		dirSTR = self.convertPath(dirSTR)
+	def normalizePath(self, path: str):
+		return str(normpath(join(self.currentDir.absolutePath,path)))
 
-		#Absolute Path
-		if (typePath != 0):
-			self.currentDir = (self.getNodeAbsoulte(self.rootDir,dirSTR,1))
-			#create folder(s) and set the current directory
-			if(self.currentDir == None):
-				self.recurseCreateFolder(self.rootDir,dirSTR)
-				self.currentDir = (self.getNodeAbsoulte(self.rootDir,dirSTR,1))
-			#return the absolute path
-			path_list = []
-			path_list = self.getPath(self.currentDir,path_list)
-			path_list = "\\".join(path_list)
-			return path_list
-		# Relative Path
-		else:
-			t = 0
-			for each in dirSTR:
-				if(each == '..'):
-					t+=1
-			self.currentDir = (self.getNodeRelative(self.currentDir,dirSTR))
-			path_list = []
-			path_list = self.getPath(self.currentDir,path_list)
-			path_list = "\\".join(path_list)
-			return path_list
+	def getFileNameFromPath(self, path: str):
+		return self.normalizePath(path).split('\\')[-1]
 
-	def createFile(self,path,fileName,fileData = 'EMPTY'):
-		path = self.convertPath(path)
-		folderNode = self.findAndCreateFolder(path)
+	def getDirFromPath(self, path: str):
+		# Will Return Dir of Path Createing Dirs if Necessary
+		# If path ends in file it will not return file
+		newPath = self.normalizePath(path)
+		newSplitPath = newPath.split('\\')
+		dir = self.rootDir
+		for part in newSplitPath:
+			if '.' not in part:
+				if part in dir.childrenDir:
+					dir = dir.childrenDir[part]
+				else:
+					dir = dir.createChildDirectory(part)
+		return dir
+
+	def setCurrentDir(self, path: str):
+		self.currentDir = self.getDirFromPath(path)
+
+	def createFile(self, path: str, fileName: str, fileData = 'EMPTY'):
+		directory = self.getDirFromPath(path)
 		try:
-			folderNode.files.update({fileName:fileData})
-		except:
 			hashedData = hashlib.md5(fileData)
 			hashedData = hashedData.hexdigest()
-			folderNode.files.update({fileName:hashedData})
+			directory.createChildFile(fileName,fileData,hashedData)
+		except:
+			directory.createChildFile(fileName,fileData)
 		
-	def writeFile(self,path,fileName,fileData = 'EMPTY'):
-		path = self.convertPath(path)
-		folderNode = self.findAndCreateFolder(path)
-		folderNode.files.update({fileName:fileData})
-
-	def moveFile(self,origin,destination,replace):
-		#overwrite the file in the destination folder.
-		if(replace == 0x1):
-			origin = self.convertPath(origin)
-			destination = self.convertPath(destination)
-			fileName = origin[-1]
-			destFileName = destination[-1]
-			folderOrigin = self.findAndCreateFolder(origin[:-1])
-			folderDest = self.findAndCreateFolder(destination[:-1])
-
-			#get file data if it exists, otherwise create the file and put our sample data within it.
-			fileData = folderOrigin.files.get(fileName)
-			if(fileData == None):
-				self.createFile(origin[:-1],fileName)
-				fileData = folderOrigin.files.get(fileName)
-
-			#if the file exists, and option 0x1 is turned on
-			
-			folderDest.files.update({destFileName:fileData})
-			del folderOrigin.files[fileName]
-
-		#rename the file if there is a duplicate in the dest folder
+	def writeFile(self, path: str, fileName: str, fileData = 'EMPTY'):
+		directory = self.getDirFromPath(path)
+		if fileName in directory.files:
+			file = directory.files[fileName]
+			file.data = fileData
 		else:
-			origin = self.convertPath(origin)
-			destination = self.convertPath(destination)
-			fileName = origin[-1]
-			destFileName = destination[-1]
-			folderOrigin = self.findAndCreateFolder(origin[:-1])
-			folderDest = self.findAndCreateFolder(destination[:-1])
+			directory.createChildFile(fileName,fileData)
 
-			#check if the file exists and rename the destinationFile
-			destFileName = self.checkFileDuplicate(folderDest,destFileName)
+	def moveFile(self, originPath: str, destPath: str, replace: bool):
+		orginDir = self.getDirFromPath(originPath)
+		orginFileName = self.getFileNameFromPath(originPath)
+		destDir = self.getDirFromPath(destPath)
+		destFileName = self.getFileNameFromPath(destPath)
 
+		if orginFileName in orginDir.files:
+			orginFile = orginDir.files[orginFileName]
+		else:
+			orginFile = orginDir.createChildFile(orginFileName,'EMPTY') # Might Add Config Default Value
+		destFile = destDir.createChildFile(destFileName,orginFile.data,orginFile.hash,replace) 
+		self.deleteFile(orginFile.absolutePath)
 
-			#get file data if it exists, otherwise create the file and put our sample data within it.
-			fileData = folderOrigin.files.get(fileName)
-			if(fileData == None):
-				self.createFile(origin[:-1],fileName)
-				fileData = folderOrigin.files.get(fileName)
+		return destFile.absolutePath, orginFile.absolutePath, orginFile.name, destFile.name
 
-			folderDest.files.update({destFileName:fileData})
-			del folderOrigin.files[fileName]
-		
-		return '\\'.join(destination), '\\'.join(origin),fileName,destFileName
+	def copyFile(self, originPath: str, destPath: str): 
+		orginDir = self.getDirFromPath(originPath)
+		orginFileName = self.getFileNameFromPath(originPath)
+		destDir = self.getDirFromPath(destPath)
+		destFileName = self.getFileNameFromPath(destPath)
+		if orginFileName in orginDir.files:
+			orginFile = orginDir.files[orginFileName]
+		else:
+			orginFile = orginDir.createChildFile(orginFileName,'EMPTY') # Might Add Config Default Value
+		destFile = destDir.createChildFile(destFileName,orginFile.data)
 
-	def copyFile(self,origin,destination):
-		origin = self.convertPath(origin)
-		destination = self.convertPath(destination)
-		fileName = origin[-1]
-		destFileName = destination[-1]
-		folderOrigin = self.findAndCreateFolder(origin[:-1])
-		folderDest = self.findAndCreateFolder(destination[:-1])
-		destFileName = self.checkFileDuplicate(folderDest,destFileName)
+		return destFile.name, orginFile.name, destFile.absolutePath, orginFile.absolutePath
 
-		#get file data if it exists, otherwise create the file and put our sample data within it.
-		fileData = folderOrigin.files.get(fileName)
-		if(fileData == None):
-			self.createFile(origin[:-1],fileName)
-			fileData = folderOrigin.files.get(fileName)
-
-		
-		folderDest.files.update({destFileName:fileData})
-
-		return destFileName, fileName, '\\'.join(destination), '\\'.join(origin)
-
-	def deleteFile(self,path):
-		path = self.convertPath(path)
-		filename = path[-1]
-		folder = self.findAndCreateFolder(path[:-1])
-		if(filename in folder.files):
-			filedata = folder.files.get(filename)
-			del folder.files[filename]
+	def deleteFile(self,path: str):
+		deletedFileDir = self.getDirFromPath(path) 
+		fileName = self.getFileNameFromPath(path)
+		if fileName in deletedFileDir.files:
+			file = deletedFileDir.files.pop(fileName)
+			filedata = file.data
+			path = file.absolutePath
 		else:
 			filedata = 'File did not exist when shellcode tried to delete'
+		self.deletedFiles.append({fileName:filedata})
+		return path, fileName
 
-		self.deletedFiles.append({filename:filedata})
-		# print(self.deletedFiles)
-		return '\\'.join(path),filename
-
-	def readFile(self,node,filename):
+	def readFile(self,node,filename): # Needs Redone
 		if(filename in node.files):
 			filedata = node.files.get(filename)
 		else:
@@ -224,52 +222,62 @@ class Directory_system:
 		
 		return '\\'.join(path),filename, filedata
 
-	def moveFolder(self,origin,destination,replace):
-		origin = self.convertPath(origin)
-		destination = self.convertPath(destination)
-		folderOrigin = self.findAndCreateFolder(origin)
-		folderDest = self.findAndCreateFolder(destination)
-		folderOrigin.parentDir = folderDest
-		return '\\'.join(destination), '\\'.join(origin)
+	def moveFolder(self, originPath: str, destPath: str, replace: bool):
+		def fixDirPath(dir: Directory):
+			dir.absolutePath = normpath(join(dir.parentDir.absolutePath,dir.name))
+			for d in dir.childrenDir.values:
+				fixDirPath(d)
+			for file in dir.files.values():
+				file.absolutePath = normpath(join(file.directory.absolutePath,file.name))
 
-	def internetDownload(self,origin,dest):
-		dest = self.convertPath(dest)
-		if(len(dest) == 1):
-			fileName = dest
-			dest = self.convertPath(self.currentDirPath)
+
+		orginDir = self.getDirFromPath(originPath)
+		destDir = self.getDirFromPath(destPath)
+		orginDir.parentDir.childrenDir.pop(orginDir.name)
+		if replace:
+			destDir.childrenDir.update({orginDir.name: orginDir})
+			orginDir.parentDir = destDir
+			fixDirPath(destDir)
 		else:
-			fileName = dest[-1]
-			dest = dest[:-1]
-		# print(fileName,dest)
-		#check that the user wants to download files
-		conf = Configuration()
-		conf.simulatedValues_download_files = True # Needs Fixed
-		if conf.simulatedValues_download_files:
-			#move the manager to somewhere else that we can turn on and off with the config useage.
+			if orginDir.name in destDir.childrenDir: # Handle Duplicate Dir Names
+				count = 0
+				for eachDir in destDir.childrenDir:
+					if(eachDir == orginDir.name):
+						count += 1
+				if(count > 0):
+					orginDir.name =  f"{orginDir.name}({count})"
+			orginDir.parentDir = destDir
+			destDir.childrenDir.update({orginDir.name: orginDir})
+			fixDirPath(destDir)
+
+		return destDir.absolutePath, orginDir.absolutePath
+
+	def internetDownload(self, url: str, dest: str):
+		directory = self.getDirFromPath(dest)
+		fileName = self.getFileNameFromPath(dest)
+		Configuration().simulatedValues_download_files = True # Needs Fixed
+		if Configuration().simulatedValues_download_files:
 			http = urllib3.PoolManager(num_pools=1)
-			r = http.request('GET',origin)
-			#check the status code
-			if(r.status == 200):
+			r = http.request('GET',url)
+			
+			if(r.status == 200): # Check the status code
 				hashedData = hashlib.md5(r.data)
 				hashedData = hashedData.hexdigest()
-				# print(len(r.data))
-				self.createFile(path=dest,fileName=fileName,fileData=r.data)
-				return '\\'.join(dest),fileName,hashedData,r.status
+				file = directory.createChildFile(fileName,r.data,hashedData)
+				return file.absolutePath,file.name,file.hash,r.status
 			else:
-				# print(r.status)
-				#error retrieving the file, give them a dummy data file
-				self.createFile(dest,fileName)
+				# Error retrieving the file, give them a dummy data file
+				file = directory.createChildFile(fileName,'[NULL]')
 				hashedData = ''
-				return '\\'.join(dest),fileName,hashedData,r.status
+				return file.absolutePath,file.name,hashedData,r.status
 		else:
-			#create the file with dummy data
-			# print('download is disabled')
-			self.createFile(dest,fileName)
+			# Create the file with dummy data
+			file = directory.createChildFile(fileName,'[NULL]')
 			hashedData = ''
 			statusCode = ''
-			return '\\'.join(dest),fileName,hashedData,statusCode
+			return file.absolutePath,file.name,hashedData,statusCode
 
-	def findFirstFile(self,path):
+	def findFirstFile(self,path): # Needs Redone
 		path = self.convertPath(path)
 		# print(path)
 		if('*' in path or '?' in path):
@@ -283,7 +291,7 @@ class Directory_system:
 	################################
 	## Helper Functions
 	################################
-	def findFileRecurse(self,path,node):
+	def findFileRecurse(self,path,node): # Broken Probably
 		#look for the first node in the path, unless it is the C:\ Drive
 		if(self.rootDir.name in path[0]):
 			path = path[1:]
@@ -310,7 +318,7 @@ class Directory_system:
 		return node,filename,node.files.get(filename)
 
 	def findFileRegex(self,path):
-		print(1)
+		print(1) # don't know
 
 	def findAndCreateFolder(self,path):
 		path = self.convertPath(path)
@@ -321,10 +329,10 @@ class Directory_system:
 			folder = self.recurseCreateFolder(self.rootDir,path)
 		return folder
 
-	def CreateNewFolder(self,folderName,ParentFolder):
-		return {folderName:Dir_nodes(folderName,ParentFolder)}
+	# def CreateNewFolder(self,folderName: str,ParentFolder: Directory):
+		# return {folderName:Directory(folderName,ParentFolder)}
 		
-	def recurseCreateFolder(self,dirNode,path,i = 1):
+	def recurseCreateFolder(self,dirNode,path,i = 1): # remove
 		path = self.convertPath(path)
 		#make sure we are not going over the path
 		if(i >= len(path)):
@@ -337,7 +345,7 @@ class Directory_system:
 			else:
 				return self.recurseCreateFolder(dirNode.childrenDir.get(path[i]),path,i+1)
 
-	def getNodeAbsoulte(self,dirNode,dirName,t):
+	def getNodeAbsoulte(self,dirNode,dirName,t): # Remove
 		#find the nth element of the path
 		for eachChild in dirNode.childrenDir:
 			child = dirNode.childrenDir.get(eachChild)
@@ -347,7 +355,7 @@ class Directory_system:
 			if(child.name == dirName[t] and child.name == dirName[-1]):
 				return child
 
-	def getNodeRelative(self,dirNode,dirName):
+	def getNodeRelative(self,dirNode,dirName): # Remove
 		#assuming that the currentDir has been set, as a node
 		if dirName[0] == '..':
 			parent = dirNode.parentDir
@@ -368,42 +376,6 @@ class Directory_system:
 			returnList.insert(0,dirNode.name)
 			return self.getPath(dirNode.parentDir,returnList)
 		
-	def detectDuplicateFileHandles(self,node,handle):
-		#on creation detect if there is a duplicate file name and then rename it accordingly append '(N)' where n is the number of times it is duplicated starting at 1
-		count = 0
-
-		for eachFile in node.files:
-			if(eachFile == handle.name):
-				count = count + 1
-		if(count > 0):
-			try:
-				splitName = handle.name.split(".")
-				newFileName =  splitName[0] +"("+str(count)+")."+ splitName[1]
-			except:
-				newFileName =  handle.name +"("+str(count)+")"
-				
-			return newFileName
-		else:
-			return handle.name
-
-	def checkFileDuplicate(self,node,fileName):
-		#on creation detect if there is a duplicate file name and then rename it accordingly append '(N)' where n is the number of times it is duplicated starting at 1
-		count = 0
-
-		for eachFile in node.files:
-			if(eachFile == fileName):
-				count = count + 1
-		if(count > 0):
-			try:
-				splitName = fileName.split(".")
-				newFileName =  splitName[0] +"("+str(count)+")."+ splitName[1]
-			except:
-				newFileName =  fileName +"("+str(count)+")"
-				
-			return newFileName
-		else:
-			return fileName
-
 	def findFolder(self,path):
 		path = self.convertPath(path)
 		if path[0] == '..': # The Parent of Current Directory
@@ -413,7 +385,7 @@ class Directory_system:
 		else:
 			return self.getNodeAbsoulte(self.rootDir,path,1)
 		
-	def convertPath(self, path):
+	def convertPath(self, path): # Don't need will remove
 		if isinstance(path,str):
 			#normalize a path to oly be a single \,( \\ -> \, / -> \ )
 			if('/' in path):
@@ -437,7 +409,7 @@ class Directory_system:
 		else:
 			return 0
 	
-	def altFileName(self,filename,node):
+	def altFileName(self,filename,node): # needs work probably remove
 		print('==================')
 		print(node,filename)
 		
@@ -466,7 +438,7 @@ class Directory_system:
 				return altFileName
 		return filename
 
-	def countDuplicateFiles(node,filename):
+	def countDuplicateFiles(node,filename): # Might not need
 		count = 1
 		for each in node.files:
 			if(each == filename):
@@ -490,14 +462,34 @@ class Directory_system:
 					print((' '*indent+"*F*"+str(child.files)))
 			self.printALL(child,indent+1)
 
+	def printDirTree(self):
+		def printDirTreeRecursive(key: 'Union[Directory,File]', level=0):
+			if level == 0:
+				print(key.name)
+			else:
+				print(('  ' * level) + '└─╴' + key.absolutePath)
+			for fKey, fVal in key.files.items():
+				print(('  ' * (level+1)) + '└─╴' + fVal.absolutePath)
+			for dKey, dVal in key.childrenDir.items():
+				printDirTreeRecursive(dVal, level+1)
+
+		print('File System Tree')
+		# for name, value in self.rootDir.childrenDir.items():
+			# printDirTreeRecursive(value)
+		printDirTreeRecursive(self.rootDir)
+		print('\n')
+
 	def outputFilesCreated(self):
+		pass # Will add soon
 		#check if output is enabled or not.
-		print(Configuration().search_default_outdir)
+		# print(Configuration().search_default_outdir) # 
 		# if Configuration().default_outdir == "current_dir":
 			# outDir = os.path.join(os.path.dirname(__file__), "sharem", "logs")
 		# else:
 			# outDir = sharem_out_dir
-		print(1)
+		# print(1)
+		# print(Directory_system.allFilePaths)
+		# self.printDirTree()
 		#output the files to the output directory given in the config
 
 ############################################################################################
