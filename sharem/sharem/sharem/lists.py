@@ -48,7 +48,8 @@ SYSCALL_BOOL_DICT = {
 "r7": [False,"Windows 10", "1903"],
 "r8": [False,"Windows 10", "1909"],
 "r9": [False,"Windows 10", "2004"],
-"r10": [False,"Windows 10", "20H2"]}
+"r10": [False,"Windows 10", "20H2"],
+"r11": [False,"Windows 122", "20H2"]}
 
 
 #MOV <REG>, [FS:0x30]
