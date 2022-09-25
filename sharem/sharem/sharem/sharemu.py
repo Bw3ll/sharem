@@ -893,7 +893,7 @@ def test_i386(mode, code):
         mu.mem_write(ENTRY_ADDR, b'\x90\x90\x90\x90')
 
         if mode == UC_MODE_32:
-            print(cya + "\n\t[*]" + res2 + " Emulating x86_32 shellcode")
+            print(cya + "\n\t[*]" + res2 + " Emulating x86 shellcode")
             cs = Cs(CS_ARCH_X86, CS_MODE_32)
             allocateWinStructs32(mu, mods)
 
@@ -975,11 +975,11 @@ def restartEmu(mu, mode, code):
 
     try:
         if mode == UC_MODE_32:
-            print(cya + "\n\t[*]" + res2 + " Emulating x86_32 shellcode")
+            print(cya + "\n\t[*]" + res2 + "Complete code coverage: restarting emulation of x86 shellcode")
             # cs = Cs(CS_ARCH_X86, CS_MODE_32)
 
         elif mode == UC_MODE_64:
-            print(cya + "\n\t[*]" + res2 + " Emulating x86_64 shellcode")
+            print(cya + "\n\t[*]" + res2 + " Complete code coverage: restarting emulation of x86_64 shellcode")
             cs = Cs(CS_ARCH_X86, CS_MODE_64)
 
         startLoc = coverage_objects[0].address
