@@ -19,7 +19,8 @@ REQUIREMENTS = [
     "pypiwin32>=223 ; platform_system=='Windows'",
     "toml>=0.9.6",
     "unicorn>=1.0.2",
-    "textwrap3>=0.9.2"
+    "textwrap3>=0.9.2",
+    "urllib3"
 
 ]
 
