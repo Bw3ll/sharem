@@ -49,7 +49,11 @@ SYSCALL_BOOL_DICT = {
 "r8": [False,"Windows 10", "1909"],
 "r9": [False,"Windows 10", "2004"],
 "r10": [False,"Windows 10", "20H2"],
-"r11": [False,"Windows 122", "20H2"]}
+"r11": [False,"Windows 10", "21H1"],
+"r12": [False,"Windows 10", "21H2"],
+
+"b1": [False,"Windows 11", "21H2"]
+}
 
 
 #MOV <REG>, [FS:0x30]

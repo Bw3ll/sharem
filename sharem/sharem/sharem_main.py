@@ -4323,9 +4323,7 @@ def get_FSTENV(NumOpsDis, NumOpsBack, bytesToMatch, secNum, data2):
 			# elif ((i+t) >= len_data2 or i >= len_bytesToMatch):
 			# 	found = False # out of range
 			try:
-				#dprint2(data2[t+i])
-				#input("enter..")
-				if ((data2[t+i]) != (bytesToMatch[i])):
+				#dprint2(data2[t+i])x
 					found = False #no match
 			except Exception as e:
 				# input(e)
@@ -15197,6 +15195,57 @@ def addComments():
 	# loggedList.append(('VirtualAlloc', '0x120001a9', '0x25000000', 'INT', ['0x0', '0x9999', 'MEM_COMMIT', 'PAGE_EXECUTE_READWRITE'], ['LPVOID', 'SIZE_T', 'DWORD', 'DWORD'], ['lpAddress', 'dwSize', 'flAllocationType', 'flProtect'], False))
 	# print (loggedList)
 
+	for each in logged_syscalls:
+		# print (each)
+		params=parC0+"("+res2
+		api=each[0]
+		vals=each[4]
+		limit=len(vals)-1
+		t=0
+		for v in vals:
+			try:
+				v=parC1+v
+			except:
+				try:
+					v=parC1+hex(v)
+				except:
+					if type(v)== tuple:
+						# print ("tuple")
+						# print (v)
+						v=v[3]
+						v=parC1+v
+			if t!=limit:
+					params+=v +parC+ ", "+res2
+			else:
+					params+=v
+			t+=1
+
+		params+=parC0+")"+res2
+		# print (api)
+		# print (vals)
+		# print ("p", params)
+		apiAddress=int(each[1],16)
+		# print (hex(apiAddress), 42000000, each[1])
+		apiAddress=apiAddress-0x12000000
+		# print("---->", hex(apiAddress))
+		# print (hex(apiAddress))
+		if commentsGiven:
+			params=""
+		if not commentsGiven:
+			space1="      "
+			try:
+				if sBy.comments[apiAddress] !="":
+					sBy.comments[apiAddress]+=res +"\n      "+params
+				else:
+					try:
+						params= (textwrap3.fill(params, width=105, initial_indent='', subsequent_indent='       '))
+						pass
+					except:
+						pass
+					sBy.comments[apiAddress]=mag+"; Windows syscall: " + api +res +"\n      "+params
+
+			except:
+				print ("error logging API address to disassembly - ", api)
 	for each in loggedList:
 		params=parC0+"("+res2
 		api=each[0]
@@ -15243,7 +15292,7 @@ def addComments():
 						pass
 					except:
 						pass
-					sBy.comments[apiAddress]=mag+";call to " + api +res +"\n      "+params
+					sBy.comments[apiAddress]=mag+"; call to " + api +res +"\n      "+params
 
 			except:
 				print ("error logging API address to disassembly - ", api)
@@ -21332,8 +21381,8 @@ def emuSyscallSubMenu(): #Printing/settings for syscalls
 
 		elif(re.match("^g$", syscallIN, re.IGNORECASE)):
 			emuSyscallSelectionsSubMenu()
-			print("\nChanges applied: ")
-			emuSyscallPrintSubMenu(emuSyscallSelection, showDisassembly, syscallPrintBit, True)
+			# print("\nChanges applied: ")
+			# emuSyscallPrintSubMenu(emuSyscallSelection, showDisassembly, syscallPrintBit, True)
 		
 		elif(re.match("^c$", syscallIN, re.IGNORECASE)):
 			for key in emuSyscallSelection.keys():
@@ -22029,7 +22078,9 @@ def emuSyscallSelectionsSubMenu(): #Select osversions for syscalls
 	#currently modified to only work for one version. 
 	print("\nEnter code for desired syscall ID version.\n\tE.g. v3\n")
 	# while x != 'e':
-	sysSelectIN = input("> ")
+	print(cya + " Sharem>" + gre + "Print>" + yel + "Syscalls>" + red + "Input> " + res, end="")
+
+	sysSelectIN = input()
 	selections = sysSelectIN.replace(",", " ")
 	selectionList = selections.split()
 	while(len(selectionList) > 1):
@@ -22054,7 +22105,7 @@ def emuSyscallSelectionsSubMenu(): #Select osversions for syscalls
 		em.winSP = emuSyscallSelection[selection][2]
 		emuSyscallCode = selection
 
-
+	print ("\tYou selected:", em.winVersion, em.winSP)
 
 
 def syscallSelectionsSubMenu(): #Select osversions for syscalls

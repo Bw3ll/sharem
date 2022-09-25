@@ -429,7 +429,7 @@ def newSysCallPrint(syscallSelection):
 	# 			print("{}  {} []".format(code1, name1))
 
 def emuNewSysCallPrint(emuSyscallSelection):
-	syscallNameStrings = ["NA  Windows XP","\txp1  SP1","\txp2  SP2","NA  Windows Server 2003","\ts30  SP0","\ts32  SP2","\ts3r  R2","\ts3r2  R2 SP2","NA  Windows Vista","\tv0  SP0","\tv1  SP1","\tv2  SP2","NA  Windows Server 2008","\ts80  SP0","\ts82  SP2","\ts8r  R2","\ts8r1  R2 SP1","NA  Windows 7","\tw70  SP0","\tw71  SP1","NA  Windows Server 2012","\ts120  SP0","\ts12r  R2","NA  Windows 8","\tw80  8.0","\tw81  8.1","NA  Windows 10","\tr0  release 1507","\tr1  release 1511","\tr2  release 1607","\tr3  release 1703","\tr4  release 1709","\tr5  release 1803","\tr6  release 1809","\tr7  release 1903","\tr8  release 1909","\tr9  release 2004","\tr10  release 20H2","\tr11 release 999"]
+	syscallNameStrings = ["NA  Windows XP","\txp1  SP1","\txp2  SP2","NA  Windows Server 2003","\ts30  SP0","\ts32  SP2","\ts3r  R2","\ts3r2  R2 SP2","NA  Windows Vista","\tv0  SP0","\tv1  SP1","\tv2  SP2","NA  Windows Server 2008","\ts80  SP0","\ts82  SP2","\ts8r  R2","\ts8r1  R2 SP1","NA  Windows 7","\tw70  SP0","\tw71  SP1","NA  Windows Server 2012","\ts120  SP0","\ts12r  R2","NA  Windows 8","\tw80  8.0","\tw81  8.1","NA  Windows 10","\tr0  release 1507","\tr1  release 1511","\tr2  release 1607","\tr3  release 1703","\tr4  release 1709","\tr5  release 1803","\tr6  release 1809","\tr7  release 1903","\tr8  release 1909","\tr9  release 2004","\tr10  release 20H2","\tr11  release 21H1", "\tr12  release 21H2", "NA  Windows 11","\tb1  21H2"]
 	# codes = ['xp', 'v', 'w7', 'w8', 'w10', 's3', 's8', 's12', 'all']
 	for line in syscallNameStrings:
 		line = line.split(maxsplit = 1)
