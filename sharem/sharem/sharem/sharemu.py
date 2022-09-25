@@ -76,7 +76,7 @@ class Coverage():
             self.regs[reg] = int(constConvert(uc, reg))
 
         # Save memory
-        self.mem_file = 'E:\coverage_mem_tmp' + str(coverage_num) + '.bin'
+        self.mem_file = 'coverage_mem_tmp' + str(coverage_num) + '.bin'
         with open (self.mem_file, 'wb') as f:
             f.write(uc.mem_read(0x10000000, 0x10050000))
 
