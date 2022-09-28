@@ -6,9 +6,9 @@ SHAREM is intended to be the ultimate Windows shellcode tool, with support to em
 
 SHAREM's disassembler is able to integrate discovered functions into the disassembly, labelling each in the disassembler. SHAREM also will displayed the decrypted form of encoded shellcode in the disassembler, so it is not necessary to debug shellcode.
 
-We have created a [SHAREM Wiki](https://github.com/Bw3ll/sharem/wiki) that provides some instrucitonal information on SHAREM usage. SHAREM has been developed over a period of two years with several people working on it. SHAREM's disassembler is signficantly more accurate than leading disassemblers. Additionally, SHAREM can integrate emulation data into the disassembler, allowing for nearly flawless disassembly to be obtained.
+We have created a [SHAREM Wiki](https://github.com/Bw3ll/sharem/wiki) that provides some instrucitonal information on SHAREM usage, although there are significant portions and features not currently documented. SHAREM has been developed over a period of two years with several people working on it. SHAREM's disassembler is signficantly more accurate than leading disassemblers. Additionally, SHAREM can integrate emulation data into the disassembler, allowing for nearly flawless disassembly to be obtained.
 
-Please be aware that asSHAREM has just been released, the documentation on here is a little sparse. We will update the GitHub with more information as well in the coming weeks.
+Please be aware that as SHAREM has just been released, the documentation on here is a little sparse. We will update the GitHub with more information as well in the coming weeks.
 
 
 # Install Instructions
