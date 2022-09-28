@@ -33,7 +33,7 @@ It can be installed from https://git-scm.com/download/win. After installion rest
 You will need to add the Windows DLL files. We do not currently these available as a separate download for Linux users. At this time, users would need harvest them by installing it via Windows. (Note: These DLLs MUST be inflated by SHAREM. Dlls cannot be used if not inflated.) Later, we will provide these as a separate download in the coming weeks.
 
 # Co-Authors and Contributors
-Dr. Bramwell Brizendine, Jake Hince, Austin Babcock, Shelby VandenHoek, Sascha Walker, Tarek Abdelmotaleb, Evan Read, Dylan Park, and Kade Brost.
+Dr. Bramwell Brizendine, Austin Babcock, Jake Hince, Shelby VandenHoek, Sascha Walker, Tarek Abdelmotaleb, Evan Read, Dylan Park, and Kade Brost.
 
 # Acknowledgement
 This research and some co-authors have been supported by NSA Grant H98230-20-1-0326.
