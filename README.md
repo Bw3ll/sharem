@@ -13,7 +13,7 @@ Please be aware that as SHAREM has just been released, the documentation on here
 
 # Install Instructions
 ## Updates
-Sept. 29, 2022" We did make a very minor update to the setup.py regarding numpy, which may affect some people with the latest version of Python.
+Sept. 29, 2022: We did make a very minor update to the setup.py regarding numpy, which may affect some people with the latest version of Python.
 
 ## Windows
 SHAREM is installed as a local Python package, so that we have access to it in other projects. This allows parts of SHAREM to be imported. Thus, it must be installed as a package.
