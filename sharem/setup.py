@@ -11,7 +11,7 @@ REQUIREMENTS = [
     "colorama>=0.4.4",
     "pycos>=4.12.1",
     "dispy==4.15.0",
-    "numpy==1.19.5",
+    "numpy>=1.19.5",
     "future",
     "netifaces>=0.11.0",
     "pefile",
