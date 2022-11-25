@@ -10,6 +10,8 @@ We have created a [SHAREM Wiki](https://github.com/Bw3ll/sharem/wiki) that provi
 
 Please be aware that as SHAREM has just been released, the documentation on here is a little sparse. We will update the GitHub with more information as well in the coming weeks.
 
+If you are new to SHAREM, feel free to check out a brief demo video, showcasing some of its capabilities Click on image to view demo:
+[![Watch the video](https://github.com/Bw3ll/sharem/blob/testing/sharem/SHAREM_images/Sharem_demo.png?raw=true)](https://youtu.be/S1PI9O-q6eM)
 
 # Install Instructions
 ## Updates
@@ -33,6 +35,25 @@ It can be installed from https://git-scm.com/download/win. After installion rest
 3. Add DLL Files
 
 You will need to add the Windows DLL files. We do not currently these available as a separate download for Linux users. At this time, users would need harvest them by installing it via Windows. (Note: These DLLs MUST be inflated by SHAREM. Dlls cannot be used if not inflated.) Later, we will provide these as a separate download in the coming weeks.
+
+# Documentation
+Documentation can be found at the [SHAREM Wiki](https://github.com/Bw3ll/sharem/wiki), which provides some instructional  information on SHAREM usage, although there are significant portions and features not currently documented. 
+
+# Screenshots
+SHAREM is a very powerful framework with numerous capabilities, some well documented, and some which are not. This section will showcase a small number of those capabilities. 
+
+SHAREM can take an encoded shellcode and deobfuscate it through emulation. Not only does it capture all WinAPI or syscall information, but if you choose to view it in the disassembler, it shows you the decoded form of the shellcode:
+
+![image](https://github.com/Bw3ll/sharem/blob/testing/sharem/SHAREM_images/encodedShellcode.png?raw=true)
+
+SHAREM not only can ennumerate 12,000+ WinAPI functions, but it can also do so with virtually all user-mode Windows syscalls. In addition, for some it displays structure information. For those dealing with the registry, it will extract registry information and add that to our Registry Manager:
+
+![image](https://user-images.githubusercontent.com/49998815/204032319-1e10d3cc-dfc0-49e8-912d-9629571a1144.png)
+
+SHAREM also has the ability to download files via UrldownloadToFileA, if they exist. These are downloaded into the emulator's memory - not saved to disk. If successful, it will capture the hash. There is also a limited pseudo file system, and so you can see correlations, such as a file being downloaded as one thing and renamed to another. If the needed download is not available, it will simply be simulated as a successful download. Live downloading is an option can be enabled or disabled in the config
+
+![image](https://github.com/Bw3ll/sharem/blob/testing/sharem/SHAREM_images/downloading.png?raw=true)
+
 
 # Co-Authors and Contributors
 Dr. Bramwell Brizendine, Austin Babcock, Jake Hince, Shelby VandenHoek, Sascha Walker, Tarek Abdelmotaleb, Evan Read, Dylan Park, Kade Brost, and Aaron Baker.
