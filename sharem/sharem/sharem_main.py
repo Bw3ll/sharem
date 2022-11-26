@@ -17001,12 +17001,19 @@ def saveBinAscii():
 
 	assembly=binaryToText(m[o].rawData2)
 	# print(binsDir+filename[:-4]+".bin")
-	newBin = open(binsDir+slash+filename[:-4]+".bin", "wb")
+	# newBin = open(binsDir+slash+filename[:-4]+".bin", "wb")   old?
+	newBin = open(filename[:-4]+".bin", "wb")
+
 	newBin.write(m[o].rawData2)
 	newBin.close()
-	newDis = open(binsDir+slash+"ascii-"+filename[:-4]+".txt", "w")
-	print (gre+ "",binsDir+slash+"ascii-"+filename[:-4]+".txt" + res2)
-	print (gre + "",binsDir + slash+"bins"+slash + filename[:-4]+".bin"+res2)
+	# newDis = open(binsDir+slash+"ascii-"+filename[:-4]+".txt", "w")
+	newDis = open(filename[:-4]+"-ascii-"".txt", "w")
+
+	# print (gre+ "",binsDir+slash+"ascii-"+filename[:-4]+".txt" + res2)
+	# print (gre + "",binsDir + slash+"bins"+slash + filename[:-4]+".bin"+res2)
+	
+	print (gre+ "",filename[:-4]+".bin" + res2)
+	print (gre + "",filename[:-4]+"-ascii-"".txt"+res2)
 	newDis.write(assembly)
 	newDis.close()
 

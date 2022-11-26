@@ -6,8 +6,20 @@ from pathlib import Path
 import json
 from .helper.moduleHelpers import *
 import platform
+from sharem.sharem.helper.variable import Variables
 
 platformType = platform.uname()[0]
+
+class winReleases():        
+    def __init__(self):
+        self.win10ReverseLookupHex={"4A64": "21H2", "4A65": "22H2", "4A63": "21H1", "4A62": "20H2", "4A61": "2004", "47BB": "1909", "47BA": "1903", "4563": "1809", "42EE": "1803", "3FAB": "1709", "3AD7": "1703", "3839": "1607", "295A": "1511", "2800": "1507"}
+        
+
+        self.win7LookupHex={"SP0":"1DB0", "SP1":"1DB1"}
+        self.win11LookupHex={"21H2":"55F0", "22H2":"585D"}
+        self.win10LookupHex={"21H2":"4A64", "22H2":"4A65", "21H1":"4A63", "20H2":"4A62", "2004":"4A61", "1909":"47BB", "1903":"47BA", "1809":"4563", "1803":"42EE", "1709":"3FAB", "1703":"3AD7", "1607":"3839", "1511":"295A", "1507":"2800"}
+        self.windowsOSMajor={"Windows 11":10,"Windows 10":10,"Windows Server 2022":10,"Windows Server 2019":10,"Windows Server 2016":10,"Windows 8.1":6,"Windows Server 2012 R2":6,"Windows 8":6,"Windows Server 2012":6,"Windows 7":6,"Windows Server 2008 R2":6,"Windows Server 2008":6,"Windows Vista":6,"Windows Server 2003 R2":5,"Windows Server 2003":5,"Windows XP 64-Bit Edition":5,"Windows XP":5,"Windows 2000":5}
+        self.windowsOSMinor={"Windows 11":0, "Windows 10":0, "Windows Server 2022":0, "Windows Server 2019":0, "Windows Server 2016":0, "Windows 8.1":3, "Windows Server 2012 R2":3, "Windows 8":2, "Windows Server 2012":2, "Windows 7":1, "Windows Server 2008 R2":1, "Windows Server 2008":0, "Windows Vista":0, "Windows Server 2003 R2":2, "Windows Server 2003":2, "Windows XP 64-Bit Edition":2, "Windows XP":1, "Windows 2000":0}
 
 if platformType == "Windows":
     # https://code.activestate.com/recipes/578035-disable-file-system-redirector/
@@ -149,6 +161,30 @@ class LDR_Module64():
         mu.mem_write(self.Addr+0x58, pack("<Q", 0x0000001c0000001a))
         mu.mem_write(self.Addr+0x58, pack("<Q", self.Base_Dll_Name))
 
+def giveOsMajorMinorVersions():
+    osMajor=0
+    osMinor=0
+    osBuild=0
+    try:
+        osMajor=builds.windowsOSMajor[em.winVersion]
+        osMinor=builds.windowsOSMinor[em.winVersion]
+    except:
+        pass
+
+    # Do not have data on older OS builds - not looking to support those - this only matters for syscall emulation using ShellWasp technique.
+    
+    if em.winVersion =="Windows 11":  
+        osBuild=builds.win11LookupHex[em.winSP]
+        # print ("windows 11", osMajor, osMinor, osBuild)
+    elif em.winVersion=="Windows 10":
+        osBuild=builds.win10LookupHex[em.winSP]
+        # print ("windows 10", osMajor, osMinor, osBuild)        
+    elif em.winVersion=="Windows 7":
+        osBuild=builds.win7LookupHex[em.winSP]
+        # print ("windows 7", osMajor, osMinor, osBuild)
+    return osMajor, osMinor, osBuild        
+        
+    
 def allocateWinStructs32(mu, mods):
     wa = Win32Addresses()
 
@@ -163,9 +199,19 @@ def allocateWinStructs32(mu, mods):
 
     # Create PEB data structure. Put pointer to ldr at offset 0xC
     mu.mem_write(wa.peb_addr + 0xc, pack("<Q", wa.ldr_addr))
-
+    
     # Create PEB_LDR_DATA structure
     peb_ldr = PEB_LDR_DATA32(wa.ldr_addr, 0x24, 0x00000000, 0x00000000)
+
+    # Put location of OSmajorversion (0xa4), OSMinorVersion(0xa8), OSBuild(0xac)
+    # print ("special", em.winVersion, em.winSP)
+    osMajor, osMinor, osBuild =giveOsMajorMinorVersions()
+    mu.mem_write(wa.peb_addr + 0xa4, pack("<Q", int(osMajor)))
+    mu.mem_write(wa.peb_addr + 0xa8, pack("<Q", int(osMinor)))
+    try:
+        mu.mem_write(wa.peb_addr + 0xac, pack("<Q", int(osBuild,16)))
+    except:
+        mu.mem_write(wa.peb_addr + 0xac, pack("<Q", int(osBuild)))
 
     dlls_obj = []
 
@@ -211,6 +257,20 @@ def allocateWinStructs64(mu, mods):
 
     # Create PEB_LDR_DATA structure
     peb_ldr = PEB_LDR_DATA64(wa.ldr_addr, 0x24, 0x00000000, 0x00000000)
+
+
+    # Put location of OSmajorversion (0xa4), OSMinorVersion(0xa8), OSBuild(0xac)
+    # print ("special", em.winVersion, em.winSP)
+    osMajor, osMinor, osBuild =giveOsMajorMinorVersions()
+    mu.mem_write(wa.peb_addr + 0x118, pack("<Q", int(osMajor)))
+    mu.mem_write(wa.peb_addr + 0x11c, pack("<Q", int(osMinor)))
+    try:
+        mu.mem_write(wa.peb_addr + 0x120, pack("<Q", int(osBuild,16)))
+    except:
+        mu.mem_write(wa.peb_addr + 0x120, pack("<Q", int(osBuild)))
+
+
+
     dlls_obj = []
 
     dlls_obj.append(LDR_Module64(mu, wa, wa.ldr_prog_addr, wa.process_base, wa.process_base, 0x00000000, "C:\\shellcode.exe", "shellcode.exe"))
@@ -374,3 +434,7 @@ def initMods(uc, em, export_dict, source_path, save_path):
     export_dict, mods, mod_high_val = iter_and_dump_dlls(uc, em, export_dict, source_path, save_path, mods)
 
     return mods, export_dict, mod_high_val
+
+builds=winReleases()
+vars = Variables()
+em = vars.emu

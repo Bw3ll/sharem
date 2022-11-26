@@ -570,7 +570,7 @@ def hook_sysCall(uc, address, size):
     uc.reg_write(UC_X86_REG_EIP, EXTRA_ADDR)
 
 
-# Most Windows APIs use stdcall, so we need to clean the stack
+# Most Windows APIs use stdcall, so we need to clean the stack.
 def cleanStack(uc, numBytes):
     if numBytes > 0:
         esp = uc.reg_read(UC_X86_REG_ESP)
