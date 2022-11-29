@@ -5,9 +5,19 @@ import datetime
 import pathlib
 import os
 import re
-
 from sharem.sharem.helper.variable import Variables
+import platform
 
+
+
+
+platformType = platform.uname()[0]
+
+slash = ""
+if platformType == "Windows":
+	slash = "\\"
+else:
+	slash = "/"
 
 # from sharem.sharem.helper.variable import Variables
 
@@ -95,7 +105,7 @@ class jsonPrint:
 #####################
 ##  Main Shellcode ##
 #####################
-	def generateJson(self):
+	def generateJson(self, filename, peName, sharem_out_dir, rawHex):
 		#append the time analyzed to the json
 		time = datetime.datetime.now()
 		fileNameTime = time.strftime("%Y%m%d_%H%M%S")
@@ -103,27 +113,64 @@ class jsonPrint:
 		self.jsonData['dateAnalyzed'] = analyzedTime
 		
 		#create filenames and folder names
-		folder_out, default_folder, mainName, importName, dissName, defaultMain, defaultDiss = self.createFileNames(fileNameTime)
-		
+		folder_out, default_folder, mainName, importName, dissName, defaultMain, defaultDiss = self.createFileNames(fileNameTime, filename, peName, sharem_out_dir)
+
+		# print ("folder_out", folder_out)
+		# print ("default_folder", default_folder)
+		# print ("mainName", mainName)
+		# print ("importName", importName)
+		# print ("dissName", dissName)
+		# print ("defaultMain", defaultMain)
+		# print ("defaultDiss", defaultDiss)
 		#create the output folder
 		os.makedirs(folder_out, exist_ok=True)
 		os.makedirs(default_folder, exist_ok=True)
 		
 			#write the data to files in the folder
 		self.writeJson(mainName,self.jsonData)
-		self.writeJson(importName,self.jsonImports)
-		self.writeJson(dissName,self.jsonDissasembly)
+		
+		if not rawHex:
+			self.writeJson(importName,self.jsonImports)
+		if rawHex:
+			self.writeJson(dissName,self.jsonDissasembly)
 			#default files
 		self.writeJson(defaultMain,self.jsonData)
 		self.writeJson(defaultDiss,self.jsonDissasembly)
 		
-	def createFileNames(self,fileNameTime):
+	def createFileNames(self,fileNameTime, filename,peName, sharem_out_dir):
 		#try to extract the file name without the extension, but in the case of no extension we just take the filename as the path
 		try:
 			fileNameOnly = pathlib.Path(self.filename).stem
 		except:
 			#filename is taken as the filename
 			fileNameOnly = self.filename
+
+		## This fancy stem stuff FAILS with PE files - leaving it with no filename! Thus, this is backup. The above works for shellcode, but if it fails, this will fix it.
+		if fileNameOnly=="":
+			filename = filename.split(slash)[-1]
+			if filename == "":
+				outfile = peName.split(".")[0]
+				outfileName = peName
+				if outfileName[-4]==".":
+					outfileName=outfileName[:-4]
+			else:   
+				outfile = filename.split(".")[0]
+				outfileName = filename
+				if outfileName[-4]==".":
+					outfileName=outfileName[:-4]
+					# print (outfileName)
+
+			if sharem_out_dir == "current_dir":
+				# output_dir = os.path.join(os.path.dirname(__file__), "sharem", "logs")
+				output_dir = os.path.join(self.sharem_out_dir)
+
+			else:
+				output_dir = sharem_out_dir
+
+
+			outfileName =  os.path.join(output_dir,  outfileName.split("\\")[-1].strip(), outfileName.split("\\")[-1].strip())
+
+			fileNameOnly=outfileName
 		
 		folder_out = os.path.join(self.sharem_out_dir,fileNameOnly)
 

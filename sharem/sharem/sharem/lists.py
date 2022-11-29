@@ -51,8 +51,11 @@ SYSCALL_BOOL_DICT = {
 "r10": [False,"Windows 10", "20H2"],
 "r11": [False,"Windows 10", "21H1"],
 "r12": [False,"Windows 10", "21H2"],
+"r13": [False,"Windows 10", "22H2"],
 
-"b1": [False,"Windows 11", "21H2"]
+"b1": [False,"Windows 11", "21H2"],
+"b2": [False,"Windows 11", "22H2"]
+
 }
 
 

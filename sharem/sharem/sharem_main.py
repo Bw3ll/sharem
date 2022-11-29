@@ -278,6 +278,7 @@ bfindShellFound = False
 bComments = True
 shellBit=32
 ##add in the current directory later, as right now this will only output to the logs folder
+
 jsonP = jsonPrint(filename=filename,rawHex=rawHex)
 
 #####SAME AS FROM SHAREM
@@ -2459,6 +2460,7 @@ def Text2Json(shell, jsonOut=None):
 	if jsonOut != None:
 		return shellcode_dict
 	fileName = "rawhex" + "_" + inputFile + "_" + filetime + ".json"
+
 	outDir = os.getcwd() + slash+outputs+slash
 	fullPath = outDir + fileName
 	os.makedirs(os.path.dirname(outDir), exist_ok=True)
@@ -20058,13 +20060,15 @@ def startupPrint():
 		giveLoadedModules("save")
 
 	starTime = time.time()
-	shellClass = isShellcode()
+	if rawHex:
+		shellClass = isShellcode()
 	endTime = time.time() - starTime
 	# print("Elapsed time for i/sShellcode : ", elTime)
 
-	print(cya + "\n Classification: ", yel + shellClass[0] + res2)
-	if shellClass[1]:
-		print(cya + "\n Reason:", yel + shellClass[1] + res2)
+	if rawHex:
+		print(cya + "\n Classification: ", yel + shellClass[0] + res2)
+		if shellClass[1]:
+			print(cya + "\n Reason:", yel + shellClass[1] + res2)
 	elapsed_time += endTime
 	#Saving data
 
@@ -20092,6 +20096,12 @@ def saveConf(con):
 	except Exception as e:
 		print(yel + "Could not save configuration." + res, e)
 
+def notAvailable():
+	global rawHex
+	if rawHex:
+		print (red+"  This option is not available for shellcode."+res)
+	else:
+		print (red+"   This option is not available for a PE file."+res)
 
 def ui(): #UI menu loop
 	global maxDistance #Max distance that a callpop can call
@@ -20201,22 +20211,35 @@ def ui(): #UI menu loop
 					createDisassemblyJson()
 					# bramwellStart2()
 			elif userIN[0:1] == "d":
-				disToggleMenu(shellEntry,shellSizeLimit,mBool[o].bPreSysDisDone,  toggList) 
 
 				# disToggleMenu(shellEntry,shellSizeLimit,mBool[o].bPreSysDisDone, mBool[o].bDoFindHiddenCalls, mBool[o].bDoEnableComments, mBool[o].bDoShowAscii, mBool[o].bDoFindStrings, mBool[o].ignoreDisDiscovery, mBool[o].maxOpDisplay, mBool[o].btsV, mBool[o].bDoShowOffsets, mBool[o].bDoshowOpcodes,mBool[o].bShowLabels) 
 				# disassembleUiMenu(shellEntry)
-				disassembleSubMenu()
+				if not rawHex:
+					notAvailable()
+				else:
+					disToggleMenu(shellEntry,shellSizeLimit,mBool[o].bPreSysDisDone,  toggList) 
+
+					disassembleSubMenu()
 			elif userIN[0:1] == "s":	# "find assembly instrucitons associated with shellcode"
 				uiDiscover()
 
 			elif userIN[0:1] == "l":
-				emulatorUI(emuObj, emulation_multiline, emulation_verbose)
-				emulationSubmenu()
+				if rawHex:
+					emulatorUI(emuObj, emulation_multiline, emulation_verbose)
+					emulationSubmenu()
+				else:
+					notAvailable()
 			elif(re.match("^b$", userIN)):
-				decryptUI()
+				if rawHex:
+					decryptUI()
+				else:
+					notAvailable()
 
 			elif userIN[0:1] == "U" or userIN[0:1] == "u":                  
-				toggleDecodedModule()
+				if rawHex:
+					toggleDecodedModule()
+				else:
+					notAvailable()
 
 			elif userIN[0:1] == "a":	# "change architecture, 32-bit or 64-bit"
 				uiBits()
@@ -20253,13 +20276,19 @@ def ui(): #UI menu loop
 				uiShellcodeStrings()  ### deprecated
 				# print("\nReturning to main menu.\n")
 			elif userIN[0:1] == "e":  # "find imports"
-				uiFindImports()
+				if not rawHex:
+					uiFindImports()
+				else:
+					notAvailable()
 			elif userIN[0:1] == "q":  # "quick find all"
 				findAll()
 			elif userIN[0:1] == "o":
 				saveBinAscii()   # "output bins and ascii"
 			elif userIN[0:1] == "m":	# "find modules in the iat and beyond"
-				uiModulesSubMenu()
+				if not rawHex:
+					uiModulesSubMenu()
+				else:
+					notAvailable()
 				# print("\nReturning to main menu.\n")
 			elif userIN[0:1] == "r":	# reset
 				# SharemMainResetGlobals()
@@ -21019,31 +21048,51 @@ def uiPrintStrings(bStringsFound):
 		try:
 			if not rawHex:
 				# if (len(s[t].Strings)) or (len(s[t].wideStrings)) or (len(s[t].pushStrings)):
+				totalStrings=0
+
 				if mBool[o].bStringsFound or mBool[o].bWideStringFound or mBool[o].bPushStringsFound:
+					totalStrings=0
+					if mBool[o].bStringsFound:
+						for sec in range(len(s)):
+							totalStrings += len(s[t].Strings)
+							t+=1
+					if mBool[o].bWideStringFound:
+						for sec in range(len(s)):
+							totalStrings += len(s[t].wideStrings)
+							t+=1
+					if mBool[o].bPushStringsFound:
+						for sec in range(len(s)):
+							totalStrings += len(s[t].pushStrings)
+							t+=1
+					# print ("totalStrings", totalStrings)
+					t=0
 				#Tuesday                          Offset: 0x1a04       Address: 0x402a04 Size: 7.0
 				#1P1X1`1h1p1x1          .text   0x401c2e (offset 0xc2e)  Size: 14  Ascii
 				#for sec in pe.sections:
-					for sec in range(len(s)):
-						if len(s[t].Strings) > 0 or len(s[t].wideStrings) > 0:
-							print (s[t].sectionName.decode('utf-8'))
-						if (len(s[t].pushStrings)) or (len(s[t].Strings)) or (len(s[t].wideStrings)):
+					if totalStrings > 150:
+						print ("There are too many ASCII/Unicode strings (" + str(totalStrings) +") - output saved to disk.")
+					else:
+						for sec in range(len(s)):
+							if len(s[t].Strings) > 0 or len(s[t].wideStrings) > 0:
+								print (s[t].sectionName.decode('utf-8'))
+							if (len(s[t].pushStrings)) or (len(s[t].Strings)) or (len(s[t].wideStrings)):
 
 
-							for x,y,z  in s[t].Strings:
-								x = cya + x + res
-								#print ('{:<5} {:<32s} {:<20s} {:<11s} {:<4} {:<8}'.format("",str(x), "Offset: " + str(hex(y)), str(hex(y + s[t].ImageBase + s[t].VirtualAdd)),"Size: "+ str(z) , "Ascii"))
-								print ('{:<5} {:<32s} {:<8s} {:<8s} {:<8s} {:<8}'.format("",str(x), s[t].sectionName.decode('utf-8'), str(hex(y + s[t].ImageBase + s[t].VirtualAdd)),"(offset "+str(hex(y+ s[t].VirtualAdd))+")", yel + "Ascii"+res))
+								for x,y,z  in s[t].Strings:
+									x = cya + x + res
+									#print ('{:<5} {:<32s} {:<20s} {:<11s} {:<4} {:<8}'.format("",str(x), "Offset: " + str(hex(y)), str(hex(y + s[t].ImageBase + s[t].VirtualAdd)),"Size: "+ str(z) , "Ascii"))
+									print ('{:<5} {:<32s} {:<8s} {:<8s} {:<8s} {:<8}'.format("",str(x), s[t].sectionName.decode('utf-8'), str(hex(y + s[t].ImageBase + s[t].VirtualAdd)),"(offset "+str(hex(y+ s[t].VirtualAdd))+")", yel + "Ascii"+res))
 
-								# print ("\t"+ str(x) + "\t" + str(hex(y)) + "\t" + str(hex(z))) 
-							#for x,y in s[t].wideStrings:
-							#	print ("\t"+ str(x) + "\t" + str(hex(y)))
-							for x,y, z in s[t].wideStrings:
-								x = cya + x + res
-								#print ('{:<5} {:<32s} {:<20s} {:<11s} {:<4} {:<8}'.format("",str(word), "Offset: " + str(hex(offset)), str(hex(y + s[t].ImageBase + s[t].VirtualAdd)),"Size: "+ str(int(wordSize)), "Unicode"))
-								print ('{:<5} {:<32s} {:<8s} {:<8s} {:<8s} {:<8}'.format("",str(x), s[t].sectionName.decode('utf-8'), str(hex(y + s[t].ImageBase + s[t].VirtualAdd)),"("+str(hex(y+ s[t].VirtualAdd))+")" , red + "Unicode" + res))
+									# print ("\t"+ str(x) + "\t" + str(hex(y)) + "\t" + str(hex(z))) 
+									#for x,y in s[t].wideStrings:
+									#	print ("\t"+ str(x) + "\t" + str(hex(y)))
+								for x,y, z in s[t].wideStrings:
+									x = cya + x + res
+									#print ('{:<5} {:<32s} {:<20s} {:<11s} {:<4} {:<8}'.format("",str(word), "Offset: " + str(hex(offset)), str(hex(y + s[t].ImageBase + s[t].VirtualAdd)),"Size: "+ str(int(wordSize)), "Unicode"))
+									print ('{:<5} {:<32s} {:<8s} {:<8s} {:<8s} {:<8}'.format("",str(x), s[t].sectionName.decode('utf-8'), str(hex(y + s[t].ImageBase + s[t].VirtualAdd)),"("+str(hex(y+ s[t].VirtualAdd))+")" , red + "Unicode" + res))
 
-								#print ("\t"+ str(word) + "\t" + hex(offset) + "\t" + str(wordSize))
-						t+=1
+									#print ("\t"+ str(word) + "\t" + hex(offset) + "\t" + str(wordSize))
+							t+=1
 			else:
 				for x,y,z  in stringsTemp:
 
@@ -21092,6 +21141,7 @@ def uiPrint(): 	#Print instructions
 	global sharem_out_dir
 	global emulation_verbose
 	global emulation_multiline
+	global rawHex
 
 
 	if sharem_out_dir == "current_dir":
@@ -21198,15 +21248,16 @@ def uiPrint(): 	#Print instructions
 					printSavedHeaven(shellBit)
 				else:
 					print("No heaven's gate instructions found.\n")
-			if bPrintEmulation and p2screen:
+			if bPrintEmulation and p2screen and rawHex:
 				if len(loggedList) >0 or  len(logged_syscalls) >0:
 					emulation_txt_out(loggedList, logged_syscalls)
 				else:
 					print ("\nNo emulation results.")
-			shellClass = isShellcode()
-			print(cya + "\n Classification: " + yel+ shellClass[0] + res2 + "\n")
-			if shellClass[1]:
-				print(cya + " Reason: " + yel+ shellClass[1] + res2 + "\n")
+			if rawHex:
+				shellClass = isShellcode()
+				print(cya + "\n Classification: " + yel+ shellClass[0] + res2 + "\n")
+				if shellClass[1]:
+					print(cya + " Reason: " + yel+ shellClass[1] + res2 + "\n")
 
 			if sh.decryptSuccess and o=="shellcode":
 				print (blu+"  It appears this shellcode may have been deobfuscated. Switching output to decoded."+res)
@@ -21373,11 +21424,11 @@ def emuSyscallSubMenu(): #Printing/settings for syscalls
 	global showDisassembly
 	global syscallPrintBit
 
-	print(yel + "\n ...................\n Syscall Settings\n ...................\n" + res)
+	print(yel + "\n ...................\n Emulation Syscall Settings\n ...................\n" + res)
 	emuSyscallPrintSubMenu(emuSyscallSelection, showDisassembly, syscallPrintBit, True)
 	x = ""
 	while x != "e":
-		print(cya + " Sharem>" + gre + "Print>" + yel + "Syscalls> " + res, end="")
+		print(yel + " Sharem>" + cya + "Emulator>" + gre + "Syscalls> " + res, end="")
 		syscallIN = input()
 		if(re.match("^x$", syscallIN, re.IGNORECASE)):
 			# print("Returning to print menu.")
@@ -22719,7 +22770,7 @@ def printToJson(bpAll, outputData):	#Output data to json
 	disResults = createDisassemblyJson()
 	jsonP.importData(importedData = outputData,FoundApisName = FoundApisName,filename = filename,importDiss = disResults)
 	# jsonP.generateDisassemblyResults()
-	jsonP.generateJson()
+	jsonP.generateJson(filename, peName, sharem_out_dir, rawHex)
 	
 	
 
@@ -22812,10 +22863,10 @@ def generateOutputData(): #Generate the dictionary for json out
 	time = time.strftime("%Y-%m-%d %H:%M:%S")
 	# jsonFileName = "output_" + peName + "_" + filetime + ".json"
 	jsonFileName = peName + "_" + filetime + ".json"
-
 	#jsonData is a dictionary, we add fields to it below
 	jsonData = {}
-	shellClass = isShellcode()
+	if rawHex:
+		shellClass = isShellcode()
 	jsonData['dateAnalyzed'] = time
 	if rawHex:
 		jsonData['classification'] = shellClass[0]
@@ -23969,6 +24020,7 @@ def printToText(outputData):	#Output data to text doc
 	global bEvilImportsFound
 	global bPrintEmulation
 	global gDisassemblyTextNoC
+	global rawHex
 	
 	data = outputData
 	#Used for section info
@@ -24010,6 +24062,8 @@ def printToText(outputData):	#Output data to text doc
 			# print (outfileName)
 		chkExt = filename[-4]
 
+	# print ("outfilename",outfileName)
+
 	filler = ""
 	if chkExt == ".":
 		filler = ""
@@ -24031,23 +24085,25 @@ def printToText(outputData):	#Output data to text doc
 		if jsonP.current_arch == 32:
 			# txtFileName =  output_dir + slash + outfile + filler+slash + slash + outfileName+"-32" + "_" + filetime + ".txt"
 
-			txtFileName =  os.path.join(output_dir, outfile + filler, outfileName+"-32" + "_" + filetime + ".txt")
+			importsName =  os.path.join(output_dir,  outfileName.split("\\")[-1].strip(), outfileName.split("\\")[-1].strip() + "-imports.txt")
+			
+			txtFileName =  os.path.join(output_dir, outfileName.split("\\")[-1].strip(), outfileName.split("\\")[-1].strip() +"-32" + "_" + filetime + ".txt")
 
 
 		elif jsonP.current_arch == 64:
 			# txtFileName =  output_dir + slash + outfile + filler+slash + slash + outfileName + "-64"+ "_" + filetime + ".txt"
 			
-			txtFileName =  os.path.join(output_dir, outfile + filler, outfileName + "-64"+ "_" + filetime + ".txt")
+			txtFileName =  os.path.join(output_dir, outfileName.split("\\")[-1].strip(), outfileName.split("\\")[-1].strip()  + "-64"+ "_" + filetime + ".txt")
 	else:
 		if shellBit == 32:
 			# txtFileName =  output_dir + slash + outfile +filler+ slash + outfileName + "-32"+"_" + filetime + ".txt"
 
-			txtFileName =  os.path.join(output_dir, outfile +filler, outfileName + "-32"+"_" + filetime + ".txt")
+			txtFileName =  os.path.join(output_dir, outfileName.split("\\")[-1].strip(), outfileName.split("\\")[-1].strip()  + "-32"+"_" + filetime + ".txt")
 
 		else:
 			# txtFileName =  output_dir + slash + outfile +filler+ slash + outfileName + "-64"+"_" + filetime + ".txt"
 
-			txtFileName =  os.path.join(output_dir, outfile +filler, outfileName + "-64"+"_" + filetime + ".txt")
+			txtFileName =  os.path.join(output_dir, outfileName.split("\\")[-1].strip(), outfileName.split("\\")[-1].strip()  + "-64"+"_" + filetime + ".txt")
 
 
 	# print("Saving location: ", outfile, outfileName)
@@ -24063,6 +24119,8 @@ def printToText(outputData):	#Output data to text doc
 # cya = '\u001b[36;1m'
 # whi = '\u001b[37m'
 # res = '\u001b[0m'
+
+	# print ("txtFileName", txtFileName)
 	os.makedirs(os.path.dirname(txtFileName), exist_ok=True)
 	text = open(txtFileName, "w")
 	
@@ -24073,6 +24131,7 @@ def printToText(outputData):	#Output data to text doc
 
 
 	# print("output_dir: ", output_dir, "outfile: ", outfile, " filler: ", filler, "outfileName: ", outfileName)
+	
 	output_dir=output_dir.strip()
 	disFileName = os.path.join(output_dir, outfileName.split("\\")[-1].strip(), outfileName.split("\\")[-1].strip() + "-disassembly.txt")
 	binFileName = os.path.join(output_dir, outfile + filler, outfileName + "-raw.bin")
@@ -24083,12 +24142,15 @@ def printToText(outputData):	#Output data to text doc
 		importFp = open(importsName, "w")
 		importFp.write(importData)
 		importFp.close()
+		# print ("importsName", importsName)
 
 	os.makedirs(os.path.dirname(disFileName), exist_ok=True)
-
-	disasm = open(disFileName, "w")
-	disasm.write(gDisassemblyTextNoC)
-	disasm.close()
+	# print ("disFileName", disFileName)
+	
+	if rawHex:	
+		disasm = open(disFileName, "w")
+		disasm.write(gDisassemblyTextNoC)
+		disasm.close()
 
 	# print("Type --> ", type(m[o].rawData2), m[o].rawData2)
 	if save_bin_file and rawHex:
@@ -24099,13 +24161,16 @@ def printToText(outputData):	#Output data to text doc
 			binasm.write(m[o].rawData2)
 		if sh.decryptSuccess:
 			binFileNameDecoded = os.path.join(output_dir, outfile + filler, outfileName + "-decoded_body_raw.bin")
+			# print ("binFileNameDecoded", binFileNameDecoded)
 			binasm = open(binFileNameDecoded, "wb")
 			binasm.write(sh.decodedFullBody)
 			binasm2 = open(binFileName, "wb")
+			# print ("binFileName", binFileName)
 			binasm2.write(m["shellcode"].rawData2)
 		binasm.close()
 
-	shellClass = isShellcode()
+	if rawHex:
+		shellClass = isShellcode()
 	# print ("check4 o", o)
 
 	outString =  'Filename: ' + outfileName + "\n"
@@ -24113,10 +24178,11 @@ def printToText(outputData):	#Output data to text doc
 	outString += 'Architecture: ' + str(shellBit) +"-bit\n"
 	outString += 'Date Analyzed: ' + time + "\n"
 
-	outString += 'classification: ' + shellClass[0] + "\n"
-	outString += '\tReason: ' + shellClass[1] + "\n"
+	if rawHex:
+		outString += 'classification: ' + shellClass[0] + "\n"
+		outString += '\tReason: ' + shellClass[1] + "\n"
 
-	outString += "Seconds since last epoch: " + str(epoch) + "\n\n"
+		outString += "Seconds since last epoch: " + str(epoch) + "\n\n"
 	outString += info
 
 
@@ -24320,9 +24386,11 @@ def printToText(outputData):	#Output data to text doc
 	text.write (outString)
 	# text.write(emulation_txt)
 	text.close()
-	rawSh = binaryToText(m["shellcode"].rawData2, "json")[1]
-	generateTester(outfile, rawSh, shellEntry)
-
+	try:
+		rawSh = binaryToText(m["shellcode"].rawData2, "json")[1]
+		generateTester(outfile, rawSh, shellEntry)
+	except:
+		pass
 def returnSyscalls(callNum, bit = 64):
 	#works the same as getsyscallrecent()
 	#returns a list of syscalls to parse

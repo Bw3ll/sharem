@@ -68,7 +68,7 @@ def showOptions(shellBit, rawHex, name,hMd5):
 		showType="PE file"
 		showType2="\n\tPE file: "
 	print(gre + banner() + res)
-	print (whi+"  Shellcode Analysis & Emulation Framework, v. 1.02"+res)
+	print (whi+"  Shellcode Analysis & Emulation Framework, v. 1.023"+res)
 	
 	print (gre+showType2+ cya+name+gre +"\tMd5: "+cya+hMd5+res)
 	optionsLabel = """
@@ -76,45 +76,71 @@ def showOptions(shellBit, rawHex, name,hMd5):
      Options
   .............
 """
+
 	optionsLabel = yel + optionsLabel + res
-	options = cya+"""
+	if not rawHex:
+		options = cya+"""
    h		{}
-   l		{}
    s		{}
-   d		{}
-   D		{}
+   z		{}
    p		{}
-   b		{}
-   U		{}
-   q		{}
    k		{}
    m		{}
    e		{}
+   i		{}
+   a		{}
+   c		{}
+   q		{}
+   x		{}
+	""".format( res +"Display options."+cya, 
+				res+"Find Assembly instructions associated with shellcode."+cya,
+				res+"Do everything with current selections."+cya,
+				res+"Print Menu - print outputs to file"+cya,	
+				res+"Find strings."+cya,
+				res+"Find modules in the IAT and beyond."+cya,
+				res+"Find imports."+cya,
+				res+"Show basic "+showType+" info."+cya,
+				res+"Change architecture, 32-bit or 64-bit."+yel +" [ "+cya+str(shellBit)+"-bit"+yel+" ]"+cya,
+				res +"Save current configuration."+cya,
+				res+"Quick find all."+cya,
+				res+"Exit."+cya,
+				)
+	else:
+		options = cya+"""
+   h		{}
+   l		{}
+   z		{}
+   s		{}
+   D		{}
+   d		{}
+   p		{}
+   b		{}
+   U		{}
+   k		{}
    o		{}
    i		{}
    a		{}
    c		{}
-   z		{}
+   q		{}
    x		{}
 	""".format( res +"Display options."+cya, 
 				res+ "Shellcode Emulator"+cya, 
+				res+"Do everything with current selections."+cya,
 				res+"Find Assembly instructions associated with shellcode."+cya,
-				res+ "Disassembly of shellcode submenu"+cya, 
 				res+ "Disassemble shellcode"+cya, 
+				res+ "Disassembly of shellcode submenu"+cya, 
 				res+"Print Menu - print outputs to file"+cya,
 				res+"Brute-force deobfuscation of shellcode." +cya,
 				res+"Toggle between actions on obfuscated/deobfuscated shellcode." +cya,
-				res+"Quick find all."+cya,
 				res+"Find strings."+cya,
-				res+"Find modules in the IAT and beyond."+cya,
-				res+"Find imports."+cya,
 				res+"Output bins and ASCII text."+cya,
 				res+"Show basic "+showType+" info."+cya,
 				res+"Change architecture, 32-bit or 64-bit."+yel +" [ "+cya+str(shellBit)+"-bit"+yel+" ]"+cya,
 				res +"Save current configuration."+cya,
-				res+"Do everything with current selections."+cya,
+				res+"Quick find all."+cya,
 				res+"Exit."+cya,
-				)
+				)		
+
 	print(optionsLabel, options)
 
 def printBitMenu():
@@ -429,7 +455,7 @@ def newSysCallPrint(syscallSelection):
 	# 			print("{}  {} []".format(code1, name1))
 
 def emuNewSysCallPrint(emuSyscallSelection):
-	syscallNameStrings = ["NA  Windows XP","\txp1  SP1","\txp2  SP2","NA  Windows Server 2003","\ts30  SP0","\ts32  SP2","\ts3r  R2","\ts3r2  R2 SP2","NA  Windows Vista","\tv0  SP0","\tv1  SP1","\tv2  SP2","NA  Windows Server 2008","\ts80  SP0","\ts82  SP2","\ts8r  R2","\ts8r1  R2 SP1","NA  Windows 7","\tw70  SP0","\tw71  SP1","NA  Windows Server 2012","\ts120  SP0","\ts12r  R2","NA  Windows 8","\tw80  8.0","\tw81  8.1","NA  Windows 10","\tr0  release 1507","\tr1  release 1511","\tr2  release 1607","\tr3  release 1703","\tr4  release 1709","\tr5  release 1803","\tr6  release 1809","\tr7  release 1903","\tr8  release 1909","\tr9  release 2004","\tr10  release 20H2","\tr11  release 21H1", "\tr12  release 21H2", "NA  Windows 11","\tb1  21H2"]
+	syscallNameStrings = ["NA  Windows XP","\txp1  SP1","\txp2  SP2","NA  Windows Server 2003","\ts30  SP0","\ts32  SP2","\ts3r  R2","\ts3r2  R2 SP2","NA  Windows Vista","\tv0  SP0","\tv1  SP1","\tv2  SP2","NA  Windows Server 2008","\ts80  SP0","\ts82  SP2","\ts8r  R2","\ts8r1  R2 SP1","NA  Windows 7","\tw70  SP0","\tw71  SP1","NA  Windows Server 2012","\ts120  SP0","\ts12r  R2","NA  Windows 8","\tw80  8.0","\tw81  8.1","NA  Windows 10","\tr0  release 1507","\tr1  release 1511","\tr2  release 1607","\tr3  release 1703","\tr4  release 1709","\tr5  release 1803","\tr6  release 1809","\tr7  release 1903","\tr8  release 1909","\tr9  release 2004","\tr10  release 20H2","\tr11  release 21H1", "\tr12  release 21H2", "\tr13  release 22H2","NA  Windows 11","\tb1  21H2","\tb2  22H2"]
 	# codes = ['xp', 'v', 'w7', 'w8', 'w10', 's3', 's8', 's12', 'all']
 	for line in syscallNameStrings:
 		line = line.split(maxsplit = 1)
@@ -568,8 +594,9 @@ def emuSyscallPrintSubMenu(emuSyscallSelection, showDisassembly, syscallPrintBit
 	
 
 		# print(x.category, x.name, x.toggle, x.code)
+	print (red+"Note: "+res+"  Only one OSBuild may be selected for emulation.")
 	if(showOptions):
-		print(mag + " \n Selections:\n" + res)
+		print(mag + " \n OSBuild Selection:\n" + res)
 		emuNewSysCallPrint(emuSyscallSelection)
 
 
@@ -577,13 +604,14 @@ def emuSyscallPrintSubMenu(emuSyscallSelection, showDisassembly, syscallPrintBit
 	if showOptions:
 		vMenu += mag+" \n\n Functional Commands:\n\n"+res
 		vMenu += " {} - Options.\n".format(cya + "h" + res)
-		vMenu += " {} - Clear syscall selections.\n".format(cya + "c" + res)
-		vMenu += " {} - Enter syscall selections.\n".format(cya + "g" + res)
+		vMenu += " {} - Clear syscall selection.\n".format(cya + "c" + res)
+		vMenu += " {} - Enter syscall selection.\n".format(cya + "g" + res)
 		vMenu += " {} - Exit.\n".format(cya + "x" + res)
 
 	print(vMenu)
 
 def syscallPrintSubMenu(syscallSelection, showDisassembly, syscallPrintBit, showOptions):
+	print (red+"Note:"+res+"   This is a pseudo-emulation performed statically, on shellcode or PE files. \n\tFor more accurate results, select the desired OSBuild in emulation submenu. \n\tAdditional new OSBuild releases supported there.")
 	vMenu = ""
 
 	#Used for list of OSVersions to print for syscall
@@ -602,7 +630,7 @@ def syscallPrintSubMenu(syscallSelection, showDisassembly, syscallPrintBit, show
 
 		# print(x.category, x.name, x.toggle, x.code)
 	if(showOptions):
-		print(mag + " \n Selections:\n" + res)
+		print(mag + " \n OSBuild Selections:\n" + res)
 		newSysCallPrint(syscallSelection)
 
 	# 	vMenu += mag + " Selections:\n" + res
@@ -843,7 +871,7 @@ def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 	# iternum = emuObj.numOfIter
 	ent = em.entryOffset
 
-
+	osBuild= em.winVersion + " " + em.winSP
 	if em.breakOutOfLoops:
 		bloopTog = "x"
 	else:
@@ -879,7 +907,8 @@ def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 
 
 	text += "  {}        \n".format(cya + "z"+res+" -"+yel+"  Initiate emulation."+ res)
-	text += "  {}        \n".format(cya + "s"+res+" -"+yel+"  Select syscall versions."+ res)
+	text += "  {}{:>5}[{}]\n".format(cya + "c"+res+" -"+yel+"  Select Windows syscall OSBuild."+ res, "", cya + osBuild+ res)
+
 	text += "  {}        \n".format(cya + "d"+res+" -"+yel+"  Edit Simulated Values."+ res)
 	text += "  {}{:>3} [{}]\n".format(cya + "m"+res+" -"+yel+"  Maximum instructions to emulate."+ res, "", cya + str(maxinst)+ res)
 
@@ -923,6 +952,7 @@ def emuSimValuesMenu():
 	print(f"{yel} Emulation Simulation Values")
 	print(f"{yel} ...................................")
 
+	print (red+" Note:"+res+"  These may also be set in the config.")
 	def emuSimValHelpList():
 		print(f"\n{mag} Computer Settings:")
 		print(f"{cya}    c {whi}- {yel}Current User {whi}[{cya}{conr.simulatedValues_current_user}{whi}]")
@@ -945,10 +975,10 @@ def emuSimValuesMenu():
 		print(f"{cya}    r {whi}- {yel}Default Registry Value {whi}[{cya}{conr.simulatedValues_default_registry_value}{whi}]")
 		print(f"{cya}    b {whi}- {yel}Clipboard Data {whi}[{cya}{conr.simulatedValues_clipboard_data}{whi}]")
 
-		print(f"\n{cya}  h {whi}- {yel}Show This Menu")
+		print(f"\n{cya}  h {whi}- {yel}Show this menu")
 
 	emuSimValHelpList()
-	print("\n" + cya + " Sharem>" + gre + "Print>" + yel + "SimValues> " + res, end="")
+	print("\n" + yel + " Sharem>" + cya + "Emulator>" + gre + "SimValues> " + res, end="")
 	simValueIn = input().lower()[0]
 	while simValueIn != 'x':
 		if simValueIn == "c":
