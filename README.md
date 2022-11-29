@@ -14,8 +14,6 @@ If you are new to SHAREM, feel free to check out a brief demo video, showcasing 
 [![Watch the video](https://github.com/Bw3ll/sharem/blob/testing/sharem/SHAREM_images/Sharem_demo.png?raw=true)](https://youtu.be/S1PI9O-q6eM)
 
 # Install Instructions
-## Updates
-Sept. 29, 2022: We did make a very minor update to the setup.py regarding numpy, which may affect some people with the latest version of Python.
 
 ## Windows
 SHAREM is installed as a local Python package, so that we have access to it in other projects. This allows parts of SHAREM to be imported. Thus, it must be installed as a package.
@@ -38,6 +36,10 @@ You will need to add the Windows DLL files. We do not currently these available 
 
 # Documentation
 Documentation can be found at the [SHAREM Wiki](https://github.com/Bw3ll/sharem/wiki), which provides some instructional  information on SHAREM usage, although there are significant portions and features not currently documented. 
+
+# Updates
+* Sept. 29, 2022: We did make a very minor update to the setup.py regarding numpy, which may affect some people with the latest version of Python.
+* Nov. 25, 2022: Long overdue, we made some changes to support the [ShellWasp](https://github.com/Bw3ll/ShellWasp) style of syscalls. While we had previously implemented support for syscalls, the ShellWasp style would not work, only hardcoded SSNs (syscall values). The OSMajorVersion, OSMinorVersion, and OSBuild were initinialized for 32- and 64-bit. Whatever OS version the user has in the config or via UI will now be reflected internally - e.g. selecting Windows 10 20H2 would cause the correct values to be populated, allowing for the [ShellWasp](https://github.com/Bw3ll/ShellWasp) technique to work, as shown by this [sample output](https://github.com/Bw3ll/ShellWasp/blob/main/Samples/alternative_create_process_SHAREM_output.txt). Only Windows 7, 10, and 11 are supported for emualtion of ShellWasp technique at this time.
 
 # Screenshots
 SHAREM is a very powerful framework with numerous capabilities, some well documented, and some which are not. This section will showcase a small number of those capabilities. 
