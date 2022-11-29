@@ -907,7 +907,7 @@ def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 
 
 	text += "  {}        \n".format(cya + "z"+res+" -"+yel+"  Initiate emulation."+ res)
-	text += "  {}{:>5}[{}]\n".format(cya + "c"+res+" -"+yel+"  Select Windows syscall OSBuild."+ res, "", cya + osBuild+ res)
+	text += "  {}{:>5}[{}]\n".format(cya + "s"+res+" -"+yel+"  Select Windows syscall OSBuild."+ res, "", cya + osBuild+ res)
 
 	text += "  {}        \n".format(cya + "d"+res+" -"+yel+"  Edit Simulated Values."+ res)
 	text += "  {}{:>3} [{}]\n".format(cya + "m"+res+" -"+yel+"  Maximum instructions to emulate."+ res, "", cya + str(maxinst)+ res)
