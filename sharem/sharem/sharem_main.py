@@ -21056,10 +21056,12 @@ def uiPrintStrings(bStringsFound):
 						for sec in range(len(s)):
 							totalStrings += len(s[t].Strings)
 							t+=1
+					t=0
 					if mBool[o].bWideStringFound:
 						for sec in range(len(s)):
 							totalStrings += len(s[t].wideStrings)
 							t+=1
+					t=0
 					if mBool[o].bPushStringsFound:
 						for sec in range(len(s)):
 							totalStrings += len(s[t].pushStrings)
@@ -21072,6 +21074,7 @@ def uiPrintStrings(bStringsFound):
 					if totalStrings > 150:
 						print ("There are too many ASCII/Unicode strings (" + str(totalStrings) +") - output saved to disk.")
 					else:
+						print ("else", totalStrings)
 						for sec in range(len(s)):
 							if len(s[t].Strings) > 0 or len(s[t].wideStrings) > 0:
 								print (s[t].sectionName.decode('utf-8'))
@@ -21095,7 +21098,6 @@ def uiPrintStrings(bStringsFound):
 							t+=1
 			else:
 				for x,y,z  in stringsTemp:
-
 					x = cya + x + res
 					if z >= minStrLen:
 					# print('{:<5} {:<32s} {:<20s} {:<11s}'.format("",str(x), "Offset: " + str(hex(y)),"Size: "+ str(z)))
@@ -21111,6 +21113,7 @@ def uiPrintStrings(bStringsFound):
 					#print ("\t"+ str(x) + "\t" + str(hex(y)) + "\t" + str(hex(z)))
 
 		except Exception as e:
+			print(traceback.format_exc())
 			print(e)
 	else:
 		print("\nNo strings found.\n")
