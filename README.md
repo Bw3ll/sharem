@@ -26,6 +26,7 @@ It can be installed from https://git-scm.com/download/win. After installion rest
 3. Do
 ```py -m pip list``` or  ```python3 -m pip list``` to verify that that SHAREM is installed locally as a package. It must be installed as a package to work.
 
+Note: The first time that you attempt to emulate a shellcode on Windows, it will attempt to harvest and inflate Windows DLLs. This process begins automatically when trying to first emulate a shellcode. It will copy them, moving the copied (and later inflated) DLLs to a SHAREM directory. There are additional steps, but this whole initial process can take several minutes. After it has completed, you should not have to do this again. This must be done separately both for 32- and 64-bit shellcode. 
 
 ## Linux
 1. ```chmod +x linux_installer.sh``` Enable Execution of the Installer
