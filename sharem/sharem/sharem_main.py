@@ -16992,6 +16992,28 @@ def saveBinAscii():
 
 	init2(filename)
 
+
+	if filename == "":
+		outfile = peName.split(".")[0]
+		outfileName = peName
+		if outfileName[-4]==".":
+			outfileName=outfileName[:-4]
+	else:	
+		outfile = filename.split(".")[0]
+		outfileName = filename
+		if outfileName[-4]==".":
+			outfileName=outfileName[:-4]
+	output_dir = os.getcwd()
+
+	if sharem_out_dir == "current_dir":
+		output_dir = os.path.join(os.path.dirname(__file__), "sharem", "logs")
+	else:
+		output_dir = sharem_out_dir
+
+	binFileName =  os.path.join(output_dir, outfileName.split("\\")[-1].strip(), outfileName.split("\\")[-1].strip()  + "-raw.bin")
+
+	asciiFileName =  os.path.join(output_dir, outfileName.split("\\")[-1].strip(), outfileName.split("\\")[-1].strip()  + "-ascii.txt")
+
 	binsDir  = os.path.join(outDir, filename[:-4], "bins")
 	# directory = os.path.join(os.path.dirname(__file__), directory)
 	# print (binaryToStr(m[o].rawData2))
@@ -17001,23 +17023,36 @@ def saveBinAscii():
 		# print("Creating..")
 		os.makedirs(binsDir)
 
+	binasm2 = open(binFileName, "wb")
+	binasm2.write(m["shellcode"].rawData2)
+	binasm2.close()
+
 	assembly=binaryToText(m[o].rawData2)
-	# print(binsDir+filename[:-4]+".bin")
-	# newBin = open(binsDir+slash+filename[:-4]+".bin", "wb")   old?
-	newBin = open(filename[:-4]+".bin", "wb")
+	asciiBin = open(asciiFileName, "w")
+	asciiBin.write(assembly)
+	asciiBin.close()
+	print (cya+" The shellcode has been saved both in binary and ASCII format:"+res)
+	print ("   ", gre + asciiFileName+res2)
+	print ("   ", gre + binFileName+res2)
 
-	newBin.write(m[o].rawData2)
-	newBin.close()
-	# newDis = open(binsDir+slash+"ascii-"+filename[:-4]+".txt", "w")
-	newDis = open(filename[:-4]+"-ascii-"".txt", "w")
+	#### if it was successfully deobfuscated
 
-	# print (gre+ "",binsDir+slash+"ascii-"+filename[:-4]+".txt" + res2)
-	# print (gre + "",binsDir + slash+"bins"+slash + filename[:-4]+".bin"+res2)
-	
-	print (gre+ "",filename[:-4]+".bin" + res2)
-	print (gre + "",filename[:-4]+"-ascii-"".txt"+res2)
-	newDis.write(assembly)
-	newDis.close()
+	if sh.decryptSuccess:
+		binFileNameDecoded = os.path.join(output_dir, outfile, outfileName + "-decoded_body_raw.bin")
+		deobAsciiFileName = os.path.join(output_dir, outfile, outfileName + "-decoded_body_raw-ascii.txt")
+
+		assemblyD=binaryToText(sh.decodedFullBody)
+		asciiDeobf = open(deobAsciiFileName, "w")
+		asciiDeobf.write(assemblyD)
+		asciiDeobf.close()
+
+		binasm = open(binFileNameDecoded, "wb")
+		binasm.write(sh.decodedFullBody)
+		binasm.close()
+		print ("   ", mag + binFileNameDecoded+res2)
+		print ("   ", mag + deobAsciiFileName+res2)
+
+
 
 def bramwellEncodeDecodeWork(shellArg):
 	global filename
@@ -18628,6 +18663,10 @@ def shellDisassemblyInit(shellArg, silent=None):
 			# binDis = open(directory+"disassembly"+slash+filename[:-4]+"-raw.bin", "wb")
 			binasm = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs",'disassembly', (filename[:-4]+"-raw.bin")), "wb")
 
+			asciiBin = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs",'disassembly', (filename[:-4]+"-ascii.txt")), "w")
+
+			assembly=binaryToText(m[o].rawData2)
+			# asciiBin = open(asciiFileName, "w")
 
 			# binFileName = os.path.join(output_dir, outfile + filler, outfileName + "-raw.bin")
 
@@ -18635,10 +18674,15 @@ def shellDisassemblyInit(shellArg, silent=None):
 
 				# binasm = open(binFileName, "wb")
 				binasm.write(m[o].rawData2)
+				asciiBin.write(assembly)
+				asciiBin.close()
+			
 			if sh.decryptSuccess:
 
 				# binFileNameDecoded = os.path.join(output_dir, outfile + filler, outfileName + "-decoded_body_raw.bin")
-				binasm2 = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs",'disassembly', (filename[:-4]+"-decoded_body_raw.bin2")), "wb")
+				binasm2 = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs",'disassembly', (filename[:-4]+"-decoded_body_raw.bin")), "wb")
+
+				asciiDeobf = open(os.path.join(os.path.abspath(os.path.dirname(__file__)), "sharem", "logs",'disassembly', (filename[:-4]+"-decoded_body_raw-ascii.txt")), "w")
 
 				# binasm = open(binFileNameDecoded, "wb")
 				binasm2.write(sh.decodedFullBody)
@@ -18646,8 +18690,16 @@ def shellDisassemblyInit(shellArg, silent=None):
 				binasm.write(m["shellcode"].rawData2)
 				binasm2.close()
 
+				asciiBin.write(assembly)
+				asciiBin.close()
+				assemblyD=binaryToText(sh.decodedFullBody)
+				asciiDeobf.write(assemblyD)
+				asciiDeobf.close()
+			
 
 			binasm.close()
+
+
 
 			# binDis.write(bytesOutput)
 			# binDis.close()
@@ -24127,17 +24179,10 @@ def printToText(outputData):	#Output data to text doc
 	os.makedirs(os.path.dirname(txtFileName), exist_ok=True)
 	text = open(txtFileName, "w")
 	
-
-
-	# disFileName = output_dir + slash + outfile + filler+slash + outfileName + "-disassembly.txt"
-	# binFileName = output_dir + slash + outfile + filler+slash + outfileName + "-raw.bin"
-
-
-	# print("output_dir: ", output_dir, "outfile: ", outfile, " filler: ", filler, "outfileName: ", outfileName)
-	
 	output_dir=output_dir.strip()
 	disFileName = os.path.join(output_dir, outfileName.split("\\")[-1].strip(), outfileName.split("\\")[-1].strip() + "-disassembly.txt")
 	binFileName = os.path.join(output_dir, outfile + filler, outfileName + "-raw.bin")
+	asciiFileName = os.path.join(output_dir, outfile + filler, outfileName + "-ascii.txt")
 
 	if mBool[o].bEvilImportsFound:
 		importsName =  os.path.join(output_dir,  outfileName.split("\\")[-1].strip(), outfileName.split("\\")[-1].strip() + "-imports.txt")
@@ -24156,20 +24201,31 @@ def printToText(outputData):	#Output data to text doc
 		disasm.close()
 
 	# print("Type --> ", type(m[o].rawData2), m[o].rawData2)
-	if save_bin_file and rawHex:
+	if rawHex:
 		# binFileName = os.path.join(output_dir, outfile + filler, outfileName + "-raw.bin")
 
+		assembly=binaryToText(m["shellcode"].rawData2)
+		asciiBin = open(asciiFileName, "w")
+		asciiBin.write(assembly)
+		asciiBin.close()
 		if not sh.decryptSuccess:
 			binasm = open(binFileName, "wb")
 			binasm.write(m[o].rawData2)
 		if sh.decryptSuccess:
 			binFileNameDecoded = os.path.join(output_dir, outfile + filler, outfileName + "-decoded_body_raw.bin")
-			# print ("binFileNameDecoded", binFileNameDecoded)
+			deobAsciiFileName = os.path.join(output_dir, outfile + filler, outfileName + "-decoded_body_raw-ascii.txt")
+
+			assemblyD=binaryToText(sh.decodedFullBody)
+			asciiDeobf = open(deobAsciiFileName, "w")
+			asciiDeobf.write(assemblyD)
+			asciiDeobf.close()
+
 			binasm = open(binFileNameDecoded, "wb")
 			binasm.write(sh.decodedFullBody)
+
 			binasm2 = open(binFileName, "wb")
-			# print ("binFileName", binFileName)
 			binasm2.write(m["shellcode"].rawData2)
+			binasm2.close()
 		binasm.close()
 
 	if rawHex:
