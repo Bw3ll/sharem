@@ -175,7 +175,7 @@ def giveOsMajorMinorVersions():
     
     if em.winVersion =="Windows 11":  
         osBuild=builds.win11LookupHex[em.winSP]
-        print ("windows 11", osMajor, osMinor, osBuild)
+        # print ("windows 11", osMajor, osMinor, osBuild)
     elif em.winVersion=="Windows 10":
         osBuild=builds.win10LookupHex[em.winSP]
         # print ("windows 10", osMajor, osMinor, osBuild)        
