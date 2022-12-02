@@ -1,6 +1,6 @@
 # SHAREM
 
-Welcome to SHAREM! **SHAREM will be at BlackHat Europe Arsenal 2022 in London, England on both December 7th at 8th! Come stop by if you are attending!**
+Welcome to SHAREM! **SHAREM will be at BlackHat Europe Arsenal 2022 in London, England on both December 7th and 8th! Come stop by if you are attending!**
 
 SHAREM is intended to be the ultimate Windows shellcode tool, with support to emulate over 12,000 WinAPIs, virtually all user-mode Windows syscalls, and SHAREM provides numerous new features. SHAREM was released on September 29, 2022, at Virus Bulletin, the top malware conference globally. SHAREM contains an emulator, a disassembler, timeless debugging, brute-force deobfuscation, and many other features. SHAREM's emulator can also display complete structures (or even structures within structures) and it can allow encoded shellcode to deobfuscate itself. SHAREM logs output from all WinAPIs and Windows syscalls analyzed, and it also breaks each into many categories and subcategories. SHAREM's complete code coverage also allows it to discover unreachable functionality.
 
