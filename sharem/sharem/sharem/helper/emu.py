@@ -16,12 +16,14 @@ class EMU(metaclass=Singleton):
         # self.winSP = "SP1" # "2004"
         self.winVersion = "Windows 10"
         self.winSP = "2004"
+        self.timeless_debugging_stack = False
 
 
 class emulationOptions(metaclass=Singleton):
-	def __init__(self):
-		self.verbose = False
-		self.maxEmuInstr = 500000
-		self.cpuArch = 32
-		self.breakLoop = True
-		self.numOfIter = 30000
+    def __init__(self):
+        self.verbose = False
+        self.maxEmuInstr = 500000
+        self.cpuArch = 32
+        self.breakLoop = True
+        self.timeless_debugging_stack = False
+        self.numOfIter = 30000

@@ -1,40 +1,69 @@
 {
-   "dateAnalyzed": "2022-05-18 13:08:26",
-   "classification": "Possibly encoded shellcode.",
-   "reason": "",
-   "secondsSinceEpoch": 1652897306.080066,
-   "fileType": "rawHex",
-   "bits": 32,
-   "entryPoint": "0x0",
-   "md5": "59d4ee9c6934200477e948669747f0bc",
-   "sha256": "c5ca492be2b4c6292faf8c9c25bc5b1b4b4f25abf6668affe8ab2510803c8c0c",
-   "ssdeep": "3:PzTPlDCgnalOJ5/n:PXPlmjOJ5/n",
-   "pushret": [],
-   "callpop": [],
-   "PEB": [],
-   "fstenv": [],
-   "heavensGate": [],
-   "syscall": [],
-   "strings": [],
-   "shellcode": {
-      "rawhex": "",
-      "strlit": ""
-   },
-   "deobfuscation": {
-      "deobfuscated": false,
-      "decoded_stub": "N/A",
-      "md5": "N/A",
-      "sha256": "N/A",
-      "ssdeep": "N/A"
-   },
-   "emulation": {
-      "api_calls": [],
-      "dlls": [],
-      "path_artifacts": [],
-      "file_artifacts": [],
-      "commandLine_artifacts": [],
-      "web_artifacts": [],
-      "registry_artifacts": [],
-      "exe_dll_artifacts": []
-   }
+ "dateAnalyzed":"2022-12-27 16:34:48",
+ "classification":"Possibly encoded shellcode.",
+ "reason":"",
+ "secondsSinceEpoch":1672180488.590601,
+ "fileType":"rawHex",
+ "bits":32,
+ "entryPoint":"0x0",
+ "md5":"7acf4c9e3cd5642a68418ad858442e8e",
+ "sha256":"43fc444126937b09e1c0054eabe8085e8c0f32c61aca43d4c29ccf3816b00eee",
+ "ssdeep":"3:9qaQn9Yh:0bn+h",
+ "pushret":[],
+ "callpop":[],
+ "PEB":[],
+ "fstenv":[],
+ "heavensGate":[],
+ "syscall":[],
+ "strings":[],
+ "shellcode":{
+  "rawhex":"b80090000083f803487502eb0a5f905f3d002000007e0083c004",
+  "strlit":"\\xb8\\x00\\x90\\x00\\x00\\x83\\xf8\\x03\\x48\\x75\\x02\\xeb\\x0a\\x5f\\x90\\x5f\\x3d\\x00\\x20\\x00\\x00\\x7e\\x00\\x83\\xc0\\x04"
+ },
+ "deobfuscation":{
+  "deobfuscated":false,
+  "decoded_stub":"N/A",
+  "md5":"N/A",
+  "sha256":"N/A",
+  "ssdeep":"N/A"
+ },
+ "emulation":{
+  "api_calls":[
+   {}
+  ],
+  "syscalls_emulation":[],
+  "dlls":[],
+  "path_copy":[],
+  "path_move":[],
+  "path_misc":[],
+  "file_hash":[],
+  "file_create":[],
+  "file_delete":[],
+  "file_read":[],
+  "file_write":[],
+  "file_copy":[],
+  "file_move":[],
+  "file_misc":[],
+  "commandLine_artifacts":[],
+  "web_artifacts":[],
+  "exe_dll_artifacts":[],
+  "registry_actions":[
+   "added_keys",
+   "edited_keys",
+   "deleted_keys"
+  ],
+  "registry_techniques":[
+   "persistence",
+   "credentials",
+   "discovery"
+  ],
+  "registry_hierarchy":[
+   "hkey_classes_root",
+   "hkey_current_user",
+   "hkey_local_machine",
+   "hkey_users",
+   "hkey_current_config"
+  ],
+  "registry_miscellaneous":[]
+ }
 }

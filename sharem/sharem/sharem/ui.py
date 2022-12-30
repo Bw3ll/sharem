@@ -870,6 +870,7 @@ def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 	bloop = em.maxLoop #emuObj.breakLoop  old
 	# iternum = emuObj.numOfIter
 	ent = em.entryOffset
+	stackTD = em.timeless_debugging_stack
 
 	osBuild= em.winVersion + " " + em.winSP
 	if em.breakOutOfLoops:
@@ -882,6 +883,10 @@ def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 	else:
 		vmodeTog = " "
 
+	if stackTD:
+		stackTDTog = "x"
+	else:
+		stackTDTog = " "
 
 	if emulation_verbose:
 		emuVerbose = "x"
@@ -915,6 +920,9 @@ def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 
 	text += "  {}{:>1} [{}]\n".format(cya + "v"+res+" -"+yel+"  Verbose mode (Timeless Debugging)."+ res, "", cya + vmodeTog+ res)
 	text += "\t{}\n".format(gre + "Log all Assembly executed to "+cya +"emulationLog.txt" + res)
+
+	text += "  {}{:>1}[{}]\n".format(cya + "t"+res+" -"+yel+"  Save stack with Timeless Debugging."+ res, "", cya + stackTDTog+ res)
+	text += "\t{}\n".format(gre + "Log stack values +/- 0xA0 to "+cya +"stackLog.txt" + red + "\n\tWarning:" + whi + " Slow" + res)
 
 	text += "  {}{:>13}[{}]\n".format(cya + "c"+res+" -"+yel+"  Complete code coverage."+ res, "", cya + emuCoCo+ res)
 

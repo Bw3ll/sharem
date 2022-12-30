@@ -1,3 +1,92 @@
 {
-   "disassembly": []
+   "disassembly": [
+      {
+         "address": "0x0",
+         "instruction": "mov eax, 0x9000",
+         "hex": "b8 00 90 00 00",
+         "string": ".....",
+         "comment": "; ***Shellcode Entry Point, offset 0x0***",
+         "label": ""
+      },
+      {
+         "address": "0x5",
+         "instruction": "cmp eax, 3",
+         "hex": "83 f8 03",
+         "string": "...",
+         "comment": "",
+         "label": ""
+      },
+      {
+         "address": "0x8",
+         "instruction": "dec eax",
+         "hex": "48",
+         "string": "H",
+         "comment": "",
+         "label": ""
+      },
+      {
+         "address": "0x9",
+         "instruction": "jne 0xd",
+         "hex": "75 02",
+         "string": "u.",
+         "comment": "",
+         "label": ""
+      },
+      {
+         "address": "0xb",
+         "instruction": "jmp 0x17",
+         "hex": "eb 0a",
+         "string": "..",
+         "comment": "",
+         "label": ""
+      },
+      {
+         "address": "0xd",
+         "instruction": "pop edi",
+         "hex": "5f",
+         "string": "_",
+         "comment": "",
+         "label": "label_0xd:"
+      },
+      {
+         "address": "0xe",
+         "instruction": "nop",
+         "hex": "90",
+         "string": ".",
+         "comment": "",
+         "label": ""
+      },
+      {
+         "address": "0xf",
+         "instruction": "pop edi",
+         "hex": "5f",
+         "string": "_",
+         "comment": "",
+         "label": ""
+      },
+      {
+         "address": "0x10",
+         "instruction": "cmp eax, 0x2000",
+         "hex": "3d 00 20 00 00",
+         "string": "=. ..",
+         "comment": "",
+         "label": ""
+      },
+      {
+         "address": "0x15",
+         "instruction": "jle 0x17",
+         "hex": "7e 00",
+         "string": "~.",
+         "comment": "",
+         "label": ""
+      },
+      {
+         "address": "0x17",
+         "instruction": "add eax, 4",
+         "hex": "83 c0 04",
+         "string": "...",
+         "comment": "",
+         "label": "label_0x17:"
+      }
+   ]
 }

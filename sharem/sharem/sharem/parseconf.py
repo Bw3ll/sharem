@@ -16,6 +16,10 @@ from .singleton import Singleton
 
 """
 # Comments Appear Above the Value
+
+
+#### NOTE : Oddly, the main has some of these same functions - so be careful - main may supercede what is here.
+
 configComments = {
 	"default_outdir =": "Directory for writing out the findings of SHAREM.\n#\tif left blank will default to the logs folder in the sharem directory.",
 	"pushret =": "Finding common shellcode techniques\n#\tOptions:[True,False]",
@@ -115,7 +119,8 @@ class Configuration(metaclass=Singleton):
 		self.emulation_timeless_debugging = False
 		self.emulation_break_infinite_loops = True
 		self.emulation_iterations_before_break = 5000
-		self.emulation_verbose_mode = True
+		self.emulation_verbose_mode = False
+		self.timeless_debugging_stack = False
 		self.emulation_multiline = True
 		self.emulation_print_emulation_result = True
 		self.emulation_fast_mode = True
@@ -176,13 +181,13 @@ class Configuration(metaclass=Singleton):
 		
 		# self.decryptConf(conf)
 		# self.searchConf(conf)
-		# self.disassemblyConf(conf)
+		# # self.disassemblyConf(conf)
 		# self.emulationConf(conf)
 		# self.emulationSimValueConf(conf)
 		# self.stringsConf(conf)
-		# self.syscallsConf(conf)
-		# self.patternConf(conf)
-		# self.startUp(conf)
+		# # self.syscallsConf(conf)
+		# # self.patternConf(conf)
+		# # self.startUp(conf)
 		return conf
 		
 
@@ -344,9 +349,13 @@ class Configuration(metaclass=Singleton):
 			self.search_shellentry = int(conr['SHAREM SEARCH']['shellEntry'], 16)
 		try:
 			vars = Variables()
-			vars.em.entryOffset = self.search_shellentry
-		except:
+			em = vars.emu
+			em.entryOffset = self.search_shellentry
+		except Exception as e:
+
 			print ("Config error: emu object not initialized.")
+			print (e)
+			print(traceback.format_exc())
 		try:
 			self.search_max_bytes_forward = int(conr['SHAREM SEARCH']['max_bytes_forward'])
 		except:
@@ -389,8 +398,10 @@ class Configuration(metaclass=Singleton):
 		#init the mbool Dict with values from config
 		mBool = var.mBool
 		o_shell = var.shOrg
-		
-		mBool[o_shell].bDoFindHiddenCalls = self.dissassembly_enable_hidden_calls
+		print ("o_shell", o_shell)
+		print ("mBool", mBool, "len", len(mBool))
+		print ("self.dissassembly_enable_hidden_calls", self.dissassembly_enable_hidden_calls)
+		# mBool[o_shell].bDoFindHiddenCalls = self.dissassembly_enable_hidden_calls
 		mBool[o_shell].bDoEnableComments = self.dissassembly_enable_hidden_calls
 		mBool[o_shell].bDoShowAscii = self.dissassembly_enable_hidden_calls
 		mBool[o_shell].bDoFindStrings = self.dissassembly_enable_hidden_calls
@@ -403,6 +414,8 @@ class Configuration(metaclass=Singleton):
 		
 	def emulationConf(self,conr):
 
+		print ("emulationConf")
+		input()
 		self.emulation_print_emulation_result = conr.getboolean('SHAREM EMULATION', 'print_emulation_result')
 		self.emulation_verbose_mode = conr.getboolean('SHAREM EMULATION', 'emulation_verbose_mode')
 		self.emulation_multiline = conr.getboolean('SHAREM EMULATION', 'emulation_multiline')
@@ -414,8 +427,10 @@ class Configuration(metaclass=Singleton):
 
 		self.emulation_windows_version = conr['SHAREM EMULATION']['windows_version']
 		self.emulation_windows_release_osbuild = conr['SHAREM EMULATION']['windows_release_osbuild']
-		self.emulation_windows_syscall_code = conr['SHAREM EMULATION']['emulation_windows_syscall_code']      
+		self.emulation_windows_syscall_code = conr['SHAREM EMULATION']['windows_syscall_code']      
 		
+		self.timeless_debugging_stack = conr.getboolean('SHAREM EMULATION','timeless_debugging_stack')
+
 		#set the default values for the emulation object.
 		emuObj = emulationOptions()
 		emuObj.maxEmuInstr = self.emulation_max_num_of_instr
@@ -427,9 +442,12 @@ class Configuration(metaclass=Singleton):
 		em.maxCounter = self.emulation_max_num_of_instr
 		em.maxLoop = self.emulation_iterations_before_break
 		em.breakOutOfLoops = self.emulation_break_infinite_loops
-		em.codeCoverage = self.emulation_timeless_debugging
+		em.codeCoverage = self.emulation_complete_code_coverage
 		em.winVersion = self.emulation_windows_version
 		em.winSP = self.emulation_windows_release_osbuild
+		em.timeless_debugging_stack = self.timeless_debugging_stack
+		print ("em.timeless_debugging_stack", em.timeless_debugging_stack)
+		input()
 		
 		#set misc
 		var = Variables()

@@ -3,6 +3,7 @@ from sharem.sharem.DLLs.emu_helpers.sharem_artifacts import Artifacts_emulation
 from sharem.sharem.helper.emu import *
 from sharem.sharem.singleton.helpers import Singleton
 
+
 class Variables(metaclass=Singleton):
 	def __init__(self):
 		# Startup Modules

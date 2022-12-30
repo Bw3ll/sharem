@@ -26,7 +26,7 @@ import os
 import colorama
 import traceback
 
-
+testAddy=0
 # from sharemuDeob import *
 
 # class EMU():
@@ -45,7 +45,7 @@ import traceback
 #         self.winVersion = "Windows 10"
 #         self.winSP = "2004"
 
-class EMU():
+class EMU():        #### see EMU note below  
     def __init__(self):
         self.maxCounter = 500000
         self.arch = 32
@@ -56,8 +56,11 @@ class EMU():
         self.codeCoverage = True
         self.beginCoverage = False
         self.timelessDebugging = False  # todo: bramwell
+        self.timeless_debugging_stack = False
         self.winVersion = "Windows 10"
         self.winSP = "2004"
+        ############### NOTE: This is not the class any more - the actual EMU class is now in helper/emu.py - this is left here as a placeholder for anyone that needs to add or modify this and is confused.
+
 
 
 
@@ -156,6 +159,7 @@ loadModsFromFile = True
 foundDLLAddresses32 = os.path.join(os.path.dirname(__file__), "foundDLLAddresses32.json")
 foundDLLAddresses64 = os.path.join(os.path.dirname(__file__), "foundDLLAddresses64.json")
 outFile = open(os.path.join(os.path.dirname(__file__), 'emulationLog.txt'), 'w')
+stackFile = open(os.path.join(os.path.dirname(__file__), 'stackLog.txt'), 'w')
 cleanStackFlag = False
 stopProcess = False
 cleanBytes = 0
@@ -222,16 +226,36 @@ def coverage_branch(uc):
 
 def breakLoop(uc, jmpFlag, jmpType, op_str, addr, size):
     eflags = uc.reg_read(UC_X86_REG_EFLAGS)
-
+    jmpLoc=0
+    # print ("breakLoop", hex(addr), op_str)
     if boolFollowJump(jmpFlag, jmpType, eflags):
-        if "0x" in op_str:
-            jmpLoc = addr + signedNegHexTo(op_str)
+        if "0x12" in op_str:
+            try:
+                jmpLoc=int(op_str,16)
+            except:
+                jmpLoc=int(op_str)
+
         else:
-            jmpLoc = addr + int(op_str)
+            if "0x" in op_str:
+                jmpLoc = addr + signedNegHexTo(op_str)
+                print ("jmpLoc", hex(jmpLoc))
+            else:
+                try:
+                    jmpLoc = addr + int(op_str)
+                except:
+                    jmpLoc = addr + int(op_str,16)
+
         uc.reg_write(UC_X86_REG_EIP, jmpLoc)
+        # print (yel+"writes1"+res2 + " to "  + gre + hex(jmpLoc) + res2)
     else:
         uc.reg_write(UC_X86_REG_EIP, addr + size)
+        jmpLoc= addr + size
+        # print (red+"writes2"+res2 + " to "  + gre + hex(jmpLoc) + res2)
+        
 
+    print (cya+"\t[*] " + res2 +  "Breaking out of a loop at " + gre +  hex(addr) + res2 + " - going to " + red + hex(jmpLoc) + res2 +  ".")
+    if verbose:
+        outFile.write("***** Breaking out of a loop at " + hex(addr) + " - going to " + hex(jmpLoc) + ".\n")
 
 def catch_windows_api(uc, addr, ret, size, funcAddress):
     global stopProcess
@@ -301,6 +325,20 @@ bAddWriteThriceTuple=set()
 bAddWriteThrice=set()
 
 
+
+def hook_mem_access2(uc, address, size, user_data):
+    global stackFile
+    stackFile.write( "[ mem_access2: bad " + hex(address) +"] ")
+    # print( "[ mem_access2: bad " + hex(address) +"] ")
+
+
+def hook_mem_access3(uc, access, address, size, value=0, user_data=None):
+    # print ("access", access, "address", hex(address), "size", size)
+
+    global stackFile
+    stackFile.write( "[ mem_access2: bad " + hex(address) +"] ")
+
+
 def hook_mem_access(uc, access, address, size, value, user_data):
     # print ("hook mem access!!!!!!!!!!!!!")
     if access == UC_MEM_WRITE:
@@ -312,7 +350,7 @@ def hook_mem_access(uc, access, address, size, value, user_data):
                 bAddWriteTwice.add(address)
                 bAddWriteTwiceTuple.add((address, size))
             elif address in bAddWriteTwice:
-                print (red+"doing thrice1!!!!!"+res)
+                # print (red+"doing thrice1!!!!!"+res)
                 bAddWriteThriceTuple.add(address)
                 bAddWriteThrice.address((address, size))
             else:
@@ -328,16 +366,18 @@ def hook_mem_access(uc, access, address, size, value, user_data):
                 bAddReadTwice.add(address)
                 bAddReadTwiceTuple.add((address, size))
             elif address in bAddReadTwice:
-                print (red+"doing thrice!!!!!"+res)
+                # print (red+"doing thrice!!!!!"+res)
                 bAddReadThriceTuple.add(address)
                 bAddReadThrice.address((address, size))
             else:
                 bAddRead.add(address)
                 bAddReadTuple.add((address, size))
 
+
 def hook_code(uc, address, size, user_data):
     global cleanBytes, verbose
     global outFile
+    global stackFile
     global programCounter
     global cleanStackFlag
     global stopProcess
@@ -346,6 +386,9 @@ def hook_code(uc, address, size, user_data):
     global em
     global bad_instruct_count
     global coverage_num
+    global testAddy
+
+    testAddy=address
 
     funcName = ""
 
@@ -359,13 +402,19 @@ def hook_code(uc, address, size, user_data):
 
     programCounter += 1
     if programCounter > em.maxCounter and em.maxCounter > 0:
-        print("Exiting emulation because max counter of {em.maxCounter} reached")
+        print(red + "\t[*] " +res2+" Exiting emulation because max counter of "  +gre +  str(em.maxCounter) + res2 + " reached.\n")
         uc.emu_stop()
 
     instructLine = ""
+    timelessStack= ""
     if verbose:
         instructLine += giveRegs(uc, em.arch)
-        instructLine += "0x%x" % address + '\t'
+        instructLine += str(programCounter) + ": 0x%x" % address + "\t"
+        # timelessStack+=giveStackClass(uc, em.arch,programCounter)
+    if em.timeless_debugging_stack:
+        timelessStack+=giveStack(uc, em.arch)
+        timelessStack += str(programCounter) + ": 0x%x" % address + "\t"
+        stackFile.write(timelessStack )
 
     shells = b''
     try:
@@ -378,16 +427,14 @@ def hook_code(uc, address, size, user_data):
         print("abrupt end: error reading line of shellcode")
         stopProcess = True
         # return # terminate func early   --don't comment - we want to see the earlyrror
-
+        
     ret = address
     base = 0
-
     # Print out the instruction
     mnemonic = ""
     op_str = ""
     t = 0
     bad_instruct = False
-
 
     fRaw.addBytes(shells, addressF - CODE_ADDR, size)
     finalOut = uc.mem_read(CODE_ADDR + em.entryOffset, codeLen)
@@ -397,7 +444,7 @@ def hook_code(uc, address, size, user_data):
         bad_instruct_count += 1
         if bad_instruct_count > 5:
             bad_instruct = True
-
+    val=""
     for i in cs.disasm(shells, address):
         val = i.mnemonic + " " + i.op_str  # + " " + shells.hex()
         if t == 0:
@@ -414,6 +461,12 @@ def hook_code(uc, address, size, user_data):
 
         if verbose:
             outFile.write(instructLine)
+        if em.timeless_debugging_stack:
+            stackFile.write("  "+val)
+
+            # giveStackClass(uc, em.arch,programCounter,val)
+
+
         t += 1
 
     # Jump to code coverage branch if shellcode is already done
@@ -861,10 +914,12 @@ def getArtifacts():
 def test_i386(mode, code):
     global artifacts2
     global outFile
+    global stackFile
     global cs
     global codeLen
     global address_range
-
+    global testAddy
+    arch=0
     mu = Uc(UC_ARCH_X86, mode)
 
     startLoc=CODE_ADDR + em.entryOffset
@@ -893,12 +948,14 @@ def test_i386(mode, code):
         mu.mem_write(ENTRY_ADDR, b'\x90\x90\x90\x90')
 
         if mode == UC_MODE_32:
+            arch=32
             print(cya + "\n\t[*]" + res2 + " Emulating x86 shellcode")
             cs = Cs(CS_ARCH_X86, CS_MODE_32)
             allocateWinStructs32(mu, mods)
 
 
         elif mode == UC_MODE_64:
+            arch=64
             print(cya + "\n\t[*]" + res2 + " Emulating x86_64 shellcode")
             cs = Cs(CS_ARCH_X86, CS_MODE_64)
             allocateWinStructs64(mu, mods)
@@ -908,6 +965,8 @@ def test_i386(mode, code):
         mu.hook_add(UC_HOOK_MEM_WRITE, hook_mem_access)
         mu.hook_add(UC_HOOK_MEM_READ, hook_mem_access)
         mu.hook_add(UC_HOOK_CODE, hook_code)
+
+        # mu.hook_add(UC_ERR_FETCH_UNMAPPED, hook_mem_access2)
 
         if len(coverage_objects) > 0:
             startLoc = coverage_objects[0].address
@@ -926,12 +985,15 @@ def test_i386(mode, code):
         # mu.release_handle(True)
 
     except Exception as e:
-        print(e)
+        print("Emulation error: ", e)
         print(traceback.format_exc())
+        print ("testAddy", hex(testAddy))
+        # createStackOutput(arch)
 
 
 
-    #path_artifacts, file_artifacts, commandLine_artifacts, web_artifacts, registry_artifacts, exe_dll_artifacts = findArtifacts()
+
+    # createStackOutput(arch)
     findArtifacts()
 
     return mu
@@ -964,8 +1026,9 @@ def test_i386(mode, code):
 #     fRaw.merge2()
 #     fRaw.completed()
 #     fRaw.findAPIs()
-#
+# #
 #     outFile.close()
+#     stackFile.close()
 
 def restartEmu(mu, mode, code):
     global cs
@@ -1030,6 +1093,8 @@ def startEmu(arch, data, vb):
 
     outFile.close()
 
+    stackFile.close()
+
 
 def emuInit():
     pass
@@ -1037,6 +1102,5 @@ def emuInit():
 def haha():
     fRaw.show()
 fRaw=sharDeobf()
-
 vars = Variables()
 em = vars.emu

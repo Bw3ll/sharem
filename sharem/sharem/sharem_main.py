@@ -75,6 +75,7 @@ sys.stdout=oldsysOut
 			
 iatList=[]
 m = {} #[]   # start modules CHANGED to dicitonary
+
 mBool = {} #[]   # start modules CHANGED to dicitonary
 
 mL=[]
@@ -1195,7 +1196,6 @@ def newModule(nameOfType,rawD, name="Name"):
 		print (out)
 		print (gre+"# mods"+res, len(m))
 	
-
 	objBool=foundBooleans(name)
 	if rawHex:
 		o=nameOfType   # shellcode - >  "shellcode", "decoded"  -- only two, not name of shellcode
@@ -1203,6 +1203,7 @@ def newModule(nameOfType,rawD, name="Name"):
 	else:  #pe file
 		o=name    # name of the pe   #gName   -- e.g. example.dll, example.exe   -- not the full path
 		mBool[name]=objBool   #name of pe file is the key
+	# print ("mBool", mBool, "len", len(mBool))
 
 	
 def newSection():
@@ -19267,7 +19268,7 @@ def modConf():
 	global dOutputFile
 	global decryptOpTypes
 	global decryptFile
-	global stubFile
+	global stubFilef
 	global sameFile
 	global stubEntry
 	global stubEnd
@@ -19325,6 +19326,7 @@ def modConf():
 	configOptions['windows_version'] = em.winVersion
 	configOptions['windows_release_osbuild'] = em.winSP
 	configOptions['windows_syscall_code'] = emuSyscallCode
+	configOptions['timeless_debugging_stack'] = em.timeless_debugging_stack
 
 
 # bPrintEmulation = conr.getboolean('SHAREM EMULATION', 'print_emulation_result')
@@ -19372,6 +19374,8 @@ def emulationConf(conr):
 	emuObj.breakLoop = conr.getboolean('SHAREM EMULATION', 'break_infinite_loops')
 	em.breakOutOfLoops = conr.getboolean('SHAREM EMULATION', 'break_infinite_loops')
 	emuObj.verbose = conr.getboolean('SHAREM EMULATION', 'timeless_debugging')
+	em.timeless_debugging_stack = conr.getboolean('SHAREM EMULATION','timeless_debugging_stack')
+
 	em.codeCoverage = conr.getboolean('SHAREM EMULATION',"complete_code_coverage")
 
 	em.winVersion = conr['SHAREM EMULATION']['windows_version']
@@ -19470,8 +19474,12 @@ def SharemSearchConfig(conr):
 		shellEntry = int(conr['SHAREM SEARCH']['shellEntry'], 16)
 	try:
 		em.entryOffset = shellEntry
-	except:
-		print ("Config error: emu object not initialized.")
+	# except:
+	except Exception as e:
+
+		print ("Config error: emu object not initialized. 2")
+		print (e)
+		print(traceback.format_exc())
 	try:
 		bytesForward = int(conr['SHAREM SEARCH']['max_bytes_forward'])
 	except:
@@ -19607,8 +19615,7 @@ def patternConf(conr):
 
 
 def readConf():
-	
-	
+
 	
 	con = Configuration(conFile)
 	conr = con.readConf()
@@ -19756,6 +19763,7 @@ def discoverStackStrings(max_len=None):
 class emulationOptions:
 	def __init__(self):
 		self.verbose = False
+		self.timeless_debugging_stack = False
 		self.maxEmuInstr = 500000
 		self.cpuArch = 32
 		self.breakLoop = True
@@ -19901,6 +19909,13 @@ def emulationSubmenu():
 		elif choice == "v":
 			print ("\tVerbosity changed.\n")
 			emuObj.verbose = not emuObj.verbose
+		elif choice == "t":
+			if em.timeless_debugging_stack == False:
+				print ("\tStack timeless debugging enabled.\n")
+			else:
+				print ("\tStack timeless debugging disabled.\n")
+			emuObj.timeless_debugging_stack = not emuObj.timeless_debugging_stack
+			em.timeless_debugging_stack = not em.timeless_debugging_stack
 		elif choice == "w":
 			print ("\tPrint style of artifacts changed.\n")
 			emulation_multiline = not emulation_multiline

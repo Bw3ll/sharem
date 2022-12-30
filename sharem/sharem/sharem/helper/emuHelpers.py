@@ -16,6 +16,271 @@ import binascii
 from pathlib import Path
 import sys
 
+
+class timelessD:
+    def __init__(self, pc):
+        # self.esp=0
+        # self.esp_4=0
+        # self.esp_8=0
+        # self.esp_c=0
+        # self.esp_0x10=0
+        # self.esp_0x14=0
+        # self.esp_0x18=0
+        # self.esp_0x1c=0
+        # self.esp_0x20=0
+        # self.esp_0x24=0
+        # self.esp_0x28=0
+        # self.esp_0x2c=0
+        # self.esp_0x30=0
+        # self.esp_0x34=0
+        # self.esp_0x38=0
+        # self.esp_0x3c=0
+        # self.esp_0x40=0
+        # self.esp_0x44=0
+        # self.esp_0x48=0
+        # self.esp_0x4c=0
+        # self.esp_0x50=0
+        # self.esp_0x54=0
+        # self.esp_0x58=0
+        # self.esp_0x5c=0
+        # self.esp_0x60=0
+        # self.esp_0x64=0
+        # self.esp_0x68=0
+        # self.esp_0x6c=0
+        # self.esp_0x70=0
+        # self.esp_0x74=0
+        # self.esp_0x78=0
+        # self.esp_0x7c=0
+        # self.esp_0x80=0
+        # self.esp_0x84=0
+        # self.esp_0x88=0
+        # self.esp_0x8c=0
+        # self.esp_0x90=0
+        # self.esp_0x94=0
+        # self.esp_0x98=0
+        # self.esp_0x9c=0
+        # self.esp_0xa0=0
+        # self.esp_neg_4=0
+        # self.esp_neg_8=0
+        # self.esp_neg_c=0
+        # self.esp_neg_0x10=0
+        # self.esp_neg_0x14=0
+        # self.esp_neg_0x18=0
+        # self.esp_neg_0x1c=0
+        # self.esp_neg_0x20=0
+        # self.esp_neg_0x24=0
+        # self.esp_neg_0x28=0
+        # self.esp_neg_0x2c=0
+        # self.esp_neg_0x30=0
+        # self.esp_neg_0x34=0
+        # self.esp_neg_0x38=0
+        # self.esp_neg_0x3c=0
+        # self.esp_neg_0x40=0
+        # self.esp_neg_0x44=0
+        # self.esp_neg_0x48=0
+        # self.esp_neg_0x4c=0
+        # self.esp_neg_0x50=0
+        # self.esp_neg_0x54=0
+        # self.esp_neg_0x58=0
+        # self.esp_neg_0x5c=0
+        # self.esp_neg_0x60=0
+        # self.esp_neg_0x64=0
+        # self.esp_neg_0x68=0
+        # self.esp_neg_0x6c=0
+        # self.esp_neg_0x70=0
+        # self.esp_neg_0x74=0
+        # self.esp_neg_0x78=0
+        # self.esp_neg_0x7c=0
+        # self.esp_neg_0x80=0
+        # self.esp_neg_0x84=0
+        # self.esp_neg_0x88=0
+        # self.esp_neg_0x8c=0
+        # self.esp_neg_0x90=0
+        # self.esp_neg_0x94=0
+        # self.esp_neg_0x98=0
+        # self.esp_neg_0x9c=0
+        # self.esp_neg_0xa0=0
+        # self.rsp=0
+        # self.rsp_8=0
+        # self.rsp_0x10=0
+        # self.rsp_0x18=0
+        # self.rsp_0x20=0
+        # self.rsp_0x28=0
+        # self.rsp_0x30=0
+        # self.rsp_0x38=0
+        # self.rsp_0x40=0
+        # self.rsp_0x48=0
+        # self.rsp_0x50=0
+        # self.rsp_0x58=0
+        # self.rsp_0x60=0
+        # self.rsp_0x68=0
+        # self.rsp_0x70=0
+        # self.rsp_0x78=0
+        # self.rsp_0x80=0
+        # self.rsp_0x88=0
+        # self.rsp_0x90=0
+        # self.rsp_0x98=0
+        # self.rsp_0xa0=0
+        # self.rsp_neg_8=0
+        # self.rsp_neg_0x10=0
+        # self.rsp_neg_0x18=0
+        # self.rsp_neg_0x20=0
+        # self.rsp_neg_0x28=0
+        # self.rsp_neg_0x30=0
+        # self.rsp_neg_0x38=0
+        # self.rsp_neg_0x40=0
+        # self.rsp_neg_0x48=0
+        # self.rsp_neg_0x50=0
+        # self.rsp_neg_0x58=0
+        # self.rsp_neg_0x60=0
+        # self.rsp_neg_0x68=0
+        # self.rsp_neg_0x70=0
+        # self.rsp_neg_0x78=0
+        # self.rsp_neg_0x80=0
+        # self.rsp_neg_0x88=0
+        # self.rsp_neg_0x90=0
+        # self.rsp_neg_0x98=0
+        # self.rsp_neg_0xa0=0
+        self.id=pc
+        self.arch=32
+        self.stackDict={}
+        self.start =0
+        self.asssemblyInst=""
+
+    def giveVal3(self,uc, esp,memReadVal, stack,start, asssemblyInst):
+        self.stackDict=stack
+        self.start=start
+        self.asssemblyInst = asssemblyInst
+        # print (self.stackDict)
+
+    def giveVal2(self,uc, esp,memReadVal):
+        self.esp_neg_0xa0 =  int.from_bytes(uc.mem_read(esp-0xa0,memReadVal), "little")
+        self.esp_neg_0x9c =  int.from_bytes(uc.mem_read(esp-0x9c,memReadVal), "little")
+        self.esp_neg_0x98 =  int.from_bytes(uc.mem_read(esp-0x98,memReadVal), "little")
+        self.esp_neg_0x94 =  int.from_bytes(uc.mem_read(esp-0x94,memReadVal), "little")
+        self.esp_neg_0x90 =  int.from_bytes(uc.mem_read(esp-0x90,memReadVal), "little")
+        self.esp_neg_0x8c =  int.from_bytes(uc.mem_read(esp-0x8c,memReadVal), "little")
+        self.esp_neg_0x88 =  int.from_bytes(uc.mem_read(esp-0x88,memReadVal), "little")
+        self.esp_neg_0x84 =  int.from_bytes(uc.mem_read(esp-0x84,memReadVal), "little")
+        self.esp_neg_0x80 =  int.from_bytes(uc.mem_read(esp-0x80,memReadVal), "little")
+        self.esp_neg_0x7c =  int.from_bytes(uc.mem_read(esp-0x7c,memReadVal), "little")
+        self.esp_neg_0x78 =  int.from_bytes(uc.mem_read(esp-0x78,memReadVal), "little")
+        self.esp_neg_0x74 =  int.from_bytes(uc.mem_read(esp-0x74,memReadVal), "little")
+        self.esp_neg_0x70 =  int.from_bytes(uc.mem_read(esp-0x70,memReadVal), "little")
+        self.esp_neg_0x6c =  int.from_bytes(uc.mem_read(esp-0x6c,memReadVal), "little")
+        self.esp_neg_0x68 =  int.from_bytes(uc.mem_read(esp-0x68,memReadVal), "little")
+        self.esp_neg_0x64 =  int.from_bytes(uc.mem_read(esp-0x64,memReadVal), "little")
+        self.esp_neg_0x60 =  int.from_bytes(uc.mem_read(esp-0x60,memReadVal), "little")
+        self.esp_neg_0x5c =  int.from_bytes(uc.mem_read(esp-0x5c,memReadVal), "little")
+        self.esp_neg_0x58 =  int.from_bytes(uc.mem_read(esp-0x58,memReadVal), "little")
+        self.esp_neg_0x54 =  int.from_bytes(uc.mem_read(esp-0x54,memReadVal), "little")
+        self.esp_neg_0x50 =  int.from_bytes(uc.mem_read(esp-0x50,memReadVal), "little")
+        self.esp_neg_0x4c =  int.from_bytes(uc.mem_read(esp-0x4c,memReadVal), "little")
+        self.esp_neg_0x48 =  int.from_bytes(uc.mem_read(esp-0x48,memReadVal), "little")
+        self.esp_neg_0x44 =  int.from_bytes(uc.mem_read(esp-0x44,memReadVal), "little")
+        self.esp_neg_0x40 =  int.from_bytes(uc.mem_read(esp-0x40,memReadVal), "little")
+        self.esp_neg_0x3c =  int.from_bytes(uc.mem_read(esp-0x3c,memReadVal), "little")
+        self.esp_neg_0x38 =  int.from_bytes(uc.mem_read(esp-0x38,memReadVal), "little")
+        self.esp_neg_0x34 =  int.from_bytes(uc.mem_read(esp-0x34,memReadVal), "little")
+        self.esp_neg_0x30 =  int.from_bytes(uc.mem_read(esp-0x30,memReadVal), "little")
+        self.esp_neg_0x2c =  int.from_bytes(uc.mem_read(esp-0x2c,memReadVal), "little")
+        self.esp_neg_0x28 =  int.from_bytes(uc.mem_read(esp-0x28,memReadVal), "little")
+        self.esp_neg_0x24 =  int.from_bytes(uc.mem_read(esp-0x24,memReadVal), "little")
+        self.esp_neg_0x20 =  int.from_bytes(uc.mem_read(esp-0x20,memReadVal), "little")
+        self.esp_neg_0x1c =  int.from_bytes(uc.mem_read(esp-0x1c,memReadVal), "little")
+        self.esp_neg_0x18 =  int.from_bytes(uc.mem_read(esp-0x18,memReadVal), "little")
+        self.esp_neg_0x14 =  int.from_bytes(uc.mem_read(esp-0x14,memReadVal), "little")
+        self.esp_neg_0x10 =  int.from_bytes(uc.mem_read(esp-0x10,memReadVal), "little")
+        self.esp_neg_0xc =  int.from_bytes(uc.mem_read(esp-0xc,memReadVal), "little")
+        self.esp_neg_8 =  int.from_bytes(uc.mem_read(esp-8,memReadVal), "little")
+        self.esp_neg_4 =  int.from_bytes(uc.mem_read(esp-4,memReadVal), "little")
+        self.esp = int.from_bytes(uc.mem_read(esp,memReadVal), "little")
+        self.esp_4 =  int.from_bytes(uc.mem_read(esp+4,memReadVal), "little")
+        self.esp_8 =  int.from_bytes(uc.mem_read(esp+8,memReadVal), "little")
+        self.esp_c =  int.from_bytes(uc.mem_read(esp+0xc,memReadVal), "little")
+        self.esp_0x10 =   int.from_bytes(uc.mem_read(esp+0x10,memReadVal), "little")
+        self.esp_0x14 =   int.from_bytes(uc.mem_read(esp+0x14,memReadVal), "little")
+        self.esp_0x18 =   int.from_bytes(uc.mem_read(esp+0x18,memReadVal), "little")
+        self.esp_0x1c =   int.from_bytes(uc.mem_read(esp+0x1c,memReadVal), "little")
+        self.esp_0x20 =   int.from_bytes(uc.mem_read(esp+0x20,memReadVal), "little")
+        self.esp_0x24 =   int.from_bytes(uc.mem_read(esp+0x24,memReadVal), "little")
+        self.esp_0x28 =   int.from_bytes(uc.mem_read(esp+0x28,memReadVal), "little")
+        self.esp_0x2c =   int.from_bytes(uc.mem_read(esp+0x2c,memReadVal), "little")
+        self.esp_0x30 =   int.from_bytes(uc.mem_read(esp+0x30,memReadVal), "little")
+        self.esp_0x34 =   int.from_bytes(uc.mem_read(esp+0x34,memReadVal), "little")
+        self.esp_0x38 =   int.from_bytes(uc.mem_read(esp+0x38,memReadVal), "little")
+        self.esp_0x3c =   int.from_bytes(uc.mem_read(esp+0x3c,memReadVal), "little")
+        self.esp_0x40 =   int.from_bytes(uc.mem_read(esp+0x40,memReadVal), "little")
+        self.esp_0x44 =   int.from_bytes(uc.mem_read(esp+0x44,memReadVal), "little")
+        self.esp_0x48 =   int.from_bytes(uc.mem_read(esp+0x48,memReadVal), "little")
+        self.esp_0x4c =   int.from_bytes(uc.mem_read(esp+0x4c,memReadVal), "little")
+        self.esp_0x50 =   int.from_bytes(uc.mem_read(esp+0x50,memReadVal), "little")
+        self.esp_0x54 =   int.from_bytes(uc.mem_read(esp+0x54,memReadVal), "little")
+        self.esp_0x58 =   int.from_bytes(uc.mem_read(esp+0x58,memReadVal), "little")
+        self.esp_0x5c =   int.from_bytes(uc.mem_read(esp+0x5c,memReadVal), "little")
+        self.esp_0x60 =   int.from_bytes(uc.mem_read(esp+0x60,memReadVal), "little")
+        self.esp_0x64 =   int.from_bytes(uc.mem_read(esp+0x64,memReadVal), "little")
+        self.esp_0x68 =   int.from_bytes(uc.mem_read(esp+0x68,memReadVal), "little")
+        self.esp_0x6c =   int.from_bytes(uc.mem_read(esp+0x6c,memReadVal), "little")
+        self.esp_0x70 =   int.from_bytes(uc.mem_read(esp+0x70,memReadVal), "little")
+        self.esp_0x74 =   int.from_bytes(uc.mem_read(esp+0x74,memReadVal), "little")
+        self.esp_0x78 =   int.from_bytes(uc.mem_read(esp+0x78,memReadVal), "little")
+        self.esp_0x7c =   int.from_bytes(uc.mem_read(esp+0x7c,memReadVal), "little")
+        self.esp_0x80 =   int.from_bytes(uc.mem_read(esp+0x80,memReadVal), "little")
+        self.esp_0x84 =   int.from_bytes(uc.mem_read(esp+0x84,memReadVal), "little")
+        self.esp_0x88 =   int.from_bytes(uc.mem_read(esp+0x88,memReadVal), "little")
+        self.esp_0x8c =   int.from_bytes(uc.mem_read(esp+0x8c,memReadVal), "little")
+        self.esp_0x90 =   int.from_bytes(uc.mem_read(esp+0x90,memReadVal), "little")
+        self.esp_0x94 =   int.from_bytes(uc.mem_read(esp+0x94,memReadVal), "little")
+        self.esp_0x98 =   int.from_bytes(uc.mem_read(esp+0x98,memReadVal), "little")
+        self.esp_0x9c = int.from_bytes(uc.mem_read(esp+0x9c,memReadVal), "little")
+        self.esp_0xa0 =  int.from_bytes(uc.mem_read(esp+0xa0,memReadVal), "little")
+
+    def giveVal2_64(self,uc, rsp,memReadVal):
+        self.rsp_neg_0xa0 =  int.from_bytes(uc.mem_read(rsp-0xa0,memReadVal), "little")
+        self.rsp_neg_0x98 =  int.from_bytes(uc.mem_read(rsp-0x98,memReadVal), "little")
+        self.rsp_neg_0x90 =  int.from_bytes(uc.mem_read(rsp-0x90,memReadVal), "little")
+        self.rsp_neg_0x88 =  int.from_bytes(uc.mem_read(rsp-0x88,memReadVal), "little")
+        self.rsp_neg_0x80 =  int.from_bytes(uc.mem_read(rsp-0x80,memReadVal), "little")
+        self.rsp_neg_0x78 =  int.from_bytes(uc.mem_read(rsp-0x78,memReadVal), "little")
+        self.rsp_neg_0x70 =  int.from_bytes(uc.mem_read(rsp-0x70,memReadVal), "little")
+        self.rsp_neg_0x68 =  int.from_bytes(uc.mem_read(rsp-0x68,memReadVal), "little")
+        self.rsp_neg_0x60 =  int.from_bytes(uc.mem_read(rsp-0x60,memReadVal), "little")
+        self.rsp_neg_0x58 =  int.from_bytes(uc.mem_read(rsp-0x58,memReadVal), "little")
+        self.rsp_neg_0x50 =  int.from_bytes(uc.mem_read(rsp-0x50,memReadVal), "little")
+        self.rsp_neg_0x48 =  int.from_bytes(uc.mem_read(rsp-0x48,memReadVal), "little")
+        self.rsp_neg_0x40 =  int.from_bytes(uc.mem_read(rsp-0x40,memReadVal), "little")
+        self.rsp_neg_0x38 =  int.from_bytes(uc.mem_read(rsp-0x38,memReadVal), "little")
+        self.rsp_neg_0x30 =  int.from_bytes(uc.mem_read(rsp-0x30,memReadVal), "little")
+        self.rsp_neg_0x28 =  int.from_bytes(uc.mem_read(rsp-0x28,memReadVal), "little")
+        self.rsp_neg_0x20 =  int.from_bytes(uc.mem_read(rsp-0x20,memReadVal), "little")
+        self.rsp_neg_0x18 =  int.from_bytes(uc.mem_read(rsp-0x18,memReadVal), "little")
+        self.rsp_neg_0x10 =  int.from_bytes(uc.mem_read(rsp-0x10,memReadVal), "little")
+        self.rsp_neg_8 =  int.from_bytes(uc.mem_read(rsp-8,memReadVal), "little")
+        self.rsp = int.from_bytes(uc.mem_read(rsp,memReadVal), "little")
+        self.rsp_8 =  int.from_bytes(uc.mem_read(rsp+8,memReadVal), "little")
+        self.rsp_0x10 =   int.from_bytes(uc.mem_read(rsp+0x10,memReadVal), "little")
+        self.rsp_0x18 =   int.from_bytes(uc.mem_read(rsp+0x18,memReadVal), "little")
+        self.rsp_0x20 =   int.from_bytes(uc.mem_read(rsp+0x20,memReadVal), "little")
+        self.rsp_0x28 =   int.from_bytes(uc.mem_read(rsp+0x28,memReadVal), "little")
+        self.rsp_0x30 =   int.from_bytes(uc.mem_read(rsp+0x30,memReadVal), "little")
+        self.rsp_0x38 =   int.from_bytes(uc.mem_read(rsp+0x38,memReadVal), "little")
+        self.rsp_0x40 =   int.from_bytes(uc.mem_read(rsp+0x40,memReadVal), "little")
+        self.rsp_0x48 =   int.from_bytes(uc.mem_read(rsp+0x48,memReadVal), "little")
+        self.rsp_0x50 =   int.from_bytes(uc.mem_read(rsp+0x50,memReadVal), "little")
+        self.rsp_0x58 =   int.from_bytes(uc.mem_read(rsp+0x58,memReadVal), "little")
+        self.rsp_0x60 =   int.from_bytes(uc.mem_read(rsp+0x60,memReadVal), "little")
+        self.rsp_0x68 =   int.from_bytes(uc.mem_read(rsp+0x68,memReadVal), "little")
+        self.rsp_0x70 =   int.from_bytes(uc.mem_read(rsp+0x70,memReadVal), "little")
+        self.rsp_0x78 =   int.from_bytes(uc.mem_read(rsp+0x78,memReadVal), "little")
+        self.rsp_0x80 =   int.from_bytes(uc.mem_read(rsp+0x80,memReadVal), "little")
+        self.rsp_0x88 =   int.from_bytes(uc.mem_read(rsp+0x88,memReadVal), "little")
+        self.rsp_0x90 =   int.from_bytes(uc.mem_read(rsp+0x90,memReadVal), "little")
+        self.rsp_0x98 =   int.from_bytes(uc.mem_read(rsp+0x98,memReadVal), "little")
+        self.rsp_0xa0 =  int.from_bytes(uc.mem_read(rsp+0xa0,memReadVal), "little")
+
+tdsList=[]
+
 def read_unicode(uc, address):
     ret = ""
     c = uc.mem_read(address, 1)[0]
@@ -47,6 +312,128 @@ def giveRegs(uc, arch):
             instructLine += f"{regName}: {hex(regVal)} "
         instructLine += "\n"
         return instructLine
+
+def giveStackClass(uc, arch, pc, asssemblyInst):
+    global tdsList
+    tDeb = timelessD(pc)
+    tdsList.append(tDeb)
+    stackVals={}
+    if arch == 32:
+        esp_4=UC_X86_REG_ESP-4
+        start=  uc.reg_read(UC_X86_REG_ESP)
+        eip = uc.reg_read(UC_X86_REG_EIP)
+        esp = uc.reg_read(UC_X86_REG_ESP)
+        memReadVal=4
+        ESPs = {"esp-0xa0":  int.from_bytes(uc.mem_read(esp-0xa0,4), "little"), "esp-0x9c":  int.from_bytes(uc.mem_read(esp-0x9c,4), "little"), "esp-0x98":  int.from_bytes(uc.mem_read(esp-0x98,4), "little"), "esp-0x94":  int.from_bytes(uc.mem_read(esp-0x94,4), "little"), "esp-0x90":  int.from_bytes(uc.mem_read(esp-0x90,4), "little"), "esp-0x8c":  int.from_bytes(uc.mem_read(esp-0x8c,4), "little"), "esp-0x88":  int.from_bytes(uc.mem_read(esp-0x88,4), "little"), "esp-0x84":  int.from_bytes(uc.mem_read(esp-0x84,4), "little"), "esp-0x80":  int.from_bytes(uc.mem_read(esp-0x80,4), "little"), "esp-0x7c":  int.from_bytes(uc.mem_read(esp-0x7c,4), "little"), "esp-0x78":  int.from_bytes(uc.mem_read(esp-0x78,4), "little"), "esp-0x74":  int.from_bytes(uc.mem_read(esp-0x74,4), "little"), "esp-0x70":  int.from_bytes(uc.mem_read(esp-0x70,4), "little"), "esp-0x6c":  int.from_bytes(uc.mem_read(esp-0x6c,4), "little"), "esp-0x68":  int.from_bytes(uc.mem_read(esp-0x68,4), "little"), "esp-0x64":  int.from_bytes(uc.mem_read(esp-0x64,4), "little"), "esp-0x60":  int.from_bytes(uc.mem_read(esp-0x60,4), "little"), "esp-0x5c":  int.from_bytes(uc.mem_read(esp-0x5c,4), "little"), "esp-0x58":  int.from_bytes(uc.mem_read(esp-0x58,4), "little"), "esp-0x54":  int.from_bytes(uc.mem_read(esp-0x54,4), "little"), "esp-0x50":  int.from_bytes(uc.mem_read(esp-0x50,4), "little"), "esp-0x4c":  int.from_bytes(uc.mem_read(esp-0x4c,4), "little"), "esp-0x48":  int.from_bytes(uc.mem_read(esp-0x48,4), "little"), "esp-0x44":  int.from_bytes(uc.mem_read(esp-0x44,4), "little"), "esp-0x40":  int.from_bytes(uc.mem_read(esp-0x40,4), "little"), "esp-0x3c":  int.from_bytes(uc.mem_read(esp-0x3c,4), "little"), "esp-0x38":  int.from_bytes(uc.mem_read(esp-0x38,4), "little"), "esp-0x34":  int.from_bytes(uc.mem_read(esp-0x34,4), "little"), "esp-0x30":  int.from_bytes(uc.mem_read(esp-0x30,4), "little"), "esp-0x2c":  int.from_bytes(uc.mem_read(esp-0x2c,4), "little"), "esp-0x28":  int.from_bytes(uc.mem_read(esp-0x28,4), "little"), "esp-0x24":  int.from_bytes(uc.mem_read(esp-0x24,4), "little"), "esp-0x20":  int.from_bytes(uc.mem_read(esp-0x20,4), "little"), "esp-0x1c":  int.from_bytes(uc.mem_read(esp-0x1c,4), "little"), "esp-0x18":  int.from_bytes(uc.mem_read(esp-0x18,4), "little"), "esp-0x14":  int.from_bytes(uc.mem_read(esp-0x14,4), "little"), "esp-0x10":  int.from_bytes(uc.mem_read(esp-0x10,4), "little"), "esp-0xc":   int.from_bytes(uc.mem_read(esp-0xc,4), "little"), "esp-0x8":   int.from_bytes(uc.mem_read(esp-8,4), "little"), "esp-0x4":   int.from_bytes(uc.mem_read(esp-4,4), "little"), "esp     ": int.from_bytes(uc.mem_read(esp,4), "little"), "esp+0x4":   int.from_bytes(uc.mem_read(esp+4,4), "little"), "esp+0x8":   int.from_bytes(uc.mem_read(esp+8,4), "little"), "esp+0xc":   int.from_bytes(uc.mem_read(esp+0xc,4), "little"), "esp+0x10": int.from_bytes(uc.mem_read(esp+0x10,4), "little"), "esp+0x14": int.from_bytes(uc.mem_read(esp+0x14,4), "little"), "esp+0x18": int.from_bytes(uc.mem_read(esp+0x18,4), "little"), "esp+0x1c": int.from_bytes(uc.mem_read(esp+0x1c,4), "little"), "esp+0x20": int.from_bytes(uc.mem_read(esp+0x20,4), "little"), "esp+0x24": int.from_bytes(uc.mem_read(esp+0x24,4), "little"), "esp+0x28": int.from_bytes(uc.mem_read(esp+0x28,4), "little"), "esp+0x2c": int.from_bytes(uc.mem_read(esp+0x2c,4), "little"), "esp+0x30": int.from_bytes(uc.mem_read(esp+0x30,4), "little"), "esp+0x34": int.from_bytes(uc.mem_read(esp+0x34,4), "little"), "esp+0x38": int.from_bytes(uc.mem_read(esp+0x38,4), "little"), "esp+0x3c": int.from_bytes(uc.mem_read(esp+0x3c,4), "little"), "esp+0x40": int.from_bytes(uc.mem_read(esp+0x40,4), "little"), "esp+0x44": int.from_bytes(uc.mem_read(esp+0x44,4), "little"), "esp+0x48": int.from_bytes(uc.mem_read(esp+0x48,4), "little"), "esp+0x4c": int.from_bytes(uc.mem_read(esp+0x4c,4), "little"), "esp+0x50": int.from_bytes(uc.mem_read(esp+0x50,4), "little"), "esp+0x54": int.from_bytes(uc.mem_read(esp+0x54,4), "little"), "esp+0x58": int.from_bytes(uc.mem_read(esp+0x58,4), "little"), "esp+0x5c": int.from_bytes(uc.mem_read(esp+0x5c,4), "little"), "esp+0x60": int.from_bytes(uc.mem_read(esp+0x60,4), "little"), "esp+0x64": int.from_bytes(uc.mem_read(esp+0x64,4), "little"), "esp+0x68": int.from_bytes(uc.mem_read(esp+0x68,4), "little"), "esp+0x6c": int.from_bytes(uc.mem_read(esp+0x6c,4), "little"), "esp+0x70": int.from_bytes(uc.mem_read(esp+0x70,4), "little"), "esp+0x74": int.from_bytes(uc.mem_read(esp+0x74,4), "little"), "esp+0x78": int.from_bytes(uc.mem_read(esp+0x78,4), "little"), "esp+0x7c": int.from_bytes(uc.mem_read(esp+0x7c,4), "little"), "esp+0x80": int.from_bytes(uc.mem_read(esp+0x80,4), "little"), "esp+0x84": int.from_bytes(uc.mem_read(esp+0x84,4), "little"), "esp+0x88": int.from_bytes(uc.mem_read(esp+0x88,4), "little"), "esp+0x8c": int.from_bytes(uc.mem_read(esp+0x8c,4), "little"), "esp+0x90": int.from_bytes(uc.mem_read(esp+0x90,4), "little"), "esp+0x94": int.from_bytes(uc.mem_read(esp+0x94,4), "little"), "esp+0x98": int.from_bytes(uc.mem_read(esp+0x98,4), "little"), "esp+0x9c": int.from_bytes(uc.mem_read(esp+0x9c,4), "little")}
+        stackVals=ESPs.items()
+        stackP=esp
+    elif arch == 64:
+        start=  uc.reg_read(UC_X86_REG_RSP)
+        eip = uc.reg_read(UC_X86_REG_EIP)
+        rsp = uc.reg_read(UC_X86_REG_RSP)
+        memReadVal=8
+        RSPs = {"rsp-0xa0":  int.from_bytes(uc.mem_read(rsp-0xa0,8), "little"),"rsp-0x98":  int.from_bytes(uc.mem_read(rsp-0x98,8), "little"),"rsp-0x90":  int.from_bytes(uc.mem_read(rsp-0x90,8), "little"),"rsp-0x88":  int.from_bytes(uc.mem_read(rsp-0x88,8), "little"),"rsp-0x80":  int.from_bytes(uc.mem_read(rsp-0x80,8), "little"),"rsp-0x78":  int.from_bytes(uc.mem_read(rsp-0x78,8), "little"),"rsp-0x70":  int.from_bytes(uc.mem_read(rsp-0x70,8), "little"),"rsp-0x68":  int.from_bytes(uc.mem_read(rsp-0x68,8), "little"),"rsp-0x60":  int.from_bytes(uc.mem_read(rsp-0x60,8), "little"),"rsp-0x58":  int.from_bytes(uc.mem_read(rsp-0x58,8), "little"),"rsp-0x50":  int.from_bytes(uc.mem_read(rsp-0x50,8), "little"),"rsp-0x48":  int.from_bytes(uc.mem_read(rsp-0x48,8), "little"),"rsp-0x40":  int.from_bytes(uc.mem_read(rsp-0x40,8), "little"),"rsp-0x38":  int.from_bytes(uc.mem_read(rsp-0x38,8), "little"),"rsp-0x30":  int.from_bytes(uc.mem_read(rsp-0x30,8), "little"),"rsp-0x28":  int.from_bytes(uc.mem_read(rsp-0x28,8), "little"),"rsp-0x20":  int.from_bytes(uc.mem_read(rsp-0x20,8), "little"),"rsp-0x18":  int.from_bytes(uc.mem_read(rsp-0x18,8), "little"),"rsp-0x10":  int.from_bytes(uc.mem_read(rsp-0x10,8), "little"),"rsp-0x8":   int.from_bytes(uc.mem_read(rsp-8,8), "little"),"rsp     ": int.from_bytes(uc.mem_read(rsp,8), "little"),"rsp+0x8":   int.from_bytes(uc.mem_read(rsp+8,8), "little"),"rsp+0x10": int.from_bytes(uc.mem_read(rsp+0x10,8), "little"),"rsp+0x18": int.from_bytes(uc.mem_read(rsp+0x18,8), "little"),"rsp+0x20": int.from_bytes(uc.mem_read(rsp+0x20,8), "little"),"rsp+0x28": int.from_bytes(uc.mem_read(rsp+0x28,8), "little"),"rsp+0x30": int.from_bytes(uc.mem_read(rsp+0x30,8), "little"),"rsp+0x38": int.from_bytes(uc.mem_read(rsp+0x38,8), "little"),"rsp+0x40": int.from_bytes(uc.mem_read(rsp+0x40,8), "little"),"rsp+0x48": int.from_bytes(uc.mem_read(rsp+0x48,8), "little"),"rsp+0x50": int.from_bytes(uc.mem_read(rsp+0x50,8), "little"),"rsp+0x58": int.from_bytes(uc.mem_read(rsp+0x58,8), "little"),"rsp+0x60": int.from_bytes(uc.mem_read(rsp+0x60,8), "little"),"rsp+0x68": int.from_bytes(uc.mem_read(rsp+0x68,8), "little"),"rsp+0x70": int.from_bytes(uc.mem_read(rsp+0x70,8), "little"),"rsp+0x78": int.from_bytes(uc.mem_read(rsp+0x78,8), "little"),"rsp+0x80": int.from_bytes(uc.mem_read(rsp+0x80,8), "little"),"rsp+0x88": int.from_bytes(uc.mem_read(rsp+0x88,8), "little"),"rsp+0x90": int.from_bytes(uc.mem_read(rsp+0x90,8), "little"),"rsp+0x98": int.from_bytes(uc.mem_read(rsp+0x98,8), "little")}
+        stackVals=RSPs.items()
+        stackP=rsp
+    # tDeb.giveVal2_64(uc,stackP, memReadVal)
+    tDeb.giveVal3(uc,stackP, memReadVal, stackVals,start, asssemblyInst)
+    return
+
+def createStackOutput(arch):
+    print ("createStackOutput")
+    global tdsList
+    instructLine =""
+    stackFile2 = open(os.path.join(os.path.dirname(__file__), '../stackLog.txt'), 'w')
+    if arch == 64:
+        numGroupings=4
+        formatVal="{:016x} "
+    elif arch == 32:
+        numGroupings=8
+        formatVal="{:08x} "
+    w=0
+    for tds in tdsList:
+
+        t=0
+        if w % 500 == 0:
+            print (w)
+        w=w+1
+        start=tds.start
+        for stack in tds.stackDict:
+            stackName=stack[0] 
+            stackVal=stack[1]
+            if t % numGroupings==0: 
+                instructLine += f"\t{stackName} > " + "{0:x}: ".format(start+t)
+            instructLine +=formatVal.format(stackVal)
+            t=t+1
+            if t % numGroupings==0: 
+                instructLine+="\n"
+        instructLine+="\n"+str(tds.id) + ":  " + tds.asssemblyInst + "\n"
+    # print (instructLine)
+    stackFile2.write(instructLine)
+    stackFile2.close()
+
+def giveStack(uc, arch):
+    instructLine = "\n "
+    if arch == 32:
+        esp_4=UC_X86_REG_ESP-4
+        start=  uc.reg_read(UC_X86_REG_ESP)
+        eip = uc.reg_read(UC_X86_REG_EIP)
+        esp = uc.reg_read(UC_X86_REG_ESP)
+        ESPs = {"esp-0xa0": esp-0xa0, "esp-0x9c": esp-0x9c, "esp-0x98": esp-0x98, "esp-0x94": esp-0x94, "esp-0x90": esp-0x90, "esp-0x8c": esp-0x8c, "esp-0x88": esp-0x88, "esp-0x84": esp-0x84, "esp-0x80": esp-0x80, "esp-0x7c": esp-0x7c, "esp-0x78": esp-0x78, "esp-0x74": esp-0x74, "esp-0x70": esp-0x70, "esp-0x6c": esp-0x6c, "esp-0x68": esp-0x68, "esp-0x64": esp-0x64, "esp-0x60": esp-0x60, "esp-0x5c": esp-0x5c, "esp-0x58": esp-0x58, "esp-0x54": esp-0x54, "esp-0x50": esp-0x50, "esp-0x4c": esp-0x4c, "esp-0x48": esp-0x48, "esp-0x44": esp-0x44, "esp-0x40": esp-0x40, "esp-0x3c": esp-0x3c, "esp-0x38": esp-0x38, "esp-0x34": esp-0x34, "esp-0x30": esp-0x30, "esp-0x2c": esp-0x2c, "esp-0x28": esp-0x28, "esp-0x24": esp-0x24, "esp-0x20": esp-0x20, "esp-0x1c": esp-0x1c, "esp-0x18": esp-0x18, "esp-0x14": esp-0x14, "esp-0x10": esp-0x10, "esp-0xc": esp-0xc, "esp-0x8": esp-8, "esp-0x4": esp-4,"esp     ": esp, "esp+0x4": esp+4,"esp+0x8": esp+8, "esp+0xc": esp+0xc,"esp+0x10": esp+0x10,"esp+0x14": esp+0x14,"esp+0x18": esp+0x18,"esp+0x1c": esp+0x1c,"esp+0x20": esp+0x20,"esp+0x24": esp+0x24,"esp+0x28": esp+0x28,"esp+0x2c": esp+0x2c,"esp+0x30": esp+0x30,"esp+0x34": esp+0x34,"esp+0x38": esp+0x38,"esp+0x3c": esp+0x3c,"esp+0x40": esp+0x40,"esp+0x44": esp+0x44,"esp+0x48": esp+0x48,"esp+0x4c": esp+0x4c,"esp+0x50": esp+0x50,"esp+0x54": esp+0x54,"esp+0x58": esp+0x58,"esp+0x5c": esp+0x5c,"esp+0x60": esp+0x60,"esp+0x64": esp+0x64,"esp+0x68": esp+0x68,"esp+0x6c": esp+0x6c,"esp+0x70": esp+0x70,"esp+0x74": esp+0x74,"esp+0x78": esp+0x78,"esp+0x7c": esp+0x7c,"esp+0x80": esp+0x80,"esp+0x84": esp+0x84,"esp+0x88": esp+0x88,"esp+0x8c": esp+0x8c,"esp+0x90": esp+0x90,"esp+0x94": esp+0x94,"esp+0x98": esp+0x98,"esp+0x9c": esp+0x9c}
+    elif arch == 64:
+        start=  uc.reg_read(UC_X86_REG_RSP)
+        eip = uc.reg_read(UC_X86_REG_EIP)
+        rsp = uc.reg_read(UC_X86_REG_RSP)
+        RSPs={"rsp-0xa0": rsp-0xa0,  "rsp-0x98": rsp-0x98,  "rsp-0x90": rsp-0x90,  "rsp-0x88": rsp-0x88,  "rsp-0x80": rsp-0x80,  "rsp-0x78": rsp-0x78, "rsp-0x70": rsp-0x70,  "rsp-0x68": rsp-0x68,  "rsp-0x60": rsp-0x60,  "rsp-0x58": rsp-0x58,  "rsp-0x50": rsp-0x50,  "rsp-0x48": rsp-0x48,  "rsp-0x40": rsp-0x40, "rsp-0x38": rsp-0x38, "rsp-0x30": rsp-0x30, "rsp-0x28": rsp-0x28,  "rsp-0x20": rsp-0x20, "rsp-0x18": rsp-0x18,  "rsp-0x10": rsp-0x10,  "rsp-0x8": rsp-8, "rsp     ": rsp,"rsp+0x8": rsp+8,"rsp+0x10": rsp+0x10,"rsp+0x18": rsp+0x18,"rsp+0x20": rsp+0x20,"rsp+0x28": rsp+0x28,"rsp+0x30": rsp+0x30,"rsp+0x38": rsp+0x38,"rsp+0x40": rsp+0x40,"rsp+0x48": rsp+0x48,"rsp+0x50": rsp+0x50,"rsp+0x58": rsp+0x58,"rsp+0x60": rsp+0x60,"rsp+0x68": rsp+0x68,"rsp+0x70": rsp+0x70,"rsp+0x78": rsp+0x78,"rsp+0x80": rsp+0x80,"rsp+0x88": rsp+0x88,"rsp+0x90": rsp+0x90,"rsp+0x98": rsp+0x98}
+    if arch == 64:
+        stackVals=RSPs.items()
+        numGroupings=4
+        memReadVal=8
+        formatVal="{:016x} "
+        memSize=16
+    elif arch == 32:
+        stackVals=ESPs.items()
+        numGroupings=8
+        memReadVal=4
+        formatVal="{:08x} "
+        memSize=8
+    t=0
+
+    for regName, regConst in stackVals:
+        # regVal = uc.reg_read(regConst)
+        regVal = uc.mem_read(regConst,memReadVal)
+        regVal= int.from_bytes(regVal, "little")
+        # regval=hex(regVal)
+
+        # print (regName, type(regVal),regVal)
+        try:
+            if t % numGroupings==0 or t == 0: 
+                instructLine += f"\t{regName} > " + "{0:x}: ".format(start+(t*memSize))
+            # print ("regVal", regVal, type(regVal))
+            instructLine +=formatVal.format(regVal)
+            t=t+1
+            # print ("end", instructLine)
+        except Exception as e:
+            print ("Error: ", e)
+            print(traceback.format_exc())
+            if type(regVal) == tuple:
+                instructLine += f"{regName}: ???????? " 
+                instructLine += str(regVal)
+
+                t=t+1
+            else:
+                instructLine += f"{regName}: ?! "
+                t=t+1
+        if t % numGroupings==0: 
+            # print ("yes")
+            instructLine+="\n"
+    instructLine += "\n\n"
+    # regVal = uc.mem_read(0x16fffff0,400)
+    # print (regVal)
+    # print (instructLine)
+    # print ("eip", hex(eip), "rsp", hex(rsp), "\n\n")
+    return instructLine
+    
 
 def ord2(x):
     return x
@@ -105,6 +492,9 @@ def setBit (val, pos, newBit):
     return val
 
 def getBit (value, pos):
+    # ans= ((value >> pos & 1) != 0)
+    # print ("\tgetBit", ans, "value", value, "pos", pos)
+    # return ans
     return ((value >> pos & 1) != 0)
 
 def flipBit(val, pos):
@@ -373,6 +763,8 @@ def retEnding(uc, mnemonic):
         return False
 
 def boolFollowJump(jmpFlag, jmpType, eflags):
+    # print ("boolFollowJump jmpFlag", jmpFlag, "jmpType", jmpType, "zf", getBit(eflags, 6) )
+    
     # ZF Flag
     if jmpFlag == "zf":
         zf = getBit(eflags, 6)
