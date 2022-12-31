@@ -43,6 +43,7 @@ Documentation can be found at the [SHAREM Wiki](https://github.com/Bw3ll/sharem/
 * Nov. 25, 2022: Long overdue, we made some changes to support the [ShellWasp](https://github.com/Bw3ll/ShellWasp) style of syscalls. While we had previously implemented support for syscalls, the ShellWasp style would not work, only hardcoded SSNs (syscall values). The OSMajorVersion, OSMinorVersion, and OSBuild were initinialized for 32- and 64-bit. Whatever OS version the user has in the config or via UI will now be reflected internally - e.g. selecting Windows 10 20H2 would cause the correct values to be populated, allowing for the [ShellWasp](https://github.com/Bw3ll/ShellWasp) technique to work, as shown by this [sample output](https://github.com/Bw3ll/ShellWasp/blob/main/Samples/alternative_create_process_SHAREM_output.txt). Only Windows 7, 10, and 11 are supported for emualtion of ShellWasp technique at this time.
 * Nov. 29, 2022: Added emulation support for the new OSBuilds, 22H2 for Windows 10 and 11. This is only relevant for emulating Windows syscalls. Many minor bug fixes and quality of life improvements. Better distinction of features for when SHAREM is used for shellcode (its primary focus) and when used to analyze PE files.
 * Dec. 1, 2022: Changed default file location for output of bins/ASCII - moved to logs. Added the ability to output deobfuscated bins/ASCII with this command. Deobfuscated ASCII was added to the logs - the ASCII of the bin also appeared to be missing from the logs- - that has been corrected.
+* Dec. 29, 2022: I addedd an **optional timeless debugging for the stack** feature. Previously, timeless debugging only captured instructions executed and register values before and after. Now we can see +/- 0xA0 from ESP. Unfortunately, it is a bit **slow**. This must be enabled separately. Additionally, I discovered some bugs that gave incorrect results from breaking out of loops, which in some cases could cause an emulation to prematurely terminate. I have corrected this. I have also now had SHAREM output when it breaks out of loops, indicating where it goes, once it breaks out of a loop.
 
 # Screenshots
 SHAREM is a very powerful framework with numerous capabilities, some well documented, and some which are not. This section will showcase a small number of those capabilities. 
@@ -61,7 +62,7 @@ SHAREM also has the ability to download files via UrldownloadToFileA, if they ex
 
 
 # Co-Authors and Contributors
-Dr. Bramwell Brizendine, Austin Babcock, Jake Hince, Shelby VandenHoek, Sascha Walker, Tarek Abdelmotaleb, Evan Read, Dylan Park, Kade Brost, and Aaron Baker.
+Dr. Bramwell Brizendine, Austin Babcock, Jake Hince, Shelby VandenHoek, Sascha Walker, Tarek Abdelmotaleb, Evan Read, Dylan Park, and Kade Brost.
 
 # Acknowledgement
 This research and some co-authors have been supported by NSA Grant H98230-20-1-0326.
