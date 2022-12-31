@@ -100,6 +100,7 @@ class Coverage():
             self.stack = bytes(uc.mem_read(rsp, stack_bytes_len))
 
     def dump_saved_info(self, uc):
+        # print ("dump_saved_info")
         # Dump registers
         for reg, val in self.regs.items():
             set_register(uc, reg, val)
@@ -986,8 +987,8 @@ def test_i386(mode, code):
 
     except Exception as e:
         print("Emulation error: ", e)
+        print ("Last address:", hex(testAddy))
         print(traceback.format_exc())
-        print ("testAddy", hex(testAddy))
         # createStackOutput(arch)
 
 
