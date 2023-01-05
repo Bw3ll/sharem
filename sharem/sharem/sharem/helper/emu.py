@@ -17,6 +17,15 @@ class EMU(metaclass=Singleton):
         self.winVersion = "Windows 10"
         self.winSP = "2004"
         self.timeless_debugging_stack = False
+        self.restartCCInProgress=False
+        self.codeCoverageStackAmt=4000
+        self.writeToTempFile=False
+        self.StopExecutingAfterTraversed=True
+        self.displayNonTraversedCC=True
+        self.includeCallInCC=True
+        self.includeJmpInCC=False
+        self.excludeJmpCallCoverage=False
+        self.showCCDebugInfo=False
 
 
 class emulationOptions(metaclass=Singleton):

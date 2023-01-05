@@ -68,7 +68,7 @@ def showOptions(shellBit, rawHex, name,hMd5):
 		showType="PE file"
 		showType2="\n\tPE file: "
 	print(gre + banner() + res)
-	print (whi+"  Shellcode Analysis & Emulation Framework, v. 1.023"+res)
+	print (whi+"  Shellcode Analysis & Emulation Framework, v. 1.024"+res)
 	
 	print (gre+showType2+ cya+name+gre +"\tMd5: "+cya+hMd5+res)
 	optionsLabel = """
@@ -952,6 +952,83 @@ def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 
 	text += "\n"
 	print(text)
+
+
+def emuCodeCoverageUI():
+	# print(mag+"\tPlease note the setup.py MUST be run first before emulation will work!"+res)
+	text = gre+"\n\t\tComplete Code Coverage Submenu\n\n"+res
+	var = Variables()
+	em = var.emu
+	text +=red+"\tNote:"+res+" It is recommended to stick with the defaults for the first group of options.\n\n"
+	sizeStack = str(em.codeCoverageStackAmt) + " bytes"
+	
+	if em.showCCDebugInfo:
+		debugTog = "x"
+	else:
+		debugTog = " "
+
+	if em.writeToTempFile:
+		tempTog = "x"
+	else:
+		tempTog = " "
+
+	if em.StopExecutingAfterTraversed:
+		traversedTog = "x"
+	else:
+		traversedTog = " "
+
+	if em.displayNonTraversedCC:
+		colorCodeTog = "x"
+	else:
+		colorCodeTog = " "
+
+	if em.includeCallInCC:
+		callTog = "x"
+	else:
+		callTog = " "
+
+
+	if em.includeJmpInCC:
+		jmpTog = "x"
+	else:
+		jmpTog = " "
+
+
+	if em.excludeJmpCallCoverage:
+		excludeTog = "x"
+	else:
+		excludeTog = " "
+	
+	text += "  {}{:>2}[{}]\n".format(cya + "s"+res+" -"+yel+"  Size of "+mag+"ESP" + yel+" and "+mag+"EBP"+yel+" to save with each coverage object."+ res, "", cya + sizeStack+ res)
+
+	text += "  {}{:>1}[{}]\n".format(cya + "t"+res+" -"+yel+"  Stop emulation after revisiting already traversed code."+ res, "", cya + traversedTog+ res)
+
+	text += "\t{}\n".format(whi + "Emulation restarts with next coverage object." + res)
+	
+	text += "  {}{:>12} [{}]\n".format(cya + "c"+res+" -"+yel+"  Include "+mag+"CALL"+yel+" instructions in code coverage."+ res, "", cya + callTog+ res)
+	text += "  {}{:>13} [{}]\n".format(cya + "j"+res+" -"+yel+"  Include "+mag+"JMP"+yel+" instructions in code coverage."+ res, "", cya + jmpTog+ res)
+	text += "\t{}\n".format(whi + "Not recommended unless excluding addresses from coverage via JSON." + res)
+	text += "  {}{:>0} [{}]\n".format(cya + "e"+res+" -"+mag+"  Exclude addresses"+yel+" after JMP or CALL from code coverage."+ res, "", cya + excludeTog+ res)
+	text += "\t{}\n".format(whi + "Addresses to exclude must be specified via JSON." + res)
+
+	text += "  {}{:>24}[{}]\n".format(cya + "w"+res+" -"+yel+"  Write "+mag+"temporary file "+yel+"to hardisk."+ res, "", cya + tempTog+ res)
+	text += "\t{}\n".format(whi + "Likely only needed if memory problems." + res)
+
+
+	text += "\n\n  {}{:>8} [{}]\n".format(cya + "d"+res+" -"+yel+"  Display code coverage "+mag+"debugging info "+yel+"to screen."+ res, "", cya + debugTog+ res)
+	text += "  {}{:>7}[{}]\n".format(cya + "o"+res+" -"+yel+"  Show offsets for non-traversed code/data in "+cya+"cyan"+ yel
+		+ "."+res,"", cya + colorCodeTog+ res)
+
+	text += "  {}        \n".format(cya + "r"+res+" -"+yel+"  Reset to defaults."+ res)
+
+	text += "  {}        \n".format(cya + "h"+res+" -"+yel+"  Show this menu."+ res)
+
+	text += "  {}        \n".format(cya + "x"+res+" -"+yel+"  Exit - return to Emulator submenu."+ res)
+
+
+	text += "\n"
+	print(text)
+
 
 def emuSimValuesMenu():
 	conr = Configuration()

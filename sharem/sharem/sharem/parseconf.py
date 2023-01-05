@@ -170,6 +170,17 @@ class Configuration(metaclass=Singleton):
 		# self.simulatedValues_output_emulated_files = True
 		self.simulatedValues_download_files = False
 
+		#[COMPLETE CODE COVERAGE CCC]
+		self.ccctest = 333
+		self.CCC_stack_amount_to_save_for_each_CCC_object = 3333
+		self.CCC_write_to_temp_file_slower = False
+		self.stop_executing_after_revisiting_previously_traversed_instructions_if_emu_restarted_by_CCC = True
+		self.display_non_traversed_code_and_data_as_cyan_in_disassembly_if_CCC_used = True
+		self.display_CCC_Debug_info_on_screen = False
+		self.includeJmpInCC=False
+		self.excludeJmpCallCoverage=False
+
+
 	def readConf(self):
 		conf = configparser.RawConfigParser()
 		_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), self.cfgFile)
@@ -209,6 +220,10 @@ class Configuration(metaclass=Singleton):
 		sharem_emulation = self.config.items("SHAREM EMULATION")
 		sharem_disassembly = self.config.items("SHAREM DISASSEMBLY")
 		sharem_emuSimValues = self.config.items("SHAREM EMULATION SIMULATED VALUES")
+		sharem_emuCCC = self.config.items("COMPLETE CODE COVERAGE CCC")
+
+
+		# print ("\n\n\nsharem_emuCCC", sharem_emuCCC)
 
 		for key, val in self.args.items():
 			for x in sharem_search:
@@ -232,7 +247,10 @@ class Configuration(metaclass=Singleton):
 			for x in sharem_emuSimValues:
 				if key in x:
 					self.config["SHAREM EMULATION SIMULATED VALUES"][str(key)] = str(val)
-			
+			for x in sharem_emuCCC:
+				# print ("x",x, "key", key)
+				if key in x:
+					self.config["COMPLETE CODE COVERAGE CCC"][str(key)] = str(val)
 
 			# print("Key: ", key, "Val: ", val)
 			# print(vars(self.config))
@@ -415,7 +433,6 @@ class Configuration(metaclass=Singleton):
 	def emulationConf(self,conr):
 
 		print ("emulationConf")
-		input()
 		self.emulation_print_emulation_result = conr.getboolean('SHAREM EMULATION', 'print_emulation_result')
 		self.emulation_verbose_mode = conr.getboolean('SHAREM EMULATION', 'emulation_verbose_mode')
 		self.emulation_multiline = conr.getboolean('SHAREM EMULATION', 'emulation_multiline')

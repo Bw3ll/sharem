@@ -26,7 +26,7 @@ import os
 import colorama
 import traceback
 
-testAddy=0
+finalAddress=0
 # from sharemuDeob import *
 
 # class EMU():
@@ -65,55 +65,123 @@ class EMU():        #### see EMU note below
 
 
 class Coverage():
-    def __init__(self, uc):
-        self.address = 0x0
+    def __init__(self, uc, address):
+        # print (cya+"creating Coverage object - coverage number " + res2, coverage_num)
+        self.address = address
         if em.arch == 32:
-            self.regs = {'eax': 0x0, 'ebx': 0x0, 'ecx': 0x0, 'edx': 0x0, 'edi': 0x0, 'esi': 0x0, 'esp': 0x0, 'ebp': 0x0}
+            self.regs = {'eax': 0x0, 'ebx': 0x0, 'ecx': 0x0, 'edx': 0x0, 'edi': 0x0, 'esi': 0x0, 'esp': 0x0, 'ebp': 0x0, 'eflags': 0x0}
         else:
-            self.regs = {'rax': 0x0, 'rbx': 0x0, 'rcx': 0x0, 'rdx': 0x0, 'rdi': 0x0, 'rsi': 0x0, 'r8': 0x0, 'r9': 0x0, 'r10': 0x0, 'r11': 0x0, 'r12': 0x0, 'r13': 0x0, 'r14': 0x0, 'r15': 0x0, 'rsp': 0x0, 'rbp': 0x0}
+            self.regs = {'rax': 0x0, 'rbx': 0x0, 'rcx': 0x0, 'rdx': 0x0, 'rdi': 0x0, 'rsi': 0x0, 'r8': 0x0, 'r9': 0x0, 'r10': 0x0, 'r11': 0x0, 'r12': 0x0, 'r13': 0x0, 'r14': 0x0, 'r15': 0x0, 'rsp': 0x0, 'rbp': 0x0, 'eflags': 0x0}
         self.stack = b''
+        self.ebpStack=b''
         self.inProgress = False
+        self.coverage_num=coverage_num
 
         # Save registers into dict
         for reg, val in self.regs.items():
             self.regs[reg] = int(constConvert(uc, reg))
+        
+        # Save memory
+        # self.mem_file = 'coverage_mem_tmp' + str(coverage_num) + '.bin' # Old Jacob way - no longer needed - we use one memory now
+        # with open (self.mem_file, 'wb') as f:
+        #     f.write(uc.mem_read(0x10000000, 0x10050000))
 
         # Save memory
-        self.mem_file = 'coverage_mem_tmp' + str(coverage_num) + '.bin'
-        with open (self.mem_file, 'wb') as f:
-            f.write(uc.mem_read(0x10000000, 0x10050000))
+        if em.writeToTempFile:
+            print ("writeToTempFile 1")
+            with open ('coverage_mem_tmp.bin', 'wb') as f:
+                f.write(uc.mem_read(0x10000000, 0x10050000))
 
         # Save stack bytes
+        esp = uc.reg_read(UC_X86_REG_ESP)
+        ebp = uc.reg_read(UC_X86_REG_EBP)
+        amt=em.codeCoverageStackAmt
         if em.arch == 32:
             esp = self.regs['esp']
             ebp = self.regs['ebp']
             stack_bytes_len = ebp - esp
             if stack_bytes_len < 0:
                 stack_bytes_len = STACK_ADDR - esp
-            self.stack = bytes(uc.mem_read(esp, stack_bytes_len))
-        else:
+            # print ("stack_bytes_len", stack_bytes_len, "esp", hex(esp), "ebp", hex(ebp))
+
+            
+            try:
+                # print ("new_stack", hex(esp -amt), hex(esp+amt*2), "ebp", hex(esp -amt), hex(esp+amt*2))
+                self.stack = bytes(uc.mem_read(esp-amt, amt*2))
+                # print (binaryToStr(self.stack))
+            except:
+                if em.showCCDebugInfo:
+                    print (red+"\t[*] "+whi+ "Code coverage: Could not capture memory pointed to by esp - memory not valid: "+res2, hex(esp))
+            try:
+                # print ("new_stack_ebp", hex(esp -amt), hex(esp+amt*2), "ebp", hex(esp -amt), hex(esp+amt*2))
+                self.ebpStack = bytes(uc.mem_read(ebp-amt, amt*2))
+                # print ("stack size", len(self.ebpStack))
+            except:
+                if em.showCCDebugInfo:
+                    print (red+"\t[*] "+whi+ "Code coverage: Could not capture memory pointed to by ebp - memory not valid: "+res2, hex(ebp))
+        if em.arch == 64:
             rsp = self.regs['rsp']
             rbp = self.regs['rbp']
-            stack_bytes_len = rbp - rsp
-            if stack_bytes_len < 0:
-                stack_bytes_len = STACK_ADDR - rsp
-            self.stack = bytes(uc.mem_read(rsp, stack_bytes_len))
+            try:
+                self.stack = bytes(uc.mem_read(rsp-amt, amt*2))
+                # print (binaryToStr(self.stack))
+            except:
+                if em.showCCDebugInfo:
+                    print (red+"\t[*] "+whi+ "Code coverage: Could not capture memory pointed to by rsp - memory not valid: "+res2, hex(rsp))
+            try:
+                self.ebpStack = bytes(uc.mem_read(rbp-amt, amt*2))
+                # print ("stack size", len(self.ebpStack))
+            except:
+                if em.showCCDebugInfo:
+                    print (red+"\t[*] "+whi+ "Code coverage: Could not capture memory pointed to by rbp - memory not valid: "+res2, hex(rbp))
+
+        # else:
+        #     rsp = self.regs['rsp']
+        #     rbp = self.regs['rbp']
+        #     stack_bytes_len = rbp - rsp
+        #     if stack_bytes_len < 0:
+        #         stack_bytes_len = STACK_ADDR - rsp
+        #     self.stack = bytes(uc.mem_read(rsp, stack_bytes_len))
+        coverageAdds.add(address)
 
     def dump_saved_info(self, uc):
-        # print ("dump_saved_info")
         # Dump registers
         for reg, val in self.regs.items():
             set_register(uc, reg, val)
 
         # Restore the memory
-        with open(self.mem_file, 'rb') as f:
-            uc.mem_write(0x10000000, f.read())
+        # with open(self.mem_file, 'rb') as f:  ## old Jacob way of doing it
+        if em.writeToTempFile:
+            print ("writeToTempFile 2")
+            with open("coverage_mem_tmp.bin", 'rb') as f:
+                uc.mem_write(0x10000000, f.read())
 
-        # # Restore the stack
-        # if em.arch == 32:
-        #     uc.mem_write(self.regs['esp'], self.stack)
-        # else:
-        #     uc.mem_write(self.regs['rsp'], self.stack)
+        # self.print_saved_info()
+
+        # Restore the stack
+        amt =  em.codeCoverageStackAmt
+        if em.arch == 32:
+            stackStart=self.regs['esp']-amt
+            stackStartEBP=self.regs['ebp']-amt
+            try:
+                uc.mem_write(stackStart, self.stack)
+            except:
+                 print ("\tComplete code coverage: restoring memory pointed to by esp,", hex(self.regs['esp']), ", failed for coverage object", self.coverage_num, ".")
+            try:
+                uc.mem_write(stackStartEBP, self.ebpStack)
+            except:
+                 print ("\tComplete code coverage: restoring memory pointed to by ebp,", hex(self.regs['ebp']), ", failed for coverage object", self.coverage_num, ". This may be correct behavior.")
+        else:
+            stackStart=self.regs['rsp']-amt
+            stackStartEBP=self.regs['rbp']-amt
+            try:
+                uc.mem_write(stackStart, self.stack)
+            except:
+                 print ("\tComplete code coverage: restoring memory pointed to by rsp,", hex(self.regs['rsp']), ", failed for coverage object", self.coverage_num, ".")
+            try:
+                uc.mem_write(stackStartEBP, self.ebpStack)
+            except:
+                 print ("\tComplete code coverage: restoring memory pointed to by rbp,", hex(self.regs['rbp']), ", failed for coverage object", self.coverage_num, ". This may be correct behavior.")
 
     def print_saved_info(self):
         print(f"Address: {hex(self.address)}")
@@ -122,14 +190,26 @@ class Coverage():
         print(f"Stack = {binaryToStr(self.stack)}")
 
     def delete(self, index):
-        os.remove(self.mem_file)
+        if em.showCCDebugInfo:
+            print (yel+"\t[*] Deleting code coverage object:" + res2, coverage_objects[index].coverage_num, gre+ "   Address:", whi+hex(coverage_objects[index].address))
+        # os.remove(self.mem_file) # old Jacob way - not needed any longer - we use one memory file now
+        if verbose:
+                # outFile.write("\nDeleting code coverage object - index value: "  +str(coverage_objects[index].coverage_num) + "   Address:" +hex(coverage_objects[index].address) +"\n")
+                pass
+
         del coverage_objects[index]
+    def giveAddress(self,address):
+        print (cya+"Coverage - adding address", hex(address), "num"+res2, self.coverage_num)
+        self.address=address
+        coverageAdds.add(address)
+        
 
 # artifacts = []
 # net_artifacts = []
 # file_artifacts = []
 # exec_artifacts = []
 coverage_objects = []
+covObjs =  {}
 programCounter = 0
 verbose = True
 WinAPI = CustomWinAPIs()
@@ -144,6 +224,10 @@ MOD_HIGH = 0x14100000
 codeLen = 0
 with open(os.path.join(os.path.dirname(__file__), 'WinSysCalls.json'), 'r') as syscall_file:
     syscall_dict = json.load(syscall_file)
+
+with open(os.path.join(os.path.dirname(__file__), 'skipAddressesCCC.json'), 'r') as jsonCCC:
+    skipJmpCCC = json.load(jsonCCC)
+
 export_dict = {}
 loggedList = []
 logged_syscalls = []
@@ -155,6 +239,7 @@ address_range = []
 
 traversedAdds = set()
 coverageAdds = set()
+skipForCoverage=set()
 coverage_num = 1
 loadModsFromFile = True
 foundDLLAddresses32 = os.path.join(os.path.dirname(__file__), "foundDLLAddresses32.json")
@@ -163,6 +248,7 @@ outFile = open(os.path.join(os.path.dirname(__file__), 'emulationLog.txt'), 'w')
 stackFile = open(os.path.join(os.path.dirname(__file__), 'stackLog.txt'), 'w')
 cleanStackFlag = False
 stopProcess = False
+stopProcessCC = False
 cleanBytes = 0
 bad_instruct_count = 0
 
@@ -201,6 +287,7 @@ def loadDlls(mu):
 
     # Set 64 bit variables
     else:
+        print ("set 64 bit variables")
         foundDLLAddrs = foundDLLAddresses64
         source_path = 'C:\\Windows\\System32\\'
         save_path = expandedDLLsPath64
@@ -216,6 +303,7 @@ def loadDlls(mu):
 
 
 def coverage_branch(uc):
+    # this function is deprecated per Jacob
     global coverage_objects
 
     if len(coverage_objects) > 0:
@@ -224,9 +312,18 @@ def coverage_branch(uc):
     else:
         uc.emu_stop()
 
+def calculateAddressesSkipCCC():
+    if em.excludeJmpCallCoverage:
+        for address in skipJmpCCC:
+            lim=skipJmpCCC[address]
+            address = int(address,16)
+            for x in range(lim):
+                skipForCoverage.add(address)
+                address=address+1
 
 def breakLoop(uc, jmpFlag, jmpType, op_str, addr, size):
     eflags = uc.reg_read(UC_X86_REG_EFLAGS)
+    # print ("eflags", eflags)
     jmpLoc=0
     # print ("breakLoop", hex(addr), op_str)
     if boolFollowJump(jmpFlag, jmpType, eflags):
@@ -262,7 +359,7 @@ def catch_windows_api(uc, addr, ret, size, funcAddress):
     global stopProcess
     global cleanBytes
 
-    # print("funcName", funcAddress, hex(addr))
+    # print ("catch_windows_api funcAddress", funcAddress, "Ret", hex(ret), "size", size)
 
     ret += size
     push(uc, em.arch, ret)
@@ -292,6 +389,7 @@ def catch_windows_api(uc, addr, ret, size, funcAddress):
     try:
         funcInfo, cleanBytes = getattr(WinAPI, funcName)(uc, eip, esp, export_dict, addr, em)
         logCall(funcName, funcInfo)
+        # print ("funcName", funcName)
     except:
         try:
             bprint("hook_default", funcAddress)
@@ -304,6 +402,7 @@ def catch_windows_api(uc, addr, ret, size, funcAddress):
     fRaw.add(int(funcAddress, 16), funcName)
     if exitAPI(funcName):
         stopProcess = True
+        # print ("Stop: exitAPI, catch_windows_api")
 
     uc.reg_write(UC_X86_REG_EIP, EXTRA_ADDR)
 
@@ -382,14 +481,15 @@ def hook_code(uc, address, size, user_data):
     global programCounter
     global cleanStackFlag
     global stopProcess
+    global stopProcessCC
     global traversedAdds
     global coverage_objects
     global em
     global bad_instruct_count
     global coverage_num
-    global testAddy
+    global finalAddress
 
-    testAddy=address
+    finalAddress=address
 
     funcName = ""
 
@@ -398,8 +498,10 @@ def hook_code(uc, address, size, user_data):
         cleanStackFlag = False
 
     addressF = address
-    if stopProcess == True:
+    if stopProcess == True or stopProcessCC == True:
         uc.emu_stop()
+        if em.showCCDebugInfo:
+            print (red+"\t[!] Forced stop"+res)
 
     programCounter += 1
     if programCounter > em.maxCounter and em.maxCounter > 0:
@@ -445,29 +547,25 @@ def hook_code(uc, address, size, user_data):
         bad_instruct_count += 1
         if bad_instruct_count > 5:
             bad_instruct = True
-    val=""
+
+    valInstruction=""
     for i in cs.disasm(shells, address):
-        val = i.mnemonic + " " + i.op_str  # + " " + shells.hex()
+        valInstruction = i.mnemonic + " " + i.op_str  # + " " + shells.hex()
+        instructLine += valInstruction + '\n'
+        # shells = uc.mem_read(base, size)
+        # Debugger Test
+        if em.debug:
+            em = debugger(uc, em)
+        if verbose:
+            outFile.write(instructLine)
+        if em.timeless_debugging_stack:
+            stackFile.write("  "+valInstruction)
+            # giveStackClass(uc, em.arch,programCounter,val)
         if t == 0:
             mnemonic = i.mnemonic
             op_str = i.op_str
             # print ("mnemonic op_str", mnemonic, op_str)
-
-        shells = uc.mem_read(base, size)
-        instructLine += val + '\n'
-
-        # Debugger Test
-        if em.debug:
-            em = debugger(uc, em)
-
-        if verbose:
-            outFile.write(instructLine)
-        if em.timeless_debugging_stack:
-            stackFile.write("  "+val)
-
-            # giveStackClass(uc, em.arch,programCounter,val)
-
-
+            break
         t += 1
 
     # Jump to code coverage branch if shellcode is already done
@@ -484,7 +582,6 @@ def hook_code(uc, address, size, user_data):
                 # print("************************** WE DIPPING EARLY *****************************")
                 uc.emu_stop()
 
-
     # If jmp instruction, increment jmp counter to track for infinite loop and track in code coverage
     jmpFlag = getJmpFlag(mnemonic)
     if jmpFlag != "":
@@ -499,22 +596,78 @@ def hook_code(uc, address, size, user_data):
 
         # track for code coverage
         if address not in traversedAdds and em.codeCoverage == True:
-            cvg = Coverage(uc)
-            coverage_num += 1
-            coverage_objects.append(cvg)
+            # cvg = Coverage(uc, address)
+            # coverage_num += 1
+            # coverage_objects.append(cvg)
             eflags = uc.reg_read(UC_X86_REG_EFLAGS)
-            if boolFollowJump(jmpFlag, mnemonic, eflags):
-                cvg.address = jumpAddr
-            else:
-                cvg.address = address + size
-            coverageAdds.add(cvg.address)
+            # cvg.giveAddress(jumpAddr)
+            # cvg.giveAddress(address + size)
+
+            # if boolFollowJump(jmpFlag, mnemonic, eflags):
+            #     print ("boolFollowJump true - adding:", hex(jumpAddr))
+            #     cvg.giveAddress(jumpAddr)
+            # else:
+            #     cvg.giveAddress(address + size)
+            #     print ("boolFollowJump false - adding:", hex(address + size))
+
+            if jumpAddr not in coverageAdds:
+                cvg1 = Coverage(uc, jumpAddr)
+                coverage_num += 1
+                coverage_objects.append(cvg1)
+                if em.showCCDebugInfo:
+                    print (cya+"\t[*] "+cya+ "Creating code coverage object:" +res2, cvg1.coverage_num, gre+"   Address:"+res2, hex(jumpAddr))
+            if address + size not in coverageAdds:
+                cvg2 = Coverage(uc, address + size)
+                coverage_num += 1
+                coverage_objects.append(cvg2)
+                if em.showCCDebugInfo:
+                    print (cya+"\t[*] "+cya+ "Creating code coverage object:" +res2, cvg2.coverage_num, gre+"   Address:"+res2, hex(address + size), )
+    elif "call" in mnemonic and em.includeCallInCC and em.codeCoverage:    # we are adding CALL as well.
+        if address + size not in coverageAdds and address + size not in skipForCoverage:
+            cvg2 = Coverage(uc, address + size)
+            coverage_num += 1
+            coverage_objects.append(cvg2)
+            if em.showCCDebugInfo:
+                print (yel+"\t[*] "+cya+ "Code Coverage CALL - adding address"+res2, hex(address + size), cya+"- coverage object:"+res2, cvg2.coverage_num)
+    elif "jmp" in mnemonic and em.codeCoverage and em.includeJmpInCC:    # we are adding CALL as well.
+        if address + size not in coverageAdds and address + size not in skipForCoverage:
+            if address + size == 0x12000005:
+                print ("12..5")
+            cvg2 = Coverage(uc, address + size)
+            coverage_num += 1
+            coverage_objects.append(cvg2)
+            if em.showCCDebugInfo:
+                print (yel+"\t[*] "+cya+ "Code Coverage JMP - adding address"+res2, hex(address + size), cya+"- coverage object:"+res2, cvg2.coverage_num)
 
     # Track addresses we've already visited
-    traversedAdds.add(address)
-    if address in coverageAdds:
-        for i, obj in enumerate(coverage_objects):
-            if obj.address == address:
-                coverage_objects[i].delete(i)
+    if em.codeCoverage:
+        if em.restartCCInProgress:
+            if address in traversedAdds and address != EXTRA_ADDR:
+                # print ("\tInstruction already traversed:", valInstruction)
+                if em.showCCDebugInfo:
+                    if stopProcessCC:
+                        print(red+"\t[*]"+res+" Complete code coverage: already traversed " + hex(address) + red+ " -  stopping."+res2)
+                    elif em.StopExecutingAfterTraversed:
+                        print(red+"\t[*]"+res+" Complete code coverage: already traversed " + hex(address) + red+ " -  stopping after next instruction."+res2)
+
+                if verbose:
+                    if stopProcessCC:
+                        outFile.write("\n***** Complete code coverage: already traversed " + hex(address) + " -  stopping.\n")
+                    elif em.StopExecutingAfterTraversed:
+                        outFile.write("\n***** Complete code coverage: already traversed " + hex(address) + " -  stopping after next instruction.\n")
+
+                if em.timeless_debugging_stack:
+                    if stopProcessCC:
+                        stackFile.write("\n***** Complete code coverage: already traversed " + hex(address) + " - stopping.\n")
+                    elif em.StopExecutingAfterTraversed:
+                        stackFile.write("\n***** Complete code coverage: already traversed " + hex(address) + " - stopping after next instruction.\n")
+                if em.StopExecutingAfterTraversed:
+                    stopProcessCC = True
+        traversedAdds.add(address)
+        if address in coverageAdds:
+            for i, obj in enumerate(coverage_objects):
+                if obj.address == address:
+                    coverage_objects[i].delete(i)
 
     # Hook usage of Windows API function
     if jumpAddr > MOD_LOW and jumpAddr < MOD_HIGH:
@@ -527,6 +680,7 @@ def hook_code(uc, address, size, user_data):
 
     if retEnding(uc, mnemonic) or bad_instruct:
         stopProcess = True
+        # print ("Stop: retEnding")
 
     # Begin code coverage if the shellcode is finished, and the option is enabled
     # if stopProcess and em.codeCoverage and not em.beginCoverage:
@@ -617,9 +771,11 @@ def hook_sysCall(uc, address, size):
             print("\n\tHook failed at " + str(hex(exportAddress)) + ".")
     if sysCallName == 'NtTerminateProcess':
         stopProcess = True
+        # print ("Stop: NtTerminateProcess syscall")
     if 'LoadLibrary' in sysCallName and uc.reg_read(UC_X86_REG_EAX) == 0:
         print("\t[*] LoadLibrary failed. Emulation ceasing.")
         stopProcess = True
+        # print ("Stop: LoadLibraryFailed")
 
     uc.reg_write(UC_X86_REG_EIP, EXTRA_ADDR)
 
@@ -919,7 +1075,7 @@ def test_i386(mode, code):
     global cs
     global codeLen
     global address_range
-    global testAddy
+    global finalAddress
     arch=0
     mu = Uc(UC_ARCH_X86, mode)
 
@@ -941,7 +1097,7 @@ def test_i386(mode, code):
         mu.mem_write(EXTRA_ADDR, b'\xC3')
 
         # initialize stack
-        mu.reg_write(UC_X86_REG_ESP, STACK_ADDR)
+        mu.reg_write(UC_X86_REG_ESP, STACK_ADDR-600)
         mu.reg_write(UC_X86_REG_EBP, STACK_ADDR)
 
         # Push entry point addr to top of stack. Represents calling of entry point.
@@ -949,14 +1105,10 @@ def test_i386(mode, code):
         mu.mem_write(ENTRY_ADDR, b'\x90\x90\x90\x90')
 
         if mode == UC_MODE_32:
-            arch=32
             print(cya + "\n\t[*]" + res2 + " Emulating x86 shellcode")
             cs = Cs(CS_ARCH_X86, CS_MODE_32)
             allocateWinStructs32(mu, mods)
-
-
         elif mode == UC_MODE_64:
-            arch=64
             print(cya + "\n\t[*]" + res2 + " Emulating x86_64 shellcode")
             cs = Cs(CS_ARCH_X86, CS_MODE_64)
             allocateWinStructs64(mu, mods)
@@ -987,7 +1139,7 @@ def test_i386(mode, code):
 
     except Exception as e:
         print("Emulation error: ", e)
-        print ("Last address:", hex(testAddy))
+        print ("Last address:", hex(finalAddress))
         print(traceback.format_exc())
         # createStackOutput(arch)
 
@@ -1031,23 +1183,29 @@ def test_i386(mode, code):
 #     outFile.close()
 #     stackFile.close()
 
+def showTravAdds():
+    print ("TraversedAdds at restart:")
+    myOut=""
+    for each in traversedAdds:
+        myOut+=hex(each) + gre+", "+whi
+    print (myOut)
+
 def restartEmu(mu, mode, code):
     global cs
     global codeLen
+    global stopProcessCC
+    global stopProcess
 
+    stopProcessCC=False
+    stopProcess=False
     codeLen = len(code)
+    em.restartCCInProgress = True
 
+    # showTravAdds()
     try:
-        if mode == UC_MODE_32:
-            print(cya + "\n\t[*]" + res2 + "Complete code coverage: restarting emulation of x86 shellcode")
-            # cs = Cs(CS_ARCH_X86, CS_MODE_32)
-
-        elif mode == UC_MODE_64:
-            print(cya + "\n\t[*]" + res2 + " Complete code coverage: restarting emulation of x86_64 shellcode")
-            cs = Cs(CS_ARCH_X86, CS_MODE_64)
-
         startLoc = coverage_objects[0].address
         coverage_objects[0].dump_saved_info(mu)
+        old_num= coverage_objects[0].coverage_num
         coverage_objects[0].delete(0)
 
     except Exception as e:
@@ -1055,6 +1213,22 @@ def restartEmu(mu, mode, code):
         print(traceback.format_exc())
 
     try:
+        if mode == UC_MODE_32:
+            print(gre + "\t[!]"+res2+" Complete code coverage: "+gre+"restarting emulation"+res2+" of x86 shellcode at " + gre + hex(startLoc) + res2 + ".")
+            if verbose:
+                outFile.write("***** Complete code coverage: restarting emulation of x86 shellcode at " + hex(startLoc) + ".\n")
+            if em.timeless_debugging_stack:
+                stackFile.write("\n***** Complete code coverage: restarting emulation of x86 shellcode at " + hex(startLoc) + ". " + str(old_num)+ "\n")
+            # cs = Cs(CS_ARCH_X86, CS_MODE_32)
+
+        elif mode == UC_MODE_64:
+            print(gre + "\t[!]"+res2+" Complete code coverage: "+gre+"restarting emulation"+res2+" of x86_64 shellcode at " + gre + hex(startLoc) + res2 + ".")
+            if verbose:
+                outFile.write("\n***** Complete code coverage: restarting emulation of x86_64 shellcode at " + hex(startLoc) + ".\n")
+            if em.timeless_debugging_stack:
+                stackFile.write("\n***** Complete code coverage: restarting emulation of x86_64 shellcode at " + hex(startLoc) + ".\n")
+
+            cs = Cs(CS_ARCH_X86, CS_MODE_64)
         # Start the emulation
         mu.emu_start(startLoc, (CODE_ADDR + em.entryOffset) + len(code))
         print("\n")
@@ -1062,26 +1236,30 @@ def restartEmu(mu, mode, code):
         print(e)
         print(traceback.format_exc())
 
-def startEmu(arch, data, vb):
-    # print ("startEmu arch", arch)
+def startEmu(data, vb):
     global verbose
+    global programCounter
+    programCounter=0
     verbose = vb
+    calculateAddressesSkipCCC()
 
-    if arch == 32:
+
+    if em.arch == 32:
         em.arch=32
         mu = test_i386(UC_MODE_32, data)
-    elif arch == 64:
+    elif em.arch == 64:
         em.arch=64
-        test_i386(UC_MODE_64, data)
+        mu2 = test_i386(UC_MODE_64, data)
 
     lel = 0
     while len(coverage_objects) > 0 and em.codeCoverage == True:
         if em.arch == 32:
             restartEmu(mu, UC_MODE_32, data)
         elif em.arch == 64:
-            restartEmu(UC_MODE_64, data)
+            restartEmu(mu2,UC_MODE_64, data)
 
         if lel > 2:
+            print ("breaking, lel")
             break
         lel += 1
 

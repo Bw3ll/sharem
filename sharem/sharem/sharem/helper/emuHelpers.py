@@ -638,6 +638,9 @@ def constConvert(uc, string):
         return str(uc.reg_read(UC_X86_REG_R14D))
     elif (string == 'r15d'):
         return str(uc.reg_read(UC_X86_REG_R15D))
+    elif (string == 'eflags'):
+        return str(uc.reg_read(UC_X86_REG_EFLAGS))
+
 
     # Support smaller ebp and esp registers
     elif (string == 'ax'):
@@ -763,7 +766,7 @@ def retEnding(uc, mnemonic):
         return False
 
 def boolFollowJump(jmpFlag, jmpType, eflags):
-    # print ("boolFollowJump jmpFlag", jmpFlag, "jmpType", jmpType, "zf", getBit(eflags, 6) )
+    # print ("boolFollowJump jmpFlag", jmpFlag, "jmpType", jmpType )
     
     # ZF Flag
     if jmpFlag == "zf":

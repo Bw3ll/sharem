@@ -11919,9 +11919,25 @@ def createDisassemblyLists(Colors=True, caller=None,decoder=False):
 	# 	each =hex(each)
 	# 	new.append(each)
 	# print (new)
+	
+	defaultBase=0x12000000
 
 	for cAddress in sBy.shAddresses:
+
 		pAddress= gre+str(hex(cAddress))+res2  #print address
+
+		test=cAddress + defaultBase
+		
+		if em.displayNonTraversedCC:
+			if test in traversedAdds:
+				specialpAddress=gre+str(hex(cAddress))+res2 
+			else:
+				specialpAddress= cya+str(hex(cAddress))+res2
+			if len(traversedAdds)==0:
+				specialpAddress= gre+str(hex(cAddress))+res2
+		else:
+			specialpAddress= gre+str(hex(cAddress))+res2
+
 		startHex=cAddress
 		try:
 			endHex=sBy.shAddresses[j+1]
@@ -11946,6 +11962,8 @@ def createDisassemblyLists(Colors=True, caller=None,decoder=False):
 			if not showOpcodes:	 # If no hex, then move ASCII to left
 				myHex=myStrOut
 				myStrOut=""
+
+			pAddress=specialpAddress
 			out='{:<12s} {:<45s} {:<33s}{:<10s}\n'.format(pAddress, whi+sBy.shMnemonic[j] + " " + sBy.shOp_str[j], myHex,myStrOut )
 			if re.search( r'align|db 0xff x', sBy.shMnemonic[j], re.M|re.I):
 				myHex=red+binaryToStr(shellArg[startHex:startHex+4],btsV)+"..."+res2+""
@@ -19302,7 +19320,7 @@ def modConf():
 					'fast_mode', 
 					'find_all', 
 					'dist_mode', 
-					'cpu_count', 'nodes_file', 'output_file', 'dec_operation_type', 'decrypt_file', 'stub_file', 'use_same_file', 'stub_entry_point', 'stub_end', 'shellEntry', 'pebpoints', 'minimum_str_length', 'max_callpop_distance', 'default_outdir', 'print_emulation_result', 'emulation_verbose_mode', 'emulation_multiline','max_num_of_instr','iterations_before_break','break_infinite_loops','timeless_debugging',"complete_code_coverage",'current_user','computer_name','temp_file_prefix','default_registry_value','computer_ip_address','timezone','system_time_since_epoch','system_uptime_minutes','clipboard_data','users','drive_letter','start_directory']
+					'cpu_count', 'nodes_file', 'output_file', 'dec_operation_type', 'decrypt_file', 'stub_file', 'use_same_file', 'stub_entry_point', 'stub_end', 'shellEntry', 'pebpoints', 'minimum_str_length', 'max_callpop_distance', 'default_outdir', 'print_emulation_result', 'emulation_verbose_mode', 'emulation_multiline','max_num_of_instr','iterations_before_break','break_infinite_loops','timeless_debugging',"complete_code_coverage",'current_user','computer_name','temp_file_prefix','default_registry_value','computer_ip_address','timezone','system_time_since_epoch','system_uptime_minutes','clipboard_data','users','drive_letter','start_directory', 'ccctest','ccc_write_to_temp_file_slower']
 
 
 	maxEmuInstr = emuObj.maxEmuInstr
@@ -19310,7 +19328,7 @@ def modConf():
 	numOfIter = em.maxLoop
 
 
-	listofBools = [bPushRet, bCallPop, bFstenv, bSyscall, bHeaven, bPEB, bDisassembly, pebPresent, bit32, bytesForward, bytesBack, linesForward, linesBack,p2screen, bPushStackStrings, bAsciiStrings, bWideCharStrings, dFastMode, dFindAll, dDistr, dCPUcount, dNodesFile, dOutputFile, decryptOpTypes, decryptFile, stubFile, sameFile, stubEntry, stubEnd, shellEntry, pebPoints, minStrLen, maxDistance, sharem_out_dir, bPrintEmulation, emulation_verbose, emulation_multiline, maxEmuInstr, numOfIter, emuObj.breakLoop, emuObj.verbose,em.codeCoverage, conr.simulatedValues_current_user,conr.simulatedValues_computer_name,conr.simulatedValues_temp_file_prefix,conr.simulatedValues_default_registry_value,conr.simulatedValues_computer_ip_address,conr.simulatedValues_timezone,conr.simulatedValues_system_time_since_epoch,conr.simulatedValues_system_uptime_minutes,conr.simulatedValues_clipboard_data,conr.simulatedValues_users,conr.simulatedValues_drive_letter,conr.simulatedValues_start_directory]
+	listofBools = [bPushRet, bCallPop, bFstenv, bSyscall, bHeaven, bPEB, bDisassembly, pebPresent, bit32, bytesForward, bytesBack, linesForward, linesBack,p2screen, bPushStackStrings, bAsciiStrings, bWideCharStrings, dFastMode, dFindAll, dDistr, dCPUcount, dNodesFile, dOutputFile, decryptOpTypes, decryptFile, stubFile, sameFile, stubEntry, stubEnd, shellEntry, pebPoints, minStrLen, maxDistance, sharem_out_dir, bPrintEmulation, emulation_verbose, emulation_multiline, maxEmuInstr, numOfIter, emuObj.breakLoop, emuObj.verbose,em.codeCoverage, conr.simulatedValues_current_user,conr.simulatedValues_computer_name,conr.simulatedValues_temp_file_prefix,conr.simulatedValues_default_registry_value,conr.simulatedValues_computer_ip_address,conr.simulatedValues_timezone,conr.simulatedValues_system_time_since_epoch,conr.simulatedValues_system_uptime_minutes,conr.simulatedValues_clipboard_data,conr.simulatedValues_users,conr.simulatedValues_drive_letter,conr.simulatedValues_start_directory, False]
 
 	listofSyscalls = []
 	for osv in syscallSelection:
@@ -19319,7 +19337,6 @@ def modConf():
 	listofStrings.append('selected_syscalls')
 	listofBools.append(listofSyscalls)
 
-
 	for booli, boolStr in zip(listofBools, listofStrings):
 		configOptions[boolStr] = booli
 
@@ -19327,16 +19344,15 @@ def modConf():
 	configOptions['windows_release_osbuild'] = em.winSP
 	configOptions['windows_syscall_code'] = emuSyscallCode
 	configOptions['timeless_debugging_stack'] = em.timeless_debugging_stack
-
-
-# bPrintEmulation = conr.getboolean('SHAREM EMULATION', 'print_emulation_result')
-# 	emulation_verbose = conr.getboolean('SHAREM EMULATION', 'emulation_verbose_mode')
-# 	emulation_multiline = conr.getboolean('SHAREM EMULATION', 'emulation_multiline')
-# 	emuObj.maxEmuInstr = int(conr['SHAREM EMULATION']['max_num_of_instr'])
-# 	emuObj.numOfIter = int(conr['SHAREM EMULATION']['iterations_before_break'])
-# 	emuObj.breakLoop = conr.getboolean('SHAREM EMULATION', 'break_infinite_loops')
-# 	emuObj.verbose = conr.getboolean('SHAREM EMULATION', 'timeless_debugging')
-
+	configOptions['ccc_stack_amount_to_save_for_each_ccc_object'] =  em.codeCoverageStackAmt
+	configOptions['ccc_write_to_temp_file_slower'] = str(em.writeToTempFile) 
+	configOptions['stop_executing_after_revisiting_previously_traversed_instructions_if_emu_restarted_by_ccc'] = em.StopExecutingAfterTraversed
+	configOptions['display_non_traversed_code_and_data_as_cyan_in_disassembly_if_ccc_used'] = em.displayNonTraversedCC 
+	configOptions['include_call_instruction_in_code_coverage'] =  str(em.includeCallInCC)
+	configOptions['display_ccc_debug_info_on_screen'] =  em.showCCDebugInfo 
+	configOptions['include_jmp_instruction_in_code_coverage'] = em.includeJmpInCC
+	configOptions['exclude_jmp_call_addresses_in_json'] = em.excludeJmpCallCoverage
+	# print (configOptions)
 
 def disassemblyConf(conr):
 	global shellSizeLimit
@@ -19392,6 +19408,23 @@ def emulationConf(conr):
 			emuSyscallSelection[key][0] = False
 	if(not foundKey):
 		print("Invalid code in config for windows_syscall_code.")
+
+def codeCoverageConf(conr):
+	global bPrintEmulation
+	global emulation_verbose
+	global emulation_multiline
+	global emuObj 
+	global emuSyscallCode
+	global emuSyscallSelection
+
+	em.writeToTempFile = conr.getboolean('COMPLETE CODE COVERAGE CCC', 'ccc_write_to_temp_file_slower')
+	em.StopExecutingAfterTraversed = conr.getboolean('COMPLETE CODE COVERAGE CCC', 'stop_executing_after_revisiting_previously_traversed_instructions_if_emu_restarted_by_ccc')
+	em.displayNonTraversedCC = conr.getboolean('COMPLETE CODE COVERAGE CCC', 'display_non_traversed_code_and_data_as_cyan_in_disassembly_if_CCC_used')
+	em.includeCallInCC = conr.getboolean('COMPLETE CODE COVERAGE CCC', 'include_call_instruction_in_code_coverage')
+	em.showCCDebugInfo = conr.getboolean('COMPLETE CODE COVERAGE CCC', 'display_ccc_debug_info_on_screen')
+	em.codeCoverageStackAmt = int(conr['COMPLETE CODE COVERAGE CCC']['ccc_stack_amount_to_save_for_each_ccc_object'])
+	em.includeJmpInCC=conr.getboolean('COMPLETE CODE COVERAGE CCC', 'include_jmp_instruction_in_code_coverage')
+	em.excludeJmpCallCoverage=conr.getboolean('COMPLETE CODE COVERAGE CCC', 'exclude_jmp_call_addresses_in_json')
 
 def emulationSimValueConf(conr):
 	global emuSimVals
@@ -19629,6 +19662,7 @@ def readConf():
 	syscallsConf(conr)
 	printStyleConf(conr)
 	patternConf(conr)
+	codeCoverageConf(conr)
 	startupBool = conr.getboolean('SHAREM STARTUP','startup_enabled')
 
 	
@@ -19871,6 +19905,97 @@ def emuCheckDeobfSuccess():
 
 			emuDeobfuSuccess(fRaw.merged2, mode)
 
+def emuCCCSubmenu():
+	global emuObj  
+	global shellEntry
+	global shellBit
+	global bit32
+	em.maxCounter=emuObj.maxEmuInstr
+	global emulation_verbose
+	global emulation_multiline
+
+	while True:
+		print(yel + " Sharem>" + cya + "Emulator>"+ gre+"CompleteCodeCoverage> " +res, end="")
+		choice = input()
+		if choice == "x":
+			return
+		elif choice == "t":
+			em.StopExecutingAfterTraversed = not em.StopExecutingAfterTraversed
+			if em.StopExecutingAfterTraversed:
+				print ("\tComplete code coverage will stop after revisiting previously traversed code.")
+			else:
+				print ("\tComplete code coverage will continue after revisiting previously traversed code.")
+		elif choice == "c":
+			em.includeCallInCC = not em.includeCallInCC
+			if em.includeCallInCC:
+				print ("\tComplete code coverage will include CALL.")
+			else:
+				print ("\tComplete code coverage will exclude CALL.")
+		elif choice == "w":
+			em.writeToTempFile = not em.writeToTempFile
+			if em.writeToTempFile:
+				print ("\tSHAREM will write temporary file to disk for code coverage.")
+			else:
+				print ("\tSHAREM will not use temporary files for code coverage.")
+		elif choice == "d":
+			em.showCCDebugInfo = not em.showCCDebugInfo
+			if em.showCCDebugInfo:
+				print ("\tSHAREM will display verbose debugging information pertaining to code coverage.")
+			else:
+				print ("\tSHAREM has disabled verbose debugging information pertaining to code coverage.")
+		elif choice == "o":
+			em.displayNonTraversedCC = not em.displayNonTraversedCC
+			if em.displayNonTraversedCC:
+				print ("\tSHAREM will color the offsets for non-traversed code or data in cyan, if complete code coverage\n\tis enabled.")
+			else:
+				print ("\tAll offsets will remain green.")
+		elif choice == "j":
+			em.includeJmpInCC = not em.includeJmpInCC
+			if em.includeJmpInCC:
+				print ("\tComplete code coverage will include JMP.")
+			else:
+				print ("\tComplete code coverage will exclude JMP.")
+		elif choice == "e":
+			em.excludeJmpCallCoverage = not em.excludeJmpCallCoverage
+			if em.excludeJmpCallCoverage:
+				print ("\tComplete code coverage will now "+mag+"exclude addresses"+res+" that immediately follow a CALL or JMP.\n\tThese must be provided in the JSON. Give the address followed by the size of the region.\n\t\tE.g."+cya+" {\"0x12000005\": 4, \"0xdeadc0de\": 3}"+res+"\n\tAddresses from 0x12000005 thru 0x12000008 would be excluded. The base address is 0x12000000.\n\tAdd offset to base address.\n\n\tThe JSON may be found at "+mag+"sharem\\sharem\\sharem\\sharem\\skipAddressesCCC.json"+res+".\n\n\tThis feature ordinarily would not be used, but could be useful in cases where DATA immediately\n\tfollows a JMP. We generally do not recommend including JMP for complete code coverage, unless \n\tyou are trying to get coverage for something like jump tables.\n")
+			else:
+				print ("\tNo addresses after JMP or CALL will be excluded from code coverage.")
+
+
+
+		elif choice == "s":
+			while True:
+				try:
+					sSize = input("\tPlease enter the respective sizes for memory pointed to by ESP and EBP: ")
+					if sSize == "x":
+						break
+					try:
+						sSize = int(sSize)
+					except:
+						sSize = int(sSize,16)
+
+					em.codeCoverageStackAmt=sSize
+					print ("\tStack size for each is " + str(em.codeCoverageStackAmt)+" ("+hex(em.codeCoverageStackAmt)+") bytes.")
+					# sharemu.maxCounter = minst
+					break
+				except:
+					print(red + "\tPlease enter only a number." + res)
+					break
+		elif choice == "r":
+			em.codeCoverageStackAmt=4000
+			em.writeToTempFile=False
+			em.StopExecutingAfterTraversed=True
+			em.displayNonTraversedCC=True
+			em.includeCallInCC=True
+			em.showCCDebugInfo=False
+			em.includeJmpInCC=False
+			em.excludeJmpCallCoverage=False
+			print ("\tReset to defaults.")
+		
+		elif choice == "h":
+			emuCodeCoverageUI()
+
 def emulationSubmenu():
 	global emuObj  
 	global shellEntry
@@ -19884,8 +20009,7 @@ def emulationSubmenu():
 		print(yel + " Sharem>" + cya + "Emulator> " +res, end="")
 		choice = input()
 		if choice == "z":
-			emuArch = shellBit
-			startEmu(emuArch, m[o].rawData2, emuObj.verbose)
+			startEmu(m[o].rawData2, emuObj.verbose)
 			emulation_txt_out(loggedList, logged_syscalls)
 			emuCheckDeobfSuccess()
 			pass # Initiate emulator
@@ -20006,38 +20130,27 @@ def emulationSubmenu():
 			# 		break
 		elif choice == "a":
 			under_dev_function()
-			if em.arch == 64: 
-				em.arch = 32 
-				shellBit=32
-				bit32 = True
-			elif em.arch == 32: 
-				em.arch = 64
-				shellBit=64 
-				bit32 = False
-			print(cya + " \tArchitecture changed to " +str(em.arch) + "-bit.\n" + res)
-			# while True:
-			# 	try:
-			# 		minst = input(" Enter cpu architecture: ")
-			# 		if minst == "x":
-			# 			break
-			# 		minst = int(minst)
-			# 		if minst == 32 or minst == 64:
-			# 			emuObj.numOfIter = minst
-			# 			break
-			# 		else:
-			# 			print(red + "\tInvalid cpu architecture.\n" + res)
-			# 			continue
-					
-			# 	except:
-			# 		print(red + "\tPlease enter only a number." + res)
-			# 		break
-			# emulatorUI(emuObj)
+
+			# if em.arch == 64: 
+			# 	em.arch = 32 
+			# 	shellBit=32
+			# 	bit32 = True
+			# elif em.arch == 32: 
+			# 	em.arch = 64
+			# 	shellBit=64 
+			# 	bit32 = False
+			# print(cya + " \tArchitecture changed to " +str(em.arch) + "-bit.\n" + res)
+			
 		elif choice == "s":
 			# syscallSelectionMenu()
 			emuSyscallSubMenu()
 
 		elif choice == "d":
 			emuSimValuesMenu()
+		elif choice == "o":
+
+			emuCodeCoverageUI()
+			emuCCCSubmenu()
 
 
 
@@ -20157,6 +20270,8 @@ def startupPrint():
 def saveConf(con):
 	global configOptions
 	try:
+		con.changeConf(configOptions)
+		con.save()
 		con.changeConf(configOptions)
 		con.save()
 		print(yel + " Configuration has been Saved.\n" + res)
@@ -20292,6 +20407,7 @@ def ui(): #UI menu loop
 
 			elif userIN[0:1] == "l":
 				if rawHex:
+					em.arch=shellBit
 					emulatorUI(emuObj, emulation_multiline, emulation_verbose)
 					emulationSubmenu()
 				else:
@@ -20401,7 +20517,7 @@ def uiBits():	#Change the bit mode
 def discoverEmulation(maxLen=None):
 	global shellBit
 	global emuObj   
-	# print ("discoverEmulation, o --->", o)
+	print ("discoverEmulation, o --->", o)
 	if maxLen==None:
 		maxLen=42
 	
@@ -20411,8 +20527,10 @@ def discoverEmulation(maxLen=None):
 		print(cya + " Starting emulation of shellcode..."+res, flush=True)
 		
 
-		emuArch = shellBit										# temporary way of invoking emulator - may change later
-		startEmu(emuArch, m[o].rawData2, emuObj.verbose)
+		emuArch = shellBit	
+		# em.arch=shellBit
+		# print ("shellBit", shellBit)									# temporary way of invoking emulator - may change later
+		startEmu(m[o].rawData2, emuObj.verbose)
 		emuCheckDeobfSuccess()
 		mBool[o].bEmulationFound=True									# if we run it, it is done - if we have not objective way of quantifying how successful it issues
 																		# depending on shellcode, could miss some, a lot, or be perfect. We just run it.
@@ -22646,7 +22764,7 @@ def emulation_txt_out(apiList, logged_syscalls):
 			except:
 				print(txt_output)
 		else:
-			print (gre+"\n\t[*]No APIs discovered through emulation."+res2)
+			print (gre+"\n\t[*] No APIs discovered through emulation."+res2)
 		
 	else:
 		return no_colors_out
