@@ -926,6 +926,7 @@ def emulatorUI(emuObj, emulation_multiline, emulation_verbose):
 
 	text += "  {}{:>13}[{}]\n".format(cya + "c"+res+" -"+yel+"  Complete code coverage."+ res, "", cya + emuCoCo+ res)
 
+	text += "  {}{:>13}{}\n".format(cya + "o"+res+" -"+yel+"  Access Complete Code Coverage Submenu"+ res, "", cya + ""+ res)
 	
 	text += "  {}{:>13}       [{}]\n".format(cya + "a"+res+" -"+yel+"  CPU Architecture"+ res, "", cya + str(arch)+ res)
 	# text += "\t{}\n".format(whi + "* x86_64"+whi + " Under Development" + res)
