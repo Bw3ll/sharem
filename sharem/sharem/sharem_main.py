@@ -1105,31 +1105,21 @@ class DisassemblyBytes:
 		self.ApiStart=[]
 		self.ApiEnd=[]
 		self.ApiValue=[]
+		self.dataAccessed=[]
+		self.dataAccessedSize=[]
 
+		
+	def dataAccessedFunc(self, values):
+		accessStart=values[0]
+		accessStart= accessStart-CODE_ADDR
+		size=values[1]
 
-		# self.PreSysOffsets = []   # starting offsets of bytes - may not always be 0 or 1
-		# self.PreSysValues = [] # the hex value
-		# # selPreSysf.instructions =[]  # t/f - is it instructions--intinialized as instructions first
-		# # selPreSysf.data =[] # t/f is data bytes
-		# self.PreSysRanges=[] # does it identify ranges?
-		# self.PreSysBytesType=[]
-		# self.PreSysStrings=[] # TRUE if strings, false if not
-		# self.PreSysStringsStart=[] #offset the strings starts @
-		# self.PreSysStringsValue=[]
-		# self.PreSysPushStringEnd=[]
-		# self.PreSysPushStringValue=[]
-		# self.PreSysBoolPushString=[]
-		# self.PreSysSpecialVal=[] # align, FF
-		# self.PreSysBoolspecial=[]
-		# # selPreSysf.specialType=[]
-		# self.PreSysSpecialStart=[]
-		# self.PreSysSpecialEnd=[]
-		# self.PreSysComments=[]
-		self.PreSysShDisassemblyLine = []
-		self.PreSysShAddresses = []
-		self.PreSysShMnemonic = []
-		self.PreSysShOp_str = []
-		self.PreSysShCodes = []
+		i=accessStart
+		for x in range(size):
+			self.dataAccessed[i]=True
+			self.dataAccessedSize[i]=(accessStart, size)
+			i=i+1
+
 def clearDisassemblyBytesClass():
 	global sBy
 	sBy.offsets.clear()
@@ -1154,6 +1144,9 @@ def clearDisassemblyBytesClass():
 	sBy.ApiStart.clear()
 	sBy.ApiEnd.clear()
 	sBy.ApiValue.clear()
+	sBy.dataAccessed.clear()
+	sBy.dataAccessedSize.clear()
+
 def bramwellTesterHAHA():
 	print ("HAHAHAHAHAHAHAH")
 
@@ -11920,7 +11913,7 @@ def createDisassemblyLists(Colors=True, caller=None,decoder=False):
 	# 	new.append(each)
 	# print (new)
 	
-	defaultBase=0x12000000
+	defaultBase=CODE_ADDR
 
 	for cAddress in sBy.shAddresses:
 
@@ -11938,6 +11931,7 @@ def createDisassemblyLists(Colors=True, caller=None,decoder=False):
 		else:
 			specialpAddress= gre+str(hex(cAddress))+res2
 
+	
 		startHex=cAddress
 		try:
 			endHex=sBy.shAddresses[j+1]
@@ -12075,7 +12069,6 @@ def createDisassemblyJson(Colors=True, caller=None,decoder=False):
 	# print ("createDisassemblyLists")
 	global off_Label
 	global labels
-	global res
 	global sBy
 
 	maxOpDisplay=mBool[o].maxOpDisplay
@@ -12112,8 +12105,7 @@ def createDisassemblyJson(Colors=True, caller=None,decoder=False):
 	for cAddress in sBy.shAddresses:
 		disDict = {}
 		
-
-		pAddress= gre+str(hex(cAddress))+res2  #print address
+		pAddress= str(hex(cAddress))  #print address
 		startHex=cAddress
 		try:
 			endHex=sBy.shAddresses[j+1]
@@ -12123,73 +12115,84 @@ def createDisassemblyJson(Colors=True, caller=None,decoder=False):
 		if mode=="ascii":
 			try:
 				if sizeDisplay > maxOpDisplay:
-					myHex=red+binaryToStr(shellArg[startHex:startHex+maxOpDisplay],btsV)+"..."+res2+""
-					myStrOut=cya+" "+toString(shellArg[startHex:endHex])+res2+""
+					myHex=binaryToStr(shellArg[startHex:startHex+maxOpDisplay],btsV)+"..."
+					myStrOut=" "+toString(shellArg[startHex:endHex])
 				else:
-					myHex=red+binaryToStr(shellArg[startHex:endHex],btsV)+res2+""
+					myHex=binaryToStr(shellArg[startHex:endHex],btsV)
 					if mBool[o].bDoShowAscii:
-						myStrOut=cya+" "+toString(shellArg[startHex:endHex])+res2+""
+						myStrOut=" "+toString(shellArg[startHex:endHex])
 					else:
 						myStrOut=""
 			except Exception as e:
 				print ("ERROR: ", e)
-
-
 			if not showOpcodes:	 # If no hex, then move ASCII to left
 				myHex=myStrOut
 				myStrOut=""
-			pAddress = Variables.cleanColors(self = Variables, out=pAddress)
 			disDict["address"] = pAddress.strip()
 			disDict["instruction"] = Variables.cleanColors(self = Variables, out=sBy.shMnemonic[j] + " " + sBy.shOp_str[j]).strip()
-			disDict["hex"] = Variables.cleanColors(self = Variables, out=myHex).strip()
 
+			disDict["hex"] = (myHex).strip()
+
+
+			try:
+				disDict["size"]=  str(sBy.shAddresses[j+1]-sBy.shAddresses[j])
+			except:
+				disDict["size"]= str(len(m[o].rawData2)-sBy.shAddresses[j])
+
+			if fRaw.status() and fRaw.bytesInst[cAddress]=="INST":
+				disDict["bytes"] = "CODE"
+				disDict["dataType"] = "CODE"
+
+			else:
+				if sBy.bytesType[cAddress]:
+					disDict["bytes"] = "CODE"
+					disDict["dataType"] = "CODE"
+
+				else: 
+					disDict["bytes"] = "DATA"
+					disDict["dataType"] = "DATA"
+
+			disDict["dataAccessed"] = "None"
+			if sBy.strings[cAddress]:
+				disDict["dataType"] = "String"
+			elif sBy.ApiTable[cAddress]:
+				disDict["dataType"] = "API Pointer"
+			elif sBy.dataAccessed[cAddress]:
+				disDict["dataAccessed"] = hex(sBy.dataAccessedSize[cAddress][0]) +", "+hex(sBy.dataAccessedSize[cAddress][1])
 
 			# pAddressInt = int(pAddress, 16)
 			# print(type(pAddress), pAddress, int(pAddress, 16))
-			out='{:<12s} {:<45s} {:<33s}{:<10s}\n'.format(pAddress, whi+sBy.shMnemonic[j] + " " + sBy.shOp_str[j], myHex,myStrOut )
 			if re.search( r'align|db 0xff x', sBy.shMnemonic[j], re.M|re.I):
-				myHex=red+binaryToStr(shellArg[startHex:startHex+4],btsV)+"..."+res2+""
+				myHex=binaryToStr(shellArg[startHex:startHex+4],btsV)+"..."
 				if mBool[o].bDoShowAscii:
-					myStrOut=cya+" "+toString(shellArg[startHex:startHex+4])+"..."+res2+""
+					myStrOut=cya+" "+toString(shellArg[startHex:startHex+4])+"..."
 				else:
 					myStrOut=""
 
 				if not showOpcodes:   # If no hex, then move ASCII to left
 					myHex=myStrOut
 					myStrOut=""
-				out='{:<12s} {:<45s} {:<33s}{:<10s}\n'.format(pAddress, whi+sBy.shMnemonic[j] + " " + sBy.shOp_str[j], myHex, myStrOut)
-				pass
-			disDict["string"] = Variables.cleanColors(self = Variables, out=myStrOut).strip()
-
-
+			disDict["string"] = myStrOut.strip()
 			# out=out+"\n"
-		
 		if mBool[o].bDoEnableComments:
 			if sBy.comments[cAddress] !="":
 				val_b2=sBy.comments[cAddress]
-				val_comment =('{:<10s} {:<45s} {:<33s}{:<10s}\n'.format(mag+nada, val_b2, nada, nada))
-				out+=val_comment
-				disDict["comment"] = Variables.cleanColors(self = Variables, out=val_comment).strip()	
+				val_comment =('{:<10s} {:<45s} {:<33s}{:<10s}\n'.format(nada, val_b2, nada, nada))
+				disDict["comment"] =  Variables.cleanColors(self = Variables, out=val_comment).strip()		
 			else:
 				disDict["comment"] = ""
 
 		if showLabels:
 			truth,myLabel=checkForLabel(str(hex(cAddress)),labels)
 			if truth:
-				out=yel+myLabel+res2+out
-				disDict["label"] = Variables.cleanColors(self = Variables, out=myLabel).strip()
+				disDict["label"] = myLabel.strip()
 			else:
 				disDict["label"] = ""
 
-
-
 		if re.search( r'\bjmp\b|\bje\b|\bjne\b|\bjg\b|\bjge\b|\bja\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bret\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', sBy.shMnemonic[j], re.M|re.I):
-			out=out+"\n"
+			# out=out+"\n"  
+			pass
 			# disList[1] = disList[1] + "\n"
-		
-		
-
-		
 		# valCheck=i.mnemonic + " " + i.op_str 
 		# controlFlow= re.match( r'\bjmp\b|\bje\b|\bjne\b|\bjg\b|\bjge\b|\bja\b|\bjl\b|\bjle\b|\bjb\b|\bjbe\b|\bjo\b|\bjno\b|\bjz\b|\bjnz\b|\bjs\b|\bjns\b|\bjcxz\b|\bjrcxz\b|\bjecxz\b|\bret\b|\bjnae\b|\bjc\b|\bjnb\b|\bjae\b|\bjnc\b|\bjna\b|\bjnbe\b|\bjnge\b|\bjnl\b|\bjng\b|\bjnle\b|\bjp\b|\bjpe\b|\bjnp\b|\bjpo\b', valCheck, re.M|re.I)
 		# if controlFlow:
@@ -12200,18 +12203,14 @@ def createDisassemblyJson(Colors=True, caller=None,decoder=False):
 			if (sBy.pushStringEnd[cur]-2) == cur:
 				msg="; "+sBy.pushStringValue[cur] + " - Stack string"
 				# disList[4] = Variables.cleanColors(out=disList[4] + "; "+sBy.pushStringValue[cur] + " - Stack string")
-				disDict["comment"] = disDict["comment"] + Variables.cleanColors(self = Variables, out="; "+sBy.pushStringValue[cur] + " - Stack string")
+				disDict["comment"] + Variables.cleanColors(self = Variables, out="; "+sBy.pushStringValue[cur] + " - Stack string")
 				newVal =('{:<12} {:<45s} {:<33}{:<10s}\n'.format(nada, msg, nada, nada))
-				out= newVal+out
 		except Exception as e:
 			# print ("weird error", e)
 			pass
-
 		# disTuple = tuple(disList)
 		disList.append(disDict)
 		# disDict[pAddressInt] = disTuple
-
-		finalOutput+=out
 		j+=1		
 	
 	disFullDict["disassembly"] = disList
@@ -12636,13 +12635,14 @@ def getNextBoolDB4(pattern1, pattern2,pattern3,pattern4, test1, test2,test3, tes
 
 def findDataBytesEmu(shellBytes):
 	global bAddReadTuple
+	global bWriteListTuple
+	global bReadListTuple
 	# print (red+"findDataBytesEmu\n\n\n"+res)
 	maxEmuSize=len(m[o].rawData2)
 
 	emuOnce=bAddReadTuple  |  bAddWriteTuple
 	emuTwice=bAddReadTwiceTuple | bAddWriteTwiceTuple
 	emuThrice=bAddReadThriceTuple | bAddWriteThriceTuple
-
 
 	# print ("max", maxEmuSize, len(emuTwice), len(emuOnce))
 	readPercent=len(emuOnce)/maxEmuSize
@@ -12659,22 +12659,62 @@ def findDataBytesEmu(shellBytes):
 				# print (hex(each[0]), each[1])
 				modVal=each[0]-CODE_ADDR
 				modifysByRange(shellBytes, modVal,modVal+ each[1], "d")
+				sBy.dataAccessedFunc(each)
 	else:
 		if readTwicePercent < maxPercent:
 			for each in emuTwice:
 				# print (hex(each[0]), each[1])
 				modVal=each[0]-CODE_ADDR
 				modifysByRange(shellBytes, modVal,modVal+ each[1], "d")
+				sBy.dataAccessedFunc(each)
 		elif readThricePercent < maxPercent:
 			for each in emuThrice:
 				# print (hex(each[0]), each[1])
 				modVal=each[0]-CODE_ADDR
 				modifysByRange(shellBytes, modVal,modVal+ each[1], "d")
+				sBy.dataAccessedFunc(each)
+		else:
+			print ("This is an advanced encoding. Some data cannot be distinguished between code.")
+
+def findDataBytesEmuMemReadsWrites(shellBytes):
+	global bAddReadTuple
+	# print (red+"findDataBytesEmu\n\n\n"+res)
+	maxEmuSize=len(m[o].rawData2)
+
+	emuOnce=bAddReadTuple  |  bAddWriteTuple
+	emuTwice=bAddReadTwiceTuple | bAddWriteTwiceTuple
+	emuThrice=bAddReadThriceTuple | bAddWriteThriceTuple
+
+	# print ("max", maxEmuSize, len(emuTwice), len(emuOnce))
+	readPercent=len(emuOnce)/maxEmuSize
+	readTwicePercent=len(emuTwice)/maxEmuSize
+	readThricePercent=len(emuThrice)/maxEmuSize
+
+	# print (readPercent, readTwicePercent)
+	maxPercent=0.4  # if we are conveting to more than 50% data, then may be more likely each byte is being decoded more than once. hence, ignore this feature.
+
+	
+	if not sh.decryptSuccess:
+		if readPercent < maxPercent:
+			pass
+
+	else:
+		if readTwicePercent < maxPercent:
+			for each in emuTwice:
+				# print (hex(each[0]), each[1])
+				modVal=each[0]-CODE_ADDR
+				modifysByRange(shellBytes, modVal,modVal+ each[1], "d")
+				sBy.dataAccessedFunc(each)
+		elif readThricePercent < maxPercent:
+			for each in emuThrice:
+				# print (hex(each[0]), each[1])
+				modVal=each[0]-CODE_ADDR
+				modifysByRange(shellBytes, modVal,modVal+ each[1], "d")
+				sBy.dataAccessedFunc(each)
 		else:
 			print ("This is an advanced encoding. Some data cannot be distinguished between code.")
 
 
-	# print ("end findDataBytesEmu", hex(CODE_ADDR))
 
 def dprint4(*args):
 	debugging=True
@@ -14678,6 +14718,8 @@ def preSyscalDiscoverold(startingAddress, targetAddress, linesGoBack, caller=Non
 		sBy.ApiStart.append(0xfffffffd)
 		sBy.ApiEnd.append(0xfffffffd)
 		sBy.ApiValue.append("")
+		sBy.dataAccessed.append(False)
+		sBy.dataAccessedSize.append(None)
 		i+=1
 	if mBool[o].bDoFindStrings and not mBool[o].bPreSysDisDone:
 		findStrings(shellBytes,3)
@@ -14781,6 +14823,8 @@ def preSyscalDiscovery(startingAddress, targetAddress, linesGoBack, caller=None)
 			sBy.ApiStart.append(0xfffffffd)
 			sBy.ApiEnd.append(0xfffffffd)
 			sBy.ApiValue.append("")
+			sBy.dataAccessed.append(False)
+			sBy.dataAccessedSize.append(None)
 			i+=1
 
 	start = time.time()
@@ -14904,6 +14948,8 @@ def takeBytes(shellBytes,startingAddress, silent=None, decoder=False):
 			sBy.ApiStart.append(0xfffffffd)
 			sBy.ApiEnd.append(0xfffffffd)
 			sBy.ApiValue.append("")
+			sBy.dataAccessed.append(False)
+			sBy.dataAccessedSize.append(None)
 			i+=1
 
 		if not tooBig:
@@ -15247,7 +15293,7 @@ def addComments():
 		# print ("p", params)
 		apiAddress=int(each[1],16)
 		# print (hex(apiAddress), 42000000, each[1])
-		apiAddress=apiAddress-0x12000000
+		apiAddress=apiAddress-CODE_ADDR
 		# print("---->", hex(apiAddress))
 		# print (hex(apiAddress))
 		if commentsGiven:
@@ -15297,7 +15343,7 @@ def addComments():
 		# print ("p", params)
 		apiAddress=int(each[1],16)
 		# print (hex(apiAddress), 42000000, each[1])
-		apiAddress=apiAddress-0x12000000
+		apiAddress=apiAddress-CODE_ADDR
 		# print("---->", hex(apiAddress))
 		# print (hex(apiAddress))
 		if commentsGiven:
@@ -20517,7 +20563,7 @@ def uiBits():	#Change the bit mode
 def discoverEmulation(maxLen=None):
 	global shellBit
 	global emuObj   
-	print ("discoverEmulation, o --->", o)
+	# print ("discoverEmulation, o --->", o)
 	if maxLen==None:
 		maxLen=42
 	

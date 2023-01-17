@@ -424,6 +424,9 @@ bAddWriteTwice=set()
 bAddWriteThriceTuple=set()
 bAddWriteThrice=set()
 
+bReadListTuple=[]
+bWriteListTuple=[]
+
 
 
 def hook_mem_access2(uc, address, size, user_data):
@@ -457,6 +460,18 @@ def hook_mem_access(uc, access, address, size, value, user_data):
                 bAddWriteTuple.add((address, size))
                 bAddWrite.add(address)
 
+
+# CODE_ADDR = 0x12000000
+# ENTRY_ADDR = 0x1000
+# STACK_ADDR = 0x17000000
+# EXTRA_ADDR = 0x18000000
+# MOD_LOW = 0x14100000
+# MOD_HIGH = 0x14100000
+
+        if address < MOD_LOW or address > MOD_HIGH  and (address < STACK_ADDR-0x5000  or address > STACK_ADDR +0x5000 ) and address != ENTRY_ADDR and address != EXTRA_ADDR:
+            bWriteListTuple.append((hex(address),size))
+
+        
     else:   # READ
         # print(">>> Memory is being READ at 0x%x, data size = %u" \
                 # %(address, size))
@@ -472,7 +487,8 @@ def hook_mem_access(uc, access, address, size, value, user_data):
             else:
                 bAddRead.add(address)
                 bAddReadTuple.add((address, size))
-
+        if address < MOD_LOW or address > MOD_HIGH  and (address < STACK_ADDR-0x5000  or address > STACK_ADDR +0x5000 ) and address != ENTRY_ADDR and address != EXTRA_ADDR:
+            bReadListTuple.append((hex(address),size))
 
 def hook_code(uc, address, size, user_data):
     global cleanBytes, verbose
