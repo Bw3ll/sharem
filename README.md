@@ -65,7 +65,7 @@ SHAREM also has the ability to download files via UrldownloadToFileA, if they ex
 
 
 # Co-Authors and Contributors
-Dr. Bramwell Brizendine, Austin Babcock, Jake Hince, Shelby VandenHoek, Sascha Walker, Tarek Abdelmotaleb, Evan Read, Dylan Park, and Kade Brost.
+Dr. Bramwell Brizendine, Austin Babcock, Jake Hince, Shelby VandenHoek, Sascha Walker, Evan Read, Dylan Park, Tarek Abdelmotaleb, and Kade Brost.
 
 # Acknowledgement
 This research and some co-authors have been supported by NSA Grant H98230-20-1-0326.
