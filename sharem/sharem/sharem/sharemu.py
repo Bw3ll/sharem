@@ -1286,9 +1286,9 @@ def startEmu(data, vb):
     fRaw.completed()
     fRaw.findAPIs()
 
-    outFile.close()
+    #outFile.close()    # temporary solution to https://github.com/Bw3ll/sharem/issues/56
 
-    stackFile.close()
+    #stackFile.close()  # temporary solution to https://github.com/Bw3ll/sharem/issues/56
 
 
 def emuInit():
