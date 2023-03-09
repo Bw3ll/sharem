@@ -406,11 +406,30 @@ def saveDLLAddsToFile(foundDLLAddrs, export_dict):
         Path(foundDLLAddrs).touch()
         with open(foundDLLAddrs, 'a') as out:
             json.dump(export_dict, out)
+            
+        # In same cases json.dump dumps the dict wrong, puts "}{" instead of ", "
+        # To fix this we replace it to avoid JSONDecodeError when json.loads(file) tries to decode file
+        with open(foundDLLAddrs, 'r') as f:
+            data = f.read()
+            data = data.replace("}{", ", ")    # fix "}{" to ", " to validate JSON
+            with open(foundDLLAddrs, 'w') as out: # write fixed JSON to foundDLLAddrs
+                out.write(data)
+
 
     # Make sure no duplicates get in if there's already content in the file
     else:
-        with open(foundDLLAddrs, 'r') as f:
-            currentData = json.load(f)
+        try:
+            with open(foundDLLAddrs, 'r') as f:
+                currentData = json.load(f)
+        except:                                     # If it fails to load JSON file with JSONDecodeError: Extra data: line 1 ....
+            with open(foundDLLAddrs, 'r') as f:     # Same procedure with if foundDLLAddrs path is not exist
+                data = f.read()                     # These part for who wrote JSON file in Windows, then got JSONDecodeError
+                data = data.replace("}{", ", ")     # fix "}{" to ", " to validate JSON
+                with open(foundDLLAddrs, 'w') as out: # write fixed JSON to foundDLLAddrs
+                    out.write(data)
+            with open(foundDLLAddrs, 'r') as f:
+                currentData = json.load(f)
+                
 
         with open(foundDLLAddrs, 'a') as out:
             for apiAddr, apiInfo in export_dict.items():
