@@ -377,8 +377,9 @@ class jsonPrint:
 ####  Emulation  ####
 #####################
 	def apis(self,apiList):
-		api_dict = {}
+		
 		for i in apiList:
+			api_dict = {}
 			tuple_flag = 0
 			api_name = i[0]
 			api_address = i[1]
@@ -419,7 +420,7 @@ class jsonPrint:
 												"value":api_type_value})
 					p+=1
 			# list_of_apis.append(api_dict)
-		self.emulation_dict['api_calls'].append(api_dict)
+			self.emulation_dict['api_calls'].append(api_dict)
 
 	def syscalls(self,logged_syscalls,em):
 		var = Variables()
