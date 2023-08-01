@@ -2,6 +2,18 @@
 
 Welcome to SHAREM! 
 
+We will be presenting at DEFCON 31 and Black Hat USA Arsenal. Some new updates are forthcoming, and a companion Ghidra plugin will be available (separately) from Trellix, courtesy of Max Kersten. Thus, you can extend the power of SHAREM to Ghidra, if you so desire. If you are in Vegas, come stop by and see SHAREM in action! 
+
+Black Hat USA Arsenal
+SHAREM: Advanced Windows Shellcode Analysis Framework with Ghidra Plugin
+Wednesday, August 9 | 4:00-5:30pm
+Business Hall, Arsenal Station 3
+
+DEFCON 31
+Game-Changing Advances in Windows Shellcode Analysis
+Friday, August 11 | 3:30-4:15pm
+Track 4 (Main talks)
+
 SHAREM is intended to be the ultimate Windows shellcode tool, with support to emulate over 12,000 WinAPIs, virtually all user-mode Windows syscalls, and SHAREM provides numerous new features. SHAREM was released on September 29, 2022. SHAREM contains an emulator, a disassembler, timeless debugging, brute-force deobfuscation, and many other features. SHAREM's emulator can also display complete structures (or even structures within structures) and it can allow encoded shellcode to deobfuscate itself. SHAREM logs output from all WinAPIs and Windows syscalls analyzed, and it also breaks each into many categories and subcategories. SHAREM's complete code coverage also allows it to discover unreachable functionality.
 
 SHAREM's disassembler is able to integrate discovered functions into the disassembly, labelling each in the disassembler. SHAREM also will displayed the decrypted form of encoded shellcode in the disassembler, so it is not necessary to debug shellcode.
