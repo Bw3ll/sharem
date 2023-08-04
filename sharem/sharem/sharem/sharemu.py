@@ -12,6 +12,7 @@ from .DLLs.dict_signatures import *
 from .DLLs.dict2_signatures import *
 from .DLLs.dict3_w32 import *
 from .DLLs.dict4_ALL import *
+from .DLLs.dict5_signatures import *
 from .DLLs.hookAPIs import *
 from .DLLs.syscall_signatures import *
 from .helper.emuHelpers import *
@@ -217,8 +218,8 @@ WinSysCall = CustomWinSysCalls()
 
 CODE_ADDR = 0x12000000
 ENTRY_ADDR = 0x1000
-STACK_ADDR = 0x17000000
-EXTRA_ADDR = 0x18000000
+STACK_ADDR = 0x19000000
+EXTRA_ADDR = 0x20000000
 MOD_LOW = 0x14100000
 MOD_HIGH = 0x14100000
 codeLen = 0
@@ -287,7 +288,6 @@ def loadDlls(mu):
 
     # Set 64 bit variables
     else:
-        print ("set 64 bit variables")
         foundDLLAddrs = foundDLLAddresses64
         source_path = 'C:\\Windows\\System32\\'
         save_path = expandedDLLsPath64
@@ -819,13 +819,18 @@ def findDict(funcAddress, funcName, dll=None):
         # dll=dll.lower()
         dict4 = tryDictLocate('dict4', dll)
         dict2 = tryDictLocate('dict2', dll)
+        dict5 = tryDictLocate('dict5', dll)
         dict1 = tryDictLocate('dict', dll)
 
-        if (len(dict4)==0) and (len(dict2)==0) and (len(dict1)==0):
+        if ((len(dict4)==0) and (len(dict2)==0) and (len(dict1)==0) and (len(dict5) == 0)):
             dll=dll.lower()
             dict4 = tryDictLocate('dict4', dll)
             dict2 = tryDictLocate('dict2', dll)
+            dict5 = tryDictLocate('dict5', dll)
             dict1 = tryDictLocate('dict', dll)
+            if dll == "kernelbase":
+                dict4 = tryDictLocate('dict2', 'kernel32')
+
         bprint("dll", dll)
         # Log usage of DLL
         dllL=dll.lower()
@@ -849,9 +854,13 @@ def findDict(funcAddress, funcName, dll=None):
         elif funcName in dict4:
             return dict4[funcName], 'dict4', dll
 
+        elif funcName in dict5:
+            return dict5[funcName], 'dict5', dll
+
         # If all else fails, use dict 1
         elif funcName in dict1:
             return dict1[funcName], 'dict1', dll
+
         else:
             print(funcName + " from "  + dll + " was not found in dictionaries.")
             return "none", "none", dll
@@ -869,7 +878,6 @@ def getParams(uc, esp, apiDict, dictName):
         paramVals = makeArgVals(uc, em, esp, numParams)
         cleanBytes = apiDict[1]
     else:
-        # print ("dictName", dictName)
         numParams = apiDict[0]
         paramVals = makeArgVals(uc, em, esp, numParams)
         for i in range(numParams):
@@ -921,7 +929,6 @@ def hook_default(uc, eip, esp, funcAddress, funcName, callLoc):
             apiDict, dictName, dll = findDict(funcAddress, funcName, "ws2_32")
             bprint("", apiDict, dictName, dll)
 
-        # print ("funcName, dll")
         paramVals = getParams(uc, esp, apiDict, dictName)
 
         if dictName != 'dict1':
@@ -931,7 +938,10 @@ def hook_default(uc, eip, esp, funcAddress, funcName, callLoc):
             paramTypes = ['DWORD'] * len(paramVals)
             paramNames = ['arg'] * len(paramVals)
 
-        dictR1 = globals()['dictRS_' + dll]
+        try:
+            dictR1 = globals()['dictRS_' + dll]
+        except:
+            dictR1 = {}
         retVal, retValStr = findRetVal(funcName, dictR1)
         bprint("returnVal", funcName, retVal)
         uc.reg_write(UC_X86_REG_EAX, retVal)
@@ -1101,7 +1111,7 @@ def test_i386(mode, code):
 
         # Initialize emulator
         try:
-            mu.mem_map(0x00000000, 0x20050000)
+            mu.mem_map(0x00000000, 0x23050000)
         except:
             print ("memory loading erorr")
         mods = loadDlls(mu)
@@ -1267,17 +1277,16 @@ def startEmu(data, vb):
         em.arch=64
         mu2 = test_i386(UC_MODE_64, data)
 
-    lel = 0
+    runs = 0
     while len(coverage_objects) > 0 and em.codeCoverage == True:
         if em.arch == 32:
             restartEmu(mu, UC_MODE_32, data)
         elif em.arch == 64:
             restartEmu(mu2,UC_MODE_64, data)
 
-        if lel > 2:
-            print ("breaking, lel")
+        if runs > 2:
             break
-        lel += 1
+        runs += 1
 
     print(cya + "\t[*]" + res2 + " CPU counter: " + str(programCounter))
     print(cya + "\t[*]" + res2 + " Emulation complete")

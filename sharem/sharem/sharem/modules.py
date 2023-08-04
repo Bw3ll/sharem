@@ -41,7 +41,10 @@ if platformType == "Windows":
 # LDR_ADDR = 0x11020000
 # LDR_PROG_ADDR = 0x11021000
 
-allDlls=["ntdll", "kernel32", "KernelBase", "advapi32",  "comctl32",  "comdlg32",  "gdi32", "gdiplus", "imm32",  "mscoree",  "msvcrt",  "netapi32",  "ole32",  "oleaut32",  "shell32",  "shlwapi",  "urlmon",  "user32",  "wininet",  "winmm",  "ws2_32",  "wsock32", "advpack", "bcrypt", "crypt32", "dnsapi", "mpr", "ncrypt", "netutils", "samcli", "secur32", "wkscli", "wtsapi32"]
+allDlls = ["ntdll", "kernel32", "KernelBase", "advapi32", "comctl32", "comdlg32", "gdi32", "gdiplus", "imm32",
+               "mscoree", "msvcrt", "netapi32", "ole32", "oleaut32", "shell32", "shlwapi", "urlmon", "user32",
+               "wininet", "winmm", "ws2_32", "wsock32", "advpack", "bcrypt", "crypt32", "dnsapi", "mpr", "ncrypt",
+               "netutils", "samcli", "secur32", "wkscli", "wtsapi32", "cabinet","cfgmgr32","clfsw32","combase","dhcpsapi","gdiplus","httpapi","imm32","iphlpapi","iscsidsc","mprapi","msi","msvcrxx","odbc32","pdh","powrprof","rasapi32","rpcrt4","shell32","usp10","virtdisk","websocket","winbio","winhttp","winspool","wlanapi","wldap32","dbghelp","winspool","pdh","clfsw32","powrprof","mprapi","winbio","authz","cryptnet","psapi","sechost"]
 allDllsDict = {}
 
 class Win32Addresses:
@@ -49,7 +52,7 @@ class Win32Addresses:
         self.process_base = 0x14000000
         self.peb_addr = 0x11017000
         self.tib_addr = 0x00000000
-        self.const_addr = 0x20000000
+        self.const_addr = 0x22000000
         self.fast_addr = 0x5000
         self.ldr_addr = 0x11020000
         self.ldr_prog_addr = 0x11021000
@@ -59,7 +62,7 @@ class Win64Addresses:
         self.process_base = 0x14000000
         self.peb_addr = 0x1101c000
         self.tib_addr = 0x00000000
-        self.const_addr = 0x20000000
+        self.const_addr = 0x22000000
         self.fast_addr = 0x5000
         self.ldr_addr = 0x11028000
         self.ldr_prog_addr = 0x11031000
@@ -403,8 +406,7 @@ def padDLL(dllPath, dllName, expandedDLLsPath):
 def saveDLLAddsToFile(foundDLLAddrs, export_dict):
     # Create foundDllAddresses.txt if it doesn't already exist
     if not os.path.exists(foundDLLAddrs):
-        Path(foundDLLAddrs).touch()
-        with open(foundDLLAddrs, 'a') as out:
+        with open(foundDLLAddrs, 'w') as out:
             json.dump(export_dict, out)
 
     # Make sure no duplicates get in if there's already content in the file
@@ -412,24 +414,38 @@ def saveDLLAddsToFile(foundDLLAddrs, export_dict):
         with open(foundDLLAddrs, 'r') as f:
             currentData = json.load(f)
 
-        with open(foundDLLAddrs, 'a') as out:
-            for apiAddr, apiInfo in export_dict.items():
-                if apiAddr not in currentData.keys():
-                    newRecord = {}
-                    newRecord[apiAddr] = apiInfo
-                    json.dump(newRecord, out)
+        if len(currentData) == 0:
+            with open(foundDLLAddrs, 'w') as out:
+                json.dump(export_dict, out)
+
+        else:
+            with open(foundDLLAddrs, 'a') as out:
+                for apiAddr, apiInfo in export_dict.items():
+                    if apiAddr not in currentData.keys():
+                        newRecord = {}
+                        newRecord[apiAddr] = apiInfo
+                        json.dump(newRecord, out)
 
 def initMods(uc, em, export_dict, source_path, save_path):
-    mods_list = ["ntdll", "kernel32", "KernelBase", "advapi32", "comctl32", "comdlg32", "gdi32", "gdiplus", "imm32",
+    global allDlls
+    allDlls = ["ntdll", "kernel32", "KernelBase", "advapi32", "comctl32", "comdlg32", "gdi32", "gdiplus", "imm32",
                "mscoree", "msvcrt", "netapi32", "ole32", "oleaut32", "shell32", "shlwapi", "urlmon", "user32",
                "wininet", "winmm", "ws2_32", "wsock32", "advpack", "bcrypt", "crypt32", "dnsapi", "mpr", "ncrypt",
-               "netutils", "samcli", "secur32", "wkscli", "wtsapi32"]
+               "netutils", "samcli", "secur32", "wkscli", "wtsapi32", "cabinet","cfgmgr32","clfsw32","combase","dhcpsapi","gdiplus","httpapi","imm32","iphlpapi","iscsidsc","mprapi","msi","msvcrxx","odbc32","pdh","powrprof","rasapi32","rpcrt4","shell32","usp10","virtdisk","websocket","winbio","winhttp","winspool","wlanapi","wldap32","dbghelp","winspool","pdh","clfsw32","powrprof","mprapi","winbio","authz","cryptnet","psapi","sechost"]
     path32 = 'C:\\Windows\\SysWOW64\\'
     path64 = 'C:\\Windows\\System32\\'
     mods = {}
+    not_found = []
 
-    for dll_name in mods_list:
-        mods[dll_name] = WinDLL(dll_name, path32+dll_name, path64+dll_name)
+    for dll_name in allDlls:
+            with disable_file_system_redirection():
+                if os.path.exists(source_path + dll_name + ".dll"):
+                    mods[dll_name] = WinDLL(dll_name, path32+dll_name, path64+dll_name)
+                else:
+                    not_found.append(dll_name)
+
+    for n in not_found:
+        allDlls.remove(n)
 
     export_dict, mods, mod_high_val = iter_and_dump_dlls(uc, em, export_dict, source_path, save_path, mods)
 
