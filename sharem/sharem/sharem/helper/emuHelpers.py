@@ -7,6 +7,7 @@ from unicorn import *
 from ..DLLs.dict4_ALL import *
 from ..DLLs.dict_signatures import *
 from ..DLLs.dict2_signatures import *
+from ..DLLs.dict5_signatures import *
 from ..DLLs.dict3_w32 import *
 from ..DLLs.dict4_ALL import *
 from ..DLLs.hookAPIs import *
