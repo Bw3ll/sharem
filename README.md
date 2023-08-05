@@ -59,6 +59,7 @@ Documentation can be found at the [SHAREM Wiki](https://github.com/Bw3ll/sharem/
 * Jan. 4, 2023: I revamped the complete code coverage a great deal, enhancing its performance. I have also exposed several optional features that can be tweaked by expert users on case by case basis via the UI or the config file. More info at the [complete code coverage wiki page](https://github.com/Bw3ll/sharem/wiki/Complete-Code-Coverage).
 * Jan. 5, 2023: Added keystroke shortcut to the complete code coverage submenu from the Emulator menu. For those with yesterday's update already downloaded, the keystroke is the letter "o".
 * Jan. 16, 2023: Added three new fields to disassembly JSON files that are generated. This update is NOT needed for anyone not using those JSONs, which is a nonstandard way of using SHAREM.
+* Aug. 3, 2023: Approximately 5000-6000 APIs were added from around 30 additional DLLs. Other enhancements in support of this.
 
 # Screenshots
 SHAREM is a very powerful framework with numerous capabilities, some well documented, and some which are not. This section will showcase a small number of those capabilities. 
