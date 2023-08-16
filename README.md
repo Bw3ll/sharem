@@ -38,14 +38,19 @@ It can be installed from https://git-scm.com/download/win. After installion rest
 3. Do
 ```py -m pip list``` or  ```python3 -m pip list``` to verify that that SHAREM is installed locally as a package. It must be installed as a package to work.
 
+After SHAREM is installed, when ou first run a shellcode, you want to be inside the sharem_cli folder. For instance, when in that directory, you could run
+py main.py -r32 shellcode.bin
+
 Note: The first time that you attempt to emulate a shellcode on Windows, it will attempt to harvest and inflate Windows DLLs. This process begins automatically when trying to first emulate a shellcode. It will copy them, moving the copied (and later inflated) DLLs to a SHAREM directory. There are additional steps, but this whole initial process can take several minutes. After it has completed, you should not have to do this again. This must be done separately both for 32- and 64-bit shellcode. 
+
+If the file ends in .txt, it will assume the shellcode is ASCII representation of HEX (rather than pure hexadecimal), and it will interpret it as such. This works with something found online.
 
 ## Linux
 1. ```chmod +x linux_installer.sh``` Enable Execution of the Installer
 2. ```sudo ./linux_installer.sh``` Execute the Installer
 3. Add DLL Files
 
-You will need to add the Windows DLL files. We do not currently these available as a separate download for Linux users. At this time, users would need harvest them by installing it via Windows. (Note: These DLLs MUST be inflated by SHAREM. Dlls cannot be used if not inflated.) Later, we will provide these as a separate download in the coming weeks.
+You will need to add the Windows DLL files. We do not currently these available as a separate download for Linux users. At this time, users would need harvest them by installing it via Windows. (Note: These DLLs MUST be inflated by SHAREM. Dlls cannot be used if not inflated. Most, though perhaps not all, will fail if not inflated the proper amount.) Later, we will provide these as a separate download in the coming weeks. But in the meantime, the user can follow the Windows steps to generate them and move them to Linux. 
 
 # Documentation
 Documentation can be found at the [SHAREM Wiki](https://github.com/Bw3ll/sharem/wiki), which provides some instructional  information on SHAREM usage, although there are significant portions and features not currently documented. 
