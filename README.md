@@ -54,7 +54,7 @@ You will need to add the Windows DLL files. We do not currently these available 
 
 # Ghidra Script
 Max Kersten's Ghidra Script as shown as Black Hat and DEFCON this August 2023 can be found here: https://github.com/advanced-threat-research/GhidraScripts/blob/main/Sharem.java
-Further documentation on usage will be forthcoming. This Ghidra plugin is courtesy of Trellx!
+Further documentation on usage will be forthcoming. This Ghidra plugin is courtesy of Trellix! You are still required to use SHAREM. This ingests the JSON output produced by SHAREM and converts it into a format useful for Ghidra.
 
 # Documentation
 Documentation can be found at the [SHAREM Wiki](https://github.com/Bw3ll/sharem/wiki), which provides some instructional  information on SHAREM usage, although there are significant portions and features not currently documented. 
