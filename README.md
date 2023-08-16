@@ -53,8 +53,8 @@ If the file ends in .txt, it will assume the shellcode is ASCII representation o
 You will need to add the Windows DLL files. We do not currently these available as a separate download for Linux users. At this time, users would need harvest them by installing it via Windows. (Note: These DLLs MUST be inflated by SHAREM. Dlls cannot be used if not inflated. Most, though perhaps not all, will fail if not inflated the proper amount.) Later, we may provide these as a separate download in the coming weeks. But in the meantime, the user can follow the Windows steps to generate them and move them to Linux, placing them in sharem\sharem\sharem\DLLs\x64 and sharem\sharem\sharem\DLLs\x86. You would also need the foundDLLAddresses32.json and FoundDLLAddresses64.json, which should go in sharem\sharem\sharem .
 
 # Ghidra Script
-Max Kersten's Ghidra Script as shown as Black Hat and DEFCON this August 2023 can be found here: https://github.com/advanced-threat-research/GhidraScripts/blob/main/Sharem.java
-Further documentation on usage will be forthcoming. This Ghidra plugin is courtesy of Trellix! You are still required to use SHAREM. This ingests the JSON output produced by SHAREM and converts it into a format useful for Ghidra.
+Max Kersten's Ghidra Script as shown at Black Hat and DEFCON this August 2023 can be found here: https://github.com/advanced-threat-research/GhidraScripts/blob/main/Sharem.java
+Further documentation on usage will be forthcoming. This Ghidra plugin is courtesy of Trellix! You are still required to use SHAREM. This ingests the JSON output produced by SHAREM and converts it into a format useful for Ghidra. More about Max himself can be found at https://maxkersten.nl/.
 
 # Documentation
 Documentation can be found at the [SHAREM Wiki](https://github.com/Bw3ll/sharem/wiki), which provides some instructional  information on SHAREM usage, although there are significant portions and features not currently documented. 
