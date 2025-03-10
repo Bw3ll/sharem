@@ -298,7 +298,6 @@ class CustomWinAPIs():
         pVals[3] = getLookUpVal(pVals[3], ReverseLookUps.flProtect)
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[2,3])
-
         
         uc.reg_write(UC_X86_REG_EAX, retVal)
 
@@ -13255,6 +13254,509 @@ class CustomWinAPIs():
         logged_calls= ("CreateWaitableTimerExA", hex(callAddr), (retValStr), 'HANDLE', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
+    #Next three were made by Hunter
+    
+    def CreateJobObjectA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['LPSECURITY_ATTRIBUTES', 'LPCSTR']
+        pNames = ['lpJobAttributes', 'lpName']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+    
+        if pVals[1]:
+            job_name = read_string(uc, pVals[1])
+
+        else: 
+            job_name = None 
+
+        handle = Handle(HandleType.JobObjectA, None, job_name)
+        retVal = handle.value
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ('CreateJobObjectA', hex(callAddr), hex(retVal), 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+
+    def CloseServiceHandle(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['SC_HANDLE']
+        pNames = ['hSCObject']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        if pVals[0] in HandlesDict:
+            HandlesDict.pop(pVals[0])
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        retVal = 0x1
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("CloseServiceHandle", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+
+
+    def LogonUserA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['LPCSTR', 'LPCSTR', 'LPCSTR', 'DWORD', 'DWORD', 'PHANDLE']
+        pNames = ['lpszUsername', 'lpszDomain', 'lpszPassword', 'dwLogonType', 'dwLogonProvider', 'phToken']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        dwLogonType_ReverseLookup = {
+            2: 'LOGON32_LOGON_INTERACTIVE',
+            3: 'LOGON32_LOGON_NETWORK',
+            4: 'LOGON32_LOGON_BATCH',
+            5: 'LOGON32_LOGON_SERVICE',
+            7: 'LOGON32_LOGON_UNLOCK',
+            8: 'LOGON32_LOGON_NETWORK_CLEARTEXT',
+            9: 'LOGON32_LOGON_NEW_CREDENTIALS'
+        }
+
+        dwLogonProvider_ReverseLookup = {
+            0: 'LOGON32_PROVIDER_DEFAULT',
+            1: 'LOGON32_PROVIDER_WINNT35',
+            2: 'LOGON32_PROVIDER_WINNT40',
+            3: 'LOGON32_PROVIDER_WINNT50'
+        }
+
+        #Check if pVals[5] is a valid pointer
+        #print(pVals[5])
+        #print(hex(pVals[5]))
+        phTokenAddress = pVals[5]
+        #if phTokenAddress == 0 or phTokenAddress is None:
+        #   print("[ERROR] phTokenAddress is NULL or invalid!")
+
+
+        # Translate the DWORD parameters
+        try:
+            #pVals[3] = getLookUpVal(pVals[3], dwLogonType_ReverseLookup)
+            #check3 = dwLogonType_ReverseLookup[int(pVals[3], 16)]
+            #print("Hello World")
+            pVals[3] = int(pVals[3], 16) if isinstance(pVals[3], str) and pVals[3].startswith("0x") else int(pVals[3])
+            check3 = dwLogonType_ReverseLookup.get(pVals[3], "UNKNOWN")
+            #print(f"Logon Type: {check3}")
+            pVals[3] = str(pVals[3]) + ": " + check3
+        except Exception as e:
+            #print(e)
+            #print(traceback.format_exc())
+            pass
+
+
+        try:
+            #pVals[4] = getLookUpVal(pVals[4], dwLogonProvider_ReverseLookup)
+            #check4 = dwLogonProvider_ReverseLookup[int(pVals[4], 16)]
+            #print(check4)
+            pVals[4] = int(pVals[4], 16) if isinstance(pVals[4], str) and pVals[4].startswith("0x") else int(pVals[4])
+            check4 = dwLogonProvider_ReverseLookup.get(pVals[4], "UNKNOWN")
+            #print(f"Logon Provider: {check4}")
+            pVals[4] = str(pVals[4]) + ": " + check4
+        except Exception as e:
+            #print(e)
+            #print(traceback.format_exc())
+            pass
+
+        # Create a handle, use the pointer, write it at the pointer
+
+        # Mock handle and write to phToken address
+        handle = Handle(HandleType.LogOnUserA)
+        
+        #print(2)
+        try:
+            uc.mem_write(pVals[5], pack('<I',handle.value))
+            #print(3)
+        except Exception as e:
+            #print(e)
+            #print(traceback.format_exc())
+            pass
+        phTokenAddress = pVals[5]  # Get the memory address where the token handle is stored
+
+        # Print the pointer address in hex
+        #print(f'phToken Address: {hex(phTokenAddress)}')
+
+        # Read the value stored at that memory address (4 bytes, assuming 32-bit handle)
+        try:
+            token_value = unpack('<I', uc.mem_read(phTokenAddress, 4))[0]
+            #print(f'Handle Value at {hex(phTokenAddress)} -> {token_value}')
+        except Exception as e:
+            #print(f'Failed to read memory at {hex(phTokenAddress)}: {e}')
+            pass
+
+        pVals[5] = str(hex(phTokenAddress)) + " > " + hex(handle.value)
+
+        # Adjust for string parsing
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[3,4,5])
+        #print(1)
+
+        #Types,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        #em.mem_write(phTokenAddress, fakeTokenHandle.to_bytes(4, 'little'))
+        # Mock a successful login (Return value 1 for success)
+        retVal = 1
+        uc.reg_write(UC_X86_REG_EAX, retVal)  # Set the return value in EAX
+        retValStr = hex(retVal)
+
+        #print(5)
+
+        logged_calls = ("LogOnUserA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetBinaryTypeA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['LPCSTR', 'LPDWORD']
+        pNames = ['lpApplicationName', 'lpBinaryType']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
+
+        # Created Reverse Lookup table from MSDN information
+        binary_type_map = {
+        0: "32-bit Windows-based application",
+        6: "64-bit Windows-based application",
+        }
+
+        app_name = pVals[0]
+        binaryCheck = 0
+        if "syswow64" in app_name:
+            binaryCheck = 0  # 32-bit binary
+        elif "System32" in app_name:
+            binaryCheck = 6  # 64-bit binary
+        else:
+            # Default behavior based on architecture
+            binaryCheck = 0 if em.arch == 32 else 6
+
+        try:            
+            uc.mem_write(pVals[1], pack('<L', binaryCheck))
+        except Exception as e:
+            #print(e)
+            #print(traceback.format_exc())
+            pass
+
+
+        index = pVals[1]
+        mapTest = binary_type_map[binaryCheck]
+        pVals[1] = hex(pVals[1]) + " > " + str(binaryCheck) + ": " + mapTest
+
+
+        # Simulate the return value: nonzero for success
+        retVal = 1  # Nonzero to indicate success
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        
+
+        logged_calls = ("GetBinaryTypeA", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))  
+
+    def GetThreadPriority2(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes =['HANDLE'] 
+        pNames = ['hThread'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        #pVals[0] = getLookUpVal(pVals[0],ReverseLookUps.Thread.THREAD_INFORMATION_CLASS)
+
+        #mp = get_MEMORY_PRIORITY_INFORMATION(uc, pVals[2], em)
+        #mp.MemoryPriority = 5 # Normal
+        #mp.writeToMemory(uc, pVals[2])
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[1,2])
+        
+        retVal = 0x1
+        retValStr = 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("GetThreadPriority", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetCurrentDirectoryA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['DWORD', 'LPSTR']
+        pNames = ['nBufferLength', 'lpBuffer']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        current_directory = SimFileSystem.currentDirPath  
+        #print(current_directory)
+
+        path = current_directory.encode('ascii')
+        #print(path)
+        uc.mem_write(pVals[1], pack(f'<{len(path) + 2}s', path))
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        
+        retVal = len(path)
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("GetCurrrentDirectoryA", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetCurrentDirectoryW(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['DWORD', 'LPWSTR']
+        pNames = ['nBufferLength', 'lpBuffer']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        current_directory = SimFileSystem.currentDirPath  
+        #print(current_directory)
+
+        path = current_directory.encode('utf-16')[2:]
+        uc.mem_write(pVals[1], pack(f'<{len(path) + 2}s', path))
+        #fix later
+        #uc.mem_read()
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+        
+        retVal = len(path)
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("GetCurrrentDirectoryW", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    # Used the code for SetCurrentDirectory and applied the same code here.
+    def SetDllDirectoryA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        #'SetDllDirectoryA': (1, ['LPCSTR'], ['lpPathName'], 'BOOL')
+        #print("SetDllDirectory")
+        pTypes= ['LPCTSTR']
+        pNames= ['lpPathName']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        changeDir = pVals[0]
+
+        #print("1")
+        #checks the path type
+        if(".." in changeDir):
+            #print(3)
+            #have a workaround for now to convert to an absolute path
+            SimFileSystem.currentDirPath = SimFileSystem.setCurrentDir(changeDir,0)
+            #dirPath = Directory_system().setCurrentDir(changeDir, 0)
+        else:
+            #print(4)
+            #is absolute path
+            SimFileSystem.currentDirPath = SimFileSystem.setCurrentDir(changeDir,1)
+            #dirPath = Directory_system().setCurrentDir(changeDir, 1)
+        
+        # Add a DLL Search path to the SimFileSystem
+        # Go into the filesystem,py file to change this
+        # Get an example of common DLLs in the search path and use it as a starting point
+        # Add or remove from that
+        #print("2")
+        Directory_system().addDllSearchPath(SimFileSystem.currentDirPath)
+
+        #print("Hello World")
+        #print(SimFileSystem.currentDllPath)
+        #print(SimFileSystem.dllSearchPaths)
+
+
+        #art.path_artifacts.append(SimFileSystem.currentDirPath)          
+        retVal = 0x1
+        retValStr= 'True'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("SetDllDirectoryA", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CreateFileTransactedA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ["LPCSTR", "DWORD", "DWORD", "LPSECURITY_ATTRIBUTES", "DWORD", "DWORD", "HANDLE", "HANDLE", "PUSHORT", "PVOID"]
+        pNames = ["lpFileName", "dwDesiredAccess", "dwShareMode", "lpSecurityAttributes", "dwCreationDistribution", "dwFlagsAndAttributes", "hTemplateFile", "hTransaction", "pusMiniVersion", "lpExtendedParameter"]
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+
+        
+        handle = Handle(HandleType.CreateFileTransactedA)
+
+        pVals[1] = getLookUpVal(pVals[1], ReverseLookUps.File.DesiredAccess)
+        pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.File.ShareMode)
+        pVals[4] = getLookUpVal(pVals[4], ReverseLookUps.File.CreationDistribution)
+        pVals[5] = getLookUpVal(pVals[5], ReverseLookUps.File.FlagsAndAttribute)
+
+   
+
+        if pVals[3] != 0x0:
+            sa = get_SECURITY_ATTRIBUTES(uc, pVals[3], em)
+            pVals[3] = makeStructVals(uc, sa, pVals[3])
+        else:
+            hex(pVals[3])
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip = [1, 2, 4, 5, 8])
+
+        handle.name = pVals[0]
+        handle.name = SimFileSystem.detectDuplicateFileHandles(SimFileSystem.currentDir,handle)
+        handle.data = SimFileSystem.currentDir
+        SimFileSystem.createFile(SimFileSystem.currentDirPath, handle.name)
+        path_list = []
+        path_list = SimFileSystem.getPath(SimFileSystem.currentDir,path_list)
+        path_list.append(handle.name)
+        art.path_artifacts.append('\\'.join(path_list))
+        art.files_create.append(handle.name)
+
+        #Need to add portion for pusMiniVersion
+        #if pVals[8] != 0:
+        #    try:
+        #        mini_version = em.readMemory(pVals[8], 2)  # Read a 2-byte value
+        #        pVals[8] = struct.unpack("<H", mini_version)[0]  # Convert to integer
+        #   except:
+        #        pVals[8] = "INVALID_ADDRESS"
+
+    
+
+        if pVals[8] == 0:
+            pVals[8] = hex(pVals[8]) + ": TXFS_MINIVERSION_COMMITTED_VIEW"
+        elif pVals[8] == 0xFFFF:
+            pVals[8] = hex(pVals[8]) + ": TXFS_MINIVERSION_DIRTY_VIEW"
+        elif pVals[8] == 0xFFFE:
+            pVals[8] = hex(pVals[8]) + ": TXFS_MINIVERSION_DEFAULT_VIEW"
+        else:
+            pVals[8] = hex(pVals[8])
+
+
+
+        retVal = handle.value
+        retValStr = hex(retVal)
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+     
+
+        logged_calls = ("CreateFileTransactedA", hex(callAddr), retValStr, 'HANDLE', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def OutputDebugStringW(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        #print("Hello")
+        pTypes = ['LPCWSTR']
+        pNames = ['lpOutputString']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+       
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        lpOutputString = pVals[0]
+        
+        #print(pVals[0])
+        
+        #print("Hello World")
+        retVal = 0
+        retValStr = 'NONE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ["OutputDebugStringW", hex(callAddr), retValStr, 'VOID', pVals, pTypes, pNames, True]
+        #print(f"Logged Call: {logged_calls}")
+
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def IsWow64Process(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        # Parameter types and names as defined by the MSDN documentation
+        pTypes = ['HANDLE', 'PBOOL']
+        pNames = ['hProcess', 'Wow64Process']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        bitVal = em.arch
+
+        # Use em.arch to determine if the process is 32-bit or 64-bit
+        if bitVal == 64:
+            retVal = 1
+            retValStr = 'TRUE'
+            #print("Hello World")
+        else:
+            retVal = 0
+            retValStr = 'False'
+            #print("Testv2")
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        #retVal = 1
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        #retValStr = 'TRUE'
+        logged_calls = ("IsWow64Process", hex(callAddr), retValStr, 'BOOL', pVals, pTypes, pNames, False)
+
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    # Used the code for VirtualAlloc and took out the second half of parameters
+    def VirtualLock(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        # Parameter types and names as defined by the MSDN documentation
+        pTypes = ['LPVOID', 'SIZE_T']
+        pNames = ['lpAddress', 'dwSize']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        #pVals[0] = hex(pVals[0])
+
+         # Round up to next page (4096)
+        pVals[1] = ((pVals[1] // 4096) + 1) * 4096
+        #pVals[1] = hex(pVals[1])
+
+        try:
+            uc.mem_map(pVals[0], pVals[1])
+            #retVal = pVals[0]
+            retVal = 1
+        except:
+            try:
+                allocLoc = emuSimVals.availMem
+                uc.mem_map(allocLoc, pVals[1])
+                emuSimVals.availMem += pVals[1]
+                #retVal = allocLoc
+                retVal = 1
+            except:
+                #retVal = 0xbadd0000
+                retVal = 0
+                pass
+
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+
+        logged_calls = ("VirtualLock", hex(callAddr), hex(retVal), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def ImpersonateSelf2(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        # Parameter types and names as defined by the MSDN documentation
+        pTypes = ['SECURITY_IMPERSONATION_LEVEL']
+        pNames = ['ImpersonationLevel']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        # TODO: _SECURITY_IMPERSONATION_LEVEL Incomplete, this structure needs to be added in the future
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("ImpersonateSelf", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+
+    #Ask questions about the SID Structure
+    def CheckTokenMembership2(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        # Parameter types and names as defined by the MSDN documentation
+        pTypes = ['HANDLE', 'PSID', 'BOOL']
+        pNames = ['TokenHandle', 'SidToCheck', 'IsMember']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+        # IF SID is present and has SE_GROUP_ENABLED
+        # TODO: SID Structure Incomplete, this structure needs to be added in the future
+
+        retVal = 0x1
+        retValStr= 'SUCCESS'
+        uc.reg_write(UC_X86_REG_EAX, retVal)     
+
+        logged_calls= ("CheckTokenMembership", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    # This is incomplete, does not seem cybersecurity relevant
+    def ReleaseSemaphore2(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        # Parameter types and names as defined by the MSDN documentation
+        pTypes = ['HANDLE', 'LONG', 'LPLONG']
+        pNames = ['hSemaphore', 'lReleaseCount', 'lpPreviousCount']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        # Simulate the process handle verification (assuming valid handle for simplicity)
+        # hProcess = pVals[0]
+        if pVals[0] in HandlesDict:
+            handle = HandlesDict[pVals[0]]
+            if handle.type == HandleType.HMODULE:
+                if handle.name != '':
+                    uc.mem_write(pVals[0], pack(f'<{len(handle.name) + 1}s', handle.name.encode('ascii')))
+
+
+        retVal = 1  # Nonzero indicates success
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        # Log the call
+        #pVals[1] = hex(pVals[1])  # Log the pointer as hex
+        logged_calls = ("ReleaseSemaphore", hex(callAddr), hex(retVal), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+
+
     def CreateTimerQueueTimer(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         #'CreateTimerQueueTimer': (7, ['PHANDLE', 'HANDLE', 'WAITORTIMERCALLBACK', 'PVOID', 'DWORD', 'DWORD', 'ULONG'], ['phNewTimer', 'TimerQueue', 'Callback', 'Parameter', 'DueTime', 'Period', 'Flags'], 'BOOL')
         pTypes= ['PHANDLE', 'HANDLE', 'WAITORTIMERCALLBACK', 'PVOID', 'DWORD', 'DWORD', 'ULONG']
@@ -14885,6 +15387,7 @@ class CustomWinSysCalls():
         logged_calls = ["NtEnumerateValueKey", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False]
         return logged_calls
 
+
     def NtFlushKey(self, uc: Uc, eip: int, esp: int, callAddr: int, em: EMU):
         pTypes = ['HANDLE']
         pNames = ['KeyHandle']
@@ -15313,3 +15816,6 @@ def writeAsciiStrToMemory(uc: Uc, address: int, string: str):
 
 def writeUnicodeStrToMemory(uc: Uc, address: int, string: str):
     uc.mem_write(address, pack(f"<{len(string.encode('utf-16')[2:])+2}s",string.encode('utf-16')[2:]))
+
+
+

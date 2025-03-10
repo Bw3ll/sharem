@@ -32,6 +32,7 @@ class HandleType(Enum):
     CreateFileMappingNumaA = auto()
     CreateFileMappingNumaW = auto()
     SendMessageA = auto()
+    CreateFileTransactedA = auto()
     # Mutex
     Mutex = auto()
     # Service Handles
@@ -59,6 +60,10 @@ class HandleType(Enum):
     Socket = auto()
     # Events
     Event = auto()
+    # JobObject
+    JobObjectA = auto()
+    # JobObject
+    LogOnUserA = auto()
 
 
 class Handle:
