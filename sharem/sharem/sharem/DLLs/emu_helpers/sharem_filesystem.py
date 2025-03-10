@@ -24,6 +24,17 @@ class Directory_system:
 		self.currentDirPath = None
 		self.users = ['Administrator']
 		self.deletedFiles = []
+		self.currentDllPath = None
+		self.dllSearchPaths = [
+			"C:\\Windows\\System32",
+			"C:\\Windows\\SysWOW64",  # For 32-bit apps on 64-bit systems
+			"C:\\Windows",
+			"C:\\Program Files\\Common Files",
+			"C:\\Program Files (x86)\\Common Files",
+			"C:\\Users\\Public\\Documents",
+			"C:\\Users\\Administrator\\AppData\\Local\\Programs",
+			"C:\\Users\\Administrator\\AppData\\Local\\Microsoft\\WindowsApps"
+		]
 	
 	################################
 	## Initize the file system
@@ -103,6 +114,10 @@ class Directory_system:
 			if(self.currentDir == None):
 				self.recurseCreateFolder(self.rootDir,dirSTR)
 				self.currentDir = (self.getNodeAbsoulte(self.rootDir,dirSTR,1))
+			
+			# Update the DLL Search Path if this is a DLL Directory
+			self.addDllSearchPath(dirSTR)
+
 			#return the absolute path
 			path_list = []
 			path_list = self.getPath(self.currentDir,path_list)
@@ -119,6 +134,25 @@ class Directory_system:
 			path_list = self.getPath(self.currentDir,path_list)
 			path_list = "\\".join(path_list)
 			return path_list
+
+	def addDllSearchPath(self, path):
+		absPath = self.convertPath(path)
+		if absPath not in self.dllSearchPaths:
+			self.dllSearchPaths.append(absPath)
+			#print(f"Test in sharem_filesystem.py: Added Dll Search Path {absPath}")
+
+	def removeDllSearchPath(self, path):
+		absPath = self.convertPath(path)
+		if absPath in self.dllSearchPaths:
+			self.dllSearchPaths.remove(absPath)
+			#print(f"Test in sharem_filesystem.py: Removed Dll Search Path {absPath}")
+
+	def findDll(self, dllName):
+		for path in self.dllSearchPaths:
+			fullPath = os.path.join(path,dllName)
+			if of.path.exists(fullPath):
+				return fullPath
+		return None # Returns None if DLL is not found	
 
 	def createFile(self,path,fileName,fileData = 'EMPTY'):
 		path = self.convertPath(path)
