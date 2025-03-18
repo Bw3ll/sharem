@@ -62,6 +62,7 @@ Documentation can be found at the [SHAREM Wiki](https://github.com/Bw3ll/sharem/
 * Jan. 16, 2023: Added three new fields to disassembly JSON files that are generated. This update is NOT needed for anyone not using those JSONs, which is a nonstandard way of using SHAREM.
 * Aug. 3, 2023: Approximately 5000-6000 APIs were added from around 30 additional DLLs. Other enhancements in support of this.
 * 2024: Additional OpenAI updates to utilize AI.
+* March 2025: Additional WinAPIs added
 
 # Screenshots
 SHAREM is a very powerful framework with numerous capabilities, some well documented, and some which are not. This section will showcase a small number of those capabilities. 
@@ -80,7 +81,7 @@ SHAREM also has the ability to download files via UrldownloadToFileA, if they ex
 
 
 # Co-Authors and Contributors
-Dr. Bramwell Brizendine, Austin Babcock, Jake Hince, Shelby VandenHoek, Sascha Walker, Evan Read, Dylan Park, Kade Brost, and Tarek Abdelmotaleb.
+Dr. Bramwell Brizendine, Austin Babcock, Jake Hince, Shelby VandenHoek, Sascha Walker, Evan Read, Dylan Park, Kade Brost, James Tate Forcella, William Lochte, Hunter Murphy, and Tarek Abdelmotaleb.
 
 # Acknowledgement
 This research and some co-authors have been supported by NSA Grant H98230-20-1-0326.
