@@ -173,6 +173,25 @@ def getLookUpVal(search: int, dictionary: 'dict[int,str]'):
         return dictionary[search]
     else:
         return hex(search)
+    
+def getLookupVal2(search: int, dictionary: 'dict[int,str]', exact: bool = False) -> str:
+    """New version of getLookupVal that adds additional formatting to values.
+    
+    This is a new method so we don't accidentally break old functionality.\n
+
+    Keywords Arguments:\n
+    search     -- the integer we want to reverse\n
+    dictionary -- dictionary of integers and their string representations\n
+    [exact]    -- if true, then no additional formatting will be applied
+    """
+    if search in dictionary:
+        str_repr = dictionary[search]
+        if exact:
+            return str_repr
+        
+        return f"{hex(search)} ({str_repr})"
+    else:
+        return hex(search)
 
 def makeStructVals(uc: Uc, struct, address: int):
     pTypes = struct.types
@@ -198,7 +217,7 @@ def makeStructVals(uc: Uc, struct, address: int):
 
     for i in range(len(pTypes)):
         if i in lookUps:
-            pVals[i] = getLookUpVal(pVals[i],lookUps[i])
+            pVals[i] = getLookupVal2(pVals[i], lookUps[i])
         elif type(pVals[i]) == tuple:
             pVals[i] = pVals[i]
         elif "STR" in pTypes[i]:  # finding ones with string

@@ -3433,7 +3433,12 @@ class MEMORY_BASIC_INFORMATION:
 
     class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['PVOID', 'PVOID', 'DWORD', 'WORD', 'SIZE_T', 'DWORD', 'DWORD', 'DWORD']
-        lookUps = {}
+        lookUps = {
+            2: ReverseLookUps.flProtect, # AllocationProtect
+            5: ReverseLookUps.Structures.MEMORY_BASIC_INFORMATION.State, # State
+            6: ReverseLookUps.flProtect, # Protect
+            7: ReverseLookUps.Structures.MEMORY_BASIC_INFORMATION.Type # Type
+        }
 
         # Struct Members
         BaseAddress: PVOID_32BIT
@@ -3450,7 +3455,12 @@ class MEMORY_BASIC_INFORMATION:
 
     class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
         types = ['PVOID', 'PVOID', 'DWORD', 'WORD', 'SIZE_T', 'DWORD', 'DWORD', 'DWORD']
-        lookUps = {}
+        lookUps = {
+            2: ReverseLookUps.flProtect, # AllocationProtect
+            5: ReverseLookUps.Structures.MEMORY_BASIC_INFORMATION.State, # State
+            6: ReverseLookUps.flProtect, # Protect
+            7: ReverseLookUps.Structures.MEMORY_BASIC_INFORMATION.Type # Type
+        }
 
         # Struct Members
         BaseAddress: PVOID_64BIT
@@ -3464,6 +3474,97 @@ class MEMORY_BASIC_INFORMATION:
 
         def writeToMemory(self, uc: Uc, address: int):
             uc.mem_write(address, bytes(self))
+
+# TODO: update alias names and alias pointer names
+# Struct CRYPT_INTEGER_BLOB
+# Alias Names: _CRYPT_INTEGER_BLOB
+# Alias Pointer Names: PCRYPT_INTEGER_BLOB
+
+def get_CRYPT_INTEGER_BLOB(uc: Uc, address: int, em: EMU):
+    if em.arch == 32:
+        return CRYPT_INTEGER_BLOB.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(CRYPT_INTEGER_BLOB.ARCH32)))
+    else:
+        return CRYPT_INTEGER_BLOB.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(CRYPT_INTEGER_BLOB.ARCH64)))
+
+# Struct Aliases:
+get__CRYPT_INTEGER_BLOB = get_CRYPT_INTEGER_BLOB
+get_CRYPT_UINT_BLOB = get_CRYPT_INTEGER_BLOB
+get_CRYPT_OBJID_BLOB = get_CRYPT_INTEGER_BLOB
+get_CERT_NAME_BLOB = get_CRYPT_INTEGER_BLOB
+get_CERT_RDN_VALUE_BLOB = get_CRYPT_INTEGER_BLOB
+get_CERT_BLOB = get_CRYPT_INTEGER_BLOB
+get_CRL_BLOB = get_CRYPT_INTEGER_BLOB
+get_DATA_BLOB = get_CRYPT_INTEGER_BLOB
+get_CRYPT_DATA_BLOB = get_CRYPT_INTEGER_BLOB
+get_CRYPT_HASH_BLOB = get_CRYPT_INTEGER_BLOB
+get_CRYPT_DIGEST_BLOB = get_CRYPT_INTEGER_BLOB
+get_CRYPT_DER_BLOB = get_CRYPT_INTEGER_BLOB
+get_CRYPT_ATTR_BLOB = get_CRYPT_INTEGER_BLOB
+
+# Struct Pointers:
+PCRYPT_INTEGER_BLOB_32BIT = POINTER_32BIT
+PCRYPT_INTEGER_BLOB_64BIT = POINTER_64BIT
+
+PCRYPT_UINT_BLOB_32BIT = POINTER_32BIT
+PCRYPT_UINT_BLOB_64BIT = POINTER_64BIT
+
+PCRYPT_OBJID_BLOB_32BIT = POINTER_32BIT
+PCRYPT_OBJID_BLOB_64BIT = POINTER_64BIT
+
+PCERT_NAME_BLOB_32BIT = POINTER_32BIT
+PCERT_NAME_BLOB_64BIT = POINTER_64BIT
+
+PCERT_RDN_VALUE_BLOB_32BIT = POINTER_32BIT
+PCERT_RDN_VALUE_BLOB_64BIT = POINTER_64BIT
+
+PCERT_BLOB_32BIT = POINTER_32BIT
+PCERT_BLOB_64BIT = POINTER_64BIT
+
+PCRL_BLOB_32BIT = POINTER_32BIT
+PCRL_BLOB_64BIT = POINTER_64BIT
+
+PDATA_BLOB_32BIT = POINTER_32BIT
+PDATA_BLOB_64BIT = POINTER_64BIT
+
+PCRYPT_DATA_BLOB_32BIT = POINTER_32BIT
+PCRYPT_DATA_BLOB_64BIT = POINTER_64BIT
+
+PCRYPT_HASH_BLOB_32BIT = POINTER_32BIT
+PCRYPT_HASH_BLOB_64BIT = POINTER_64BIT
+
+PCRYPT_DIGEST_BLOB_32BIT = POINTER_32BIT
+PCRYPT_DIGEST_BLOB_64BIT = POINTER_64BIT
+
+PCRYPT_DER_BLOB_32BIT = POINTER_32BIT
+PCRYPT_DER_BLOB_64BIT = POINTER_64BIT
+
+PCRYPT_ATTR_BLOB_32BIT = POINTER_32BIT
+PCRYPT_ATTR_BLOB_64BIT = POINTER_64BIT
+
+class CRYPT_INTEGER_BLOB:
+
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['DWORD', 'BYTE*']
+        lookUps = {}
+
+        # Struct Members
+        cbData: DWORD
+        pbData: POINTER_32BIT # TODO: UPDATE TO CORRECT DATA TYPE
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['DWORD', 'BYTE*']
+        lookUps = {}
+
+        # Struct Members
+        cbData: DWORD
+        pbData: POINTER_64BIT # TODO: UPDATE TO CORRECT DATA TYPE
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
 
 
 # Struct CREATESTRUCTA

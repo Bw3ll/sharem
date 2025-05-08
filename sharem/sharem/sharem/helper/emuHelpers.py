@@ -963,7 +963,7 @@ def getRetVal(retVal, retType=""):
         retBundle="None"
     return retBundle
 
-def buildPtrString (pointer, val):
+def buildPtrString(pointer, val):
     return hex(pointer) + " -> " + hex(val)
 
 def getPointerVal(uc, pointer):
