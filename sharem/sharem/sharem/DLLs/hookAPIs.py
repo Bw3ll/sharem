@@ -13477,7 +13477,7 @@ class CustomWinAPIs():
         logged_calls = ("GetBinaryTypeA", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))  
 
-    def GetThreadPriority2(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def GetThreadPriority(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes =['HANDLE'] 
         pNames = ['hThread'] 
         pVals = makeArgVals(uc, em, esp, len(pTypes))
@@ -13496,6 +13496,119 @@ class CustomWinAPIs():
 
         logged_calls= ("GetThreadPriority", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def GetProcessAffinityMask(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes =['HANDLE', 'PDWORD_PTR', 'PDWORD_PTR'] 
+        pNames = ['hThread', 'lpProcessAffinityMask', 'lpSystemAffinityMask'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+
+        #pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        
+        #if pVals[0] == 0:
+        #    pVals[1] = 0x0
+        #    pVals[2] = 0x0
+        #    retVal = 0
+        #    retValStr = 'FAILURE'
+        #else:
+        #print(1)
+        uc.mem_write(pVals[1], pack('<I', 0xF))
+        uc.mem_write(pVals[2], pack('<I', 0xF))
+
+        #print(2)
+
+        #mem = uc.mem_read(pVals[1],10)
+        #print(mem)
+
+        #pVals[1] = pVals[1] + ": 0xF"
+        #pVals[2] = pVals[2] + ": 0xF"
+        retVal = 1
+        retValStr = 'SUCCESS'
+
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+
+
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls= ("GetProcessAffinityMask", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def SetThreadAffinityMask(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes =['HANDLE', 'DWORD_PTR'] 
+        pNames = ['hThread', 'dwThreadAffinityMask'] 
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
+        #if pVals[0] == 0 or pVals[1] == 0:
+        #    retVal = 0
+        #    retValStr = 'FAILURE'
+        #else:
+            # Simulating all cores on a 4-core CPU
+        retVal = 0x1111
+        retValStr = '0xF'
+
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+        logged_calls= ("SetThreadAffinityMask", hex(callAddr), (retValStr), 'DWORD_PTR', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
+    def CryptProtectData(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+        pTypes = ['DATA_BLOB', 'LPCWSTR', 'DATA_BLOB', 'PVOID', 'CRYPTPROTECT_PROMPTSTRUCT', 'DWORD', 'DATA_BLOB']
+        pNames = ['pDataIn', 'szDataDescr', 'pOptionalEntropy', 'pvReserved', 'pPromptStruct','dwFlags', 'pDataOut']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
+        
+
+        #dwFlags needs handling for the three flags
+        #CRYPTPROTECT_LOCAL_MACHINE, CRYPTPROTECT_UI_FORBIDDEN, CRYPTPROTECT_AUDIT
+        #Possible values: 0x1, 0x4, 0x10 NEED TO VERIFY
+        '''dwFlags_ReverseLookup = {
+            1: 'CRYPTPROTECT_UI_FORBIDDEN',
+            4: 'CRYPTPROTECT_LOCAL_MACHINE',
+            10: 'CRYPTPROTECT_AUDIT'
+        }'''
+
+        #check = dwFlags_ReverseLookup.get(pVals[5], "UNKNOWN")
+        check = pVals[5]
+        if check == 1:
+            check_name = 'CRYPTPROTECT_UI_FORBIDDEN'
+            pVals[5] = hex(pVals[5]) + ": " + check_name
+            #uc.mem_write(pVals[5], pack("<L",check_name))
+        elif check == 4:
+            check_name = 'CRYPTPROTECT_LOCAL_MACHINE'
+            pVals[5] = hex(pVals[5]) + ": " + check_name
+            #uc.mem_write(pVals[5], check_name)
+        elif check == 10:
+            check_name = 'CRYPTPROTECT_AUDIT'
+            pVals[5] = hex(pVals[5]) + ": " + check_name
+            #uc.mem_write(pVals[5], check_name)
+
+        print(2)
+        #Add handling for pDataOut
+        #User provides pointer, I provide structure that receives the encrypted data
+        #After this, free pbData member using LocalFree function
+        pbDataOut_info = get_CRYPT_INTEGER_BLOB(uc, pVals[0], em)
+        
+        #Go find realistic values for these
+        #DWORD Variable that contains count of data (in bytes)
+        #Pointer to the data buffer
+        pbDataOut_info.cbData = 16
+        pbDataOut_info.pbData = 0x10000000
+
+        pbDataOut_info.writeToMemory(uc, pVals[6])
+
+        #Skip each of the structures
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[5,6])
+
+        #pVals[0] = makeStructVals(uc, mem_info, pVals[0])
+        #pVals[2] = makeStructVals(uc, mem_info, pVals[0])
+        #pVals[4] = makeStructVals(uc, mem_info, pVals[0])
+        pVals[6] = makeStructVals(uc, pbDataOut_info, pVals[6])
+
+
+        retVal = 0
+        retValStr = 'TRUE'
+        uc.reg_write(UC_X86_REG_EAX, retVal)
+
+        logged_calls = ("CryptProtectData", hex(callAddr), (retValStr), 'DWORD', pVals, pTypes, pNames, False)
+        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+
 
     def GetCurrentDirectoryA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes = ['DWORD', 'LPSTR']
@@ -13749,14 +13862,32 @@ class CustomWinAPIs():
     #Ask questions about the SID Structure
     def CheckTokenMembership2(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         # Parameter types and names as defined by the MSDN documentation
-        pTypes = ['HANDLE', 'PSID', 'BOOL']
+        pTypes = ['HANDLE', 'PSID', 'PBOOL']
         pNames = ['TokenHandle', 'SidToCheck', 'IsMember']
         pVals = makeArgVals(uc, em, esp, len(pTypes))
 
-        pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
 
         # IF SID is present and has SE_GROUP_ENABLED
         # TODO: SID Structure Incomplete, this structure needs to be added in the future
+
+        SidToCheck_info = get_SID(uc, pVals[1], em)
+        
+        #Used BUILTIN_USERS as default
+        #TODO: Read the structure at memory, do not use a pre-built one like below.
+        #SidToCheck_info.Revision = 1
+        #SidToCheck_info.SubAuthorityCount = 5
+        #SidToCheck_info.IdentifierAuthority = 32
+        #SidToCheck_info.SubAuthority = 545
+
+        #print(1)
+        pVals[2] = hex(pVals[2]) + ": TRUE"
+        #uc.mem_write(pVals[2], pack("<I", "TRUE"))
+        #print(2)
+
+        #Skip each of the structures
+        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[1])
+
+        pVals[1] = makeStructVals(uc, SidToCheck_info, pVals[1])
 
         retVal = 0x1
         retValStr= 'SUCCESS'
