@@ -3868,3 +3868,189 @@ class KEY_WRITE_TIME_INFORMATION(LittleEndianStructure, metaclass=StructFieldsFr
 
     def writeToMemory(self, uc: Uc, address: int):
         uc.mem_write(address, bytes(self))
+
+
+# Struct CRYPT_INTEGER_BLOB
+# Alias Names: _CRYPT_INTEGER_BLOB
+# Alias Pointer Names: PCRYPT_INTEGER_BLOB
+
+def get_CRYPT_INTEGER_BLOB(uc: Uc, address: int, em: EMU):
+    if em.arch == 32:
+        return CRYPT_INTEGER_BLOB.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(CRYPT_INTEGER_BLOB.ARCH32)))
+    else:
+        return CRYPT_INTEGER_BLOB.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(CRYPT_INTEGER_BLOB.ARCH64)))
+
+# Struct Aliases:
+# get__CRYPT_INTEGER_BLOB = get_CRYPT_INTEGER_BLOB
+get_CRYPT_UINT_BLOB = get_CRYPT_INTEGER_BLOB
+get_CRYPT_OBJID_BLOB = get_CRYPT_INTEGER_BLOB
+get_CERT_NAME_BLOB = get_CRYPT_INTEGER_BLOB
+get_CERT_RDN_VALUE_BLOB = get_CRYPT_INTEGER_BLOB
+get_CERT_BLOB = get_CRYPT_INTEGER_BLOB
+get_CRL_BLOB = get_CRYPT_INTEGER_BLOB
+get_DATA_BLOB = get_CRYPT_INTEGER_BLOB
+get_CRYPT_DATA_BLOB = get_CRYPT_INTEGER_BLOB
+get_CRYPT_HASH_BLOB = get_CRYPT_INTEGER_BLOB
+get_CRYPT_DIGEST_BLOB = get_CRYPT_INTEGER_BLOB
+get_CRYPT_DER_BLOB = get_CRYPT_INTEGER_BLOB
+get_CRYPT_ATTR_BLOB = get_CRYPT_INTEGER_BLOB
+
+# Struct Pointers:
+PCRYPT_INTEGER_BLOB_32BIT = POINTER_32BIT
+PCRYPT_INTEGER_BLOB_64BIT = POINTER_64BIT
+
+PCRYPT_UINT_BLOB_32BIT = POINTER_32BIT
+PCRYPT_UINT_BLOB_64BIT = POINTER_64BIT
+
+PCRYPT_OBJID_BLOB_32BIT = POINTER_32BIT
+PCRYPT_OBJID_BLOB_64BIT = POINTER_64BIT
+
+PCERT_NAME_BLOB_32BIT = POINTER_32BIT
+PCERT_NAME_BLOB_64BIT = POINTER_64BIT
+
+PCERT_RDN_VALUE_BLOB_32BIT = POINTER_32BIT
+PCERT_RDN_VALUE_BLOB_64BIT = POINTER_64BIT
+
+PCERT_BLOB_32BIT = POINTER_32BIT
+PCERT_BLOB_64BIT = POINTER_64BIT
+
+PCRL_BLOB_32BIT = POINTER_32BIT
+PCRL_BLOB_64BIT = POINTER_64BIT
+
+PDATA_BLOB_32BIT = POINTER_32BIT
+PDATA_BLOB_64BIT = POINTER_64BIT
+
+PCRYPT_DATA_BLOB_32BIT = POINTER_32BIT
+PCRYPT_DATA_BLOB_64BIT = POINTER_64BIT
+
+PCRYPT_HASH_BLOB_32BIT = POINTER_32BIT
+PCRYPT_HASH_BLOB_64BIT = POINTER_64BIT
+
+PCRYPT_DIGEST_BLOB_32BIT = POINTER_32BIT
+PCRYPT_DIGEST_BLOB_64BIT = POINTER_64BIT
+
+PCRYPT_DER_BLOB_32BIT = POINTER_32BIT
+PCRYPT_DER_BLOB_64BIT = POINTER_64BIT
+
+PCRYPT_ATTR_BLOB_32BIT = POINTER_32BIT
+PCRYPT_ATTR_BLOB_64BIT = POINTER_64BIT
+
+class CRYPT_INTEGER_BLOB:
+
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['DWORD', 'BYTE*']
+        lookUps = {}
+
+        # Struct Members
+        cbData: DWORD
+        pbData: POINTER_32BIT #Might be BYTE
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['DWORD', 'BYTE*']
+        lookUps = {}
+
+        # Struct Members
+        cbData: DWORD
+        pbData: POINTER_64BIT #Might be BYTE
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+# Struct SID_IDENTIFIER_AUTHORITY
+# Alias Names: _SID_IDENTIFIER_AUTHORITY
+# Alias Pointer Names: PSID_IDENTIFIER_AUTHORITY
+
+def get_SID_IDENTIFIER_AUTHORITY(uc: Uc, address: int, em: EMU):
+    if em.arch == 32:
+        return SID_IDENTIFIER_AUTHORITY.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(SID_IDENTIFIER_AUTHORITY.ARCH32)))
+    else:
+        return SID_IDENTIFIER_AUTHORITY.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(SID_IDENTIFIER_AUTHORITY.ARCH64)))
+
+# Struct Aliases:
+# get__SID_IDENTIFIER_AUTHORITY = get_SID_IDENTIFIER_AUTHORITY
+
+
+# Struct Pointers:
+PSID_IDENTIFIER_AUTHORITY_32BIT = POINTER_32BIT
+PSID_IDENTIFIER_AUTHORITY_64BIT = POINTER_64BIT
+
+class SID_IDENTIFIER_AUTHORITY:
+
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['BYTE']
+        lookUps = {}
+
+        # Struct Members
+        #Value[6]: BYTE
+        Value: BYTE * 6
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['BYTE']
+        lookUps = {}
+
+
+        # Struct Members
+        #Value[6]: BYTE
+        Value: BYTE * 6
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+# Struct SID
+# Alias Names: _SID
+# Alias Pointer Names: PSID
+
+def get_SID(uc: Uc, address: int, em: EMU):
+    if em.arch == 32:
+        return SID.ARCH32.from_buffer_copy(uc.mem_read(address, sizeof(SID.ARCH32)))
+    else:
+        return SID.ARCH64.from_buffer_copy(uc.mem_read(address, sizeof(SID.ARCH64)))
+
+# Struct Aliases:
+# get__SID = get_SID
+
+
+# Struct Pointers:
+PISID_32BIT = POINTER_32BIT
+PISID_64BIT = POINTER_64BIT
+
+class SID:
+
+    class ARCH32(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['BYTE', 'BYTE', 'SID_IDENTIFIER_AUTHORITY', 'DWORD']
+        lookUps = {}
+
+        ANYSIZE_ARRAY = 1 #Unsure if this is correct but this is how it is established elsewhere
+
+        # Struct Members
+        Revision: BYTE
+        SubAuthorityCount: BYTE
+        IdentifierAuthority: BYTE * 6 #SID_IDENTIFIER_AUTHORITY
+        SubAuthority: DWORD * ANYSIZE_ARRAY
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+    class ARCH64(LittleEndianStructure, metaclass=StructFieldsFromTypeHints):
+        types = ['BYTE', 'BYTE', 'SID_IDENTIFIER_AUTHORITY', 'DWORD']
+        lookUps = {}
+
+        ANYSIZE_ARRAY = 1 #Unsure if this is correct but this is how it is established elsewhere
+
+
+        # Struct Members
+        Revision: BYTE
+        SubAuthorityCount: BYTE
+        IdentifierAuthority: BYTE * 6 #SID_IDENTIFIER_AUTHORITY
+        SubAuthority: DWORD * ANYSIZE_ARRAY
+
+        def writeToMemory(self, uc: Uc, address: int):
+            uc.mem_write(address, bytes(self))
+
+
