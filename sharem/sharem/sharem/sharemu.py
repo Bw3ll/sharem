@@ -392,7 +392,12 @@ def catch_windows_api(uc, addr, ret, size, funcAddress):
         funcInfo, cleanBytes = getattr(WinAPI, funcName)(uc, eip, esp, export_dict, addr, em)
         logCall(funcName, funcInfo)
         # print ("funcName", funcName)
-    except:
+    except Exception as e:
+        if hasattr(WinAPI, funcName):
+            print("\n\n" + '-'*50)
+            print("Error during function analysis. Reverting to default hook.\nPlease report this to: https://github.com/Bw3ll/sharem/issues \n\n")
+            traceback.print_exc()
+            print('-'*50 + "\n\n")
         try:
             bprint("hook_default", funcAddress)
             hook_default(uc, eip, esp, funcAddress, export_dict[funcAddress][0], addr)

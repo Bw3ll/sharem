@@ -7757,3 +7757,38 @@ class ReverseLookUps:
             5: "KeyValueLayerInformation",
             6: "MaxKeyValueInfoClass",
         }
+
+    class Structures:
+        class MEMORY_BASIC_INFORMATION:
+            State = {
+                # Indicates committed pages for which physical storage
+                # has been allocated, either in memory or in the paging
+                # file on disk.
+                0x1000 : "MEM_COMMIT",
+
+                # Indicates free pages not accessible to the calling
+                # process and available to be allocated. For free pages,
+                # the information in the AllocationBase, AllocationProtect,
+                # Protect, and Type members is undefined.
+                0x2000 : "MEM_RESERVE",
+
+                # Indicates reserved pages where a range of the process's
+                # virtual address space is reserved without any physical
+                # storage being allocated. For reserved pages, the information
+                # in the Protect member is undefined.
+                0x10000: "MEM_FREE"
+            }
+
+            Type = {
+                # Indicates that the memory pages within the region are mapped
+                # into the view of an image section.                
+                0x1000000: "MEM_IMAGE",
+
+                # Indicates that the memory pages within the region are mapped
+                # into the view of a section.
+                0x40000: "MEM_MAPPED",
+
+                # Indicates that the memory pages within the region are private
+                # (that is, not shared by other processes).
+                0x20000: "MEM_PRIVATE"
+            }
