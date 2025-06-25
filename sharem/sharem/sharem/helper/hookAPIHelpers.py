@@ -20,8 +20,8 @@ def HookAPI(func, include_eip=False):
     parameterValues -- list containing all of the API parameters\n
     skipStringParams -- list of indexes or parameter names to skip during findStringsParms
     """
-    @functools.wraps(func)
     @staticmethod
+    @functools.wraps(func)
     def wrapper(uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         returnType = ""
         methodArgs = {}
