@@ -4,7 +4,7 @@ Welcome to SHAREM!
 
 SHAREM was presented at DEFCON 31 in "Game-Changing Advances in Windows Shellcode Analysis" and Black Hat USA Arsenal. A companion Ghidra plugin was made available (separately) from Trellix, courtesy of Max Kersten. Thus, you can extend the power of SHAREM to Ghidra, if you so desire. 
 
-SHAREM is intended to be the ultimate Windows shellcode tool, with support to emulate over 20,000 WinAPIs, virtually all user-mode Windows syscalls, and SHAREM provides numerous new features. SHAREM was released on September 29, 2022. SHAREM contains an emulator, a disassembler, timeless debugging, brute-force deobfuscation, and many other features. SHAREM's emulator can also display complete structures (or even structures within structures) and it can allow encoded shellcode to deobfuscate itself. SHAREM logs output from all WinAPIs and Windows syscalls analyzed, and it also breaks each into many categories and subcategories. SHAREM's complete code coverage also allows it to discover unreachable functionality.
+SHAREM is intended to be the ultimate Windows shellcode tool, with support to emulate over 45,000 WinAPIs, virtually all user-mode Windows syscalls, and SHAREM provides numerous new features. SHAREM contains an emulator, a disassembler, timeless debugging, brute-force deobfuscation, and many other features. SHAREM's emulator can also display complete structures (or even structures within structures) and it can allow encoded shellcode to deobfuscate itself. SHAREM logs output from all WinAPIs and Windows syscalls analyzed, and it also breaks each into many categories and subcategories. SHAREM's complete code coverage also allows it to discover unreachable functionality.
 
 SHAREM's disassembler is able to integrate discovered functions into the disassembly, labelling each in the disassembler. SHAREM also will displayed the decrypted form of encoded shellcode in the disassembler, so it is not necessary to debug shellcode.
 
@@ -15,10 +15,15 @@ Please be aware that as SHAREM has just been released, the documentation on here
 If you are new to SHAREM, feel free to check out a brief demo video, showcasing some of its capabilities Click on image to view demo:
 [![Watch the video](https://github.com/Bw3ll/sharem/blob/testing/sharem/SHAREM_images/Sharem_demo.png?raw=true)](https://youtu.be/S1PI9O-q6eM)
 
+## Recent Updates
+March 2026: SHAREM will load up to 61 DLLs when starting, but with the latest update, it now can support 369 DLLs and 45538 unique WinAPIs. Additionally, DLLs are loaded on demand as need be. Windows internal features (such as module lists, flinks, blinks, etc.) will automatically be updated if any additional DLLs need to loaded, e.g. via LoadLibraryA. There have been numerous other updates to improve the functionality. Changes have been made to help streamline some issues I have had reported to me regarding installation challenges. 
+
+2024/2025: SHAREM optionally can leverage AI to analyze results, with an OpenAI key (user-supplied). Note that SHAREM was made prior to recent advances in AI, and its usage of AI only occurs after SHAREM's initial analysis is complete. This optional feature can allow it examine what has been found and apply it to the MITRE ATT&CK framework and so much more. 
+
 # Install Instructions
 
 ## Windows
-SHAREM is installed as a local Python package, so that we have access to it in other projects. This allows parts of SHAREM to be imported. Thus, it must be installed as a package.
+SHAREM is installed as a local Python package, so that we have access to it in other projects. This allows parts of SHAREM to be imported. Thus, it must be installed as a package. Note: I have heard reports of some installation woes. Recent changes should hopefully correct this issue.
 
 1. Git is required for installation of sharem. 
 It can be installed from https://git-scm.com/download/win. After installion restart computer and continue with SHAREM install. The Git is to automate the installation of the Windows SSDeep. You can also manually do this and modify the .bat to exclude the SSDeep, if you do it yourself. Manually installing it avoids the need to use Git. Note: for Windows, we are moving to a fork of SSDeep on the Bw3ll account that corrects some install issues with the previous version. This version and the previous were wrappers for SSDeep. 
