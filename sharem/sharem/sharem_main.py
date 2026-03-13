@@ -19046,6 +19046,7 @@ def printDict(myDict):
 	# print(out)
 	return out, clean_out
 
+OPENAI_API_KEY=''
 
 def leverageAI():
 	global dwords_A
@@ -19097,6 +19098,7 @@ def leverageAI():
 	
 	
 	myPrompt1=modelUsed +  prompt_A  + apisTxt +  gDisassemblyText + dwords_A + gDisassemblyText + finalAI + finalAI2 + str(sample_dict) + finalAI3
+	print (modelAI)
 	aiDict= (AI_func(OPENAI_API_KEY,modelAI,myPrompt1))
 	
 	try:

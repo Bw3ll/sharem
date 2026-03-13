@@ -26,10 +26,14 @@ from struct import pack, unpack
 from ..helper.emuHelpers import Uc
 from ..helper.hookAPIHelpers import *
 from ..modules import allDllsDict
+from ..modules import *
+
 import traceback
 import re
 
 var = Variables()
+export_dict = {}
+
 #Artifacts class initialization
 art = var.art
 # Instance of File System
@@ -39,6 +43,36 @@ printOut = PrintingOutput()
 conr = Configuration()
 
 FakeProcess = 0xbadd0000
+
+
+# if platformType == "Windows":
+#     expandedDLLsPath32 = os.path.join(os.path.dirname(__file__), "DLLs\\x86\\")
+#     expandedDLLsPath64 = os.path.join(os.path.dirname(__file__), "DLLs\\x64\\")
+# else:
+#     expandedDLLsPath32 = os.path.join(os.path.dirname(__file__), "DLLs/x86/")
+#     expandedDLLsPath64 = os.path.join(os.path.dirname(__file__), "DLLs/x64/")
+
+def sharemLoadSingleDLL(mu,newDll,em):
+    global export_dict
+    
+    # print ("export_dict", len(export_dict))
+    global MOD_HIGH
+    if em.arch == 32:
+        source_path = 'C:\\Windows\\SysWOW64\\'
+        save_path = em.expandedDLLsPath32
+
+    # Set 64 bit variables
+    else:
+        source_path = 'C:\\Windows\\System32\\'
+        save_path = em.expandedDLLsPath64
+    
+    modsNew, export_dict2, MOD_HIGH,newBase = addNew(mu, em, export_dict, source_path, save_path,newDll)
+    export_dict.update(export_dict2)
+    
+    # print (export_dict)
+    appendNewDllToLdr32_2(mu, modsNew)
+    # print ("we are done3", hex(newBase))
+    return modsNew,newBase
 
 class CustomWinAPIs():
     def GetProcAddress(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
@@ -86,41 +120,51 @@ class CustomWinAPIs():
         logged_calls = ("LdrGetProcedureAddress", hex(callAddr), retValStr, 'NTSTATUS', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def LoadLibraryA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
-        pTypes = ['LPCTSTR']
-        pNames = ['lpLibFileName']
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
-
-        name = read_string(uc, pVals[0])
-
+    def LoadLibraryA(self, uc: Uc, eip: int, esp: int, export_dictb: dict, callAddr: int, em: EMU):
         try:
-            foundVal = allDllsDict[name]
-            handle = Handle(HandleType.HMODULE,name=name,handleValue=foundVal)
-            retVal = handle.value
-        except:
+            pTypes = ['LPCTSTR']
+            pNames = ['lpLibFileName']
+            pVals = makeArgVals(uc, em, esp, len(pTypes))
+            name = read_string(uc, pVals[0])
+            # print ("  LoadLibraryA", name)
+          
             try:
-                nameL = name.lower()
-                foundVal = allDllsDict[nameL]
-                handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
+                foundVal = allDllsDict[name]
+                handle = Handle(HandleType.HMODULE,name=name,handleValue=foundVal)
                 retVal = handle.value
             except:
                 try:
-                    nameLdll = nameL + '.dll'
-                    foundVal = allDllsDict[nameLdll]
-                    handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
+                    nameL = name.lower()
+                    foundVal = allDllsDict[nameL]
+                    handle = Handle(HandleType.HMODULE,data=name,name=name,handleValue=newBase)
                     retVal = handle.value
                 except:
-                    print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
-                    retVal = 0
+                    try:
+                        nameLdll = nameL + '.dll'
+                        foundVal = allDllsDict[nameLdll]
+                        handle = Handle(HandleType.HMODULE,data=name,name=name,handleValue=newBase)
+                        retVal = handle.value
+                    except:
 
-        pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
-        
-        retValStr=hex(retVal)
-        uc.reg_write(UC_X86_REG_EAX, retVal)
-        
-        logged_calls = ("LoadLibraryA", hex(callAddr), retValStr, 'HMODULE', pVals, pTypes, pNames, False)
-        return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+                        print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
+                        modsNew,newBase=sharemLoadSingleDLL(uc,name,em)
+                        # print ("newBase",newBase)
+                        if newBase>0:
+                            handle = Handle(HandleType.HMODULE,data=name,name=name,handleValue=newBase)
+                            retVal = handle.value
+                        else:
+                            retVal = 0
 
+            pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
+            retValStr=hex(retVal)
+            uc.reg_write(UC_X86_REG_EAX, retVal)
+            
+            logged_calls = ("LoadLibraryA", hex(callAddr), retValStr, 'HMODULE', pVals, pTypes, pNames, False)
+            # print ("end of LoadLibraryA",retValStr)
+            return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
+        except Exception as e:
+            print (e)
+            print(traceback.format_exc())
     def LoadLibraryW(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         pTypes = ['LPCWSTR']
         pNames = ['lpLibFileName']
@@ -142,11 +186,18 @@ class CustomWinAPIs():
                 try:
                     nameLdll = nameL + '.dll'
                     foundVal = allDllsDict[nameLdll]
-                    handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
+                    handle = Handle(HandleType.HMODULE,data=name,name=name,handleValue=newBase)
                     retVal = handle.value
                 except:
                     print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
-                    retVal = 0
+                    modsNew,newBase=sharemLoadSingleDLL(uc,name,em)
+                    # print ("newBase",newBase)
+                    if newBase>0:
+                        handle = Handle(HandleType.HMODULE,data=name,name=name,handleValue=newBase)
+                        retVal = handle.value
+                    else:
+                        retVal = 0
+
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
         
@@ -178,10 +229,17 @@ class CustomWinAPIs():
                 try:
                     nameLdll = nameL + '.dll'
                     foundVal = allDllsDict[nameLdll]
-                    handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
+                    handle = Handle(HandleType.HMODULE,data=name,name=name,handleValue=newBase)
                     retVal = handle.value
                 except:
                     print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
+                    modsNew,newBase=sharemLoadSingleDLL(uc,name,em)
+                    # print ("newBase",newBase)
+                    if newBase>0:
+                        handle = Handle(HandleType.HMODULE,data=name,name=name,handleValue=newBase)
+                        retVal = handle.value
+                    else:
+                        retVal = 0
                     retVal = 0
 
         pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.LoadLibrary.Flags)
@@ -216,11 +274,17 @@ class CustomWinAPIs():
                 try:
                     nameLdll = nameL + '.dll'
                     foundVal = allDllsDict[nameLdll]
-                    handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
+                    handle = Handle(HandleType.HMODULE,data=name,name=name,handleValue=newBase)
                     retVal = handle.value
                 except:
                     print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
-                    retVal = 0
+                    modsNew,newBase=sharemLoadSingleDLL(uc,name,em)
+                    # print ("newBase",newBase)
+                    if newBase>0:
+                        handle = Handle(HandleType.HMODULE,data=name,name=name,handleValue=newBase)
+                        retVal = handle.value
+                    else:
+                        retVal = 0
 
         pVals[2] = getLookUpVal(pVals[2], ReverseLookUps.LoadLibrary.Flags)
 
@@ -252,7 +316,12 @@ class CustomWinAPIs():
                     moduleLoc = allDllsDict[nameLdll]
                 except:
                     print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
-                    moduleLoc = 0
+                    modsNew,newBase=sharemLoadSingleDLL(uc,name,em)
+                    # print ("newBase",newBase)
+                    if newBase>0:
+                        moduleLoc = 0
+                    else:
+                        moduleLoc = 0
 
         # uc.reg_write(UC_X86_REG_EAX, retVal)
         if moduleLoc != 0:
@@ -2520,7 +2589,7 @@ class CustomWinAPIs():
         logged_calls = ("CreateProcessAsUserW", hex(callAddr), (retValStr), 'BOOL', pVals, pTypes, pNames, False)
         return logged_calls, stackCleanup(uc, em, esp, len(pTypes))
 
-    def URLDownloadToFileA(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
+    def URLDownloadToFileA2(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         # function to get values for parameters - count as specified at the end - returned as a list
         pTypes = ['LPUNKNOWN', 'LPCSTR', 'LPCSTR', 'DWORD', 'LPBINDSTATUSCALLBACK']
         pNames = ['pCaller', 'szURL', 'szFileName', 'dwReserved', 'lpfnCB']
@@ -9264,9 +9333,9 @@ class CustomWinAPIs():
 
     def Sleep(self, uc: Uc, eip: int, esp: int, export_dict: dict, callAddr: int, em: EMU):
         # 'Sleep': (1, ['DWORD'], ['dwMilliseconds'], 'thunk void')
-        pVals = makeArgVals(uc, em, esp, len(pTypes))
         pTypes = ['DWORD']
         pNames = ['dwMilliseconds']
+        pVals = makeArgVals(uc, em, esp, len(pTypes))
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 
@@ -9504,11 +9573,17 @@ class CustomWinAPIs():
             try:
                 nameL = name.lower() + '.dll'
                 foundVal = allDllsDict[nameL]
-                handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
+                handle = Handle(HandleType.HMODULE,data=name,name=name,handleValue=newBase)
                 retVal = handle.value
             except:
                 print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
-                retVal = 0
+                modsNew,newBase=sharemLoadSingleDLL(uc,name,em)
+                # print ("newBase",newBase)
+                if newBase>0:
+                    handle = Handle(HandleType.HMODULE,data=name,name=name,handleValue=newBase)
+                    retVal = handle.value
+                else:
+                    retVal = 0
 
         pTypes,pVals= findStringsParms(uc, pTypes,pVals, skip=[])
 
@@ -9535,11 +9610,18 @@ class CustomWinAPIs():
             try:
                 nameL = name.lower() + '.dll'
                 foundVal = allDllsDict[nameL]
-                handle = Handle(HandleType.HMODULE,data=name,handleValue=foundVal)
+                handle = Handle(HandleType.HMODULE,data=name,name=name,handleValue=newBase)
                 retVal = handle.value
             except:
                 print("\tError: The shellcode tried to load a DLL that isn't handled by this tool: ", name)
-                retVal = 0
+                modsNew,newBase=sharemLoadSingleDLL(uc,name,em)
+                # print ("newBase",newBase)
+                if newBase>0:
+                    handle = Handle(HandleType.HMODULE,data=name,name=name,handleValue=newBase)
+                    retVal = handle.value
+                else:
+                    retVal = 0
+                
 
         pTypes, pVals = findStringsParms(uc, pTypes, pVals, skip=[])
 

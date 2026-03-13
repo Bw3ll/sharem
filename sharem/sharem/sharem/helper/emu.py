@@ -26,6 +26,8 @@ class EMU(metaclass=Singleton):
         self.includeJmpInCC=False
         self.excludeJmpCallCoverage=False
         self.showCCDebugInfo=False
+        self.expandedDLLsPath32=''
+        self.expandedDLLsPath64=''
 
 
 class emulationOptions(metaclass=Singleton):

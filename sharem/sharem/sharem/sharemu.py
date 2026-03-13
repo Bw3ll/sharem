@@ -12,8 +12,11 @@ from .DLLs.dict_signatures import *
 from .DLLs.dict2_signatures import *
 from .DLLs.dict3_w32 import *
 from .DLLs.dict4_ALL import *
+from .DLLs.dictFuncs import *
 from .DLLs.dict5_signatures import *
+from .DLLs.dict6 import *
 from .DLLs.hookAPIs import *
+from .DLLs.hookAPIs import export_dict
 from .DLLs.syscall_signatures import *
 from .helper.emuHelpers import *
 from .helper.sharemuDeob import *
@@ -29,22 +32,6 @@ import traceback
 
 finalAddress=0
 # from sharemuDeob import *
-
-# class EMU():
-#     def __init__(self):
-#         self.maxCounter = 500000
-#         self.arch = 32
-#         self.debug = False
-#         self.breakOutOfLoops = True
-#         self.maxLoop = 50000  # to break out of loops
-#         self.entryOffset = 0
-#         self.codeCoverage = True
-#         self.beginCoverage = False
-#         self.timelessDebugging = False  # todo: bramwell
-#         # self.winVersion = "Windows 7" # "Windows 10" ## Should make these value config.
-#         # self.winSP = "SP1" # "2004"
-#         self.winVersion = "Windows 10"
-#         self.winSP = "2004"
 
 class EMU():        #### see EMU note below  
     def __init__(self):
@@ -229,7 +216,7 @@ with open(os.path.join(os.path.dirname(__file__), 'WinSysCalls.json'), 'r') as s
 with open(os.path.join(os.path.dirname(__file__), 'skipAddressesCCC.json'), 'r') as jsonCCC:
     skipJmpCCC = json.load(jsonCCC)
 
-export_dict = {}
+# export_dict = {}  # moved to hookAPI
 loggedList = []
 logged_syscalls = []
 logged_dlls = []
@@ -259,6 +246,8 @@ if platformType == "Windows":
 else:
     expandedDLLsPath32 = os.path.join(os.path.dirname(__file__), "DLLs/x86/")
     expandedDLLsPath64 = os.path.join(os.path.dirname(__file__), "DLLs/x64/")
+em.expandedDLLsPath32=expandedDLLsPath32
+em.expandedDLLsPath64=expandedDLLsPath64
 
 bVerbose = True
 
@@ -274,6 +263,26 @@ whi = '\u001b[37m'
 res = '\u001b[0m'
 res2 = '\u001b[0m'
 
+
+def sharemLoadSingleDLL2(mu,newDll):
+    global export_dict
+    global expandedDLLsPath
+    global MOD_HIGH
+    if em.arch == 32:
+        source_path = 'C:\\Windows\\SysWOW64\\'
+        save_path = expandedDLLsPath32
+
+    # Set 64 bit variables
+    else:
+        source_path = 'C:\\Windows\\System32\\'
+        save_path = expandedDLLsPath64
+    
+    modsNew, export_dict, MOD_HIGH,newBase = addNew(mu, em, export_dict, source_path, save_path,newDll)
+    
+    # print (export_dict)
+    appendNewDllToLdr32_2(mu, modsNew)
+    # print ("we are done3")
+    return modsNew,newBase
 
 def loadDlls(mu):
     global export_dict
@@ -293,14 +302,16 @@ def loadDlls(mu):
         save_path = expandedDLLsPath64
     export_dict0 = readDLLsAddsFromFile(foundDLLAddrs, export_dict)
 
-    mods, export_dict, MOD_HIGH = initMods(mu, em, export_dict0, source_path, save_path)
+    mods, export_dict2, MOD_HIGH = initMods(mu, em, export_dict0, source_path, save_path)
+    export_dict.update(export_dict2)
 
     if len(export_dict) > 0:
         saveDLLAddsToFile(foundDLLAddrs, export_dict)
     # print ("export_dict size", len(export_dict))
     
-    export_dict = readDLLsAddsFromFile(foundDLLAddrs, export_dict)
-    # print ("export_dict size", len(export_dict))
+    export_dict2 = readDLLsAddsFromFile(foundDLLAddrs, export_dict)
+    export_dict.update(export_dict2)
+    # print ("loadDLLS export_dict size", len(export_dict))
     return mods
 
 
@@ -357,14 +368,15 @@ def breakLoop(uc, jmpFlag, jmpType, op_str, addr, size):
     if verbose:
         outFile.write("***** Breaking out of a loop at " + hex(addr) + " - going to " + hex(jmpLoc) + ".\n")
 
-def catch_windows_api(uc, addr, ret, size, funcAddress):
+def catch_windows_api(uc, addr, ret, size, funcAddress,valInstruction=None):
     global stopProcess
     global cleanBytes
 
     # print ("catch_windows_api funcAddress", funcAddress, "Ret", hex(ret), "size", size)
-
     ret += size
-    push(uc, em.arch, ret)
+    # push(uc, em.arch, ret)
+    if "call" in valInstruction:
+        push(uc, em.arch, ret)
     eip = uc.reg_read(UC_X86_REG_EIP)
     esp = uc.reg_read(UC_X86_REG_ESP)
 
@@ -381,8 +393,6 @@ def catch_windows_api(uc, addr, ret, size, funcAddress):
                 foundAlready=True
         if not foundAlready:
             logged_dlls.append(dll)
-
-
     except Exception as e:
         funcName = "funcname: DID NOT FIND address - " + funcAddress
         print ("finding funcname")
@@ -412,9 +422,7 @@ def catch_windows_api(uc, addr, ret, size, funcAddress):
         # print ("Stop: exitAPI, catch_windows_api")
 
     uc.reg_write(UC_X86_REG_EIP, EXTRA_ADDR)
-
     return ret
-
 
 bAddRead=set()
 bAddReadTwice=set()
@@ -695,7 +703,7 @@ def hook_code(uc, address, size, user_data):
     # Hook usage of Windows API function
     if jumpAddr > MOD_LOW and jumpAddr < MOD_HIGH:
         funcAddress = hex(jumpAddr)
-        ret = catch_windows_api(uc, address, ret, size, funcAddress)
+        ret = catch_windows_api(uc, address, ret, size, funcAddress,valInstruction)
 
     # Hook usage of Windows Syscall
     if jumpAddr == 0x5000:
@@ -815,7 +823,12 @@ def cleanStack(uc, numBytes):
 
 
 # Get the parameters off the stack
+
+
 def findDict(funcAddress, funcName, dll=None):
+    # print ("findDict", funcName, funcAddress)
+    global prototypeDictByAPI
+    
     try:
         global cleanBytes
         if dll == None:
@@ -827,6 +840,7 @@ def findDict(funcAddress, funcName, dll=None):
         dict4 = tryDictLocate('dict4', dll)
         dict2 = tryDictLocate('dict2', dll)
         dict5 = tryDictLocate('dict5', dll)
+        dict6 = tryDictLocate('dict6', dll)
         dict1 = tryDictLocate('dict', dll)
 
         if ((len(dict4)==0) and (len(dict2)==0) and (len(dict1)==0) and (len(dict5) == 0)):
@@ -834,6 +848,7 @@ def findDict(funcAddress, funcName, dll=None):
             dict4 = tryDictLocate('dict4', dll)
             dict2 = tryDictLocate('dict2', dll)
             dict5 = tryDictLocate('dict5', dll)
+            dict6 = tryDictLocate('dict6', dll)
             dict1 = tryDictLocate('dict', dll)
             if dll == "kernelbase":
                 dict4 = tryDictLocate('dict2', 'kernel32')
@@ -849,6 +864,7 @@ def findDict(funcAddress, funcName, dll=None):
         if not foundAlready:
             logged_dlls.append(dll)
 
+        
         # Use dict three if we find a record for it
         if funcName in dict3_w32:
             return dict3_w32[funcName], 'dict3', dll
@@ -863,17 +879,25 @@ def findDict(funcAddress, funcName, dll=None):
 
         elif funcName in dict5:
             return dict5[funcName], 'dict5', dll
+        elif funcName in dict6:
+            return dict6[funcName], 'dict6', dll
 
-        # If all else fails, use dict 1
+
+        # # If all else fails, use dict 1
         elif funcName in dict1:
             return dict1[funcName], 'dict1', dll
 
+        elif funcName in allAPIs:
+            elout =allAPIs[funcName]
+            signature=out[0]
+            dictName=out[1]
+            return signature,dictName, dll
         else:
-            print(funcName + " from "  + dll + " was not found in dictionaries.")
+            print(funcName + " from "  + dll + " was not found in any of our dictionaries.")
             return "none", "none", dll
     except Exception as e:
-        bprint("Oh no!!!", e)
-        bprint(traceback.format_exc())
+        print("Oh no!!!", e)
+        print(traceback.format_exc())
 
 
 def getParams(uc, esp, apiDict, dictName):
@@ -925,10 +949,13 @@ def getParams(uc, esp, apiDict, dictName):
 
 # If we haven't manually implemented the function, we send it to this function
 # This function will simply find parameters, then log the call in our dictionary
+
+
 def hook_default(uc, eip, esp, funcAddress, funcName, callLoc):
+    # print (red,"hook_default", res,funcName)
     try:
         dictName = apiDict = ""
-        bprint(funcAddress, funcName)
+        # print(funcAddress, funcName)
 
         apiDict, dictName, dll = findDict(funcAddress, funcName)
         # bprint ("", apiDict, dictName, dll, funcName)
@@ -1123,6 +1150,10 @@ def test_i386(mode, code):
             print ("memory loading erorr")
         mods = loadDlls(mu)
 
+        
+
+
+    
         # write machine code to be emulated to memory
         mu.mem_write(CODE_ADDR, code)
         address_range.append([CODE_ADDR, len(code)])
@@ -1141,6 +1172,7 @@ def test_i386(mode, code):
             print(cya + "\n\t[*]" + res2 + " Emulating x86 shellcode")
             cs = Cs(CS_ARCH_X86, CS_MODE_32)
             allocateWinStructs32(mu, mods)
+
         elif mode == UC_MODE_64:
             print(cya + "\n\t[*]" + res2 + " Emulating x86_64 shellcode")
             cs = Cs(CS_ARCH_X86, CS_MODE_64)
@@ -1169,7 +1201,11 @@ def test_i386(mode, code):
         # Start the emulation
         mu.emu_start(startLoc, (CODE_ADDR + em.entryOffset) + len(code))
         # mu.release_handle(True)
+        # print ("we is done")
+        # print (export_dict)
+        # dumpAndVerifyPebLdr32(mu)
 
+        # exit()
     except Exception as e:
         print("Emulation error: ", e)
         print ("Last address:", hex(finalAddress))

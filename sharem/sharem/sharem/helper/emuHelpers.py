@@ -8,8 +8,10 @@ from ..DLLs.dict4_ALL import *
 from ..DLLs.dict_signatures import *
 from ..DLLs.dict2_signatures import *
 from ..DLLs.dict5_signatures import *
+from ..DLLs.dict6 import *
 from ..DLLs.dict3_w32 import *
 from ..DLLs.dict4_ALL import *
+from ..DLLs.dictFuncs import *
 from ..DLLs.hookAPIs import *
 from ..DLLs.syscall_signatures import *
 import re
@@ -971,8 +973,12 @@ def getPointerVal(uc, pointer):
     return unpack('<I', val)[0]
 
 def tryDictLocate(dictName, dll):
+    # print ("tryDictLocate",dll)
     dictName += '_'
+    # print (dictName)
+    # print (dictName+dll)
     try:
         return globals()[dictName + dll]
     except:
+        # print ("return {}")
         return {}

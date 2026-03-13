@@ -66,16 +66,36 @@ class HandleType(Enum):
     LogOnUserA = auto()
 
 
+# class Handle:
+#     nextValue = 0x88880000  # Start of Handle IDs
+
+#     def __init__(self, type: HandleType, data=None, name='', handleValue=0):
+#         if handleValue == 0:
+#             # Generate Handle Value
+#             handleValue = Handle.nextValue
+#             Handle.nextValue += 8
+#         self.value = handleValue
+#         self.type = type
+#         self.name = name
+#         self.data = data
+#         HandlesDict.update({self.value: self})
+
 class Handle:
-    nextValue = 0x88880000  # Start of Handle IDs
+    nextValue = 0x88880000
 
     def __init__(self, type: HandleType, data=None, name='', handleValue=0):
+        # print("Handle.__init__ incoming handleValue =", repr(handleValue), hex(handleValue) if isinstance(handleValue, int) else handleValue)
+
         if handleValue == 0:
-            # Generate Handle Value
+            # print("handleValue was 0, generating new one")
             handleValue = Handle.nextValue
             Handle.nextValue += 8
+
         self.value = handleValue
         self.type = type
         self.name = name
         self.data = data
+
+        # print("Handle.__init__ self.value =", repr(self.value), hex(self.value) if isinstance(self.value, int) else self.value)
+
         HandlesDict.update({self.value: self})
