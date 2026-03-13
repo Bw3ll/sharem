@@ -17,7 +17,7 @@ if __name__ == "__main__":
 
 
 Additional information:
-  PE architecture is auto detected on Windows. But on Linux it's 32bit only.
+  PE architecture is auto detected on Windows. But on Linux it's 32bit only. Linux is not officially supported, but it can be made to run on it and will work for a vast majority of cases. 
   Shellcodes could be .txt, .bin, or without extension.
   The .txt is an ascii representation of raw bytes.
   If -d argument is used, the shellcode will be processed as 32 and 64 bit since the architecture is unknown.
