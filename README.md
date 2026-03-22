@@ -17,7 +17,8 @@ If you are new to SHAREM, feel free to check out a brief demo video, showcasing 
 
 ## Recent Updates
 March 2026: SHAREM will load up to 61 DLLs when starting, but with the latest update, it now can support 369 DLLs and 45538 unique WinAPIs. Additionally, DLLs are loaded on demand as need be. Windows internal features (such as module lists, flinks, blinks, etc.) will automatically be updated if any additional DLLs need to loaded, e.g. via LoadLibraryA. There have been numerous other updates to improve the functionality. Changes have been made to help streamline some issues I have had reported to me regarding installation challenges. 
-March 22, 2026: The logic for breaking out of loops has been refined with more nuance. 
+
+March 22, 2026: The logic for breaking out of loops has been refined with more nuance. Much of this has been rewritten and retested. We do not recommend generally changing the default in the config.cfg, if you decide to use this feature.
 
 2024/2025: SHAREM optionally can leverage AI to analyze results, with an OpenAI key (user-supplied). Note that SHAREM was made prior to recent advances in AI, and its usage of AI only occurs after SHAREM's initial analysis is complete. This optional feature can allow it examine what has been found and apply it to the MITRE ATT&CK framework and so much more. 
 
