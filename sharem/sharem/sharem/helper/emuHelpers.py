@@ -688,6 +688,8 @@ def constConvert(uc, string):
 def callback(match):
     return next(callback.v)
 
+
+
 def getJmpFlag(mnemonic):
     if re.match("^(je)|(jz)|(jne)|(jnz)", mnemonic, re.M|re.I):
         return "zf"
@@ -705,6 +707,14 @@ def getJmpFlag(mnemonic):
         return "sf"
     elif re.match("^(ja)|(jnbe)", mnemonic, re.M|re.I):
         return "cz"
+    elif re.match("^(jecxz)|(jcxz)", mnemonic, re.M|re.I):
+        return "cxz"
+    elif re.match("^(loop)$", mnemonic, re.M|re.I):
+        return "loop"
+    elif re.match("^(loope)|(loopz)", mnemonic, re.M|re.I):
+        return "loopz"
+    elif re.match("^(loopne)|(loopnz)", mnemonic, re.M|re.I):
+        return "loopnz"
     else:
         return ""
 
@@ -767,8 +777,181 @@ def retEnding(uc, mnemonic):
         return True
     else:
         return False
+def boolFollowJump(jmpFlag, jmpType, eflags, uc=None):
+    # from unicorn import reg_read
 
-def boolFollowJump(jmpFlag, jmpType, eflags):
+    # print ("boolFollowJump jmpFlag", jmpFlag, "jmpType", jmpType )
+    myEcx=uc.reg_read(UC_X86_REG_ECX)
+    # ZF Flag
+    if jmpFlag == "zf":
+        zf = getBit(eflags, 6)
+        if zf == 0:
+            if jmpType == 'jne' or jmpType == 'jnz':
+                return False
+            else:
+                return True
+        else:
+            if jmpType == 'jne' or jmpType == 'jnz':
+                return True
+            else:
+                return False
+
+    # OF, SF, and ZF Flags
+    elif jmpFlag == "osz":
+        zf = getBit(eflags, 6)
+        sf = getBit(eflags, 7)
+        of = getBit(eflags, 11)
+
+        if zf == 0 and sf == of:
+            if jmpType == 'jg' or jmpType == 'jnle':
+                return False
+            else:
+                return True
+        else:
+            if jmpType == 'jg' or jmpType == 'jnle':
+                return True
+            else:
+                return False
+
+    # OF and SF Flags
+    elif jmpFlag == "os":
+        sf = getBit(eflags, 7)
+        of = getBit(eflags, 11)
+
+        if sf == of:
+            if jmpType == 'jge' or jmpType == 'jnl':
+                return False
+            else:
+                return True
+        else:
+            if jmpType == 'jge' or jmpType == 'jnl':
+                return True
+            else:
+                return False
+
+    # CF Flag
+    elif jmpFlag == "cf":
+        cf = getBit(eflags, 0)
+
+        if cf == 0:
+            if jmpType == 'jnb' or jmpType == 'jae' or jmpType == 'jnc':
+                return False
+            else:
+                return True
+
+        else:
+            if jmpType == 'jb' or jmpType == 'jnae' or jmpType == 'jc':
+                return False # was True
+            else:
+                return True # was False
+
+    elif jmpFlag == "of":
+        of = getBit(eflags, 11)
+
+        if of == 0:
+            if jmpType == 'jno':
+                return False
+            else:
+                return True
+        else:
+            if jmpType == 'jno':
+                return True
+            else:
+                return False
+
+    elif jmpFlag == "pf":
+        of = getBit(eflags, 2)
+
+        if of == 0:
+            if jmpType == 'jnp' or jmpType == 'jpo':
+                return False
+            else:
+                return True
+        else:
+            if jmpType == 'jnp' or jmpType == 'jpo':
+                return True
+            else:
+                return False
+
+    elif jmpFlag == "sf":
+        sf = getBit(eflags, 7)
+
+        if sf == 0:
+            if jmpType == 'jns':
+                return False
+            else:
+                return True
+        else:
+            if jmpType == 'jns':
+                return True
+            else:
+                return False
+
+    elif jmpFlag == "cz":
+        cf = getBit(eflags, 0)
+        zf = getBit(eflags, 6)
+
+        if cf == 0 and zf == 0:
+            if jmpType == 'ja' or jmpType == 'jnbe':
+                return False
+            else:
+                return True
+        else:
+            if jmpType == 'ja' or jmpType == 'jnbe':
+                return True
+            else:
+                return False
+    elif jmpFlag == "cxz":
+        if uc is None:
+            return True
+
+        if jmpType == "jecxz":
+            if  myEcx == 0:
+                return False
+            else:
+                return True
+
+        elif jmpType == "jcxz":
+            if (myEcx & 0xFFFF) == 0:
+                return False
+            else:
+                return True
+
+    elif jmpFlag == "loop":
+        if uc is None:
+            return True
+
+        ecxVal = (myEcx - 1) & 0xFFFFFFFF
+        if ecxVal != 0:
+            return False
+        else:
+            return True
+
+    elif jmpFlag == "loopz":
+        if uc is None:
+            return True
+
+        ecxVal = (myEcx - 1) & 0xFFFFFFFF
+        zf = getBit(eflags, 6)
+
+        if ecxVal != 0 and zf == 1:
+            return False
+        else:
+            return True
+
+    elif jmpFlag == "loopnz":
+        if uc is None:
+            return True
+
+        ecxVal = (myEcx - 1) & 0xFFFFFFFF
+        zf = getBit(eflags, 6)
+
+        if ecxVal != 0 and zf == 0:
+            return False
+        else:
+            return True
+    return True
+def boolFollowJumpOld(jmpFlag, jmpType, eflags):
     # print ("boolFollowJump jmpFlag", jmpFlag, "jmpType", jmpType )
     
     # ZF Flag
@@ -965,7 +1148,7 @@ def getRetVal(retVal, retType=""):
         retBundle="None"
     return retBundle
 
-def buildPtrString(pointer, val):
+def buildPtrString (pointer, val):
     return hex(pointer) + " -> " + hex(val)
 
 def getPointerVal(uc, pointer):

@@ -223,6 +223,8 @@ logged_dlls = []
 paramValues = []
 network_activity = {}
 jmpInstructs = {}
+JmpInstructLast = {}
+jmpInstructsLifetime ={}
 address_range = []
 
 traversedAdds = set()
@@ -334,7 +336,98 @@ def calculateAddressesSkipCCC():
                 skipForCoverage.add(address)
                 address=address+1
 
-def breakLoop(uc, jmpFlag, jmpType, op_str, addr, size):
+def breakLoop(uc, jmpFlag, jmpType, op_str, addr, size, jumpAddr=-1, maxBkLim=None,Lifetime=False):
+    # print (gre,"breakLoop",yel, jmpType,cya, hex(addr), res)
+    try:    
+        eflags = uc.reg_read(UC_X86_REG_EFLAGS)
+        jmpLoc = addr + size
+        takeJump = False
+
+        # Figure out what the jump would do right now
+        if jmpType == "jmp":
+            # print (mag,"jmp",res, cya,hex(addr),res)
+            takeJump = True
+
+        elif jmpType == "jecxz":
+            # print (mag,"jmp",res)
+            takeJump = (uc.reg_read(UC_X86_REG_ECX) == 0)
+
+        elif jmpType == "jcxz":
+            # print (mag,"jcxz",res)
+            takeJump = ((uc.reg_read(UC_X86_REG_ECX) & 0xFFFF) == 0)
+
+        elif jmpType == "loop":
+            # print (mag,"loop",res)
+            ecxVal = (uc.reg_read(UC_X86_REG_ECX) - 1) & 0xFFFFFFFF
+            takeJump = (ecxVal != 0)
+
+        elif jmpType == "loope" or jmpType == "loopz":
+            # print (mag,"loope",res)
+            ecxVal = (uc.reg_read(UC_X86_REG_ECX) - 1) & 0xFFFFFFFF
+            zf = getBit(eflags, 6)
+            takeJump = (ecxVal != 0 and zf == 1)
+
+        elif jmpType == "loopne" or jmpType == "loopnz":
+            # print (mag,"loopne",res)
+            ecxVal = (uc.reg_read(UC_X86_REG_ECX) - 1) & 0xFFFFFFFF
+            zf = getBit(eflags, 6)
+            takeJump = (ecxVal != 0 and zf == 0)
+
+        elif jmpFlag != "":
+            # print (mag,"elif jmpFlag != "":",yel, jmpFlag,red, jmpType, res)
+            # boolFollowJump() in your code really means "fall through?"
+            takeJump = (boolFollowJump(jmpFlag, jmpType, eflags,uc) == False)
+
+        # break out by forcing the OPPOSITE of the current behavior
+        if takeJump:
+            # was going to jump -> force fall-through
+            jmpLoc = addr + size
+        else:
+            # was going to fall through -> force the jump target
+            if jumpAddr != -1 and "0x12" in op_str:
+                jmpLoc = jumpAddr
+            else:
+                # fallback to old parsing style, but validate against maps instead of "0x12"
+                tryLoc = -1
+
+                try:
+                    tryLoc = int(op_str, 16)
+                except:
+                    try:
+                        if "0x" in op_str:
+                            print (yel,"SIGNED",gre)
+                            tryLoc = addr + signedNegHexTo(op_str)
+                        else:
+                            tryLoc = addr + int(op_str)
+                    except:
+                        try:
+                            tryLoc = addr + int(op_str, 16)
+                        except:
+                            tryLoc = -1
+
+                if tryLoc != -1:# and maps.containsAddr(tryLoc):
+                    jmpLoc = tryLoc
+                else:
+                    jmpLoc = addr + size
+
+        uc.reg_write(UC_X86_REG_EIP, jmpLoc)
+        if not Lifetime:
+            print(cya + "\t[*] " + res2 + "Breaking out of a loop at " + gre + hex(addr) + res2 +
+                  " - going to " + red + hex(jmpLoc) + res2 + ". Reached " + hex(maxBkLim)+".")
+            print (blu,"jmpType",res,jmpType, blu,"address",res,hex(addr),gre, "jumpAddr",res, hex(jumpAddr))
+            if verbose:
+                outFile.write("***** Breaking out of a loop at " + hex(addr) + " - going to " + hex(jmpLoc) + ".Reached " + hex(maxBkLim)+".\n")
+        else:
+            print(cya + "\t[*] " + res2 + "Breaking out of a loop at " + gre + hex(addr) + yel +
+                  "(lifetime limit) " +res+"- going to " + red + hex(jmpLoc) + res2 + ". Reached " + hex(maxBkLim)+".")
+            print (blu,"jmpType",res,jmpType, blu,"address",res,hex(addr),gre, "jumpAddr",res, hex(jumpAddr))
+            if verbose:
+                outFile.write("***** Breaking out of a loop at " + hex(addr) + "(lifetime limit) - going to " + hex(jmpLoc) + ".Reached " + hex(maxBkLim)+".\n")
+            
+
+    except Exception as e:
+        print (e, traceback.format_exc())
+def breakLoopOld(uc, jmpFlag, jmpType, op_str, addr, size):
     eflags = uc.reg_read(UC_X86_REG_EFLAGS)
     # print ("eflags", eflags)
     jmpLoc=0
@@ -402,12 +495,7 @@ def catch_windows_api(uc, addr, ret, size, funcAddress,valInstruction=None):
         funcInfo, cleanBytes = getattr(WinAPI, funcName)(uc, eip, esp, export_dict, addr, em)
         logCall(funcName, funcInfo)
         # print ("funcName", funcName)
-    except Exception as e:
-        if hasattr(WinAPI, funcName):
-            print("\n\n" + '-'*50)
-            print("Error during function analysis. Reverting to default hook.\nPlease report this to: https://github.com/Bw3ll/sharem/issues \n\n")
-            traceback.print_exc()
-            print('-'*50 + "\n\n")
+    except:
         try:
             bprint("hook_default", funcAddress)
             hook_default(uc, eip, esp, funcAddress, export_dict[funcAddress][0], addr)
@@ -615,15 +703,28 @@ def hook_code(uc, address, size, user_data):
 
     # If jmp instruction, increment jmp counter to track for infinite loop and track in code coverage
     jmpFlag = getJmpFlag(mnemonic)
-    if jmpFlag != "":
-        if address not in jmpInstructs:
-            jmpInstructs[address] = 1
-        else:
-            jmpInstructs[address] += 1
+    # if jmpFlag != "":
+    if jmpFlag != "" or mnemonic == "jmp" or mnemonic == "jecxz" or mnemonic == "jcxz" or mnemonic == "loop" or mnemonic == "loope" or mnemonic == "loopz" or mnemonic == "loopne" or mnemonic == "loopnz":
+        # if address not in jmpInstructs:
+        #     jmpInstructs[address] = 1
+        # else:
+        #     jmpInstructs[address] += 1
 
-        if jmpInstructs[address] >= em.maxLoop and em.breakOutOfLoops:
-            breakLoop(uc, jmpFlag, mnemonic, op_str, address, len(shells))
-            jmpInstructs[address] = 0
+        # if jmpInstructs[address] >= em.maxLoop and em.breakOutOfLoops:
+        #     breakLoop(uc, jmpFlag, mnemonic, op_str, address, len(shells))
+        #     jmpInstructs[address] = 0
+        # em.maxLoop = 30
+        if em.breakOutOfLoops:
+            if address not in jmpInstructs:
+                jmpInstructs[address] = 1
+                # print ("maxLoop", em.maxLoop)
+            else:
+                jmpInstructs[address] += 1
+            
+            if jmpInstructs[address] >= em.maxLoop:
+                # print (1)
+                breakLoop(uc, jmpFlag, mnemonic, op_str, address, size, jumpAddr, jmpInstructs[address])
+                jmpInstructs[address] = 0
 
         # track for code coverage
         if address not in traversedAdds and em.codeCoverage == True:
